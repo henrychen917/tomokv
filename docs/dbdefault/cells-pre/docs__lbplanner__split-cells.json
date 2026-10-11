@@ -1,0 +1,39 @@
+{
+  "subset": "full",
+  "count": 4,
+  "ids": [
+    "h53",
+    "h54",
+    "h21",
+    "h22"
+  ],
+  "modes": [
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "SET"
+  ],
+  "depths": [
+    1,
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "latency_ms",
+    "rate"
+  ],
+  "pending_pins": []
+}

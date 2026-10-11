@@ -1,0 +1,1 @@
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147454", "lane": 1, "hot": 0, "other": 0}

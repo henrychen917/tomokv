@@ -1,0 +1,50 @@
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31725 --param max-inline-insns-auto=16", "unit": 24289, "changed": 11, "hot_changed": 0, "A": 3, "B": 2, "C": 6, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.cb4d381f4df3.o"}
+    C T=new code 16644->16383 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 340->346 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+    C T=new code 360->593 lanes=- eq=- void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [c
+    C T=new code 512->317 lanes=- eq=- tomo_db0::command_client_set_info(tomo_db0::Client*, tomo_db0::Slice, tomo_db0::Slice)
+    C T=new code 61->29 lanes=- eq=- tomo_db0::command_client_set_info(tomo_db0::Client*, tomo_db0::Slice, tomo_db0::Slice) [clone .cold]
+    C T=new added 0->204 lanes=- eq=- tomo_db0::Server::shard_owner_count() const
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31737 --param max-inline-insns-auto=16", "unit": 24289, "changed": 12, "hot_changed": 0, "A": 3, "B": 2, "C": 7, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.e5efafff0e04.o"}
+    C T=new code 663->653 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 16644->16383 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 340->346 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+    C T=new code 360->593 lanes=- eq=- void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [c
+    C T=new code 512->317 lanes=- eq=- tomo_db0::command_client_set_info(tomo_db0::Client*, tomo_db0::Slice, tomo_db0::Slice)
+    C T=new code 61->29 lanes=- eq=- tomo_db0::command_client_set_info(tomo_db0::Client*, tomo_db0::Slice, tomo_db0::Slice) [clone .cold]
+    C T=new added 0->204 lanes=- eq=- tomo_db0::Server::shard_owner_count() const
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31750 --param max-inline-insns-auto=16", "unit": 24289, "changed": 8, "hot_changed": 0, "A": 3, "B": 2, "C": 3, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.2883cd2ee6c1.o"}
+    C T=new code 16644->16383 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 340->346 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+    C T=new added 0->204 lanes=- eq=- tomo_db0::Server::shard_owner_count() const
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31760 --param max-inline-insns-auto=16", "unit": 24289, "changed": 9, "hot_changed": 0, "A": 3, "B": 2, "C": 4, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.3afbcbbbe9ad.o"}
+    C T=new code 7347->7393 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 16644->16383 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 340->346 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+    C T=new added 0->204 lanes=- eq=- tomo_db0::Server::shard_owner_count() const
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31766 --param max-inline-insns-auto=16", "unit": 24289, "changed": 8, "hot_changed": 0, "A": 3, "B": 2, "C": 3, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.67c6bbcc61a1.o"}
+    C T=new code 16644->16383 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 340->346 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+    C T=new added 0->204 lanes=- eq=- tomo_db0::Server::shard_owner_count() const
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31770 --param max-inline-insns-auto=16", "unit": 24289, "changed": 9, "hot_changed": 0, "A": 3, "B": 2, "C": 4, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.9300dc67dd9a.o"}
+    C T=new code 663->653 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 16644->16383 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 340->346 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+    C T=new added 0->204 lanes=- eq=- tomo_db0::Server::shard_owner_count() const
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31776 --param max-inline-insns-auto=16", "unit": 24289, "changed": 5, "hot_changed": 0, "A": 3, "B": 2, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.ee63b08a0cc7.o"}
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31778 --param max-inline-insns-auto=16", "unit": 24289, "changed": 5, "hot_changed": 0, "A": 3, "B": 2, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.ab65a211b135.o"}
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31785 --param max-inline-insns-auto=16", "unit": 24289, "changed": 5, "hot_changed": 0, "A": 3, "B": 2, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.3dd7ee0ecf43.o"}
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31790 --param max-inline-insns-auto=16", "unit": 24289, "changed": 9, "hot_changed": 0, "A": 3, "B": 2, "C": 4, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.679cdd723451.o"}
+    C T=new code 16644->16383 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 340->346 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+    C T=new code 360->593 lanes=- eq=- void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [c
+    C T=new added 0->204 lanes=- eq=- tomo_db0::Server::shard_owner_count() const
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31800 --param max-inline-insns-auto=16", "unit": 24289, "changed": 10, "hot_changed": 0, "A": 3, "B": 2, "C": 5, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.f2dd8393a28d.o"}
+    C T=new code 663->653 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 16644->16383 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 340->346 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+    C T=new code 360->593 lanes=- eq=- void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [c
+    C T=new added 0->204 lanes=- eq=- tomo_db0::Server::shard_owner_count() const
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31820 --param max-inline-insns-auto=16", "unit": 24289, "changed": 7, "hot_changed": 0, "A": 3, "B": 2, "C": 2, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.dde2d8145b5b.o"}
+    C T=new code 7347->7393 lanes=- eq=- tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)
+    C T=new code 360->593 lanes=- eq=- void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [c

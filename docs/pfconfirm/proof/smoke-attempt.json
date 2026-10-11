@@ -1,0 +1,11 @@
+{
+  "command": "taskset -c 112-127 docs/pfconfirm/run.sh --smoke --output build/pfconfirm-smoke",
+  "driver_commit": "ca6fdb1aa",
+  "exit_code": 3,
+  "verdict": "REFUSED",
+  "server_boots": 0,
+  "load_generators": 0,
+  "quiet_retry": false,
+  "full_bench_runs": 0,
+  "limitation": "No live trigger was exercised: the strict quiet screen refused before any executable was staged or started."
+}

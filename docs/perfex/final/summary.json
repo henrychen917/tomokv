@@ -1,0 +1,124 @@
+{
+  "production_source_commit": "2da33be5e",
+  "pre_commit": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "arms": {
+    "PRE": {
+      "binary": "build/perfex/pre/tomokv",
+      "sha256": "bafacf2dc91dc3e16e53724bcd7733f6119be9447636d7d5094b85d1b809e48e"
+    },
+    "POST": {
+      "binary": "build/tomokv",
+      "sha256": "81b0b26dceaea4d78201fd26b84c3af9929613467549710a53c1915b8e759d54"
+    },
+    "PAD_B": {
+      "binary": "build/perfex/pad-b/tomokv",
+      "sha256": "1e15bc3ef66baf627c2e3fc1410db2d1597059f83872bafa860fa1e799f0dcf7"
+    }
+  },
+  "proof": {
+    "release_build": "PASS",
+    "production_targets_built_and_fresh": 28,
+    "mdbqsbr_live_arms_build": "PASS",
+    "gates_test": {
+      "passed": 66,
+      "failed": 0
+    },
+    "wbland_clauses": {
+      "passed": 83,
+      "total": 83
+    },
+    "storesize_positive_and_negative_controls": "PASS",
+    "exbatch": {
+      "publication": 4,
+      "watch": 20,
+      "metadata": 8
+    },
+    "new_gate_rows": {
+      "pre_failed": 4,
+      "post_passed": 4
+    },
+    "differential": {
+      "split_legs": 24,
+      "armed_fused_legs": 24,
+      "read_local_arming_witnesses": 2,
+      "failures": 0
+    },
+    "infofix_after_bounded_beat_wait": {
+      "1s": 41,
+      "2s": 41
+    },
+    "lbsignals": {
+      "1s": {
+        "passed": 47,
+        "existing_inapplicable_skips": 7
+      },
+      "2s": {
+        "passed": 59,
+        "skipped": 0
+      }
+    },
+    "pfconfirm_units": {
+      "passed": 28
+    },
+    "pad_binary_checks": "PASS",
+    "source_boundaries": "PASS",
+    "locked_sizes_and_existing_offsets": "PASS"
+  },
+  "ledger": {
+    "status": "REFUSED_OWNER_COUNTS_UNCHANGED",
+    "base_quick": 511,
+    "base_full": 528,
+    "DQ": 4,
+    "DF": 4,
+    "required_quick": 515,
+    "required_full": 532,
+    "source_and_fixture_labels": 532,
+    "missing_labels": [],
+    "extra_labels": []
+  },
+  "identity": {
+    "stock_hot": {
+      "tomo": {
+        "total": 601,
+        "identical": 594,
+        "changed": 7
+      },
+      "tomo_db0": {
+        "total": 603,
+        "identical": 593,
+        "changed": 10
+      }
+    },
+    "full_bodies": 16297,
+    "full_identical": 16221,
+    "full_hot": 1208,
+    "full_hot_identical": 1187,
+    "handlers": 1210,
+    "handlers_identical": 1210,
+    "unrelated_requested_hot": [],
+    "outside_hot_selection_changes": 25,
+    "scope": "Canonical opcodes and resolved relocation targets; nonselected changes remain listed"
+  },
+  "retained_failures": {
+    "final/infofix-2s.log": "Immediate-monitoring assumption; replaced by bounded wait in test, then 41/41 in both modes",
+    "raw_byte_checker_exit_1": "Intentional production-body differences; complete inventory retained",
+    "earlier_proof": "See ../initial-proof.json and ../clock-order-proof.json; split HPTTL regression fixed before final build"
+  },
+  "measurements": {
+    "status": "QUIET_REFUSED_BEFORE_BOOT",
+    "budget_cpu_seconds": 0.48,
+    "budget_window_seconds": 20,
+    "pfconfirm_smoke_pre_cpu_seconds": 16.27,
+    "pfconfirm_smoke_post_cpu_seconds": 16.49,
+    "perf_pre_cpu_seconds": 16.3,
+    "perf_post_cpu_seconds": 16.36,
+    "ttls_cpu_seconds": 16.1,
+    "pmu_windows": 0,
+    "expiry_windows": 0,
+    "SMOKE_OK": false,
+    "additional_ttl_warning": "Standing null instrument fingerprint differs"
+  },
+  "full_gate_run": false,
+  "mainline_merit_run": false,
+  "pushed": false
+}

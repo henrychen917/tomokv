@@ -1,0 +1,120 @@
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127900", "lane": 3, "hot": 0, "other": 9}
+    OTHER 947 -> 963 tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonym
+    OTHER 1072 -> 1072 tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 592 -> 525 tomo::FlatStore::retire_detached_obj(tomo::KvObj*)
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 5840 -> 5851 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx
+    OTHER 3670 -> 3686 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127904", "lane": 3, "hot": 0, "other": 6}
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 592 -> 525 tomo::FlatStore::retire_detached_obj(tomo::KvObj*)
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 3670 -> 3715 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127908", "lane": 3, "hot": 0, "other": 9}
+    OTHER 947 -> 963 tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonym
+    OTHER 1072 -> 1072 tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 592 -> 525 tomo::FlatStore::retire_detached_obj(tomo::KvObj*)
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 5840 -> 5851 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx
+    OTHER 3670 -> 3715 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127912", "lane": 3, "hot": 0, "other": 8}
+    OTHER 1314 -> 1374 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 118 -> 129 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 592 -> 525 tomo::FlatStore::retire_detached_obj(tomo::KvObj*)
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 3670 -> 3715 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127916", "lane": 3, "hot": 0, "other": 11}
+    OTHER 947 -> 963 tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonym
+    OTHER 1072 -> 1072 tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+    OTHER 1314 -> 1374 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 118 -> 129 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 592 -> 525 tomo::FlatStore::retire_detached_obj(tomo::KvObj*)
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 5840 -> 5851 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx
+    OTHER 3670 -> 3715 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127920", "lane": 3, "hot": 0, "other": 7}
+    OTHER 947 -> 963 tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonym
+    OTHER 1072 -> 1072 tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 3670 -> 3686 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127924", "lane": 3, "hot": 0, "other": 6}
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 5840 -> 5851 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx
+    OTHER 3670 -> 3686 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127928", "lane": 3, "hot": 0, "other": 7}
+    OTHER 947 -> 963 tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonym
+    OTHER 1072 -> 1072 tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 3670 -> 3715 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127932", "lane": 3, "hot": 0, "other": 6}
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 5840 -> 5851 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx
+    OTHER 3670 -> 3715 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127936", "lane": 3, "hot": 0, "other": 9}
+    OTHER 947 -> 963 tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonym
+    OTHER 1072 -> 1072 tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+    OTHER 1314 -> 1374 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 118 -> 129 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 3670 -> 3715 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127940", "lane": 3, "hot": 0, "other": 8}
+    OTHER 1314 -> 1374 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 118 -> 129 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 5840 -> 5851 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx
+    OTHER 3670 -> 3715 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127944", "lane": 3, "hot": 0, "other": 11}
+    OTHER 947 -> 963 tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonym
+    OTHER 2509 -> 2542 tomo::(anonymous namespace)::BlockingRegistry::add(tomo::Shard&, tomo::BlockingState&, unsigned int)
+    OTHER 803 -> 807 tomo::(anonymous namespace)::BlockingRegistry::add(tomo::Shard&, tomo::BlockingState&, unsigned int) [clone .cold]
+    OTHER 1072 -> 1072 tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+    OTHER 1314 -> 1374 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 118 -> 129 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 3670 -> 3715 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127948", "lane": 3, "hot": 0, "other": 10}
+    OTHER 2509 -> 2542 tomo::(anonymous namespace)::BlockingRegistry::add(tomo::Shard&, tomo::BlockingState&, unsigned int)
+    OTHER 803 -> 807 tomo::(anonymous namespace)::BlockingRegistry::add(tomo::Shard&, tomo::BlockingState&, unsigned int) [clone .cold]
+    OTHER 1314 -> 1374 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 118 -> 129 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 3308 -> 3454 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 45 -> 45 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 5840 -> 5851 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx
+    OTHER 3670 -> 3715 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato

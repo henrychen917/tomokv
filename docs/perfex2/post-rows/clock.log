@@ -1,0 +1,5 @@
+{"body": "tomo::ExLoopT<false>::run()", "cpu_clock_sites": 1, "clocks_reachable_without_beat": 0}
+{"body": "tomo::ExLoopT<true>::run()", "cpu_clock_sites": 1, "clocks_reachable_without_beat": 0}
+{"body": "tomo_db0::ExLoopT<false>::run()", "cpu_clock_sites": 1, "clocks_reachable_without_beat": 0}
+{"body": "tomo_db0::ExLoopT<true>::run()", "cpu_clock_sites": 1, "clocks_reachable_without_beat": 0}
+PASS EX4.12

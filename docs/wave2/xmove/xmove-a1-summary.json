@@ -1,0 +1,217 @@
+{
+  "binary": "/home/user/Projects/cx-wave2/build/tomokv",
+  "sha256": "f7e597bf67e7d768ccf1f3d226f998def8bbea794b72e4a29d9529ad1991f5fa",
+  "runs": 10,
+  "atomics": [
+    1
+  ],
+  "contend": false,
+  "serial": [
+    {
+      "atomic": 1,
+      "cell": "control",
+      "order": "push after hop two",
+      "got": "(b'moved', 2, [b'keep', b'control'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 2, [b'keep', b'control'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 1,
+      "cell": "control",
+      "order": "push before hop one",
+      "got": "(b'moved', 3, [b'keep', b'control'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 3, [b'keep', b'control'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 1,
+      "cell": "forced",
+      "order": "push after hop two",
+      "got": "(b'moved', 2, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 2, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 1,
+      "cell": "forced",
+      "order": "push before hop one",
+      "got": "(b'moved', 3, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 3, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 1,
+      "cell": "same_edge",
+      "order": "push after hop two",
+      "got": "(b'moved', 2, [b'new-edge', b'keep'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 2, [b'new-edge', b'keep'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 1,
+      "cell": "same_edge",
+      "order": "push before hop one",
+      "got": "(b'new-edge', 3, [b'moved', b'keep'], [b'dest', b'new-edge'])",
+      "wanted": "(b'new-edge', 3, [b'moved', b'keep'], [b'dest', b'new-edge'])",
+      "matches": true
+    }
+  ],
+  "repetitions": {
+    "fixed-a1": {
+      "runs": 10,
+      "passed": 10,
+      "retried_orders": [],
+      "retry_count": 0,
+      "rows": [
+        {
+          "run": 1,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 2,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 3,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 4,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 5,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 6,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 7,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 8,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 9,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 10,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        }
+      ]
+    },
+    "pre-fix-a1": {
+      "runs": 10,
+      "passed": 10,
+      "retried_orders": [],
+      "retry_count": 0,
+      "rows": [
+        {
+          "run": 1,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 2,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 3,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 4,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 5,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 6,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 7,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 8,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 9,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 10,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        }
+      ]
+    }
+  }
+}

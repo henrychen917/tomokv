@@ -1584,8 +1584,8 @@ private:
         if constexpr (kEp) {
             if (!migration->destination_registered || migration->source_backup_fd < 0)
                 std::abort();
-            ::close(migration->source_backup_fd); // removes the reserved source registration
-            migration->source_backup_fd = -1;
+            if (!ep_.del(migration->source_backup_fd)) std::abort(); // dup close alone leaves interest
+            ::close(migration->source_backup_fd); migration->source_backup_fd = -1;
         }
         void* const catalog = migration->catalog;
         void* const routing = migration->routing;

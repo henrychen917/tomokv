@@ -1,0 +1,12 @@
+# same commands against PRE 991d48f65 sources + this lane's test files
+FAIL	armed resize retirement: atomic-growth	see /tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/rows-PRE/rlresize-atomic-growth.log
+FAIL	armed resize retirement: flush-prepared	see /tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/rows-PRE/rlresize-flush-prepared.log
+--- rlresize-atomic-growth.log
+ARMED atomic growth 128 -> 256 slots, boot reservation already consumed
+FAIL atomic growth: child killed by signal 6 (Aborted)
+--- rlresize-flush-prepared.log
+ARMED flush between snapshot prepare and mark; merging 1024 old slots
+FAIL flush between snapshot prepare and mark: child killed by signal 6 (Aborted)
+armed=0 merge stalled: 256 post-flush keys, 128-slot destination, old cursor 486/1024, 128 keys unmoved
+FAIL: post-capture merge completes: the prepared table holds the flushed shard
+FAIL	storage flush-prepared-capacity regression

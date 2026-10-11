@@ -1,0 +1,90 @@
+[
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_flushERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1802,
+    "post_size": 1834,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db032command_client_migration_extractEPNS_6ClientE",
+    "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 608,
+    "post_size": 592,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db09FlatStore5clearEv",
+    "name": "tomo_db0::FlatStore::clear()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 840,
+    "post_size": 856,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db09FlatStore5clearEv",
+    "name": "tomo_db0::FlatStore::clear()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 840,
+    "post_size": 856,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db010AofManagerD1Ev",
+    "name": "tomo_db0::AofManager::~AofManager()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1435,
+    "post_size": 1403,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db010AofManagerD2Ev",
+    "name": "tomo_db0::AofManager::~AofManager()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1435,
+    "post_size": 1403,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_113manifest_nameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+    "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1698,
+    "post_size": 1698,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db09FlatStore5clearEv",
+    "name": "tomo_db0::FlatStore::clear()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 840,
+    "post_size": 856,
+    "classification": "other"
+  }
+]

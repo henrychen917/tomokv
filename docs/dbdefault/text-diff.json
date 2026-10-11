@@ -1,0 +1,20 @@
+{
+  "text_size_pre": 7646972,
+  "text_size_post": 7646972,
+  "address_pre": 120528,
+  "address_post": 120528,
+  "differences": [
+    {
+      "offset": 421032,
+      "virtual_address": "0x84378",
+      "pre": 1,
+      "post": 16
+    },
+    {
+      "offset": 4103832,
+      "virtual_address": "0x407568",
+      "pre": 1,
+      "post": 16
+    }
+  ]
+}

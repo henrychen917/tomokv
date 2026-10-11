@@ -1,0 +1,70 @@
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31343", "lane": 2, "hot": 0, "other": 5}
+    OTHER 16917 -> 16649 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    OTHER 346 -> 338 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 608 tomo::command_client_migration_extract(tomo::Client*)
+    OTHER 0 -> 204 tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31347", "lane": 2, "hot": 0, "other": 6}
+    OTHER 7393 -> 7347 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    OTHER 16917 -> 16649 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    OTHER 346 -> 338 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 608 tomo::command_client_migration_extract(tomo::Client*)
+    OTHER 0 -> 204 tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31351", "lane": 2, "hot": 0, "other": 5}
+    OTHER 16917 -> 16649 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    OTHER 346 -> 338 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 608 tomo::command_client_migration_extract(tomo::Client*)
+    OTHER 0 -> 204 tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31355", "lane": 2, "hot": 0, "other": 6}
+    OTHER 7393 -> 7347 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    OTHER 16917 -> 16649 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    OTHER 346 -> 338 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 624 tomo::command_client_migration_extract(tomo::Client*)
+    OTHER 0 -> 204 tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31359", "lane": 2, "hot": 0, "other": 3}
+    OTHER 7393 -> 7347 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 608 tomo::command_client_migration_extract(tomo::Client*)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31363", "lane": 2, "hot": 0, "other": 3}
+    OTHER 7393 -> 7347 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 608 tomo::command_client_migration_extract(tomo::Client*)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31367", "lane": 2, "hot": 0, "other": 3}
+    OTHER 7393 -> 7347 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 608 tomo::command_client_migration_extract(tomo::Client*)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31371", "lane": 2, "hot": 0, "other": 3}
+    OTHER 7393 -> 7347 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 608 tomo::command_client_migration_extract(tomo::Client*)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31375", "lane": 2, "hot": 0, "other": 3}
+    OTHER 7393 -> 7347 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 624 tomo::command_client_migration_extract(tomo::Client*)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31379", "lane": 2, "hot": 0, "other": 2}
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 624 tomo::command_client_migration_extract(tomo::Client*)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31383", "lane": 2, "hot": 0, "other": 3}
+    OTHER 7393 -> 7347 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 656 tomo::command_client_migration_extract(tomo::Client*)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31387", "lane": 2, "hot": 0, "other": 7}
+    OTHER 7393 -> 7347 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    OTHER 16917 -> 16649 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    OTHER 346 -> 338 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 608 tomo::command_client_migration_extract(tomo::Client*)
+    OTHER 3269 -> 3413 tomo::FlatStore::random_live()
+    OTHER 0 -> 204 tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31391", "lane": 2, "hot": 0, "other": 8}
+    OTHER 7393 -> 7347 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    OTHER 1027 -> 1043 tomo::(anonymous namespace)::snapshot_command(tomo::Op&, bool)
+    OTHER 16917 -> 16649 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    OTHER 346 -> 338 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    OTHER 1463 -> 1447 tomo::kvobj_external_bytes(tomo::KvObj const*)
+    OTHER 608 -> 608 tomo::command_client_migration_extract(tomo::Client*)
+    OTHER 3269 -> 3413 tomo::FlatStore::random_live()
+    OTHER 0 -> 204 tomo::Server::shard_owner_count() const

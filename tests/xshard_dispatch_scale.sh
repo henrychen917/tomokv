@@ -76,7 +76,7 @@ run_arm() {   # $1 = total thread count
   place=$(python3 -c "print(','.join(['ifid@$IO_A','ifid@$IO_B','ex@$EX_A','ex@$EX_B']+['ex@$FILL']*$nfill))")
   stop_arm
   [ -z "$(listener_pid "$PORT")" ] || { echo "XDS: port $PORT already listening"; return 1; }
-  taskset -c "$CPUS" "$BIN" --port "$PORT" --bind 127.0.0.1 --enable-debug-command yes \
+  taskset -c "$CPUS" "$BIN" --databases 1 --port "$PORT" --bind 127.0.0.1 --enable-debug-command yes \
       --key-lb 0 --client-lb 0 --flip-auto 0 --save '' --dir "$DATA_DIR" \
       --place "$place" --shards 16 --shard-home "$HOMES" >"$DATA_DIR/server-$t.log" 2>&1 &
   ACTIVE_PID=$!

@@ -1,0 +1,134 @@
+[
+  {
+    "object": "db0/src/cmd/storesize.o",
+    "symbol": "_ZN8tomo_db09FlatStore15storesize_clearEv",
+    "name": "tomo_db0::FlatStore::storesize_clear()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 5,
+    "post_size": 27,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_flushERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1802,
+    "post_size": 1813,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db020kvobj_external_bytesEPKNS_5KvObjE",
+    "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1482,
+    "post_size": 1447,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db032command_client_migration_extractEPNS_6ClientE",
+    "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 608,
+    "post_size": 592,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db09FlatStore5clearEv",
+    "name": "tomo_db0::FlatStore::clear()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 840,
+    "post_size": 843,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db09FlatStore5clearEv",
+    "name": "tomo_db0::FlatStore::clear()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 840,
+    "post_size": 843,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db010AofManager16debug_ack_windowEjRNS_4RingE",
+    "name": "tomo_db0::AofManager::debug_ack_window(unsigned int, tomo_db0::Ring&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 780,
+    "post_size": 796,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db010AofManagerD1Ev",
+    "name": "tomo_db0::AofManager::~AofManager()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1435,
+    "post_size": 1403,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db010AofManagerD2Ev",
+    "name": "tomo_db0::AofManager::~AofManager()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1435,
+    "post_size": 1403,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_113manifest_nameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+    "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1698,
+    "post_size": 1666,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db09FlatStore13make_room_forENS_5SliceEm",
+    "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 898,
+    "post_size": 898,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db09FlatStore5clearEv",
+    "name": "tomo_db0::FlatStore::clear()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 840,
+    "post_size": 843,
+    "classification": "other"
+  }
+]

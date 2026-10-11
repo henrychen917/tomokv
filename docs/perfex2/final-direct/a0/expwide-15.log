@@ -1,0 +1,2 @@
+  note S2/S3 window: 155 rounds x BITCOUNT(32MB) on each of 8 owners, 0.97ms a round
+expwide: 101 checks, 0 failures -> PASS

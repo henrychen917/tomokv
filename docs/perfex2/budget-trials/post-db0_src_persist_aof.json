@@ -1,0 +1,32 @@
+{
+  "arm": "post",
+  "object": "db0/src/persist/aof.o",
+  "size": [
+    "26347"
+  ],
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=34800",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/persist/aof.cc",
+    "-o",
+    "/home/user/Projects/cx-perfex/build/perfex2/unit-sizes/post-db0_src_persist_aof.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-perfex/build/perfex2/unit-sizes/post-db0_src_persist_aof.o"
+  ]
+}

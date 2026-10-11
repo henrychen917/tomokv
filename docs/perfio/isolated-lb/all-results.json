@@ -1,0 +1,26 @@
+[
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "exit": 0,
+    "receipt": "driver.log"
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "exit": 0,
+    "receipt": "docs/perfio/isolated-lb/1s-epoll/driver.log"
+  },
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "exit": 0,
+    "receipt": "docs/perfio/isolated-lb/2s-uring/driver.log"
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "exit": 0,
+    "receipt": "docs/perfio/isolated-lb/1s-uring/driver.log"
+  }
+]

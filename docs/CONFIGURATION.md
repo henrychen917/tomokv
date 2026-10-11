@@ -143,6 +143,9 @@ and zero disables each threshold (`tomokv.conf:94`, `src/core/io_loop.h:5306`).
 
 ## Persistence, databases, and memory
 
+The Redis-compatible default is `databases 16`. Paper and benchmark launches set
+`databases 1` explicitly to select the single-database image.
+
 Defaults: `src/core/config.h:342`, `:360`, `:371`; reference: `tomokv.conf:187`,
 `:246`, `:292`. `dir`, `dbfilename`, and `tcp-backlog` are explicitly rejected
 by CONFIG SET even though their table entries lack the immutable flag
@@ -162,7 +165,7 @@ by CONFIG SET even though their table entries lack the immutable flag
 | `aof-use-rdb-preamble` | R | Only `yes` (case-insensitive) | `yes` | Live, fixed value | — | Base is a TomoKV snapshot, not a Redis RDB; `no` refused; `src/core/config.h:997`, `src/cmd/t_server.cc:609`. |
 | `aof-timestamp-enabled` | R | `yes` or `no` (case-insensitive) | `no` | Live | — | Write AOF timestamp annotations; `src/core/config.h:1004`. |
 | `aof-load-truncated` | R | `yes` or `no` (case-insensitive) | `yes` | Live, next AOF load | — | Discard only an incomplete final increment tail, or refuse recovery; older increments remain strict. CONFIG SET stores the next-load policy and CONFIG REWRITE persists it; `src/core/config.h:1048`, `tomokv.conf:287`. |
-| `databases` | R | Integer 1..256 | `1` | Boot/GET | Related: `dbN` (Keyspace) | Logical namespaces in the shared store; SELECT 0..N−1; `src/core/config.h:933`, `src/cmd/t_server.cc:395`. |
+| `databases` | R | Integer 1..256 | `16` | Boot/GET | Related: `dbN` (Keyspace) | Logical namespaces in the shared store; SELECT 0..N−1; `src/core/config.h:933`, `src/cmd/t_server.cc:395`. |
 | `proto-max-bulk-len` | R | Memory, 1048576..4294901759 bytes | `512mb` (536870912) | Live | — | Request bulk-length bound, capped by TomoKV's Slice ABI; `src/core/config.h:140`, `:941`. |
 | `client-query-buffer-limit` | R | Memory syntax, 1048576..9223372036854775807; zero is rejected | `1gb` (1073741824) | Live | — | Bound on pending input plus queued MULTI arguments; overflow closes the connection without a reply, before AUTH too; `src/core/config.h:965`, `tomokv.conf:306`. |
 | `maxmemory` | R | Memory, u64 bytes | `0` | Live | — | Store memory ceiling, 0 unlimited; not a process RSS cap; `src/core/config.h:869`. |
@@ -187,13 +190,20 @@ work. Neither mode reaps expired-but-resident keys merely to count them.
 
 INFO emits `dbN:keys=K,expires=E,avg_ttl=T` for each nonempty logical database. `keys` and
 `expires` have the same one-boundary publication lag. `avg_ttl` is a nonnegative
-millisecond estimate: with `databases 1`, at publication the owner samples at most 16 expiry-index
-slots, using a cursor separate from active expiry, then INFO subtracts the current
+millisecond estimate: with `databases 1`, the owner's existing millisecond beat
+inspects at most eight owned shards and samples at most one volatile shard
+(16 expiry-index slots), rotating independently of active expiry. Sampling also
+runs when active expiry is disabled. A parked owner's beat resumes on its existing
+wake or idle timeout; it does not add a timer or keep the owner awake. INFO subtracts the current
 wall clock from that sample's mean deadline. It is zero when no keys have an
 expiry or no sample has been recorded; an empty sample retains the preceding
-estimate. It is an estimate, not an exact average
+estimate. Ordinary batches still publish key/byte/expiry/eviction counts and
+hash-field TTL attention, without advancing the monitoring sample. It is an estimate, not an exact average
 over every deadline; polling INFO visits no objects. All existing structure-size
 locks remain unchanged; each store has a 16-byte cold sampling sidecar.
+The regression fixture averages 128 successive sample windows and requires that
+average to be within 10% of its known exact TTL mean; this is a fixture tolerance,
+not an accuracy guarantee for an individual 16-slot estimate.
 
 With `databases > 1`, each shard has 256 owner-private physical-namespace rows
 and separate published key/expiry pairs and mean deadlines. Key and deadline
@@ -314,7 +324,7 @@ taskset -c 0-7 ./build/tomokv build/docs-example.conf --ratio 6:2 --dir "$DOCS_D
 
 From another terminal: `redis-cli -p 6399 PING`,
 `redis-cli -p 6399 CONFIG GET databases`, and `redis-cli -p 6399 INFO server`.
-Expect PONG, databases=1, thread_mode=2s, shards=16, read_local=0,
+Expect PONG, databases=16, thread_mode=2s, shards=16, read_local=0,
 key_lb=1, client_lb=1, reorder=0. Stop with `redis-cli -p 6399 SHUTDOWN NOSAVE`.
 The parser and serverless geometry check can validate this example without a
 listener; live boot and these replies are maintainer-run checks.

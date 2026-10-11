@@ -1,0 +1,1601 @@
+{
+  "binary": "/home/user/Projects/cx-wave2/build/tomokv",
+  "sha256": "f7e597bf67e7d768ccf1f3d226f998def8bbea794b72e4a29d9529ad1991f5fa",
+  "runs": 100,
+  "atomics": [
+    0
+  ],
+  "contend": true,
+  "serial": [
+    {
+      "atomic": 0,
+      "cell": "control",
+      "order": "push after hop two",
+      "got": "(b'moved', 2, [b'keep', b'control'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 2, [b'keep', b'control'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 0,
+      "cell": "control",
+      "order": "push before hop one",
+      "got": "(b'moved', 3, [b'keep', b'control'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 3, [b'keep', b'control'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 0,
+      "cell": "forced",
+      "order": "push after hop two",
+      "got": "(b'moved', 2, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 2, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 0,
+      "cell": "forced",
+      "order": "push before hop one",
+      "got": "(b'moved', 3, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 3, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 0,
+      "cell": "same_edge",
+      "order": "push after hop two",
+      "got": "(b'moved', 2, [b'new-edge', b'keep'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 2, [b'new-edge', b'keep'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 0,
+      "cell": "same_edge",
+      "order": "push before hop one",
+      "got": "(b'new-edge', 3, [b'moved', b'keep'], [b'dest', b'new-edge'])",
+      "wanted": "(b'new-edge', 3, [b'moved', b'keep'], [b'dest', b'new-edge'])",
+      "matches": true
+    }
+  ],
+  "repetitions": {
+    "fixed-a0": {
+      "runs": 100,
+      "passed": 100,
+      "retried_orders": [
+        "push ran after LMOVE's second hop",
+        "same-edge push ran before LMOVE's first hop"
+      ],
+      "retry_count": 46,
+      "rows": [
+        {
+          "run": 1,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 2,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 3,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 4,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 5,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 6,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 7,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 8,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 9,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 10,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 11,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 12,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 13,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 14,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 15,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 16,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 17,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 18,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 19,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 20,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 21,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 22,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "push ran after LMOVE's second hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 23,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 24,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 25,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 26,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 27,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 28,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 29,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 30,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 31,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 32,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 33,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 34,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 35,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 36,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 37,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 38,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 39,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 40,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 41,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 42,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 43,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 44,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 45,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 46,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 47,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 48,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 49,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 50,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 51,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 52,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 53,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 54,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 55,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 56,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 57,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 58,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 59,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 60,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 61,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 62,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 63,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 64,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 65,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 66,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 67,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 68,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 69,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 70,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 71,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 72,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 73,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 74,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 75,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 76,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "push ran after LMOVE's second hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 77,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 78,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 79,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "push ran after LMOVE's second hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 80,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 81,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 82,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 83,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 84,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 85,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 86,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 87,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 88,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 89,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 90,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 91,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 92,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 93,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 94,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 95,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 96,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 97,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 98,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 99,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop",
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        },
+        {
+          "run": 100,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [
+            "same-edge push ran before LMOVE's first hop"
+          ],
+          "failure": []
+        }
+      ]
+    },
+    "pre-fix-a0": {
+      "runs": 100,
+      "passed": 86,
+      "retried_orders": [],
+      "retry_count": 0,
+      "rows": [
+        {
+          "run": 1,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 2,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(\"destination hold did not open the inter-hop window\")",
+            "AssertionError: destination hold did not open the inter-hop window"
+          ]
+        },
+        {
+          "run": 3,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 4,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 5,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 6,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 7,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 8,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(\"destination hold did not open the inter-hop window\")",
+            "AssertionError: destination hold did not open the inter-hop window"
+          ]
+        },
+        {
+          "run": 9,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 10,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 11,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 12,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 13,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 14,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(f\"{label}: got {actual!r}, wanted {wanted!r}\")",
+            "AssertionError: concurrent same-edge LMOVE reply: got b'new-edge', wanted b'moved'"
+          ]
+        },
+        {
+          "run": 15,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 16,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 17,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(\"destination hold did not open the inter-hop window\")",
+            "AssertionError: destination hold did not open the inter-hop window"
+          ]
+        },
+        {
+          "run": 18,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 19,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 20,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 21,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 22,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 23,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 24,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 25,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 26,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 27,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 28,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 29,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 30,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 31,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 32,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 33,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(f\"{label}: got {actual!r}, wanted {wanted!r}\")",
+            "AssertionError: concurrent same-edge LMOVE reply: got b'new-edge', wanted b'moved'"
+          ]
+        },
+        {
+          "run": 34,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 35,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 36,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(f\"{label}: got {actual!r}, wanted {wanted!r}\")",
+            "AssertionError: concurrent same-edge LMOVE reply: got b'new-edge', wanted b'moved'"
+          ]
+        },
+        {
+          "run": 37,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 38,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 39,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 40,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 41,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 42,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 43,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 44,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 45,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 46,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 47,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 48,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(f\"{label}: got {actual!r}, wanted {wanted!r}\")",
+            "AssertionError: concurrent same-edge LMOVE reply: got b'new-edge', wanted b'moved'"
+          ]
+        },
+        {
+          "run": 49,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 50,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 51,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 52,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 53,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(f\"{label}: got {actual!r}, wanted {wanted!r}\")",
+            "AssertionError: concurrent same-edge LMOVE reply: got b'new-edge', wanted b'moved'"
+          ]
+        },
+        {
+          "run": 54,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(f\"{label}: got {actual!r}, wanted {wanted!r}\")",
+            "AssertionError: concurrent same-edge LMOVE reply: got b'new-edge', wanted b'moved'"
+          ]
+        },
+        {
+          "run": 55,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 56,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 57,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 58,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 59,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 60,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 61,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 62,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 63,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(f\"{label}: got {actual!r}, wanted {wanted!r}\")",
+            "AssertionError: concurrent same-edge LMOVE reply: got b'new-edge', wanted b'moved'"
+          ]
+        },
+        {
+          "run": 64,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 65,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 66,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 67,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 68,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 69,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 70,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 71,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 72,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 73,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 74,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 75,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 76,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 77,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 78,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 79,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 80,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 81,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(\"destination hold did not open the inter-hop window\")",
+            "AssertionError: destination hold did not open the inter-hop window"
+          ]
+        },
+        {
+          "run": 82,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 83,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 84,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 85,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(\"destination hold did not open the inter-hop window\")",
+            "AssertionError: destination hold did not open the inter-hop window"
+          ]
+        },
+        {
+          "run": 86,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 87,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 88,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 89,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 90,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 91,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 92,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 93,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 94,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(f\"{label}: got {actual!r}, wanted {wanted!r}\")",
+            "AssertionError: concurrent same-edge LMOVE reply: got b'new-edge', wanted b'moved'"
+          ]
+        },
+        {
+          "run": 95,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 96,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 97,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(f\"{label}: got {actual!r}, wanted {wanted!r}\")",
+            "AssertionError: concurrent same-edge LMOVE reply: got b'new-edge', wanted b'moved'"
+          ]
+        },
+        {
+          "run": 98,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 99,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 100,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        }
+      ]
+    }
+  }
+}

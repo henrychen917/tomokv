@@ -1,0 +1,71 @@
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162280", "unit": 110344, "changed": 12, "hot_changed": 5, "A": 7, "B": 1, "C": 2, "D": 2, "Chot": 0, "Dhot": 2, "bad_hot": 2, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.a648b576f1e4.o"}
+    HOT D T=new code 21058->21072 lanes=perfex eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT D T=new code 12093->11939 lanes=perfex eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()
+    C T=new code 5851->5393 lanes=- eq=- unsigned int tomo::IoLoop::flip_control_pass<false>()
+    C T=new added 0->308 lanes=- eq=- void tomo::IoLoop::cancel_client_transfer<false>(tomo::Client*)
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162290", "unit": 110344, "changed": 12, "hot_changed": 5, "A": 8, "B": 1, "C": 2, "D": 1, "Chot": 0, "Dhot": 1, "bad_hot": 2, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.5cddc24ced3b.o"}
+    HOT D T=new code 21058->21083 lanes=perfex eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT A T=perfex code 12093->11931 lanes=perfex eq=perfex tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()
+    C T=new code 5851->5393 lanes=- eq=- unsigned int tomo::IoLoop::flip_control_pass<false>()
+    C T=new added 0->308 lanes=- eq=- void tomo::IoLoop::cancel_client_transfer<false>(tomo::Client*)
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162297", "unit": 110344, "changed": 9, "hot_changed": 4, "A": 8, "B": 1, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 1, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.f0587db3934f.o"}
+    HOT A T=perfex code 12093->11931 lanes=perfex eq=perfex tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162300", "unit": 110344, "changed": 10, "hot_changed": 5, "A": 8, "B": 1, "C": 0, "D": 1, "Chot": 0, "Dhot": 1, "bad_hot": 2, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.abaa8b9c13d9.o"}
+    HOT D T=new code 21058->21072 lanes=perfex eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT A T=perfex code 12093->11931 lanes=perfex eq=perfex tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162305", "unit": 110344, "changed": 8, "hot_changed": 3, "A": 7, "B": 1, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.e2c24cc16d43.o"}
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162311", "unit": 110344, "changed": 9, "hot_changed": 4, "A": 7, "B": 1, "C": 0, "D": 1, "Chot": 0, "Dhot": 1, "bad_hot": 1, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.4c84d64bd160.o"}
+    HOT D T=new code 12093->11939 lanes=perfex eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162312", "unit": 110344, "changed": 9, "hot_changed": 4, "A": 7, "B": 1, "C": 0, "D": 1, "Chot": 0, "Dhot": 1, "bad_hot": 1, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.8422960a13aa.o"}
+    HOT D T=new code 12093->11939 lanes=perfex eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162318", "unit": 110344, "changed": 9, "hot_changed": 4, "A": 8, "B": 1, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 1, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.322fd947114b.o"}
+    HOT A T=perfex code 12093->11931 lanes=perfex eq=perfex tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162323", "unit": 110344, "changed": 10, "hot_changed": 5, "A": 8, "B": 1, "C": 0, "D": 1, "Chot": 0, "Dhot": 1, "bad_hot": 2, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.fab7895d756a.o"}
+    HOT D T=new code 21058->21072 lanes=perfex eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT A T=perfex code 12093->11931 lanes=perfex eq=perfex tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162330", "unit": 110344, "changed": 10, "hot_changed": 5, "A": 8, "B": 1, "C": 0, "D": 1, "Chot": 0, "Dhot": 1, "bad_hot": 2, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.101807241222.o"}
+    HOT A T=perfex code 21058->21049 lanes=perfex eq=perfex tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT D T=new code 12093->11939 lanes=perfex eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162340", "unit": 110344, "changed": 10, "hot_changed": 5, "A": 9, "B": 1, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 2, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.722d211bf41c.o"}
+    HOT A T=perfex code 21058->21049 lanes=perfex eq=perfex tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT A T=perfex code 12093->11931 lanes=perfex eq=perfex tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162360", "unit": 110344, "changed": 11, "hot_changed": 6, "A": 9, "B": 1, "C": 0, "D": 1, "Chot": 0, "Dhot": 1, "bad_hot": 3, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.6a6540f08464.o"}
+    HOT A T=perfex code 21058->21049 lanes=perfex eq=perfex tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT A T=perfex code 12093->11931 lanes=perfex eq=perfex tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT D T=new code 21006->20992 lanes=perfex eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1623->1477 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT A T=perfex code 8235->8187 lanes=perfex eq=perfex tomo::ExLoopT<true>::run()

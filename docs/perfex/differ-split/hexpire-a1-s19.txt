@@ -1,0 +1,13 @@
+  TTL DEADLINE FAIL side=target command=['HPTTL', 'hx7', 'FIELDS', '2', 'f7', 'f6'] reply=108430646076 deadline_ns=(1900086400000000000, 1900086400000000000) window_ns=(1791655753926000000, 1791655753973257824)
+  DIFF op 624 ['HPTTL', 'hx7', 'FIELDS', '2']
+    target: b'*2\r\n:108430646076\r\n:108430646076\r\n'
+    oracle: b'*2\r\n:108430646074\r\n:108430646074\r\n'
+  TTL DEADLINE FAIL side=target command=['HPTTL', 'hx4', 'FIELDS', '2', 'f4', 'f9'] reply=108347845981 deadline_ns=(1900003600000000000, 1900003600000000000) window_ns=(1791655754031000000, 1791655754057726029)
+  DIFF op 753 ['HPTTL', 'hx4', 'FIELDS', '2']
+    target: b'*2\r\n:-2\r\n:108347845981\r\n'
+    oracle: b'*2\r\n:-2\r\n:108347845969\r\n'
+  TTL DEADLINE FAIL side=target command=['HPTTL', 'hx4', 'FIELDS', '2', 'f2', 'f6'] reply=108430645888 deadline_ns=(1900086400000000000, 1900086400000000000) window_ns=(1791655754114000000, 1791655754150856206)
+  DIFF op 900 ['HPTTL', 'hx4', 'FIELDS', '2']
+    target: b'*2\r\n:-1\r\n:108430645888\r\n'
+    oracle: b'*2\r\n:-1\r\n:108430645883\r\n'
+DIFFER hexpire: 4288 ops, 3 diffs, 291 deadline-bounded TTL checks -> FAIL

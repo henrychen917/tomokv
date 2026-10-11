@@ -1,0 +1,53 @@
+{
+  "subset": "full",
+  "count": 8,
+  "ids": [
+    "t03",
+    "t04",
+    "h05",
+    "h06",
+    "h21",
+    "h22",
+    "signalacct_get8",
+    "signalacct_set8"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "REORDER",
+    "SET"
+  ],
+  "commands": [
+    "BITCOUNT",
+    "GET",
+    "SET"
+  ],
+  "depths": [
+    8,
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "p999_ms",
+    "rate"
+  ],
+  "pending_pins": [
+    "h05",
+    "h06",
+    "h21",
+    "h22",
+    "signalacct_get8",
+    "signalacct_set8"
+  ]
+}

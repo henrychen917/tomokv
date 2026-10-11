@@ -1,0 +1,21 @@
+Hot bodies: 1204; raw byte equal: 1167; bytes + resolved relocation targets equal: 1184
+DIFF db0/src/core/genthread.o 9714 9762 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/genthread.o 625 565 unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)
+DIFF db0/src/core/genthread.o 1195 1066 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+DIFF db0/src/core/reorder.o 1212 984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 1212 984 tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 3250 3085 unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)
+DIFF db0/src/core/reorder.o 1195 1263 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+DIFF db0/src/core/rl2s.o 625 565 unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)
+DIFF db0/src/core/rl2s.o 1623 1477 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+DIFF db0/src/main.o 289 1467 unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)
+DIFF db0/src/persist/aof.o 543 479 tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)
+DIFF src/core/genthread.o 625 565 unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+DIFF src/core/genthread.o 1195 1066 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+DIFF src/core/reorder.o 3250 3085 unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+DIFF src/core/reorder.o 1195 1066 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+DIFF src/core/rl2s.o 12093 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 625 565 unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+DIFF src/core/rl2s.o 1623 1477 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+DIFF src/core/rl2s.o 21058 21072 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+DIFF src/main.o 289 1467 unsigned int tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)

@@ -128,7 +128,16 @@ def placeholder_and_commandstats(c):
     check("unsupported delayed fsync row omitted", "aof_delayed_fsync" in persistence, False)
     check("db0 was emitted", "db0" in keyspace, True)
     ttl_members = dict(item.split("=", 1) for item in keyspace.get("db0", "").split(",") if "=" in item)
-    check("measured avg_ttl", int(ttl_members.get("avg_ttl", "0")), lambda value: 0 < value <= 60000)
+    avg_ttl = int(ttl_members.get("avg_ttl", "0"))
+    # Monitoring refreshes on the owner beat; SET/INFO can finish before that
+    # beat. A missing sampler must still fail after this bounded wait.
+    deadline = time.monotonic() + 1.0
+    while avg_ttl == 0 and time.monotonic() < deadline:
+        time.sleep(.01)
+        keyspace = info(c, "keyspace")
+        ttl_members = dict(item.split("=", 1) for item in keyspace.get("db0", "").split(",") if "=" in item)
+        avg_ttl = int(ttl_members.get("avg_ttl", "0"))
+    check("measured avg_ttl", avg_ttl, lambda value: 0 < value <= 60000)
 
     c.cmd("CONFIG", "RESETSTAT")
     for _ in range(4):

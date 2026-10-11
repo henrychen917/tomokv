@@ -1,0 +1,8 @@
+# sha256 of the binaries behind every receipt (PRE = git archive 991d48f65 + this lane's final test sources)
+a2e29e80550370edf1538d1f5866d0467b8975582366f48af0ed88a627d9eed8  PRE build/rlresize/pre-src/build/tomokv
+072964ef0a7df00a72f291cca5dfb4674883c579a7fbf768c78648d68044bb3f  PRE build/rlresize/pre-src/build/rehash-waits-unit
+8882ee5c9c7863722e5523af73d689e84fd78b49ed043c67a501447a94ac53e8  PRE build/rlresize/pre-src/build/store-regression
+749b696aa87febb9ebf115ac82cb0c553e9d4624c4c224a6161ff5e29afc13a5  POST build/tomokv
+2dafc99e2dc776d586d7c9fd65b6e62294ac2bcafd838125a7a70390fd039c1b  POST build/rehash-waits-unit
+c452e28bba74a384a9d89759b314113bf7698081eab6e7726c94c6a246239914  POST build/store-regression
+2ce5d874da97a27592a0fe0f19baf0874492a188a8255c7d1e6d666c744ded0e  POST build/store-regression-tsan

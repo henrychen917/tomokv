@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "112-119",
+    "/home/user/Projects/cx-dbdefault/build/dbdefault/pre/tomokv",
+    "--port",
+    "25150",
+    "--bind",
+    "127.0.0.1",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--dir",
+    "/home/user/Projects/cx-dbdefault/docs/dbdefault/boots/pre-negative/2s/data",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--ratio",
+    "6:2"
+  ],
+  "expected": 16,
+  "mode": "2s",
+  "verdict": "FAIL",
+  "error": "CONFIG GET databases: expected 16, got [b'databases', b'1']",
+  "exit_code": 0
+}

@@ -1,0 +1,792 @@
+[
+  {
+    "id": "122",
+    "name": "idle loop ceiling (LBSIGNALS, 1s)",
+    "job": "release_batteries",
+    "family": "spinprobe",
+    "primitives": [
+      "W10"
+    ],
+    "requires": [
+      "W10.idle"
+    ],
+    "observable": "existing"
+  },
+  {
+    "id": "126",
+    "name": "atomic torn/window battery",
+    "job": "atomic_batteries",
+    "family": "atomic_torn",
+    "primitives": [
+      "W2"
+    ],
+    "requires": [
+      "W2.fanout"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "128",
+    "name": "atomic owner-local hazard battery",
+    "job": "atomic_batteries",
+    "family": "atomic_hazards",
+    "primitives": [
+      "W2"
+    ],
+    "requires": [
+      "W2.pin_flush",
+      "W2.ryow"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "130",
+    "name": "s6 battery (atomic 0)",
+    "job": "feature-split-0",
+    "family": "s6",
+    "primitives": [
+      "W3"
+    ],
+    "requires": [
+      "W3"
+    ],
+    "observable": "existing"
+  },
+  {
+    "id": "131",
+    "name": "multi_exec battery (atomic 0)",
+    "job": "feature-split-0",
+    "family": "multi_exec",
+    "primitives": [
+      "W16"
+    ],
+    "requires": [
+      "W16"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "132",
+    "name": "blocking battery (atomic 0)",
+    "job": "feature-split-0",
+    "family": "blocking",
+    "primitives": [
+      "W1",
+      "W5"
+    ],
+    "requires": [
+      "W1",
+      "W5.timeout"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "139",
+    "name": "limits battery (atomic 0)",
+    "job": "feature-split-0",
+    "family": "limits",
+    "primitives": [
+      "W5"
+    ],
+    "requires": [
+      "W5.idle",
+      "W5.soft",
+      "W5.exempt"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "149",
+    "name": "servertail battery (atomic 0)",
+    "job": "feature-split-0",
+    "family": "servertail",
+    "primitives": [
+      "W1"
+    ],
+    "requires": [
+      "W1"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "159",
+    "name": "expwide battery (atomic 0)",
+    "job": "feature-split-0",
+    "family": "expwide",
+    "primitives": [
+      "W4"
+    ],
+    "requires": [
+      "W4"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "164",
+    "name": "s6 battery (atomic 1)",
+    "job": "feature-split-1",
+    "family": "s6",
+    "primitives": [
+      "W3"
+    ],
+    "requires": [
+      "W3"
+    ],
+    "observable": "existing"
+  },
+  {
+    "id": "165",
+    "name": "multi_exec battery (atomic 1)",
+    "job": "feature-split-1",
+    "family": "multi_exec",
+    "primitives": [
+      "W16"
+    ],
+    "requires": [
+      "W16"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "166",
+    "name": "blocking battery (atomic 1)",
+    "job": "feature-split-1",
+    "family": "blocking",
+    "primitives": [
+      "W1",
+      "W5"
+    ],
+    "requires": [
+      "W1",
+      "W5.timeout"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "173",
+    "name": "limits battery (atomic 1)",
+    "job": "feature-split-1",
+    "family": "limits",
+    "primitives": [
+      "W5"
+    ],
+    "requires": [
+      "W5.idle",
+      "W5.soft",
+      "W5.exempt"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "183",
+    "name": "servertail battery (atomic 1)",
+    "job": "feature-split-1",
+    "family": "servertail",
+    "primitives": [
+      "W1"
+    ],
+    "requires": [
+      "W1"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "193",
+    "name": "expwide battery (atomic 1)",
+    "job": "feature-split-1",
+    "family": "expwide",
+    "primitives": [
+      "W4"
+    ],
+    "requires": [
+      "W4"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "199",
+    "name": "fused s6 battery (atomic 0)",
+    "job": "fused-0",
+    "family": "s6",
+    "primitives": [
+      "W3"
+    ],
+    "requires": [
+      "W3"
+    ],
+    "observable": "existing"
+  },
+  {
+    "id": "200",
+    "name": "fused multi_exec battery (atomic 0)",
+    "job": "fused-0",
+    "family": "multi_exec",
+    "primitives": [
+      "W16"
+    ],
+    "requires": [
+      "W16"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "203",
+    "name": "fused spinprobe battery (atomic 0)",
+    "job": "fused-0",
+    "family": "spinprobe",
+    "primitives": [
+      "W10"
+    ],
+    "requires": [
+      "W10"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "206",
+    "name": "fused s6 battery (atomic 1)",
+    "job": "fused-1",
+    "family": "s6",
+    "primitives": [
+      "W3"
+    ],
+    "requires": [
+      "W3"
+    ],
+    "observable": "existing"
+  },
+  {
+    "id": "207",
+    "name": "fused multi_exec battery (atomic 1)",
+    "job": "fused-1",
+    "family": "multi_exec",
+    "primitives": [
+      "W16"
+    ],
+    "requires": [
+      "W16"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "210",
+    "name": "fused spinprobe battery (atomic 1)",
+    "job": "fused-1",
+    "family": "spinprobe",
+    "primitives": [
+      "W10"
+    ],
+    "requires": [
+      "W10"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "213",
+    "name": "fused+armed s6 battery (atomic 0)",
+    "job": "feature-armed-0",
+    "family": "s6",
+    "primitives": [
+      "W3"
+    ],
+    "requires": [
+      "W3"
+    ],
+    "observable": "existing"
+  },
+  {
+    "id": "214",
+    "name": "fused+armed multi_exec battery (atomic 0)",
+    "job": "feature-armed-0",
+    "family": "multi_exec",
+    "primitives": [
+      "W16"
+    ],
+    "requires": [
+      "W16"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "215",
+    "name": "fused+armed blocking battery (atomic 0)",
+    "job": "feature-armed-0",
+    "family": "blocking",
+    "primitives": [
+      "W1",
+      "W5"
+    ],
+    "requires": [
+      "W1",
+      "W5.timeout"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "222",
+    "name": "fused+armed limits battery (atomic 0)",
+    "job": "feature-armed-0",
+    "family": "limits",
+    "primitives": [
+      "W5"
+    ],
+    "requires": [
+      "W5.idle",
+      "W5.soft",
+      "W5.exempt"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "232",
+    "name": "fused+armed servertail battery (atomic 0)",
+    "job": "feature-armed-0",
+    "family": "servertail",
+    "primitives": [
+      "W1"
+    ],
+    "requires": [
+      "W1"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "242",
+    "name": "fused+armed expwide battery (atomic 0)",
+    "job": "feature-armed-0",
+    "family": "expwide",
+    "primitives": [
+      "W4"
+    ],
+    "requires": [
+      "W4"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "248",
+    "name": "fused+armed s6 battery (atomic 1)",
+    "job": "feature-armed-1",
+    "family": "s6",
+    "primitives": [
+      "W3"
+    ],
+    "requires": [
+      "W3"
+    ],
+    "observable": "existing"
+  },
+  {
+    "id": "249",
+    "name": "fused+armed multi_exec battery (atomic 1)",
+    "job": "feature-armed-1",
+    "family": "multi_exec",
+    "primitives": [
+      "W16"
+    ],
+    "requires": [
+      "W16"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "250",
+    "name": "fused+armed blocking battery (atomic 1)",
+    "job": "feature-armed-1",
+    "family": "blocking",
+    "primitives": [
+      "W1",
+      "W5"
+    ],
+    "requires": [
+      "W1",
+      "W5.timeout"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "257",
+    "name": "fused+armed limits battery (atomic 1)",
+    "job": "feature-armed-1",
+    "family": "limits",
+    "primitives": [
+      "W5"
+    ],
+    "requires": [
+      "W5.idle",
+      "W5.soft",
+      "W5.exempt"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "267",
+    "name": "fused+armed servertail battery (atomic 1)",
+    "job": "feature-armed-1",
+    "family": "servertail",
+    "primitives": [
+      "W1"
+    ],
+    "requires": [
+      "W1"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "277",
+    "name": "fused+armed expwide battery (atomic 1)",
+    "job": "feature-armed-1",
+    "family": "expwide",
+    "primitives": [
+      "W4"
+    ],
+    "requires": [
+      "W4"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "300",
+    "name": "slowlog battery (atomic 0)",
+    "job": "debug-0",
+    "family": "slowlog",
+    "primitives": [
+      "W1"
+    ],
+    "requires": [
+      "W1"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "303",
+    "name": "execatomic battery (atomic 0)",
+    "job": "debug-0",
+    "family": "execatomic",
+    "primitives": [
+      "W2"
+    ],
+    "requires": [
+      "W2.fanout"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "304",
+    "name": "execiso battery (atomic 0)",
+    "job": "debug-0",
+    "family": "execiso",
+    "primitives": [
+      "W2"
+    ],
+    "requires": [
+      "W2.fanout"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "310",
+    "name": "xmove battery (atomic 0)",
+    "job": "debug-0",
+    "family": "xmove",
+    "primitives": [
+      "W6"
+    ],
+    "requires": [
+      "W6.left",
+      "W6.right"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "314",
+    "name": "slowlog battery (atomic 1)",
+    "job": "debug-1",
+    "family": "slowlog",
+    "primitives": [
+      "W1"
+    ],
+    "requires": [
+      "W1"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "317",
+    "name": "execatomic battery (atomic 1)",
+    "job": "debug-1",
+    "family": "execatomic",
+    "primitives": [
+      "W2"
+    ],
+    "requires": [
+      "W2.fanout"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "318",
+    "name": "execiso battery (atomic 1)",
+    "job": "debug-1",
+    "family": "execiso",
+    "primitives": [
+      "W2"
+    ],
+    "requires": [
+      "W2.fanout"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "324",
+    "name": "xmove battery (atomic 1)",
+    "job": "debug-1",
+    "family": "xmove",
+    "primitives": [
+      "W6"
+    ],
+    "requires": [
+      "W6.left",
+      "W6.right"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "339",
+    "name": "DEBUG toggle/reload battery",
+    "job": "auth",
+    "family": "debug",
+    "primitives": [
+      "W7"
+    ],
+    "requires": [
+      "W7.progress",
+      "W7.cancel"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "341",
+    "name": "snapshot concurrent cut (epoll)",
+    "job": "snapshot-epoll",
+    "family": "snapshot capture/reload",
+    "primitives": [
+      "W8"
+    ],
+    "requires": [
+      "W8"
+    ],
+    "observable": "existing"
+  },
+  {
+    "id": "342",
+    "name": "snapshot cut reload (epoll)",
+    "job": "snapshot-epoll",
+    "family": "snapshot capture/reload",
+    "primitives": [
+      "W8"
+    ],
+    "requires": [
+      "W8"
+    ],
+    "observable": "existing"
+  },
+  {
+    "id": "343",
+    "name": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)",
+    "job": "snapshot-epoll",
+    "family": "snapshot groups",
+    "primitives": [
+      "W9"
+    ],
+    "requires": [
+      "W9"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "344",
+    "name": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)",
+    "job": "snapshot-epoll",
+    "family": "snapshot groups",
+    "primitives": [
+      "W9"
+    ],
+    "requires": [
+      "W9"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "349",
+    "name": "snapshot concurrent cut (uring)",
+    "job": "snapshot-uring",
+    "family": "snapshot capture/reload",
+    "primitives": [
+      "W8"
+    ],
+    "requires": [
+      "W8"
+    ],
+    "observable": "existing"
+  },
+  {
+    "id": "350",
+    "name": "snapshot cut reload (uring)",
+    "job": "snapshot-uring",
+    "family": "snapshot capture/reload",
+    "primitives": [
+      "W8"
+    ],
+    "requires": [
+      "W8"
+    ],
+    "observable": "existing"
+  },
+  {
+    "id": "351",
+    "name": "snapshot never tears a cross-shard MSET group (uring, atomic 1)",
+    "job": "snapshot-uring",
+    "family": "snapshot groups",
+    "primitives": [
+      "W9"
+    ],
+    "requires": [
+      "W9"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "352",
+    "name": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)",
+    "job": "snapshot-uring",
+    "family": "snapshot groups",
+    "primitives": [
+      "W9"
+    ],
+    "requires": [
+      "W9"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "357",
+    "name": "MULTI feature battery",
+    "job": "notify",
+    "family": "multi_exec",
+    "primitives": [
+      "W16"
+    ],
+    "requires": [
+      "W16"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "358",
+    "name": "blocking feature battery",
+    "job": "notify",
+    "family": "blocking",
+    "primitives": [
+      "W1",
+      "W5"
+    ],
+    "requires": [
+      "W1",
+      "W5.timeout"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "366",
+    "name": "partial-frame conn parks (no io spin)",
+    "job": "flip",
+    "family": "spinprobe",
+    "primitives": [
+      "W10"
+    ],
+    "requires": [
+      "W10"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "368",
+    "name": "FLIP applies under saturated load",
+    "job": "flip_saturated",
+    "family": "flip saturated",
+    "primitives": [
+      "W11"
+    ],
+    "requires": [
+      "W11"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "443",
+    "name": "TLS pipeline/torn-record/coexistence battery",
+    "job": "tls",
+    "family": "TLS partial handshake/teardown",
+    "primitives": [
+      "W12"
+    ],
+    "requires": [
+      "W12.handshake",
+      "W12.record",
+      "W12.parser"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "503",
+    "name": "atomic torn/window under ASAN",
+    "job": "asan_batteries",
+    "family": "atomic_torn",
+    "primitives": [
+      "W2"
+    ],
+    "requires": [
+      "W2.fanout"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "515",
+    "name": "Redis 7.4 differential matrix",
+    "job": "differ-split",
+    "family": "differential matrix",
+    "primitives": [
+      "W3",
+      "W13",
+      "W14",
+      "W15"
+    ],
+    "requires": [
+      "W3",
+      "W13",
+      "W14",
+      "W15"
+    ],
+    "observable": "witness"
+  },
+  {
+    "id": "516",
+    "name": "Redis 7.4 differential matrix (armed fused + read-local)",
+    "job": "differ-armed",
+    "family": "differential matrix",
+    "primitives": [
+      "W3",
+      "W13",
+      "W14",
+      "W15"
+    ],
+    "requires": [
+      "W3",
+      "W13",
+      "W14",
+      "W15"
+    ],
+    "observable": "witness"
+  }
+]

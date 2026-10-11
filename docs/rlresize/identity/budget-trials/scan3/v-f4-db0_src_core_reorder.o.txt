@@ -1,0 +1,55 @@
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148265", "lane": 3, "hot": 1, "other": 4}
+    HOT 9554 -> 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    OTHER 3278 -> 3148 unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    OTHER 724 -> 594 tomo_db0::FlatStore::maybe_start_shrink()
+    OTHER 964 -> 820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148273", "lane": 3, "hot": 0, "other": 3}
+    OTHER 3278 -> 3148 unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    OTHER 724 -> 594 tomo_db0::FlatStore::maybe_start_shrink()
+    OTHER 964 -> 820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148281", "lane": 3, "hot": 2, "other": 7}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    OTHER 3278 -> 3148 unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 3631 -> 3565 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+    OTHER 724 -> 594 tomo_db0::FlatStore::maybe_start_shrink()
+    OTHER 964 -> 820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148289", "lane": 3, "hot": 1, "other": 7}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    OTHER 3278 -> 3148 unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 724 -> 594 tomo_db0::FlatStore::maybe_start_shrink()
+    OTHER 964 -> 820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148297", "lane": 3, "hot": 1, "other": 4}
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    OTHER 3278 -> 3148 unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 724 -> 594 tomo_db0::FlatStore::maybe_start_shrink()
+    OTHER 964 -> 820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148305", "lane": 3, "hot": 1, "other": 3}
+    OTHER 3278 -> 3148 unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 724 -> 594 tomo_db0::FlatStore::maybe_start_shrink()
+    OTHER 964 -> 820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148313", "lane": 3, "hot": 1, "other": 5}
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    OTHER 3278 -> 3148 unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    OTHER 724 -> 594 tomo_db0::FlatStore::maybe_start_shrink()
+    OTHER 964 -> 820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148329", "lane": 3, "hot": 2, "other": 5}
+    HOT 9554 -> 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    OTHER 3278 -> 3148 unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    OTHER 724 -> 594 tomo_db0::FlatStore::maybe_start_shrink()
+    OTHER 964 -> 820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar

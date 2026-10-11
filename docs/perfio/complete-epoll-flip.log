@@ -1,0 +1,29 @@
+{"affinity": [121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-perfio/build/tomokv", "--bind", "127.0.0.1", "--port", "25125", "--dir", "/home/user/Projects/cx-perfio/docs/perfio/complete-epoll-flip/epoll-flip", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--thread-mode", "2s", "--shards", "16", "--net-io", "epoll", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "event": "boot"}
+{"duplicates": 0, "event": "epoll", "phase": "initial", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "initial"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-0", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-0"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-1", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-1"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-2", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-2"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-3", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-3"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-4", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-4"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-5", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-5"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-6", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-6"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-7", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-7"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-8", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-8"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-9", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-9"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-10", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-10"}
+{"duplicates": 0, "event": "epoll", "phase": "flip-11", "registrations": 201, "stale": 0}
+{"commands": 2561, "event": "events", "events": 2561, "per_command": 1.0, "phase": "flip-11"}
+{"event": "stop", "pid": 1010283, "rc": 0}
+{"case": "epoll-flip", "elapsed_s": 0.5760244140401483, "result": "PASS"}

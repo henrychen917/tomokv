@@ -132,8 +132,10 @@ def main():
         row['classification'] = 'error-branch callee only' if row['error_callee_only'] else 'other'
     (args.output / 'changed-bodies.json').write_text(json.dumps(changed, indent=2) + '\n')
     handlers = [r for r in rows if re.search(r'::cmd_\w+(?:<|\()', r['name'])]
+    # Executor run bodies and the read-local GET hit resolver are hot too (the latter is also in
+    # lbstall_artifacts.HOT; named here so this inventory never depends on that regex alone).
     hot = [r for r in rows if audit.HOT.search(r['name']) or
-           re.search(r'ExLoopT<.*>::run\(', r['name'])]
+           re.search(r'ExLoopT<.*>::run\(|ExLoopT<true>::prepare_local_read', r['name'])]
     report = dict(total=len(rows), equal=sum(r['equal'] for r in rows), changed=len(changed),
                   handlers=len(handlers), handlers_equal=sum(r['equal'] for r in handlers),
                   hot=len(hot), hot_equal=sum(r['equal'] for r in hot),

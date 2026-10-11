@@ -45,7 +45,7 @@ boot_server() {
   local debug_args=()
   [ "$debug" = yes ] && debug_args=(--enable-debug-command yes)
   [ -z "$(listener_pid)" ] || { echo "AOF rewrite: port $PORT already listening" >&2; return 1; }
-  taskset -c "$CORES" "$BIN" --port "$PORT" --bind 127.0.0.1 \
+  taskset -c "$CORES" "$BIN" --databases 1 --port "$PORT" --bind 127.0.0.1 \
     --shards 16 --ratio "$RATIO" --protected-mode no --atomic "$atomic" \
     --net-io "$NET_IO" --appendonly yes --appendfsync everysec --save '' \
     --dir "$directory" "${debug_args[@]}" \
@@ -140,7 +140,7 @@ for kind in manifest base record-length group-vector; do
   directory=$(mktemp -d "${TMPDIR:-/tmp}/gate-aof-rewrite-corrupt-${kind}.XXXXXX")
   cp -a "$normal_atomic1"/. "$directory"/
   python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" corrupt "$directory" "$kind" >/dev/null
-  if taskset -c "$CORES" "$BIN" --port "$PORT" --bind 127.0.0.1 \
+  if taskset -c "$CORES" "$BIN" --databases 1 --port "$PORT" --bind 127.0.0.1 \
       --shards 16 --ratio "$RATIO" --protected-mode no --appendonly yes \
       --net-io "$NET_IO" --appendfsync everysec \
       --dir "$directory" >"$directory/refusal.log" 2>&1; then
@@ -156,7 +156,7 @@ first_incr=$(sed -n 's/^file \([^ ]*\).*type i.*/\1/p' "$manifest" | head -1)
 first_path="$interior/appendonlydir/$first_incr"
 first_size=$(stat -c %s "$first_path")
 truncate -s $((first_size-7)) "$first_path"
-if taskset -c "$CORES" "$BIN" --port "$PORT" --bind 127.0.0.1 \
+if taskset -c "$CORES" "$BIN" --databases 1 --port "$PORT" --bind 127.0.0.1 \
     --shards 16 --ratio "$RATIO" --protected-mode no --appendonly yes \
     --net-io "$NET_IO" --appendfsync everysec \
     --dir "$interior" >"$interior/refusal.log" 2>&1; then

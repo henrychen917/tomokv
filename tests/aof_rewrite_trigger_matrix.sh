@@ -39,7 +39,7 @@ boot_server() {
   local directory=$1 atomic=$2 log=$3
   local boot_pid socket_pid
   [ -z "$(listener_pid)" ] || { echo "AOF rewrite triggers: port $PORT already listening" >&2; return 1; }
-  taskset -c "$CORES" "$BIN" --port "$PORT" --bind 127.0.0.1 \
+  taskset -c "$CORES" "$BIN" --databases 1 --port "$PORT" --bind 127.0.0.1 \
     --shards 16 --ratio "$RATIO" --protected-mode no --atomic "$atomic" \
     --net-io "$NET_IO" --appendonly yes --appendfsync everysec --save '' \
     --auto-aof-rewrite-percentage 0 \

@@ -74,7 +74,7 @@ class Harness:
         args = ['taskset', '-c', '68-79', str(self.binary)]
         if config:
             args.append(str(config))
-        args += ['--bind', '127.0.0.1', '--port', str(self.port), '--shards', '16',
+        args += ['--databases', '1', '--bind', '127.0.0.1', '--port', str(self.port), '--shards', '16',
                  '--thread-mode', mode, '--save', '', '--dir', str(directory),
                  '--enable-debug-command', 'yes']
         if mode == '2s':

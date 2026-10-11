@@ -1,0 +1,2379 @@
+[
+  {
+    "file": "tests/headline_cells.txt",
+    "sha256": "f62b7a4c59cb8a9844d0baafeb19c0328f2e6790ca6103dffb21abb5ee0e20f6",
+    "cells": 181,
+    "operations": [
+      "BITCOUNT",
+      "GET",
+      "MGET",
+      "MSET",
+      "SET"
+    ],
+    "max_frame": {
+      "cell": "m04",
+      "op": "MSET",
+      "arguments": 17,
+      "bytes": 759,
+      "pipeline": 1,
+      "pipeline_bytes": 759
+    },
+    "max_pipeline": {
+      "cell": "x05",
+      "op": "MSET",
+      "arguments": 17,
+      "bytes": 759,
+      "pipeline": 128,
+      "pipeline_bytes": 97152
+    },
+    "all": [
+      {
+        "cell": "t00",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 8,
+        "pipeline_bytes": 280
+      },
+      {
+        "cell": "t00",
+        "op": "BITCOUNT",
+        "arguments": 2,
+        "bytes": 46,
+        "pipeline": 8,
+        "pipeline_bytes": 368
+      },
+      {
+        "cell": "h01",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h02",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h03",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h04",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h05",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h06",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h07",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h08",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h09",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h10",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h11",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h12",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h13",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h14",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h15",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h16",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h17",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h18",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h19",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h20",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h21",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h22",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h23",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h24",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h25",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h26",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h27",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h28",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h29",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h30",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h31",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h32",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h33",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h34",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h35",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h36",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h37",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h38",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h39",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h40",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h41",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h42",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h43",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h44",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h45",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h46",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h47",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h48",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h49",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h50",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h51",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h52",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h53",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h54",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h55",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h56",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h57",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h58",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h59",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h60",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h61",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h62",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "h63",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "h64",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "m01",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m02",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m03",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m04",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m05",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m06",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m07",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m08",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m09",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m10",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m11",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m12",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m13",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m14",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m15",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m16",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m17",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m18",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m19",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m20",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m21",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m22",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m23",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m24",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m25",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m26",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m27",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m28",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m29",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m30",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m31",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m32",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m33",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m34",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m35",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m36",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m37",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m38",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m39",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m40",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m41",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m42",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m43",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m44",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m45",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m46",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m47",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m48",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m49",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m50",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m51",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m52",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m53",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m54",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m55",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m56",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m57",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m58",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m59",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m60",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m61",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m62",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m63",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m64",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m65",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m66",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m67",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m68",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m69",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m70",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m71",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m72",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m73",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m74",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m75",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m76",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m77",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m78",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m79",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m80",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m81",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m82",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m83",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m84",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m85",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m86",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m87",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m88",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m89",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m90",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m91",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 1,
+        "pipeline_bytes": 190
+      },
+      {
+        "cell": "m92",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m93",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m94",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 1,
+        "pipeline_bytes": 759
+      },
+      {
+        "cell": "m95",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m96",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "x01",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "x01",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "x02",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "x02",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "x03",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "x03",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "x04",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "x04",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "x05",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 128,
+        "pipeline_bytes": 24320
+      },
+      {
+        "cell": "x05",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 128,
+        "pipeline_bytes": 97152
+      },
+      {
+        "cell": "x06",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 128,
+        "pipeline_bytes": 24320
+      },
+      {
+        "cell": "x06",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 128,
+        "pipeline_bytes": 97152
+      },
+      {
+        "cell": "c01",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "c02",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "c03",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "c04",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "a01",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "a02",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "a03",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "a04",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "t01",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 8,
+        "pipeline_bytes": 280
+      },
+      {
+        "cell": "t01",
+        "op": "BITCOUNT",
+        "arguments": 2,
+        "bytes": 46,
+        "pipeline": 8,
+        "pipeline_bytes": 368
+      },
+      {
+        "cell": "t02",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 8,
+        "pipeline_bytes": 280
+      },
+      {
+        "cell": "t02",
+        "op": "BITCOUNT",
+        "arguments": 2,
+        "bytes": 46,
+        "pipeline": 8,
+        "pipeline_bytes": 368
+      },
+      {
+        "cell": "t03",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 8,
+        "pipeline_bytes": 280
+      },
+      {
+        "cell": "t03",
+        "op": "BITCOUNT",
+        "arguments": 2,
+        "bytes": 46,
+        "pipeline": 8,
+        "pipeline_bytes": 368
+      },
+      {
+        "cell": "t04",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 8,
+        "pipeline_bytes": 280
+      },
+      {
+        "cell": "t04",
+        "op": "BITCOUNT",
+        "arguments": 2,
+        "bytes": 46,
+        "pipeline": 8,
+        "pipeline_bytes": 368
+      },
+      {
+        "cell": "t05",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 8,
+        "pipeline_bytes": 280
+      },
+      {
+        "cell": "t05",
+        "op": "BITCOUNT",
+        "arguments": 2,
+        "bytes": 46,
+        "pipeline": 8,
+        "pipeline_bytes": 368
+      },
+      {
+        "cell": "t06",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 8,
+        "pipeline_bytes": 280
+      },
+      {
+        "cell": "t06",
+        "op": "BITCOUNT",
+        "arguments": 2,
+        "bytes": 46,
+        "pipeline": 8,
+        "pipeline_bytes": 368
+      }
+    ]
+  },
+  {
+    "file": "/tmp/claude-1000/generic_merit_cells.txt",
+    "sha256": "ac3719760fcd07f05a090bcba536162c4d713cdbef3f24e52d886e8d83880311",
+    "cells": 14,
+    "operations": [
+      "GET",
+      "MGET",
+      "SET"
+    ],
+    "max_frame": {
+      "cell": "m8g_l0",
+      "op": "MGET",
+      "arguments": 9,
+      "bytes": 190,
+      "pipeline": 8,
+      "pipeline_bytes": 1520
+    },
+    "max_pipeline": {
+      "cell": "d128g_l0",
+      "op": "GET",
+      "arguments": 2,
+      "bytes": 35,
+      "pipeline": 128,
+      "pipeline_bytes": 4480
+    },
+    "all": [
+      {
+        "cell": "h05",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h06",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "p8g",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 8,
+        "pipeline_bytes": 280
+      },
+      {
+        "cell": "p8s",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 8,
+        "pipeline_bytes": 848
+      },
+      {
+        "cell": "d1g_l0",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 1,
+        "pipeline_bytes": 35
+      },
+      {
+        "cell": "d1s_l0",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 1,
+        "pipeline_bytes": 106
+      },
+      {
+        "cell": "m8g_l0",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "v1g_l0",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "d128g_l0",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 128,
+        "pipeline_bytes": 4480
+      },
+      {
+        "cell": "d32g_l1",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "d8s_l1",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 8,
+        "pipeline_bytes": 848
+      },
+      {
+        "cell": "d32s_l1",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "x9_32_l1",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "x9_32_l1",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "x9_32_l0",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "x9_32_l0",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      }
+    ]
+  },
+  {
+    "file": "tests/netio_cells.txt",
+    "sha256": "83e3b258157cf40a963dfb2db301e0cc05ee98ce8ccf71dcf59697a9379909eb",
+    "cells": 32,
+    "operations": [
+      "GET",
+      "SET"
+    ],
+    "max_frame": {
+      "cell": "h02-epoll",
+      "op": "SET",
+      "arguments": 3,
+      "bytes": 106,
+      "pipeline": 32,
+      "pipeline_bytes": 3392
+    },
+    "max_pipeline": {
+      "cell": "h02-epoll",
+      "op": "SET",
+      "arguments": 3,
+      "bytes": 106,
+      "pipeline": 32,
+      "pipeline_bytes": 3392
+    },
+    "all": [
+      {
+        "cell": "h01-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h02-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h03-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h04-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h05-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h06-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h07-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h08-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h09-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h10-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h11-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h12-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h13-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h14-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h15-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h16-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h17-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h18-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h19-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h20-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h21-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h22-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h23-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h24-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h25-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h26-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h27-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h28-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h29-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h30-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "h31-epoll",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h32-epoll",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      }
+    ]
+  },
+  {
+    "file": "tests/ttl_cells.txt",
+    "sha256": "3e6b7ffd804afa9ad491f64aa12fe784e6d743d0d85a9ec4594efdfd6cc457f9",
+    "cells": 2,
+    "operations": [
+      "GET",
+      "SET"
+    ],
+    "max_frame": {
+      "cell": "ttls",
+      "op": "SET",
+      "arguments": 4,
+      "bytes": 117,
+      "pipeline": 32,
+      "pipeline_bytes": 3744
+    },
+    "max_pipeline": {
+      "cell": "ttls",
+      "op": "SET",
+      "arguments": 4,
+      "bytes": 117,
+      "pipeline": 32,
+      "pipeline_bytes": 3744
+    },
+    "all": [
+      {
+        "cell": "ttls",
+        "op": "SET",
+        "arguments": 4,
+        "bytes": 117,
+        "pipeline": 32,
+        "pipeline_bytes": 3744
+      },
+      {
+        "cell": "ttlm",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 36,
+        "pipeline": 32,
+        "pipeline_bytes": 1152
+      },
+      {
+        "cell": "ttlm",
+        "op": "SET",
+        "arguments": 4,
+        "bytes": 117,
+        "pipeline": 32,
+        "pipeline_bytes": 3744
+      }
+    ]
+  },
+  {
+    "file": "tests/mkprobe_cells.txt",
+    "sha256": "0f786dec1a647fa10334dc418e62b1aea702a4f2ebb269cce488c6b5b31bba03",
+    "cells": 19,
+    "operations": [
+      "GET",
+      "MGET",
+      "MSET",
+      "SET"
+    ],
+    "max_frame": {
+      "cell": "m05",
+      "op": "MSET",
+      "arguments": 17,
+      "bytes": 759,
+      "pipeline": 8,
+      "pipeline_bytes": 6072
+    },
+    "max_pipeline": {
+      "cell": "mk128s",
+      "op": "MSET",
+      "arguments": 17,
+      "bytes": 759,
+      "pipeline": 128,
+      "pipeline_bytes": 97152
+    },
+    "all": [
+      {
+        "cell": "m02",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m03",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m05",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m06",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m26",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m27",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m50",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m51",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "m53",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 8,
+        "pipeline_bytes": 6072
+      },
+      {
+        "cell": "m54",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 32,
+        "pipeline_bytes": 24288
+      },
+      {
+        "cell": "m74",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 8,
+        "pipeline_bytes": 1520
+      },
+      {
+        "cell": "m75",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 32,
+        "pipeline_bytes": 6080
+      },
+      {
+        "cell": "p8g",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 8,
+        "pipeline_bytes": 280
+      },
+      {
+        "cell": "p8s",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 8,
+        "pipeline_bytes": 848
+      },
+      {
+        "cell": "h05",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 32,
+        "pipeline_bytes": 1120
+      },
+      {
+        "cell": "h06",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "d128g_l0",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 35,
+        "pipeline": 128,
+        "pipeline_bytes": 4480
+      },
+      {
+        "cell": "mk128g",
+        "op": "MGET",
+        "arguments": 9,
+        "bytes": 190,
+        "pipeline": 128,
+        "pipeline_bytes": 24320
+      },
+      {
+        "cell": "mk128s",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 759,
+        "pipeline": 128,
+        "pipeline_bytes": 97152
+      }
+    ]
+  },
+  {
+    "file": "docs/pfconfirm/cells.txt",
+    "sha256": "a89b29c8294cd7639c07b0d2d16fa355aca4e662da4c03e7ba64a95f2d200f21",
+    "cells": 12,
+    "operations": [
+      "GET",
+      "MSET",
+      "SET"
+    ],
+    "max_frame": {
+      "cell": "tracking-mset1024",
+      "op": "MSET",
+      "arguments": 17,
+      "bytes": 735,
+      "pipeline": 1,
+      "pipeline_bytes": 735
+    },
+    "max_pipeline": {
+      "cell": "flush-set32",
+      "op": "SET",
+      "arguments": 3,
+      "bytes": 106,
+      "pipeline": 32,
+      "pipeline_bytes": 3392
+    },
+    "all": [
+      {
+        "cell": "ttl-get32",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 32,
+        "pipeline": 32,
+        "pipeline_bytes": 1024
+      },
+      {
+        "cell": "ttl-set32",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 103,
+        "pipeline": 32,
+        "pipeline_bytes": 3296
+      },
+      {
+        "cell": "ttl-get1",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 32,
+        "pipeline": 1,
+        "pipeline_bytes": 32
+      },
+      {
+        "cell": "ttl-set1",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 103,
+        "pipeline": 1,
+        "pipeline_bytes": 103
+      },
+      {
+        "cell": "flush-set32",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "info-set32",
+        "op": "SET",
+        "arguments": 3,
+        "bytes": 106,
+        "pipeline": 32,
+        "pipeline_bytes": 3392
+      },
+      {
+        "cell": "tracking-mset1024",
+        "op": "MSET",
+        "arguments": 17,
+        "bytes": 735,
+        "pipeline": 1,
+        "pipeline_bytes": 735
+      },
+      {
+        "cell": "tls-4k-single",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 32,
+        "pipeline": 32,
+        "pipeline_bytes": 1024
+      },
+      {
+        "cell": "tls-16k-single",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 32,
+        "pipeline": 32,
+        "pipeline_bytes": 1024
+      },
+      {
+        "cell": "tls-4k-512",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 32,
+        "pipeline": 32,
+        "pipeline_bytes": 1024
+      },
+      {
+        "cell": "tls-16k-512",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 32,
+        "pipeline": 32,
+        "pipeline_bytes": 1024
+      },
+      {
+        "cell": "stream-get32",
+        "op": "GET",
+        "arguments": 2,
+        "bytes": 32,
+        "pipeline": 32,
+        "pipeline_bytes": 1024
+      }
+    ]
+  }
+]

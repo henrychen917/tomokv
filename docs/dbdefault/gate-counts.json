@@ -1,0 +1,13 @@
+{
+  "audited_origin": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "base_quick": 625,
+  "base_full": 642,
+  "quick": 637,
+  "full": 654,
+  "DQ": 12,
+  "DF": 12,
+  "quick_exit_line": 3803,
+  "default_row_collection_line": 3683,
+  "fixture_labels_match": true,
+  "proposed_count_check_passes_in_memory": true
+}

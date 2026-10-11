@@ -1,0 +1,122 @@
+[
+  {
+    "path": "docs/ccfix/generic14.cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/deadcode2/generic-merit-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/deadfused/feature-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/deadfused/generic-merit-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/deadswitch/06-null14-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/exbatch/generic-plus-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/iopass/split-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/lbplanner/4096-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/lbplanner/generic-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/lbplanner/multidb-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/lbplanner/multidb-info-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/lbplanner/split-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/overlapaxe/generic_merit_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/overlapaxe/null-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "docs/rlfence2/generic-merit-cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/execfix_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/headline_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/l4_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/mkprobe_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/netio_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/reorderwb_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/signalacct_tail_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/ttl_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/wb_rule_2s_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/wb_rule_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/wbhybrid2_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/wbhybrid_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/wbknobs_sweep_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/wbland_4096_cells.txt",
+    "exit": 0
+  },
+  {
+    "path": "tests/wbland_merit_cells.txt",
+    "exit": 0
+  }
+]

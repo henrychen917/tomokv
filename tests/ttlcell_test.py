@@ -119,7 +119,7 @@ def suite(abba):
         def evidence(self, cell, arm="A"):
             layout = abba.load_layout(list(range(32, 112)), 8, 512)
             before, after = {"expired_keys": "100"}, {"expired_keys": "101"}
-            return dict(arm=arm, instances=8, complete=True, rate=100., latency_ms=1., busy_pct=99.9,
+            return dict(configured_databases=1, arm=arm, instances=8, complete=True, rate=100., latency_ms=1., busy_pct=99.9,
                 window_seconds=20., midpoint_monotonic=11., saturation=saturation_record(), load_layout=layout,
                 load_argv=[["memtier", "--expiry-range=1-30"] for _ in layout],
                 info_before=before, info_after=after,
@@ -210,7 +210,7 @@ def suite(abba):
                                     pid=123 + len(launches), poll=lambda: None, wait=lambda timeout: 0)
                             children = SimpleNamespace(start=start, stop=lambda child: stopped.append(child.pid))
                             conn = mock.Mock()
-                            conn.must.return_value = [b"atomic", b"1"]
+                            conn.must.side_effect = lambda *words: [words[-1].encode(), b"1"]
                             def snapshot(_conn, section):
                                 if section == "server":
                                     return dict(process_id="123", read_local="0")

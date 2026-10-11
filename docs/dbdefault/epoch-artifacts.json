@@ -1,0 +1,42 @@
+[
+  {
+    "path": "docs/dbdefault/multidb-1s-rl0-a0-epochs.json.gz",
+    "uncompressed_sha256": "12dc741fe7314cc7e8c000634fa894f10380d293c43edcee4dae06f3db19bdcb",
+    "uncompressed_bytes": 438602
+  },
+  {
+    "path": "docs/dbdefault/multidb-1s-rl0-a1-epochs.json.gz",
+    "uncompressed_sha256": "c6c20d17387cda30917d837d8a44b741d25508d55420daed480eb4bb8458fe44",
+    "uncompressed_bytes": 438602
+  },
+  {
+    "path": "docs/dbdefault/multidb-1s-rl1-a0-epochs.json.gz",
+    "uncompressed_sha256": "e222c6adcdaba249c26ec27179a50d385b026b8ca754e71cece1bbb353238e69",
+    "uncompressed_bytes": 438602
+  },
+  {
+    "path": "docs/dbdefault/multidb-1s-rl1-a1-epochs.json.gz",
+    "uncompressed_sha256": "86d44989fe82cffe3a322ab80d24865a8039c15cededeff285f1a8ae6f5d3cf3",
+    "uncompressed_bytes": 438602
+  },
+  {
+    "path": "docs/dbdefault/multidb-2s-rl0-a0-epochs.json.gz",
+    "uncompressed_sha256": "b94dcfeee074096e7c2013fb6efb8a5680bc38755b4e95fc087a9e0f2ba05162",
+    "uncompressed_bytes": 438602
+  },
+  {
+    "path": "docs/dbdefault/multidb-2s-rl0-a1-epochs.json.gz",
+    "uncompressed_sha256": "0f2fa8b4ff2670a71df7c71d08a8515223f312bdb06c717212fdfb72b6a9ed05",
+    "uncompressed_bytes": 438602
+  },
+  {
+    "path": "docs/dbdefault/multidb-2s-rl1-a0-epochs.json.gz",
+    "uncompressed_sha256": "5ba265e35661c56b9f531e2cee67d254f84c5e9fd70c2a7aacf72f13af6904d8",
+    "uncompressed_bytes": 438602
+  },
+  {
+    "path": "docs/dbdefault/multidb-2s-rl1-a1-epochs.json.gz",
+    "uncompressed_sha256": "35370dcb11f68a2ab1cf743a0618ba8b6ba90a8f1433720e07cea21071aef578",
+    "uncompressed_bytes": 438602
+  }
+]

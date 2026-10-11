@@ -28,7 +28,7 @@ def server(args, directory, result):
     require(not listeners.strip(), f'port already owned: {listeners}')
     argv = ['taskset', '-c', args.cores, str(args.binary.resolve()), '--bind', '127.0.0.1',
             '--port', str(args.port), '--dir', str(data.resolve()), '--thread-mode', args.mode,
-            '--shards', '16', '--key-lb', '0', '--client-lb', '0',
+            '--shards', '16', '--databases', '1', '--key-lb', '0', '--client-lb', '0',
             '--flip-auto', '0', '--slowlog-log-slower-than', '-1', '--save', '',
             '--appendonly', 'no', '--enable-debug-command', 'yes']
     if args.mode == '2s':

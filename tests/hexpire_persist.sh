@@ -21,7 +21,7 @@ boot() {
   if ss -ltn "sport = :$PORT" 2>/dev/null | grep -q ":$PORT"; then
     echo "GUARD: port $PORT already has a listener"; exit 1
   fi
-  run "$BIN" --port "$PORT" --bind 127.0.0.1 --shards 4 --dir "$WORK" "$@" \
+  run "$BIN" --databases 1 --port "$PORT" --bind 127.0.0.1 --shards 4 --dir "$WORK" "$@" \
       >>"$WORK/server.log" 2>&1 &
   PID=$!
   for _ in $(seq 1 60); do

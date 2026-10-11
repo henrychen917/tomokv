@@ -1,0 +1,22 @@
+[
+  "taskset",
+  "-c",
+  "112-119",
+  "/home/user/Projects/cx-dbdefault/build/tomokv",
+  "--port",
+  "25154",
+  "--bind",
+  "127.0.0.1",
+  "--dir",
+  "/home/user/Projects/cx-dbdefault/docs/dbdefault/images/default-1s-16/data",
+  "--save",
+  "",
+  "--appendonly",
+  "no",
+  "--enable-debug-command",
+  "yes",
+  "--thread-mode",
+  "1s",
+  "--shards",
+  "16"
+]

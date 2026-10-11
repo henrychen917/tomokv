@@ -1,0 +1,30 @@
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127880", "unit": 100332, "changed": 12, "hot_changed": 0, "A": 8, "B": 0, "C": 4, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_xshard.o.cbf17964eb4d.o"}
+    C T=new code 947->963 lanes=- eq=- tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymou
+    C T=new code 2933->2882 lanes=- eq=- void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)
+    C T=new reloc-only 1072->1072 lanes=- eq=- tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+    C T=new code 592->525 lanes=- eq=- tomo::FlatStore::retire_detached_obj(tomo::KvObj*)
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127900", "unit": 100332, "changed": 12, "hot_changed": 0, "A": 9, "B": 0, "C": 3, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_xshard.o.3585cf090b4f.o"}
+    C T=new code 947->963 lanes=- eq=- tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymou
+    C T=new reloc-only 1072->1072 lanes=- eq=- tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+    C T=new code 592->525 lanes=- eq=- tomo::FlatStore::retire_detached_obj(tomo::KvObj*)
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127915", "unit": 100332, "changed": 13, "hot_changed": 0, "A": 6, "B": 0, "C": 5, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_xshard.o.2d4966e9d5e5.o"}
+    C T=new code 947->963 lanes=- eq=- tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymou
+    C T=new reloc-only 1072->1072 lanes=- eq=- tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+    C T=new code 1314->1374 lanes=- eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+    C T=PRE code 118->129 lanes=- eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+    C T=new code 592->525 lanes=- eq=- tomo::FlatStore::retire_detached_obj(tomo::KvObj*)
+    D T=new code 3670->3715 lanes=rlresize eq=- tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern con
+    D T=new reloc-only 162->162 lanes=rlresize eq=- tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern con
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127924", "unit": 100332, "changed": 9, "hot_changed": 0, "A": 9, "B": 0, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_xshard.o.42f91447dbe5.o"}
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127930", "unit": 100332, "changed": 10, "hot_changed": 0, "A": 6, "B": 0, "C": 2, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_xshard.o.5573e1599182.o"}
+    C T=new code 947->963 lanes=- eq=- tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymou
+    C T=new reloc-only 1072->1072 lanes=- eq=- tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+    D T=new code 3670->3715 lanes=rlresize eq=- tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern con
+    D T=new reloc-only 162->162 lanes=rlresize eq=- tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern con
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127950", "unit": 100332, "changed": 12, "hot_changed": 0, "A": 6, "B": 0, "C": 4, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_xshard.o.160f880c85af.o"}
+    C T=new code 2509->2542 lanes=- eq=- tomo::(anonymous namespace)::BlockingRegistry::add(tomo::Shard&, tomo::BlockingState&, unsigned int)
+    C T=new code 803->807 lanes=- eq=- tomo::(anonymous namespace)::BlockingRegistry::add(tomo::Shard&, tomo::BlockingState&, unsigned int) [clone .c
+    C T=new code 1314->1374 lanes=- eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+    C T=PRE code 118->129 lanes=- eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+    D T=new code 3670->3635 lanes=rlresize eq=- tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern con
+    D T=new reloc-only 162->162 lanes=rlresize eq=- tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern con

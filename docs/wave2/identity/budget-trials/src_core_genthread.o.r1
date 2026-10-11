@@ -1,0 +1,48 @@
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129400", "unit": 102342, "changed": 14, "hot_changed": 2, "A": 9, "B": 2, "C": 1, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_genthread.o.5ce4e7716855.o"}
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1195->1066 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    D T=new code 3230->3090 lanes=rlresize eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1043->1185 lanes=rlresize eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129410", "unit": 102342, "changed": 13, "hot_changed": 2, "A": 9, "B": 2, "C": 0, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_genthread.o.9115a41de809.o"}
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1195->1066 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    D T=new code 3230->3090 lanes=rlresize eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1043->1185 lanes=rlresize eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129418", "unit": 102342, "changed": 13, "hot_changed": 2, "A": 9, "B": 2, "C": 0, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_genthread.o.e2bc2de23bcb.o"}
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1195->1066 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    D T=rlresize code 3230->3119 lanes=rlresize eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1043->1185 lanes=rlresize eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129420", "unit": 102342, "changed": 13, "hot_changed": 2, "A": 9, "B": 2, "C": 0, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_genthread.o.97fdc309a33e.o"}
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1195->1066 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    D T=rlresize code 3230->3119 lanes=rlresize eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1043->1185 lanes=rlresize eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129430", "unit": 102342, "changed": 13, "hot_changed": 2, "A": 9, "B": 2, "C": 0, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_genthread.o.6f78eeb16dce.o"}
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1195->1066 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    D T=rlresize code 3230->3119 lanes=rlresize eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=rlresize code 1043->1217 lanes=rlresize eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129440", "unit": 102342, "changed": 12, "hot_changed": 2, "A": 9, "B": 1, "C": 0, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_genthread.o.6fc104b2a264.o"}
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1195->1066 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    D T=rlresize code 3230->3119 lanes=rlresize eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=rlresize code 1043->1217 lanes=rlresize eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129453", "unit": 102342, "changed": 12, "hot_changed": 2, "A": 9, "B": 1, "C": 0, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_genthread.o.f8d58fd089ec.o"}
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1195->1066 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    D T=new code 3230->3148 lanes=rlresize eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=rlresize code 1043->1217 lanes=rlresize eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129460", "unit": 102342, "changed": 14, "hot_changed": 2, "A": 9, "B": 2, "C": 1, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_genthread.o.537ef4730fad.o"}
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1195->1066 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    C T=new code 683->800 lanes=- eq=- tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)
+    D T=rlresize code 3230->3119 lanes=rlresize eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=rlresize code 1043->1217 lanes=rlresize eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129480", "unit": 102342, "changed": 13, "hot_changed": 2, "A": 9, "B": 1, "C": 1, "D": 2, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_genthread.o.70f711c94c7f.o"}
+    HOT A T=perfex code 625->565 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 1195->1066 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    C T=new code 683->800 lanes=- eq=- tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)
+    D T=new code 3230->3148 lanes=rlresize eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=rlresize code 1043->1217 lanes=rlresize eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)

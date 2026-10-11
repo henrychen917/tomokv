@@ -1,0 +1,48 @@
+{
+ "expect_quick": 625,
+ "expect_full": 642,
+ "base_991d48f65": {
+  "quick": 625,
+  "full": 642
+ },
+ "source": {
+  "quick": 637,
+  "full": 654
+ },
+ "DQ": 12,
+ "DF": 12,
+ "fixture_labels": 654,
+ "missing_from_fixture": {},
+ "extra_in_fixture": {},
+ "new_labels_full": [
+  "perfex clock binary regression",
+  "perfex batch binary regression",
+  "perfex TTL sampler beat (1s)",
+  "perfex TTL sampler beat (2s)",
+  "perfio XREADGROUP bounded delivery + Redis metadata (1s)",
+  "perfio XREADGROUP bounded delivery + Redis metadata (2s)",
+  "storage flush-prepared-capacity regression",
+  "armed resize retirement: atomic-growth",
+  "armed resize retirement: flush-prepared",
+  "Redis default databases 16 (both modes)",
+  "perfio stale epoll registration (epoll-flip)",
+  "perfio stale epoll registration (epoll-lb)"
+ ],
+ "new_labels_quick": [
+  "perfex clock binary regression",
+  "perfex batch binary regression",
+  "perfex TTL sampler beat (1s)",
+  "perfex TTL sampler beat (2s)",
+  "perfio XREADGROUP bounded delivery + Redis metadata (1s)",
+  "perfio XREADGROUP bounded delivery + Redis metadata (2s)",
+  "storage flush-prepared-capacity regression",
+  "armed resize retirement: atomic-growth",
+  "armed resize retirement: flush-prepared",
+  "Redis default databases 16 (both modes)",
+  "perfio stale epoll registration (epoll-flip)",
+  "perfio stale epoll registration (epoll-lb)"
+ ],
+ "removed_labels": [],
+ "raw_fixture_check": "refused: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=642, fixture=654, source declarations=654",
+ "in_memory_check_at_654": 654
+}

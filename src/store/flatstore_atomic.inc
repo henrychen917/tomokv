@@ -817,6 +817,9 @@ private:
         auto* fresh = static_cast<uint64_t*>(
             flatstore_table_calloc(static_cast<size_t>(wanted), sizeof(uint64_t)));
         if (!fresh) return false;
+        // Same admission as start_rehash_read_local(): completion hands the old table to the
+        // owner's QSBR FIFO with this record and cannot allocate one then (resize_retirement.h).
+        if (!prepare_resize_retirement()) { std::free(fresh); return false; }
         ReadLocalTableGuard table_change(*this);
         read_local_topology_store(&tab_[1], tab_[0]);
         read_local_topology_store(&cap_[1], cap_[0]);

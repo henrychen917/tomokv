@@ -85,7 +85,7 @@ struct NetcmdRegression {
         Server server;
         // The gate runs this serverless row without taskset. Automatic SMT placement requires
         // whole sibling pairs for BOTH roles; only one IO is a tracking destination below.
-        Config cfg; cfg.even_ifid = 2; cfg.even_ex = 2; cfg.shards = 16;
+        Config cfg; cfg.databases = 1; cfg.even_ifid = 2; cfg.even_ex = 2; cfg.shards = 16;
         check(server.prepare_boot(cfg), "notification topology");
         server.threads_.resize(server.placement().total_threads());
         for (uint32_t i = 0; i < server.threads_.size(); ++i) {
@@ -120,7 +120,7 @@ struct NetcmdRegression {
 
     static void flush() {
         // Two IOs still prove the foreign delivery; an even EX count also admits SMT placement.
-        Server server; Config cfg; cfg.even_ifid = 2; cfg.even_ex = 2; cfg.shards = 16;
+        Server server; Config cfg; cfg.databases = 1; cfg.even_ifid = 2; cfg.even_ex = 2; cfg.shards = 16;
         check(server.prepare_boot(cfg), "flush topology");
         const auto& ios = server.placement().ifid_threads();
         check(ios.size() == 2, "foreign tracking IO exists");
@@ -564,7 +564,7 @@ struct NetcmdRegression {
             check(std::fputs("\n", file) >= 0 && std::fclose(file) == 0, "write ACL fixture");
         };
         write_file({});
-        Server server; Config cfg; cfg.aclfile = path.c_str();
+        Server server; Config cfg; cfg.databases = 1; cfg.aclfile = path.c_str();
         ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
         IoLoop loop; loop.srv_ = &server; loop.self_ = &self;
         Client admin(-1); admin.set_id(808);
@@ -750,7 +750,7 @@ struct NetcmdRegression {
         if (section == "zc-install" || section == "zc-live") return;
         for (ThreadMode mode : {ThreadMode::Split, ThreadMode::Fused}) {
             Server server;
-            Config cfg; cfg.even_ifid = 6; cfg.even_ex = 2; cfg.shards = 16;
+            Config cfg; cfg.databases = 1; cfg.even_ifid = 6; cfg.even_ex = 2; cfg.shards = 16;
             cfg.thread_mode = mode; cfg.key_lb = cfg.client_lb = 0;
             check(server.prepare_boot(cfg) && server.init(cfg), "serverless zero-copy topology");
             std::string keys[2];

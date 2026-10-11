@@ -1,0 +1,51 @@
+  ok   geometry source-shard=0 destination-shard=1
+xmove directed battery atomic=0
+  ok   clean slate
+  ok   LMOVE empty setup
+  ok   LMOVE empty source outranks wrong destination
+  ok   LMOVE single setup
+  ok   LMOVE single cross-owner reply
+  ok   LMOVE single deletes source
+  ok   LMOVE single creates destination
+  ok   LMOVE selected element
+  ok   LMOVE source mutation
+  ok   LMOVE destination mutation
+  ok   LMOVE wrong destination
+  ok   LMOVE wrong destination leaves source
+  ok   RPOPLPUSH empty source
+  ok   RPOPLPUSH single cross-owner reply
+  ok   RPOPLPUSH single deletes source
+  ok   RPOPLPUSH pushes destination left
+  ok   SMOVE wrong destination
+  ok   SMOVE wrong destination leaves source
+  ok   SMOVE empty source
+  ok   SMOVE single cross-owner reply
+  ok   SMOVE single deletes source
+  ok   SMOVE destination contains both members
+  ok   LMOVE same-key reply
+  ok   LMOVE same-key rotation
+  ok   RPOPLPUSH same-key reply
+  ok   RPOPLPUSH same-key rotation
+  ok   SMOVE same-key hit
+  ok   SMOVE same-key miss
+  ok   correctness mechanisms fired {'lmove': 3, 'rpoplpush': 2, 'smove': 2, 'errors': 2, 'same': 4}
+  skip size-ratio timing: requires --release-build; correctness checks remain active
+  ok   concurrent detector control push
+  ok   concurrent detector control move
+  ok   concurrent detector negative control reported zero
+  ok   concurrent push completed between hops
+  ok   concurrent LMOVE reply
+  ok   destination-owner hold scanned without mutation
+  ok   targeted source removal retains concurrent push
+  ok   forced inter-hop window fired and retained the unrelated write
+  ok   concurrent same-edge push completed between hops
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave2/build/wave2/xmove-a0-contend/xmove-991d48f65.py", line 323, in <module>
+    main()
+  File "/home/user/Projects/cx-wave2/build/wave2/xmove-a0-contend/xmove-991d48f65.py", line 318, in main
+    concurrent_push_cell(admin, source, destination, blocker, atomic)
+  File "/home/user/Projects/cx-wave2/build/wave2/xmove-a0-contend/xmove-991d48f65.py", line 301, in concurrent_push_cell
+    expect(mover.read(), b"moved", "concurrent same-edge LMOVE reply")
+  File "/home/user/Projects/cx-wave2/build/wave2/xmove-a0-contend/xmove-991d48f65.py", line 71, in expect
+    raise AssertionError(f"{label}: got {actual!r}, wanted {wanted!r}")
+AssertionError: concurrent same-edge LMOVE reply: got b'new-edge', wanted b'moved'

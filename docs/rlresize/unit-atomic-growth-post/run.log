@@ -1,0 +1,12 @@
+ARMED atomic growth 128 -> 256 slots, boot reservation already consumed
+PASS atomic growth reserves its resize retirement
+PASS atomic growth (status=0)
+EXIT=0
+ARMED atomic growth 128 -> 256 slots, boot reservation already consumed
+PASS atomic growth reserves its resize retirement
+PASS atomic growth (status=0)
+EXIT=0
+ARMED atomic growth 128 -> 256 slots, boot reservation already consumed
+PASS atomic growth reserves its resize retirement
+PASS atomic growth (status=0)
+EXIT=0

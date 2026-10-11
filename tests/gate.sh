@@ -305,8 +305,18 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # flipfix (IO4.1/IO4.2/IO4.4/CT4.3): +3 live rows in job_flip (close during FLIP on uring and
 # epoll, signal stop during FLIP + second SIGINT) and +2 serverless rows in job_flipfix_units;
 # both jobs are collected before the quick-tier exit: 511+5 = 516 quick, 528+5 = 533 full.
-EXPECT_QUICK=625
-EXPECT_FULL=642                 # ABBA reports only; self-test remains counted.
+# perfio: two IO4.19 rows + two PFDATATY.1 mode rows before the quick-tier exit: DQ=+4, DF=+4.
+# perfex/perfex2: two binary rows plus two live TTL sampler rows (perfex2's flush-freshness cases
+# extend the sampler rows), all before the quick exit: DQ=+4, DF=+4.
+# lottery: no gate row (its nightly tier is outside the landing gate): DQ=+0, DF=+0.
+# rlresize: three serverless rows collected before the quick-tier exit -- storage
+# flush-prepared-capacity (job_storage_units) and armed resize retirement atomic-growth /
+# flush-prepared (job_atomic_units): DQ=+3, DF=+3.
+# dbdefault: one default-config row (both modes), collected BEFORE the quick exit: DQ=+1, DF=+1.
+# wave2 total: perfio +4/+4, perfex2 +4/+4, lottery +0, rlresize +3/+3, dbdefault +1/+1
+# = DQ=+12, DF=+12: maintainer sets EXPECT_QUICK=625+12=637 / EXPECT_FULL=642+12=654.
+EXPECT_QUICK=637
+EXPECT_FULL=654                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -735,7 +745,12 @@ settle(){ # after a server is gone: wait for $PORT to stop accepting, then a sho
   sleep "${GATE_STOP_SETTLE:-1}"
 }
 launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30 s for the port
-  local tag=$1 bin=$2; shift 2
+  local tag=$1 bin=$2 arg; shift 2
+  # Preserve the DB0 battery; explicit multi-DB rows own their image.
+  local database_args=(--databases 1)
+  for arg in "$@"; do
+    case "$arg" in --databases|--databases=*) database_args=();; esac
+  done
   quiet_wait
   SRV=0; SRVLOG=/dev/null
   guard_port "$PORT"
@@ -746,7 +761,7 @@ launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30
   local boot_dir
   boot_dir=$(mktemp -d "$TMPDIR/gate-data-$tag.XXXXXX") || return 1
   # Persistence batteries may override this later; cleanup must not replace a tested BGSAVE cut.
-  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "$@" > "$SRVLOG" 2>&1 &
+  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "${database_args[@]}" "$@" > "$SRVLOG" 2>&1 &
   SRV=$!
   # 30s, not 10s: the AOF replay boot replays its file BEFORE it listens, and on a box shared
   # with other lanes that overran a 10s deadline and turned six AOF rows red with no defect behind
@@ -1047,9 +1062,9 @@ plan_jobs(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
+              wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
+              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1214,7 +1229,7 @@ reject_boot(){
   if [[ "$1" != --* ]]; then conf=("$1"); shift; fi
   directory=$(mktemp -d "$TMPDIR/reject-boot.XXXXXX") || return 1
   timeout --kill-after=5 10 taskset -c "$CORES" "$CANDIDATE_BINARY" "${conf[@]}" \
-      --port "$PORT" --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --dir "$directory" --save '' "$@"
+      --port "$PORT" --bind 127.0.0.1 --databases 1 --shards 16 --ratio "$GATE_RATIO" --dir "$directory" --save '' "$@"
 }
 
 store_build(){
@@ -1406,6 +1421,41 @@ else
 fi
 }
 
+job_perfex_units(){
+  local check label
+  for check in clock batch; do
+    label="perfex $check binary regression"
+    row_begin "$label"
+    if taskset -c "$CORES" python3 tests/perfex_checks.py "$check" --binary "$CANDIDATE_BINARY" \
+        >"$TMPDIR/perfex-$check.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/perfex-$check.log"
+    fi
+  done
+}
+
+job_perfex_live(){
+  local mode label launch_fn
+  for mode in 1s 2s; do
+    label="perfex TTL sampler beat ($mode)"
+    row_begin "$label"
+    launch_fn=boot; [ "$mode" != 1s ] || launch_fn=boot_fused
+    # A failed boot is this row's failure; never run the client against an old listener.
+    if py tests/perfex_checks.py prepare --clock-file "$TMPDIR/perfex-clock" &&
+        LD_PRELOAD="$TMPDIR/perfex-clock.so" TOMO_PERFEX_CLOCK="$TMPDIR/perfex-clock" "$launch_fn" "$CANDIDATE_BINARY" --atomic 1 --read-local 0 --databases 1 \
+        --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes \
+        --save '' --appendonly no && \
+        py tests/perfex_checks.py sampler --port "$PORT" --clock-file "$TMPDIR/perfex-clock" \
+          >"$TMPDIR/perfex-sampler-$mode.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/perfex-sampler-$mode.log and $SRVLOG"
+    fi
+    stop
+  done
+}
+
 job_persistfix_units(){
 # PS1/PS2/PS14: one row, collected BEFORE the quick-tier exit. EXPECT stays owner-owned.
 row_begin "AOF publication/shutdown witnesses + negative controls"
@@ -1587,6 +1637,18 @@ job_netio(){
   done
   [ "$rc" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/{uring,epoll}.log"
 }
+job_perfio_stream(){
+  # These rows own their boots; no live pre-boot occupies $PORT.
+  for MODE in 1s 2s; do
+    row_begin "perfio XREADGROUP bounded delivery + Redis metadata ($MODE)"
+    py tests/perfio.py stream --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+        --ratio "$GATE_RATIO" --mode "$MODE" --net-io uring --output "$TMPDIR/perfio-$MODE" \
+        >"$TMPDIR/perfio-$MODE.log" 2>&1 \
+        && ok "perfio XREADGROUP bounded delivery + Redis metadata ($MODE)" \
+        || bad "perfio XREADGROUP bounded delivery + Redis metadata ($MODE)" "see $TMPDIR/perfio-$MODE.log"
+  done
+}
+
 job_lb_stationary(){
   local mode=$1 boot_fn=boot label="stationary balanced LB holds still ($1)"
   [ "$mode" != 1s ] || boot_fn=boot_fused
@@ -1610,7 +1672,7 @@ job_splitlocal_units(){
 }
 
 job_storage_units(){
-# Twelve storage regressions, all BEFORE the quick-tier exit. The hash reaper is production code;
+# Thirteen storage regressions, all BEFORE the quick-tier exit. The hash reaper is production code;
 # store-boundary spies make held epochs, capture cursors, eviction and allocation failures exact.
 # No case skips. Build failure makes every dependent row red. EXPECT constants are maintainer-owned.
 STORE_REGRESSION_BUILT=0; STORE_TSAN_BUILT=0
@@ -1618,7 +1680,7 @@ store_build >$TMPDIR/gate-store-build.txt 2>&1 & store_pid=$!
 store_build tsan >$TMPDIR/gate-store-flags-build.txt 2>&1 & store_tsan_pid=$!
 wait "$store_pid" && STORE_REGRESSION_BUILT=1
 wait "$store_tsan_pid" && STORE_TSAN_BUILT=1
-for STORE_CASE in unlinked randomkey rehash rollback snapshot-eviction flags aof-eviction intents imported-hash field-index-failure hash-bytes deadline-allocation-failure; do
+for STORE_CASE in unlinked randomkey rehash rollback snapshot-eviction flags aof-eviction intents imported-hash field-index-failure hash-bytes deadline-allocation-failure flush-prepared-capacity; do
   row_begin "storage $STORE_CASE regression"
   STORE_RUN=(./build/store-regression "$STORE_CASE")
   STORE_CASE_BUILT=$STORE_REGRESSION_BUILT
@@ -1721,6 +1783,17 @@ for defect in admission closure script_keys rename_overlay write_latest script_a
       >"$TMPDIR/gate-atomic-survivors-$defect.txt" 2>&1 \
       && ok "atomic survivor: $defect" \
       || bad "atomic survivor: $defect" "see $TMPDIR/gate-atomic-survivors-$defect.txt"
+done
+# rlresize: two serverless rows, collected before the quick-tier exit (+2 quick/+2 full). Each
+# forks one child on the production owner queue (defer_resize bound) and completes a resize the
+# pre-fix code started without its retirement record: armed atomic growth, and a FLUSH between
+# snapshot prepare and mark. PRE 991d48f65 dies in rehash_step_read_local with SIGABRT.
+for RLRESIZE_CASE in atomic-growth flush-prepared; do
+  row_begin "armed resize retirement: $RLRESIZE_CASE"
+  unit_ready rehash-waits-unit && taskset -c "$CORES" ./build/rehash-waits-unit "$RLRESIZE_CASE" \
+      >"$TMPDIR/rlresize-$RLRESIZE_CASE.log" 2>&1 \
+      && ok "armed resize retirement: $RLRESIZE_CASE" \
+      || bad "armed resize retirement: $RLRESIZE_CASE" "see $TMPDIR/rlresize-$RLRESIZE_CASE.log"
 done
 }
 
@@ -2535,6 +2608,14 @@ row_begin "FLIP signal stop during FLIP + second SIGINT"
       --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigint"; } >"$TMPDIR/gate-flipfix-signal.txt" 2>&1 \
     && ok "FLIP signal stop during FLIP + second SIGINT" \
     || bad "FLIP signal stop during FLIP + second SIGINT" "see $TMPDIR/gate-flipfix-signal.txt"
+# IO4.19 rows own this slot's now-free port; both FLIP and default-on client-lb use the transfer.
+for CASE in epoll-flip epoll-lb; do
+  row_begin "perfio stale epoll registration ($CASE)"
+  py tests/perfio.py "$CASE" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/perfio-$CASE" >"$TMPDIR/perfio-$CASE.log" 2>&1 \
+      && ok "perfio stale epoll registration ($CASE)" \
+      || bad "perfio stale epoll registration ($CASE)" "see $TMPDIR/perfio-$CASE.log"
+done
 }
 
 job_flip_saturated(){
@@ -2965,7 +3046,7 @@ tlsboot(){ # auth-mode [extra TLS knobs]
   guard_port "$PORT"
   guard_port "$TLS_PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-tls-srv.XXXXXX)
-  taskset -c $CORES "$CANDIDATE_BINARY" --port "$PORT" --tls-port "$TLS_PORT" \
+  taskset -c $CORES "$CANDIDATE_BINARY" --databases 1 --port "$PORT" --tls-port "$TLS_PORT" \
       --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --protected-mode no --dir "$TLS_DIR" --save '' \
       --tls-cert-file "$TLS_DIR/server.crt" --tls-key-file "$TLS_DIR/server.key" \
       --tls-ca-cert-file "$TLS_DIR/ca.crt" --tls-auth-clients "$auth" "$@" \
@@ -3174,7 +3255,7 @@ zcboot(){
   SRV=0; SRVLOG=/dev/null
   guard_port "$PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-srv-zc.XXXXXX)
-  taskset -c $CORES "$1" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO \
+  taskset -c $CORES "$1" --databases 1 --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO \
       --dir "$(mktemp -d "$TMPDIR/zc-data.XXXXXX")" --save '' --zc-min 16384 > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do
@@ -3370,6 +3451,15 @@ job_tailgen_build(){
       >"$TMPDIR/build.log" 2>&1 && : > "$RUN_DIR/unit-ready/tailgen"
 }
 
+job_dbdefault(){
+  row_begin "Redis default databases 16 (both modes)"
+  # Deliberately bypass launch(): this row alone tests the unqualified default.
+  py tests/dbdefault.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/dbdefault" >"$TMPDIR/dbdefault.log" 2>&1 \
+      && ok "Redis default databases 16 (both modes)" \
+      || bad "Redis default databases 16 (both modes)" "see $TMPDIR/dbdefault.log"
+}
+
 job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
@@ -3438,6 +3528,16 @@ unit_ready(){
 job_dependencies(){
   local dependency
   case "$1" in
+    perfio_stream)
+      # The fixed GET-after-XREADGROUP bounds (median < 3 ms, max < 12 ms) need the
+      # same quiet boundary as atomic_ryow. Run after ordinary jobs, then allow atomic_batteries
+      # (which already waits for every other family) to follow without a cycle.
+      if [ "${GATE_PARTIAL:-0}" = 1 ]; then echo release; return; fi
+      for dependency in "${JOB_NAMES[@]}"; do
+        [ "$dependency" = perfio_stream ] || [ "$dependency" = atomic_batteries ] ||
+          printf '%s\n' "$dependency"
+      done
+      return;;
     atomic_batteries)
       # A measured 3 ms scheduling pause alone flips atomic_ryow's unchanged 24-command
       # rate assertion. Preserve the entire boot/battery chain and every assertion, but
@@ -3537,6 +3637,8 @@ collect_job exbatch_units
 collect_job exbatch_live
 
 collect_job persistfix_units
+collect_job perfex_units
+collect_job perfex_live
 collect_job clientfix
 collect_job core_units
 # flipfix: two serverless sanitizer rows before the quick exit (+2 quick / +2 full).
@@ -3555,6 +3657,7 @@ collect_job reorder_identity
 collect_job wb_policy
 for MODE in 1s 2s; do collect_job "lb-stationary-$MODE"; done
 for MODE in 1s 2s; do collect_job "netio-$MODE"; done
+collect_job perfio_stream
 
 # WB4/IO5 and IO1: one new row before the quick exit; EXPECT counts stay maintainer-owned.
 collect_job splitlocal_units
@@ -3577,6 +3680,7 @@ collect_job acl_metadata
 
 # ---- 2. boot matrix: deleted flags stay dead; live grammar boots ------------------------------
 collect_job boot_grammar
+collect_job dbdefault
 
 collect_job cmd_metadata
 
@@ -3890,7 +3994,7 @@ PY
       nic_kill_srv $NIC_PORT || return 1
       # --protected-mode no: protected mode (vanilla-compat: no bind check) denies non-local
       # peers when no password is set — which is every NIC cell.
-      NIC_SRV_CORES=$2 nic_boot "gate_$1" "$CPP" --port $NIC_PORT --bind $NIC_SRV_IP --ratio $3 --shards $4 --protected-mode no || return 1
+      NIC_SRV_CORES=$2 nic_boot "gate_$1" "$CPP" --databases 1 --port $NIC_PORT --bind $NIC_SRV_IP --ratio $3 --shards $4 --protected-mode no || return 1
       NIC_TO=1200 NIC_LG_CORES=$6 nic_memtier -t 16 -c 4 --pipeline=32 --ratio=1:0 --key-pattern=P:P \
           --key-minimum=1 --key-maximum=$KMAX -n allkeys -d 64 >/dev/null 2>&1
       local f=$BL_LOGDIR/g_$1.log

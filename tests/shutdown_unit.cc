@@ -54,7 +54,7 @@ struct Fixture {
     Server server;
     Ring ring; // never initialized: no io_uring, network, or owner loop
     Fixture(ThreadMode mode = ThreadMode::Split, const char* directory = ".") {
-        Config cfg;
+        Config cfg; cfg.databases = 1;
         cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
         cfg.thread_mode = mode; cfg.dir = directory; cfg.net_io = NetIoEngine::Epoll;
         cfg.key_lb = cfg.client_lb = 0;

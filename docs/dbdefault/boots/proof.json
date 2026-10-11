@@ -1,0 +1,130 @@
+[
+  {
+    "name": "pre-default",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/dbdefault.py",
+      "--binary",
+      "build/dbdefault/pre/tomokv",
+      "--cores",
+      "112-119",
+      "--port",
+      "25150",
+      "--output",
+      "docs/dbdefault/boots/pre-default",
+      "--expect",
+      "1"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "pre-negative",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/dbdefault.py",
+      "--binary",
+      "build/dbdefault/pre/tomokv",
+      "--cores",
+      "112-119",
+      "--port",
+      "25150",
+      "--output",
+      "docs/dbdefault/boots/pre-negative"
+    ],
+    "exit_code": 1
+  },
+  {
+    "name": "post-default",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/dbdefault.py",
+      "--binary",
+      "build/tomokv",
+      "--cores",
+      "112-119",
+      "--port",
+      "25150",
+      "--output",
+      "docs/dbdefault/boots/post-default"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "post-conf",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/dbdefault.py",
+      "--binary",
+      "build/tomokv",
+      "--cores",
+      "112-119",
+      "--port",
+      "25150",
+      "--output",
+      "docs/dbdefault/boots/post-conf",
+      "--config",
+      "tomokv.conf"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "post-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/dbdefault.py",
+      "--binary",
+      "build/tomokv",
+      "--cores",
+      "112-119",
+      "--port",
+      "25150",
+      "--output",
+      "docs/dbdefault/boots/post-db1",
+      "--databases",
+      "1",
+      "--expect",
+      "1"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "post-conf-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/dbdefault.py",
+      "--binary",
+      "build/tomokv",
+      "--cores",
+      "112-119",
+      "--port",
+      "25150",
+      "--output",
+      "docs/dbdefault/boots/post-conf-db1",
+      "--config",
+      "tomokv.conf",
+      "--databases",
+      "1",
+      "--expect",
+      "1"
+    ],
+    "exit_code": 0
+  }
+]
