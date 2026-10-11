@@ -4,3 +4,4 @@ PASS respresume migration: 1s R7 client-LB handoff
 PASS respresume migration: 2s ordinary FLIP prepare/commit
 PASS respresume migration: 1s ordinary FLIP prepare/commit
 PASS respresume migration: 1s R7 FLIP prepare/commit
+exit=0
