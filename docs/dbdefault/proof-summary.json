@@ -350,5 +350,20 @@
   "hashes": {
     "build/dbdefault/pre/tomokv": "740f8adc21a16c38e42321cc94ee4201e923e1a8ae758366f857678a2cfe1c1b",
     "build/tomokv": "b9cbfc25d1a2d106e6c5f7f65e0e41633d25b770fd195b12d250774eddc0ca07"
+  },
+  "final_origin_check_utc": "2026-10-11T09:51:40.651446+00:00",
+  "final_origin_commit": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "final_row_audit": {
+    "audited_origin": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+    "base_quick": 625,
+    "base_full": 642,
+    "quick": 626,
+    "full": 643,
+    "DQ": 1,
+    "DF": 1,
+    "quick_exit_line": 3716,
+    "default_row_collection_line": 3596,
+    "fixture_labels_match": true,
+    "proposed_count_check_passes_in_memory": true
   }
 }

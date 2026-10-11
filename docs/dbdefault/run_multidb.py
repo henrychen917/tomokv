@@ -1,6 +1,7 @@
 """Run the gate's eight multidb geometries as a focused correctness proof."""
 from pathlib import Path
 import json
+import gzip
 import subprocess
 import sys
 import time
@@ -45,6 +46,10 @@ for mode in ("1s", "2s"):
                             "--read-local", local, "--persistence"])
                 run(label + "-serial", ["python3", "tests/multidb_serial.py", "127.0.0.1", "25155",
                     "--output", out / (label + "-epochs.json")])
+                epochs = out / (label + "-epochs.json")
+                if epochs.exists():
+                    epochs.with_suffix(".json.gz").write_bytes(gzip.compress(epochs.read_bytes(), mtime=0))
+                    epochs.unlink()
             run(label + "-qsbr", ["python3", "tests/mdbqsbr_live.py", "--binary", root / "build/tomokv",
                 "--parked-binary", root / "build/mdbqsbr2-park/tomokv",
                 "--no-wake-binary", root / "build/mdbqsbr2-no-wake/tomokv", "--mode", mode,
