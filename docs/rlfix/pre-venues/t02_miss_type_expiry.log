@@ -1,0 +1,69 @@
+T2 NOTE: redis74 A get-miss -- reply=None ks={'keyspace_misses': 1} rl={}
+T2 NOTE: redis74 B mget-1hit-2miss -- reply=[b'val', None, None] ks={'keyspace_hits': 1, 'keyspace_misses': 2} rl={}
+T2 NOTE: redis74 C get-wrongtype -- reply=ERR<WRONGTYPE Operation against a key holding the wrong kind of value> ks={'keyspace_hits': 1} rl={}
+T2 NOTE: redis74 D mget-wrongtype -- reply=[None, b'val'] ks={'keyspace_hits': 2} rl={}
+T2 NOTE: redis74 E get-expired -- reply=None ks={'keyspace_misses': 1, 'expired_keys': 1} rl={}
+T2 NOTE: redis74 F mget-expired -- reply=[b'val', None] ks={'keyspace_hits': 1, 'keyspace_misses': 1, 'expired_keys': 1} rl={}
+T2 NOTE: tomo-1s-rl1 A get-miss -- reply=None ks={'keyspace_misses': 1} rl={'read_local_fallback_missing': 1, 'read_local_fallbacks': 1}
+T2 NOTE: tomo-1s-rl1 B mget-1hit-2miss -- reply=[b'val', None, None] ks={'keyspace_hits': 1, 'keyspace_misses': 2} rl={'read_local_hits': 1, 'read_local_keyspace_hits': 1, 'read_local_keyspace_misses': 2, 'read_local_mget_local_hits': 1}
+T2 NOTE: tomo-1s-rl1 C get-wrongtype -- reply=ERR<WRONGTYPE Operation against a key holding the wrong kind of value> ks={'keyspace_hits': 1} rl={'read_local_fallback_typed': 1, 'read_local_fallbacks': 1}
+T2 NOTE: tomo-1s-rl1 D mget-wrongtype -- reply=[None, b'val'] ks={'keyspace_hits': 2} rl={'read_local_fallback_typed': 1, 'read_local_fallbacks': 1, 'read_local_mget_fallback_typed': 1, 'read_local_mget_fallbacks': 1}
+T2 NOTE: tomo-1s-rl1 E get-expired -- reply=None ks={'keyspace_misses': 1, 'expired_keys': 1} rl={'read_local_fallback_expired': 1, 'read_local_fallbacks': 1}
+T2 NOTE: tomo-1s-rl1 F mget-expired -- reply=[b'val', None] ks={'keyspace_hits': 1, 'keyspace_misses': 1, 'expired_keys': 1} rl={'read_local_fallback_expired': 1, 'read_local_fallbacks': 1, 'read_local_mget_fallback_expired': 1, 'read_local_mget_fallbacks': 1}
+T2 NOTE: tomo-2s-rl1 A get-miss -- reply=None ks={'keyspace_misses': 1} rl={'read_local_fallback_missing': 1, 'read_local_fallbacks': 1}
+T2 NOTE: tomo-2s-rl1 B mget-1hit-2miss -- reply=[b'val', None, None] ks={'keyspace_hits': 1, 'keyspace_misses': 2} rl={'read_local_hits': 1, 'read_local_keyspace_hits': 1, 'read_local_keyspace_misses': 2, 'read_local_mget_local_hits': 1}
+T2 NOTE: tomo-2s-rl1 C get-wrongtype -- reply=ERR<WRONGTYPE Operation against a key holding the wrong kind of value> ks={'keyspace_hits': 1} rl={'read_local_fallback_typed': 1, 'read_local_fallbacks': 1}
+T2 NOTE: tomo-2s-rl1 D mget-wrongtype -- reply=[None, b'val'] ks={'keyspace_hits': 2} rl={'read_local_fallback_typed': 1, 'read_local_fallbacks': 1, 'read_local_mget_fallback_typed': 1, 'read_local_mget_fallbacks': 1}
+T2 NOTE: tomo-2s-rl1 E get-expired -- reply=None ks={'keyspace_misses': 1, 'expired_keys': 1} rl={'read_local_fallback_expired': 1, 'read_local_fallbacks': 1}
+T2 NOTE: tomo-2s-rl1 F mget-expired -- reply=[b'val', None] ks={'keyspace_hits': 1, 'keyspace_misses': 1, 'expired_keys': 1} rl={'read_local_fallback_expired': 1, 'read_local_fallbacks': 1, 'read_local_mget_fallback_expired': 1, 'read_local_mget_fallbacks': 1}
+T2 NOTE: tomo-1s-rl0 A get-miss -- reply=None ks={'keyspace_misses': 1} rl={}
+T2 NOTE: tomo-1s-rl0 B mget-1hit-2miss -- reply=[b'val', None, None] ks={'keyspace_hits': 1, 'keyspace_misses': 2} rl={}
+T2 NOTE: tomo-1s-rl0 C get-wrongtype -- reply=ERR<WRONGTYPE Operation against a key holding the wrong kind of value> ks={'keyspace_hits': 1} rl={}
+T2 NOTE: tomo-1s-rl0 D mget-wrongtype -- reply=[None, b'val'] ks={'keyspace_hits': 2} rl={}
+T2 NOTE: tomo-1s-rl0 E get-expired -- reply=None ks={'keyspace_misses': 1, 'expired_keys': 1} rl={}
+T2 NOTE: tomo-1s-rl0 F mget-expired -- reply=[b'val', None] ks={'keyspace_hits': 1, 'keyspace_misses': 1, 'expired_keys': 1} rl={}
+T2 PASS: tomo-1s-rl1 A get-miss reply == redis -- tomo=None redis=None
+T2 PASS: tomo-1s-rl1 A get-miss keyspace/expired deltas == redis -- tomo={'keyspace_misses': 1} redis={'keyspace_misses': 1}
+T2 PASS: tomo-1s-rl1 B mget-1hit-2miss reply == redis -- tomo=[b'val', None, None] redis=[b'val', None, None]
+T2 PASS: tomo-1s-rl1 B mget-1hit-2miss keyspace/expired deltas == redis -- tomo={'keyspace_hits': 1, 'keyspace_misses': 2} redis={'keyspace_hits': 1, 'keyspace_misses': 2}
+T2 PASS: tomo-1s-rl1 C get-wrongtype reply == redis -- tomo=ERR<WRONGTYPE Operation against a key holding the wrong kind of value> redis=ERR<WRONGTYPE Operation against a key holding the wrong kind of value>
+T2 PASS: tomo-1s-rl1 C get-wrongtype keyspace/expired deltas == redis -- tomo={'keyspace_hits': 1} redis={'keyspace_hits': 1}
+T2 PASS: tomo-1s-rl1 D mget-wrongtype reply == redis -- tomo=[None, b'val'] redis=[None, b'val']
+T2 PASS: tomo-1s-rl1 D mget-wrongtype keyspace/expired deltas == redis -- tomo={'keyspace_hits': 2} redis={'keyspace_hits': 2}
+T2 PASS: tomo-1s-rl1 E get-expired reply == redis -- tomo=None redis=None
+T2 PASS: tomo-1s-rl1 E get-expired keyspace/expired deltas == redis -- tomo={'keyspace_misses': 1, 'expired_keys': 1} redis={'keyspace_misses': 1, 'expired_keys': 1}
+T2 PASS: tomo-1s-rl1 F mget-expired reply == redis -- tomo=[b'val', None] redis=[b'val', None]
+T2 PASS: tomo-1s-rl1 F mget-expired keyspace/expired deltas == redis -- tomo={'keyspace_hits': 1, 'keyspace_misses': 1, 'expired_keys': 1} redis={'keyspace_hits': 1, 'keyspace_misses': 1, 'expired_keys': 1}
+T2 PASS: tomo-2s-rl1 A get-miss reply == redis -- tomo=None redis=None
+T2 PASS: tomo-2s-rl1 A get-miss keyspace/expired deltas == redis -- tomo={'keyspace_misses': 1} redis={'keyspace_misses': 1}
+T2 PASS: tomo-2s-rl1 B mget-1hit-2miss reply == redis -- tomo=[b'val', None, None] redis=[b'val', None, None]
+T2 PASS: tomo-2s-rl1 B mget-1hit-2miss keyspace/expired deltas == redis -- tomo={'keyspace_hits': 1, 'keyspace_misses': 2} redis={'keyspace_hits': 1, 'keyspace_misses': 2}
+T2 PASS: tomo-2s-rl1 C get-wrongtype reply == redis -- tomo=ERR<WRONGTYPE Operation against a key holding the wrong kind of value> redis=ERR<WRONGTYPE Operation against a key holding the wrong kind of value>
+T2 PASS: tomo-2s-rl1 C get-wrongtype keyspace/expired deltas == redis -- tomo={'keyspace_hits': 1} redis={'keyspace_hits': 1}
+T2 PASS: tomo-2s-rl1 D mget-wrongtype reply == redis -- tomo=[None, b'val'] redis=[None, b'val']
+T2 PASS: tomo-2s-rl1 D mget-wrongtype keyspace/expired deltas == redis -- tomo={'keyspace_hits': 2} redis={'keyspace_hits': 2}
+T2 PASS: tomo-2s-rl1 E get-expired reply == redis -- tomo=None redis=None
+T2 PASS: tomo-2s-rl1 E get-expired keyspace/expired deltas == redis -- tomo={'keyspace_misses': 1, 'expired_keys': 1} redis={'keyspace_misses': 1, 'expired_keys': 1}
+T2 PASS: tomo-2s-rl1 F mget-expired reply == redis -- tomo=[b'val', None] redis=[b'val', None]
+T2 PASS: tomo-2s-rl1 F mget-expired keyspace/expired deltas == redis -- tomo={'keyspace_hits': 1, 'keyspace_misses': 1, 'expired_keys': 1} redis={'keyspace_hits': 1, 'keyspace_misses': 1, 'expired_keys': 1}
+T2 PASS: tomo-1s-rl0 A get-miss reply == redis -- tomo=None redis=None
+T2 PASS: tomo-1s-rl0 A get-miss keyspace/expired deltas == redis -- tomo={'keyspace_misses': 1} redis={'keyspace_misses': 1}
+T2 PASS: tomo-1s-rl0 B mget-1hit-2miss reply == redis -- tomo=[b'val', None, None] redis=[b'val', None, None]
+T2 PASS: tomo-1s-rl0 B mget-1hit-2miss keyspace/expired deltas == redis -- tomo={'keyspace_hits': 1, 'keyspace_misses': 2} redis={'keyspace_hits': 1, 'keyspace_misses': 2}
+T2 PASS: tomo-1s-rl0 C get-wrongtype reply == redis -- tomo=ERR<WRONGTYPE Operation against a key holding the wrong kind of value> redis=ERR<WRONGTYPE Operation against a key holding the wrong kind of value>
+T2 PASS: tomo-1s-rl0 C get-wrongtype keyspace/expired deltas == redis -- tomo={'keyspace_hits': 1} redis={'keyspace_hits': 1}
+T2 PASS: tomo-1s-rl0 D mget-wrongtype reply == redis -- tomo=[None, b'val'] redis=[None, b'val']
+T2 PASS: tomo-1s-rl0 D mget-wrongtype keyspace/expired deltas == redis -- tomo={'keyspace_hits': 2} redis={'keyspace_hits': 2}
+T2 PASS: tomo-1s-rl0 E get-expired reply == redis -- tomo=None redis=None
+T2 PASS: tomo-1s-rl0 E get-expired keyspace/expired deltas == redis -- tomo={'keyspace_misses': 1, 'expired_keys': 1} redis={'keyspace_misses': 1, 'expired_keys': 1}
+T2 PASS: tomo-1s-rl0 F mget-expired reply == redis -- tomo=[b'val', None] redis=[b'val', None]
+T2 PASS: tomo-1s-rl0 F mget-expired keyspace/expired deltas == redis -- tomo={'keyspace_hits': 1, 'keyspace_misses': 1, 'expired_keys': 1} redis={'keyspace_hits': 1, 'keyspace_misses': 1, 'expired_keys': 1}
+T2 PASS: tomo-1s-rl1 GET miss is NOT a lane hit (fallback_missing) -- {'read_local_fallback_missing': 1, 'read_local_fallbacks': 1}
+T2 PASS: tomo-1s-rl1 MGET with misses IS a lane hit -- {'read_local_hits': 1, 'read_local_keyspace_hits': 1, 'read_local_keyspace_misses': 2, 'read_local_mget_local_hits': 1}
+T2 PASS: tomo-2s-rl1 GET miss is NOT a lane hit (fallback_missing) -- {'read_local_fallback_missing': 1, 'read_local_fallbacks': 1}
+T2 PASS: tomo-2s-rl1 MGET with misses IS a lane hit -- {'read_local_hits': 1, 'read_local_keyspace_hits': 1, 'read_local_keyspace_misses': 2, 'read_local_mget_local_hits': 1}
+T2 PASS: tomo-1s-rl1 GET of a resident expired key -> fallback_expired -- {'read_local_fallback_expired': 1, 'read_local_fallbacks': 1}
+T2 PASS: tomo-1s-rl1 MGET with a resident expired key -> mget_fallback_expired -- {'read_local_fallback_expired': 1, 'read_local_fallbacks': 1, 'read_local_mget_fallback_expired': 1, 'read_local_mget_fallbacks': 1}
+T2 PASS: tomo-2s-rl1 GET of a resident expired key -> fallback_expired -- {'read_local_fallback_expired': 1, 'read_local_fallbacks': 1}
+T2 PASS: tomo-2s-rl1 MGET with a resident expired key -> mget_fallback_expired -- {'read_local_fallback_expired': 1, 'read_local_fallbacks': 1, 'read_local_mget_fallback_expired': 1, 'read_local_mget_fallbacks': 1}
+T2 SUMMARY: 44 checks, 0 FAIL
