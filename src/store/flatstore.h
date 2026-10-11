@@ -2971,7 +2971,10 @@ private:
         // and the per-put ceiling would refuse new ones anyway (obj_bytes_ is now 0), so hand them
         // straight back rather than holding them until the next write pressure.
         read_local_cache_release_all();
-        read_local_store_state_armed().resize_retirement.reset();
+        // Both tables went to the object ring, so no resize owns the reservation now -- unless a
+        // prepared snapshot does: mark publishes its post-cut table and the post-capture merge
+        // hands the cut table to the owner FIFO with the record snapshot_prepare() reserved.
+        if (!snapshot_prepared_) read_local_store_state_armed().resize_retirement.reset();
         if (fresh) install_empty_table_read_local(0, fresh, 1024);
     }
 
