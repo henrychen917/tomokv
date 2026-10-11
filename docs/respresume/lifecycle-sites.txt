@@ -73,9 +73,9 @@ src/net/conn.h:307:    void     advance_parse(uint32_t n) { rpos_ += n; inline_s
 src/net/conn.h:332:    // (Guarding only the memmove in reset_rbuf_at_quiescence is NOT enough; realloc moves it too.)
 src/net/conn.h:376:    // reset_rbuf_at_quiescence().
 src/net/conn.h:386:    void reset_rbuf_at_quiescence() {
-src/net/conn.h:604:    void set_ifid_thread(uint32_t t) { ifid_thread_.store(t, std::memory_order_release); }
-src/net/conn.h:611:    void mark_dead() { dead_ = true; inline_scanned_ = 0; multibulk_.finish(); }
-src/net/conn.h:613:    void mark_closing() { closing_ = true; inline_scanned_ = 0; multibulk_.finish(); }
+src/net/conn.h:603:    void set_ifid_thread(uint32_t t) { ifid_thread_.store(t, std::memory_order_release); }
+src/net/conn.h:610:    void mark_dead() { dead_ = true; inline_scanned_ = 0; multibulk_.finish(); }
+src/net/conn.h:612:    void mark_closing() { closing_ = true; inline_scanned_ = 0; multibulk_.finish(); }
 src/cmd/slowlog.h:38:// owning IO thread may then retire the op and call reset_rbuf_at_quiescence(), which memmoves and
 src/cmd/multi.inc:1756:        client.advance_parse(consumed);
 src/cmd/multi.inc:1877:    client.advance_parse(consumed);
