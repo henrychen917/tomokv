@@ -1,0 +1,59 @@
+{
+  "subset": "full",
+  "count": 14,
+  "ids": [
+    "h01",
+    "h02",
+    "h15",
+    "h16",
+    "h17",
+    "h18",
+    "h31",
+    "h32",
+    "h33",
+    "h34",
+    "h47",
+    "h48",
+    "h63",
+    "h64"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "SET"
+  ],
+  "depths": [
+    1,
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "latency_ms",
+    "rate"
+  ],
+  "pending_pins": [
+    "h01",
+    "h02",
+    "h15",
+    "h16",
+    "h17",
+    "h18",
+    "h31",
+    "h32"
+  ]
+}

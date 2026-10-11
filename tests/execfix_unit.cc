@@ -38,7 +38,7 @@ struct Fixture {
     uint64_t lagging_flushes = 0;
 
     explicit Fixture(int atomic, bool fused) {
-        Config cfg;
+        Config cfg; cfg.databases = 1;
         cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
         cfg.thread_mode = fused ? ThreadMode::Fused : ThreadMode::Split; cfg.atomic = atomic;
         cpu_set_t allowed;

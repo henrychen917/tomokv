@@ -71,7 +71,7 @@ import tempfile
 import threading
 import time
 
-from _lib import Conn
+from _lib import Conn, RespError
 from gateplan import validate_axes, read_topology, permitted_cpus, default_physical
 from gate_measurements import (load as load_measurements, ratio as measured_ratio,
                                apply_floor, configured_reference, instrument_digest)
@@ -680,9 +680,9 @@ def require_cell_options_evidence(cell, run):
     flags = server_arguments(cell.server_flags)
     if flags and run.get("server_argv", [])[-len(flags):] != flags:
         raise RuntimeError("server argv did not retain the cell's srv= flags")
-    configured = server_databases(flags)
-    if configured and run.get("configured_databases") != configured:
-        raise RuntimeError("server did not apply the exact srv=--databases value")
+    configured = server_databases(flags) or 1
+    if run.get("configured_databases") != configured:
+        raise RuntimeError("server did not apply the exact databases value (srv= or implicit 1)")
     if cell.dbs:
         expected = {str(database): cell.database_keys(database) for database in range(cell.dbs)}
         if (not isinstance(run.get("population"), dict) or
@@ -1460,7 +1460,42 @@ def knob_plan(cell, support):
                 raise KnobNotAccepted(
                     f"KNOB_NOT_ACCEPTED: arm={arm} --{name} {value} required by cell {cell.id}; "
                     "refusing to omit a requested knob")
+        supported = support[arm].get("databases", True)
+        database_arguments(cell, arm, supported)
+        if not supported:
+            notes.append("reference predates --databases: omit unsupported flag; verify CONFIG GET "
+                         "absent/1 and SELECT 0 OK / SELECT 1 error before population")
+        elif not server_databases(server_arguments(cell.server_flags)):
+            notes.append(f"arm {arm} uses --databases 1 for the single-database paper image; "
+                         "CONFIG GET verified before population")
     return plans, notes
+
+
+def database_arguments(cell, arm, supported):
+    """Keep the paper image explicit, allowing only pre-knob reference binaries."""
+    explicit = server_databases(server_arguments(cell.server_flags))
+    if supported:
+        return [] if explicit else ["--databases", "1"]
+    if arm != "A" or explicit:
+        raise KnobNotAccepted(
+            f"KNOB_NOT_ACCEPTED: arm={arm} --databases {explicit or 1} required by cell {cell.id}")
+    return []
+
+
+def verify_databases(conn, configured, legacy=False):
+    actual = conn.must("CONFIG", "GET", "databases")
+    expected = [b"databases", str(configured).encode()]
+    if not legacy:
+        if actual != expected:
+            raise RuntimeError(f"boot did not apply databases={configured}: {actual!r}")
+        return
+    # A pre-multidb reference has no knob. Do not merely assume its default: prove
+    # SELECT 0 works and SELECT 1 fails before population or any measured traffic.
+    if configured != 1 or actual not in ([], expected):
+        raise RuntimeError(f"legacy reference is not single-database: {actual!r}")
+    rejected = conn.cmd("SELECT", 1)
+    if not isinstance(rejected, RespError) or conn.must("SELECT", 0) != b"OK":
+        raise RuntimeError(f"legacy reference does not restrict SELECT to DB 0: {rejected!r}")
 
 
 def lb_snapshot(conn, path):
@@ -1608,6 +1643,7 @@ class Runner:
         self.legacy_reorder_failures = {}
         self.campaign_reorder_controls = None
         self.binary_store = None
+        self.database_support = {}  # main probes both arms; direct callers require the knob.
         self.binary_cells = set()
         self.profile_factory = None  # Diagnostic opt-in only: no default PMCs or profile objects.
         self.worker_affinity_factory = None
@@ -1817,8 +1853,9 @@ class Runner:
         for name, value in knobs.items():
             command += [f"--{name}", str(value)]
         extra_arguments = server_arguments(cell.server_flags)
-        configured_databases = server_databases(extra_arguments)
-        command += extra_arguments
+        configured_databases = server_databases(extra_arguments) or 1
+        legacy_databases = not self.database_support.get(arm, True)
+        command += database_arguments(cell, arm, not legacy_databases) + extra_arguments
         started = time.monotonic()
         srv, conn, generators = None, None, []
         log = folder / "server.log"
@@ -1826,6 +1863,8 @@ class Runner:
                   "data_bytes": cell.data_bytes,
                   "server_argv": [str(x) for x in command],
                   "load_layout": layout, "artifacts": str(folder.relative_to(self.out))}
+        if legacy_databases:
+            result["legacy_databases"] = "unsupported flag omitted; CONFIG GET absent/1; SELECT 0 OK, SELECT 1 error"
         if _calibration is not None:
             result.update(calibration_only=True, population_reused=reused)
         print(f"  {cell.id} n={instances} {sequence}:{arm} "
@@ -1892,11 +1931,8 @@ class Runner:
                     if actual != [name.encode(), str(value).encode()]:
                         raise RuntimeError(f"boot did not apply {name}={value}: {actual!r}")
                 if configured_databases:
-                    configured = conn.must("CONFIG", "GET", "databases")
-                    if (len(configured) != 2 or configured[0] != b"databases"
-                            or int(configured[1]) != configured_databases):
-                        raise RuntimeError(f"boot did not apply databases={configured_databases}: {configured!r}")
-                    result["configured_databases"] = int(configured[1])
+                    verify_databases(conn, configured_databases, legacy_databases)
+                    result["configured_databases"] = configured_databases
                 result["population"] = self.populate(cell, arm, conn, folder)
                 result["populate_seconds"] = time.monotonic() - started
                 if _calibration is not None:
@@ -2450,10 +2486,12 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
               f"Cell connections are TOTAL, shared across load instances. Split uses reviewed ratio {split_ratio}, flip=0.", flush=True)
         quiet.check()
         support = {arm: {name: accepted(binary, name, value) for name, value in
-                        (("thread-mode", "1s"), ("read-local", 0), ("reorder", 0), ("x-ex-sched", 0))}
+                        (("thread-mode", "1s"), ("read-local", 0), ("reorder", 0), ("x-ex-sched", 0),
+                         ("databases", 1))}
                    for arm, binary in binaries.items()}
         quiet.check()
         report["accepted_knobs"] = support
+        runner.database_support = {arm: values["databases"] for arm, values in support.items()}
         for cell in cells:
             row = {"cell": cell_receipt(cell), "verdict": "FAIL", "rounds": []}
             report["cells"].append(row)
@@ -2897,7 +2935,7 @@ def self_test():
                     records.append(poller.record)
             cell = replace(self.cell, poll="info1hz")
             record = dict(records[0], completed_polls=3, stopped_monotonic=13.)
-            run = dict(info_poller=record, window_seconds=2., midpoint_monotonic=11.5, commands=100,
+            run = dict(configured_databases=1, info_poller=record, window_seconds=2., midpoint_monotonic=11.5, commands=100,
                 central_info_polls=dict(before=1, after=3, subtracted=2),
                 info_before=dict(total_commands_processed="100"), info_after=dict(total_commands_processed="203"))
             require_cell_options_evidence(cell, run)
@@ -3728,7 +3766,7 @@ def self_test():
                             folder = Path(tmp)
                             cell = replace(self.cell, mode=mode, op=op, read_local=requested)
                             knobs = {"thread-mode": mode, "read-local": requested}
-                            configured = {"atomic": cell.atomic, **knobs}
+                            configured = {"atomic": cell.atomic, "databases": 1, **knobs}
                             identity = {"process_id": "123"}
                             if effective is not None:
                                 identity["read_local"] = effective
@@ -5129,8 +5167,9 @@ def self_test():
                 wait_stopped(123, 5)
 
     from ttlcell_test import suite as ttlcell_suite
+    from dbdefault import suite as dbdefault_suite
     suite = unittest.TestSuite((unittest.defaultTestLoader.loadTestsFromTestCase(ABBA),
-                                ttlcell_suite(sys.modules[__name__])))
+                                ttlcell_suite(sys.modules[__name__]), dbdefault_suite(sys.modules[__name__])))
     return 0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1
 
 

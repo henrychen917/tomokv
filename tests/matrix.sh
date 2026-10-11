@@ -91,7 +91,7 @@ boot_arm() { # arm ratio -> server on $PORT, sets SRV_PID
     tomokv)    # --protected-mode no: tomokv implements redis's rule that a non-loopback peer with no
                # password is DENIED, so every NIC cell fails without it. redis and valkey get the
                # same flag below; this is compatibility, not a tuning choice.
-               srv taskset -c "$SRV_CPUS" "$TOMOKV" --port "$PORT" --bind "$BIND_IP" \
+               srv taskset -c "$SRV_CPUS" "$TOMOKV" --databases 1 --port "$PORT" --bind "$BIND_IP" \
                    --protected-mode no --shards $((NTHREADS * 2)) --ratio "$ratio" --atomic 1 > "$log" 2>&1 & ;;
     redis)     srv taskset -c "$SRV_CPUS" "$REDIS" --port "$PORT" --bind "$BIND_IP" --save '' \
                    --appendonly no --protected-mode no --io-threads "$NTHREADS" > "$log" 2>&1 & ;;

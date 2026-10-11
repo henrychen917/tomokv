@@ -115,7 +115,7 @@ def server(args):
            "--bind", "127.0.0.1", "--port", str(args.port), "--save", "",
            "--appendonly", "no", "--dir", str(directory)]
     if args.engine == "tomo":
-        cmd += ["--shards", "16", "--thread-mode", args.mode, "--read-local", str(args.read_local),
+        cmd += ["--databases", "1", "--shards", "16", "--thread-mode", args.mode, "--read-local", str(args.read_local),
                 "--flip-auto", "0", "--atomic", str(args.atomic),
                 "--enable-debug-command", "yes"]
         if args.mode == "2s":

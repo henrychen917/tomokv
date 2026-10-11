@@ -67,7 +67,7 @@ def raw_run(cell, arm, n, sequence, env, *, fast=False, score=None):
         conns = placement['threads'] * placement['clients']
         totals.append(dict(connections=conns, outstanding_bound=conns * cell.depth,
                            reported_counts=counts, completed_hdr_counts=counts))
-    result = dict(arm=arm, instances=n, data_bytes=cell.data_bytes, complete=True, pid=123, rate=100., busy_pct=99.,
+    result = dict(configured_databases=1, arm=arm, instances=n, data_bytes=cell.data_bytes, complete=True, pid=123, rate=100., busy_pct=99.,
         latency_ms=1., p999_ms=2., long_p999_ms=3., commands=2000,
         midpoint_monotonic=1 + window / 2, window_seconds=window,
         artifacts=f'{cell.id}/n{n}-{sequence}-{arm}', load_layout=layout,

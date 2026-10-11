@@ -1,0 +1,38 @@
+{
+  "/home/user/Projects/calibrate-ratio.sh": [
+    {
+      "line": 17,
+      "text": "taskset -c 0-31 $DIR/build/tomokv --port $P --bind 127.0.0.1 --thread-mode 2s --ratio $ra \\"
+    }
+  ],
+  "/home/user/Projects/followup.sh": [
+    {
+      "line": 18,
+      "text": "taskset -c 0-31 $D --port $P --bind 127.0.0.1 $MA --atomic 1 --read-local $rl \\"
+    }
+  ],
+  "/home/user/Projects/headline.sh": [
+    {
+      "line": 12,
+      "text": "taskset -c 0-31 \"$BIN\" --port $P --bind 127.0.0.1 --thread-mode 1s --atomic 1 --read-local 1 \\"
+    }
+  ],
+  "/home/user/Projects/quickcheck.sh": [
+    {
+      "line": 26,
+      "text": "taskset -c 0-31 $DIR/build/tomokv --port $P --bind 127.0.0.1 $MA --atomic 1 \\"
+    }
+  ],
+  "/home/user/Projects/rl-stability.sh": [
+    {
+      "line": 9,
+      "text": "taskset -c $sc $BIN --port 7951 --bind 127.0.0.1 --shards 16 --thread-mode 1s --read-local 1 --overlap 0 --reorder 0 --atomic 1 >/dev/null 2>&1 &"
+    }
+  ],
+  "/home/user/Projects/sched3.sh": [
+    {
+      "line": 20,
+      "text": "taskset -c 0-31 $R --port $P --bind 127.0.0.1 $MA --atomic 1 --read-local $rl \\"
+    }
+  ]
+}

@@ -25,7 +25,7 @@ boot() {
     echo "GUARD: port $PORT already has a listener"
     exit 1
   fi
-  taskset -c "$CPUS" "$BIN" --port "$PORT" --bind 127.0.0.1 --shards 16 --ratio 2:4 \
+  taskset -c "$CPUS" "$BIN" --databases 1 --port "$PORT" --bind 127.0.0.1 --shards 16 --ratio 2:4 \
     --atomic 1 --enable-debug-command yes --protected-mode no "$@" \
     >>"$WORK/server.log" 2>&1 &
   for _ in $(seq 1 100); do

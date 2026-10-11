@@ -1,0 +1,46 @@
+[
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db06ConfigC1Ev",
+    "name": "tomo_db0::Config::Config()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 890,
+    "post_size": 890,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db06ConfigC2Ev",
+    "name": "tomo_db0::Config::Config()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 890,
+    "post_size": 890,
+    "classification": "other"
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6ConfigC1Ev",
+    "name": "tomo::Config::Config()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 890,
+    "post_size": 890,
+    "classification": "other"
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6ConfigC2Ev",
+    "name": "tomo::Config::Config()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 890,
+    "post_size": 890,
+    "classification": "other"
+  }
+]

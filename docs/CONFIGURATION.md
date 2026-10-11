@@ -143,6 +143,9 @@ and zero disables each threshold (`tomokv.conf:94`, `src/core/io_loop.h:5306`).
 
 ## Persistence, databases, and memory
 
+The Redis-compatible default is `databases 16`. Paper and benchmark launches set
+`databases 1` explicitly to select the single-database image.
+
 Defaults: `src/core/config.h:342`, `:360`, `:371`; reference: `tomokv.conf:187`,
 `:246`, `:292`. `dir`, `dbfilename`, and `tcp-backlog` are explicitly rejected
 by CONFIG SET even though their table entries lack the immutable flag
@@ -162,7 +165,7 @@ by CONFIG SET even though their table entries lack the immutable flag
 | `aof-use-rdb-preamble` | R | Only `yes` (case-insensitive) | `yes` | Live, fixed value | — | Base is a TomoKV snapshot, not a Redis RDB; `no` refused; `src/core/config.h:997`, `src/cmd/t_server.cc:609`. |
 | `aof-timestamp-enabled` | R | `yes` or `no` (case-insensitive) | `no` | Live | — | Write AOF timestamp annotations; `src/core/config.h:1004`. |
 | `aof-load-truncated` | R | `yes` or `no` (case-insensitive) | `yes` | Live, next AOF load | — | Discard only an incomplete final increment tail, or refuse recovery; older increments remain strict. CONFIG SET stores the next-load policy and CONFIG REWRITE persists it; `src/core/config.h:1048`, `tomokv.conf:287`. |
-| `databases` | R | Integer 1..256 | `1` | Boot/GET | Related: `dbN` (Keyspace) | Logical namespaces in the shared store; SELECT 0..N−1; `src/core/config.h:933`, `src/cmd/t_server.cc:395`. |
+| `databases` | R | Integer 1..256 | `16` | Boot/GET | Related: `dbN` (Keyspace) | Logical namespaces in the shared store; SELECT 0..N−1; `src/core/config.h:933`, `src/cmd/t_server.cc:395`. |
 | `proto-max-bulk-len` | R | Memory, 1048576..4294901759 bytes | `512mb` (536870912) | Live | — | Request bulk-length bound, capped by TomoKV's Slice ABI; `src/core/config.h:140`, `:941`. |
 | `client-query-buffer-limit` | R | Memory syntax, 1048576..9223372036854775807; zero is rejected | `1gb` (1073741824) | Live | — | Bound on pending input plus queued MULTI arguments; overflow closes the connection without a reply, before AUTH too; `src/core/config.h:965`, `tomokv.conf:306`. |
 | `maxmemory` | R | Memory, u64 bytes | `0` | Live | — | Store memory ceiling, 0 unlimited; not a process RSS cap; `src/core/config.h:869`. |
@@ -321,7 +324,7 @@ taskset -c 0-7 ./build/tomokv build/docs-example.conf --ratio 6:2 --dir "$DOCS_D
 
 From another terminal: `redis-cli -p 6399 PING`,
 `redis-cli -p 6399 CONFIG GET databases`, and `redis-cli -p 6399 INFO server`.
-Expect PONG, databases=1, thread_mode=2s, shards=16, read_local=0,
+Expect PONG, databases=16, thread_mode=2s, shards=16, read_local=0,
 key_lb=1, client_lb=1, reorder=0. Stop with `redis-cli -p 6399 SHUTDOWN NOSAVE`.
 The parser and serverless geometry check can validate this example without a
 listener; live boot and these replies are maintainer-run checks.

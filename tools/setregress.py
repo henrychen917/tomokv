@@ -114,7 +114,7 @@ def one(args, arm, binary, mode, lane, op, rep):
     with socket.socket() as guard:
         guard.bind(('127.0.0.1', port))
     command = ['taskset', '-c', args.cores, str(binary), '--port', str(port),
-               '--bind', '127.0.0.1', '--thread-mode', mode, '--atomic', '1',
+               '--bind', '127.0.0.1', '--databases', '1', '--thread-mode', mode, '--atomic', '1',
                '--read-local', str(lane), '--save', '', '--dir', str(out / 'data')]
     if mode == '2s':
         command += ['--ratio', args.ratio, '--flip-auto', str(args.flip)]

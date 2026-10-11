@@ -1,0 +1,52 @@
+[
+  {
+    "mode": "split",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-dbdefault/build/tomokv",
+      "25151",
+      "25152",
+      "112-119",
+      "6:2"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_LOAD_CORES": "121-127",
+      "GATE_DIFFER_ORACLE_CORES": "120",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-dbdefault/docs/dbdefault/differ-suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-dbdefault/docs/dbdefault/differ-seeds.txt",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-dbdefault/build/dbdefault/differ-split"
+    },
+    "exit_code": 0,
+    "seconds": 442.15921374224126
+  },
+  {
+    "mode": "armed-fused",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-dbdefault/build/tomokv",
+      "25151",
+      "25152",
+      "112-119",
+      "6:2"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_LOAD_CORES": "121-127",
+      "GATE_DIFFER_ORACLE_CORES": "120",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-dbdefault/docs/dbdefault/differ-suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-dbdefault/docs/dbdefault/differ-seeds.txt",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-dbdefault/build/dbdefault/differ-armed-fused"
+    },
+    "exit_code": 0,
+    "seconds": 344.87586831487715
+  }
+]

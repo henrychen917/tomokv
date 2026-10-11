@@ -1,0 +1,35 @@
+path	decision	evidence
+tests/abbagate.py	implicit 1 on both arms; keep explicit N; legacy A omits unsupported flag with CONFIG/SELECT witness	database_arguments, verify_databases, Runner.measure
+tests/gateprod.py	mirrors ABBA database plan for population boots	server_argv
+tests/legacy_reorder_witness.py	explicit 1 or probed pre-knob reference with wire witness	run_control
+tests/_gate_process.py	explicit 1 unless caller passes N; legacy witness alone opts out	server
+tests/feature_gate.py; tests/mode_equivalence.py; tests/perf_gate.py; tests/abba_saturation_controls.py; tests/reordertrim.py; tests/mutants.py; tools/overlapaxe_artifacts.py	inherit explicit 1 from _gate_process.server	shared boot
+tools/mkprobe_probe.py	explicit 1; paper shard geometry unchanged	server_command
+tools/lb_episodes.py	explicit 1	server_command
+tools/setregress.py	explicit 1, caller override retained	one
+tests/writer_atomic_campaign.py	explicit 1 on TomoKV; reference servers unchanged	ServerProcess.command
+tests/matrix.sh; tests/xshard_dispatch_scale.sh	explicit 1 for paper measurements	TomoKV launch
+tests/signalacct_live.py	already explicit CLI databases, default 1, permits 16	unchanged
+tools/exbatch_directed.py	already validates --databases 1 in cell server_argv	unchanged
+tools/infofields2_live.py	already explicit 16 for multidb correctness and INFO proof	unchanged
+tools/flipsettle_controls.py	serverless unit/control builds; no listener boot	unchanged
+tests/ttlcell_test.py	serverless ABBA mock controls; inherits 1 in real Runner	update mock CONFIG reply/receipt only
+tests/boot_failures.py; tests/flushfix_checks.py; tests/psfix.py; tests/savefix.py	already explicit database count; defaults/options retained	unchanged
+tests/mdbqsbr_live.py; tests/shutsave.py	already explicit 16	unchanged
+tests/differ_gate.sh; tools/ccfix3_wire.sh; tools/ccfix5_probe.sh	already explicit 16 target; reference boot unchanged	unchanged
+tests/aclfix.py; tests/clientfix.py; tests/authfix.py; tests/scriptfix.py	explicit 1 for TomoKV correctness boots; oracle unchanged	local server helper
+tests/aoffix2.py	explicit 1 for existing AOF/latency DB0 proof and matching oracle	Server
+tests/persistfix.py; tests/shutdown_persist.py	explicit 1 for existing persistence/shutdown DB0 rows	local server helper
+tests/racefix.py; tests/flipfix.py; tests/flipfix_abort_probe.py	explicit 1 for DB0 counters/Climon/FLIP proofs	local server helper
+tests/connreset_repro.py; tests/reorder_flip.py; tests/resizefix.py; tests/redisgap.py; tests/servertail.py; tests/wiredump.py	explicit 1 for existing DB0 diagnostics / auxiliary boots	local server helper
+tests/aof_rewrite_matrix.sh; tests/aof_rewrite_trigger_matrix.sh; tests/edgetime_persist.sh; tests/hexpire_persist.sh; tests/lru_slow.sh; tests/watchlive_gate.sh	explicit 1 for existing storage/TTL/DB0 batteries	direct shell boot
+tests/gate.sh launch/boot/boot_fused	explicit 1 unless row supplies --databases; exbatch live 4; multidb 16	gate-rows.tsv
+tests/gate.sh tlsboot/zcboot/reject_boot/NIC	explicit 1	direct shell boot
+tests/dbdefault.py	new default row omits database flag; proof CLI can check conf/override	default16 both modes; negative PRE fails
+tests/multidb_unit.cc; tests/multidb_db0_unit.cc	default assertions now expect 16; same existing multidb serverless owners row, DQ/DF unchanged	Config default checks
+tests/atomic_survivors_unit.cc; tests/ccfix2_atomic_unit.cc; tests/execfix_unit.cc; tests/shutdown_unit.cc; tests/netcmd_unit.cc; tests/owner_arena_unit.cc; tests/owner_prefetch_unit.cc; tests/encodingfix_unit.cc	DB0 fixture configurations explicitly remain 1	serverless test state, no production object changes
+tests/abba_aslr.py; tests/abba_experiments.py	inherit ABBA database plan; local test launchers are harmless mocks	Runner/main delegation
+tests/flipctl.py; tests/flatstore_alloc_fail.py; tests/flip_cost_gate.py; tests/flip_multikey_hold.py; tests/expireindex.py	connect-only clients; manual boot examples now explicitly use 1	docstrings/comments, no owned server boot
+tests/tailgen_stall.py; tests/wb_policy.py; tests/lb_stationary.py	connect-only clients; gate boot inherits explicit 1	no independent server launch
+tests/gateplan.py	plans ABBA/gate commands, both inherit explicit 1	no independent server launch
+tools/aoffix2_proof.py	delegates target boots to aoffix2.py / differ_gate.sh with explicit 1 / 16 respectively	no independent target boot

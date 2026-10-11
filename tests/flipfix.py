@@ -82,7 +82,7 @@ def boot(args, label, save='', directory=None, extra=()):
     argv = ['taskset', '-c', args.cores, str(args.binary.resolve()),
             '--bind', '127.0.0.1', '--port', str(args.port), '--dir', str(directory),
             '--save', save, '--appendonly', 'no', '--thread-mode', '2s',
-            '--ratio', args.ratio, '--shards', '16', '--net-io', args.net_io,
+            '--ratio', args.ratio, '--shards', '16', '--databases', '1', '--net-io', args.net_io,
             '--enable-debug-command', 'yes', *extra]
     if args.sanitizer == 'tsan':
         # TSan's shadow layout needs the classic address map (the gate's tsan_unit does the same).

@@ -47,7 +47,7 @@ struct CoreConcurrencyTest {
                         ? server.placement_.build_fused(server.topo_, nullptr)
                         : server.placement_.build_even(server.topo_, 6, 2), "place fixture");
             require(server.placement_.reserve_runtime_roles(8), "reserve fixture roles");
-            Config config;
+            Config config; config.databases = 1;
             config.thread_mode = mode;
             config.shards = 16;
             config.read_local = local;

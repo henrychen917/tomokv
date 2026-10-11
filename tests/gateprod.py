@@ -91,7 +91,8 @@ def server_argv(runner, cell, arm, folder):
     command += ["--shards", str(min(8 * (ex if cell.mode == "2s" else len(runner.server_cpus)), 256))]
     for name, value in knobs(cell).items():
         command += [f"--{name}", str(value)]
-    return command + abba.server_arguments(cell.server_flags)
+    return (command + abba.database_arguments(cell, arm, runner.database_support.get(arm, True))
+            + abba.server_arguments(cell.server_flags))
 
 
 def duration(count):

@@ -254,7 +254,7 @@ class Run:
         if hook: env['TOMO_AOF_ACK_WINDOW'] = str(self.window.resolve())
         argv = ['taskset', '-c', self.args.cores, str(self.args.binary.resolve()),
                 '--bind', '127.0.0.1', '--port', str(self.args.port), '--shards', '16',
-                '--protected-mode', 'no', '--thread-mode', self.args.mode,
+                '--databases', '1', '--protected-mode', 'no', '--thread-mode', self.args.mode,
                 '--appendonly', 'yes', '--appendfsync', 'always', '--save', '',
                 '--auto-aof-rewrite-percentage', '0', '--enable-debug-command', 'yes',
                 '--dir', str(self.root.resolve()), '--net-io', self.args.net_io]

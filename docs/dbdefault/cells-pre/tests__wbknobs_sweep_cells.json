@@ -1,0 +1,35 @@
+{
+  "subset": "full",
+  "count": 2,
+  "ids": [
+    "p8g",
+    "p8s"
+  ],
+  "modes": [
+    "1s"
+  ],
+  "operations": [
+    "GET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "SET"
+  ],
+  "depths": [
+    8
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "rate"
+  ],
+  "pending_pins": []
+}
