@@ -442,6 +442,7 @@ void txn_group(Server& server) {
                 "read-only group key protected before read");
         require(state.watch_refs.load() == ScatterState::kGroupAttemptRef + 1 && state.record_refs.load() == 0,
                 "phase-one intent pins survive without owner-record sentinels");
+        require(!txn_group_release(state), "live owner intent prevents cold attempt release");
         require(local(server, {"SET", a, "new"}) == "+OK\r\n", "plain writer never waits on group read");
         require(state.epoch.load() == kAtomicCancelledEpoch && state.group_attempt()->cause_ready.load(),
                 "writer veto and retry cause published");
@@ -493,7 +494,7 @@ void txn_group(Server& server) {
                 "group decision releases token and admission barrier");
         xshard_cleanup_shard_at(server.shard(0), UINT64_MAX, UINT64_MAX, 256);
         xshard_cleanup_shard_at(server.shard(1), UINT64_MAX, UINT64_MAX, 256);
-        require(state.watch_refs.load() == 0 && !server.shard(0).has_watches() &&
+        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef && !server.shard(0).has_watches() &&
                 !server.shard(1).has_watches(), "read-only owner cleanup retires every reservation");
     }
     require(server.txn_counter(TxnCounter::ExclusiveViolations) == 0 &&
