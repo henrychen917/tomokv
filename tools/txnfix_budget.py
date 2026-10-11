@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 from pathlib import Path
+import re
 import shlex
 import subprocess
 
@@ -16,6 +17,7 @@ def main():
     parser.add_argument("object", help="object relative to build/, including optional db0/")
     parser.add_argument("budgets", nargs="+", type=int)
     parser.add_argument("--jobs", type=int, default=4)
+    parser.add_argument("--include", default="", help="also compare names matching this regex")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     obj = Path(args.object)
@@ -28,7 +30,8 @@ def main():
     symbols = list(functions)
     names = subprocess.check_output(["c++filt"], input="\n".join(symbols), text=True).splitlines()
     selected = [(symbol, name) for symbol, name in zip(symbols, names)
-                if audit.HOT.search(name) or "xshard_execute(" in name]
+                if audit.HOT.search(name) or "xshard_execute(" in name or
+                (args.include and re.search(args.include, name))]
     canonical = {symbol: before.canonical(functions[symbol]) for symbol, _ in selected}
     recipe = subprocess.check_output(
         ["make", "--no-print-directory", "-n", "-W", source, "build/" + str(obj)],
