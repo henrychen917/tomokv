@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Serverless controls for witnessed stopping, verdicts, and confidence bounds."""
 import math
+import json
 import random
 import unittest
-from lottery_runner import DEFAULT_HITS, Tally, registry, repeat, upper_bound
+from lottery_runner import DEFAULT_HITS, ROOT, Tally, registry, repeat, upper_bound
 
 
 def receipt(hit=1, passed=True, **kwargs):
@@ -61,6 +62,13 @@ class RunnerTests(unittest.TestCase):
         t.add(r)
         self.assertEqual((t.hits, t.result(1)['verdict']), (0, 'INSUFFICIENT'))
 
+    def test_missing_verdict_cannot_pass(self):
+        t = Tally(('W',), goal=1)
+        r = receipt()
+        del r['passed']
+        t.add(r)
+        self.assertEqual(t.result(1)['verdict'], 'ERROR')
+
     def test_exact_bounds(self):
         self.assertAlmostEqual(upper_bound(1), .95)
         self.assertAlmostEqual(upper_bound(20), .13910834066826516)
@@ -81,6 +89,9 @@ class RunnerTests(unittest.TestCase):
         rows = registry()
         self.assertEqual(len(rows), 58)
         self.assertEqual(DEFAULT_HITS, 20)
+        mechanisms = json.loads((ROOT / 'docs/flakeaudit2/triage.json').read_text())['mechanisms']
+        expected = {str(i) for m in mechanisms if m['category'] == 'B' for i in m['rows']}
+        self.assertEqual({r['id'] for r in rows}, expected)
         self.assertEqual({r['id'] for r in rows if r['family'] == 'multi_exec'},
                          {'131', '165', '200', '207', '214', '249', '357'})
 

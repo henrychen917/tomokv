@@ -51,6 +51,7 @@ def reduce_events(events):
     apply = {}
     timers, partial, tls_ids, ssl, tls_inputs = {}, {}, {}, {}, set()
     tracking_pending, tracking_checks = set(), []
+    tracking_emitted = 0
     work, flips = set(), {}
     section = None
     sections = Counter()
@@ -128,15 +129,16 @@ def reduce_events(events):
             if section:
                 sections[section] += 1
         elif k == 'move_selected':
-            moves[e.id] = dict(key=e.a, left=e.b, pushed=False)
+            moves[e.id] = dict(key=e.a, selected_left=e.b, pushed=set())
         elif k == 'push_end':
             for move in moves.values():
-                if move['key'] == e.id and move['left'] == e.a:
-                    move['pushed'] = True
+                if move['key'] == e.id:
+                    move['pushed'].add(e.a)
         elif k == 'move_remove':
             move = moves.pop(e.id, None)
-            if move and move['pushed']:
-                counts['W6.left' if move['left'] else 'W6.right'] += 1
+            if move:
+                for edge in move['pushed']:
+                    counts['W6.left' if edge else 'W6.right'] += 1
         elif k == 'block_timeout' and e.c >= e.b > 0:
             counts['W5.timeout'] += 1
         elif k == 'idle_close' and e.c - e.b > e.a > 0:
@@ -157,6 +159,8 @@ def reduce_events(events):
                 counts['W7.cancel'] += 1
         elif k == 'parser_partial' and e.c > 0:
             partial[e.id] = dict(tls=e.b, ns=e.ns, samples=0)
+        elif k == 'parser_complete':
+            partial.pop(e.id, None)
         elif k == 'lbsignals':
             for p in partial.values():
                 p['samples'] += 1
@@ -173,6 +177,9 @@ def reduce_events(events):
             work.add(e.id)
         elif k == 'work_end':
             work.discard(e.id)
+            if not work:
+                for flip in flips:
+                    flips[flip] = False
         elif k == 'flip_begin':
             flips[e.id] = bool(work)
         elif k == 'flip_end' and flips.pop(e.id, False):
@@ -198,8 +205,15 @@ def reduce_events(events):
             tracking_pending.add((e.id, e.a))
         elif k == 'tracking_end':
             tracking_pending.discard((e.id, e.a))
+        elif k == 'tracking_emit':
+            tracking_emitted += 1
         elif k == 'tracking_compare_begin':
             tracking_checks.append(not tracking_pending)
+        elif k in ('tracking_compare_zero', 'tracking_compare_data'):
+            tracking_checks.append(not tracking_pending)
+            if k == 'tracking_compare_zero' and tracking_emitted:
+                raise ValueError('negative tracking drain missed emitted invalidation(s)')
+            tracking_emitted = 0
         elif k == 'save_admitted':
             counts['W14'] += 1
         elif k == 'stream_clock':

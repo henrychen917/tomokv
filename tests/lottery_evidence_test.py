@@ -80,6 +80,23 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(reduce_events([post, done, check])['W13'], 1)
         self.assertEqual(reduce_events([post, check, done])['W13'], 0)
         self.assertEqual(reduce_events([post, check])['W13'], 0)
+        with self.assertRaisesRegex(ValueError, 'missed emitted'):
+            reduce_events([post, done, E('tracking_emit', 7), check, E('tracking_compare_zero')])
+
+    def test_flip_requires_covered_work_intervals_all_the_way_through(self):
+        begin, end = E('flip_begin', 1), E('flip_end', 1)
+        a, b = E('work_begin', 3), E('work_begin', 4)
+        x, y = E('work_end', 3), E('work_end', 4)
+        self.assertEqual(reduce_events([a, begin, b, x, end, y])['W11'], 1)
+        self.assertEqual(reduce_events([a, begin, x, b, end, y])['W11'], 0)
+        self.assertEqual(reduce_events([begin, a, end, x])['W11'], 0)
+
+    def test_completed_partial_frame_cannot_witness_a_later_window(self):
+        partial = E('parser_partial', 7, 2, 0, 10)
+        sample = E('lbsignals')
+        complete = E('parser_complete', 7)
+        self.assertGreater(reduce_events([partial, sample, sample, complete])['W10'], 0)
+        self.assertEqual(reduce_events([partial, complete, sample, sample])['W10'], 0)
 
     def test_trace_missing_footer_and_sequence_gap_are_errors(self):
         with tempfile.TemporaryDirectory() as temp:

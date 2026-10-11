@@ -58,6 +58,10 @@ def main():
         if source.count(anchor) != 1:
             raise ValueError('changed tracking collector anchor')
         source = source.replace(anchor, '        lottery_mark("tracking_compare_begin")\n' + anchor)
+        anchor = '        parked["t"] = parked["o"] = b""'
+        if source.count(anchor) != 1:
+            raise ValueError('changed tracking result anchor')
+        source = source.replace(anchor, anchor + '\n        lottery_mark("tracking_compare_zero" if a == b == b"" else "tracking_compare_data")')
     print(f'LOTTERY battery sha256={original_hash} markers_only=1', flush=True)
     try:
         exec(compile(source, str(path), 'exec'), dict(__name__='__main__', __file__=str(path),

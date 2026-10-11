@@ -181,6 +181,8 @@ def prepare(output):
         after(file, 'if (pr == ParseResult::Incomplete) {', '''
                 lottery::event(lottery::bit(10)|lottery::bit(12), "parser_partial",
                     c->id(), self_->id(), c->is_tls(), conn.rlen()-conn.rpos());''')
+        patch(file, 'if (pr == ParseResult::Error) {', '''lottery::event(lottery::bit(10)|lottery::bit(12), "parser_complete", c->id());
+        if (pr == ParseResult::Error) {''')
     after('src/core/io_loop.h', '    void release_tls(Client* c) {\n        if (!c->is_tls()) return;',
           '        lottery::event(lottery::bit(12), "tls_retire", c->id());')
     after('src/core/io_loop.h', '    void on_tls_recv(Client* c, int res) {', '''
@@ -251,8 +253,9 @@ def prepare(output):
     after('src/cmd/tracking.cc',
           'void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush) {',
           '    lottery::event(lottery::bit(13), "tracking_emit", target->id());')
-    # These are observations of admitted executor work at the FLIP request.
-    # They do not turn the row's separate saturation claim into a rate proof.
+    # The reducer requires continuously overlapping admitted work intervals
+    # from request to completion. Any observed empty interval invalidates it.
+    # This is still not a throughput/stationarity proof of saturation.
     after('src/core/ex_loop.h', '    bool execute(const Task& t) {', '''
         lottery::Scope lottery_work(t.client ? lottery::bit(11) : 0,
             "work_begin", "work_end", lottery::ptr(&t), self_->id());''')

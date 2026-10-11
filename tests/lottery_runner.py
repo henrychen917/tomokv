@@ -84,6 +84,7 @@ class Tally:
         self.attempts += 1
         counters = receipt.get('counters', {})
         valid = (receipt.get('evidence_complete') is True and
+                 type(receipt.get('passed')) is bool and
                  isinstance(counters, dict) and all(
                      type(counters.get(k)) is int and counters[k] >= 0
                      for k in self.required))
