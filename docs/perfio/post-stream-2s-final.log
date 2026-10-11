@@ -1,0 +1,17 @@
+{"affinity": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-perfio/build/tomokv", "--bind", "127.0.0.1", "--port", "25125", "--dir", "/home/user/Projects/cx-perfio/docs/perfio/post-stream-2s-final/stream", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--thread-mode", "2s", "--shards", "16", "--net-io", "uring", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "event": "boot"}
+{"cases": 120, "differences": [], "event": "metadata"}
+{"entries": 1000, "event": "latency", "median_ns": 94930, "p99_ns": 7975853, "prefix": "xlen", "samples_ns": [3024676, 964425, 94930, 74521, 72361, 72450, 620174, 113610, 5908742, 156001, 78110, 72151, 80920, 3648250, 7975853, 7132598, 108431, 76480, 71811, 70731, 70570, 71301, 72350, 70731, 70131, 69700, 72591, 1668739, 6434344, 103591, 2786025, 7663661, 175031]}
+{"entries": 1000, "event": "latency", "median_ns": 117711, "p99_ns": 3865931, "prefix": "xreadgroup", "samples_ns": [227631, 1424067, 319282, 3111897, 1226976, 2914305, 117711, 110360, 98151, 86750, 273212, 103730, 94431, 242021, 111611, 83090, 92731, 84170, 349082, 2800245, 230482, 106501, 94881, 1698579, 323211, 3865931, 132381, 109421, 97260, 94450, 86901, 96460, 179692]}
+{"entries": 100000, "event": "latency", "median_ns": 72001, "p99_ns": 6208444, "prefix": "xlen", "samples_ns": [2657604, 98371, 74360, 71791, 2678074, 1044906, 5127838, 104671, 75300, 72230, 70640, 70610, 70060, 71611, 71370, 6208444, 3079266, 102840, 73981, 72001, 70960, 70780, 70801, 70430, 70221, 71070, 70050, 69721, 78910, 80711, 71180, 71130, 82310]}
+{"entries": 100000, "event": "latency", "median_ns": 92520, "p99_ns": 10480796, "prefix": "xreadgroup", "samples_ns": [131751, 92630, 85620, 84390, 80471, 85340, 86981, 84480, 82521, 80950, 81311, 82671, 81960, 297362, 10480796, 218590, 505872, 437783, 140530, 96420, 85920, 217662, 92680, 83981, 84730, 82671, 96730, 92520, 110400, 87810, 109201, 116261, 99240]}
+{"event": "stop", "pid": 3955158, "rc": 0}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-perfio/tests/perfio.py", line 288, in <module>
+    main()
+  File "/home/user/Projects/cx-perfio/tests/perfio.py", line 282, in main
+    if args.case == "stream": stream_latency(c)
+                              ^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-perfio/tests/perfio.py", line 211, in stream_latency
+    assert max(samples[100000, "xreadgroup"]) < 3_000_000, "GET after XREADGROUP exceeds 3 ms"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: GET after XREADGROUP exceeds 3 ms

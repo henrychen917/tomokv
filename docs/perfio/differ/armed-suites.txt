@@ -1,0 +1,4 @@
+string
+stream
+streamgrp
+blocking

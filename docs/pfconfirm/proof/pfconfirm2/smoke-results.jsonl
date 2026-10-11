@@ -1,0 +1,6 @@
+{"candidate": "PFKEYSPA.1", "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 0.860000s > 0.480000s per 20s", "verdict": "REFUSED"}
+{"candidate": "PFKEYSPA.3", "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 0.860000s > 0.480000s per 20s", "verdict": "REFUSED"}
+{"candidate": "PFKEYSPA.4", "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 0.860000s > 0.480000s per 20s", "verdict": "REFUSED"}
+{"candidate": "PFMESSAG.1", "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 0.860000s > 0.480000s per 20s", "verdict": "REFUSED"}
+{"candidate": "PFPERSIS.1", "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 0.860000s > 0.480000s per 20s", "verdict": "REFUSED"}
+{"candidate": "PFDATATY.1", "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 0.860000s > 0.480000s per 20s", "verdict": "REFUSED"}

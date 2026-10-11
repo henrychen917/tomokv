@@ -1,0 +1,2 @@
+quiet_smoke_pre=3
+quiet_smoke_post=3

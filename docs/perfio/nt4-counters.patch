@@ -1,0 +1,61 @@
+--- a/src/net/resp.h
++++ b/src/net/resp.h
+@@ -8,6 +8,8 @@
+ // also why Conn's read buffer is append-only while ops are in flight — see conn.h.
+ #pragma once
+ #include <cstdint>
++#include <atomic>
++#include <string>
+ #include <cstdio>
+ #include <cstring>
+ #include <charconv>
+@@ -20,6 +22,27 @@
+ namespace tomo {
+ 
+ enum class ParseResult { Ok, Incomplete, Error, Empty };
++
++// NT4.2 throwaway observer only. One producer/cache line per IO owner; INFO
++// reads atomics after the load is drained. No shared fetch-add on complete frames.
++struct alignas(64) PerfioReparseCount {
++    std::atomic<uint64_t> incomplete{0}, arguments{0};
++};
++inline PerfioReparseCount perfio_reparse_counts[256];
++inline void perfio_reparse_note(uint32_t owner, uint32_t arguments) {
++    auto& c = perfio_reparse_counts[owner];
++    c.incomplete.fetch_add(1, std::memory_order_relaxed);
++    c.arguments.fetch_add(arguments, std::memory_order_relaxed);
++}
++inline std::string perfio_reparse_info() {
++    uint64_t incomplete = 0, arguments = 0;
++    for (auto& c : perfio_reparse_counts) {
++        incomplete += c.incomplete.load(std::memory_order_relaxed);
++        arguments += c.arguments.load(std::memory_order_relaxed);
++    }
++    return "perfio_incomplete:" + std::to_string(incomplete) + "\r\n" +
++           "perfio_reparsed_arguments:" + std::to_string(arguments) + "\r\n";
++}
+ 
+ // Redis 7.4's PROTO_INLINE_MAX_SIZE is a fixed protocol bound, not a CONFIG knob.
+ inline constexpr uint32_t kProtoInlineMaxSize = 64 * 1024;
+--- a/src/core/io_loop.h
++++ b/src/core/io_loop.h
+@@ -3265,6 +3265,8 @@
+                 continue;
+             }
+             if (pr == ParseResult::Incomplete) {
++                if (op->rbuf_off < pass_rlen && pass_rbuf[op->rbuf_off] == '*')
++                    perfio_reparse_note(self_->id(), op->argc());
+                 if (pass_rlen == UINT32_MAX) {
+                     finish_locally(c, *op, "ERR command exceeds receive buffer limit");
+                     conn.advance_parse(pass_rlen - conn.rpos());
+--- a/src/cmd/t_server.cc
++++ b/src/cmd/t_server.cc
+@@ -1856,7 +1856,7 @@
+ }
+ 
+ void cmd_info(Shard&, Op& op) {
+-    std::string body;
++    std::string body = perfio_reparse_info();
+     uint64_t keys = 0, expires = 0, obj_bytes = 0, hits = 0, misses = 0, expired = 0,
+              evicted = 0, keyspace_rehashes = 0, active_expire_reap_lag_ms_max = 0;
+     uint64_t total_ops = 0, sampled_ops = 0, connections = 0, rejected = 0;

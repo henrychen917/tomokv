@@ -1,0 +1,5 @@
+ARMED flip-close db16: ERR FLIP connection ownership count is not conserved (FLIP 6 2, owned=1 live=2)
+ARMED flip-close db1: ERR FLIP connection ownership count is not conserved (FLIP 6 2, owned=1 live=2)
+PASS core concurrency flip-close (state assertions fired)
+ARMED flip-close db16: ERR FLIP connection ownership count is not conserved (FLIP 6 2, owned=1 live=2)
+FAIL core concurrency: FLIP drain must wait for detached closing client

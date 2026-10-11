@@ -1,0 +1,4 @@
+*.rdb
+*.aof
+*.aof.*
+*.pem
