@@ -682,7 +682,10 @@ taskset -c 0-127 tests/gate.sh perf --subset full \
   --candidate-binary "$PWD/build/txnfix3/post-final4/tomokv"
 ```
 
-Use PRE/POST/POST/PRE and the gate's own existing offered-load cells. No local
+Use PRE/POST/POST/PRE and the gate's own existing offered-load cells.
+[Exact frozen cell definitions and instrument hashes](docs/txnfix/txnfix3/owner-measurement-cells.json)
+name all 181 headline cells plus 32 epoll twins; each arm retains the existing
+3 s warmup, 20 s window and 5 s tail. The worst matched cell decides it. No local
 instruction trace is substituted for that null. The EXEC commands and counter
 intervals in the original request remain applicable with these frozen paths.
 
@@ -699,6 +702,11 @@ collected at **3671/3700**. The maintainer's full-branch counts would be
 The final runtime rebuild passes `make all`, all 29 production targets,
 `mdbqsbr-live-arms`, and 30/30 freshness checks. All locked layouts and old
 member offsets match the retained PRE comparison; all 35 existing TLS symbols
-retain their offsets and sizes. Final `gates_test` is 66/66; the live proof
-families are rerunning against the frozen final SHA above. This paragraph is
-a checkpoint, not a completion claim. Final receipts use the `final4` prefix.
+retain their offsets and sizes. Final `gates_test` is 66/66. The main 154-row rerun is complete: txniso 8/8,
+AOF 4/4, all NX cells 0/8192, original EXEC POST 28/28 (PRE 23 data failures),
+Stage B 20/20, all group/mover batteries, Redis 112 legs plus two armed
+witnesses, WATCH 60/60 fresh boots, and four directed units pass. Broad is
+36/38: the known fused expected-old MGET assertion and resize abort remain
+failures. The 15 persistence/writer/FLIP companions and negative controls are
+still running. This is a checkpoint, not a completion claim; final receipts
+use the `final4` prefix.

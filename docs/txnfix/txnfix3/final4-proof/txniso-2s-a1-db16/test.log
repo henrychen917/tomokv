@@ -1,0 +1,46 @@
+geometry 2s atomic b'1' databases b'16'
+PASS D1
+PASS D2
+PASS D3
+PASS D4a
+PASS D4b
+PASS D1b
+PASS D5
+tomo mode=2s C=16 N=500 P=4: k1=8000 k2=8000 expected 8000 each; lost k1=0 k2=0; duplicated INCR k2 replies=0  0.1s
+server rc 0
+PASS S1
+geometry k1 [9, 7] k2 [8, 6]
+tomo atomic=0 mode=2s N=500: k1=4000 (expected 4000, lost 0)  k2=2000 (expected 2000, lost 0)  errors=0  0.1s
+  atomic_groups 8014 -> 10014
+  atomic_commit_windows 2 -> 2
+  atomic_promotions 16038 -> 20038
+  atomic_entries 16038 -> 20038
+  atomic_exec_order_holds 0 -> 0
+  atomic_exec_order_late 0 -> 0
+  atomic_window_stalls 0 -> 0
+  stale-cut counter 0
+server rc 0
+PASS S2
+atomic=0 credit_pool(idle)=256 window_stalls=0 groups=10014
+mid-burst: credit_pool=136 inflight=120 window_stalls=0
+after: window_stalls=0 groups=10214 k1=b'200' k2=b'200'
+server rc 0
+PASS S3
+tomo mode=2s: produced 2000 (counter b'2000'), consumed+left 2000 distinct, duplicates 0, missing 0
+server rc 0
+PASS S4
+tomo mode=2s C=4 N=100: k=400 k2=400 expected 400; duplicate observed v=0; aborted retries=855 0.1s
+server rc 0
+PASS W1
+PASS W2
+read skew torn 0
+PASS S5
+PASS W3
+PASS V1
+PASS V2
+PASS V3
+re-arm X1: no exclusive attempt on fresh arm 1
+PASS X1
+PASS X2
+PASS Z1
+PASS Z2
