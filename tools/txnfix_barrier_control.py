@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Build an isolated MSETNX barrier-removed control; never starts a server."""
+import argparse
 import concurrent.futures
 import hashlib
 import json
@@ -9,7 +10,11 @@ import shutil
 import subprocess
 
 root = Path(__file__).resolve().parents[1]
-output = root / 'build/txnfix3/barrier-off'
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output', type=Path, default=Path('build/txnfix3/barrier-off'))
+parser.add_argument('--receipt', type=Path, default=Path('docs/txnfix/txnfix3/barrier-control'))
+args = parser.parse_args()
+output = root / args.output
 source = output / 'source'
 source.mkdir(parents=True, exist_ok=True)
 shutil.copytree(root / 'src', source / 'src', dirs_exist_ok=True)
@@ -51,7 +56,7 @@ command[command.index('-o') + 1] = str(binary)
 command = ['taskset', '-c', '112-127', *command]
 with (output / 'link.log').open('w') as log:
     subprocess.run(command, cwd=root, stdout=log, stderr=subprocess.STDOUT, check=True)
-receipt = root / 'docs/txnfix/txnfix3/barrier-control'
+receipt = root / args.receipt
 receipt.mkdir(parents=True, exist_ok=True)
 (receipt / 'build.json').write_text(json.dumps(dict(
     mutation=dict(file='src/cmd/txn_group.inc', before=needle, after=replacement),
