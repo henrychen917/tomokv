@@ -2923,6 +2923,46 @@ stop
 done
 }
 
+job_aoforder(){
+# Three rows, collected below BEFORE the quick-tier exit: DQ=+3, DF=+3.
+local AOFORDER_CASE AOFORDER_MODE AOFORDER_DB AOFORDER_POLICY AOFORDER_BIN AOFORDER_OK AOFORDER_OPERATION
+for AOFORDER_CASE in single crossing rewrite; do
+  row_begin "AOF commit order $AOFORDER_CASE"
+  AOFORDER_OK=1
+  AOFORDER_BIN=$CANDIDATE_BINARY
+  if [ "$AOFORDER_CASE" = crossing ]; then
+    AOFORDER_BIN=$PWD/build/aoforder-scheduled
+    unit_ready aoforder-scheduled || AOFORDER_OK=0
+  fi
+  for AOFORDER_MODE in 1s 2s; do
+    for AOFORDER_DB in 1 16; do
+      for AOFORDER_POLICY in everysec always; do
+        py tests/aoforder.py --case "$AOFORDER_CASE" --binary "$AOFORDER_BIN" \
+          --mode "$AOFORDER_MODE" --databases "$AOFORDER_DB" --policy "$AOFORDER_POLICY" \
+          --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" \
+          --artifacts "$TMPDIR/aoforder-$AOFORDER_CASE-$AOFORDER_MODE-$AOFORDER_DB-$AOFORDER_POLICY" \
+          >"$TMPDIR/aoforder-$AOFORDER_CASE-$AOFORDER_MODE-$AOFORDER_DB-$AOFORDER_POLICY.log" 2>&1 \
+          || AOFORDER_OK=0
+      done
+    done
+  done
+  if [ "$AOFORDER_CASE" = single ]; then
+    for AOFORDER_MODE in 1s 2s; do
+      for AOFORDER_OPERATION in MSETNX DEL UNLINK RENAME LMPOP; do
+        py tests/aoforder.py --case single --operation "$AOFORDER_OPERATION" \
+          --binary "$CANDIDATE_BINARY" --mode "$AOFORDER_MODE" --policy always \
+          --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" \
+          --artifacts "$TMPDIR/aoforder-operation-$AOFORDER_MODE-$AOFORDER_OPERATION" \
+          >"$TMPDIR/aoforder-operation-$AOFORDER_MODE-$AOFORDER_OPERATION.log" 2>&1 \
+          || AOFORDER_OK=0
+      done
+    done
+  fi
+  [ "$AOFORDER_OK" = 1 ] && ok "AOF commit order $AOFORDER_CASE" \
+    || bad "AOF commit order $AOFORDER_CASE" "see $TMPDIR/aoforder-*.log"
+done
+}
+
 job_tls(){
 # ---- TLS: independent listener, auth matrix, KeyUpdate, parser/teardown fences ----------------
 TLS_PORT=$((PORT+1))
@@ -3376,10 +3416,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit \
-      build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon >"$TMPDIR/build.log" 2>&1
+      build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon; do
+  for target in at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -3453,7 +3493,7 @@ job_dependencies(){
     racefix_climon) echo production_units;;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*|aof_frame) echo 'release production_units';;
+    debug-*|aof_frame|aoforder) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
@@ -3646,6 +3686,8 @@ collect_job atomic_floor
 for NET_IO in epoll uring; do collect_job "aof-$NET_IO"; done
 
 collect_job aof_frame
+
+collect_job aoforder
 
 collect_job tls
 
