@@ -68,6 +68,29 @@ void txnorder_checks(Server& server, const std::string& name) {
         txn_cap_claims(capped);
         require(capped.size() == 1 && capped[0].key.empty() &&
                 capped[0].mode == TxnClaimMode::Write, "claim cap preserves strongest mode");
+    } else if (name == "txnorder_readonly") {
+        const auto remote = key_on(server, 1, "txnorder-cut-");
+        require(shard.store().atomic_script_pin(FlatStore::hash_key(slice(src)), slice(src)),
+                "versioned key armed before readonly cut");
+        require(local(server, {"SET", src, "old"}) == "+OK\r\n", "old version installed");
+        server.atomic_publish_quiescent();
+        const auto cut = server.atomic_snapshot();
+        require(local(server, {"SET", src, "new"}) == "+OK\r\n", "new version installed");
+        std::unique_ptr<MultiExecState> state(allocate_state(server, client, 0, MultiStateKind::Execute));
+        std::vector<MultiQueuedCommand> queue;
+        for (const auto& key : {src, remote}) {
+            Request request({"GET", key});
+            queue.emplace_back();
+            require(queued_copy(request.op, queue.back()), "readonly command queued");
+        }
+        require(prepare_commands(server, *state, queue) && state->read_only && state->exec_read_fanout,
+                "two local GETs on different shards need one cut");
+        state->snapshot = cut;
+        require(execute_local_command(server, *state, *state->commands[0], shard,
+                                      server.worker_of_shard(0)), "readonly local command executes");
+        require(std::string(state->commands[0]->op->reply.data(), state->commands[0]->op->reply.size()) == "$3\r\nold\r\n", "local GET uses registered cut");
+        require(!state->watch_refs.load() && !shard.has_watches(), "readonly creates no claims");
+        shard.store().atomic_script_unpin(FlatStore::hash_key(slice(src)), slice(src));
     } else if (name == "txnorder_f2") {
         const auto remote = key_on(server, 1, "txnorder-script-");
         ScatterRun script(server, {"EVAL", "return redis.call('SET',KEYS[1],'s')", "2", src, remote});

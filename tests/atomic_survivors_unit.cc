@@ -520,6 +520,7 @@ void txn_help(Server& server) {
         state->watched = {{a, FlatStore::hash_key(slice(a)), 0, 0, 0},
                           {b, FlatStore::hash_key(slice(b)), 1, 0, 0}};
         state->watch_pending.store(2);
+        state->read_only = false;
         for (const auto& key : state->watched)
             require(server.shard(key.shard).watch_add(slice(key.key), &client,
                         state->watch_generation), "WATCH arrival registry armed");
@@ -560,6 +561,7 @@ void txn_help(Server& server) {
         Client client{-1}; client.set_id(889);
         auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "Rule P attempt allocated");
+        state->read_only = false;
         require(multi_touch_key(*state, shard, FlatStore::hash_key(slice(key)), slice(key), false),
                 "Rule P advances a quiescent watermark instead of waiting forever");
         require(server.atomic_snapshot() == last, "quiescent publication caught up");
