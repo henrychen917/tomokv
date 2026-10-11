@@ -3256,6 +3256,145 @@ void for_each_spec_key(Op& op, Fn&& fn) {
 
 }  // namespace
 
+namespace {
+struct TxnUnitView {
+    std::atomic<TxnPhase>* phase;
+    uint64_t age_ns;
+    uint32_t age_io, age_seq;
+};
+TxnUnitView txn_unit_view(const Shard::WatchReservation& unit) {
+    if (unit.unit_kind == 1) {
+        auto& state = *static_cast<MultiExecState*>(const_cast<void*>(unit.token));
+        auto& d = state.decision;
+        return {&d.phase, d.age_ns, d.age_io, d.age_seq};
+    }
+    auto& state = *static_cast<ScatterState*>(const_cast<void*>(unit.token));
+    auto& d = *state.group_attempt();
+    return {&d.phase, d.age_ns, d.age_io, d.age_seq};
+}
+bool txn_version_before(const TxnUnitView& a, const TxnUnitView& b) {
+    if (a.age_ns != b.age_ns) return a.age_ns < b.age_ns;
+    if (a.age_io != b.age_io) return a.age_io < b.age_io;
+    return a.age_seq < b.age_seq;
+}
+bool txn_reservation_live(const Shard::WatchReservation& r) {
+    return r.entry_kind == 2 || (r.epoch &&
+        r.epoch->load(std::memory_order_acquire) == 0 &&
+        !(r.aborted && r.aborted->load(std::memory_order_acquire)));
+}
+bool txn_wound(const Shard::WatchReservation& holder, Shard& shard, Server& server) {
+    auto view = txn_unit_view(holder);
+    TxnPhase placing = TxnPhase::Placing;
+    if (!view.phase->compare_exchange_strong(placing, TxnPhase::Wounded,
+                                             std::memory_order_acq_rel)) return false;
+    uint64_t zero = 0;
+    if (holder.epoch->compare_exchange_strong(zero, kAtomicCancelledEpoch,
+                                             std::memory_order_acq_rel)) {
+        server.note_txn(server.worker_of_shard(shard.id()), holder.unit_kind == 1
+            ? TxnCounter::Wounds : TxnCounter::GroupWounds);
+        if (holder.unit_kind == 1)
+            static_cast<MultiExecState*>(const_cast<void*>(holder.token))
+                ->cancel_cause_ready.store(true, std::memory_order_release);
+        else
+            static_cast<ScatterState*>(const_cast<void*>(holder.token))
+                ->group_attempt()->cause_ready.store(true, std::memory_order_release);
+        holder.aborted->store(true, std::memory_order_release);
+    }
+    return true;
+}
+}
+
+// This helper is cold and owner-local. No claim on this shard is published
+// until every conflicting entry has been examined. Waiter marks retain the
+// original version across polls, so newer arrivals cannot overtake a waiter.
+bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation unit) {
+    if (!txn_reservation_live(unit)) return true;
+    bool ready = true;
+    const auto own = txn_unit_view(unit);
+    try {
+        for (const auto& key : keys) {
+            std::vector<std::string> inspect;
+            if (key.key.empty()) {
+                inspect.reserve(watch_reservations_.size());
+                for (const auto& [name, entries] : watch_reservations_) inspect.push_back(name);
+            } else {
+                inspect = {"", key.key};
+            }
+            for (const auto& name : inspect) {
+                watch_finalize_reservation(name);
+                auto found = watch_reservations_.find(name);
+                if (found == watch_reservations_.end()) continue;
+                for (const auto& holder : found->second) {
+                    if (holder.token == unit.token || !txn_reservation_live(holder)) continue;
+                    if (holder.entry_kind == 2) { ready = false; continue; }
+                    if (!holder.blocking && holder.entry_kind != 3) continue;
+                    if (key.mode == TxnClaimMode::Read &&
+                        holder.unit_mode == static_cast<uint8_t>(TxnClaimMode::Read)) continue;
+                    if (!holder.unit_kind) { ready = false; continue; }
+                    const auto foreign = txn_unit_view(holder);
+                    if (holder.entry_kind == 3) {
+                        if (txn_version_before(foreign, own)) ready = false;
+                        continue;
+                    }
+                    if (foreign.phase->load(std::memory_order_acquire) == TxnPhase::Executing ||
+                        !txn_version_before(own, foreign) || !txn_wound(holder, *this, *server_))
+                        ready = false;
+                }
+                watch_finalize_reservation(name);
+            }
+        }
+        if (!txn_reservation_live(unit)) return true;
+        if (!ready) server_->note_txn(server_->worker_of_shard(id()), TxnCounter::PlaceWaits);
+        for (const auto& key : keys) {
+            auto found = watch_reservations_.find(key.key);
+            bool exists = false;
+            if (found != watch_reservations_.end()) {
+                for (auto& r : found->second) if (r.token == unit.token && r.entry_kind >= 1) {
+                    r.entry_kind = ready ? 1 : 3;
+                    r.blocking = ready;
+                    r.unit_mode = static_cast<uint8_t>(key.mode);
+                    exists = true;
+                }
+            }
+            if (exists) continue;
+            unit.entry_kind = ready ? 1 : 3;
+            unit.blocking = ready;
+            unit.unit_mode = static_cast<uint8_t>(key.mode);
+            if (!watch_append_reservation(key.key, unit)) throw std::bad_alloc();
+        }
+        return ready;
+    } catch (const std::bad_alloc&) {
+        unit.aborted->store(true, std::memory_order_release);
+        return true; // final error, never replay an allocation failure
+    }
+}
+
+void Shard::watch_finish_unit(const std::vector<TxnClaim>& keys, const void*) {
+    for (const auto& key : keys) watch_finalize_reservation(key.key);
+    if (has_blocking_waiters()) set_blocking_dirty();
+}
+
+bool Shard::watch_writer_mark(Slice key, const void* token) {
+    const auto owned = watch_key_string(key);
+    if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end())
+        for (const auto& r : found->second)
+            if (r.entry_kind == 2 && r.token == token) return true;
+    WatchReservation mark;
+    mark.token = token;
+    mark.entry_kind = 2;
+    if (!watch_append_reservation(owned, mark)) return false;
+    server_->note_txn(server_->worker_of_shard(id()), TxnCounter::WriterMarks);
+    return true;
+}
+
+void Shard::watch_writer_unmark(Slice key, const void* token) {
+    const auto found = watch_reservations_.find(watch_key_string(key));
+    if (found == watch_reservations_.end()) return;
+    auto& list = found->second;
+    std::erase_if(list, [&](const auto& r) { return r.entry_kind == 2 && r.token == token; });
+    if (list.empty()) { watch_reservations_.erase(found); refresh_has_watches(); }
+}
+
 // Retires every reservation on `key` whose unit has DECIDED, applying its effect, and answers
 // whether anything still blocks a foreign unit on this key.
 //
@@ -3272,6 +3411,11 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
     size_t keep = 0;
     for (size_t i = 0; i < list.size(); i++) {
         WatchReservation& reservation = list[i];
+        if (reservation.entry_kind == 2) {
+            if (keep != i) list[keep] = reservation;
+            ++keep;
+            continue;
+        }
         const uint64_t epoch = reservation.epoch
             ? reservation.epoch->load(std::memory_order_acquire) : 1;
         const bool aborted = epoch == kAtomicCancelledEpoch || (reservation.aborted &&

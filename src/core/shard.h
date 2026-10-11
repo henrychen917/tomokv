@@ -43,6 +43,7 @@ class Client;
 class Op;
 class Server;
 struct MultiExecState;
+struct TxnClaim;
 struct ShardLayoutLock;
 
 // 16,384 buckets. Chosen so changing the shard count reassigns bucket RANGES rather than rehashing
@@ -277,6 +278,9 @@ public:
         // now coexist on a key (the map holds a list) and block nobody.
         bool blocking = false;
         bool group_exclusive = false; // existing padding; avoids casting a group as EXEC
+        uint8_t unit_kind = 0; // 1 EXEC, 2 read-dependent group
+        uint8_t unit_mode = 0; // TxnClaimMode
+        uint8_t entry_kind = 0; // 0 validation/dirty deferral, 1 claim, 2 writer, 3 waiter
         // A swap-containing EXEC can write the same physical key while it names
         // different logical databases. Keep the identities at each write, not
         // the mapping at reservation retirement. WATCH state is cold/heap-owned.
@@ -299,6 +303,11 @@ public:
                                     std::atomic<bool>* aborted,
                                     std::atomic<uint32_t>* refs, bool mutates);
     bool watch_write_ready(Slice key, const void* token = nullptr);
+    bool watch_place_unit(const std::vector<struct TxnClaim>& keys,
+                          WatchReservation unit);
+    void watch_finish_unit(const std::vector<struct TxnClaim>& keys, const void* token);
+    bool watch_writer_mark(Slice key, const void* token);
+    void watch_writer_unmark(Slice key, const void* token);
     bool watch_txn_write_ready(Slice key, MultiExecState& state);
     bool watch_reserve_exclusive(Slice key, MultiExecState& state, bool whole_shard = false);
     bool watch_reserve_group(Slice key, ScatterState& state);

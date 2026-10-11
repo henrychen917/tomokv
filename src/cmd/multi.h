@@ -31,6 +31,7 @@ inline constexpr uint32_t kTxnIntentsPerShard = 256;
 inline constexpr uint32_t kTxnClaimsPerShard = 256;
 
 enum class TxnClaimMode : uint8_t { Read, Write };
+enum class TxnPhase : uint8_t { Placing, Executing, Wounded };
 struct TxnClaim {
     // Physical namespace byte followed by key bytes. Empty means the whole shard.
     std::string key;
@@ -44,7 +45,9 @@ inline constexpr uint64_t kTxnExclusiveDrainMax = 1000000000; // ns
 enum class TxnCounter : uint8_t {
     Attempts, Retries, Dooms, Wounds, SelfDooms, Waits, ForcedWrites,
     Exclusive, ExclusiveViolations, ExclusiveDrainTimeouts, Intents, IntentsLive,
-    GroupDooms, GroupRetries, GroupExclusive, GroupBarriers, Count
+    GroupDooms, GroupRetries, GroupExclusive, GroupBarriers,
+    Executed, PlaceWaits, WriterWaits, WriterMarks, BlindRestarts, Readonly,
+    OrderViolations, GroupWounds, Count
 };
 // DEBUG-only witness arming; no per-operation state on ordinary commands.
 void txn_barrier_witness(bool armed);
@@ -79,6 +82,7 @@ struct MultiDecision {
     std::atomic<uint64_t> epoch{0};
     std::atomic<bool> aborted{false};
     bool exclusive = false;
+    std::atomic<TxnPhase> phase{TxnPhase::Placing};
     uint64_t age_ns = 0;
     uint32_t age_io = 0;
     uint32_t age_seq = 0;

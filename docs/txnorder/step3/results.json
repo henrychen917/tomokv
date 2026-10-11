@@ -1,0 +1,32 @@
+[
+  {
+    "case": "txnorder_f1",
+    "exit": 0,
+    "output": "PASS txnorder_f1\n"
+  },
+  {
+    "case": "txnorder_f4",
+    "exit": 0,
+    "output": "PASS txnorder_f4\n"
+  },
+  {
+    "case": "txnorder_f6",
+    "exit": 0,
+    "output": "PASS txnorder_f6\n"
+  },
+  {
+    "case": "txnorder_claims",
+    "exit": 0,
+    "output": "PASS txnorder_claims\n"
+  },
+  {
+    "case": "txnorder_placement",
+    "exit": 0,
+    "output": "PASS txnorder_placement\n"
+  },
+  {
+    "case": "txnorder_f2",
+    "exit": 1,
+    "output": "FAIL: F2 APPLY must yield while EXEC holds WATCH and waits on its open bracket\n"
+  }
+]

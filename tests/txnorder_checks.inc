@@ -9,7 +9,40 @@ void txnorder_checks(Server& server, const std::string& name) {
     std::atomic<uint64_t> epoch{0};
     std::atomic<bool> aborted{false};
     std::atomic<uint32_t> refs{0};
-    if (name == "txnorder_claims") {
+    if (name == "txnorder_placement") {
+        auto make = [&](uint64_t age) {
+            std::unique_ptr<MultiExecState> p(allocate_state(server, client, 0, MultiStateKind::Execute));
+            p->decision.age_ns = age;
+            txn_add_claim(p->claims[0], slice(src), TxnClaimMode::Write);
+            return p;
+        };
+        auto place = [&](MultiExecState& state) {
+            Shard::WatchReservation r{&state, &state.decision.epoch, &state.decision.aborted,
+                                     &state.watch_refs, &client, 0, false, true};
+            r.unit_kind = 1;
+            return shard.watch_place_unit(state.claims[0], r);
+        };
+        auto young = make(20), old = make(10);
+        require(place(*young), "younger places first");
+        require(place(*old) && young->decision.phase.load() == TxnPhase::Wounded &&
+                young->decision.epoch.load() == kAtomicCancelledEpoch,
+                "older wounds only a placing holder");
+        shard.watch_finish_unit(young->claims[0], young.get());
+        old->decision.phase.store(TxnPhase::Executing);
+        auto oldest = make(1);
+        require(!place(*oldest) && !old->decision.aborted.load(), "executing holder is immune");
+        old->decision.epoch.store(server.atomic_commit());
+        shard.watch_finish_unit(old->claims[0], old.get());
+        Request writer({"INCR", src});
+        require(shard.watch_writer_mark(slice(src), &writer.op), "blocked writer leaves a mark");
+        require(!place(*oldest), "a waiting writer cannot be overtaken");
+        shard.watch_writer_unmark(slice(src), &writer.op);
+        require(place(*oldest), "placement resumes after writer passes");
+        oldest->decision.aborted.store(true);
+        shard.watch_finish_unit(oldest->claims[0], oldest.get());
+        require(!young->watch_refs.load() && !old->watch_refs.load() &&
+                !oldest->watch_refs.load() && !shard.has_watches(), "claims and waiter marks retire");
+    } else if (name == "txnorder_claims") {
         std::unique_ptr<MultiExecState> state(allocate_state(server, client, 0, MultiStateKind::Execute));
         std::vector<MultiQueuedCommand> queue;
         for (auto args : {std::vector<std::string>{"GET", src},
@@ -56,7 +89,19 @@ void txnorder_checks(Server& server, const std::string& name) {
                                    &holder->watch_refs, &client, 0, false, true}), "F2 WATCH claim");
         require(!multi_touch_key(*holder, shard, hash, slice(dst), false) &&
                 !holder->decision.aborted.load(), "F2 EXEC waits on rule P with its WATCH claim");
-        script.phase(ScriptPhase::Apply);
+        script.state->script_phase = ScriptPhase::Apply;
+        script.state->phase = 2;
+        const auto count = script_select_positions(*script.state, ScriptPhase::Apply);
+        reset_groups(*script.state);
+        build_groups(*script.state, script.state->hop2, count);
+        initialize_owner_completion(*script.state);
+        require(count > 0, "F2 nonempty APPLY wave");
+        for (uint32_t i = 0; i < script.state->nsub; ++i) {
+            const int sid = script.state->groups[i].shard;
+            require(xshard_execute(Task{&script.client, 0, sid, script.state}, server.shard(sid),
+                    script.request.op, server.worker_of_shard(sid)) == ScatterTaskResult::Complete,
+                    "F2 APPLY must yield while EXEC holds WATCH and waits on its open bracket");
+        }
         require(script.state->script_conflict.load() && script.state->aborted.load(),
                 "F2 script APPLY yields instead of waiting on the claim");
         server.atomic_commit_publish();

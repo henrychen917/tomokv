@@ -445,6 +445,10 @@ struct alignas(64) OwnerRecordRefs {
 // same per-IO-thread floor arithmetic (see xshard.h).  Member names are unchanged, so every
 // state->snapshot / state->snapshot_registered reference below still resolves.
 struct TxnGroupAttempt {
+    std::atomic<TxnPhase> phase{TxnPhase::Placing};
+    uint64_t age_ns = 0;
+    uint32_t age_io = 0;
+    uint32_t age_seq = 0;
     MultiRetryNode retry{nullptr, nullptr, 0, MultiRetryNode::Kind::Group};
     uint32_t attempt = 0;
     uint32_t writer_dooms = 0;
