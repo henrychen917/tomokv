@@ -1,0 +1,20 @@
+ARMED atomic growth 128 -> 256 slots, boot reservation already consumed
+
+Thread 2.1 "rehash-waits-un" received signal SIGABRT, Aborted.
+__pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+#0  __pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+#1  __pthread_kill_internal (signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:78
+#2  __GI___pthread_kill (threadid=<optimized out>, signo=signo@entry=6) at ./nptl/pthread_kill.c:89
+#3  0x00007ffff6e4527e in __GI_raise (sig=sig@entry=6) at ../sysdeps/posix/raise.c:26
+#4  0x00007ffff6e288ff in __GI_abort () at ./stdlib/abort.c:79
+#5  0x00005555555942d8 in tomo::FlatStore::rehash_step_read_local (this=0x7fffffffc4c0) at ./src/store/flatstore_atomic.inc:893
+#6  0x000055555559a871 in tomo::FlatStore::active_expire (this=this@entry=0x7fffffffc4c0, budget=budget@entry=0) at ./src/store/flatstore.h:1566
+#7  0x00005555555852aa in finish_resize (f=..., why=0x5555558e5c60 "owner maintenance advances the atomic resize") at tests/rehash_waits_unit.cc:391
+#5  0x00005555555942d8 in tomo::FlatStore::rehash_step_read_local (this=0x7fffffffc4c0) at ./src/store/flatstore_atomic.inc:893
+893	        if (!state) std::abort();
+FAIL atomic growth: child killed by signal 9 (Killed)
+$1 = true
+$2 = {_M_t = {<std::__uniq_ptr_impl<tomo::ResizeRetirement, std::default_delete<tomo::ResizeRetirement> >> = {_M_t = {<std::_Tuple_impl<0, tomo::ResizeRetirement*, std::default_delete<tomo::ResizeRetirement> >> = {<std::_Tuple_impl<1, std::default_delete<tomo::ResizeRetirement> >> = {<std::_Head_base<1, std::default_delete<tomo::ResizeRetirement>, true>> = {_M_head_impl = {<No data fields>}}, <No data fields>}, <std::_Head_base<0, tomo::ResizeRetirement*, false>> = {_M_head_impl = 0x0}, <No data fields>}, <No data fields>}}, <No data fields>}}
+$3 = (void (*)(void *, tomo::ResizeRetirement *, uint64_t *)) 0x55555558b580 <tomo::ReadLocalDeferredQueue::init(tomo::Server*, tomo::ThreadCtx*)::{lambda(void*, tomo::ResizeRetirement*, unsigned long*)#1}::_FUN(void*, tomo::ResizeRetirement*, unsigned long*)>
+$4 = {256, 0}
+$5 = false
