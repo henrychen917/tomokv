@@ -313,16 +313,19 @@ void txn_barrier_witness(bool armed) {
     txn_barrier_witness_armed.store(armed, std::memory_order_relaxed);
 }
 
-void atomic_release_unit_intent(const UnitRef& unit) {
-    if (unit.unit_kind != UnitRef::Kind::Group) return;
-    auto& state = *static_cast<ScatterState*>(const_cast<void*>(unit.unit));
-    if (state.group_attempt()->exclusive) {
-        const auto& intent = *reinterpret_cast<const AtomicScriptIntent*>(&unit + 1);
-        const uint32_t shard = intent.kind == 2 ? intent.hash
-            : state.server->router().shard_of(intent.hash);
-        state.server->shard(shard).watch_finish_exclusive(&state);
+void atomic_free_unit_intent(UnitRef* allocation) {
+    const UnitRef& unit = *allocation;
+    if (unit.unit_kind == UnitRef::Kind::Group) {
+        auto& state = *static_cast<ScatterState*>(const_cast<void*>(unit.unit));
+        if (state.group_attempt()->exclusive) {
+            const auto& intent = *reinterpret_cast<const AtomicScriptIntent*>(&unit + 1);
+            const uint32_t shard = intent.kind == 2 ? intent.hash
+                : state.server->router().shard_of(intent.hash);
+            state.server->shard(shard).watch_finish_exclusive(&state);
+        }
+        if (state.watch_refs.fetch_sub(1, std::memory_order_release) == 0) std::abort();
     }
-    if (state.watch_refs.fetch_sub(1, std::memory_order_release) == 0) std::abort();
+    std::free(allocation);
 }
 
 bool Shard::watch_reserve_group(Slice key, ScatterState& state) {

@@ -114,7 +114,8 @@ inline const UnitRef& atomic_intent_unit(const AtomicScriptIntent& intent) {
 void atomic_cancel_unit_record(AtomicEntry&);
 void atomic_cancel_unit_intent(AtomicScriptIntent&);
 void atomic_shutdown_unit_intent(AtomicScriptIntent&);
-void atomic_release_unit_intent(const UnitRef&);
+// Out-of-line destruction keeps the owner unpin walk at its original one-call cost.
+void atomic_free_unit_intent(UnitRef*);
 
 struct AtomicPendingState {
     struct FreeValue {
