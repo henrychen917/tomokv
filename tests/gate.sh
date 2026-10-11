@@ -305,8 +305,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # flipfix (IO4.1/IO4.2/IO4.4/CT4.3): +3 live rows in job_flip (close during FLIP on uring and
 # epoll, signal stop during FLIP + second SIGINT) and +2 serverless rows in job_flipfix_units;
 # both jobs are collected before the quick-tier exit: 511+5 = 516 quick, 528+5 = 533 full.
-# txnfix: Stage A adds 4 rows before the quick exit: DQ=4, DF=4;
-# maintainer update required: 625+4=629 quick, 642+4=646 full (EXPECT is owner-owned).
+# txnfix/txnfix2: four txniso plus four txn_nx rows before the quick exit: DQ=8, DF=8;
+# maintainer update required: 625+8=633 quick, 642+8=650 full (EXPECT is owner-owned).
 EXPECT_QUICK=625
 EXPECT_FULL=642                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -2029,6 +2029,13 @@ local AT=${1##*-}
       && ok "fused shutdown report (atomic $AT)" \
       || bad "fused shutdown report (atomic $AT)" \
              "mode=$FUSED_REPORT_MODE kind=$FUSED_REPORT_KIND; see $SRVLOG"
+  row_begin "fused txn_nx battery (atomic $AT)"
+  boot_fused "$CANDIDATE_BINARY" --atomic "$AT" --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 \
+      && py tests/txn_nx.py 127.0.0.1 "$PORT" >"$TMPDIR/gate-fused-txn-nx-$AT.txt" 2>&1 \
+      && ok "fused txn_nx battery (atomic $AT)" \
+      || bad "fused txn_nx battery (atomic $AT)" "see $TMPDIR/gate-fused-txn-nx-$AT.txt"
+  stop
   row_begin "fused txniso battery (atomic $AT)"
   boot_fused "$CANDIDATE_BINARY" --atomic "$AT" --enable-debug-command yes \
       --key-lb 0 --client-lb 0 --flip-auto 0 \
@@ -2188,7 +2195,7 @@ local AT=${1##*-}
   # print PASS on a run where no transaction fragment ever met an undecided same-connection unit,
   # and its committed-MSETNX control asserts read-your-own-writes still crosses the two units --
   # a "fix" that merely hid the group's candidate would fail there.
-  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires multirace session_monotonic xacct xmove xscript txniso; do
+  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires multirace session_monotonic xacct xmove xscript txn_nx txniso; do
     FEATURE_ARGS=()
     [ "$t" = xmove ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"

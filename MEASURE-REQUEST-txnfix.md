@@ -120,8 +120,8 @@ The external round-4 REGISTER.md is outside this lane's worktree and was not edi
 ## txnfix2
 
 **WIP — not ready to merge or measure.** Merged `origin/cpp` at `a363c2c5e` in
-`ee48b465e`. Housekeeping is complete; the NX regression is the next item.
-Admission fencing, hot-body identity, Stage B, and the merged-base proof remain
+`ee48b465e`. Housekeeping and the repeated NX proof are complete. Admission fencing is
+next; hot-body identity, Stage B, and the merged-base proof remain
 open. No benchmarks or full gate runs are authorized for this lane. No push.
 
 The six previously untracked evidence directories are preserved as historical
@@ -137,3 +137,28 @@ labels are retained. The merged base's protected EXPECT values are 625/642;
 the four existing txniso rows require DQ=+4, DF=+4, hence 629/646 before any
 txnfix2 rows. The arithmetic comment is updated; EXPECT assignments are the
 incoming mainline values and have not been adjusted for this lane.
+
+### NX result (merged Stage A)
+
+The previous status was stale: the recovered `nx-decision-order/after` receipts
+already show 0/16,384 bare atomic-1 races in each mode after `92a550b07` and
+`3472dd90e`. The remaining cause was the decision/read order fixed by the first
+commit, plus the child losing its parent overlay fixed by the second. No new
+runtime NX change was warranted by the merged-tree reproductions.
+
+`tests/txn_nx.py` preserves the protocol detector with exact reply and source
+conservation checks. On the merged build, EXEC RENAMENX passes **0/8,192** in
+all four mode/atomic cells. Bare atomic-1 RENAMENX passes **0/8,192** in each
+mode. The original PRE passes both bare atomic-1 controls; the retained broken
+Stage A binary fails both on data. Receipts: [merged NX](docs/txnfix/txnfix2/nx-merged/runs.json),
+[PRE/broken controls](docs/txnfix/txnfix2/nx-controls/runs.json).
+
+Bare `--atomic 0` cross-shard RENAMENX remains the pre-existing non-atomic
+negative control: it produces two winners. The request for zero at both settings
+is met by EXEC, whose isolation contract applies at both settings; it cannot be
+claimed for bare atomic-0 commands. The diagnostic `--bare` reports these
+failures with a nonzero exit status. The gate does not turn atomic on secretly.
+
+Four new txn_nx rows (two per geometry) are before the quick exit. Including the
+four txniso rows, **DQ=+8, DF=+8**, required EXPECT **633/650** from **625/642**.
+The comments/label fixture are updated; the protected assignments are unchanged.

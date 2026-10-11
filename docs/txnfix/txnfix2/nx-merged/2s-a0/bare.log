@@ -1,0 +1,10 @@
+atomic=0
+FAIL {'iteration': 30, 'replies': [1, 1], 'values': [None, None, b'winner-a']}
+FAIL {'iteration': 34, 'replies': [1, 1], 'values': [None, None, b'winner-b']}
+FAIL {'iteration': 37, 'replies': [1, 1], 'values': [None, None, b'winner-a']}
+FAIL {'iteration': 71, 'replies': [1, 1], 'values': [None, None, b'winner-b']}
+FAIL {'iteration': 82, 'replies': [1, 1], 'values': [None, None, b'winner-a']}
+FAIL {'iteration': 92, 'replies': [1, 1], 'values': [None, None, b'winner-a']}
+FAIL {'iteration': 97, 'replies': [1, 1], 'values': [None, None, b'winner-a']}
+FAIL {'iteration': 103, 'replies': [1, 1], 'values': [None, None, b'winner-b']}
+{"transactional": false, "geometry": [[3, 7], [3, 7], [10, 6]], "rounds": 256, "completed": 256, "failures": 59, "examples": [{"iteration": 30, "replies": [1, 1], "values": [null, null, "b'winner-a'"]}, {"iteration": 34, "replies": [1, 1], "values": [null, null, "b'winner-b'"]}, {"iteration": 37, "replies": [1, 1], "values": [null, null, "b'winner-a'"]}, {"iteration": 71, "replies": [1, 1], "values": [null, null, "b'winner-b'"]}, {"iteration": 82, "replies": [1, 1], "values": [null, null, "b'winner-a'"]}, {"iteration": 92, "replies": [1, 1], "values": [null, null, "b'winner-a'"]}, {"iteration": 97, "replies": [1, 1], "values": [null, null, "b'winner-a'"]}, {"iteration": 103, "replies": [1, 1], "values": [null, null, "b'winner-b'"]}], "errors": [], "threads_alive": false}
