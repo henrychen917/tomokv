@@ -1,0 +1,12 @@
+{
+  "hot": {
+    "total": 1208,
+    "raw_equal": 1208,
+    "bytes_and_targets_equal": 1208
+  },
+  "handlers": {
+    "total": 1211,
+    "raw_equal": 1211,
+    "bytes_and_targets_equal": 1211
+  }
+}

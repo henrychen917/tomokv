@@ -7,7 +7,7 @@ import aoffix2 as h
 parser=argparse.ArgumentParser()
 parser.add_argument('--binary',type=pathlib.Path,required=True)
 parser.add_argument('--output',type=pathlib.Path,required=True)
-parser.add_argument('--part',choices=('primary','drivers','rewrite','snapshot'),required=True)
+parser.add_argument('--part',choices=('primary','drivers','rewrite','snapshot','supplementary'),required=True)
 args=parser.parse_args()
 root=args.output.resolve(); root.mkdir(parents=True,exist_ok=False)
 binary=args.binary.resolve(); results=[]
@@ -100,7 +100,45 @@ def snapshot(folder,mode,db,atomic,engine):
     with h.Server(options+['--dbfilename','race.tomo.cut'],data=folder/'race') as server:
         command(['python3','tests/snap_typed_race.py','25730','verify',server.data/'race.tomo.oracle.json'],folder/'race.log')
 
-if args.part=='primary':
+def supplementary(folder,mode,db,atomic,engine):
+    setup(folder,mode,db,engine)
+    options=h.aof('no')+['--atomic',str(atomic),'--databases',str(db),'--dbfilename','dump.tomo']
+    state=folder/'data/state.json'
+    with h.Server(options) as server:
+        command(['python3','tests/aof.py','127.0.0.1','25730','populate',state],folder/'populate.log')
+        command(['python3','tests/aof.py','127.0.0.1','25730','loadaof',state],folder/'populate.log')
+        command(['python3','tests/aof.py','127.0.0.1','25730','snapshot',server.data/'dump.tomo'],folder/'pre-model.log')
+        assert int(server.client().info()['aof_records_written'])>0
+        server.stop(signal.SIGKILL)
+    with h.Server(options) as server:
+        command(['python3','tests/aof.py','127.0.0.1','25730','verify',state],folder/'verify.log')
+        command(['python3','tests/aof.py','127.0.0.1','25730','snapshot',server.data/'dump.tomo'],folder/'post-model.log')
+        info=server.client().info();assert int(info['aof_replayed_records'])>0 and 'aof_groups_skipped_on_replay' in info
+    models=[]
+    for name in ('pre-model.log','post-model.log'):
+        rows=[line for line in (folder/name).read_text().splitlines() if line.startswith('SNAPSHOT BYTE MODEL: ')]
+        assert len(rows)==1;models.append(rows[0])
+    assert models[0]==models[1], 'native snapshot byte model differs after AOF replay'
+    options=['--appendonly','no','--atomic',str(atomic),'--databases',str(db)]
+    with h.Server(options,data=folder/'aof-off') as server:
+        client=server.client();assert client.cmd('SET','aof-negative-control','must-disappear')==b'OK'
+        assert client.cmd('DBSIZE')==1;server.stop(signal.SIGKILL)
+    with h.Server(options,data=folder/'aof-off') as server:
+        assert server.client().cmd('DBSIZE')==0
+        assert not (server.data/'appendonlydir').exists()
+    if mode=='2s':
+        # knobs.py asserts the gate's split/default-LB purpose boot by design.
+        with h.Server(h.aof('no')+['--atomic',str(atomic),'--databases',str(db),'--key-lb','1','--client-lb','1'],data=folder/'knobs') as server:
+            command(['python3','tests/knobs.py','127.0.0.1','25730',engine,atomic],folder/'knobs.log')
+    print('Native snapshot byte model, AOF-off negative control, and applicable configuration purpose boot PASS')
+
+if args.part=='supplementary':
+    for mode in ('1s','2s'):
+        for db in (1,16):
+            for atomic in (0,1):
+                for engine in ('uring','epoll'):
+                    cell(f'{mode}-db{db}-a{atomic}-{engine}',lambda f,m=mode,d=db,a=atomic,e=engine:supplementary(f,m,d,a,e))
+elif args.part=='primary':
     for mode in ('1s','2s'):
         for db in (1,16):
             for atomic in (0,1):

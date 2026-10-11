@@ -7,3 +7,5 @@ The first snapshot driver invoked `snap_typed_race.py` under atomic=1. The oracl
 The first Python gate wiring run exposed the new job being collected without registration in `plan_jobs`; commit `b63f5a07b` registers it. All 66 tests pass afterward. The earlier log is `../gates-test-before-job-registration.log.gz`.
 
 A production-unit build using a custom BUILD_ROOT ran into pre-existing negative-control recipes that assume `build/` paths. The final proof uses the ordinary build root, rebuilds controls, and checks freshness of all 30 targets. The failed custom-root log remains in `build/aoforder/production-final`.
+
+The first serverless shutdown-unit invocation inherited only CPUs 108–111; its fixture explicitly requires eight allowed CPUs for 6:2, so it refused before exercising the unit. The final invocation must use 96–103 after live proof finishes; no fixture changed.

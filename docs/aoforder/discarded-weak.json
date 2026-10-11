@@ -37,5 +37,11 @@
       "discarded": true,
       "map_excerpt": " .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_assignERKS4_\n                0x0000000000000000      0x10b build/aoforder/final/src/persist/aof.o\n"
     }
-  ]
+  ],
+  "removed_extra_copy_linked_check": {
+    "symbol": "_ZN4tomo17ForeignReadSafety18poison_permanentlyEv",
+    "pre_size": 108,
+    "post_size": 108,
+    "raw_equal": true
+  }
 }

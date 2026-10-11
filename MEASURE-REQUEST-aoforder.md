@@ -62,7 +62,9 @@ reply wait for that same writer. Earlier fixture timeouts are retained under
 in the committed matrix. No assertion or timeout was loosened.
 
 The fix sorts each shard's retained staging window by mutation ticket once all
-its AOF decisions exist. Plain records retain their actual MVCC ticket (or the
+its AOF decisions exist. The unchanged replayer first validates completed group
+ids and then applies their records in stream order (`aof.cc:3076–3102`); merely
+reordering GCMT markers would not repair F3. Plain records retain their actual MVCC ticket (or the
 current frontier for unversioned keys) in owner-private chunk metadata. A chunk
 is sealed at a ticket boundary, and large-record continuations retain that ticket.
 Metadata is cleared before the existing transport ordinal is assigned. Group
@@ -85,6 +87,9 @@ before traversing moved staging entries; shutdown may legitimately call flush
 again after a failed allocation.
 
 No dispatch, read, ownership, clone, cleanup or commit-allocation path changed.
+The reused metadata stays in the existing shard-owned AofProducer/AofChunk
+state, so migration carries it with the existing producer; no external owner
+index or new migration obligation was introduced.
 The existing `ExLoopT::aof_flush_pass` completion fence already requires every
 producer to have no pending bytes. Retaining the staging window therefore adds
 no command wait rule. It allocates only while AOF is enabled; AOF-off paths and
@@ -167,7 +172,10 @@ under `docs/ttlclean` compares PRE with `build/aoforder/final`. Of 16,479 union
 bodies, 16,384 are equal and 95 differ (including added/removed compiler helpers).
 All differences originate in the two AOF objects. All **1,211/1,211 handlers**
 and **1,208/1,208 hot bodies** are identical; GET/SET/MGET/MSET ordinary paths
-are included. Every other object is identical. The complete inventory, including
+are included. Every function body and resolved relocation target in every other object is
+identical; [source/object inventory](docs/aoforder/source-audit.json).
+The handler and hot counts are also raw-byte equal, without the optional
+error-callee exception: [raw comparison](docs/aoforder/raw-hot-summary.json). The complete inventory, including
 every changed function, is [changed-functions.md](docs/aoforder/changed-functions.md);
 [summary](docs/aoforder/full/summary.json) and compressed full bodies accompany it.
 Five changed ordinary helper copies emitted in AOF.o are discarded by the linker;
@@ -209,4 +217,3 @@ its replay assertions. Keep rewrite disabled in those rate cells; the directed
 rewrite correctness cells above supply the cut/replay proof. Record completed
 commands and the persistence completion counters alongside performance numbers.
 Append owner results as MEASURE-RESULT; this lane performs no load measurement.
-
