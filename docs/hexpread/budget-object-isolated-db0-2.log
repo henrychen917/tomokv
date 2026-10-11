@@ -1,0 +1,6 @@
+server_tail db0 13850 outside-read 8 bytes 11642
+server_tail db0 13800 outside-read 9 bytes 11701
+server_tail db0 13925 outside-read 7 bytes 10157
+server_tail db0 13900 outside-read 8 bytes 10122
+server_tail db0 14025 outside-read 4 bytes 8344
+server_tail db0 13975 outside-read 6 bytes 9180

@@ -1,0 +1,24 @@
+{"event": "arm", "binary": "/home/user/Projects/redis74/src/redis-server", "mode": "1s", "atomic": 1, "oracle": true, "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"}
+{"event": "spawn", "pid": 738462, "argv": ["taskset", "-c", "104", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "25811", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-hexpread/docs/hexpread/common-oracle/data", "--protected-mode", "no", "--enable-debug-command", "yes"], "fsize": null, "load": {"loadavg": "14.19 13.35 12.83 17/3284 738462", "cpu_stat": ["cpu104 20427984 14762 14751552 294804998 96132 0 6894172 0 0 0"], "processes": ["    PID PSR %CPU COMMAND", " 738454 104  104 cc1plus", " 738446  99  102 cc1plus", " 738430 105  101 cc1plus", " 737234 106  100 cc1plus", " 737208  98  100 cc1plus", " 737171  96  100 cc1plus", " 665319  85 99.8 python3", " 665313  81 99.8 python3", " 665318  84 99.7 python3", " 665316  83 99.7 python3", " 665311  80 99.7 python3", " 665315  82 99.7 python3", " 665320  86 96.5 python3", " 665321  87 84.5 python3", " 738460 111 62.5 python3", " 738434  85 19.4 tomokv", " 738443  91 12.4 python3", " 682528 125  3.1 claude", "3038888 114  0.9 codex", " 421045  96  0.9 codex", " 681174 114  0.3 claude", "3179714 123  0.3 bash", "   5179  50  0.2 gnome-shell", "    212  32  0.1 ksoftirqd/32"]}}
+{"event": "boot", "ready": true, "exit": null, "log": "/home/user/Projects/cx-hexpread/docs/hexpread/common-oracle/server-1.log"}
+{"event": "common", "limit": 512, "resp": 2, "field": "f", "reply": null, "events": [["hexpired", "common"]], "fields_expired": 1, "keys_expired": 0}
+{"event": "common", "limit": 512, "resp": 2, "field": "g", "reply": null, "events": [["hexpired", "common"], ["del", "common"]], "fields_expired": 1, "keys_expired": 0}
+{"event": "stop", "exit": 0, "escalated": false}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-hexpread/docs/hexpread/common.py", line 85, in <module>
+    main()
+  File "/home/user/Projects/cx-hexpread/docs/hexpread/common.py", line 77, in main
+    rows = run(server)
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-hexpread/docs/hexpread/common.py", line 42, in run
+    before = stats(c)
+             ^^^^^^^^
+  File "/home/user/Projects/cx-hexpread/tests/hexpread.py", line 53, in stats
+    return {k: int(v) for line in client.cmd('INFO', 'stats').decode().splitlines()
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-hexpread/tests/aoffix2.py", line 105, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-hexpread/tests/hexpread.py", line 46, in read
+    raise AssertionError(line)
+AssertionError: b'=1706\r\n'

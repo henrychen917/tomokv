@@ -17,19 +17,23 @@ def allowed(name):
     return any(part in name for part in (
         'cmd_hget', 'cmd_hmget', 'cmd_hexists', 'cmd_hstrlen', 'cmd_hlen', 'cmd_hrandfield',
         'generic_getall', 'cmd_hscan', 'HashReadView', 'hash_read_lookup', 'select_unique',
-        'hash_random_bounded', 'hash_ttl_on_access', 'atomic_read_owns_value',
+        'hash_read_visit', 'hash_random_bounded', 'hash_read_random', 'hash_ttl_read_view',
+        'hash_ttl_on_access', 'atomic_read_owns_value', 'cmd_object',
         'std::vector<std::pair<tomo::Slice, tomo::Slice>',
         'std::vector<std::pair<tomo_db0::Slice, tomo_db0::Slice>'))
 
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('unit', choices=('t_hash', 't_hash_ttl'))
+    p.add_argument('unit', choices=('t_hash', 't_hash_ttl', 'server_tail'))
     p.add_argument('namespace', choices=('src', 'db0'))
     p.add_argument('values', nargs='+', type=int)
     p.add_argument('--jobs', type=int, default=4)
+    p.add_argument('--tag', default='refactor')
+    p.add_argument('--single', type=int)
+    p.add_argument('--auto', type=int)
     a = p.parse_args()
-    out = ROOT / 'build/hexpread-budget' / (a.unit + '-' + a.namespace)
+    out = ROOT / 'build/hexpread-budget' / a.tag / (a.unit + '-' + a.namespace)
     out.mkdir(parents=True, exist_ok=True)
     rel = ('db0/' if a.namespace == 'db0' else '') + 'src/cmd/' + a.unit + '.o'
     old = inventory(ROOT / 'build/hexpread-pre' / rel)
@@ -43,6 +47,10 @@ def main():
                '--param', 'inline-unit-growth=0', '--param', f'large-unit-insns={value}']
         if a.namespace == 'db0':
             cmd += ['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0']
+        if a.single is not None:
+            cmd += ['--param', f'max-inline-insns-single={a.single}']
+        if a.auto is not None:
+            cmd += ['--param', f'max-inline-insns-auto={a.auto}']
         cmd += ['-c', f'src/cmd/{a.unit}.cc', '-o', str(target)]
         with target.with_suffix('.log').open('w') as log:
             subprocess.run(cmd, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
