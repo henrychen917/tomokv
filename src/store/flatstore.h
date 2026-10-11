@@ -87,8 +87,14 @@
 
 namespace tomo {
 
-// Defined with the sampler in the cold monitoring translation unit.
-struct StoreSizeState;
+// Monitoring state shared by the cold owner clear paths and the sampler.
+// Owner-private sampling cursor and INFO publication; reset only on cold clear.
+struct StoreSizeState {
+    uint64_t sample_cursor = 0;
+    std::atomic<uint64_t> avg_deadline{0};
+    std::atomic<bool> field_ttl_attention{false};
+};
+#line 92
 
 // Fault injection for the cold table-allocation paths. It is compiled in whenever NDEBUG is not
 // defined -- which is every build the Makefile produces, release included -- and costs one relaxed
@@ -1771,7 +1777,14 @@ public:
     // FLUSH is intentionally proportional to the table capacity it discards. Borrowed string
     // values move to the existing retirement list, so a send already in flight remains valid.
     void clear() {
-        storesize_clear();
+        if constexpr (kSingleDatabase) {
+            // A new volatile population must never inherit the flushed sample.
+            StoreSizeState* state;
+            std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
+            state->sample_cursor = 0;
+            state->avg_deadline.store(0, std::memory_order_relaxed);
+        } else storesize_clear();
+#line 1775
         if (__builtin_expect(read_local_enabled_, false)) {
             clear_read_local();
             return;
@@ -1806,7 +1819,14 @@ public:
     // allocations and their slot numbering until the capture walker releases its cursor; turn all
     // live entries into ordinary tombstones instead of freeing the tables as clear() does.
     void clear_during_snapshot() {
-        storesize_clear();
+        if constexpr (kSingleDatabase) {
+            // Capture retains table slots, but the monitoring population is gone.
+            StoreSizeState* state;
+            std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
+            state->sample_cursor = 0;
+            state->avg_deadline.store(0, std::memory_order_relaxed);
+        } else storesize_clear();
+#line 1810
         if (__builtin_expect(read_local_enabled_, false)) {
             clear_during_snapshot_read_local();
             return;

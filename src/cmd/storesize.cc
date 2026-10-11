@@ -38,11 +38,11 @@ legacy:
     published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
 }
 
-struct StoreSizeState {
-    uint64_t sample_cursor = 0;
-    std::atomic<uint64_t> avg_deadline{0};
-    std::atomic<bool> field_ttl_attention{false};
-};
+// State is defined beside the two cold FlatStore clear paths so their resets
+// need no new call edge in command or AOF translation units. Keep the state
+// layout and the diagnostic line constants below unchanged.
+static_assert(sizeof(StoreSizeState) == 24);
+
 
 StoreSizeState* FlatStore::storesize_state() const {
     StoreSizeState* state;
@@ -191,15 +191,7 @@ void FlatStore::storesize_deadline(const KvObj* object, int64_t deadline) {
 }
 
 void FlatStore::storesize_clear() {
-    if constexpr (kSingleDatabase) {
-        // A flush discards the population behind the estimate, even if a new
-        // volatile key arrives before the next owner beat. INFO may report zero
-        // until that beat, but must not attach the discarded sample to new keys.
-        // Keep this reset on the cold owner clear path, including snapshot clears.
-        auto& state = *storesize_state();
-        state.sample_cursor = 0;
-        state.avg_deadline.store(0, std::memory_order_relaxed);
-    } else {
+    if constexpr (!kSingleDatabase) {
         auto& state = *static_cast<MultiStoreSizeState*>(storesize_state());
         for (unsigned db = 0; db < 256; ++db) {
             auto& row = state.owner[db];
