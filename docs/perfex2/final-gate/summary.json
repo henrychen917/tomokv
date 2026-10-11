@@ -1,0 +1,742 @@
+[
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-1.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 273.0053872046992,
+    "log": "docs/perfex2/final-gate/run-1.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-1-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-1-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-2.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 241.41980898799375,
+    "log": "docs/perfex2/final-gate/run-2.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-2-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-2-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-3.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 292.3610788527876,
+    "log": "docs/perfex2/final-gate/run-3.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-3-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-3-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-4.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 267.33056642394513,
+    "log": "docs/perfex2/final-gate/run-4.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-4-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-4-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-5.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 338.13207502663136,
+    "log": "docs/perfex2/final-gate/run-5.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-5-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-5-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-6.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 372.72798450803384,
+    "log": "docs/perfex2/final-gate/run-6.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-6-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-6-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-7.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 317.1025090268813,
+    "log": "docs/perfex2/final-gate/run-7.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-7-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-7-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-8.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 231.3549721147865,
+    "log": "docs/perfex2/final-gate/run-8.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-8-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-8-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-9.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 293.5042952080257,
+    "log": "docs/perfex2/final-gate/run-9.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-9-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-9-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-10.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 268.23130483319983,
+    "log": "docs/perfex2/final-gate/run-10.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-10-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-10-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-11.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 273.1828526747413,
+    "log": "docs/perfex2/final-gate/run-11.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-11-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-11-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-12.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 272.6429241918959,
+    "log": "docs/perfex2/final-gate/run-12.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-12-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-12-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-13.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 248.28674861323088,
+    "log": "docs/perfex2/final-gate/run-13.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-13-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-13-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-14.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 258.94036899879575,
+    "log": "docs/perfex2/final-gate/run-14.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-14-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-14-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-15.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 281.14046753104776,
+    "log": "docs/perfex2/final-gate/run-15.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-15-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-15-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-16.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 255.0639774510637,
+    "log": "docs/perfex2/final-gate/run-16.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-16-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-16-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-17.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 254.90486346092075,
+    "log": "docs/perfex2/final-gate/run-17.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-17-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-17-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-18.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 246.81640910776332,
+    "log": "docs/perfex2/final-gate/run-18.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-18-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-18-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-19.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 284.50372309284285,
+    "log": "docs/perfex2/final-gate/run-19.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-19-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-19-infofix-1.txt"
+      }
+    }
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/final-gate/run-20.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 0,
+    "seconds": 264.1008331691846,
+    "log": "docs/perfex2/final-gate/run-20.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-20-infofix-0.txt"
+      },
+      "1": {
+        "passed": true,
+        "log": "docs/perfex2/final-gate/run-20-infofix-1.txt"
+      }
+    }
+  }
+]

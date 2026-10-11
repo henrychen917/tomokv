@@ -372,8 +372,18 @@ object was forcibly rebuilt with 126492 and the controls relinked. The final
 36 build/freshness/control commands all exit zero (`final-units/summary.json`).
 The superseded unit run's stale-build checks remain recorded in `units/`.
 
-The repeated live campaign is in progress; its final results and the quiet-box
-measurement handoff will be recorded here before completion.
+The exact gate INFO rows pass **20/20 at atomic 0 and 20/20 at atomic 1**.
+Each repetition runs the complete unchanged `feature-split-0` and
+`feature-split-1` jobs through `tests/gate.sh iteration`, including expwide
+immediately before infofix. All twenty commands exit zero: **1,380 passed rows,
+zero failed rows**, including all shutdown invariants. This is a selected-job
+correctness campaign, not a full-gate or performance receipt. Raw per-run
+ledgers, INFO logs, command lines and results are in `docs/perfex2/final-gate/`.
+Every server is pinned to 112-119, clients to 120-127, with 16 shards, ratio 6:2,
+and ports within 25100-25124.
+
+The independent direct-stress, differential and harness campaign is in progress;
+its final results will be recorded here before completion.
 
 The maintainer's performance comparison for this follow-up is merged perfex PRE
 against perfex2 POST, using the digests above. This isolates the freshness repair
