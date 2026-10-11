@@ -298,6 +298,11 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
     }
     if (!entry.group || entry.group == self) return;
     ScatterState& script = *entry.group;
+    if (script.group_attempt) {
+        const uint32_t shard = script.keys[script.key_order[entry.begin]].shard;
+        txn_group_cancel(script, shard);
+        return;
+    }
     if (script.kind != Kind::Script || script.aborted.load(std::memory_order_acquire)) return;
     uint64_t undecided = 0;
     if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
@@ -309,6 +314,13 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
 
 void multi_cancel_intent(AtomicScriptIntent& intent, const ScatterState* self) {
     UnitRef& unit = atomic_intent_unit(intent);
+    if (unit.unit_kind == UnitRef::Kind::Group) {
+        auto& group = *static_cast<ScatterState*>(const_cast<void*>(unit.unit));
+        if (&group != self)
+            txn_group_cancel(group, intent.kind == 2 ? intent.hash
+                : group.server->router().shard_of(intent.hash));
+        return;
+    }
     if (unit.unit_kind != UnitRef::Kind::Txn || unit.exclusive ||
         (self && self->multi_parent == unit.unit)) return;
     auto& decision = *reinterpret_cast<MultiDecision*>(unit.epoch);
@@ -321,6 +333,20 @@ void atomic_cancel_unit_record(AtomicEntry& entry) { multi_cancel_record(entry);
 void atomic_cancel_unit_intent(AtomicScriptIntent& intent) { multi_cancel_intent(intent); }
 void atomic_shutdown_unit_intent(AtomicScriptIntent& intent) {
     UnitRef& unit = atomic_intent_unit(intent);
+    if (unit.unit_kind == UnitRef::Kind::Group) {
+        auto& state = *static_cast<ScatterState*>(const_cast<void*>(unit.unit));
+        uint64_t zero = 0;
+        if (state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch)) {
+            state.aborted.store(true, std::memory_order_relaxed);
+            state.group_attempt->cause_ready.store(true, std::memory_order_relaxed);
+            aof_abort_scatter_group(state);
+        }
+        const uint32_t shard = intent.kind == 2 ? intent.hash
+            : state.server->router().shard_of(intent.hash);
+        state.server->note_txn(state.server->worker_of_shard(shard),
+                               TxnCounter::IntentsLive, uint64_t{0} - 1);
+        return;
+    }
     if (unit.unit_kind != UnitRef::Kind::Txn) std::abort();
     auto& decision = *reinterpret_cast<MultiDecision*>(unit.epoch);
     auto& state = *decision.owner;
@@ -1221,7 +1247,8 @@ bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice k
         if (entry.origin_conn_id == state.origin_conn_id) {
             g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
             ready = multi_wait(state, shard);
-        } else if (write && entry.group && entry.group->kind == Kind::Script) {
+        } else if (write && entry.group &&
+                   (entry.group->kind == Kind::Script || entry.group->group_attempt)) {
             multi_cancel_record(entry);
             published(entry.group_epoch->load(std::memory_order_acquire), entry.origin_conn_id);
         } else {
@@ -1237,6 +1264,8 @@ bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice k
             if (!wildcard || intent.kind == 2) covered = true;
         } else if (unit.unit_kind == UnitRef::Kind::Txn) {
             transaction(*reinterpret_cast<MultiDecision*>(unit.epoch), nullptr);
+        } else if (write) {
+            multi_cancel_intent(intent);
         }
     });
     if (!ready || state.decision.aborted.load(std::memory_order_acquire)) return false;
@@ -2407,6 +2436,15 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 ++work;
                 continue;
             }
+            if (node->kind == MultiRetryNode::Kind::Group) {
+                auto& previous = *static_cast<ScatterState*>(node->unit);
+                Client* client = previous.commit_client;
+                txn_group_redispatch<IofusedPrivateQueue>(
+                    *loop.srv_, *loop.self_, loop.ring_, loop.scatter_pool_, previous);
+                loop.mark_active(client);
+                ++work;
+                continue;
+            }
             auto* previous = static_cast<MultiExecState*>(node->unit);
             // The IO's existing park decision consumes this hook's work count.
             // A held/requeued attempt is still work: returning zero can park
@@ -2637,6 +2675,10 @@ void multi_shutdown_entry(IoLoop& loop) {
             if (node->kind == MultiRetryNode::Kind::Fence) {
                 loop.srv_->multi_retry_lane(loop.self_->id()).fence_ack.store(
                     node->generation, std::memory_order_relaxed);
+                continue;
+            }
+            if (node->kind == MultiRetryNode::Kind::Group) {
+                txn_group_shutdown(*static_cast<ScatterState*>(node->unit), loop.scatter_pool_);
                 continue;
             }
             multi_shutdown_attempt(static_cast<MultiExecState*>(node->unit),

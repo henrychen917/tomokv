@@ -94,6 +94,14 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
     for (uint32_t i = 0; i < group.count; i++)
         source_group |= state.key_order[group.begin + i] == 0;
 
+    for (uint32_t i = 0; i < group.count; ++i) {
+        const KeyRef& key = state.keys[state.key_order[group.begin + i]];
+        if (!txn_group_touch(state, shard, key.hash, op.arg(key.arg))) {
+            if (source_group) state.direct_ready.store(2, std::memory_order_release);
+            return ScatterTaskResult::Complete;
+        }
+    }
+
     if (!source_group) {
         const uint8_t ready = state.direct_ready.load(std::memory_order_acquire);
         if (ready == 0) return ScatterTaskResult::Retry;

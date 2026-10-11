@@ -1,0 +1,7 @@
+tomo atomic=1 mode=1s N=3000: acked moves=3000 acked adds=3000 SCARD(dst)=1996 expected 6000 (missing 4004) SCARD(src)=2230 errors=0 2.2s
+server rc 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t04_mover_stress.py", line 53, in <module>
+    assert not errs and card == exp and srccard + moved[0] == N, "members lost or duplicated"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: members lost or duplicated

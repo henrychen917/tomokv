@@ -121,9 +121,10 @@ The external round-4 REGISTER.md is outside this lane's worktree and was not edi
 
 **WIP — not ready to merge or measure.** Merged `origin/cpp` at `991d48f65` in
 `ee48b465e`. Housekeeping, the repeated NX proof, and the deterministic admission
-proof are complete. TLS placement is restored and the per-object budget probes
-match every selected ordinary hot body; the default-build inventory and quiet
-txniso rerun are in progress. Stage B and the merged-base proof remain open. No benchmarks or full gate runs are authorized for this lane. No push.
+proof are complete. TLS placement and all 1,208 selected ordinary hot bodies
+match merged PRE at the cost checkpoint. Stage B core/retry code and its battery
+pass their directed atomic-1 checks in both modes; group fallback, final cost/proof, and baseline
+atomic-0 RPOPLPUSH failures remain open. No benchmarks or full gate runs are authorized for this lane. No push.
 
 The six previously untracked evidence directories are preserved as historical
 receipts. Inspection of every file (including ignored files) found no ELF
@@ -217,3 +218,54 @@ Admission, intent/shutdown, and child-help units pass;
 retry-held token conversion failed the admission unit and was corrected before
 commit; that failing receipt is preserved. This fallback-only refactor is kept
 in its own commit.
+
+### Cost checkpoint and Stage B reproduction
+
+The default `8318131e5` code build (binary SHA
+`e50321a4272e45dc7c2af19ac1c98cbda60a68e019f036b009c4b62ca2f482fe`)
+matches **1,208/1,208 selected hot bodies** in the ccfix audit and passes the
+lbstall hot comparison. Full inventory: 16,112/16,590 equal, 478 changed;
+handlers 1,205/1,211 equal, with only INFO/DEBUG handler changes.
+[Default-build inventory](docs/txnfix/txnfix2/identity-cost/full/summary.json).
+These selected hot sets do not include all scatter functions: xshard_execute,
+xshard_prepare, xshard_plain_prepare, and xshard_task_should_defer still differ.
+The final scatter identity attribution and mainline null remain required.
+
+The quiet checkpoint txniso run passed six of eight configurations. Fused
+atomic-0/db1 missed D2's wait witness; fused atomic-1/db1 missed X1's exclusive
+witness after all four fresh arms. Neither was a data failure, but neither is a
+passing row. [Receipts](docs/txnfix/txnfix2/cost-batteries/txniso.json). D2 now
+re-arms a missing wait witness on fresh state within its existing four-attempt
+bound, retaining every data assertion and failing if all four miss. Millisecond
+admission ages can tie across IOs, whose tie-break can order the racing writer
+first. X1's assertions and four-arm bound are unchanged.
+
+The original Stage B audits were rerun with their original parameters against
+merged PRE in both modes and atomic settings. All atomic-1 T03/T04/T05/T10 legs
+fail on data; atomic-0 T03/T04/T05-SMOVE pass. **Atomic-0 T05-RPOPLPUSH fails
+conservation on PRE in both modes**, contrary to the design's passing-control
+assumption. [Original-parameter PRE receipts](docs/txnfix/txnfix2/stage-b-pre/runs.json).
+The new txngroup battery likewise fails all G1-G4 checks on PRE data, passes G6,
+and detects duplicate atomic-0 RPOPLPUSH delivery in G5 in both modes.
+[Battery PRE receipts](docs/txnfix/txnfix2/txngroup-pre/runs.json). That baseline
+defect is preserved as a failure, not suppressed or relabelled as a passing control.
+
+The two txngroup rows are before the quick-tier exit, giving total lane
+**DQ=+10, DF=+10**, required EXPECT **635/652** from **625/642**. The protected
+assignments are unchanged. The new rows include an AOF reload companion boot.
+Stage B currently uses the existing watch_refs lifetime pin for lazy read
+intents: record_refs is reset at the phase-two owner wave, while watch_refs
+already survives that wave and participates in every destruction predicate.
+ScatterState's new pointer fits its existing pre-epoch padding; no epoch or
+existing field is intentionally moved. Layout proof is pending.
+
+The first Stage B core builds successfully and passes G1's five mover races,
+G2 MSETNX, and G6 cleanup in both split and armed-fused mode, on db1.
+[Core directed receipts](docs/txnfix/txnfix2/txngroup-core/runs.json). Each
+atomic-1 race witnesses the required installed private records and no early
+reply, then requires both doom/retry counters and exact legal data. The PRE
+legs failed those same data assertions. Group fallback is not yet wired in at
+this checkpoint and remains a separate, required follow-up.
+
+Current row source lines: fused txngroup 2062, split txngroup 2237, both before
+the quick exit at 3771. Thus each contributes +1 to each tier.

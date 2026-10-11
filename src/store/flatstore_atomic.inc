@@ -228,6 +228,7 @@
                 continue;
             }
             *link = intent->next;
+            atomic_release_unit_intent(atomic_intent_unit(*intent));
             std::free(&atomic_intent_unit(*intent));
             if (!atomic_pending_->script_intent_count) std::abort();
             --atomic_pending_->script_intent_count;

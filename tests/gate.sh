@@ -305,8 +305,9 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # flipfix (IO4.1/IO4.2/IO4.4/CT4.3): +3 live rows in job_flip (close during FLIP on uring and
 # epoll, signal stop during FLIP + second SIGINT) and +2 serverless rows in job_flipfix_units;
 # both jobs are collected before the quick-tier exit: 511+5 = 516 quick, 528+5 = 533 full.
-# txnfix/txnfix2: four txniso plus four txn_nx rows before the quick exit: DQ=8, DF=8;
-# maintainer update required: 625+8=633 quick, 642+8=650 full (EXPECT is owner-owned).
+# txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:
+# DQ=10, DF=10; maintainer update required: 625+10=635 quick, 642+10=652 full.
+# EXPECT assignments are owner-owned and unchanged by this lane.
 EXPECT_QUICK=625
 EXPECT_FULL=642                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1997,6 +1998,19 @@ txniso_checks(){
   [ "$passed" = 1 ]
 }
 
+txngroup_checks(){
+  local mode=$1 log=$2 passed=1 boot_fn=boot
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  py tests/txngroup.py 127.0.0.1 "$PORT" --mode "$mode" >"$log" 2>&1 || passed=0
+  stop
+  "$boot_fn" "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 --appendonly yes --appendfsync no \
+      && py tests/txngroup.py 127.0.0.1 "$PORT" --mode "$mode" --only AOF >>"$log" 2>&1 \
+      || passed=0
+  stop
+  [ "$passed" = 1 ]
+}
+
 job_fused(){
 # ---- FUSED mode: one boot per atomic mode, coarse three-stream production subset --------------
 local AT=${1##*-}
@@ -2044,6 +2058,15 @@ local AT=${1##*-}
       && ok "fused txniso battery (atomic $AT)" \
       || bad "fused txniso battery (atomic $AT)" "see $TMPDIR/gate-fused-txniso-$AT.txt"
   stop
+  if [ "$AT" = 1 ]; then
+    row_begin "fused txngroup battery (atomic 1)"
+    boot_fused "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes \
+        --key-lb 0 --client-lb 0 --flip-auto 0 \
+        && txngroup_checks 1s "$TMPDIR/gate-fused-txngroup.txt" \
+        && ok "fused txngroup battery (atomic 1)" \
+        || bad "fused txngroup battery (atomic 1)" "see $TMPDIR/gate-fused-txngroup.txt"
+    stop
+  fi
 }
 
 job_bplus(){
@@ -2210,6 +2233,15 @@ local AT=${1##*-}
     fi
   done
   stop
+  if [ "$AT" = 1 ]; then
+    row_begin "txngroup battery (atomic 1)"
+    boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes \
+        --key-lb 0 --client-lb 0 --flip-auto 0 \
+        && txngroup_checks 2s "$TMPDIR/gate-txngroup.txt" \
+        && ok "txngroup battery (atomic 1)" \
+        || bad "txngroup battery (atomic 1)" "see $TMPDIR/gate-txngroup.txt"
+    stop
+  fi
 }
 
 job_script_bounds(){

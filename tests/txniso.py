@@ -160,6 +160,13 @@ class Battery:
                         assert sorted([result[0], foreign]) == [1, 2], (result, foreign)
                         assert result[1] == [str(result[0]).encode(), b"0"], result
                 if kind == "D2":
+                    # Cached admission timestamps can tie across IOs; the IO
+                    # tie-break may make this writer the older attempt. That
+                    # round still must pass every data check above, but it did
+                    # not open the younger-writer wait window. Re-arm on fresh
+                    # keys within the existing four-attempt bound.
+                    if waits is not None and self.counter("atomic_txn_waits") == waits:
+                        raise WindowMiss("younger-writer wait window did not open")
                     self.advanced("atomic_txn_waits", waits)
                 else:
                     self.advanced("atomic_txn_dooms", dooms)

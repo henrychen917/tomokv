@@ -1,0 +1,18 @@
+FAIL G1-SMOVE AssertionError(('SMOVE', 1, 1, [[], [b'a', b'm']]))
+FAIL G1-LMOVE AssertionError(('LMOVE', b'm', 2, [[], [b'a', b'm']]))
+FAIL G1-PFMERGE AssertionError(('PFMERGE', b'OK', 1, [2, 3]))
+FAIL G1-RPOPLPUSH-source AssertionError(('RPOPLPUSH-source', b'm', 2, [[], [b'm', b'a']]))
+FAIL G1-RENAME-source AssertionError(('RENAME-source', b'OK', b'OK', [None, b'old']))
+FAIL G2 AssertionError(('MSETNX', 1, b'OK', [b'from-msetnx', b'from-msetnx']))
+FAIL G3 AssertionError(('smove', 2995, 2014, 8000))
+FAIL G4-smove AssertionError(('smove', 1487, 513, 2000))
+FAIL G4-rpoplpush AssertionError('duplicate delivery')
+directed SMOVE result 1 state [[], [b'a', b'm', b'z']]
+directed LMOVE result b'm' state [[], [b'a', b'm', b'z']]
+directed PFMERGE result b'OK' state [2, 6]
+directed RPOPLPUSH-source result b'm' state [[b'z'], [b'm', b'a']]
+directed RENAME-source result b'OK' state [b'new', b'old']
+conservation smove atomic 0 members 8000
+conservation smove atomic 0 members 2000
+FAIL G5 AssertionError('duplicate delivery')
+PASS G6

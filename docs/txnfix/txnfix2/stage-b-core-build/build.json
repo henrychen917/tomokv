@@ -1,0 +1,26 @@
+{
+  "commands": [
+    [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-j16",
+      "all"
+    ],
+    [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-j4",
+      "all"
+    ]
+  ],
+  "exit_codes": [
+    0,
+    0
+  ],
+  "binary": "build/txnfix2/stage-b-core-tomokv",
+  "sha256": "5a945fb506f4a63ebd0bd756b4ec32436af816f4eecbbd4429d7f719d4a059d5"
+}

@@ -1,7 +1,7 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
   "source_sha256": "8c1e51707e09366c289fbbe39466844d5936e8e027843897719adea590cb3304",
-  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full); savefix adds 24 witnessed shutdown-save/capture rows (+24 quick/+24 full); aclfix adds six reproductions per thread mode before the quick exit (+12 quick/+12 full); authfix adds five config/auth/slowlog regression rows before the quick exit (+5 quick/+5 full); clientfix adds 14 focused correctness rows before the quick exit (+14 quick/+14 full); racefix adds INFO counter TSan and directed Climon refresh rows before the quick-tier exit (+2 quick/+2 full); txnfix Stage A adds four EXEC serializability rows before the quick exit; maintainer-owned EXPECT update is pending; txnfix2 declares four repeated RENAMENX rows before the quick exit (+4 quick/+4 full)",
+  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full); savefix adds 24 witnessed shutdown-save/capture rows (+24 quick/+24 full); aclfix adds six reproductions per thread mode before the quick exit (+12 quick/+12 full); authfix adds five config/auth/slowlog regression rows before the quick exit (+5 quick/+5 full); clientfix adds 14 focused correctness rows before the quick exit (+14 quick/+14 full); racefix adds INFO counter TSan and directed Climon refresh rows before the quick-tier exit (+2 quick/+2 full); txnfix Stage A adds four EXEC serializability rows before the quick exit; maintainer-owned EXPECT update is pending; txnfix2 declares four repeated RENAMENX rows before the quick exit (+4 quick/+4 full); txnfix2 adds two Stage B group rows before quick exit (+2/+2), source inventory only",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
@@ -652,7 +652,9 @@
     "txn_nx battery (atomic 0)",
     "txn_nx battery (atomic 1)",
     "fused txn_nx battery (atomic 0)",
-    "fused txn_nx battery (atomic 1)"
+    "fused txn_nx battery (atomic 1)",
+    "txngroup battery (atomic 1)",
+    "fused txngroup battery (atomic 1)"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",
