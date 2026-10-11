@@ -255,3 +255,34 @@ overflow frees in every cell**; residual allocations grow a new high-water mark
 after the short warm-up. Repeated prepares persist with that churn removed,
 further separating B from C. [36 WB cells](docs/mkfix2/ab-wb.jsonl.gz),
 [36 allocation/mechanism cells](docs/mkfix2/ab-counts.jsonl.gz).
+
+### C — room before preparing MGET/MSET
+
+Top-level MGET/MSET now count distinct-shard demand against their existing IO
+producer inbox credits before allocating an arena, opening admission or registering
+a read cut. Refusal uses the existing Backpressure result and parser retry/wakeup
+path (including its existing admission/snapshot checks). EXEC children keep their
+outer dispatch plan. The later capacity check remains as a correctness backstop
+for ownership movement and other callers; this is not a reservation or new queue.
+
+**Every one of the 24 ABC multi-key count cells records exactly 65,536 ready
+prepares for 65,536 commands, zero abandoned prepares, and zero abandoned registered
+cuts.** GET records zero prepares in all 12 controls. Common-arena overflow frees
+remain zero in every cell. [36 WB cells](docs/mkfix2/abc-wb.jsonl.gz),
+[36 allocation/mechanism cells](docs/mkfix2/abc-counts.jsonl.gz).
+
+The new serverless room unit uses real queue capacity: two distinct shards on one
+owner need two slots, but the producer is left exactly one. ABC refuses before
+registering a cut, then prepares exactly once after the queue drains. **AB fails
+at the required refusal assertion**, proving the check detects the old mechanism.
+[ABC pass](docs/mkfix2/room-abc-recheck.log),
+[AB negative control](docs/mkfix2/room-ab-negative.log).
+The fixture initially omitted inbox initialization and crashed before reaching
+production preparation; its corrected setup initializes the real producer lanes.
+No production failure or assertion weakening is hidden by that fixture correction.
+
+The full PRE comparisons are **102 changed bodies for AB** and **113 for ABC**.
+Both retain all **1,211 command handlers** and the same **40 changed hot bodies**
+as A. [AB inventory](docs/mkfix2/ab-full/changed-bodies.json),
+[ABC inventory](docs/mkfix2/abc-full/changed-bodies.json). B/C add no further ordinary
+GET/SET body changes. These remain candidates for maintainer merit.
