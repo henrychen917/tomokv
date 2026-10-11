@@ -1050,7 +1050,7 @@ plan_jobs(){
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
-              release_batteries atomic_batteries bplus acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries hexpread bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -1463,6 +1463,24 @@ job_clientfix(){
         ok "$label"
       else
         bad "$label" "see $TMPDIR/clientfix-$case-$mode.log"
+      fi
+    done
+  done
+}
+
+job_hexpread(){
+  local mode case label
+  for mode in 1s 2s; do
+    for case in torn replies deferred; do
+      label="hexpread $case ($mode)"
+      row_begin "$label"
+      if py tests/hexpread.py --binary "$CANDIDATE_BINARY" --port "$PORT" \
+          --cores "$CORES" --ratio "$GATE_RATIO" --mode "$mode" --case "$case" \
+          --policy always --artifacts "$TMPDIR/hexpread-$case-$mode" \
+          >"$TMPDIR/hexpread-$case-$mode.log" 2>&1; then
+        ok "$label"
+      else
+        bad "$label" "see $TMPDIR/hexpread-$case-$mode.log"
       fi
     done
   done
@@ -3588,6 +3606,9 @@ collect_job readonly
 collect_job release_batteries
 
 collect_job atomic_batteries
+# hexpread: six independently scored rows before the quick exit (DQ +6 / DF +6).
+# EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
+collect_job hexpread
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done

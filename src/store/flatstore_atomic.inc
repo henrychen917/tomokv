@@ -1968,3 +1968,23 @@ private:
     uint64_t* atomic_gauge_underflows_ = nullptr;
 
 public:
+    // Hash reads may lazily reap only the owner-visible physical value, and never while a
+    // foreign group still has a candidate for this key. The caller holds the shard owner;
+    // publication can decide a group concurrently, but cannot install/move its local objects.
+    // Keep this cold predicate separate from the resolver and every ordinary string body.
+    bool atomic_read_owns_value(uint64_t hash, Slice key, const KvObj* value) const {
+        if (!atomic_has_record(hash, key)) return true;
+        if (atomic_find_physical(hash, key) != value) return false;
+        const uint64_t bit = atomic_membership_bit(hash);
+        for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
+            if (!(entry->membership & bit) || !entry->group_epoch ||
+                entry->origin_conn_id == atomic_read_origin_conn_id_ ||
+                entry->group_epoch->load(std::memory_order_acquire) != 0 ||
+                (entry->group_aborted && entry->group_aborted->load(std::memory_order_acquire)))
+                continue;
+            for (uint32_t i = 0; i < entry->count; ++i)
+                if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key))
+                    return false;
+        }
+        return true;
+    }
