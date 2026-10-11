@@ -196,6 +196,15 @@ def case(args, mode, command, atomic, pipeline, keys, rep):
                                      for i, name in enumerate(names)}
             result['allocations_per_call'] = sum(x['calls'] for x in result['allocations'].values()) / measured
             result['sweeps'] = dict(zip(['calls', 'visited', 'removed', 'max_length'], totals[128:132]))
+            # Optional scratch-only mechanism counters. The production binary has no hooks;
+            # old mkfix interposers leave the version word zero and retain their old schema.
+            if totals[135] == 2:
+                events = ['prepare_ready', 'abandoned', 'abandoned_snapshot',
+                          'pool_hit', 'pool_miss', 'pool_overflow_free',
+                          'wb_scatter_bypass', 'commit_done']
+                result['mechanisms'] = dict(zip(events, totals[136:136 + len(events)]))
+                result['mechanisms_per_call'] = {
+                    key: value / measured for key, value in result['mechanisms'].items()}
         if args.profile:
             from mkprobe_probe import symbol_shares
             text = subprocess.check_output(['taskset', '-c', '40-47', 'perf', 'report',
@@ -269,7 +278,7 @@ def main():
         a.shim = a.shim.resolve(strict=True)
     for mode in a.modes:
         for command in a.commands_list:
-            for atomic in ([0] if command == 'GET' else a.atomics):
+            for atomic in a.atomics:
                 for pipeline in a.depths:
                     for keys in ([1] if command == 'GET' else a.keys):
                         for replica in range(a.replicas):

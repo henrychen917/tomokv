@@ -163,3 +163,17 @@ taskset -c 32-47 python3 tools/mkfix_counts.py --binary build/mkfix/pre/tomokv -
 ```
 
 Failed tool attempts were retained under `build/mkfix`: an initially invalid fused `--ratio`, preloading the jemalloc-only shim into taskset, short-lived bind-guard conflicts, one `io_uring init failed: -12` boot, and perf’s abbreviated `1K` sample-count header. The runner now omits split ratio for fused, loads the shim only into the server, guards live listeners with `ss`, and derives exact profile sample counts from perf’s capture log while preserving raw reports. Failed attempts have no successful row and are not counted as passes. Completed receipts were resumed only after the command/binary configuration check; no test assertion was weakened.
+
+## mkfix2
+
+PRE production source remains `991d48f651d3c6e1324c061bd9ea801ac085afe8`;
+this lane starts from `33bb0bd8f` after the requested fetch/merge (already current).
+The task-specific finite count and correctness runs use CPUs 32–47 and ports
+25500–25599 only. No throughput/latency merit runs, full gate, or push.
+
+The count runner now includes GET at **both** atomic settings. Scratch interposer
+version 2 records ready prepares, unpublished abandonment (including registered
+cuts), and common-arena hits/misses/overflow frees. Instrumentation sources,
+libraries and instrumented objects remain ignored under `build/mkfix2/scratch`.
+Uninstrumented reply/send counts are collected separately. Results and production
+commit-prefix artifacts will be appended below; no new result is claimed here.
