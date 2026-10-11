@@ -1029,6 +1029,16 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     // nothing would ever notice a clock expiring. Clear it from ANOTHER connection (the barred one
     // cannot be parsed, by construction) and then wake the io threads -- CLIENT LIST fans out to
     // every one of them and is the cheapest existing way to do it.
+    if (eq_icase(subcommand, "txn-barrier-witness") && op.argc() == 3) {
+        uint64_t armed = 0;
+        if (!parse_u64(op.arg(2), armed) || armed > 1) {
+            reply_err(op.sink(), "ERR expected 0 or 1");
+            return;
+        }
+        txn_barrier_witness(armed != 0);
+        reply_ok(op.sink());
+        return;
+    }
     if (eq_icase(subcommand, "barrier-hold") && op.argc() == 3) {
         uint64_t armed = 0;
         if (!parse_u64(op.arg(2), armed) || armed > 1) {
@@ -2639,7 +2649,8 @@ void cmd_info(Shard&, Op& op) {
             "atomic_txn_self_dooms", "atomic_txn_waits", "atomic_txn_forced_writes",
             "atomic_txn_exclusive", "atomic_txn_exclusive_violations",
             "atomic_txn_exclusive_drain_timeouts", "atomic_txn_intents", "atomic_txn_intents_live",
-            "atomic_group_dooms", "atomic_group_retries", "atomic_group_exclusive"
+            "atomic_group_dooms", "atomic_group_retries", "atomic_group_exclusive",
+            "atomic_group_barriers"
         };
         static_assert(std::size(txn_fields) == static_cast<unsigned>(TxnCounter::Count));
         for (unsigned i = 0; i < std::size(txn_fields); ++i)

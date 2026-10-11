@@ -34,8 +34,11 @@ inline constexpr uint64_t kTxnExclusiveDrainMax = 1000000000; // ns
 enum class TxnCounter : uint8_t {
     Attempts, Retries, Dooms, Wounds, SelfDooms, Waits, ForcedWrites,
     Exclusive, ExclusiveViolations, ExclusiveDrainTimeouts, Intents, IntentsLive,
-    GroupDooms, GroupRetries, GroupExclusive, Count
+    GroupDooms, GroupRetries, GroupExclusive, GroupBarriers, Count
 };
+// DEBUG-only witness arming; no per-operation state on ordinary commands.
+void txn_barrier_witness(bool armed);
+
 struct alignas(64) TxnOwnerCounters {
     std::atomic<uint64_t> values[static_cast<unsigned>(TxnCounter::Count)]{};
 };

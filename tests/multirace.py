@@ -41,7 +41,7 @@ The COMMIT control is what stops the fix from degenerating into "make the group 
 same shape with no blocker must let the EXEC see the MSETNX's value, i.e. read-your-own-writes
 across two units of one connection still holds.
 
-Non-vacuity: `atomic_exec_order_holds` counts a transaction meeting an undecided same-connection
+Historical overlap witness (replaced for atomic-1 MSETNX below): `atomic_exec_order_holds` counts a transaction meeting an undecided same-connection
 unit on an owner -- exactly this window. Under atomic 1 the armed cases must advance it, or the
 run never entered the window and its pass proves nothing. EACH armed case must advance it: a
 committing group cannot stand in for the aborted-candidate witness. Only a clean miss is re-armed,
@@ -66,6 +66,11 @@ later battery runs under -- measured: the gate's "multirace (atomic 0)" row repo
 Boot requirement: --enable-debug-command yes for DEBUG SHARD, so the key set provably spans
 distinct owners.
 """
+
+# Stage B witness: DEBUG TXN-BARRIER-WITNESS counts retirement while the
+# Scatter barrier still holds an unparsed following MULTI. Both abort and
+# commit arms must advance it. Removing the MSETNX barrier must fail this
+# witness even if owner-side ordering still preserves all data assertions.
 
 import socket
 import sys
@@ -174,6 +179,16 @@ def holds(conn):
     if "atomic_exec_order_holds" not in table:
         raise AssertionError("INFO STATS has no atomic_exec_order_holds counter")
     return int(table["atomic_exec_order_holds"])
+
+
+def msetnx_witness(conn):
+    # Stage B orders this pair at the IO dispatch barrier. Atomic 0 retains its
+    # original zero-overlap control; data checks below are unchanged.
+    if atomic_setting(conn) != "1":
+        return holds(conn)
+    table = stats(conn)
+    assert "atomic_group_barriers" in table, "missing MSETNX barrier witness"
+    return int(table["atomic_group_barriers"])
 
 
 def late(conn):
@@ -312,7 +327,7 @@ def case_abort(admin, label, blocker, victims, second_conn=False, multi_blocker=
     """The MSETNX must abort, so no victim may ever hold its value. The two victims the
     transaction increments end at -2 because the aborted MSETNX left them absent and INCRBY
     created them; every other victim must stay absent. `hello` anywhere is the leak."""
-    before = holds(admin)
+    before = msetnx_witness(admin)
     expected = [b"-2", b"-2"] + [None] * (len(victims) - 2)
     leaked = foreign_leaked = wrong_exec = rounds = 0
     sample = None
@@ -335,11 +350,11 @@ def case_abort(admin, label, blocker, victims, second_conn=False, multi_blocker=
             foreign_leaked += 1
             if sample is None:
                 sample = ("foreign connection", foreign_after)
-    delta = holds(admin) - before
+    delta = msetnx_witness(admin) - before
     if seen is not None:
         seen.append(delta)
     detail = (f"rounds={rounds} leaked={leaked} foreign_leaked={foreign_leaked} "
-              f"bad_exec={wrong_exec} holds+{delta}")
+              f"bad_exec={wrong_exec} ordering+{delta}")
     if leaked or foreign_leaked or wrong_exec:
         raise AssertionError(
             f"{label}: {detail}; an MSETNX that answered :0 wrote a value anyway "
@@ -354,7 +369,7 @@ def case_commit(admin, label, blocker, victims, seen=None, padding=None):
     answers an error and every victim still reads hello afterwards, on this connection and on a
     foreign one. A fix that made the group's candidate invisible instead of ordering the reader
     would show :-2 here."""
-    before = holds(admin)
+    before = msetnx_witness(admin)
     wanted = [b"hello"] * len(victims)
     stale = rounds = 0
     sample = None
@@ -371,10 +386,10 @@ def case_commit(admin, label, blocker, victims, seen=None, padding=None):
             stale += 1
             if sample is None:
                 sample = (exec_reply, mget_after, foreign_after)
-    delta = holds(admin) - before
+    delta = msetnx_witness(admin) - before
     if seen is not None:
         seen.append(delta)
-    detail = f"rounds={rounds} stale={stale} holds+{delta}"
+    detail = f"rounds={rounds} stale={stale} ordering+{delta}"
     if stale:
         raise AssertionError(
             f"{label}: {detail}; the transaction did not read the committed MSETNX it followed "
@@ -438,6 +453,7 @@ def run_mode(admin, mode):
     count; never raises for a case failure, so the other mode still runs."""
     failures = 0
     print(f"multirace: atomic={mode}", flush=True)
+    assert admin.command("DEBUG", "TXN-BARRIER-WITNESS", "1") == b"OK"
 
     # Re-resolve ownership and use fresh keys as well as connections on every clean miss. The old
     # test kept the same shard set through all four attempts, even when its "different owners"
@@ -504,12 +520,12 @@ def run_mode(admin, mode):
     window_holds = sum(armed_deltas)
     if mode == "1" and (len(armed_deltas) != 2 or not all(armed_deltas)):
         failures += 1
-        print(f"  FAIL the armed cases recorded atomic_exec_order_holds={armed_deltas} across "
+        print(f"  FAIL the armed cases recorded atomic_group_barriers={armed_deltas} across "
               f"{attempts} attempt(s) on fresh keys/connections: BOTH abort and commit must meet "
-              "an undecided same-connection unit; a missing witness is vacuous", flush=True)
+              "the MSETNX dispatch barrier retaining the following MULTI; a missing witness is vacuous", flush=True)
     elif mode == "1":
         armed_on = "" if attempts == 1 else f", armed on attempt {attempts} of {ARM_ATTEMPTS}"
-        ok(f"hazard window opened {window_holds}x across the armed cases{armed_on}")
+        ok(f"MSETNX barrier ordered the pair {window_holds}x across the armed cases{armed_on}")
     elif window_holds:
         failures += 1
         print(f"  FAIL atomic 0 opened the hazard window {window_holds}x: a two-hop MSETNX must "
@@ -560,6 +576,7 @@ def main():
         failures += 1
         print(f"  FAIL {failure}", flush=True)
     finally:
+        admin.command("DEBUG", "TXN-BARRIER-WITNESS", "0")
         try:
             if booted is not None:
                 admin.command("CONFIG", "SET", "atomic", booted)

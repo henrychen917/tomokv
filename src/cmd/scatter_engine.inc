@@ -659,6 +659,7 @@ namespace {
 
 [[gnu::noinline]] bool txn_group_prepare(ScatterState&, Server&, uint32_t);
 [[gnu::noinline]] bool txn_group_release(ScatterState&);
+[[gnu::noinline]] void txn_group_barrier_witness(ScatterState&, Client&);
 [[gnu::noinline]] bool txn_group_touch(ScatterState&, Shard&, uint64_t, Slice,
                                       bool intent = true);
 [[gnu::noinline]] void txn_group_cancel(ScatterState&, uint32_t);
@@ -4320,6 +4321,7 @@ void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, 
         }
     }
     if (state->atomic_group) {
+        txn_group_barrier_witness(*state, client);
         // Installed nodes retain only the compact group decision fields. Reclamation is batched by
         // each owner on later passes; retirement posts no per-group cleanup fan-out.
         free_state_contents(*state);

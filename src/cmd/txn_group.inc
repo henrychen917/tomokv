@@ -2,6 +2,21 @@
 // cold IO retry lane. Included after multi.inc in the scatter translation unit.
 namespace tomo {
 namespace {
+std::atomic<bool> txn_barrier_witness_armed{false};
+
+// This runs on the connection's IO during MSETNX retirement. A following MULTI
+// is still unparsed behind the actual Scatter barrier claim. Merely preparing
+// a barrier, or an EXEC parked on an owner after it was parsed, cannot count.
+void txn_group_barrier_witness(ScatterState& state, Client& client) {
+    if (!txn_barrier_witness_armed.load(std::memory_order_relaxed) ||
+        state.kind != Kind::Msetnx || !state.atomic_write || !state.barrier ||
+        !client.barrier_held_by(BarrierOwner::Scatter)) return;
+    auto& conn = client.conn();
+    constexpr char next[] = "*1\r\n$5\r\nMULTI\r\n";
+    if (conn.rlen() - conn.rpos() < sizeof(next) - 1 ||
+        std::memcmp(conn.rbuf() + conn.rpos(), next, sizeof(next) - 1) != 0) return;
+    state.server->note_txn(state.owner_io, TxnCounter::GroupBarriers);
+}
 
 bool txn_group_prepare(ScatterState& state, Server& server, uint32_t io) {
     if (state.kind == Kind::Script ||
@@ -293,6 +308,10 @@ void txn_group_shutdown(ScatterState& state, ScatterArenaPool& pool) {
     xshard_destroy(&state, pool, state.owner_io);
 }
 } // namespace
+
+void txn_barrier_witness(bool armed) {
+    txn_barrier_witness_armed.store(armed, std::memory_order_relaxed);
+}
 
 void atomic_release_unit_intent(const UnitRef& unit) {
     if (unit.unit_kind != UnitRef::Kind::Group) return;
