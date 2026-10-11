@@ -643,13 +643,28 @@ struct NetcmdRegression {
             check(armed, "raw and physical identities use distinct filter bits");
             Op op; args(op, {"GET", key.c_str()}); multidb_stamp(server, op, 0);
             check(op.key().ns == 1, "tracking read uses post-SWAP physical identity");
-            loop.tracking_register_read(&client, tracking, op);
-            loop.tracking_broadcast_keys({key}, 999);
             const std::string frame = ">2\r\n$10\r\ninvalidate\r\n*1\r\n$" +
                 std::to_string(key.size()) + "\r\n" + key + "\r\n";
+            // Registration is two-phase (clientfix): dispatch records a PENDING read and the
+            // in-order retirement enrolls it, through the entry the production retire hook calls.
+            loop.tracking_register_read(&client, tracking, op);
+            check(loop.climon_track_keys_.empty(), "dispatch alone enrolls nothing");
+            loop.tracking_retire_read(client, op);
+            check(loop.climon_track_keys_.size() == 1 && loop.climon_track_keys_.count(key) == 1 &&
+                  tracking.tracking_reads.empty() && tracking.tracking_pending.empty(),
+                  "retirement enrolls the raw key");
+            loop.tracking_broadcast_keys({key}, 999);
             check(std::string(client.fill_buf().data(), client.fill_buf().size()) == frame,
                   "raw invalidation reaches a physically stamped read");
             check(loop.climon_track_keys_.empty(), "post-SWAP invalidation retires registration");
+            // A foreign write between execution and retirement invalidates the pending read too.
+            client.fill_buf().clear();
+            Op pending; args(pending, {"GET", key.c_str()}); multidb_stamp(server, pending, 0);
+            loop.tracking_register_read(&client, tracking, pending);
+            loop.tracking_broadcast_keys({key}, 999);
+            check(std::string(client.fill_buf().data(), client.fill_buf().size()) == frame &&
+                  loop.climon_track_keys_.empty(),
+                  "raw invalidation reaches a physically stamped pending read");
         }
         for (bool collide : {false, true}) {
             Server server; server.cfg_.tracking_table_max_keys = 32;
@@ -673,6 +688,14 @@ struct NetcmdRegression {
                 Op op; args(op, {"GET", key.c_str()});
                 loop.tracking_register_read(&a, ast, op);
                 loop.tracking_register_read(&b, bst, op);
+                // Dispatch records pending reads only; the bounded table changes when each
+                // connection's read retires, through the entry the production retire hook calls.
+                check(loop.climon_track_keys_.size() == std::min(turn, 32u), "dispatch alone enrolls nothing");
+                loop.tracking_retire_read(a, op);
+                loop.tracking_retire_read(b, op);
+                check(ast.tracking_reads.empty() && ast.tracking_pending.empty() &&
+                      bst.tracking_reads.empty() && bst.tracking_pending.empty(),
+                      "retirement consumed both pending reads");
                 check(loop.climon_track_keys_.size() == std::min(turn + 1, 32u), "tracking table respects its bound");
                 check(server.climon_tracking_keys() == loop.climon_track_keys_.size() &&
                       server.climon_tracking_items() == 2 * loop.climon_track_keys_.size(),
