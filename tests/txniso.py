@@ -407,13 +407,21 @@ class Battery:
         assert self.admin.must("CONFIG", "GET", "appendonly")[1] == b"yes", "V4 needs its own AOF boot"
         expected = {}
         for _ in range(3):
-            a, b = self.pair()
-            self.admin.must("MSET", a, 0, b, 0)
-            retries = self.counter("atomic_txn_retries")
-            with self.wounded([("INCR", a), ("MGET", a, b), ("INCR", b)]) as holder:
-                assert holder.read() == [2, [b"2", b"0"], 1]
-            self.advanced("atomic_txn_retries", retries)
-            expected.update({a: b"2", b: b"1"})
+            for arm in range(4):
+                a, b = self.pair()
+                self.admin.must("MSET", a, 0, b, 0)
+                retries = self.counter("atomic_txn_retries")
+                try:
+                    with self.wounded([("INCR", a), ("MGET", a, b), ("INCR", b)]) as holder:
+                        result = holder.read()
+                except WindowMiss:
+                    if arm == 3:
+                        raise
+                    continue
+                assert result == [2, [b"2", b"0"], 1], result
+                self.advanced("atomic_txn_retries", retries)
+                expected.update({a: b"2", b: b"1"})
+                break
         assert self.admin.must("DEBUG", "LOADAOF") == b"OK"
         assert self.admin.must("MGET", *expected) == list(expected.values()), "discarded attempt in AOF"
 

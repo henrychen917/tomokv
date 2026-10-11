@@ -134,9 +134,9 @@ $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=
 $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31330
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
-# txnfix3's cold DEBUG witness grows this unit; 31850 retains all unrelated handlers,
-# including both the SCAN helper and RANDOMKEY (31800 perturbed RANDOMKEY).
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31850 --param max-inline-insns-auto=16
+# txnorder replaces the exclusive DEBUG/counter surface. 31750 retains all
+# unrelated DB0 handlers, including CONFIG, SCAN and RANDOMKEY.
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31750 --param max-inline-insns-auto=16
 # PS4 AOF recovery adds cold code. Preserve 5146b78ee storage helper bodies
 # in both namespaces; the aoffix2 hot-body audit checks these compiler budgets.
 $(BUILD_ROOT)/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34400
@@ -171,11 +171,11 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # flipfix's FLIP/fingerprint code adds 8 insns here (+24 on its own branch). wave1b: merged unit
 # +73/+73; scans 127820-127950 / 126421-126500: every changed body lane-identical or a lane
 # composite, fewest at 127880 (127878-127882) / 126482 (126480-126485).
-# txnfix3: cold group completion/mover bodies retain PRE store-helper inlining.
-# The scatter interpreter's intended visitor/EXEC-notification changes are audited separately.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=138200
+# txnorder: placement grows only cold unit code. Retain the merged txnfix3
+# store-helper and ordinary command inlining; docs/txnorder audits both variants.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=140400
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=136800
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=138900
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this

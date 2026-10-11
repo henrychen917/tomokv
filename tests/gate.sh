@@ -307,6 +307,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # both jobs are collected before the quick-tier exit: 511+5 = 516 quick, 528+5 = 533 full.
 # txnfix/txnfix2: four txniso, four txn_nx, two txngroup rows before the quick exit:
 # DQ=10, DF=10; maintainer update required: 625+10=635 quick, 642+10=652 full.
+# txnorder: four rows before the quick exit, DQ=4, DF=4; cumulative +14/+14.
+# Maintainer counts: 625+14=639 quick, 642+14=656 full.
 # EXPECT assignments are owner-owned and unchanged by this lane.
 EXPECT_QUICK=625
 EXPECT_FULL=642                 # ABBA reports only; self-test remains counted.
@@ -903,6 +905,7 @@ job_body(){
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
     aof-*) job_aof "$name";;
+    txnorder-*) job_txnorder "$name";;
     debug-*) job_debug "$name";;
     fused-*) job_fused "$name";;
     netio-*) job_netio "${name##*-}";;
@@ -1055,7 +1058,8 @@ plan_jobs(){
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
-              aof_frame tls fused-0 fused-1 txn_group_fused txn_group_split)
+              aof_frame tls fused-0 fused-1 txn_group_fused txn_group_split
+              txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -2246,6 +2250,36 @@ job_txn_group_split(){
       && ok "txngroup battery (atomic 1)" \
       || bad "txngroup battery (atomic 1)" "see $TMPDIR/gate-txngroup.txt"
   stop
+}
+
+# Version-order stress needs four distinct executor owners. Existing batteries
+# retain GATE_RATIO; only these new split boots request the design's 4:4 geometry.
+job_txnorder(){
+  local prefix mode_label atomic mode=2s db=1 boot_fn=boot passed=1 case_name
+  IFS=- read -r prefix mode_label atomic <<< "$1"
+  local label="txnorder battery ($mode_label, atomic $atomic)" log="$TMPDIR/txnorder-$mode-$atomic.txt"
+  local shape=(--ratio 4:4)
+  if [ "$mode_label" = fused ]; then
+    mode=1s
+    boot_fn=boot_fused
+    shape=(--read-local 1)
+    [ "$atomic" != 1 ] || db=16
+  fi
+  row_begin "$label"
+  "$boot_fn" "$CANDIDATE_BINARY" "${shape[@]}" --atomic "$atomic" --databases "$db" \
+      --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0 \
+      && py tests/txnorder.py 127.0.0.1 "$PORT" --mode "$mode" >"$log" 2>&1 || passed=0
+  unit_ready atomic-survivors-unit || passed=0
+  for case_name in f1 f2 f4 f5 f6 f8 claims placement readonly; do
+    taskset -c "$CORES" ./build/atomic-survivors-unit "txnorder_$case_name" >>"$log" 2>&1 || passed=0
+  done
+  stop
+  "$boot_fn" "$CANDIDATE_BINARY" "${shape[@]}" --atomic "$atomic" --databases "$db" \
+      --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0 \
+      --appendonly yes --appendfsync no \
+      && py tests/txnorder.py 127.0.0.1 "$PORT" --mode "$mode" --only d >>"$log" 2>&1 || passed=0
+  stop
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $log"
 }
 
 job_script_bounds(){
@@ -3528,7 +3562,7 @@ job_dependencies(){
     racefix_climon) echo production_units;;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*|fused-*|txn_group_*|aof_frame) echo 'release production_units';;
+    debug-*|fused-*|txn_group_*|txnorder-*|aof_frame) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
@@ -3698,6 +3732,7 @@ collect_job sort
 
 for AT in 0 1; do collect_job "debug-$AT"; done
 collect_job txn_group_split
+for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done; done
 
 collect_job script_bounds
 collect_job scriptfix

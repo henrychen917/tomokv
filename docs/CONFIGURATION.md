@@ -60,28 +60,57 @@ the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 | `zc-min` | T | u32 bytes | `16384` | Live | `zc_min` | Single GET borrow threshold (0 disables); scatter cutover has a separate zero caveat below; `src/core/config.h:1042`. |
 | `atomic` | T | u32, 0 or 1 | `0` | Live | `atomic` | Enable grouping for ordinary multi-key mutations. EXEC and cross-shard scripts use the shared admission window at either setting; see `Server::atomic_try_admit` and `src/cmd/scatter_engine.inc`. |
 
-EXEC records its read dependencies and installs private versions. A conflicting
-writer can cancel an undecided attempt; the connection's IO thread then rebuilds
-it in the same reply slot. Only the final attempt supplies replies, notifications
-and AOF effects. WATCH registrations survive cancellation, so a watched-key
-change between attempts still produces the ordinary null EXEC reply. The old
-EXEC read cut remains a cleanup pin; attempted reads use newest committed data.
+Each write EXEC is one version-ordered unit. Its version is fixed at first
+admission and retained across placement restarts; all its writes publish under
+one commit ticket. Units place read/write claims for their complete key sets.
+An older unit can wound a younger unit only while it is placing claims. Once
+execution begins it is immune. CONFIG and other irreversible handlers therefore
+run once, after placement. The global exclusive fallback and
+`DEBUG TXN-OCC-LIMIT` have been removed.
 
-After eight writer-caused cancellations, an exclusive attempt pauses new atomic
-admissions, drains existing apply work, and reserves its keys. CONFIG and DEBUG
-commands with effects, and SWAPDB, use this path from their first attempt.
-`DEBUG TXN-OCC-LIMIT n` overrides the bound for tests; zero requests exclusive
-execution immediately. The fallback remains an owner decision in the txnfix
-branch. Its counters, constants and outstanding proof are recorded in
-[the txnfix report](../MEASURE-REQUEST-txnfix.md).
+Plain writers wait on an executing unit's keys (D1). They hold no key while
+waiting. A writer that meets a claim leaves a fairness mark so newly arriving
+units cannot keep overtaking it. WATCH validation claims block writers from
+validation, preserving the previous WATCH contract. A whole-shard read inside a
+write unit takes a whole-shard read hold; this can stall every writer on that
+shard until the unit decides. Claims affect writers and other write units;
+ordinary readers continue to resolve immutable predecessors without retries.
 
-Whole-shard reads inside EXEC protect against phantoms with wildcard intents.
-INFO keyspace hit/miss counts may include discarded attempts. `atomic 0` does
-not disable EXEC, script intents or fanout cleanup cuts. At `atomic 1`, blind
-DEL/UNLINK groups can undercount keys created concurrently; their count reply is
-a documented constraint. The bare read-dependent group fixes (AT4.2/AT4.3) are
-still pending in this branch, so the EXEC work does not establish isolation for
-bare SMOVE/LMOVE/PFMERGE or MSETNX.
+Read-only EXEC takes one registered cut across all participating shards,
+including separate local GET commands, and stamps its children with that cut.
+A single-shard read-only EXEC samples the safe watermark on its owner. It places
+no claims or read intents and does not wait on writers. This is the existing
+MGET contract: the cut selects retained MVCC versions; it does not cause a plain
+writer on an unversioned key to create history. It is therefore not a general
+snapshot guarantee against unversioned plain writes. Write units read newest
+committed values under their claims and wait for publication when needed.
+
+At `atomic 1`, read-dependent bare groups (including MSETNX and movers) use the
+same version arbitration. Blind MSET/DEL/UNLINK groups wait on every unit claim.
+A blind group that crosses between a unit's arrival and placement scans can
+restart that unit before execution; `atomic_txn_blind_restarts` counts this D3
+residual. Finite blind traffic gives finite restarts; continuous adversarial
+blind traffic has no restart bound. Blind groups carry no fairness marks.
+Cross-shard script APPLY yields and restages when it meets a claim; after the
+existing eight restages it returns TRYAGAIN. A unit may cancel undecided script
+candidates while reading or writing. `atomic 0` still permits EXEC and scripts.
+
+Only the final attempt supplies replies, notifications, tracking invalidations
+and AOF effects; their retirement order is unchanged. WATCH registrations
+survive placement wounds. INFO hit/miss accounting can include discarded
+attempts. `atomic_txn_dooms`, `atomic_group_dooms` and
+`atomic_txn_order_violations` are zero-valued falsifiers, not activity counters.
+`DEBUG TXN-LAST-ATTEMPTS` reports the previous EXEC's attempt count on that
+connection; `DEBUG TXN-PLACE-DEFER us` is a one-shot placement test hook (zero
+disables it).
+
+Two separate limitations remain: active expiry and eviction do not consult the
+new claim registry (an executing unit's read-only keys can still be removed by
+maintenance), and blind-group AOF staging order is the separate aoforder lane
+(F3). Eviction skips keys with live records/intents, but read claims alone are
+not pins. This implementation does not claim to close either path. See the
+[txnorder proof status](txnorder/STATUS.md) and
+[maintainer measurement request](../MEASURE-REQUEST-txnfix.md#txnorder).
 
 The file-only spelling `pin yes` leaves the default alone; `pin no` translates
 to the valueless `--no-pin`. A later `pin yes` does not undo an earlier `pin no`

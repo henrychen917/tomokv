@@ -3,13 +3,11 @@
 
 Usage: execiso.py HOST PORT
 
-Originally this guarded EXEC's missing fan-out read cut. Transaction isolation
-now uses intents and transparent retries; the registered cut remains a cleanup
-pin. Armed EXEC readers race plain writers, because a younger transaction would
-wait for the older reader. A writer cancels the parked attempt, and its replacement
-must return the fully updated generation. Cut, doom and retry counters all prove
-the path ran. Bare-reference arms retain their atomic transaction writer and
-finite read cut. Geometry is discovered from DEBUG SHARD on every boot.
+Write units hold read/write claims until their one commit. The directed arms
+add a distinct marker write, park their read fragments, and require foreign
+writers to wait without cancelling or replaying the holder. Pure read-only
+EXEC uses MGET's registered cut; the bare reference arms retain their atomic
+transaction writer and finite read cut. Geometry is discovered on every boot.
 
 Boot with --enable-debug-command yes. Both atomic settings are exercised.
 """
@@ -279,7 +277,7 @@ def straddle_arm(mode, kind):
             torn += 1
             continue
         values = outer[1]
-        # The window really opened: the whole foreign transaction completed while the read was held.
+        # The window opened only if a foreign writer encountered the held claim.
         if not blocked or exec_done < started or elapsed < HOLD_US / 4e6:
             detail.append("round %d window did not open (read %.3fs, foreign exec ended %.3fs in)"
                           % (round_id, elapsed, exec_done - started))

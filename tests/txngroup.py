@@ -119,6 +119,9 @@ class GroupBattery(Battery):
         for start in range(0, count, 500):
             self.admin.must("SADD" if kind == "smove" else "RPUSH", src,
                             *members[start:start + 500])
+        before = {name: self.counter(name) for name in (
+            "atomic_group_dooms", "atomic_group_retries", "atomic_group_wounds",
+            "atomic_txn_blind_restarts", "atomic_txn_writer_waits")}
         deadline = time.monotonic() + 30
 
         def worker(index, add):
@@ -155,6 +158,13 @@ class GroupBattery(Battery):
             expected.update(f"z{i}".encode() for i in range(count))
         assert not source and len(destination) == len(expected) and set(destination) == expected, (
             kind, len(source), len(destination), len(expected))
+        if self.atomic():
+            delta = {name: self.counter(name) - value for name, value in before.items()}
+            assert delta["atomic_group_dooms"] == 0, delta
+            assert delta["atomic_group_retries"] == (delta["atomic_group_wounds"] +
+                                                     delta["atomic_txn_blind_restarts"]), delta
+            assert self.counter("atomic_txn_order_violations") == 0
+            print("group placement counters", delta, flush=True)
         print("conservation", kind, "atomic", self.atomic(), "members", len(expected), flush=True)
 
     def off_control(self):
