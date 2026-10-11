@@ -903,6 +903,7 @@ job_body(){
     debug-*) job_debug "$name";;
     fused-*) job_fused "$name";;
     netio-*) job_netio "${name##*-}";;
+    respresume-*) job_respresume "$name";;
     lb-stationary-*) job_lb_stationary "${name##*-}";;
     feature-split-*) feature_split_job "${name##*-}";;
     feature-armed-*) feature_armed_job "${name##*-}";;
@@ -1042,6 +1043,10 @@ plan_jobs(){
     for atomic in 0 1; do for mode in split armed; do JOB_NAMES+=("evict-$section-$mode-$atomic"); done; done
   done
   JOB_NAMES+=(flipctl)
+  local resp_case resp_engine
+  for resp_case in fragment cpu neighbour; do for mode in 1s 2s; do
+    for resp_engine in epoll uring; do JOB_NAMES+=("respresume-$resp_case-$mode-$resp_engine"); done
+  done; done
   for atomic in 0 1; do JOB_NAMES+=("feature-split-$atomic" "feature-armed-$atomic"); done
   for mode in 1s 2s; do
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
@@ -1834,6 +1839,63 @@ if [ "$compatible" = 1 ]; then
 else
   bad "RESP protocol error compatibility" "see $TMPDIR/gate-respcompat-*.txt and $SRVLOG"
 fi
+}
+
+# NT4.2: twelve rows, collected before the quick exit (+12 quick/full).
+# Fixed gate geometry (16 shards, GATE_RATIO, CORES) applies to every arm.
+job_respresume(){
+  local prefix kind mode engine booted=0 ready=0 fragment_ok=0 oracle_port=$((PORT+1)) oracle_dir label
+  IFS=- read -r prefix kind mode engine <<< "$1"
+  label="RESP resumable $kind ($mode, $engine)"
+  row_begin "$label"
+  if [ "$mode" = 1s ]; then
+    boot_fused "$CANDIDATE_BINARY" --read-local 1 --reorder 1 --net-io "$engine" \
+      --client-lb 0 --key-lb 0 --save '' && booted=1
+  else
+    boot "$CANDIDATE_BINARY" --thread-mode 2s --net-io "$engine" \
+      --client-lb 0 --key-lb 0 --save '' && booted=1
+  fi
+  if [ "$booted" = 1 ] && [ "$kind" = fragment ]; then
+    guard_port "$oracle_port"
+    oracle_dir=$(mktemp -d "$TMPDIR/respresume-oracle.XXXXXX")
+    taskset -c "$CORES" "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --port "$oracle_port" --bind 127.0.0.1 --save '' --appendonly no --dir "$oracle_dir" \
+      >"$TMPDIR/respresume-oracle.log" 2>&1 &
+    GLOBCASE_ORACLE=$!
+    for _ in $(seq 100); do
+      kill -0 "$GLOBCASE_ORACLE" 2>/dev/null || break
+      if [ "$(port_listeners "$oracle_port")" = "$GLOBCASE_ORACLE" ] &&
+         (exec 3<>/dev/tcp/127.0.0.1/"$oracle_port") 2>/dev/null; then ready=1; break; fi
+      sleep .1
+    done
+    if [ "$ready" = 1 ] && unit_ready respresume-unit &&
+       taskset -c "$CORES" build/respresume-unit >"$TMPDIR/respresume-unit.log" 2>&1 &&
+       unit_ready respresume-migration &&
+       taskset -c "$CORES" build/respresume-migration >"$TMPDIR/respresume-migration.log" 2>&1 &&
+       py tests/respresume.py fragment 127.0.0.1 "$PORT" --oracle-port "$oracle_port" \
+         >"$TMPDIR/respresume-fragment.log" 2>&1 &&
+       py tests/respresume.py cpu 127.0.0.1 "$PORT" --pid "$SRV" \
+         >"$TMPDIR/respresume-fragment-work.log" 2>&1; then
+      # Byte-equivalence alone passes PRE. This same row also requires a bounded
+      # fragmentation work witness against the actual candidate binary.
+      fragment_ok=1
+    fi
+    if [ "$GLOBCASE_ORACLE" -gt 0 ]; then
+      kill -TERM "$GLOBCASE_ORACLE" 2>/dev/null
+      if ! timeout --kill-after=1 10 tail --sleep-interval=.1 --pid="$GLOBCASE_ORACLE" -f /dev/null; then
+        fragment_ok=0
+        kill -KILL "$GLOBCASE_ORACLE" 2>/dev/null
+      fi
+      wait "$GLOBCASE_ORACLE" 2>/dev/null || fragment_ok=0
+      GLOBCASE_ORACLE=0
+    fi
+    [ -z "$(port_listeners "$oracle_port")" ] || fragment_ok=0
+    if [ "$fragment_ok" = 1 ]; then ok "$label"
+    else bad "$label" "see $TMPDIR/respresume-*.log and $SRVLOG"; fi
+  elif [ "$booted" = 1 ] && py tests/respresume.py "$kind" 127.0.0.1 "$PORT" --pid "$SRV" \
+      >"$TMPDIR/respresume-$kind.log" 2>&1; then ok "$label"
+  else bad "$label" "see $TMPDIR/respresume-$kind.log and $SRVLOG"; fi
+  stop
 }
 
 job_acl_metadata(){
@@ -3375,10 +3437,12 @@ job_production_units(){
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
-      build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit \
+      build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/respresume-unit build/respresume-migration \
       build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
+  make -q build/respresume-unit && : > "$RUN_DIR/unit-ready/respresume-unit"
+  make -q build/respresume-migration && : > "$RUN_DIR/unit-ready/respresume-migration"
   for target in at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
@@ -3452,6 +3516,7 @@ job_dependencies(){
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
     tls) echo 'release production_units';;
+    respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|aof_frame) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
@@ -3572,6 +3637,11 @@ collect_job netcap
 # respcompat: +1 quick / +1 full, counted here before the quick-tier exit.
 # EXPECT counts and ledger fixtures are maintained by the owner.
 collect_job respcompat
+# NT4.2: DQ=+12, DF=+12. Owner changes EXPECT_QUICK/FULL to 637/654.
+# Counted by this collection site, before the quick-tier exit below.
+for RESP_CASE in fragment cpu neighbour; do for RESP_MODE in 1s 2s; do
+  for RESP_ENGINE in epoll uring; do collect_job "respresume-$RESP_CASE-$RESP_MODE-$RESP_ENGINE"; done
+done; done
 
 collect_job acl_metadata
 

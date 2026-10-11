@@ -1,0 +1,3 @@
+resp_parse_t clones= 18 bytes= 12368 static_insns= 3254 canary_loads= 0
+parse_and_dispatch clones= 88 bytes= 395124 static_insns= 79998 canary_loads= 38
+r7_parse_and_dispatch clones= 36 bytes= 96893 static_insns= 20052 canary_loads= 12
