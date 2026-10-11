@@ -13,6 +13,7 @@
 #include <string>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <vector>
 
 #include "src/core/read_local.h"
 #include "src/core/ex_loop.h"
@@ -374,6 +375,109 @@ static void snapshot_retirement_child() {
     std::puts("PASS maintenance snapshot table retirement");
 }
 
+// rlresize: every armed resize hands its old table to the owner FIFO with the record reserved
+// when that resize STARTED; rehash_step_read_local aborts if the bound defer_resize hook finds
+// none. Boot reserves one record and the first completed resize consumes it, exactly as below.
+// These cases run on the production owner queue (Fixture), never the synchronous test sink.
+static void consume_boot_reservation(Fixture& f) {
+    f.resizing(false);
+    require(f.store.active_expire(0) != 0 && !f.store.rehashing() && f.queue.drain_ready() == 1,
+            "an ordinary resize consumed and reclaimed the boot reservation");
+}
+
+static void finish_resize(Fixture& f, const char* why) {
+    const auto armed = f.store.rehash_progress();
+    for (uint32_t step = 0; step <= armed.old_capacity / 8 && f.store.rehashing(); step++)
+        require(f.store.active_expire(0) != 0, why);
+    require(!f.store.rehashing() && f.queue.resize_pending(),
+            "the completed resize reached the owner FIFO with its reserved record");
+}
+
+// An atomic owner pass (MSET/MULTI/scripts with --atomic 1) preflights capacity through
+// atomic_prepare_capacity(), which grows the table itself when the pass crosses the load trigger.
+static void atomic_growth_child() {
+    std::signal(SIGALRM, deadline);
+    alarm(10);
+    Fixture f;
+    consume_boot_reservation(f);
+    const uint32_t cap = f.store.rehash_progress().current_capacity;
+    std::vector<std::string> keys{f.old_key, f.new_key};
+    for (unsigned n = 0; (uint64_t{f.store.size()} + 1) * 100 < uint64_t{cap} * FlatStore::kLoadPct; n++) {
+        keys.push_back("fill-" + std::to_string(n));
+        f.put(keys.back());
+    }
+    require(!f.store.rehashing() && f.store.rehash_progress().current_capacity == cap,
+            "filled to the load trigger without an ordinary resize");
+    require(f.store.atomic_prepare_capacity(1) && f.store.rehashing(),
+            "one more atomic key starts the resize inside the atomic preflight");
+    const auto grown = f.store.rehash_progress();
+    require(grown.old_capacity == cap && grown.current_capacity == 2 * cap,
+            "the atomic preflight doubled the table");
+    std::printf("ARMED atomic growth %u -> %u slots, boot reservation already consumed\n",
+                grown.old_capacity, grown.current_capacity);
+    std::fflush(stdout);
+    finish_resize(f, "owner maintenance advances the atomic resize");
+    require(f.queue.drain_ready() == 1 && f.queue.empty(),
+            "the atomic resize's old table reclaims after grace");
+    for (const std::string& key : keys) {
+        const KvObj* value = f.store.find(hash(key), slice(key));
+        require(value && value->str_value() == Slice("value"), "every key survives the atomic resize");
+    }
+    alarm(0);
+    std::puts("PASS atomic growth reserves its resize retirement");
+}
+
+// FLUSHALL (and FLUSHDB with one database) reaches clear() whenever no capture is active
+// (cmd_flush), including between the snapshot prepare and mark barriers: Preparing and Prepared
+// owners keep executing tasks (snapshot_blocks_tasks). The prepared post-cut table is published
+// at mark, and its post-capture merge needs the record that snapshot_prepare() reserved.
+static void flush_prepared_child() {
+    std::signal(SIGALRM, deadline);
+    alarm(10);
+    Fixture f;
+    f.put("before-flush");
+    require(f.store.snapshot_prepare(2, 1000) == FlatStore::SnapshotWriteResult::Ready,
+            "snapshot preparation reserved its record and allocated the post-cut table");
+    f.store.clear();
+    f.put("after-flush");
+    require(f.store.snapshot_mark(0, 1000) && f.store.rehashing(),
+            "the prepared table is published at the cut");
+    for (unsigned i = 0; i < 1000 && f.store.snapshot_active(); i++) {
+        f.store.snapshot_progress(4096, 2048);
+        if (f.store.snapshot_take_chunk()) f.store.snapshot_handoff_complete();
+    }
+    require(!f.store.snapshot_active() && !f.store.snapshot_failed() && f.store.rehashing(),
+            "capture finished; the cut-time table awaits its ordinary merge");
+    std::printf("ARMED flush between snapshot prepare and mark; merging %u old slots\n",
+                f.store.rehash_progress().old_capacity);
+    std::fflush(stdout);
+    finish_resize(f, "owner maintenance advances the post-capture merge");
+    const KvObj* value = f.store.find(hash("after-flush"), slice("after-flush"));
+    require(value && value->str_value() == Slice("value") &&
+            !f.store.find(hash("before-flush"), slice("before-flush")) && f.store.size() == 1,
+            "the flush and the post-flush write both survive the merge");
+    alarm(0);
+    std::puts("PASS flush keeps a prepared snapshot's resize retirement");
+}
+
+static int retirement_check(void (*child)(), const char* name) {
+    std::fflush(nullptr);
+    const pid_t pid = fork();
+    require(pid >= 0, "fork failed (no skip)");
+    if (pid == 0) { child(); std::fflush(nullptr); std::_Exit(0); }
+    int status = 0;
+    pid_t result;
+    do { result = waitpid(pid, &status, 0); } while (result < 0 && errno == EINTR);
+    require(result == pid, "wait for our own child");
+    const bool ok = WIFEXITED(status) && WEXITSTATUS(status) == 0;
+    if (WIFSIGNALED(status))
+        std::printf("FAIL %s: child killed by signal %d (%s)\n", name, WTERMSIG(status),
+                    strsignal(WTERMSIG(status)));
+    else
+        std::printf("%s %s (status=%d)\n", ok ? "PASS" : "FAIL", name, status);
+    return ok ? 0 : 1;
+}
+
 void CoreConcurrencyTest::idle_visit_bound() {
     std::signal(SIGALRM, deadline);
     alarm(10);
@@ -437,6 +541,9 @@ int main(int argc, char** argv) {
         probeadapter::states(0);
     if (selection == "probeadapter") return 0;
     if (selection == "maintenance") return maintenance_checks();
+    if (selection == "atomic-growth") return retirement_check(atomic_growth_child, "atomic growth");
+    if (selection == "flush-prepared")
+        return retirement_check(flush_prepared_child, "flush between snapshot prepare and mark");
     bool ok = run("blocking-control", true);
     if (selection == "lookups" || selection == "retirement") {
         for (const char* kind : {"find", "no-touch", "notify", "resident", "tracked", "resolve", "foreign"})

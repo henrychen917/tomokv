@@ -1,0 +1,1 @@
+{"object": "db0/src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147475 --param max-inline-insns-auto=18", "lane": 1, "hot": 0, "other": 0}

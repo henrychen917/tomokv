@@ -1,0 +1,87 @@
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148257", "lane": 1, "hot": 2, "other": 9}
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    OTHER 3728 -> 3933 tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 712 -> 933 tomo_db0::FlatStore::retire_obj(tomo_db0::KvObj*)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    OTHER 964 -> 861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 2942 -> 3130 tomo_db0::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148261", "lane": 1, "hot": 3, "other": 9}
+    HOT 9554 -> 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    OTHER 3728 -> 3933 tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 712 -> 933 tomo_db0::FlatStore::retire_obj(tomo_db0::KvObj*)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    OTHER 964 -> 861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 2942 -> 3130 tomo_db0::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148263", "lane": 1, "hot": 2, "other": 8}
+    OTHER 3728 -> 3933 tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 712 -> 933 tomo_db0::FlatStore::retire_obj(tomo_db0::KvObj*)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    OTHER 964 -> 861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 2942 -> 3130 tomo_db0::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148265", "lane": 1, "hot": 2, "other": 8}
+    OTHER 3728 -> 3933 tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 712 -> 933 tomo_db0::FlatStore::retire_obj(tomo_db0::KvObj*)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    OTHER 964 -> 861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 2942 -> 3130 tomo_db0::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148267", "lane": 1, "hot": 2, "other": 10}
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    OTHER 3728 -> 3933 tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+    OTHER 2828 -> 2823 tomo_db0::IoLoop::pubsub_reply_restricted(tomo_db0::Op&) [clone .isra.0]
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 712 -> 933 tomo_db0::FlatStore::retire_obj(tomo_db0::KvObj*)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    OTHER 964 -> 861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 2942 -> 3130 tomo_db0::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148269", "lane": 1, "hot": 2, "other": 10}
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    OTHER 3728 -> 3933 tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+    OTHER 2828 -> 2823 tomo_db0::IoLoop::pubsub_reply_restricted(tomo_db0::Op&) [clone .isra.0]
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 712 -> 933 tomo_db0::FlatStore::retire_obj(tomo_db0::KvObj*)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    OTHER 964 -> 861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 2942 -> 3130 tomo_db0::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148273", "lane": 1, "hot": 3, "other": 10}
+    HOT 9554 -> 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    OTHER 3728 -> 3933 tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+    OTHER 2828 -> 2823 tomo_db0::IoLoop::pubsub_reply_restricted(tomo_db0::Op&) [clone .isra.0]
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 712 -> 933 tomo_db0::FlatStore::retire_obj(tomo_db0::KvObj*)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    OTHER 964 -> 861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shar
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 232 -> 0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allo
+    OTHER 2942 -> 3130 tomo_db0::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned int) const

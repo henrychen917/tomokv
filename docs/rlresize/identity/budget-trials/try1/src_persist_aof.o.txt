@@ -1,0 +1,3 @@
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34437", "lane": 2, "hot": 0, "other": 2}
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)

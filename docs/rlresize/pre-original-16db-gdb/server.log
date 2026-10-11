@@ -1,0 +1,46 @@
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [80,81,82,83,84,85,86,87]
+tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1
+  thread t0: role=unified cpu=80 L3=0 shards=2 send=self
+  thread t1: role=unified cpu=81 L3=0 shards=2 send=self
+  thread t2: role=unified cpu=82 L3=0 shards=2 send=self
+  thread t3: role=unified cpu=83 L3=0 shards=2 send=self
+  thread t4: role=unified cpu=84 L3=0 shards=2 send=self
+  thread t5: role=unified cpu=85 L3=0 shards=2 send=self
+  thread t6: role=unified cpu=86 L3=0 shards=2 send=self
+  thread t7: role=unified cpu=87 L3=0 shards=2 send=self
+[New Thread 0x7ffff607f6c0 (LWP 3500323)]
+[New Thread 0x7ffff587e6c0 (LWP 3500324)]
+[New Thread 0x7ffff4dff6c0 (LWP 3500325)]
+[New Thread 0x7ffff41ff6c0 (LWP 3500326)]
+[New Thread 0x7ffff2fff6c0 (LWP 3500327)]
+[New Thread 0x7ffff19ff6c0 (LWP 3500328)]
+[New Thread 0x7ffff09ff6c0 (LWP 3500329)]
+[New Thread 0x7fffefbff6c0 (LWP 3500330)]
+listening on 127.0.0.1:25452
+
+Thread 2 "tomokv" received signal SIGABRT, Aborted.
+[Switching to Thread 0x7ffff607f6c0 (LWP 3500323)]
+__pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+warning: 44	./nptl/pthread_kill.c: No such file or directory
+#0  __pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+#1  __pthread_kill_internal (signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:78
+#2  __GI___pthread_kill (threadid=<optimized out>, signo=signo@entry=6) at ./nptl/pthread_kill.c:89
+#3  0x00007ffff6e4527e in __GI_raise (sig=sig@entry=6) at ../sysdeps/posix/raise.c:26
+#4  0x00007ffff6e288ff in __GI_abort () at ./stdlib/abort.c:79
+#5  0x0000555555941850 in tomo::FlatStore::rehash_step_read_local (this=0x7ffff6ab4038) at src/core/../store/flatstore_atomic.inc:893
+#6  0x0000555555944841 in tomo::FlatStore::active_expire (this=0x7ffff6ab4038, budget=10) at src/core/../store/flatstore.h:1566
+#7  0x0000555555be5c3f in tomo::Shard::active_expire (budget=10, this=0x7ffff6ab4000) at src/core/shard.h:144
+#8  tomo::ExLoopT<true>::active_expire_cycle (this=this@entry=0x7ffff632d8c0) at src/core/ex_loop.h:1731
+#9  0x0000555555bf0f2b in tomo::ExLoopT<true>::sweep<32u, true, false, false> (this=this@entry=0x7ffff632d8c0) at src/core/ex_loop.h:1678
+#10 0x0000555555bf9248 in tomo::ExLoopT<true>::fused_sweep_impl<32u, true, false, true> (this=0x7ffff632d8c0) at src/core/ex_loop.h:550
+#11 0x0000555555c110fc in tomo::ExLoopT<true>::fused_baseline_sweep (this=<optimized out>) at src/core/ex_loop.h:516

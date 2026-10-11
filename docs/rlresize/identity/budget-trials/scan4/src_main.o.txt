@@ -1,0 +1,13 @@
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147411", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147415", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147419", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147423", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147427", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147431", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147435", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147439", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147443", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147447", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147451", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147455", "lane": 1, "hot": 0, "other": 0}
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147459", "lane": 1, "hot": 0, "other": 0}

@@ -1,0 +1,43 @@
+[
+ {
+  "phase": "ordinary growth started",
+  "shard": 0,
+  "rehashes": 1,
+  "capacity": 2048,
+  "old_capacity": 1024,
+  "cursor": 0,
+  "old_live": 716,
+  "size": 717
+ },
+ {
+  "phase": "ordinary growth completed (boot reservation consumed)",
+  "shard": 0,
+  "rehashes": 1,
+  "capacity": 2048,
+  "old_capacity": 0,
+  "cursor": 0,
+  "old_live": 0,
+  "size": 845
+ },
+ {
+  "phase": "filled to the trigger without growth",
+  "shard": 0,
+  "rehashes": 1,
+  "capacity": 2048,
+  "old_capacity": 0,
+  "cursor": 0,
+  "old_live": 0,
+  "size": 1433
+ },
+ {
+  "phase": "atomic MSET grew the table",
+  "shard": 0,
+  "rehashes": 1,
+  "capacity": 4096,
+  "old_capacity": 2048,
+  "cursor": 0,
+  "old_live": 1433,
+  "size": 1434
+ }
+]
+SERVER LOST at drive SET 256 of 256 (resize 2048 -> 4096 slots): EOFError('server closed the connection')

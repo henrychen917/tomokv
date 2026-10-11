@@ -307,7 +307,12 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # both jobs are collected before the quick-tier exit: 511+5 = 516 quick, 528+5 = 533 full.
 # perfio: two IO4.19 rows + two PFDATATY.1 mode rows before the quick-tier exit: DQ=+4, DF=+4.
 # perfex: two binary rows plus two live sampler rows, all before quick exit: DQ=+4, DF=+4.
-# wave2 so far (perfio + perfex): DQ=+8, DF=+8: maintainer sets 625+8=633 quick / 642+8=650 full.
+# rlresize: three serverless rows collected before the quick-tier exit -- storage
+# flush-prepared-capacity (job_storage_units) and armed resize retirement atomic-growth /
+# flush-prepared (job_atomic_units): DQ=+3, DF=+3.
+# lottery: no gate row (DQ=+0, DF=+0).
+# wave2 so far (perfio + perfex + lottery + rlresize): DQ=+11, DF=+11: maintainer sets
+# 625+11=636 quick / 642+11=653 full.
 EXPECT_QUICK=625
 EXPECT_FULL=642                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1660,7 +1665,7 @@ job_splitlocal_units(){
 }
 
 job_storage_units(){
-# Twelve storage regressions, all BEFORE the quick-tier exit. The hash reaper is production code;
+# Thirteen storage regressions, all BEFORE the quick-tier exit. The hash reaper is production code;
 # store-boundary spies make held epochs, capture cursors, eviction and allocation failures exact.
 # No case skips. Build failure makes every dependent row red. EXPECT constants are maintainer-owned.
 STORE_REGRESSION_BUILT=0; STORE_TSAN_BUILT=0
@@ -1668,7 +1673,7 @@ store_build >$TMPDIR/gate-store-build.txt 2>&1 & store_pid=$!
 store_build tsan >$TMPDIR/gate-store-flags-build.txt 2>&1 & store_tsan_pid=$!
 wait "$store_pid" && STORE_REGRESSION_BUILT=1
 wait "$store_tsan_pid" && STORE_TSAN_BUILT=1
-for STORE_CASE in unlinked randomkey rehash rollback snapshot-eviction flags aof-eviction intents imported-hash field-index-failure hash-bytes deadline-allocation-failure; do
+for STORE_CASE in unlinked randomkey rehash rollback snapshot-eviction flags aof-eviction intents imported-hash field-index-failure hash-bytes deadline-allocation-failure flush-prepared-capacity; do
   row_begin "storage $STORE_CASE regression"
   STORE_RUN=(./build/store-regression "$STORE_CASE")
   STORE_CASE_BUILT=$STORE_REGRESSION_BUILT
@@ -1771,6 +1776,17 @@ for defect in admission closure script_keys rename_overlay write_latest script_a
       >"$TMPDIR/gate-atomic-survivors-$defect.txt" 2>&1 \
       && ok "atomic survivor: $defect" \
       || bad "atomic survivor: $defect" "see $TMPDIR/gate-atomic-survivors-$defect.txt"
+done
+# rlresize: two serverless rows, collected before the quick-tier exit (+2 quick/+2 full). Each
+# forks one child on the production owner queue (defer_resize bound) and completes a resize the
+# pre-fix code started without its retirement record: armed atomic growth, and a FLUSH between
+# snapshot prepare and mark. PRE 991d48f65 dies in rehash_step_read_local with SIGABRT.
+for RLRESIZE_CASE in atomic-growth flush-prepared; do
+  row_begin "armed resize retirement: $RLRESIZE_CASE"
+  unit_ready rehash-waits-unit && taskset -c "$CORES" ./build/rehash-waits-unit "$RLRESIZE_CASE" \
+      >"$TMPDIR/rlresize-$RLRESIZE_CASE.log" 2>&1 \
+      && ok "armed resize retirement: $RLRESIZE_CASE" \
+      || bad "armed resize retirement: $RLRESIZE_CASE" "see $TMPDIR/rlresize-$RLRESIZE_CASE.log"
 done
 }
 

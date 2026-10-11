@@ -51,9 +51,12 @@ for row in ('admission', 'closure', 'script_keys', 'rename_overlay', 'write_late
 for row in ('streams', 'zpop', 'notify-oom', 'notify-retry', 'flush', 'output', 'pubsub', 'receive', 'config', 'hexpire-oom'):
     unit('netcmd-unit', row)
 for row in ('unlinked', 'randomkey', 'rehash', 'rollback', 'snapshot-eviction', 'aof-eviction',
-            'intents', 'imported-hash', 'field-index-failure', 'hash-bytes', 'deadline-allocation-failure'):
+            'intents', 'imported-hash', 'field-index-failure', 'hash-bytes', 'deadline-allocation-failure',
+            'flush-prepared-capacity'):
     unit('store-regression', row)
 unit('rehash-waits-unit', 'retirement')
+for row in ('atomic-growth', 'flush-prepared'):
+    unit('rehash-waits-unit', row)
 py('splitlocal_checks.py', 'check')
 py('r7shadow_sync.py')
 py('read_local_lane.py', '--self-test', 'mget-fence')

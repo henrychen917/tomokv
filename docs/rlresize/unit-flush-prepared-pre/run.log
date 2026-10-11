@@ -1,0 +1,9 @@
+ARMED flush between snapshot prepare and mark; merging 1024 old slots
+FAIL flush between snapshot prepare and mark: child killed by signal 6 (Aborted)
+EXIT=1
+ARMED flush between snapshot prepare and mark; merging 1024 old slots
+FAIL flush between snapshot prepare and mark: child killed by signal 6 (Aborted)
+EXIT=1
+ARMED flush between snapshot prepare and mark; merging 1024 old slots
+FAIL flush between snapshot prepare and mark: child killed by signal 6 (Aborted)
+EXIT=1

@@ -479,6 +479,47 @@ static void deadline_allocation_failure() {
     require(s.find(hash("ttl-0"), slice(std::string("ttl-0"))) == nullptr, "extended deadline still expires");
 }
 
+// rlresize: snapshot preparation sizes the post-cut table at twice the current capacity because the
+// current table cannot grow while prepared; it refuses only a completely full table. FLUSHALL in
+// the prepare-to-mark window still reaches clear() (no capture is active yet). A 1024-slot
+// replacement would let a small (e.g. shrunk) shard accept more keys than the prepared table can
+// hold, and after the cut the post-capture merge would stall on a full destination forever.
+static void flush_prepared_capacity() {
+    for (bool armed : {false, true}) {
+        FlatStore s(64); arm(s, armed); put(s, "before-flush");
+        require(s.snapshot_prepare(1, 100) == FlatStore::SnapshotWriteResult::Ready,
+                "prepared a post-cut table twice the current capacity");
+        s.clear();
+        std::vector<std::string> keys;
+        for (unsigned i = 0; i < 256; i++) {   // a prepared store refuses keys only when full
+            const std::string key = "after-flush-" + std::to_string(i);
+            KvObj* o = string_object(key);
+            if (s.insert(hash(key), o) != FlatStore::InsertResult::Inserted) { kvobj_free(o); break; }
+            keys.push_back(key);
+        }
+        require(!keys.empty() && s.snapshot_mark(0, 100), "prepared table published at the cut");
+        for (unsigned i = 0; i < 1000 && s.snapshot_active(); i++) {
+            s.snapshot_progress(4096, 2048);
+            if (s.snapshot_take_chunk()) s.snapshot_handoff_complete();
+        }
+        require(!s.snapshot_active() && !s.snapshot_failed(), "capture of the post-flush table finished");
+        for (unsigned i = 0; i < 100000 && s.rehashing(); i++) FlatStoreRegressionTest::step(s);
+        if (s.rehashing()) {
+            const auto stalled = s.rehash_progress();
+            std::fprintf(stderr, "armed=%d merge stalled: %zu post-flush keys, %u-slot destination, "
+                         "old cursor %u/%u, %u keys unmoved\n", armed, keys.size(),
+                         stalled.current_capacity, stalled.cursor, stalled.old_capacity,
+                         stalled.old_live);
+        }
+        require(!s.rehashing(), "post-capture merge completes: the prepared table holds the flushed shard");
+        require(s.size() == keys.size(), "every accepted post-flush key survives the merge");
+        for (const auto& key : keys) require(s.find(hash(key), slice(key)) != nullptr, "post-flush key readable");
+        require(s.find(hash("before-flush"), slice(std::string("before-flush"))) == nullptr, "flushed key stays deleted");
+        require(s.insert(hash("after-merge"), string_object("after-merge")) == FlatStore::InsertResult::Inserted,
+                "the shard accepts new keys after the merge");
+    }
+}
+
 int main(int argc, char** argv) {
     require(argc == 2, "select one named regression");
     struct Case { const char* name; void (*run)(); };
@@ -486,7 +527,8 @@ int main(int argc, char** argv) {
         {"rollback", rollback}, {"snapshot-eviction", snapshot_eviction}, {"flags", flags},
         {"aof-eviction", aof_eviction}, {"intents", intents}, {"imported-hash", imported_hash},
         {"field-index-failure", field_index_failure}, {"hash-bytes", hash_bytes},
-        {"deadline-allocation-failure", deadline_allocation_failure}};
+        {"deadline-allocation-failure", deadline_allocation_failure},
+        {"flush-prepared-capacity", flush_prepared_capacity}};
     for (const auto& c : cases) if (std::strcmp(argv[1], c.name) == 0) {
         c.run(); std::printf("PASS storage %s\n", c.name); return 0;
     }

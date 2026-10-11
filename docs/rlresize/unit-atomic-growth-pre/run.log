@@ -1,0 +1,9 @@
+ARMED atomic growth 128 -> 256 slots, boot reservation already consumed
+FAIL atomic growth: child killed by signal 6 (Aborted)
+EXIT=1
+ARMED atomic growth 128 -> 256 slots, boot reservation already consumed
+FAIL atomic growth: child killed by signal 6 (Aborted)
+EXIT=1
+ARMED atomic growth 128 -> 256 slots, boot reservation already consumed
+FAIL atomic growth: child killed by signal 6 (Aborted)
+EXIT=1
