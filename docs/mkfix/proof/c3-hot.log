@@ -1,0 +1,190 @@
+Hot bodies: 1204; raw byte equal: 1015; bytes + resolved relocation targets equal: 1015
+DIFF db0/src/core/genthread.o 553 553 tomo_db0::ExLoopT<true>::fused_baseline_sweep() [clone .part.0]
+DIFF db0/src/core/genthread.o 9714 9714 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/genthread.o 1737 1737 bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/genthread.o 1684 1684 bool tomo_db0::IoLoop::drive_tls<false, true>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/genthread.o 1737 1737 bool tomo_db0::IoLoop::drive_tls<true, true>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/genthread.o 3336 3336 bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)
+DIFF db0/src/core/genthread.o 3487 3487 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+DIFF db0/src/core/genthread.o 2607 2623 unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)
+DIFF db0/src/core/genthread.o 1727 1743 unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, false>()
+DIFF db0/src/core/genthread.o 2667 2667 tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF db0/src/core/genthread.o 2667 2667 tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF db0/src/core/genthread.o 4308 4308 unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+DIFF db0/src/core/genthread.o 2155 2171 unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, true>()
+DIFF db0/src/core/genthread.o 4744 4744 unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+DIFF db0/src/core/genthread.o 1301 1301 unsigned int tomo_db0::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()
+DIFF db0/src/core/genthread.o 18330 18330 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/genthread.o 18193 18193 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/genthread.o 4908 4908 void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()
+DIFF db0/src/core/genthread.o 4860 4860 void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()
+DIFF db0/src/core/genthread.o 4987 4987 void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()
+DIFF db0/src/core/genthread.o 4987 4987 void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()
+DIFF db0/src/core/genthread.o 4966 4966 void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()
+DIFF db0/src/core/genthread.o 4966 4966 void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()
+DIFF db0/src/core/genthread.o 4998 4998 void tomo_db0::IoLoop::run_loop<true, true, false, true, false>()
+DIFF db0/src/core/genthread.o 4956 4956 void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()
+DIFF db0/src/core/reorder.o 9554 9554 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/reorder.o 1721 1721 bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/reorder.o 3480 3480 bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)
+DIFF db0/src/core/reorder.o 3631 3631 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+DIFF db0/src/core/reorder.o 482 482 tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}::operator()(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult) const
+DIFF db0/src/core/reorder.o 482 482 tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}::operator()(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult) const
+DIFF db0/src/core/reorder.o 1936 1952 unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, false>()
+DIFF db0/src/core/reorder.o 2184 2184 tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF db0/src/core/reorder.o 2184 2184 tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF db0/src/core/reorder.o 4180 4180 unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+DIFF db0/src/core/reorder.o 2070 2086 unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, true>()
+DIFF db0/src/core/reorder.o 4360 4360 unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+DIFF db0/src/core/reorder.o 2070 2086 unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+DIFF db0/src/core/reorder.o 18286 18286 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 18106 18106 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 18148 18148 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 18014 18014 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 3420 3420 void tomo_db0::r7::ShadowReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)
+DIFF db0/src/core/reorder.o 3087 3087 void tomo_db0::r7::ExReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)
+DIFF db0/src/core/reorder.o 1936 1952 unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+DIFF db0/src/core/reorder.o 4360 4360 unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+DIFF db0/src/core/reorder.o 4180 4180 unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+DIFF db0/src/core/reorder.o 882 882 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()
+DIFF db0/src/core/reorder.o 796 796 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+DIFF db0/src/core/rl2s.o 12061 12061 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 2126 2126 bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 21192 21192 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 1919 1919 bool tomo_db0::IoLoop::drive_tls<false, true>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 2126 2126 bool tomo_db0::IoLoop::drive_tls<true, true>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 21076 21076 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 976 976 tomo_db0::ExLoopT<true>::fused_baseline_sweep() [clone .part.0]
+DIFF db0/src/core/rl2s.o 74 74 tomo_db0::ExLoopT<true>::fused_baseline_sweep() [clone .part.0] [clone .cold]
+DIFF db0/src/core/rl2s.o 3800 3800 bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)
+DIFF db0/src/core/rl2s.o 3949 3949 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+DIFF db0/src/core/rl2s.o 3037 3053 unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)
+DIFF db0/src/core/rl2s.o 3037 3053 unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)
+DIFF db0/src/core/rl2s.o 2285 2301 unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, false>()
+DIFF db0/src/core/rl2s.o 3377 3393 tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF db0/src/core/rl2s.o 3377 3393 tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF db0/src/core/rl2s.o 1623 1623 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+DIFF db0/src/core/rl2s.o 6463 6463 unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+DIFF db0/src/core/rl2s.o 21218 21218 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+DIFF db0/src/core/rl2s.o 21058 21058 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+DIFF db0/src/core/rl2s.o 3107 3123 unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, true>()
+DIFF db0/src/core/rl2s.o 8035 8035 unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+DIFF db0/src/core/rl2s.o 1977 1977 unsigned int tomo_db0::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()
+DIFF db0/src/core/rl2s.o 5378 5378 void tomo_db0::IoLoop::run_loop<true, true, true, true, true>()
+DIFF db0/src/core/rl2s.o 5421 5421 void tomo_db0::IoLoop::run_loop<true, false, false, true, true>()
+DIFF db0/src/core/rl2s.o 5309 5309 void tomo_db0::IoLoop::run_loop<false, false, false, true, true>()
+DIFF db0/src/core/rl2s.o 5362 5362 void tomo_db0::IoLoop::run_loop<false, false, true, true, true>()
+DIFF db0/src/core/rl2s.o 5378 5378 void tomo_db0::IoLoop::run_loop<true, false, true, true, true>()
+DIFF db0/src/core/rl2s.o 5357 5357 void tomo_db0::IoLoop::run_loop<false, true, false, true, true>()
+DIFF db0/src/core/rl2s.o 5463 5463 void tomo_db0::IoLoop::run_loop<true, true, false, true, true>()
+DIFF db0/src/core/rl2s.o 5362 5362 void tomo_db0::IoLoop::run_loop<false, true, true, true, true>()
+DIFF db0/src/main.o 1919 1919 bool tomo_db0::IoLoop::drive_tls<false, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/main.o 2126 2126 bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/main.o 3700 3700 bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)
+DIFF db0/src/main.o 2026 2026 unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)
+DIFF db0/src/main.o 2058 2058 unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)
+DIFF db0/src/main.o 2585 2601 unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()
+DIFF db0/src/main.o 12113 12113 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)
+DIFF db0/src/main.o 12258 12258 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)
+DIFF db0/src/main.o 4981 4981 void tomo_db0::IoLoop::run_loop<false, true, false, false, false>()
+DIFF db0/src/main.o 4949 4949 void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()
+DIFF db0/src/main.o 4975 4975 void tomo_db0::IoLoop::run_loop<false, true, true, false, false>()
+DIFF db0/src/main.o 4975 4975 void tomo_db0::IoLoop::run_loop<false, false, true, false, false>()
+DIFF db0/src/main.o 5007 5007 void tomo_db0::IoLoop::run_loop<true, true, true, false, false>()
+DIFF db0/src/main.o 5007 5007 void tomo_db0::IoLoop::run_loop<true, false, true, false, false>()
+DIFF db0/src/main.o 5078 5078 void tomo_db0::IoLoop::run_loop<true, true, false, false, false>()
+DIFF db0/src/main.o 5014 5014 void tomo_db0::IoLoop::run_loop<true, false, false, false, false>()
+DIFF src/core/genthread.o 553 553 tomo::ExLoopT<true>::fused_baseline_sweep() [clone .part.0]
+DIFF src/core/genthread.o 9698 9698 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/genthread.o 1737 1737 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/genthread.o 1684 1684 bool tomo::IoLoop::drive_tls<false, true>(tomo::Client*) [clone .isra.0]
+DIFF src/core/genthread.o 1737 1737 bool tomo::IoLoop::drive_tls<true, true>(tomo::Client*) [clone .isra.0]
+DIFF src/core/genthread.o 3337 3337 bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)
+DIFF src/core/genthread.o 3488 3488 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)
+DIFF src/core/genthread.o 1727 1743 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+DIFF src/core/genthread.o 2667 2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF src/core/genthread.o 2667 2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF src/core/genthread.o 4180 4180 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+DIFF src/core/genthread.o 2155 2171 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+DIFF src/core/genthread.o 4632 4632 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+DIFF src/core/genthread.o 1301 1301 unsigned int tomo::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()
+DIFF src/core/genthread.o 18299 18299 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+DIFF src/core/genthread.o 18304 18304 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+DIFF src/core/genthread.o 5125 5125 void tomo::IoLoop::run_loop<false, true, true, true, false>()
+DIFF src/core/genthread.o 5125 5125 void tomo::IoLoop::run_loop<false, false, true, true, false>()
+DIFF src/core/genthread.o 5052 5052 void tomo::IoLoop::run_loop<false, true, false, true, false>()
+DIFF src/core/genthread.o 5006 5006 void tomo::IoLoop::run_loop<false, false, false, true, false>()
+DIFF src/core/genthread.o 5157 5157 void tomo::IoLoop::run_loop<true, true, true, true, false>()
+DIFF src/core/genthread.o 5157 5157 void tomo::IoLoop::run_loop<true, false, true, true, false>()
+DIFF src/core/genthread.o 5177 5177 void tomo::IoLoop::run_loop<true, true, false, true, false>()
+DIFF src/core/genthread.o 5116 5116 void tomo::IoLoop::run_loop<true, false, false, true, false>()
+DIFF src/core/reorder.o 9784 9784 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/reorder.o 1737 1737 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/reorder.o 3337 3337 bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)
+DIFF src/core/reorder.o 3488 3488 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)
+DIFF src/core/reorder.o 482 482 tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}::operator()(tomo::Task const*, unsigned int, tomo::ReorderResult) const
+DIFF src/core/reorder.o 482 482 tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}::operator()(tomo::Task const*, unsigned int, tomo::ReorderResult) const
+DIFF src/core/reorder.o 1412 1428 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+DIFF src/core/reorder.o 2184 2184 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF src/core/reorder.o 2184 2184 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF src/core/reorder.o 3999 3999 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+DIFF src/core/reorder.o 1868 1884 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+DIFF src/core/reorder.o 1868 1884 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+DIFF src/core/reorder.o 4306 4306 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+DIFF src/core/reorder.o 18137 18137 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 18152 18152 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 18173 18173 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 18281 18281 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 3420 3420 void tomo::r7::ShadowReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)
+DIFF src/core/reorder.o 3087 3087 void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)
+DIFF src/core/reorder.o 1412 1428 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+DIFF src/core/reorder.o 4306 4306 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+DIFF src/core/reorder.o 3999 3999 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+DIFF src/core/reorder.o 882 882 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()
+DIFF src/core/reorder.o 566 566 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+DIFF src/core/rl2s.o 12093 12093 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 2126 2126 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 21099 21099 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 1919 1919 bool tomo::IoLoop::drive_tls<false, true>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 2126 2126 bool tomo::IoLoop::drive_tls<true, true>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 21003 21003 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 976 976 tomo::ExLoopT<true>::fused_baseline_sweep() [clone .part.0]
+DIFF src/core/rl2s.o 74 74 tomo::ExLoopT<true>::fused_baseline_sweep() [clone .part.0] [clone .cold]
+DIFF src/core/rl2s.o 3801 3801 bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)
+DIFF src/core/rl2s.o 3950 3950 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)
+DIFF src/core/rl2s.o 3037 3053 unsigned int tomo::ThreadCtx::drain_tasks_unmasked<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)
+DIFF src/core/rl2s.o 3037 3053 unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)
+DIFF src/core/rl2s.o 2285 2301 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+DIFF src/core/rl2s.o 3377 3393 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF src/core/rl2s.o 3377 3393 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+DIFF src/core/rl2s.o 1623 1623 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+DIFF src/core/rl2s.o 6463 6463 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+DIFF src/core/rl2s.o 21058 21058 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+DIFF src/core/rl2s.o 21006 21006 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+DIFF src/core/rl2s.o 3107 3123 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+DIFF src/core/rl2s.o 8019 8019 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+DIFF src/core/rl2s.o 1977 1977 unsigned int tomo::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()
+DIFF src/core/rl2s.o 5634 5634 void tomo::IoLoop::run_loop<true, true, true, true, true>()
+DIFF src/core/rl2s.o 5441 5441 void tomo::IoLoop::run_loop<false, false, false, true, true>()
+DIFF src/core/rl2s.o 5551 5551 void tomo::IoLoop::run_loop<true, false, false, true, true>()
+DIFF src/core/rl2s.o 5634 5634 void tomo::IoLoop::run_loop<true, false, true, true, true>()
+DIFF src/core/rl2s.o 5601 5601 void tomo::IoLoop::run_loop<false, false, true, true, true>()
+DIFF src/core/rl2s.o 5487 5487 void tomo::IoLoop::run_loop<false, true, false, true, true>()
+DIFF src/core/rl2s.o 5612 5612 void tomo::IoLoop::run_loop<true, true, false, true, true>()
+DIFF src/core/rl2s.o 5601 5601 void tomo::IoLoop::run_loop<false, true, true, true, true>()
+DIFF src/main.o 1919 1919 bool tomo::IoLoop::drive_tls<false, false>(tomo::Client*) [clone .isra.0]
+DIFF src/main.o 2126 2126 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+DIFF src/main.o 3701 3701 bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)
+DIFF src/main.o 2026 2026 unsigned int tomo::ThreadCtx::drain_tasks_unmasked<false, tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)
+DIFF src/main.o 2058 2058 unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)
+DIFF src/main.o 2585 2601 unsigned int tomo::ExLoopT<false>::sweep<32u, true, false, false>()
+DIFF src/main.o 12293 12293 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)
+DIFF src/main.o 12408 12408 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)
+DIFF src/main.o 5114 5114 void tomo::IoLoop::run_loop<false, true, false, false, false>()
+DIFF src/main.o 5068 5068 void tomo::IoLoop::run_loop<false, false, false, false, false>()
+DIFF src/main.o 5176 5176 void tomo::IoLoop::run_loop<false, true, true, false, false>()
+DIFF src/main.o 5176 5176 void tomo::IoLoop::run_loop<false, false, true, false, false>()
+DIFF src/main.o 5221 5221 void tomo::IoLoop::run_loop<true, true, false, false, false>()
+DIFF src/main.o 5162 5162 void tomo::IoLoop::run_loop<true, false, false, false, false>()
+DIFF src/main.o 5224 5224 void tomo::IoLoop::run_loop<true, true, true, false, false>()
+DIFF src/main.o 5224 5224 void tomo::IoLoop::run_loop<true, false, true, false, false>()

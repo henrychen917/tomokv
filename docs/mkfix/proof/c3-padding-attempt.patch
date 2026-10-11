@@ -1,0 +1,15 @@
+--- a/src/core/server.h
++++ b/src/core/server.h
+@@ -3528,8 +3528,10 @@
+     // one low-bit unit. Exact group counts belong to atomic_credits_.
+     // Dispatch therefore decides OFF/ON/draining with one acquire load and one predictable test.
+     std::atomic<uint64_t> atomic_activity_{0};
+-    std::atomic<uint64_t> atomic_read_floors_[kMaxThreads] = {};
+-    std::atomic<uint64_t> atomic_snapshot_completions_[kMaxThreads] = {};
++    struct alignas(64) AtomicSnapshotSlot : std::atomic<uint64_t> {};
++    static_assert(sizeof(AtomicSnapshotSlot) == 64);
++    AtomicSnapshotSlot atomic_read_floors_[kMaxThreads] = {};
++    AtomicSnapshotSlot atomic_snapshot_completions_[kMaxThreads] = {};
+     // Cross-script instrumentation is a cold Server tail. It is touched only by the staged engine;
+     // ordinary command dispatch reads none of these cache lines.
+     std::atomic<uint64_t> script_stage_owner_tasks_{0};
