@@ -315,8 +315,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # dbdefault: one default-config row (both modes), collected BEFORE the quick exit: DQ=+1, DF=+1.
 # wave2 total: perfio +4/+4, perfex2 +4/+4, lottery +0, rlresize +3/+3, dbdefault +1/+1
 # = DQ=+12, DF=+12: maintainer sets EXPECT_QUICK=625+12=637 / EXPECT_FULL=642+12=654.
-EXPECT_QUICK=625
-EXPECT_FULL=642                 # ABBA reports only; self-test remains counted.
+EXPECT_QUICK=637
+EXPECT_FULL=654                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
