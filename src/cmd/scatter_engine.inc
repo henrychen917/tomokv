@@ -2083,7 +2083,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // prepared back to back on one connection cannot disagree about which of them is older.
     // Parsing takes kind by address. Freeze the remaining setup's value here
     // so GCC does not keep spilling that parser local across state setup;
-    // the ordinary MGET preparation retains PRE's executed instruction count.
+    // ordinary MGET preparation stays within PRE's executed instruction count.
     const Kind prepared_kind = kind;
     if (needs_snapshot) {
         state->snapshot = op.has_read_cut() ? op.read_cut(server.atomic_snapshot())
@@ -2841,7 +2841,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         ReadEpochGuard(FlatStore& store_, uint64_t snapshot, uint64_t origin_conn_id,
                        bool multi_child)
             : store(store_), bound(snapshot != UINT64_MAX || multi_child) {
-            if (bound) store.atomic_set_read_context(snapshot, origin_conn_id);
+            // Fan-out reads carry a cut. Keep their binding on the fallthrough;
+            // an extra jump here charged every ordinary set/zset gather.
+            if (__builtin_expect(bound, true))
+                store.atomic_set_read_context(snapshot, origin_conn_id);
         }
         ~ReadEpochGuard() { if (bound) store.atomic_clear_read_epoch(); }
     };
