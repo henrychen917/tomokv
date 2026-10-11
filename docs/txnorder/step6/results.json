@@ -36,8 +36,8 @@
   },
   {
     "case": "txn_help",
-    "exit": 1,
-    "output": "FAIL: quiescent publication caught up\n"
+    "exit": 0,
+    "output": "PASS txn_help\n"
   },
   {
     "case": "txn_intents",
