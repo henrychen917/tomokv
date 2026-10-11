@@ -56,6 +56,17 @@ DB0_SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 
 all: $(BIN)
 
+# Opt-in lottery observation arm. Production sources and default objects remain
+# untouched; the copied tree adds only DEBUG-armed counters, never pause points.
+build/lottery/tomokv: tools/lottery_build.py tests/lottery_hooks.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	python3 tools/lottery_build.py build/lottery/source
+	$(MAKE) -C build/lottery/source BUILD_ROOT=$(abspath build/lottery/objects) all
+	cp build/lottery/objects/tomokv $@
+
+build/lottery/tomokv-asan: build/lottery/tomokv
+	$(MAKE) -C build/lottery/source BUILD_ROOT=$(abspath build/lottery/asan) JE=0 CXXFLAGS='$(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -O1' all
+	cp build/lottery/asan/tomokv $@
+
 # SV4.10: the DEBUG parser and pre-store hook exist only in this copied test
 # tree. Default production objects never contain a hook, branch or test state.
 build/racefix-climon: tools/racefix_build.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
