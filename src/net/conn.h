@@ -388,7 +388,6 @@ public:
         if (rest && rpos_) std::memmove(rbuf_, rbuf_ + rpos_, rest);
         rlen_ = rest;
         rpos_ = 0;
-        if (!rest) inline_scanned_ = 0;
         // Also shed burst-grown WRITE buffers here. The guard is size()==0 itself: a buffer with
         // a send in flight (or staged bytes) always has size > 0 and is skipped, so shrinking can
         // never truncate bytes the kernel or the sender still references -- the same invariant
