@@ -18,7 +18,8 @@ void txn_group_barrier_witness(ScatterState& state, Client& client) {
     state.server->note_txn(state.owner_io, TxnCounter::GroupBarriers);
 }
 
-bool txn_group_prepare(ScatterState& state, Server& server, uint32_t io) {
+bool txn_group_prepare(ScatterState& state, Server& server, uint32_t io,
+                       ScatterArenaPool* pool) {
     if (state.kind == Kind::Script ||
         !(state.atomic_apply || (state.atomic_write && state.kind == Kind::Msetnx))) return true;
     try {
@@ -27,6 +28,14 @@ bool txn_group_prepare(ScatterState& state, Server& server, uint32_t io) {
         attempt->retry.owner_io = io;
         attempt->arrived.assign(server.nshards(), 0);
         attempt->intents.assign(server.nshards(), 0);
+        // Keep ordinary prepare's read-cut computation unchanged. A bare
+        // dependency-bearing group releases that temporary cut before dispatch
+        // and protects its newest-committed reads with owner intents instead.
+        if (state.snapshot_registered) {
+            if (!pool) std::abort();
+            pool->unregister_snapshot(server, &state, io);
+        }
+        state.snapshot = UINT64_MAX;
         state.barrier = true;
         state.group_attempt_storage = attempt.release();
         state.watch_refs.fetch_or(ScatterState::kGroupAttemptRef, std::memory_order_relaxed);
@@ -172,6 +181,27 @@ bool txn_group_touch(ScatterState& state, Shard& shard, uint64_t hash, Slice key
     return true;
 }
 
+TxnGroupRead txn_group_read_prepare(ScatterState& state, Shard& shard, Op& op) {
+    if (!state.group_attempt()) return TxnGroupRead::Ready;
+    if (!txn_group_ready(state, shard, op))
+        return state.aborted.load(std::memory_order_acquire)
+            ? TxnGroupRead::Done : TxnGroupRead::Wait;
+    const auto& group = *group_for(state, shard.id());
+    for (uint32_t i = 0; i < group.count; ++i) {
+        if (sort_deref_gathering(state)) {
+            const auto& request = state.sort_deref->requests[
+                state.sort_deref->key_order[group.begin + i]];
+            if (!txn_group_touch(state, shard, request.hash, sort_deref_key(request)))
+                return TxnGroupRead::Done;
+        } else {
+            const auto& key = state.keys[state.key_order[group.begin + i]];
+            if (!txn_group_touch(state, shard, key.hash, op.arg(key.arg)))
+                return TxnGroupRead::Done;
+        }
+    }
+    return TxnGroupRead::Ready;
+}
+
 bool txn_group_decide(ScatterState& state, uint64_t ticket) {
     uint64_t undecided = 0;
     if (state.epoch.compare_exchange_strong(undecided, ticket,
@@ -201,6 +231,166 @@ ScatterFinish txn_group_retry(Server& server, ThreadCtx& self, Ring& ring,
     multi_enqueue_node(server, state.owner_io, state.group_attempt()->retry);
     server.thread(state.owner_io).wake_if_parked(ring, self.sig());
     return ScatterFinish::Waiting;
+}
+
+// Called only from the existing atomic completion arm. Ordinary scatters
+// retain the original completion interpreter and test sequence.
+template <bool IofusedPrivateQueue>
+ScatterFinish txn_group_complete(Server& server, ThreadCtx& self, Ring& ring,
+                                   const Task& task, Op& op) {
+    ScatterState& state = *task.scatter;
+    if (state.kind == Kind::Script) {
+        if (state.script_phase == ScriptPhase::Apply && !state.script_resume_post &&
+            !complete_owner_record_wave(state, self.id())) return ScatterFinish::Waiting;
+        return xshard_complete_script<IofusedPrivateQueue>(
+            server, self, ring, task, op, state);
+    }
+    auto final = [&]() {
+        if (op.spec->flags & CmdFlags::NotifySelected)
+            notify_xshard_finished(server.shard(task.shard), op, state);
+        // Every participating owner has installed its share of this group -- this is the last
+        // owner, running on an EX thread. That is the instant the group stops being able to
+        // straddle a snapshot cut, and it is much earlier than reply retirement, which happens on
+        // the admitting IO thread (the very thread a blocking SAVE occupies).
+        server.atomic_apply_close(self.id(), state.apply_open);
+        return ScatterFinish::Final;
+    };
+    if (state.atomic_write || (state.atomic_apply && state.phase == 2)) {
+        if (!complete_owner_record_wave(state, self.id())) return ScatterFinish::Waiting;
+    }
+    if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
+        return ScatterFinish::Waiting;
+    if (state.atomic_pop && state.phase == 2 && state.pop_missed) {
+        aof_abort_scatter_group(state);
+        state.aof_group.reset();
+        static constexpr uint32_t kMaxPopRetries = 8;
+        if (state.pop_retries++ < kMaxPopRetries &&
+            publish_pop_retry<IofusedPrivateQueue>(server, self, ring, task, state))
+            return ScatterFinish::Waiting;
+        if (state.final_reply == FinalReply::QueueFull) return final();
+        state.final_reply = FinalReply::NullArray;
+        return final();
+    }
+    if (state.kind == Kind::Sort && state.sort_options.deref && state.phase == 1) {
+        if (state.sort_deref->wave == SortDerefWave::Source) {
+            WorkError source_error;
+            if (first_error(state, source_error)) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = source_error;
+                return state.group_attempt() ? ScatterFinish::CommitQueued : final();
+            }
+            const WorkError prepared = prepare_sort_deref(state, op);
+            if (prepared != WorkError::None) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = prepared;
+                return state.group_attempt() ? ScatterFinish::CommitQueued : final();
+            }
+            if (sort_deref_gathering(state)) {
+                if (publish_sort_deref<IofusedPrivateQueue>(
+                        server, self, ring, task, state))
+                    return ScatterFinish::Waiting;
+                return state.group_attempt() ? ScatterFinish::CommitQueued : final();
+            }
+            const WorkError finished = finish_sort_deref(state);
+            if (finished != WorkError::None) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = finished;
+                return state.group_attempt() ? ScatterFinish::CommitQueued : final();
+            }
+            restore_sort_source_groups(state);
+        } else if (sort_deref_gathering(state)) {
+            const WorkError finished = finish_sort_deref(state);
+            if (finished != WorkError::None) {
+                state.final_reply = FinalReply::Work;
+                state.final_error = finished;
+                return state.group_attempt() ? ScatterFinish::CommitQueued : final();
+            }
+            restore_sort_source_groups(state);
+        }
+    }
+    // Once the last owner has materialized its result, this read cut protects no future
+    // dereference. Value borrows have their own store lifetime pins. Tell the owning IO to advance
+    // its floor even if ordered reply retirement is still behind a deep pipeline.
+    if ((!state.two_hop || state.phase == 2) && state.snapshot_registered &&
+        !state.snapshot_complete.exchange(true, std::memory_order_acq_rel))
+        server.note_atomic_snapshot_complete(state.owner_io);
+    if (state.atomic_write) {
+        WorkError error;
+        if (first_error(state, error)) {
+            state.aborted.store(true, std::memory_order_release);
+            aof_abort_scatter_group(state);
+            state.final_reply = FinalReply::Work;
+            state.final_error = error;
+            if (state.group_attempt()) return ScatterFinish::CommitQueued;
+            return final();
+        }
+        if (state.aborted.load(std::memory_order_acquire)) {
+            aof_abort_scatter_group(state);
+            // MSETNX existence is a normal failed condition, not a work error. Its installed
+            // candidates (if another owner got that far) remain forever invisible at epoch zero.
+            if (state.kind == Kind::Msetnx) {
+                state.final_reply = FinalReply::Integer;
+                state.final_integer = 0;
+                if (state.group_attempt()) return ScatterFinish::CommitQueued;
+            } else {
+                state.final_reply = FinalReply::Internal;
+            }
+            return final();
+        }
+        if (state.kind == Kind::Msetnx) {
+            state.final_reply = FinalReply::Integer;
+            state.final_integer = 1;
+            if (state.group_attempt() &&
+                state.epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch)
+                return txn_group_retry(server, self, ring, task);
+        }
+        if (!state.multi_child) return ScatterFinish::CommitQueued;
+        return final();
+    }
+    if (state.phase == 2) {
+        if (state.atomic_apply && state.group_attempt() &&
+            state.epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch)
+            return txn_group_retry(server, self, ring, task);
+        const bool commit_ready = finish_phase2(state);
+        if (state.group_attempt()) return ScatterFinish::CommitQueued;
+        const bool pop_commit_ready = state.aof_group && state.atomic_pop &&
+            (state.final_reply == FinalReply::Lmpop ||
+             state.final_reply == FinalReply::Zmpop);
+        if (commit_ready || pop_commit_ready) return ScatterFinish::CommitQueued;
+        if (state.aof_group) {
+            const uint64_t ticket = state.epoch.load(std::memory_order_acquire);
+            if (ticket && !state.aborted.load(std::memory_order_acquire))
+                aof_commit_scatter_group(state, self, ring, ticket);
+            else
+                aof_abort_scatter_group(state);
+        }
+        if (__builtin_expect(server.blocking_waiters() != 0, false))
+            blocking_atomic_published(server, self, ring, state);
+        return final();
+    }
+    if (state.kind == Kind::Pfcount) {
+        finish_pfcount(state);
+        return final();
+    }
+    if (state.kind == Kind::Lcs) {
+        finish_lcs(state);
+        return final();
+    }
+    if (!state.two_hop) return final();
+    const bool phase1_final = finish_phase1(state, op);
+    if (state.atomic_apply && state.group_attempt()) {
+        if (state.epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch)
+            return txn_group_retry(server, self, ring, task);
+        // Even an empty/error result must decide its read dependencies before
+        // replying. No phase-two record exists to cover these read-only keys.
+        if (phase1_final) return ScatterFinish::CommitQueued;
+    }
+    if (phase1_final) {
+        return final();
+    }
+    if (publish_phase2<IofusedPrivateQueue>(server, self, ring, task, op, state))
+        return ScatterFinish::Waiting;
+    return state.group_attempt() ? ScatterFinish::CommitQueued : final();
 }
 
 template <bool IofusedPrivateQueue>

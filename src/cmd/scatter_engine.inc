@@ -659,7 +659,12 @@ namespace {
 
 [[gnu::noinline]] ScatterTaskResult execute_plain_element_mover(const Task&, Shard&, Op&);
 [[gnu::noinline]] ScatterTaskResult execute_live_pop(const Task&, Shard&, Op&);
-[[gnu::noinline]] bool txn_group_prepare(ScatterState&, Server&, uint32_t);
+[[gnu::noinline]] bool txn_group_prepare(ScatterState&, Server&, uint32_t,
+                                        ScatterArenaPool* = nullptr);
+enum class TxnGroupRead : uint8_t { Ready, Done, Wait };
+[[gnu::noinline]] TxnGroupRead txn_group_read_prepare(ScatterState&, Shard&, Op&);
+template <bool IofusedPrivateQueue>
+[[gnu::noinline]] ScatterFinish txn_group_complete(Server&, ThreadCtx&, Ring&, const Task&, Op&);
 [[gnu::noinline]] bool txn_group_release(ScatterState&);
 [[gnu::noinline]] void txn_group_barrier_witness(ScatterState&, Client&);
 [[gnu::noinline]] bool txn_group_touch(ScatterState&, Shard&, uint64_t, Slice,
@@ -1501,7 +1506,7 @@ void free_state_contents(ScatterState& state) {
     state.contents_freed = true;
 }
 
-void free_state_key_anchors(ScatterState& state) {
+[[gnu::noinline]] void free_state_key_anchors(ScatterState& state) {
     for (uint32_t i = 0; i < state.key_count; i++) {
         if (!state.keys[i].key_anchor) continue;
         kvobj_free(state.keys[i].key_anchor);
@@ -1966,7 +1971,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // Keeping UINT64_MAX also gives phase two's plain-version preparation the latest base.
     // Doomable groups protect newest-committed reads with owner-local intents.
     const bool latest_msetnx = kind == Kind::Msetnx && !atomic_write;
-    bool needs_snapshot = kind == Kind::Script || sort_deref_snapshot ||
+    const bool needs_snapshot = kind == Kind::Script || sort_deref_snapshot ||
         (!force_atomic && (tracking || read_fanout) &&
          (key_count || kind == Kind::Keys || kind == Kind::DbsizeExact) &&
          !(atomic_write && kind == Kind::Mset) && !latest_msetnx);
@@ -1985,8 +1990,6 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     bool admitted = false;
     uint64_t admission_generation = 0;
     if (atomic_group && !force_atomic) {
-        if (kind != Kind::Script && (atomic_apply || kind == Kind::Msetnx))
-            needs_snapshot = false;
         if (!server.atomic_try_admit(owner_io, admission_generation,
                                      kind == Kind::Script || script_guard)) {
             if (routes != route_stack) delete[] routes;
@@ -2172,7 +2175,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
     state->pending.store(initialize_owner_completion(*state), std::memory_order_relaxed);
     if (state->atomic_group && !force_atomic &&
-        ((!txn_group_prepare(*state, server, owner_io)) ||
+        ((!txn_group_prepare(*state, server, owner_io, &pool)) ||
          ((state->atomic_write || state->atomic_direct) &&
           !aof_prepare_scatter_group(*state)))) {
         xshard_abandon_unpublished(state, pool, owner_io);
@@ -2861,13 +2864,19 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     try {
         if (state.atomic_direct)
             return execute_atomic_direct_rename(task, shard, op, owner_thread_id);
-        if (state.atomic_apply && state.phase == 2) {
-            if (state.kind == Kind::Script) {
-                state.server->note_script_apply_owner();
-                ScriptApplyPins pins{state, shard, op, group};
+        if (state.atomic_apply) {
+            if (state.phase == 2) {
+                if (state.kind == Kind::Script) {
+                    state.server->note_script_apply_owner();
+                    ScriptApplyPins pins{state, shard, op, group};
+                    return execute_atomic_apply(task, shard, op, owner_thread_id);
+                }
                 return execute_atomic_apply(task, shard, op, owner_thread_id);
             }
-            return execute_atomic_apply(task, shard, op, owner_thread_id);
+            const auto prepared = txn_group_read_prepare(state, shard, op);
+            if (prepared != TxnGroupRead::Ready)
+                return prepared == TxnGroupRead::Wait
+                    ? ScatterTaskResult::Retry : ScatterTaskResult::Complete;
         }
         if (state.atomic_write) {
             // One owner pass preflights the table, allocates one shard entry, and performs ordinary
@@ -3039,14 +3048,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         // only by its routed owner, under the ReadEpochGuard and PinnedNowMs installed above.
         if (sort_deref_gathering(state)) {
             SortDerefState& sort = *state.sort_deref;
-            if (state.atomic_apply && !txn_group_ready(state, shard, op))
-                return state.aborted.load(std::memory_order_acquire)
-                    ? ScatterTaskResult::Complete : ScatterTaskResult::Retry;
             for (uint32_t i = 0; i < group.count; i++) {
                 SortDerefRequest& request = sort.requests[sort.key_order[group.begin + i]];
                 const Slice key = sort_deref_key(request);
-                if (state.atomic_apply && !txn_group_touch(state, shard, request.hash, key))
-                    return ScatterTaskResult::Complete;
                 state.server->note_sort_deref_lookup();
                 KvObj* object = find_value(request.hash, key, true);
                 if (!object) continue;
@@ -3079,7 +3083,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         // MGET is the read-heavy matrix cell. Specialize its loop once per owner task so the
         // no-pending arm is byte-for-byte the ordinary FlatStore lookup, with no per-key selector.
         if (state.phase != 2 && state.kind == Kind::Mget) {
-            auto gather = [&]<bool Tracked, bool Notify>() {
+            auto gather = [&]<bool Tracked, bool Notify>() __attribute__((noinline)) {
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
@@ -3471,14 +3475,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             case Kind::Renamenx:
             case Kind::Copy:
                 if (state.atomic_apply) {
-                    if (!txn_group_ready(state, shard, op))
-                        return state.aborted.load(std::memory_order_acquire)
-                            ? ScatterTaskResult::Complete : ScatterTaskResult::Retry;
                     for (uint32_t i = 0; i < group.count; i++) {
                         const uint32_t pos = state.key_order[group.begin + i];
                         const KeyRef& key = state.keys[pos];
-                        if (!txn_group_touch(state, shard, key.hash, op.arg(key.arg)))
-                            return ScatterTaskResult::Complete;
                         KvObj* object = find_value(
                             key.hash, op.arg(key.arg), state.kind == Kind::Copy && pos == 0);
                         ObjectImage& image = state.images[pos];
@@ -3517,9 +3516,6 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 }
                 [[fallthrough]];
             default:
-                if (state.atomic_apply && !txn_group_ready(state, shard, op))
-                    return state.aborted.load(std::memory_order_acquire)
-                        ? ScatterTaskResult::Complete : ScatterTaskResult::Retry;
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
@@ -3528,9 +3524,6 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     // allowed to mutate it, and BEFORE find_value so the image is taken from the
                     // promoted object: the source sits at key 1 when STORE moved the destination
                     // into key 0, and at key 0 otherwise.
-                    if (state.atomic_apply &&
-                        !txn_group_touch(state, shard, key.hash, op.arg(key.arg)))
-                        return ScatterTaskResult::Complete;
                     const bool sort_source =
                         state.kind == Kind::Sort && pos == (state.sort_options.store ? 1u : 0u);
                     if (sort_source)
@@ -3875,8 +3868,11 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
         server.atomic_apply_close(self.id(), state.apply_open);
         return ScatterFinish::Final;
     };
-    if (state.atomic_write || (state.atomic_apply && state.phase == 2)) {
-        if (!complete_owner_record_wave(state, self.id())) return ScatterFinish::Waiting;
+    if (state.atomic_write || state.atomic_apply) {
+        if (state.group_attempt())
+            return txn_group_complete<IofusedPrivateQueue>(server, self, ring, task, op);
+        if ((state.atomic_write || state.phase == 2) &&
+            !complete_owner_record_wave(state, self.id())) return ScatterFinish::Waiting;
     }
     if (state.pending.fetch_sub(1, std::memory_order_acq_rel) != 1)
         return ScatterFinish::Waiting;
@@ -3897,25 +3893,25 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
             if (first_error(state, source_error)) {
                 state.final_reply = FinalReply::Work;
                 state.final_error = source_error;
-                return state.group_attempt() ? ScatterFinish::CommitQueued : final();
+                return final();
             }
             const WorkError prepared = prepare_sort_deref(state, op);
             if (prepared != WorkError::None) {
                 state.final_reply = FinalReply::Work;
                 state.final_error = prepared;
-                return state.group_attempt() ? ScatterFinish::CommitQueued : final();
+                return final();
             }
             if (sort_deref_gathering(state)) {
                 if (publish_sort_deref<IofusedPrivateQueue>(
                         server, self, ring, task, state))
                     return ScatterFinish::Waiting;
-                return state.group_attempt() ? ScatterFinish::CommitQueued : final();
+                return final();
             }
             const WorkError finished = finish_sort_deref(state);
             if (finished != WorkError::None) {
                 state.final_reply = FinalReply::Work;
                 state.final_error = finished;
-                return state.group_attempt() ? ScatterFinish::CommitQueued : final();
+                return final();
             }
             restore_sort_source_groups(state);
         } else if (sort_deref_gathering(state)) {
@@ -3923,7 +3919,7 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
             if (finished != WorkError::None) {
                 state.final_reply = FinalReply::Work;
                 state.final_error = finished;
-                return state.group_attempt() ? ScatterFinish::CommitQueued : final();
+                return final();
             }
             restore_sort_source_groups(state);
         }
@@ -3941,7 +3937,6 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
             aof_abort_scatter_group(state);
             state.final_reply = FinalReply::Work;
             state.final_error = error;
-            if (state.group_attempt()) return ScatterFinish::CommitQueued;
             return final();
         }
         if (state.aborted.load(std::memory_order_acquire)) {
@@ -3951,7 +3946,6 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
             if (state.kind == Kind::Msetnx) {
                 state.final_reply = FinalReply::Integer;
                 state.final_integer = 0;
-                if (state.group_attempt()) return ScatterFinish::CommitQueued;
             } else {
                 state.final_reply = FinalReply::Internal;
             }
@@ -3960,19 +3954,12 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
         if (state.kind == Kind::Msetnx) {
             state.final_reply = FinalReply::Integer;
             state.final_integer = 1;
-            if (state.group_attempt() &&
-                state.epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch)
-                return txn_group_retry(server, self, ring, task);
         }
         if (!state.multi_child) return ScatterFinish::CommitQueued;
         return final();
     }
     if (state.phase == 2) {
-        if (state.atomic_apply && state.group_attempt() &&
-            state.epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch)
-            return txn_group_retry(server, self, ring, task);
         const bool commit_ready = finish_phase2(state);
-        if (state.group_attempt()) return ScatterFinish::CommitQueued;
         const bool pop_commit_ready = state.aof_group && state.atomic_pop &&
             (state.final_reply == FinalReply::Lmpop ||
              state.final_reply == FinalReply::Zmpop);
@@ -3997,20 +3984,12 @@ ScatterFinish xshard_complete_impl(Server& server, ThreadCtx& self, Ring& ring,
         return final();
     }
     if (!state.two_hop) return final();
-    const bool phase1_final = finish_phase1(state, op);
-    if (state.atomic_apply && state.group_attempt()) {
-        if (state.epoch.load(std::memory_order_acquire) == kAtomicCancelledEpoch)
-            return txn_group_retry(server, self, ring, task);
-        // Even an empty/error result must decide its read dependencies before
-        // replying. No phase-two record exists to cover these read-only keys.
-        if (phase1_final) return ScatterFinish::CommitQueued;
-    }
-    if (phase1_final) {
+    if (finish_phase1(state, op)) {
         return final();
     }
     if (publish_phase2<IofusedPrivateQueue>(server, self, ring, task, op, state))
         return ScatterFinish::Waiting;
-    return state.group_attempt() ? ScatterFinish::CommitQueued : final();
+    return final();
 }
 
 ScatterFinish xshard_complete(Server& server, ThreadCtx& self, Ring& ring,

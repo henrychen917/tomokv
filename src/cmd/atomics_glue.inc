@@ -679,19 +679,20 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
             shard.id() != state.script_coordinator_shard &&
             now_ns() < state.debug_script_defer_deadline)
             return true;
-        if (state.atomic_direct && !txn_group_arrive(state, shard.id())) return true;
-        if (state.atomic_direct &&
-            (state.direct_ready.load(std::memory_order_acquire) == 0 ||
-             __builtin_expect(state.debug_direct_defer != 0, false))) {
-            ShardGroup* group = group_for(state, shard.id());
-            bool source_group = false;
-            for (uint32_t i = 0; group && i < group->count; i++)
-                source_group |= state.key_order[group->begin + i] == 0;
-            if (!source_group) {
-                // The hook only lengthens an existing park; it never invents one, and it never
-                // touches the source hop, so the group still completes on its own.
-                if (state.debug_direct_defer) state.debug_direct_defer--;
-                return true;
+        if (state.atomic_direct) {
+            if (!txn_group_arrive(state, shard.id())) return true;
+            if (state.direct_ready.load(std::memory_order_acquire) == 0 ||
+                __builtin_expect(state.debug_direct_defer != 0, false)) {
+                ShardGroup* group = group_for(state, shard.id());
+                bool source_group = false;
+                for (uint32_t i = 0; group && i < group->count; i++)
+                    source_group |= state.key_order[group->begin + i] == 0;
+                if (!source_group) {
+                    // The hook only lengthens an existing park; it never invents one, and it never
+                    // touches the source hop, so the group still completes on its own.
+                    if (state.debug_direct_defer) state.debug_direct_defer--;
+                    return true;
+                }
             }
         }
     }
