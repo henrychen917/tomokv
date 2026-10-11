@@ -41,13 +41,12 @@ The COMMIT control is what stops the fix from degenerating into "make the group 
 same shape with no blocker must let the EXEC see the MSETNX's value, i.e. read-your-own-writes
 across two units of one connection still holds.
 
-Historical overlap witness (replaced for atomic-1 MSETNX below): `atomic_exec_order_holds` counts a transaction meeting an undecided same-connection
-unit on an owner -- exactly this window. Under atomic 1 the armed cases must advance it, or the
-run never entered the window and its pass proves nothing. EACH armed case must advance it: a
-committing group cannot stand in for the aborted-candidate witness. Only a clean miss is re-armed,
-on fresh keys and connections, up to ARM_ATTEMPTS times. No deadline or retry count is widened.
-A tree that has lost the park still fails, on both the counter and withdrawn-value checks.
-Under atomic 0 MSETNX is two-hop and
+Stage B orders atomic-1 MSETNX and the following MULTI at the connection's dispatch barrier.
+`atomic_group_barriers` must witness that barrier retaining the unparsed MULTI in EACH armed
+case: a committing group cannot stand in for the aborted-candidate witness. Only a clean miss
+is re-armed, on fresh keys and connections, up to ARM_ATTEMPTS times. No deadline or retry count
+is widened. Removing the barrier fails this witness even if owner-side parking preserves data.
+Under atomic 0 the original `atomic_exec_order_holds` witness applies. MSETNX is two-hop and
 decides before it installs, so the window cannot open and the counter must read exactly zero;
 that arm asserts zero rather than merely tolerating it.
 
@@ -512,8 +511,8 @@ def run_mode(admin, mode):
         print(f"  FAIL {failure}", flush=True)
 
     # VACUOUS-VALIDATION GATE, and under atomic 0 its mirror image. Under atomic 1 the armed cases
-    # MUST have met an undecided same-connection unit or the run never entered the window this
-    # battery exists to close. Under atomic 0 MSETNX is two-hop -- it decides before it installs --
+    # MUST have retained the following MULTI behind the MSETNX dispatch barrier. Under atomic 0
+    # MSETNX is two-hop -- it decides before it installs --
     # so no unit of this shape is ever undecided on an owner and the counter MUST stay at zero;
     # a non-zero reading there would mean the two-hop path had grown an install-then-decide window
     # of its own, which is the same defect in the other mode.

@@ -24,7 +24,9 @@ Both are RACES, so every case runs many rounds and reports a hit count rather th
 pre-fix rates on this box were roughly 22% of rounds for (1) and 37% for (2). A single clean
 round means nothing, which is why nothing here concludes from one.
 
-Every case also proves its mechanism FIRED: `atomic_exec_order_holds` counts a transaction
+Every case also proves its ordering mechanism FIRED. MSETNX uses a cold, debug-armed counter
+proving its dispatch barrier retained the following unparsed MULTI. Removing that barrier must
+fail its witness. The other groups retain `atomic_exec_order_holds`, which counts a transaction
 meeting an older same-connection unit that is still undecided on that owner, which is exactly the
 hazard window. It is raised at ONE site -- ExLoop::execute(), where the transaction fragment is
 parked behind that unit before it installs anything on the owner. A run in which it never advances
@@ -339,11 +341,10 @@ def main():
         window_holds = sum(armed_deltas)
         if atomic_on and window_holds == 0:
             failures += 1
-            print("  FAIL the armed cases recorded 0 atomic_exec_order_holds: no EXEC write ever "
-                  "installed against an undecided same-connection group, so this run never "
-                  "entered the window it exists to close and its pass is vacuous", flush=True)
+            print("  FAIL the armed cases recorded no ordering witness: neither an owner hold "
+                  "nor the MSETNX dispatch barrier ordered the pair; this run is vacuous", flush=True)
         elif atomic_on:
-            ok(f"hazard window opened {window_holds}x across the armed cases")
+            ok(f"ordering witnessed {window_holds}x across the armed cases")
         else:
             ok("atomic 0: no cross-shard group exists to invert against, window stays shut")
 
