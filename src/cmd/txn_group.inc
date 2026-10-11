@@ -28,6 +28,7 @@ bool txn_group_prepare(ScatterState& state, Server& server, uint32_t io,
         attempt->retry.owner_io = io;
         attempt->arrived.assign(server.nshards(), 0);
         attempt->claims.resize(server.nshards());
+        attempt->retire_claims.resize(server.nshards());
         attempt->age_ns = now_ns();
         attempt->age_io = io;
         attempt->age_seq = ++server.multi_retry_lane(io).age_seq;
@@ -109,6 +110,7 @@ bool txn_group_arrive(ScatterState& state, Shard& shard, Op& op) {
             }
             if (state.kind == Kind::Sort && state.sort_options.deref)
                 txn_add_claim(claims, {}, TxnClaimMode::Read, true);
+            if (claims.size() > kTxnClaimsPerShard) attempt->retire_claims[shard.id()] = claims;
             txn_cap_claims(claims);
             noted |= 8u;
         } catch (const std::bad_alloc&) {
@@ -536,6 +538,7 @@ void atomic_free_unit_intent(UnitRef* allocation) {
         const uint32_t shard = intent.kind == 2 ? intent.hash
             : state.server->router().shard_of(intent.hash);
         state.server->shard(shard).watch_finish_unit(state.group_attempt()->claims[shard], &state);
+        state.server->shard(shard).watch_finish_unit(state.group_attempt()->retire_claims[shard], &state);
         if (state.watch_refs.fetch_sub(1, std::memory_order_release) == 0) std::abort();
     }
     std::free(allocation);

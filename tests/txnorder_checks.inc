@@ -158,6 +158,40 @@ void txnorder_checks(Server& server, const std::string& name) {
         multi_plain_write_committed(shard, request.op);
         require(client.watch_dirty(), "F4 SORT STORE dirties destination WATCH");
         shard.watch_remove(slice(dst), &client, client.watch_generation());
+    } else if (name == "txnorder_f5") {
+        require(shard.watch_append_reservation(watch_key_string(slice(src)),
+                    Shard::WatchReservation{&epoch, &epoch, &aborted, &refs,
+                                           &client, 0, false, true}), "F5 validation claim");
+        for (auto kind : {Kind::DebugReload, Kind::DebugLoadAof}) {
+            Request request({"DEBUG", kind == Kind::DebugReload ? "RELOAD" : "LOADAOF"});
+            ScatterState state;
+            ShardGroup group;
+            state.server = &server;
+            state.kind = kind;
+            state.groups = &group;
+            state.nsub = state.group_cap = 1;
+            group.shard = 0;
+            require(xshard_execute(Task{&client, 0, 0, &state}, shard, request.op,
+                                  server.worker_of_shard(0)) == ScatterTaskResult::Defer,
+                    "F5 loader parks before replacing a claimed shard");
+        }
+        aborted.store(true);
+        require(shard.watch_write_ready(slice(src)), "F5 claim released");
+    } else if (name == "txnorder_f8") {
+        const auto remote = key_on(server, 1, "txnorder-blind-");
+        ScatterRun blind(server, {"MSET", src, "first", remote, "second"});
+        for (uint32_t i = 0; i < blind.state->nsub; ++i) {
+            const auto sid = blind.state->groups[i].shard;
+            require(xshard_execute(Task{&blind.client, 0, sid, blind.state}, server.shard(sid),
+                    blind.request.op, server.worker_of_shard(sid)) == ScatterTaskResult::Complete,
+                    "F8 blind candidate installed before decision");
+        }
+        require(!shard.watch_add(slice(src), &client, client.watch_generation()),
+                "F8 WATCH waits for a blind candidate even without an earlier watcher");
+        blind.state->epoch.store(server.atomic_commit(), std::memory_order_release);
+        require(shard.watch_add(slice(src), &client, client.watch_generation()),
+                "F8 WATCH starts after blind decision");
+        shard.watch_remove(slice(src), &client, client.watch_generation());
     } else if (name == "txnorder_f6") {
         std::unique_ptr<MultiExecState> state(allocate_state(server, client, 0, MultiStateKind::Execute));
         require(state != nullptr, "F6 attempt allocated");

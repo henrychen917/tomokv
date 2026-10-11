@@ -765,8 +765,9 @@ void prepare_claims(MultiExecState& state) {
     for (const auto& command : state.commands) {
         if (!command_has_owner_work(*command)) continue;
         const auto* child = command->scatter;
+        const bool loader = child && (child->kind == Kind::DebugReload || child->kind == Kind::DebugLoadAof);
         const bool writes = (command->queued.spec->flags &
-            (CmdFlags::Write | CmdFlags::SnapshotWrite)) || (child && child->atomic_group);
+            (CmdFlags::Write | CmdFlags::SnapshotWrite)) || (child && child->atomic_group) || loader;
         state.read_only &= !writes;
         const auto mode = writes ? TxnClaimMode::Write : TxnClaimMode::Read;
         for (size_t i = 0; i < command->key_args.size(); ++i)
@@ -775,13 +776,15 @@ void prepare_claims(MultiExecState& state) {
         if (child) for (uint32_t i = 0; i < child->key_count; ++i)
             txn_add_claim(state.claims[child->keys[i].shard],
                           command->op->arg(child->keys[i].arg), mode);
-        const bool whole = has_name(command->queued, "scan") ||
+        const bool whole = loader || has_name(command->queued, "scan") ||
             (child && ((child->kind == Kind::Sort && child->sort_options.deref) ||
                        child->kind == Kind::AllShards || child->kind == Kind::DatabaseInfo ||
                        child->kind == Kind::DbsizeExact || child->kind == Kind::RandomKey ||
                        child->kind == Kind::Keys));
         if (whole) for (int32_t sid : command->participants)
-            txn_add_claim(state.claims[sid], {}, TxnClaimMode::Read, true);
+            txn_add_claim(state.claims[sid], {},
+                loader || (writes && child && child->kind == Kind::AllShards)
+                    ? TxnClaimMode::Write : TxnClaimMode::Read, true);
     }
     // WATCH keys are part of placement's conflict set even when no queued
     // command accesses them. Inactive namespace aliases are validation-only.
@@ -2121,7 +2124,8 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
     // keeps a plain read and a transaction prepared back to back on one connection from disagreeing
     // about which of them is older. Untaken -- and therefore free -- for any transaction that
     // carries no multi-owner read.
-    if (__builtin_expect(dispatch->exec_read_fanout, false)) {
+    if (__builtin_expect(dispatch->exec_read_fanout ||
+            (dispatch->kind == MultiStateKind::Execute && dispatch->read_only && dispatch->shards.size() > 1), false)) {
         if (!pool.can_register_snapshot()) {
             // The unresolved-cut window is full on this IO thread. Falling through without a cut
             // would silently restore the defect, so this is backpressure: the state stays in
@@ -3189,8 +3193,8 @@ void Shard::watch_finish_unit(const std::vector<TxnClaim>& keys, const void*) {
     if (has_blocking_waiters()) set_blocking_dirty();
 }
 
-bool Shard::watch_writer_mark(Slice key, const void* token) {
-    const auto owned = watch_key_string(key);
+bool Shard::watch_writer_mark(Slice key, const void* token, bool whole) {
+    const auto owned = whole ? std::string{} : watch_key_string(key);
     if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end())
         for (const auto& r : found->second)
             if (r.entry_kind == 2 && r.token == token) return true;
@@ -3202,8 +3206,8 @@ bool Shard::watch_writer_mark(Slice key, const void* token) {
     return true;
 }
 
-void Shard::watch_writer_unmark(Slice key, const void* token) {
-    const auto found = watch_reservations_.find(watch_key_string(key));
+void Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
+    const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
     if (found == watch_reservations_.end()) return;
     auto& list = found->second;
     std::erase_if(list, [&](const auto& r) { return r.entry_kind == 2 && r.token == token; });
@@ -3456,7 +3460,7 @@ void Shard::watch_write_committed(Slice key, Client*, uint64_t) {
             entry.client->set_watch_dirty();
 }
 
-bool Shard::watch_all_write_ready() {
+bool Shard::watch_all_write_ready(const void* token) {
     if (!has_watches()) return true;
     std::vector<std::string> keys;
     try {
@@ -3466,7 +3470,7 @@ bool Shard::watch_all_write_ready() {
         return false;
     }
     for (const std::string& key : keys)
-        if (!watch_key_ready(key, nullptr, false)) return false;
+        if (!watch_key_ready(key, token, false)) return false;
     return true;
 }
 
@@ -3537,7 +3541,6 @@ bool multi_plain_write_ready(Shard& shard, Op& op) {
     auto check = [&](uint64_t, Slice key) {
         if (!shard.watch_write_ready(key)) {
             ready = false;
-            shard.watch_writer_mark(key, &op);
         }
     };
     if (op.local_xshard()) for_each_touched_key(op, check);
@@ -3549,6 +3552,11 @@ bool multi_plain_write_ready(Shard& shard, Op& op) {
     // writer to atomic_deferred_, which keeps draining that inbox. Mark only
     // an actual reservation wait; ordinary commands acquire no new check.
     if (!ready) {
+        auto mark = [&](uint64_t, Slice key) { shard.watch_writer_mark(key, &op); };
+        if (op.local_xshard()) for_each_touched_key(op, mark);
+        else if (op.spec->flags & CmdFlags::ScriptRoute)
+            for_each_spec_key(op, [&](Slice key) { mark(0, key); });
+        else mark(op.hash, op_routed_key(op));
         op.mark_atomic_hazard();
         shard.server()->note_txn(shard.server()->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
     } else {
@@ -3583,18 +3591,22 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
         if (!txn_group_ready(state, shard, op))
             return state.aborted.load(std::memory_order_acquire);
     }
-    if (!group.count && !state.group_attempt()) ready = shard.watch_all_write_ready();
+    if (!group.count && !state.group_attempt()) ready = shard.watch_all_write_ready(token);
     for (uint32_t i = 0; i < group.count; ++i) {
         const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
         const bool key_ready = state.atomic_group && !state.multi_child
             ? shard.watch_group_write_ready(key, token) : shard.watch_write_ready(key, token);
         if (!key_ready) {
             ready = false;
-            if (!state.atomic_group) shard.watch_writer_mark(key, &op);
         }
     }
     if (!ready) {
         if (state.kind != Kind::Script) {
+            if (!state.atomic_group) {
+                if (!group.count) shard.watch_writer_mark({}, &op, true);
+                for (uint32_t i = 0; i < group.count; ++i)
+                    shard.watch_writer_mark(op.arg(state.keys[state.key_order[group.begin + i]].arg), &op);
+            }
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
             return false;
         }
@@ -3607,6 +3619,7 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
         state.aborted.store(true, std::memory_order_release);
         return true;
     }
+    if (!state.atomic_group && !group.count) shard.watch_writer_unmark({}, &op, true);
     for (uint32_t i = 0; i < group.count; ++i) {
         const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
         if (!state.atomic_group) shard.watch_writer_unmark(key, &op);

@@ -457,6 +457,7 @@ struct TxnGroupAttempt {
     uint32_t participants = 0;
     std::atomic<uint32_t> placements{0};
     std::vector<std::vector<TxnClaim>> claims;
+    std::vector<std::vector<TxnClaim>> retire_claims; // exact keys when placement is capped
     std::unique_ptr<ShardGroup[]> placement_groups;
 };
 
@@ -3286,7 +3287,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 return ScatterTaskResult::Complete;
             }
             case Kind::DebugReload: {
-                if (!shard.watch_all_write_ready()) return ScatterTaskResult::Defer;
+                if (!shard.watch_all_write_ready(state.multi_parent)) return ScatterTaskResult::Defer;
                 auto foreign_read_scope = shard.store().foreign_read_poison_guard();
                 if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 shard.store().clear();
@@ -3299,7 +3300,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 return ScatterTaskResult::Complete;
             }
             case Kind::DebugLoadAof: {
-                if (!shard.watch_all_write_ready()) return ScatterTaskResult::Defer;
+                if (!shard.watch_all_write_ready(state.multi_parent)) return ScatterTaskResult::Defer;
                 auto foreign_read_scope = shard.store().foreign_read_poison_guard();
                 if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 shard.store().clear();

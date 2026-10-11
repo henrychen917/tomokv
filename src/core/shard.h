@@ -308,15 +308,15 @@ public:
     bool watch_place_unit(const std::vector<struct TxnClaim>& keys,
                           WatchReservation unit);
     void watch_finish_unit(const std::vector<struct TxnClaim>& keys, const void* token);
-    bool watch_writer_mark(Slice key, const void* token);
-    void watch_writer_unmark(Slice key, const void* token);
+    bool watch_writer_mark(Slice key, const void* token, bool whole = false);
+    void watch_writer_unmark(Slice key, const void* token, bool whole = false);
     bool watch_txn_write_ready(Slice key, MultiExecState& state);
     void watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                              const void* token, std::atomic<uint64_t>* epoch,
                              std::atomic<bool>* aborted, std::atomic<uint32_t>* refs);
     void watch_write_committed(Slice key, Client* writer = nullptr,
                                uint64_t writer_generation = 0);
-    bool watch_all_write_ready();
+    bool watch_all_write_ready(const void* token = nullptr);
     void watch_all_write_committed(int physical_db = -1);
     bool watch_finalize_reservation(const std::string& key);
     bool watch_append_reservation(const std::string& key, const WatchReservation& reservation);
