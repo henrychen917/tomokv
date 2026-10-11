@@ -127,7 +127,7 @@ adds three executed instructions to ordinary MGET destruction and therefore
 fails the zero-new-instruction rule. Its core and separately revisable fallback
 commits are retained for review. Identity attribution is complete; final proof
 is still running. Known failures include the baseline atomic-0 control, old
-MSETNX-overlap witnesses, one armed-fused expected-old read assertion, and an
+MSETNX-overlap witnesses, a baseline armed-fused expected-old read assertion, and an
 armed-fused SIGABRT during the atomic-window battery (attribution pending).
 No benchmark, full gate, or push has been run.
 
@@ -468,3 +468,12 @@ no missing or extra labels. [Final serverless receipts](docs/txnfix/txnfix2/fina
 The original crossed-WATCH pattern hangs merged PRE at its unchanged
 20-second deadline in **4/4** mode/atomic cells and completes on POST in
 **4/4**. [Crossed-WATCH receipts](docs/txnfix/txnfix2/final-cross-watch/runs.json).
+
+Fresh Stage A cost-checkpoint controls pass `multirace` and `multires` in
+both modes (**4/4**); their missing-overlap failures therefore appear with
+Stage B's MSETNX barrier. The unchanged armed-fused `execatomic` test fails
+on merged PRE, Stage A and POST. Every failed MGET answer is uniformly new;
+all six concurrent reader arms (three binaries, atomic 0/1) report zero
+mixtures. This establishes the expected-old assertion failure on the baseline
+as well, without treating it as a passing test or changing its assumptions.
+[Targeted controls](docs/txnfix/txnfix2/final-controls/runs.json).
