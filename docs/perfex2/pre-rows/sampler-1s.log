@@ -1,0 +1,12 @@
+{"frozen_time_ms": 1791710658698, "unrelated_batches": 16, "sample_changes": 0, "averages": [237588091, 237588091, 237588091, 237588091, 237588091, 237588091, 237588091, 237588091, 237588091, 237588091, 237588091, 237588091, 237588091, 237588091, 237588091, 237588091, 237588091]}
+{"estimated_ttl_ms": 255291418.84375, "exact_ttl_ms": 255733500.0, "relative_error": 0.001728679098553768, "tolerance": 0.1}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 378, in <module>
+    main()
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 368, in main
+    sampler_check(a.host, a.port, a.clock_file)
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 294, in sampler_check
+    require(row["keys"] == row["expires"] == 1 and 0 <= row["avg_ttl"] <= 60000,
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 25, in require
+    raise AssertionError(why)
+AssertionError: ('FLUSHALL',): discarded population's avg_ttl reused: {'keys': 1, 'expires': 1, 'avg_ttl': 3599989, 'subexpiry': 0}

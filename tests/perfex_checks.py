@@ -268,6 +268,39 @@ def sampler_check(host, port, clock_file):
             row = keyspace(c)
             require(row["keys"] == 4096 and row["expires"] == row["avg_ttl"] == 0,
                     "zero-expiry publication differs")
+            # A flush discards the sampled population too (Redis 7.4 emptyDbStructure).
+            # Re-arm every case with a witnessed long estimate on every shard. Hold
+            # realtime fixed across FLUSH/SET/INFO so a lucky beat cannot hide reuse
+            # of that estimate. Zero is allowed until the next beat, then the same
+            # range predicate as infofix must hold, including a positive estimate.
+            tick = 150
+            for flush in (("FLUSHALL",), ("FLUSHALL", "ASYNC"),
+                          ("FLUSHDB",), ("FLUSHDB", "ASYNC")):
+                require(c.must("FLUSHALL") == b"OK", "fresh flush-sample fixture")
+                long_at = origin + tick + 3_600_000
+                pipeline(c, [("SET", f"reset:{i}", "v", "PXAT", long_at)
+                             for i in range(4096)], b"OK")
+                for step in range(tick, tick + 12):
+                    freeze(origin + step)
+                now = origin + tick + 11
+                armed = keyspace(c)
+                require(armed["keys"] == armed["expires"] == 4096 and
+                        armed["avg_ttl"] == long_at - now,
+                        f"old-population sample was not armed: {armed}")
+                require(c.must(*flush) == b"OK", "flush sampled population")
+                require(c.must("SET", "ifx:ttl", "v", "PX", 60000) == b"OK",
+                        "new short-lived population")
+                row = keyspace(c)
+                require(row["keys"] == row["expires"] == 1 and 0 <= row["avg_ttl"] <= 60000,
+                        f"{flush}: discarded population's avg_ttl reused: {row}")
+                for step in range(tick + 12, tick + 24):
+                    freeze(origin + step)
+                fresh = keyspace(c)
+                require(0 < fresh["avg_ttl"] <= 60000,
+                        f"{flush}: new population never sampled: {fresh}")
+                print(json.dumps(dict(flush=flush, armed=armed, immediate=row, fresh=fresh)),
+                      flush=True)
+                tick += 24
         finally:
             c.must("DEBUG", "SET-ACTIVE-EXPIRE", 1)
             clock[:] = bytes(8)

@@ -254,3 +254,51 @@ then the unchanged differential harness with suites edgetime/hexpire/infofix,
 seeds 7/19/20/23 and both atomic settings. It pins target 112-119, Redis 7.4 oracle
 120, and differential load 121-127; ports 25103/25104. `wiring` retains the raw
 ledger refusal until the maintainer updates EXPECT.
+
+## perfex2
+
+Worktree `/home/user/Projects/cx-perfex`, branch `cx-perfex`; no push. Required
+`git fetch origin cpp && git merge --no-edit origin/cpp` completed as `04a9a0cce`,
+with `origin/cpp` at `991d48f65`. Merge resolution retains the landed wave-1
+compiler settings and all correctness rows, then adds perfex's four rows.
+The maintainer-owned EXPECT assignments remain exactly origin's 625 / 642.
+
+The old POST (`d8085684f`, binary SHA-256
+`81b0b26dceaea4d78201fd26b84c3af9929613467549710a53c1915b8e759d54`) is preserved,
+including its object files, under `build/perfex2/previous-post/`.
+The direct negative reproduction failed on round 3, atomic 0, with
+`measured avg_ttl: got 3591111`; the unchanged predicate requires
+`0 < avg_ttl <= 60000` after FLUSHALL and SET PX 60000. The run was stopped
+after that witness; the interrupted fourth pair is not counted as a result.
+Raw logs are in `docs/perfex2/pre-direct/`. The first complete gate feature
+sequence reproduced the same failure at atomic 1 (`avg_ttl=3547376`):
+68 passed, one failed; both shutdown-invariant rows passed. See
+`docs/perfex2/pre-gate-1/`. The frozen-clock regression independently fails
+on the original POST in both modes with `avg_ttl=3599989`, after all of the
+old sampler checks pass (`docs/perfex2/pre-rows/`).
+
+Root cause: single-DB `FlatStore::clear()` / `clear_during_snapshot()` skip
+`storesize_clear()`, which itself only clears the multi-DB census. The old
+single-DB sampled deadline survives FLUSHALL, and the new expiry count attaches
+it to the replacement population until the next owner sampler beat. Waiting
+only for a nonzero estimate in infofix cannot repair a stale nonzero estimate.
+
+Redis 7.4 maintains an estimate in its active-expiry loop, smoothing fresh
+samples and resetting the value when there are no volatile keys; its cold
+`emptyDbStructure` path also resets the average and sampling cursor on both
+synchronous and asynchronous flush. This does not promise an instantaneous
+exact mean after arbitrary TTL mutations. Sources:
+[Redis 7.4 expiry](https://github.com/redis/redis/blob/7.4/src/expire.c) and
+[Redis 7.4 database clear](https://github.com/redis/redis/blob/7.4/src/db.c).
+The locally executed oracle is `/tmp/claude-1000/redis74/src/redis-server`.
+
+The freshness regression extends the existing sampler rows: arm a witnessed
+long estimate on every shard, freeze realtime, flush, add one 60-second key,
+and reject any inherited long estimate immediately. Advance the clock and
+require a positive fresh estimate. Re-arm from fresh state for FLUSHALL,
+FLUSHALL ASYNC, FLUSHDB and FLUSHDB ASYNC. Both pre-existing no-batch-sampling
+and beat-progress checks remain. No assertion or tolerance in infofix changes.
+
+Rows remain **DQ=+4 / DF=+4** relative to landed wave 1: no new ledger row.
+Required totals are **629 quick / 646 full**; only the maintainer changes EXPECT.
+Final proof, changed-body inventory, and the measurement handoff follow below.
