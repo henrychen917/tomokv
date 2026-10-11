@@ -35,7 +35,7 @@ def boot(args, label, extra=()):
             "--bind", "127.0.0.1", "--port", str(args.port), "--dir", str(directory),
             "--save", "", "--appendonly", "no", "--enable-debug-command", "yes"]
     if not args.oracle:
-        argv += ["--thread-mode", args.mode, "--shards", "16",
+        argv += ["--databases", "1", "--thread-mode", args.mode, "--shards", "16",
                  "--net-io", args.net_io, "--flip-auto", "0", "--key-lb", "0",
                  "--client-lb", "0", "--enable-debug-command", "yes", *extra]
         if args.mode == "1s":
