@@ -1,0 +1,554 @@
+[
+  {
+    "name": "multidb-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/multidb-unit"
+    ],
+    "exit_code": 0,
+    "seconds": 0.010138066951185465
+  },
+  {
+    "name": "multidb-boundary-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/multidb-boundary-unit"
+    ],
+    "exit_code": 0,
+    "seconds": 0.011739364825189114
+  },
+  {
+    "name": "mdbqsbr-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "python3",
+      "tests/mdbqsbr_checks.py",
+      "build/mdbqsbr-unit"
+    ],
+    "exit_code": 0,
+    "seconds": 3.3006902392953634
+  },
+  {
+    "name": "multidb-serial-self-test",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "python3",
+      "tests/multidb_serial.py",
+      "--self-test"
+    ],
+    "exit_code": 0,
+    "seconds": 0.030609542969614267
+  },
+  {
+    "name": "multidb-1s-rl0-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb.py",
+      "127.0.0.1",
+      "25155",
+      "--read-local",
+      "0",
+      "--persistence"
+    ],
+    "exit_code": 0,
+    "seconds": 0.9079141970723867
+  },
+  {
+    "name": "multidb-1s-rl0-a0-serial",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb_serial.py",
+      "127.0.0.1",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/docs/dbdefault/multidb-1s-rl0-a0-epochs.json"
+    ],
+    "exit_code": 0,
+    "seconds": 0.09565613558515906
+  },
+  {
+    "name": "multidb-1s-rl0-a0-qsbr",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/mdbqsbr_live.py",
+      "--binary",
+      "/home/user/Projects/cx-dbdefault/build/tomokv",
+      "--parked-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-park/tomokv",
+      "--no-wake-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-no-wake/tomokv",
+      "--mode",
+      "1s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "0",
+      "--cores",
+      "112-119",
+      "--port",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/build/dbdefault/multidb-proof/multidb-1s-rl0-a0-qsbr"
+    ],
+    "exit_code": 0,
+    "seconds": 3.5154399597086012
+  },
+  {
+    "name": "multidb-1s-rl0-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb.py",
+      "127.0.0.1",
+      "25155",
+      "--read-local",
+      "0",
+      "--persistence"
+    ],
+    "exit_code": 0,
+    "seconds": 0.8709145169705153
+  },
+  {
+    "name": "multidb-1s-rl0-a1-serial",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb_serial.py",
+      "127.0.0.1",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/docs/dbdefault/multidb-1s-rl0-a1-epochs.json"
+    ],
+    "exit_code": 0,
+    "seconds": 0.09909049328416586
+  },
+  {
+    "name": "multidb-1s-rl0-a1-qsbr",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/mdbqsbr_live.py",
+      "--binary",
+      "/home/user/Projects/cx-dbdefault/build/tomokv",
+      "--parked-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-park/tomokv",
+      "--no-wake-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-no-wake/tomokv",
+      "--mode",
+      "1s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--cores",
+      "112-119",
+      "--port",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/build/dbdefault/multidb-proof/multidb-1s-rl0-a1-qsbr"
+    ],
+    "exit_code": 0,
+    "seconds": 5.028030143119395
+  },
+  {
+    "name": "multidb-1s-rl1-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb.py",
+      "127.0.0.1",
+      "25155",
+      "--read-local",
+      "1",
+      "--persistence"
+    ],
+    "exit_code": 0,
+    "seconds": 20.260914834216237
+  },
+  {
+    "name": "multidb-1s-rl1-a0-serial",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb_serial.py",
+      "127.0.0.1",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/docs/dbdefault/multidb-1s-rl1-a0-epochs.json"
+    ],
+    "exit_code": 0,
+    "seconds": 5.570438295137137
+  },
+  {
+    "name": "multidb-1s-rl1-a0-qsbr",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/mdbqsbr_live.py",
+      "--binary",
+      "/home/user/Projects/cx-dbdefault/build/tomokv",
+      "--parked-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-park/tomokv",
+      "--no-wake-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-no-wake/tomokv",
+      "--mode",
+      "1s",
+      "--read-local",
+      "1",
+      "--atomic",
+      "0",
+      "--cores",
+      "112-119",
+      "--port",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/build/dbdefault/multidb-proof/multidb-1s-rl1-a0-qsbr"
+    ],
+    "exit_code": 0,
+    "seconds": 11.847535576671362
+  },
+  {
+    "name": "multidb-1s-rl1-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb.py",
+      "127.0.0.1",
+      "25155",
+      "--read-local",
+      "1",
+      "--persistence"
+    ],
+    "exit_code": 0,
+    "seconds": 30.23204521695152
+  },
+  {
+    "name": "multidb-1s-rl1-a1-serial",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb_serial.py",
+      "127.0.0.1",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/docs/dbdefault/multidb-1s-rl1-a1-epochs.json"
+    ],
+    "exit_code": 0,
+    "seconds": 5.908331023063511
+  },
+  {
+    "name": "multidb-1s-rl1-a1-qsbr",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/mdbqsbr_live.py",
+      "--binary",
+      "/home/user/Projects/cx-dbdefault/build/tomokv",
+      "--parked-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-park/tomokv",
+      "--no-wake-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-no-wake/tomokv",
+      "--mode",
+      "1s",
+      "--read-local",
+      "1",
+      "--atomic",
+      "1",
+      "--cores",
+      "112-119",
+      "--port",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/build/dbdefault/multidb-proof/multidb-1s-rl1-a1-qsbr"
+    ],
+    "exit_code": 0,
+    "seconds": 8.818712211214006
+  },
+  {
+    "name": "multidb-2s-rl0-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb.py",
+      "127.0.0.1",
+      "25155",
+      "--read-local",
+      "0",
+      "--persistence"
+    ],
+    "exit_code": 0,
+    "seconds": 5.732746772933751
+  },
+  {
+    "name": "multidb-2s-rl0-a0-serial",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb_serial.py",
+      "127.0.0.1",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/docs/dbdefault/multidb-2s-rl0-a0-epochs.json"
+    ],
+    "exit_code": 0,
+    "seconds": 2.0245202989317477
+  },
+  {
+    "name": "multidb-2s-rl0-a0-qsbr",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/mdbqsbr_live.py",
+      "--binary",
+      "/home/user/Projects/cx-dbdefault/build/tomokv",
+      "--parked-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-park/tomokv",
+      "--no-wake-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-no-wake/tomokv",
+      "--mode",
+      "2s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "0",
+      "--cores",
+      "112-119",
+      "--port",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/build/dbdefault/multidb-proof/multidb-2s-rl0-a0-qsbr"
+    ],
+    "exit_code": 0,
+    "seconds": 6.642301708925515
+  },
+  {
+    "name": "multidb-2s-rl0-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb.py",
+      "127.0.0.1",
+      "25155",
+      "--read-local",
+      "0",
+      "--persistence"
+    ],
+    "exit_code": 0,
+    "seconds": 5.816996723879129
+  },
+  {
+    "name": "multidb-2s-rl0-a1-serial",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb_serial.py",
+      "127.0.0.1",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/docs/dbdefault/multidb-2s-rl0-a1-epochs.json"
+    ],
+    "exit_code": 0,
+    "seconds": 1.9624807182699442
+  },
+  {
+    "name": "multidb-2s-rl0-a1-qsbr",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/mdbqsbr_live.py",
+      "--binary",
+      "/home/user/Projects/cx-dbdefault/build/tomokv",
+      "--parked-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-park/tomokv",
+      "--no-wake-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-no-wake/tomokv",
+      "--mode",
+      "2s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--cores",
+      "112-119",
+      "--port",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/build/dbdefault/multidb-proof/multidb-2s-rl0-a1-qsbr"
+    ],
+    "exit_code": 0,
+    "seconds": 5.360524567309767
+  },
+  {
+    "name": "multidb-2s-rl1-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb.py",
+      "127.0.0.1",
+      "25155",
+      "--read-local",
+      "1",
+      "--persistence"
+    ],
+    "exit_code": 0,
+    "seconds": 5.985840822104365
+  },
+  {
+    "name": "multidb-2s-rl1-a0-serial",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb_serial.py",
+      "127.0.0.1",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/docs/dbdefault/multidb-2s-rl1-a0-epochs.json"
+    ],
+    "exit_code": 0,
+    "seconds": 1.718217623885721
+  },
+  {
+    "name": "multidb-2s-rl1-a0-qsbr",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/mdbqsbr_live.py",
+      "--binary",
+      "/home/user/Projects/cx-dbdefault/build/tomokv",
+      "--parked-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-park/tomokv",
+      "--no-wake-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-no-wake/tomokv",
+      "--mode",
+      "2s",
+      "--read-local",
+      "1",
+      "--atomic",
+      "0",
+      "--cores",
+      "112-119",
+      "--port",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/build/dbdefault/multidb-proof/multidb-2s-rl1-a0-qsbr"
+    ],
+    "exit_code": 0,
+    "seconds": 5.744718000292778
+  },
+  {
+    "name": "multidb-2s-rl1-a1",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb.py",
+      "127.0.0.1",
+      "25155",
+      "--read-local",
+      "1",
+      "--persistence"
+    ],
+    "exit_code": 0,
+    "seconds": 4.600945656187832
+  },
+  {
+    "name": "multidb-2s-rl1-a1-serial",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/multidb_serial.py",
+      "127.0.0.1",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/docs/dbdefault/multidb-2s-rl1-a1-epochs.json"
+    ],
+    "exit_code": 0,
+    "seconds": 1.776181906927377
+  },
+  {
+    "name": "multidb-2s-rl1-a1-qsbr",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/mdbqsbr_live.py",
+      "--binary",
+      "/home/user/Projects/cx-dbdefault/build/tomokv",
+      "--parked-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-park/tomokv",
+      "--no-wake-binary",
+      "/home/user/Projects/cx-dbdefault/build/mdbqsbr2-no-wake/tomokv",
+      "--mode",
+      "2s",
+      "--read-local",
+      "1",
+      "--atomic",
+      "1",
+      "--cores",
+      "112-119",
+      "--port",
+      "25155",
+      "--output",
+      "/home/user/Projects/cx-dbdefault/build/dbdefault/multidb-proof/multidb-2s-rl1-a1-qsbr"
+    ],
+    "exit_code": 0,
+    "seconds": 4.4179613017477095
+  }
+]

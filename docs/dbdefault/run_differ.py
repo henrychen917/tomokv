@@ -1,6 +1,5 @@
 """Focused correctness proof, never a performance measurement."""
 from pathlib import Path
-import hashlib
 import json
 import os
 import subprocess
@@ -24,3 +23,6 @@ for mode in ("split", "armed-fused"):
         if k.startswith("GATE_") or k == "REDIS74_ROOT"}, exit_code=rc, seconds=time.monotonic()-start))
     (out / "differ.json").write_text(json.dumps(records, indent=2) + "\n")
     print(mode, rc, flush=True)
+
+if any(record["exit_code"] for record in records):
+    raise SystemExit(1)

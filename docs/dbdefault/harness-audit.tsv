@@ -28,3 +28,8 @@ tests/gate.sh tlsboot/zcboot/reject_boot/NIC	explicit 1	direct shell boot
 tests/dbdefault.py	new default row omits database flag; proof CLI can check conf/override	default16 both modes; negative PRE fails
 tests/multidb_unit.cc; tests/multidb_db0_unit.cc	default assertions now expect 16; same existing multidb serverless owners row, DQ/DF unchanged	Config default checks
 tests/atomic_survivors_unit.cc; tests/ccfix2_atomic_unit.cc; tests/execfix_unit.cc; tests/shutdown_unit.cc; tests/netcmd_unit.cc; tests/owner_arena_unit.cc; tests/owner_prefetch_unit.cc; tests/encodingfix_unit.cc	DB0 fixture configurations explicitly remain 1	serverless test state, no production object changes
+tests/abba_aslr.py; tests/abba_experiments.py	inherit ABBA database plan; local test launchers are harmless mocks	Runner/main delegation
+tests/flipctl.py; tests/flatstore_alloc_fail.py; tests/flip_cost_gate.py; tests/flip_multikey_hold.py; tests/expireindex.py	connect-only clients; manual boot examples now explicitly use 1	docstrings/comments, no owned server boot
+tests/tailgen_stall.py; tests/wb_policy.py; tests/lb_stationary.py	connect-only clients; gate boot inherits explicit 1	no independent server launch
+tests/gateplan.py	plans ABBA/gate commands, both inherit explicit 1	no independent server launch
+tools/aoffix2_proof.py	delegates target boots to aoffix2.py / differ_gate.sh with explicit 1 / 16 respectively	no independent target boot
