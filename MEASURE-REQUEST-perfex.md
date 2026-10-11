@@ -382,8 +382,14 @@ ledgers, INFO logs, command lines and results are in `docs/perfex2/final-gate/`.
 Every server is pinned to 112-119, clients to 120-127, with 16 shards, ratio 6:2,
 and ports within 25100-25124.
 
-The independent direct-stress, differential and harness campaign is in progress;
-its final results will be recorded here before completion.
+Independent direct `expwide.py` -> `infofix.py` stress also passes **20/20 pairs
+at atomic 0 and 20/20 at atomic 1**, with all 80 battery commands exiting zero.
+Each atomic setting uses one persistent split server at the same eight-core,
+16-shard, 6:2 geometry, then checks owned-process teardown. Logs and the complete
+result inventory are in `docs/perfex2/final-direct/`.
+
+The differential and harness campaign is in progress; its final results will
+be recorded here before completion.
 
 The maintainer's performance comparison for this follow-up is merged perfex PRE
 against perfex2 POST, using the digests above. This isolates the freshness repair

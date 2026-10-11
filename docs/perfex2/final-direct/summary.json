@@ -1,0 +1,1442 @@
+[
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 65.11800768692046,
+    "log": "docs/perfex2/final-direct/a0/expwide-1.log",
+    "atomic": 0,
+    "round": 1,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.219900923315436,
+    "log": "docs/perfex2/final-direct/a0/infofix-1.log",
+    "atomic": 0,
+    "round": 1,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 59.747152294032276,
+    "log": "docs/perfex2/final-direct/a0/expwide-2.log",
+    "atomic": 0,
+    "round": 2,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.21990252379328,
+    "log": "docs/perfex2/final-direct/a0/infofix-2.log",
+    "atomic": 0,
+    "round": 2,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 73.36319704679772,
+    "log": "docs/perfex2/final-direct/a0/expwide-3.log",
+    "atomic": 0,
+    "round": 3,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.2194662149995565,
+    "log": "docs/perfex2/final-direct/a0/infofix-3.log",
+    "atomic": 0,
+    "round": 3,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 45.324217825662345,
+    "log": "docs/perfex2/final-direct/a0/expwide-4.log",
+    "atomic": 0,
+    "round": 4,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.219567644875497,
+    "log": "docs/perfex2/final-direct/a0/infofix-4.log",
+    "atomic": 0,
+    "round": 4,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 76.31704094912857,
+    "log": "docs/perfex2/final-direct/a0/expwide-5.log",
+    "atomic": 0,
+    "round": 5,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.16928330110386,
+    "log": "docs/perfex2/final-direct/a0/infofix-5.log",
+    "atomic": 0,
+    "round": 5,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 70.77019279403612,
+    "log": "docs/perfex2/final-direct/a0/expwide-6.log",
+    "atomic": 0,
+    "round": 6,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.219368580263108,
+    "log": "docs/perfex2/final-direct/a0/infofix-6.log",
+    "atomic": 0,
+    "round": 6,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 70.62765123089775,
+    "log": "docs/perfex2/final-direct/a0/expwide-7.log",
+    "atomic": 0,
+    "round": 7,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.2320855599828064,
+    "log": "docs/perfex2/final-direct/a0/infofix-7.log",
+    "atomic": 0,
+    "round": 7,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 59.423582518007606,
+    "log": "docs/perfex2/final-direct/a0/expwide-8.log",
+    "atomic": 0,
+    "round": 8,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.280760359019041,
+    "log": "docs/perfex2/final-direct/a0/infofix-8.log",
+    "atomic": 0,
+    "round": 8,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 58.11562679475173,
+    "log": "docs/perfex2/final-direct/a0/expwide-9.log",
+    "atomic": 0,
+    "round": 9,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.23217286169529,
+    "log": "docs/perfex2/final-direct/a0/infofix-9.log",
+    "atomic": 0,
+    "round": 9,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 45.842602379154414,
+    "log": "docs/perfex2/final-direct/a0/expwide-10.log",
+    "atomic": 0,
+    "round": 10,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.275740536861122,
+    "log": "docs/perfex2/final-direct/a0/infofix-10.log",
+    "atomic": 0,
+    "round": 10,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 42.57070390600711,
+    "log": "docs/perfex2/final-direct/a0/expwide-11.log",
+    "atomic": 0,
+    "round": 11,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.275769148021936,
+    "log": "docs/perfex2/final-direct/a0/infofix-11.log",
+    "atomic": 0,
+    "round": 11,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 42.74937197379768,
+    "log": "docs/perfex2/final-direct/a0/expwide-12.log",
+    "atomic": 0,
+    "round": 12,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.233547684270889,
+    "log": "docs/perfex2/final-direct/a0/infofix-12.log",
+    "atomic": 0,
+    "round": 12,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 40.94548772228882,
+    "log": "docs/perfex2/final-direct/a0/expwide-13.log",
+    "atomic": 0,
+    "round": 13,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.269655990879983,
+    "log": "docs/perfex2/final-direct/a0/infofix-13.log",
+    "atomic": 0,
+    "round": 13,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 67.70510570611805,
+    "log": "docs/perfex2/final-direct/a0/expwide-14.log",
+    "atomic": 0,
+    "round": 14,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.170679782982916,
+    "log": "docs/perfex2/final-direct/a0/infofix-14.log",
+    "atomic": 0,
+    "round": 14,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 72.82535068085417,
+    "log": "docs/perfex2/final-direct/a0/expwide-15.log",
+    "atomic": 0,
+    "round": 15,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.281714055687189,
+    "log": "docs/perfex2/final-direct/a0/infofix-15.log",
+    "atomic": 0,
+    "round": 15,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 33.22250635223463,
+    "log": "docs/perfex2/final-direct/a0/expwide-16.log",
+    "atomic": 0,
+    "round": 16,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.227840599603951,
+    "log": "docs/perfex2/final-direct/a0/infofix-16.log",
+    "atomic": 0,
+    "round": 16,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 70.58631915273145,
+    "log": "docs/perfex2/final-direct/a0/expwide-17.log",
+    "atomic": 0,
+    "round": 17,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.324241530150175,
+    "log": "docs/perfex2/final-direct/a0/infofix-17.log",
+    "atomic": 0,
+    "round": 17,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 33.65394747490063,
+    "log": "docs/perfex2/final-direct/a0/expwide-18.log",
+    "atomic": 0,
+    "round": 18,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.219756818842143,
+    "log": "docs/perfex2/final-direct/a0/infofix-18.log",
+    "atomic": 0,
+    "round": 18,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 52.64138456899673,
+    "log": "docs/perfex2/final-direct/a0/expwide-19.log",
+    "atomic": 0,
+    "round": 19,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.069146149791777,
+    "log": "docs/perfex2/final-direct/a0/infofix-19.log",
+    "atomic": 0,
+    "round": 19,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 59.543893869034946,
+    "log": "docs/perfex2/final-direct/a0/expwide-20.log",
+    "atomic": 0,
+    "round": 20,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.219434168655425,
+    "log": "docs/perfex2/final-direct/a0/infofix-20.log",
+    "atomic": 0,
+    "round": 20,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 60.952751414850354,
+    "log": "docs/perfex2/final-direct/a1/expwide-1.log",
+    "atomic": 1,
+    "round": 1,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.269769721664488,
+    "log": "docs/perfex2/final-direct/a1/infofix-1.log",
+    "atomic": 1,
+    "round": 1,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 54.58686822699383,
+    "log": "docs/perfex2/final-direct/a1/expwide-2.log",
+    "atomic": 1,
+    "round": 2,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.269898563157767,
+    "log": "docs/perfex2/final-direct/a1/infofix-2.log",
+    "atomic": 1,
+    "round": 2,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 66.91582426289096,
+    "log": "docs/perfex2/final-direct/a1/expwide-3.log",
+    "atomic": 1,
+    "round": 3,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.284759021829814,
+    "log": "docs/perfex2/final-direct/a1/infofix-3.log",
+    "atomic": 1,
+    "round": 3,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 46.33926161658019,
+    "log": "docs/perfex2/final-direct/a1/expwide-4.log",
+    "atomic": 1,
+    "round": 4,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.219329649116844,
+    "log": "docs/perfex2/final-direct/a1/infofix-4.log",
+    "atomic": 1,
+    "round": 4,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 100.16126041905954,
+    "log": "docs/perfex2/final-direct/a1/expwide-5.log",
+    "atomic": 1,
+    "round": 5,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.1696848552674055,
+    "log": "docs/perfex2/final-direct/a1/infofix-5.log",
+    "atomic": 1,
+    "round": 5,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 53.83843760378659,
+    "log": "docs/perfex2/final-direct/a1/expwide-6.log",
+    "atomic": 1,
+    "round": 6,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.223497840110213,
+    "log": "docs/perfex2/final-direct/a1/infofix-6.log",
+    "atomic": 1,
+    "round": 6,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 53.28241667896509,
+    "log": "docs/perfex2/final-direct/a1/expwide-7.log",
+    "atomic": 1,
+    "round": 7,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.230614488013089,
+    "log": "docs/perfex2/final-direct/a1/infofix-7.log",
+    "atomic": 1,
+    "round": 7,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 42.640140971168876,
+    "log": "docs/perfex2/final-direct/a1/expwide-8.log",
+    "atomic": 1,
+    "round": 8,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.300490689929575,
+    "log": "docs/perfex2/final-direct/a1/infofix-8.log",
+    "atomic": 1,
+    "round": 8,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 44.17264323681593,
+    "log": "docs/perfex2/final-direct/a1/expwide-9.log",
+    "atomic": 1,
+    "round": 9,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.169402186293155,
+    "log": "docs/perfex2/final-direct/a1/infofix-9.log",
+    "atomic": 1,
+    "round": 9,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 63.55205839173868,
+    "log": "docs/perfex2/final-direct/a1/expwide-10.log",
+    "atomic": 1,
+    "round": 10,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.169282660353929,
+    "log": "docs/perfex2/final-direct/a1/infofix-10.log",
+    "atomic": 1,
+    "round": 10,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 78.49040885502473,
+    "log": "docs/perfex2/final-direct/a1/expwide-11.log",
+    "atomic": 1,
+    "round": 11,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.2193014291115105,
+    "log": "docs/perfex2/final-direct/a1/infofix-11.log",
+    "atomic": 1,
+    "round": 11,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 71.5234608980827,
+    "log": "docs/perfex2/final-direct/a1/expwide-12.log",
+    "atomic": 1,
+    "round": 12,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.327718761283904,
+    "log": "docs/perfex2/final-direct/a1/infofix-12.log",
+    "atomic": 1,
+    "round": 12,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 33.41729978378862,
+    "log": "docs/perfex2/final-direct/a1/expwide-13.log",
+    "atomic": 1,
+    "round": 13,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.2193977241404355,
+    "log": "docs/perfex2/final-direct/a1/infofix-13.log",
+    "atomic": 1,
+    "round": 13,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 56.46165281301364,
+    "log": "docs/perfex2/final-direct/a1/expwide-14.log",
+    "atomic": 1,
+    "round": 14,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.2242162940092385,
+    "log": "docs/perfex2/final-direct/a1/infofix-14.log",
+    "atomic": 1,
+    "round": 14,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 48.44877650914714,
+    "log": "docs/perfex2/final-direct/a1/expwide-15.log",
+    "atomic": 1,
+    "round": 15,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.278758877422661,
+    "log": "docs/perfex2/final-direct/a1/infofix-15.log",
+    "atomic": 1,
+    "round": 15,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 39.11730778077617,
+    "log": "docs/perfex2/final-direct/a1/expwide-16.log",
+    "atomic": 1,
+    "round": 16,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.277422018814832,
+    "log": "docs/perfex2/final-direct/a1/infofix-16.log",
+    "atomic": 1,
+    "round": 16,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 59.055245742201805,
+    "log": "docs/perfex2/final-direct/a1/expwide-17.log",
+    "atomic": 1,
+    "round": 17,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.27549485815689,
+    "log": "docs/perfex2/final-direct/a1/infofix-17.log",
+    "atomic": 1,
+    "round": 17,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 53.151577562093735,
+    "log": "docs/perfex2/final-direct/a1/expwide-18.log",
+    "atomic": 1,
+    "round": 18,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.278849883005023,
+    "log": "docs/perfex2/final-direct/a1/infofix-18.log",
+    "atomic": 1,
+    "round": 18,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 56.83904337976128,
+    "log": "docs/perfex2/final-direct/a1/expwide-19.log",
+    "atomic": 1,
+    "round": 19,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.330789783038199,
+    "log": "docs/perfex2/final-direct/a1/infofix-19.log",
+    "atomic": 1,
+    "round": 19,
+    "battery": "infofix"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/expwide.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 43.82901054713875,
+    "log": "docs/perfex2/final-direct/a1/expwide-20.log",
+    "atomic": 1,
+    "round": 20,
+    "battery": "expwide"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-perfex/tests/infofix.py",
+      "127.0.0.1",
+      "25100"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 4.219659884925932,
+    "log": "docs/perfex2/final-direct/a1/infofix-20.log",
+    "atomic": 1,
+    "round": 20,
+    "battery": "infofix"
+  }
+]
