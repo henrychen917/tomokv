@@ -1,49 +1,62 @@
-The null-attempt destructor tax is removed by design. Both namespaces have PRE-identical constructor, destructor and `xshard_destroy` bodies, including all branches in those bodies. Dispatch-shard lookup is also identical. No new attempt-pointer load/test/branch executes there.
+The null-attempt destructor tax is removed by design. Both namespaces have PRE-identical constructor, destructor and `xshard_destroy` bodies, including all branches. Dispatch-shard lookup is also identical. No new attempt-pointer load/test/branch executes there.
 
-The broader literal requirement—identical executed sequences on **every** ordinary scatter path—is **not established**. The evidence below is deliberately narrower. Compiler placement changes ordinary sequences; finite samples with fewer instructions do not prove all paths. Corrected atomic-0 mover paths intentionally do different work from broken PRE.
+The broader literal requirement—identical executed sequences on **every** ordinary scatter path—is **not established**. Final production-object traces cover 264 matched cases with no per-function instruction increase and no group-helper entry. This is bounded evidence, not universal sequence identity. Compiler placement changes ordinary sequences; corrected atomic-0 movers intentionally differ from broken PRE.
 
-PRE is `origin/cpp` 991d48f65, binary SHA-256 `5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20`. Final POST SHA-256 is `c879e3f1e476b5f86232e47f863565d5b967905617b1dabf3ca1a961628e4916`. Both use the normal optimized production recipes. The fixtures link those production objects; no object is rebuilt with fixture-specific optimization flags.
+PRE is `origin/cpp` 991d48f65, SHA-256 `5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20`. POST runtime source is `e904cd285`, SHA-256 `1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc`. Fixtures link optimized production objects without changing their compiler flags. Every final pair uses CPUs 112–119, giving both arms eight available CPUs, 16 shards, and 6:2 split geometry (or eight fused threads).
 
 | Entry | Existing predicate containing the new work | Ordinary path |
 |---|---|---|
 | `ScatterState` construction/destruction | None needed: attempt pointer has no initializer/destructor action | Complete bodies match PRE |
 | `xshard_prepare` | `atomic_group && !force_atomic`, already used for group AOF setup | False skips attempt setup; no new predicate |
 | `xshard_task_should_defer` | `atomic_direct` | False skips group arrival |
-| `xshard_execute` | `atomic_apply` / `atomic_write` | False skips group read/intents; mover phase two is an explicit correctness change |
-| `xshard_complete_impl<false/true>` | `atomic_write || atomic_apply` | False skips the attempt lookup and outlined group completion |
-| `xshard_retire` | `atomic_group` | False skips the debug witness |
+| `xshard_execute` | `atomic_apply` / `atomic_write` | False skips group reads/intents; mover phase two intentionally changes |
+| `xshard_complete_impl<false/true>` | `atomic_write || atomic_apply` | False skips attempt lookup and group completion |
+| `xshard_retire` | `atomic_group` | False skips debug witness |
 | `xshard_destroy` | Existing `record_refs || watch_refs` | Complete body matches PRE |
-| `ScatterArenaPool::reap_deferred` | Existing nonzero `record_refs || watch_refs` | Zero-reference states skip attempt cleanup; the empty reaper and unchanged acquire path remain part of the ordinary path |
+| `ScatterArenaPool::reap_deferred` | Existing nonzero `record_refs || watch_refs` | Zero-reference states skip attempt cleanup |
 
-Attempt ownership is bit 31 of existing `watch_refs` at offset 0x18. The uninitialized pointer occupies pre-existing padding at 0x310. A real group sets both on its cold prepare path. Release requires zero record refs and exactly the ownership bit (no live watch/intent pins). The pointer is never read for an ordinary zero-reference state. No reader retry, seqlock, or new ordinary allocation was introduced by this lifetime repair.
+Attempt ownership is bit 31 of existing `watch_refs` at offset 0x18. Its uninitialized pointer occupies old padding at 0x310. Only a group sets these on preparation. Release requires zero record refs and exactly the ownership bit, so live intent/watch pins still prevent destruction. Ordinary zero-reference states never read the pointer. This repair introduces no reader retry, seqlock or ordinary allocation.
 
-The eight complete MGET fixtures cover both namespaces, both modes and missing/present values. Counts include only named scatter/state functions and their selected outlined helpers; calls outside that set are stepped over. They are **not instructions/op, cycles/op, or a rate measurement**. Executed NOPs are counted. Each function's PRE/POST count is retained in `scatter-certified/counts.json`; no total is used to hide a per-function increase.
+The MGET trace includes named scatter/state functions and selected outlined helpers; other callees are stepped over. These are **not instructions/op, cycles/op or rates**. Executed NOPs count. Each named function is checked separately; reductions elsewhere cannot hide an increase. Raw data is in `scatter-final4/`; `final4-path-counts.json` pairs every fixture and retains failures if any.
 
-| MGET function (two-fragment operation) | Normal PRE / POST | DB0 PRE / POST |
+| MGET function (two-fragment missing-value operation) | Normal PRE / POST | DB0 PRE / POST |
 |---|---:|---:|
-| `ScatterState::ScatterState` | 91 / 91 | 91 / 91 |
-| `ScatterState::~ScatterState` | 42 / 42 | 42 / 42 |
+| `ScatterState::ScatterState()` | 91 / 91 | 91 / 91 |
+| `ScatterState::~ScatterState()` | 42 / 42 | 42 / 42 |
 | `xshard_dispatch_shard` | 22 / 22 | 22 / 22 |
 | `xshard_task_should_defer` | 96 / 96 | 96 / 96 |
 | `xshard_prepare` | 1218 / 1211 | 1270 / 1227 |
-| `xshard_execute` (without separately counted gather helper) | 326 / 324 | 328 / 324 |
-| `xshard_complete_impl<false/true>` (without its separately counted final lambda) | 125 / 119 | 125 / 119 |
+| `xshard_execute` | 326 / 322 | 328 / 322 |
+| `xshard_complete_impl<false/true>` | 125 / 119 | 125 / 119 |
 | `xshard_retire` | 76 / 76 | 76 / 76 |
 | `xshard_destroy` | 81 / 81 | 80 / 80 |
 
-Both mode instantiations agree in these fixtures. Missing-value captured totals are 3027 → 2997 (normal), 3087 → 3019 (DB0); present-value totals are 3101 → 3071 and 3159 → 3091. These reductions do not establish a performance gain or universal sequence identity.
+Both mode instantiations agree in these fixtures. Named-function missing-value totals are 3027 → 2995 (normal), 3087 → 3017 (DB0); present totals are 3101 → 3069 and 3159 → 3089. No performance gain is inferred.
 
-Preparation coverage adds 45 valid command shapes × two namespaces × two modes = **180 paired cases**, including MSET/MSETNX, the set/zset algebra and stores, movers, multi-pops, SORT/dereference, geo stores, streams, all-shard scans and flushes. Every named function is non-increasing and no group helper is entered. `certified-path-counts.json` combines these with the eight complete MGET pairs (188 total). The first broader probe incorrectly expected local INFO/DBSIZE and an unsupported two-stream XREADGROUP form to produce scatter state. Those invalid fixture receipts remain under `prepare-release`/`prepare-corrected`; corrected single-stream blocking XREADGROUP has its own final eight runs. No production-test assertion was altered for these serverless fixture corrections.
+| Matched coverage | Pairs | Final result |
+|---|---:|---|
+| Complete missing/present MGET, both namespaces/modes | 8 | No per-function increase; no group helper |
+| Preparation: 45 valid shapes, both namespaces/modes | 180 | No per-function increase; no group helper |
+| Complete empty-input execution: 17 shapes, both namespaces/modes | 68 | No per-function increase; no group helper |
+| KEYS/RANDOMKEY first-shard scan continuations, both namespaces/modes | 8 | No per-function increase; no group helper; full reply checked after tracing |
 
-The first final-cost candidate still added two instructions for DB0 SORT STORE, KEYS, FLUSHDB and FLUSHALL. The receipt is retained in `prepare-release`. The final existing-branch hint changes their preparation counts to 1278 → 1246, 1294 → 1267, and 1324 → 1297 (both flush forms). It preserves every selected hot body. Other rejected source-placement and local-alignment trials remain separate and were never adopted.
+Preparation covers MSET/MSETNX, algebra and stores, movers, multi-pops, SORT/dereference, geo stores, streams, all-shard scans and flushes. The complete read matrix covers MGET, EXISTS, set/zset algebra, cardinalities, LCS, PFCOUNT, XREAD, TOUCH, DEL and UNLINK on empty input. It does not turn empty input into coverage of populated/error/large-value paths.
 
-The disassembly corpus includes **386 emitted scatter/state-helper bodies: 281 canonically equal and 105 changed**. The narrower public/lifetime corpus has 222 bodies (173 equal). `finish_phase1`, `assemble_final`, `xshard_aof_emit_local` and `notify_xshard_finished` have equal canonical instruction bytes but relocated unnamed read-only tables; the unchanged canonical checker retains those as different. The exact relocation differences are retained in `scatter-all-certified/changed-details.json`. This is not an excuse to mark every changed body equal.
+Broader execution tracing found a real counterexample after the preparation repair: normal set/zset algebra and LCS cost two extra instructions per two-fragment operation. `read-certified/` retains all 18 failing pairs. They were real jumps/register-placement changes, not ignored NOPs. The constructor-only read-epoch binding hint in `e904cd285` restores normal SINTER 450/450, ZUNION 468/468 and LCS 440/440; all nine affected forms pass both modes. DB0 also has no increase. The constructor-plus-destructor hint trial was rejected and remains in `read-bound-both/`. Its trial receipts are not substituted for the final paired eight-core results.
 
-`scatter-all-certified/{pre,post,db0-pre,db0-post}.asm.gz` retains the complete selected disassembly. `inventory.json` records object digests. `function-review.json` gives every function its exact result and attribution, including unresolved compiler changes. The full tree inventory is separate under `identity-certified` (16656 bodies, 579 changes). The checker and allowed-handler list were not weakened.
+The scan fixture originally assumed one execute call completed KEYS/RANDOMKEY; that was false. The rejected fixture and 20,000-step exhaustion receipts remain under `read-certified/`. `probe-scan.cc` now accepts only actual cursor `Retry` continuations, requires at least one, and retains exact final empty-array/nil assertions after all 16 shards finish. Only first-shard execution is traced. The trace steps over `FlatStore::scan_home<xshard_execute...>` after verifying exact canonical PRE/POST equality in both namespaces; caller call instructions still count. `scan-final4/identical-skipped-helpers.json` records that check. Both arms have 1024-slot empty stores and identical scan arguments. No production-test assertion was changed for this fixture correction.
 
-The final ordinary-path evidence remains incomplete for untraced error/exception, large-value, snapshot/MVCC interaction and phase-two paths. In particular, byte differences in preparation, execution, completion and cold clones mean that this report cannot certify the user's literal universal identity bar. Mainline's quiet-box null is also still unmeasured. The destructor fix and selected hot equality are proven independently of that open requirement.
+The scan's counted prefixes are KEYS 87192 → 86157 and RANDOMKEY 87148 → 86113 (normal); DB0 87196 → 86161 and 87152 → 86117. Those numbers exclude the identical scan helper and the untraced remaining shards; they are not whole-operation counts.
 
-Every emitted scatter/state helper is listed below; byte sizes are not substituted for executed instruction counts.
+Earlier DB0 preparation counterexamples (SORT STORE, KEYS, FLUSHDB/ALL) remain in `prepare-release/`. Existing group-branch placement repaired those without changing any selected hot body. Invalid preparation fixtures for local-only INFO/DBSIZE and unsupported XREADGROUP forms also remain labelled as fixture failures. No production assertion was weakened.
+
+The disassembly corpus contains **386 emitted scatter/state-helper bodies: 281 canonically equal, 105 changed**. The constructor and destructor each have complete canonical equality, including all emitted clones. `finish_phase1`, `assemble_final`, `xshard_aof_emit_local` and `notify_xshard_finished` have equal canonical instruction bytes but different unnamed read-only table relocations; the unchanged checker retains those differences. Exact targets are in `scatter-all-final4/changed-details.json`.
+
+`scatter-all-final4/{pre,post,db0-pre,db0-post}.asm.gz` retains disassembly. `inventory.json` records object digests; `function-review.json` attributes every function, including unresolved compiler drift. Full-tree inventory is under `identity-final4`: 16656 bodies, 16077 equal, 579 changed. The checker and allowlist were not weakened. Compression manifests preserve the uncompressed trace digests.
+
+Untraced error/exception, populated/large-value, snapshot/MVCC interactions and phase-two paths still prevent a universal proof. Preparation, execution and completion are not byte-identical. The quiet-box performance null remains unmeasured. The destructor fix and selected-hot restoration stand independently; **this report does not close goal 1's literal universal instruction-sequence bar**.
+
+Every emitted scatter/state helper follows. Byte sizes do not substitute for executed instruction counts.
 
 | Object | Function | PRE bytes | POST bytes | Canonically equal |
 |---|---|---:|---:|---|
@@ -116,8 +129,8 @@ Every emitted scatter/state helper is listed below; byte sizes are not substitut
 | `src/cmd/xshard.o` | `tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*)) [clone .cold]` | 5 | 5 | yes |
 | `src/cmd/xshard.o` | `tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)` | 758 | 758 | yes |
 | `src/cmd/xshard.o` | `tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int) [clone .cold]` | 5 | 5 | yes |
-| `src/cmd/xshard.o` | `tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)` | 21176 | 21137 | no; see attribution |
-| `src/cmd/xshard.o` | `tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]` | 400 | 346 | no; see attribution |
+| `src/cmd/xshard.o` | `tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)` | 21176 | 21134 | no; see attribution |
+| `src/cmd/xshard.o` | `tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]` | 400 | 339 | no; see attribution |
 | `src/cmd/xshard.o` | `tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)` | 18276 | 18242 | no; see attribution |
 | `src/cmd/xshard.o` | `tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]` | 594 | 573 | no; see attribution |
 | `src/cmd/xshard.o` | `tomo::xshard_aof_emit(tomo::Task const&, tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)` | 922 | 922 | yes |
@@ -309,8 +322,8 @@ Every emitted scatter/state helper is listed below; byte sizes are not substitut
 | `db0/src/cmd/xshard.o` | `tomo_db0::xshard_retire(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*)) [clone .cold]` | 5 | 5 | yes |
 | `db0/src/cmd/xshard.o` | `tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)` | 774 | 774 | yes |
 | `db0/src/cmd/xshard.o` | `tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int) [clone .cold]` | 5 | 5 | yes |
-| `db0/src/cmd/xshard.o` | `tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)` | 23329 | 23006 | no; see attribution |
-| `db0/src/cmd/xshard.o` | `tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]` | 408 | 370 | no; see attribution |
+| `db0/src/cmd/xshard.o` | `tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)` | 23329 | 22946 | no; see attribution |
+| `db0/src/cmd/xshard.o` | `tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]` | 408 | 386 | no; see attribution |
 | `db0/src/cmd/xshard.o` | `tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)` | 19208 | 18704 | no; see attribution |
 | `db0/src/cmd/xshard.o` | `tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*) [clone .cold]` | 574 | 578 | no; see attribution |
 | `db0/src/cmd/xshard.o` | `tomo_db0::xshard_aof_emit(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&)` | 1045 | 1045 | yes |

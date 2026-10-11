@@ -1,0 +1,101 @@
+[
+  {
+    "name": "run-identity-final4.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/run-identity-final4.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build-scatter-final4.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/build-scatter-final4.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "trace-scatter-final4.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/trace-scatter-final4.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build-prepare-final4.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/build-prepare-final4.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "trace-prepare-final4.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/trace-prepare-final4.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build-prepare-stream-final4.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/build-prepare-stream-final4.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "trace-prepare-stream-final4.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/trace-prepare-stream-final4.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "build-read-final4.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/build-read-final4.py"
+    ],
+    "exit_code": 0
+  },
+  {
+    "name": "trace-read-final4.py",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "build/txnfix3/trace-read-final4.py"
+    ],
+    "exit_code": 0
+  }
+]

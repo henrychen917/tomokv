@@ -1,0 +1,4 @@
+{
+  "pid": 4062528,
+  "reason": "Stopped only the pre-proof marker waiter to add the scan-cost prerequisite; no live proof had started."
+}

@@ -563,7 +563,7 @@ actual pins. Both failures are retained; the final unit rerun remains required.
 
 ### Final implementation and review boundaries
 
-The final runtime source is `8d1be3901` (later commits contain receipts and
+The final runtime source is `e904cd285` (later commits contain receipts and
 analysis tools). PRE remains the merged `origin/cpp` image from `991d48f65`.
 No push or performance run was performed.
 
@@ -576,10 +576,12 @@ No push or performance run was performed.
    `5eb7d4574` places group read/completion work behind existing atomic flags;
    `851a1ab4a` freezes the parsed kind after its address-taking parsers;
    `8d1be3901` keeps the existing group-prepare branch out of ordinary
-   fallthrough. It adds no new predicate. The final 180 preparation pairs and
-   eight complete MGET pairs have **zero named-function instruction increases**
-   and enter no group helper. This removes the demonstrated MGET destructor
-   tax and the four DB0 preparation increases found during this lane.
+   fallthrough. It adds no new predicate. The final **264 paired fixtures** (180 preparation, eight complete MGET,
+   68 complete read/empty-write executions and eight scan continuation prefixes)
+   have **zero named-function instruction increases** and enter no group helper.
+   `e904cd285` also fixes the 18 normal set/zset/LCS execution counterexamples
+   found after the preparation repair. The rejected receipts remain available.
+   This removes the demonstrated destructor tax and every sampled increase.
    **It is not a proof of an identical executed sequence on every ordinary
    path. That literal, universal requirement remains open.** The full function
    list, disassemblies, sampled counts and limits are in
@@ -594,7 +596,7 @@ No push or performance run was performed.
    **138200 / 136800**) and PRE outlining boundaries for the nine store helpers.
    `d0932fbfb` uses DB0 t_server budget **31850** to retain SCAN, RANDOMKEY and
    every unrelated handler. The rejected 31800 trial is retained separately.
-   [Every repaired function and full inventory](docs/txnfix/txnfix3/identity-certified/README.md).
+   [Every repaired function and full inventory](docs/txnfix/txnfix3/identity-final4/README.md).
    The unchanged full ccfix command exits 1 on the intentional DEBUG handler;
    its selected-hot check passes. The only changed handler bodies are DEBUG
    and INFO, including INFO cold clones, in both namespaces. The full inventory
@@ -641,22 +643,23 @@ Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore 944, Rob<64> 192,
 AtomicEntry 144, Config 624. ScatterState remains 896, with every old offset
 unchanged. Existing TLS offsets and sizes also match. The earlier Stage A
 Server cold append remains 24640 bytes; no old Server field moves.
-[Final layout receipt](docs/txnfix/txnfix3/layouts-certified-receipt.json),
+[Final layout receipt](docs/txnfix/txnfix3/layouts-final4-receipt.json),
 [PRE comparison](docs/txnfix/txnfix3/layouts-compare.json),
-[TLS comparison](docs/txnfix/txnfix3/tls-certified.json).
+[TLS comparison](docs/txnfix/txnfix3/tls-final4.json).
 
 
 ### Frozen binaries and owner measurement request
 
 - PRE: `build/txnfix2/pre/tomokv`, SHA-256
   `5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20`.
-- POST: `build/txnfix3/post/tomokv` (a frozen copy of tested `build/tomokv`), SHA-256
-  `c879e3f1e476b5f86232e47f863565d5b967905617b1dabf3ca1a961628e4916`.
-- PAD **(A), limited PRE-behaviour aggregate-text-size control**:
+- POST: `build/txnfix3/post-final4/tomokv` (a frozen copy of tested `build/tomokv`), SHA-256
+  `1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc`.
+- Previous-checkpoint PAD **(A), limited PRE-behaviour aggregate-text-size control**
+  (superseded; the final binary control is being regenerated after live proof):
   `build/txnfix3/pad-certified/tomokv`, SHA-256
   `83d6a51112ad42148a0adadd07eb2a6bd42c6d24e993b8d64672262d7df68e3e`.
   It links unchanged PRE objects plus unreachable padding. PRE .text is
-  7646972 bytes; POST/PAD are 7740636. This is **not** a full internal-function
+  7646972 bytes; the previous POST/PAD were 7740636. This is **not** a full internal-function
   or Server-cold-tail layout twin. It is diagnostic only, cannot close the
   open universal instruction bar, and is not evidence of an accepted gain.
   [Exact build and limits](docs/txnfix/txnfix3/pad-certified/build.json).
@@ -676,7 +679,7 @@ taskset -c 0-127 tests/gate.sh perf --subset full \
   --server-cores 0-31 --server-smt "" --load-cores 32-127 --load-smt "" \
   --ports 22600-22699 \
   --reference-binary "$PWD/build/txnfix2/pre/tomokv" \
-  --candidate-binary "$PWD/build/txnfix3/post/tomokv"
+  --candidate-binary "$PWD/build/txnfix3/post-final4/tomokv"
 ```
 
 Use PRE/POST/POST/PRE and the gate's own existing offered-load cells. No local
@@ -690,3 +693,12 @@ fused txniso **2056** (two), split NX loop **2215** (two), split txniso **2221**
 collected at **3671/3700**. The maintainer's full-branch counts would be
 **635/652**, from protected **625/642**. Neither EXPECT assignment changed.
 [Line-based receipt](docs/txnfix/txnfix3/gate-row-lines.json).
+
+### Final runtime proof in progress
+
+The final runtime rebuild passes `make all`, all 29 production targets,
+`mdbqsbr-live-arms`, and 30/30 freshness checks. All locked layouts and old
+member offsets match the retained PRE comparison; all 35 existing TLS symbols
+retain their offsets and sizes. Final `gates_test` is 66/66; the live proof
+families are rerunning against the frozen final SHA above. This paragraph is
+a checkpoint, not a completion claim. Final receipts use the `final4` prefix.

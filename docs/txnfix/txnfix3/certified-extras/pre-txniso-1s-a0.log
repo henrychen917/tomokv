@@ -1,0 +1,54 @@
+geometry 1s atomic b'0' databases b'16'
+FAIL D1 AssertionError(('D1', [1, [b'1', b'0'], 1], 1))
+FAIL D2 AssertionError(('D2', [1, [b'1', b'0'], 1], 1))
+FAIL D3 AssertionError(('read changed inside EXEC', [1, [b'0', b'0'], b'new']))
+FAIL D4a AssertionError(('D4a', [1, [b'1', b'0'], 1], 1))
+FAIL D4b AssertionError(('changed WATCH must yield null', [1, [b'1', b'0'], 1]))
+tomo mode=1s C=16 N=500 P=4: k1=7868 k2=7619 expected 8000 each; lost k1=132 k2=381; duplicated INCR k2 replies=381  0.1s
+server rc 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t15_exec_only_stress.py", line 46, in <module>
+    assert (v1, v2, dup, sum(seen.values())) == (C*N, C*N, 0, C*N), "lost or duplicated INCR"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: lost or duplicated INCR
+FAIL S1 AssertionError(('t15_exec_only_stress.py', 1))
+geometry k1 [2, 2] k2 [11, 3]
+tomo atomic=0 mode=1s N=500: k1=4000 (expected 4000, lost 0)  k2=2000 (expected 2000, lost 0)  errors=0  0.1s
+  atomic_groups 8006 -> 10006
+  atomic_commit_windows 0 -> 0
+  atomic_promotions 16013 -> 20015
+  atomic_entries 16013 -> 20015
+  atomic_exec_order_holds 0 -> 0
+  atomic_exec_order_late 0 -> 0
+  atomic_window_stalls 0 -> 0
+  stale-cut counter 0
+server rc 0
+PASS S2
+atomic=0 credit_pool(idle)=256 window_stalls=0 groups=10006
+mid-burst: credit_pool=159 inflight=97 window_stalls=0
+after: window_stalls=0 groups=10206 k1=b'170' k2=b'2'
+server rc 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t14_exec_window.py", line 33, in <module>
+    assert totals == [AUDIT_CLIENTS or 400] * 2, ("acknowledged INCR lost", totals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('acknowledged INCR lost', [170, 2])
+FAIL S3 AssertionError(('t14_exec_window.py', 1))
+tomo mode=1s: produced 2000 (counter b'2000'), consumed+left 2000 distinct, duplicates 0, missing 0
+server rc 0
+PASS S4
+tomo mode=1s C=4 N=100: k=400 k2=400 expected 400; duplicate observed v=0; aborted retries=776 0.1s
+server rc 0
+PASS W1
+PASS W2
+read skew torn 7
+FAIL S5 AssertionError(7)
+crossed WATCH progress [(0, 'exec'), (0, 'exec')] counters {}
+FAIL W3 TimeoutError('timed out')
+FAIL V1 AssertionError([1, [b'1', b'0'], 1])
+FAIL V2 AssertionError([1, [b'1', b'0'], 1, RespError(b'ERR internal pubsub routing error')])
+FAIL V3 AssertionError([1, b'6', [b'1', b'0'], 1])
+FAIL X1 RespError(b"ERR unknown subcommand or wrong number of arguments for 'debug' command")
+FAIL X2 AssertionError()
+FAIL Z1 WindowMiss('pending entries did not drain')
+PASS Z2
