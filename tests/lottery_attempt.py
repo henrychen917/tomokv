@@ -56,13 +56,23 @@ def attempt(row, args):
     if job.startswith('debug-'):
         shape += ['--key-lb', '0', '--client-lb', '0', '--flip-auto', '0']
     if job == 'notify':
-        shape += ['--notify-keyspace-events', 'KEA']
-    binary = args.binary.resolve()
+        shape += ['--notify-keyspace-events', 'KEAmn']
+    if job == 'auth':
+        shape += ['--dbfilename', 'reload.tomo']
+    # Rows witnessed only by existing observables run the production binary
+    # itself, unarmed; only the remaining rows need the isolated witness build.
+    existing = row.get('observable') == 'existing'
+    binary = (args.production_binary if existing else args.binary).resolve()
+    env['GATE_CANDIDATE_BINARY'] = str(binary)
     if row['id'] == '503':
         binary = binary.with_name('tomokv-asan')
         if not binary.exists():
             raise ValueError('row 503 requires the lottery ASAN binary; cannot substitute release')
-        env['ASAN_OPTIONS'] = 'detect_leaks=1:abort_on_error=1'
+        # The gate's ASAN boot judges memory errors (its separate "ASAN clean"
+        # row), not exit-time leak accounting of still-connected clients.
+        # The server inherits this process's environment, not the battery's env.
+        os.environ['ASAN_OPTIONS'] = env['ASAN_OPTIONS'] = 'detect_leaks=0:abort_on_error=1'
+        env['GATE_CANDIDATE_BINARY'] = str(binary)
     logs, counts, boots = [], [], []
 
     def battery(script, arguments, name):
@@ -74,31 +84,53 @@ def attempt(row, args):
         with server(binary, args.server_cpus, args.port, directory / name,
                     shape + list(extra)) as (admin, child):
             before = info(admin)
-            path = directory / (name + '.trace')
-            admin.must('DEBUG', 'LOTTERY', 'ARM', mask, str(path))
-            record = dict(pid=child.pid, before=before, trace=str(path), binary=str(binary))
+            path = None if existing else directory / (name + '.trace')
+            if path:
+                admin.must('DEBUG', 'LOTTERY', 'ARM', mask, str(path))
+            record = dict(pid=child.pid, before=before, trace=path and str(path),
+                          binary=str(binary))
             boots.append(record)
             try:
                 yield admin, child
             finally:
                 if child.poll() is None:
                     record['after'] = info(admin)
-                    record['stopped'] = admin.must('DEBUG', 'LOTTERY', 'STOP') == b'OK'
+                    record['stopped'] = (not path or
+                                         admin.must('DEBUG', 'LOTTERY', 'STOP') == b'OK')
                 write_json(directory / 'boots.json', boots)
 
     if family == 'differential matrix':
-        # Reuse the complete gate matrix, including seeds/repeats/coverage. Only
-        # replace its Python driver boundary to insert observation markers.
+        # The gate's own matrix script, focused on the four suites that carry
+        # this row's class-B legs (W3 s6fix, W13 climon, W14 psfix, W15 stream;
+        # flakeaudit2 keeps the other 40 suites DETERMINISTIC). Every permanent
+        # seed plus one fresh rotating seed, both atomics, the row's geometry.
+        # Only the Python driver boundary changes, to insert observation markers.
         original = (ROOT / 'tests/differ_gate.sh').read_text()
-        shell = original.replace('cd "$(dirname "$0")/.."', f'cd {__import__("shlex").quote(str(ROOT))}')
+        anchor = 'cd "$(dirname "$0")/.."'
+        if original.count(anchor) != 1 or original.count('python3 tests/differ.py') != 2:
+            raise ValueError('changed differ_gate.sh driver boundary; review the adapter')
+        shell = original.replace(anchor, f'cd {__import__("shlex").quote(str(ROOT))}')
         shell = shell.replace('python3 tests/differ.py',
                               'python3 tests/lottery_test_driver.py tests/differ.py')
         script = directory / 'differ.sh'
         script.write_text(shell)
+        suites, seeds = directory / 'suites.txt', directory / 'seeds.txt'
+        suites.write_text('s6fix\nclimon\npsfix\nstream\n')
+        sys.path.insert(0, str(ROOT / 'tests'))
+        from _differ_history import permanent_seeds
+        fixed = permanent_seeds()
+        fresh = int.from_bytes(os.urandom(4), 'little') % 1000000 + 1000
+        while fresh in fixed:
+            fresh += 1
+        seeds.write_text(''.join(f'{seed}\n' for seed in [*fixed, fresh]))
+        load = cpus(args.client_cpus)
         env.update(LOTTERY_AUTO_TRACE=str(directory / 'traces'),
                    GATE_DIFFER_GEOMETRY='armed-fused' if row['id'] == '516' else 'split',
-                   GATE_DIFFER_ORACLE_CORES='120', GATE_LOAD_CORES='121-127',
+                   GATE_DIFFER_ORACLE_CORES=str(load[0]),
+                   GATE_LOAD_CORES=f'{load[1]}-{load[-1]}',
                    GATE_DIFFER_OUT=str(directory / 'matrix'),
+                   GATE_DIFFER_PROOF_SUITES=str(suites), GATE_DIFFER_PROOF_SEEDS=str(seeds),
+                   GATE_DIFFER_HISTORY=str(directory / 'history'),
                    REDIS74_ROOT='/home/user/Projects/redis74')
         passed, log = run(['bash', str(script), str(binary), str(args.port),
                            str(args.port + 1), args.server_cpus, '6:2'], directory, 'matrix', env)
@@ -106,9 +138,18 @@ def attempt(row, args):
         suite_counts = {}
         for meta in sorted((directory / 'traces').glob('*.json')):
             rec = json.loads(meta.read_text())
+            if not rec.get('stopped'):
+                raise ValueError(f'differ trace did not stop cleanly: {meta}')
             suite = rec['argv'][5]
             c = reduce_events(trace(rec['trace'], rec['pid']))
             suite_counts.setdefault(suite, []).append(dict(c))
+        traces = len(list((directory / 'traces').glob('*.trace')))
+        legs = {name: len(values) for name, values in suite_counts.items()}
+        if traces != sum(legs.values()):
+            raise ValueError(f'{traces} differ traces but {sum(legs.values())} closed records')
+        expected = 2 * len(fixed) + 2      # both atomics x (permanent + fresh seed)
+        if passed and legs != {name: expected for name in ('s6fix', 'climon', 'psfix', 'stream')}:
+            raise ValueError(f'focused matrix legs {legs}; expected {expected} per suite')
         # A compound public row needs every leg of every relevant submechanism.
         for witness, suite in [('W13', 'climon'), ('W14', 'psfix'), ('W15', 'stream')]:
             values = suite_counts.get(suite, [])
@@ -167,13 +208,18 @@ def attempt(row, args):
             if family in ('atomic_torn', 'xmove') and row['id'] != '503':
                 arguments += ['--release-build']
             if family == 'servertail':
-                arguments += ['--binary', binary, '--cores', args.server_cpus,
-                              '--spare-port', args.port + 2]
+                # The gate's throwaway boots use the first four slot CPUs (GATE_CORES).
+                arguments += ['--binary', binary, '--spare-port', args.port + 2]
             passed, log = battery(family + '.py', arguments, 'row')
         logs.append(log)
+    if row['id'] == '503':
+        passed &= 'ERROR: AddressSanitizer' not in (directory / 'server/server.log').read_text(
+            errors='replace')
     record = boots[-1]
-    counts.append(observed(row, trace(record['trace'], record['pid']), log,
-                           record['before'], record['after']))
+    if 'after' not in record or not record.get('stopped'):
+        raise ValueError('server exited before its witness interval closed')
+    events = trace(record['trace'], record['pid']) if record['trace'] else ()
+    counts.append(observed(row, events, log, record['before'], record['after']))
     if family == 'snapshot capture/reload':
         # Reload rows always create a fresh witnessed capture first. Capture
         # rows also retain the exact disk oracle instead of trusting BGSAVE OK.
@@ -191,6 +237,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--nonce', required=True)
     parser.add_argument('--binary', type=Path, required=True)
+    parser.add_argument('--production-binary', type=Path, required=True)
     parser.add_argument('--port', type=int, required=True)
     parser.add_argument('--server-cpus', required=True)
     parser.add_argument('--client-cpus', required=True)

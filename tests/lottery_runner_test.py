@@ -69,6 +69,31 @@ class RunnerTests(unittest.TestCase):
         t.add(r)
         self.assertEqual(t.result(1)['verdict'], 'ERROR')
 
+    def test_cap_stops_new_attempts_but_never_cuts_one_short(self):
+        now = [0]
+        def slow(index, remaining):
+            self.assertGreater(remaining, 0)
+            now[0] += 40          # each attempt outlives the remaining cap
+            return receipt(int(index % 2 == 1))
+        r = repeat(slow, ['W'], 20, 100, clock=lambda: now[0])
+        # Attempts start at t=0, 40, 80; none starts at t=120 >= cap.
+        self.assertEqual((r['verdict'], r['attempts'], r['hits']), ('INSUFFICIENT', 3, 2))
+        self.assertEqual(r['mean_attempt_seconds'], 40)
+        self.assertEqual(r['estimated_attempts_for_k'], 30)
+        self.assertEqual(r['estimated_seconds_for_k'], 1200)
+
+    def test_k_hits_stop_immediately_with_rule_of_three_bound(self):
+        calls = []
+        def always(index, remaining):
+            calls.append(index)
+            return receipt()
+        r = repeat(always, ['W'], DEFAULT_HITS, 1e9)
+        self.assertEqual((r['verdict'], r['attempts'], len(calls)), ('PASS', 20, 20))
+        # Exact one-sided 95% bound for 0/20 is 13.9%; the rule of three says 3/K = 15%.
+        self.assertTrue(r['bound_fixed_k'])
+        self.assertAlmostEqual(r['upper_95'], 1 - .05 ** (1 / DEFAULT_HITS))
+        self.assertTrue(2.7 / DEFAULT_HITS < r['upper_95'] < 3 / DEFAULT_HITS)
+
     def test_exact_bounds(self):
         self.assertAlmostEqual(upper_bound(1), .95)
         self.assertAlmostEqual(upper_bound(20), .13910834066826516)

@@ -65,6 +65,9 @@ def registry():
     rows = json.loads((ROOT / 'tests/lottery_rows.json').read_text())
     if len(rows) != 58 or len({r['id'] for r in rows}) != len(rows):
         raise ValueError('class-B occurrence inventory changed; review registry')
+    if any(r.get('observable') not in ('existing', 'witness') or not r.get('requires')
+           for r in rows):
+        raise ValueError('every row names its witness source and required counters')
     return rows
 
 
@@ -115,16 +118,23 @@ class Tally:
                     estimated_attempts_for_k=(self.goal / rate if rate else None),
                     estimated_seconds_for_k=(self.goal * seconds / self.hits
                                              if self.hits else None),
+                    mean_attempt_seconds=(seconds / self.attempts if self.attempts else None),
                     witness_attempts=self.witness_attempts)
 
 
 def repeat(attempt, required, goal, cap, clock=time.monotonic, publish=lambda *args: None):
+    """Start attempts until K witnessed hits, or until `cap` seconds have elapsed.
+
+    The cap is checked before each new attempt; an attempt already running is
+    bounded by its own timeout (the campaign's --attempt-timeout), so a slow
+    row still yields complete attempts instead of one killed at the cap.
+    """
     if goal < 1 or not math.isfinite(cap) or cap <= 0 or not required:
         raise ValueError('positive K/cap and nonempty witness list required')
     tally = Tally(tuple(required), goal)
     start = clock()
     while tally.hits < goal and clock() - start < cap:
-        receipt = attempt(tally.attempts + 1, max(0, cap - (clock() - start)))
+        receipt = attempt(tally.attempts + 1, cap - (clock() - start))
         hit = tally.add(receipt)
         publish(receipt, hit, tally.result(clock() - start))
         if tally.failures or tally.errors or not receipt.get('completed'):
@@ -163,19 +173,23 @@ def run_child(argv, log, timeout):
 def campaign(row, args, directory):
     directory.mkdir(parents=True, exist_ok=False)
 
-    def attempt(index, remaining):
+    def attempt(index, _remaining_cap):
         attempt_dir = directory / f'attempt-{index:04d}'
         attempt_dir.mkdir()
         nonce = uuid.uuid4().hex
         argv = [sys.executable, str(ROOT / 'tests/lottery_attempt.py'),
                 '--row', row['id'], '--output', str(attempt_dir), '--nonce', nonce,
-                '--binary', str(args.binary.resolve()), '--port', str(args.port),
+                '--binary', str(args.binary.resolve()),
+                '--production-binary', str(args.production_binary.resolve()),
+                '--port', str(args.port),
                 '--server-cpus', args.server_cpus, '--client-cpus', args.client_cpus]
-        rc, expired = run_child(argv, attempt_dir / 'attempt.log', remaining)
+        started = time.monotonic()
+        rc, expired = run_child(argv, attempt_dir / 'attempt.log', args.attempt_timeout)
         path = attempt_dir / 'receipt.json'
         if expired:
             return dict(completed=False, passed=False, evidence_complete=False,
-                        counters={}, reason='wall cap expired', nonce=nonce)
+                        counters={}, reason='attempt timeout expired', nonce=nonce,
+                        seconds=time.monotonic() - started)
         if not path.exists():
             return dict(completed=True, passed=False, evidence_complete=False,
                         counters={}, error=f'no receipt; child exit {rc}')
@@ -185,6 +199,7 @@ def campaign(row, args, directory):
                 raise ValueError('stale/wrong-row receipt')
             if rc != 0 and receipt.get('passed'):
                 raise ValueError(f'green receipt but child exit {rc}')
+            receipt['seconds'] = time.monotonic() - started
             return receipt
         except (ValueError, KeyError) as exc:
             return dict(completed=True, passed=False, counters={}, error=str(exc))
@@ -206,9 +221,16 @@ def main():
     parser.add_argument('--list', action='store_true')
     parser.add_argument('--all', action='store_true', help='opt-in nightly campaign')
     parser.add_argument('--hits', type=int, default=DEFAULT_HITS)
-    parser.add_argument('--cap', type=float, default=600, help='wall seconds per row, including boots')
-    parser.add_argument('--binary', type=Path, default=ROOT / 'build/lottery/tomokv')
-    parser.add_argument('--output', type=Path, default=ROOT / 'build/lottery/nightly')
+    parser.add_argument('--cap', type=float, default=600,
+                        help='seconds per row after which no new attempt starts')
+    parser.add_argument('--attempt-timeout', type=float, default=1800,
+                        help='hard bound on one attempt (boot, battery, teardown)')
+    parser.add_argument('--binary', type=Path, default=ROOT / 'build/lottery/tomokv',
+                        help='isolated DEBUG witness build (make build/lottery/tomokv)')
+    parser.add_argument('--production-binary', type=Path, default=ROOT / 'build/tomokv',
+                        help='unmodified build for rows witnessed by existing observables')
+    parser.add_argument('--output', type=Path, default=None,
+                        help='fresh campaign directory (default build/lottery/runs/<UTC stamp>)')
     parser.add_argument('--server-cpus', default='112-119')
     parser.add_argument('--client-cpus', default='120-127')
     parser.add_argument('--port', type=int, default=25300)
@@ -222,8 +244,19 @@ def main():
         rows = [r for r in rows if args.row in (r['id'], r['name'])]
     if not rows or (args.all and args.row):
         parser.error('select one named row or --all')
-    if args.hits < 1 or not math.isfinite(args.cap) or args.cap <= 0:
-        parser.error('--hits and --cap must be positive')
+    if (args.hits < 1 or not math.isfinite(args.cap) or args.cap <= 0 or
+            not math.isfinite(args.attempt_timeout) or args.attempt_timeout <= 0):
+        parser.error('--hits, --cap and --attempt-timeout must be positive')
+    if args.output is None:
+        args.output = ROOT / 'build/lottery/runs' / time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
+    needed = {args.binary if r['observable'] == 'witness' else args.production_binary
+              for r in rows}
+    if any(r['id'] == '503' for r in rows):
+        needed.add(args.binary.with_name('tomokv-asan'))
+    missing = sorted(str(b) for b in needed if not os.access(b, os.X_OK))
+    if missing:
+        parser.error('missing binaries (make all build/lottery/tomokv build/lottery/tomokv-asan): '
+                     + ', '.join(missing))
     from _gate_process import cpus
     server, client = set(cpus(args.server_cpus)), set(cpus(args.client_cpus))
     if server & client or not server | client <= set(range(112, 128)) or len(server) != 8:

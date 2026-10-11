@@ -9,7 +9,8 @@
     ],
     "requires": [
       "W10.idle"
-    ]
+    ],
+    "observable": "existing"
   },
   {
     "id": "126",
@@ -21,7 +22,8 @@
     ],
     "requires": [
       "W2.fanout"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "128",
@@ -34,7 +36,8 @@
     "requires": [
       "W2.pin_flush",
       "W2.ryow"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "130",
@@ -46,7 +49,8 @@
     ],
     "requires": [
       "W3"
-    ]
+    ],
+    "observable": "existing"
   },
   {
     "id": "131",
@@ -58,7 +62,8 @@
     ],
     "requires": [
       "W16"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "132",
@@ -72,7 +77,8 @@
     "requires": [
       "W1",
       "W5.timeout"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "139",
@@ -86,7 +92,8 @@
       "W5.idle",
       "W5.soft",
       "W5.exempt"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "149",
@@ -98,7 +105,8 @@
     ],
     "requires": [
       "W1"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "159",
@@ -110,7 +118,8 @@
     ],
     "requires": [
       "W4"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "164",
@@ -122,7 +131,8 @@
     ],
     "requires": [
       "W3"
-    ]
+    ],
+    "observable": "existing"
   },
   {
     "id": "165",
@@ -134,7 +144,8 @@
     ],
     "requires": [
       "W16"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "166",
@@ -148,7 +159,8 @@
     "requires": [
       "W1",
       "W5.timeout"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "173",
@@ -162,7 +174,8 @@
       "W5.idle",
       "W5.soft",
       "W5.exempt"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "183",
@@ -174,7 +187,8 @@
     ],
     "requires": [
       "W1"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "193",
@@ -186,7 +200,8 @@
     ],
     "requires": [
       "W4"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "199",
@@ -198,7 +213,8 @@
     ],
     "requires": [
       "W3"
-    ]
+    ],
+    "observable": "existing"
   },
   {
     "id": "200",
@@ -210,7 +226,8 @@
     ],
     "requires": [
       "W16"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "203",
@@ -222,7 +239,8 @@
     ],
     "requires": [
       "W10"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "206",
@@ -234,7 +252,8 @@
     ],
     "requires": [
       "W3"
-    ]
+    ],
+    "observable": "existing"
   },
   {
     "id": "207",
@@ -246,7 +265,8 @@
     ],
     "requires": [
       "W16"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "210",
@@ -258,7 +278,8 @@
     ],
     "requires": [
       "W10"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "213",
@@ -270,7 +291,8 @@
     ],
     "requires": [
       "W3"
-    ]
+    ],
+    "observable": "existing"
   },
   {
     "id": "214",
@@ -282,7 +304,8 @@
     ],
     "requires": [
       "W16"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "215",
@@ -296,7 +319,8 @@
     "requires": [
       "W1",
       "W5.timeout"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "222",
@@ -310,7 +334,8 @@
       "W5.idle",
       "W5.soft",
       "W5.exempt"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "232",
@@ -322,7 +347,8 @@
     ],
     "requires": [
       "W1"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "242",
@@ -334,7 +360,8 @@
     ],
     "requires": [
       "W4"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "248",
@@ -346,7 +373,8 @@
     ],
     "requires": [
       "W3"
-    ]
+    ],
+    "observable": "existing"
   },
   {
     "id": "249",
@@ -358,7 +386,8 @@
     ],
     "requires": [
       "W16"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "250",
@@ -372,7 +401,8 @@
     "requires": [
       "W1",
       "W5.timeout"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "257",
@@ -386,7 +416,8 @@
       "W5.idle",
       "W5.soft",
       "W5.exempt"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "267",
@@ -398,7 +429,8 @@
     ],
     "requires": [
       "W1"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "277",
@@ -410,7 +442,8 @@
     ],
     "requires": [
       "W4"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "300",
@@ -422,7 +455,8 @@
     ],
     "requires": [
       "W1"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "303",
@@ -434,7 +468,8 @@
     ],
     "requires": [
       "W2.fanout"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "304",
@@ -446,7 +481,8 @@
     ],
     "requires": [
       "W2.fanout"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "310",
@@ -459,7 +495,8 @@
     "requires": [
       "W6.left",
       "W6.right"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "314",
@@ -471,7 +508,8 @@
     ],
     "requires": [
       "W1"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "317",
@@ -483,7 +521,8 @@
     ],
     "requires": [
       "W2.fanout"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "318",
@@ -495,7 +534,8 @@
     ],
     "requires": [
       "W2.fanout"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "324",
@@ -508,7 +548,8 @@
     "requires": [
       "W6.left",
       "W6.right"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "339",
@@ -521,7 +562,8 @@
     "requires": [
       "W7.progress",
       "W7.cancel"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "341",
@@ -533,7 +575,8 @@
     ],
     "requires": [
       "W8"
-    ]
+    ],
+    "observable": "existing"
   },
   {
     "id": "342",
@@ -545,7 +588,8 @@
     ],
     "requires": [
       "W8"
-    ]
+    ],
+    "observable": "existing"
   },
   {
     "id": "343",
@@ -557,7 +601,8 @@
     ],
     "requires": [
       "W9"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "344",
@@ -569,7 +614,8 @@
     ],
     "requires": [
       "W9"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "349",
@@ -581,7 +627,8 @@
     ],
     "requires": [
       "W8"
-    ]
+    ],
+    "observable": "existing"
   },
   {
     "id": "350",
@@ -593,7 +640,8 @@
     ],
     "requires": [
       "W8"
-    ]
+    ],
+    "observable": "existing"
   },
   {
     "id": "351",
@@ -605,7 +653,8 @@
     ],
     "requires": [
       "W9"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "352",
@@ -617,7 +666,8 @@
     ],
     "requires": [
       "W9"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "357",
@@ -629,7 +679,8 @@
     ],
     "requires": [
       "W16"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "358",
@@ -643,7 +694,8 @@
     "requires": [
       "W1",
       "W5.timeout"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "366",
@@ -655,7 +707,8 @@
     ],
     "requires": [
       "W10"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "368",
@@ -667,7 +720,8 @@
     ],
     "requires": [
       "W11"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "443",
@@ -681,7 +735,8 @@
       "W12.handshake",
       "W12.record",
       "W12.parser"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "503",
@@ -693,7 +748,8 @@
     ],
     "requires": [
       "W2.fanout"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "515",
@@ -711,7 +767,8 @@
       "W13",
       "W14",
       "W15"
-    ]
+    ],
+    "observable": "witness"
   },
   {
     "id": "516",
@@ -729,6 +786,7 @@
       "W13",
       "W14",
       "W15"
-    ]
+    ],
+    "observable": "witness"
   }
 ]
