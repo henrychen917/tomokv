@@ -20,10 +20,10 @@ Reproduction (`probe.py`; exact argv and digests are in the receipts):
 
 Source evidence, unchanged since PRE:
 
-- `src/cmd/t_hash.cc:1467` classifies HGET as Readonly. `hash_lookup` at line 811 resolves the read and calls `hash_ttl_on_access` when the shard has any tracked field expiry.
+- `src/cmd/t_hash.cc:1467` classifies HGET as Readonly. `hash_lookup` at line 812 resolves the read and calls `hash_ttl_on_access` when the shard has any tracked field expiry.
 - `src/cmd/atomics_glue.inc:1015` gives a read context to operations without Write/SnapshotWrite, so HGET does not install a plain MVCC clone.
 - `src/store/flatstore_atomic.inc:1112` skips the foreign undecided group and returns the parked predecessor.
-- `src/cmd/t_hash_ttl.cc:431` reaps fields in that predecessor in place; when the last field disappears, lines 439–441 emit an unversioned AOF delete and erase by key.
+- `src/cmd/t_hash_ttl.cc:429` reaps fields in that predecessor in place; when the last field disappears, lines 439–441 emit an unversioned AOF delete and erase by key.
 - `src/store/flatstore.h:2686` erases the current physical object at that key, which is the MSET candidate, not the predecessor hash being read. The later group ticket therefore resolves a missing physical value. This violates the immutable-read and untorn-group laws.
 
 The F3 sorter ranks this unticketed expiry delete below the later group and replays the intact serialized group. That exposes a live/replay mismatch even though all directed F3 plain-write/group regressions pass. Restoring staging order for this case could reproduce the torn live pair; it would not repair the live-state law and is not an acceptable substitute.
