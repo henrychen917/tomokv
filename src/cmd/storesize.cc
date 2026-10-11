@@ -191,7 +191,15 @@ void FlatStore::storesize_deadline(const KvObj* object, int64_t deadline) {
 }
 
 void FlatStore::storesize_clear() {
-    if constexpr (!kSingleDatabase) {
+    if constexpr (kSingleDatabase) {
+        // A flush discards the population behind the estimate, even if a new
+        // volatile key arrives before the next owner beat. INFO may report zero
+        // until that beat, but must not attach the discarded sample to new keys.
+        // Keep this reset on the cold owner clear path, including snapshot clears.
+        auto& state = *storesize_state();
+        state.sample_cursor = 0;
+        state.avg_deadline.store(0, std::memory_order_relaxed);
+    } else {
         auto& state = *static_cast<MultiStoreSizeState*>(storesize_state());
         for (unsigned db = 0; db < 256; ++db) {
             auto& row = state.owner[db];
