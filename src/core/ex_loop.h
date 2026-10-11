@@ -1178,9 +1178,17 @@ private:
         }
         if (result == FlatStore::ReadLocalProbeResult::Missing) {
             read_local_clear_reply(op);
-            return {ReadLocalFallbackReason::Missing};
-        }
-        if (result != FlatStore::ReadLocalProbeResult::Churn) {
+            // The same permission as local MGET: only the notify-aware owner may
+            // emit keymiss. Keep this check on the existing miss edge so GET hits
+            // do not pay another notification test. The per-pass bit is shared
+            // with MGET's parse-time ContextKeymissNotify gate.
+            if (read_local_keymiss_notify_armed())
+                return {ReadLocalFallbackReason::ContextKeymissNotify};
+            if (store.read_local_validate(probe_state)) {
+                reply_null(op.sink(), op.resp3());
+                return {ReadLocalFallbackReason::None, 0, 1};
+            }
+        } else if (result != FlatStore::ReadLocalProbeResult::Churn) {
             if (!object) std::abort();
             // Keep the observed word's address as part of the snapshot, but consume only the
             // decoded immutable object. Loading through slot here would chase a newer version.

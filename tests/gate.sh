@@ -2040,6 +2040,12 @@ py tests/read_local_lane.py 127.0.0.1 "$PORT" --mget-fence \
     >$TMPDIR/gate-rlfence-1s.txt 2>&1 \
     && ok "read-local MGET fence battery (1s)" \
     || bad "read-local MGET fence battery (1s)" "see $TMPDIR/gate-rlfence-1s.txt"
+# RL4.3: each row requires exact local-miss accounting and keymiss delivery.
+# Both collection sites precede the quick-tier exit: DQ=DF=+2; EXPECT is owner-owned.
+row_begin "read-local GET miss battery (1s)"
+py tests/rlfix.py 127.0.0.1 "$PORT" --case miss >$TMPDIR/gate-rlfix-miss-1s.txt 2>&1 \
+    && ok "read-local GET miss battery (1s)" \
+    || bad "read-local GET miss battery (1s)" "see $TMPDIR/gate-rlfix-miss-1s.txt"
 stop
 row_begin "read-local MGET fence battery (2s)"
 if boot "$CANDIDATE_BINARY" --atomic 1 --read-local 1 --enable-debug-command yes && \
@@ -2049,6 +2055,10 @@ if boot "$CANDIDATE_BINARY" --atomic 1 --read-local 1 --enable-debug-command yes
 else
     bad "read-local MGET fence battery (2s)" "see $TMPDIR/gate-rlfence-2s.txt and $SRVLOG"
 fi
+row_begin "read-local GET miss battery (2s)"
+py tests/rlfix.py 127.0.0.1 "$PORT" --case miss >$TMPDIR/gate-rlfix-miss-2s.txt 2>&1 \
+    && ok "read-local GET miss battery (2s)" \
+    || bad "read-local GET miss battery (2s)" "see $TMPDIR/gate-rlfix-miss-2s.txt"
 stop
 }
 

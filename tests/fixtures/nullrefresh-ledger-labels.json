@@ -314,7 +314,9 @@
     "B+ held-group GET/MGET filter battery",
     "read-local lane admission battery",
     "read-local MGET fence battery (1s)",
+    "read-local GET miss battery (1s)",
     "read-local MGET fence battery (2s)",
+    "read-local GET miss battery (2s)",
     "ACL recheck one-reply battery (2s)",
     "ACL recheck one-reply battery (1s)",
     "aclfix sort (1s)",
@@ -930,5 +932,12 @@
       "FLIP planned-connection close lifetime (ASAN+TSAN)",
       "FLIP fingerprint publication (ASAN+TSAN)"
     ]
+  },
+  "rlfix_supplement": {
+    "added": [
+      "read-local GET miss battery (1s)",
+      "read-local GET miss battery (2s)"
+    ],
+    "purpose": "RL4.3 exact local miss counters, RESP2/3 replies, keyspace accounting and keymiss notifications; both before quick exit, DQ=DF=+2. Source inventory only."
   }
 }
