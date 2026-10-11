@@ -68,7 +68,7 @@ def prepare(output):
             std::string name(op.arg(3).p, op.arg(3).n);
             if (name.find_first_not_of("abcdefghijklmnopqrstuvwxyz_0123456789") != std::string::npos)
                 reply_err(op.sink(), "ERR lottery marker");
-            else { lottery::event(~uint64_t{0}, name.c_str()); reply_ok(op.sink()); }
+            else { lottery::mark(name); reply_ok(op.sink()); }
         } else reply_err(op.sink(), "ERR lottery syntax");
         return;
     }''')
@@ -283,21 +283,30 @@ def prepare(output):
     after('src/cmd/tracking.cc',
           'void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush) {',
           '    lottery::event(lottery::bit(13), "tracking_emit", target->id());')
-    # W11 reads the EXISTING per-thread client-work epochs (odd = inside an
-    # executor's ClientWorkScope) at the admitted FLIP request and again at its
-    # completion. Cold FLIP bodies only; nothing is added to execute().
-    after('src/core/server.h', '        const uint32_t live_io = role_count(Role::Ifid);', '''
+    # W11 reads EXISTING per-thread state at the admitted FLIP request and at
+    # its completion: the ClientWorkScope epoch (odd = inside client work) and
+    # the executor inbox occupancy (relaxed loads of each lane's producer tail
+    # and consumer head, as the queue's own const depth() does). Cold FLIP
+    # bodies only; nothing is added to execute() or to any queue operation.
+    after('src/core/thread.h', '    LoopSignals& sig() { return sig_; }', '''
+    uint64_t lottery_task_depth() const {
+        uint64_t depth = 0;
+        if (task_in_)
+            for (uint32_t producer = 0; producer < nchan_; ++producer)
+                depth += task_in_->depth(producer);
+        return depth;
+    }''')
+    for anchor, kind, done in (
+            ('        const uint32_t live_io = role_count(Role::Ifid);', 'flip_work', 'flip_begin'),
+            ('        flip_last_transfers_.store(transfers, std::memory_order_relaxed);',
+             'flip_work_end', 'flip_end')):
+        after('src/core/server.h', anchor, f'''
         if (lottery::enabled(lottery::bit(11)))
             for (uint32_t lottery_tid = 0; lottery_tid < nthreads(); ++lottery_tid)
-                lottery::event(lottery::bit(11), "flip_work", flip_completed(), lottery_tid,
-                    client_work_epoch(lottery_tid), uint64_t(thread(lottery_tid).role()));
-        lottery::event(lottery::bit(11), "flip_begin", flip_completed());''')
-    after('src/core/server.h', '        flip_last_transfers_.store(transfers, std::memory_order_relaxed);', '''
-        if (lottery::enabled(lottery::bit(11)))
-            for (uint32_t lottery_tid = 0; lottery_tid < nthreads(); ++lottery_tid)
-                lottery::event(lottery::bit(11), "flip_work_end", flip_completed(), lottery_tid,
-                    client_work_epoch(lottery_tid), uint64_t(thread(lottery_tid).role()));
-        lottery::event(lottery::bit(11), "flip_end", flip_completed());''')
+                lottery::event(lottery::bit(11), "{kind}", flip_completed(), lottery_tid,
+                    client_work_epoch(lottery_tid), uint64_t(thread(lottery_tid).role()),
+                    thread(lottery_tid).lottery_task_depth());
+        lottery::event(lottery::bit(11), "{done}", flip_completed());''')
     after('src/net/tls.cc', '    const int result = SSL_accept(ssl_);', '''
     lottery::event(lottery::bit(12), "ssl_handshake", lottery::ptr(this),
                    BIO_number_read(SSL_get_rbio(ssl_)), result == 1,

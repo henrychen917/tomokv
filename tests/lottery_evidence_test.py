@@ -127,10 +127,10 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(reduce_events(emitted + [E('tracking_compare_data')])['W13'], 1)
         self.assertEqual(reduce_events([post, done, check, E('tracking_compare_zero')])['W13'], 1)
 
-    def flip(self, flip, begin, end):
-        events = [E('flip_work', flip, t, epoch) for t, epoch in begin.items()]
+    def flip(self, flip, begin, end, queued=0):
+        events = [E('flip_work', flip, t, epoch, 2, queued) for t, epoch in begin.items()]
         events.append(E('flip_begin', flip))
-        events += [E('flip_work_end', flip, t, epoch) for t, epoch in end.items()]
+        events += [E('flip_work_end', flip, t, epoch, 2) for t, epoch in end.items()]
         return events + [E('flip_end', flip)]
 
     def test_flip_requires_inflight_work_at_request_and_progress_inside_window(self):
@@ -140,6 +140,13 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(reduce_events(self.flip(0, {2: 8, 3: 10}, {2: 20, 3: 12}))['W11'], 0)
         self.assertEqual(reduce_events(self.flip(0, {2: 7, 3: 10}, {2: 7, 3: 10}))['W11'], 0)
         self.assertEqual(reduce_events(self.flip(0, {2: 7, 3: 10}, {2: 8, 3: 10}))['W11'], 0)
+        # Tasks queued in an executor inbox at the request are admitted work.
+        self.assertEqual(reduce_events(self.flip(0, {2: 8, 3: 10}, {2: 20, 3: 12}, queued=3))
+                         ['W11'], 1)
+        # An IO thread's inbox is not executor backlog.
+        io = [E('flip_work', 0, 1, 8, 1, 5), E('flip_begin', 0),
+              E('flip_work_end', 0, 1, 20, 1), E('flip_end', 0)]
+        self.assertEqual(reduce_events(io)['W11'], 0)
         # Every applied FLIP must be loaded; a refused one (no end) is not counted.
         idle = self.flip(1, {2: 16, 3: 12}, {2: 16, 3: 12})
         self.assertEqual(reduce_events(loaded + idle)['W11'], 0)
@@ -154,6 +161,29 @@ class EvidenceTests(unittest.TestCase):
         self.assertGreater(reduce_events([partial, sample, sample, complete])['W10'], 0)
         self.assertEqual(reduce_events([partial, complete, sample, sample])['W10'], 0)
 
+    def test_tls_handshake_witness_needs_teardown_mid_handshake(self):
+        ident = E('tls_identity', 7, 900)
+        first = E('ssl_handshake', 900, 14, 0, 1)
+        done = E('ssl_handshake', 900, 600, 1, 0)
+        retire = E('tls_retire', 7)
+        self.assertEqual(reduce_events([ident, first, retire])['W12.handshake'], 1)
+        # An ordinary two-flight handshake that completed is not a partial teardown.
+        self.assertEqual(reduce_events([ident, first, done, retire])['W12.handshake'], 0)
+        # No bytes consumed before the reset: the moment was missed.
+        self.assertEqual(reduce_events([ident, E('ssl_handshake', 900, 0, 0, 1), retire])
+                         ['W12.handshake'], 0)
+
+    def test_tls_record_witness_needs_reassembly(self):
+        ident, retire = E('tls_identity', 7, 900), E('tls_retire', 7)
+        hello = E('ssl_handshake', 900, 300, 1, 0)
+        half = E('ssl_read', 900, 350, 0)
+        whole = E('ssl_read', 900, 420, 1)
+        self.assertEqual(reduce_events([ident, hello, half, whole, retire])['W12.record'], 1)
+        # A trailing alert (bytes, no plaintext) or whole records only: not torn.
+        self.assertEqual(reduce_events([ident, hello, whole, half, retire])['W12.record'], 0)
+        self.assertEqual(reduce_events([ident, hello, E('ssl_read', 900, 350, 1),
+                                        E('ssl_read', 900, 420, 1), retire])['W12.record'], 0)
+
     def test_stream_clock_witness_and_carry(self):
         ok = E('stream_clock', 3, 1000, 990, 1000, 0)
         carry = E('stream_clock', 3, 900, 990, 991, 0)
@@ -166,8 +196,8 @@ class EvidenceTests(unittest.TestCase):
     def test_trace_missing_footer_and_sequence_gap_are_errors(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / 'trace'
-            # Mutex order 1,2 but call-site stamps 9,4: returned in stamp order.
-            path.write_text('LOTTERY2 42 2\n1 x 0 0 0 0 0 1 1 9\n2 y 0 0 0 0 0 2 1 4\nEND 2 1\n')
+            # Written in call-site stamp order; wall clocks need not be monotonic.
+            path.write_text('LOTTERY2 42 2\n1 y 0 0 0 0 0 9 1 4\n2 x 0 0 0 0 0 2 1 9\nEND 2 1\n')
             self.assertEqual([e.kind for e in trace(path, 42)], ['y', 'x'])
             for content in ('LOTTERY2 42 2\n', 'LOTTERY2 42 2\nEND 0 0\n',
                             'LOTTERY1 42 2\n1 x 0 0 0 0 0 1 1 9\nEND 1 1\n',
@@ -176,7 +206,7 @@ class EvidenceTests(unittest.TestCase):
                             'LOTTERY2 42 2\n1 x 0 0 0 0 0 1 1\nEND 1 1\n',
                             'LOTTERY2 42 2\n1 x 0 0 0 0 0 1 1 0\nEND 1 1\n',
                             'LOTTERY2 42 2\n1 x 0 0 0 0 0 1 1 9\n2 y 0 0 0 0 0 2 1 9\nEND 2 1\n',
-                            'LOTTERY2 42 2\n1 x 0 0 0 0 0 5 1 9\n2 y 0 0 0 0 0 2 1 4\nEND 2 1\n',
+                            'LOTTERY2 42 2\n1 x 0 0 0 0 0 1 1 9\n2 y 0 0 0 0 0 2 1 4\nEND 2 1\n',
                             'LOTTERY2 42 2\n1 x 0 0 0 0 0 1 1 9\nEND 1 1\nextra\n'):
                 path.write_text(content)
                 with self.assertRaises(ValueError):

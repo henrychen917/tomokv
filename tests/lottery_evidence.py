@@ -23,14 +23,15 @@ class Event:
 
 
 def trace(path, pid):
-    """Parse a complete trace; records come back in call-site (stamp) order."""
+    """Parse a complete trace. The server writes it at DEBUG LOTTERY STOP, from
+    per-thread buffers, in call-site stamp order with consecutive sequence numbers."""
     events = []
     with Path(path).open() as stream:
         header = stream.readline().split()
         if len(header) != 3 or header[:2] != ['LOTTERY2', str(pid)]:
             raise ValueError('missing/wrong-process lottery trace header')
         int(header[2])
-        count, last_ns, stamps = 0, -1, set()
+        count, last_seq = 0, 0
         for line in stream:
             fields = line.split()
             if fields and fields[0] == 'END':
@@ -44,17 +45,13 @@ def trace(path, pid):
             if any(n < 0 for n in numbers):
                 raise ValueError('negative trace word')
             event = Event(fields[1], *numbers)
-            # Records are written in mutex order: the clock is monotonic there.
-            if event.ns < last_ns:
-                raise ValueError('trace clock regressed')
-            if event.seq <= 0 or event.seq in stamps:
-                raise ValueError('missing/duplicate call-site stamp')
-            last_ns = event.ns
-            stamps.add(event.seq)
+            if event.seq <= last_seq:
+                raise ValueError('missing, duplicate or unsorted call-site stamp')
+            last_seq = event.seq
             events.append(event)
         else:
             raise ValueError('missing trace footer')
-    return sorted(events, key=lambda e: e.seq)
+    return events
 
 
 def reduce_events(events):
@@ -212,8 +209,9 @@ def reduce_events(events):
             if any(0 < len(keys) < total for total, keys in apply.values()):
                 counts['W9'] += 1
         elif k in ('flip_work', 'flip_work_end'):
-            # Existing per-thread ClientWorkScope epochs: odd = inside client work.
-            flip_work.setdefault((k, e.id), {})[e.a] = e.b
+            # Per thread: existing ClientWorkScope epoch (odd = inside client
+            # work), role, and the executor's queued inbox tasks.
+            flip_work.setdefault((k, e.id), {})[e.a] = (e.b, e.c, e.d)
         elif k == 'flip_begin':
             flips[e.id] = flip_work.pop(('flip_work', e.id), {})
         elif k == 'flip_end':
@@ -221,10 +219,14 @@ def reduce_events(events):
             end = flip_work.pop(('flip_work_end', e.id), {})
             if begin is not None:
                 counts['W11.flips'] += 1
-                busy = any(epoch & 1 for epoch in begin.values())
+                # Admitted work at the request: an executor inside client work,
+                # or an executor whose inbox held queued tasks.
+                busy = any(epoch & 1 or (role == 2 and queued > 0)
+                           for epoch, role, queued in begin.values())
                 # Client work scopes that closed inside the admitted FLIP window.
-                progressed = sum(max(0, end.get(t, epoch) - epoch) // 2
-                                 for t, epoch in begin.items())
+                progressed = sum(max(0, end.get(t, (epoch,))[0] - epoch) // 2
+                                 for t, (epoch, _, _) in begin.items())
+                counts['W11.busy_requests'] += busy
                 if busy and progressed > 0:
                     counts['W11.loaded'] += 1
         elif k == 'tls_identity':
@@ -232,16 +234,24 @@ def reduce_events(events):
         elif k == 'tls_input':
             tls_inputs.add(e.id)
         elif k == 'ssl_handshake':
-            ssl[e.id] = dict(partial_handshake=e.a > 0 and e.b == 0 and e.c == 1,
-                             record=False, bytes=e.a)
+            # a = ciphertext bytes read so far, b = handshake complete, c = WANT_READ.
+            s = ssl.setdefault(e.id, dict(done=False, waiting=False, record=False, bytes=0))
+            s['done'] |= bool(e.b)
+            s['waiting'] = e.a > 0 and not e.b and e.c == 1
+            s['bytes'] = e.a
         elif k == 'ssl_read':
+            # a = ciphertext bytes read so far, b = plaintext returned. Ciphertext
+            # consumed without plaintext, then plaintext from a later read, is a
+            # record reassembled across reads (a trailing close_notify is not).
             s = ssl.setdefault(e.id, {})
-            if e.a > s.get('bytes', e.a) and not e.b:
+            if e.b and s.get('torn'):
                 s['record'] = True
+            s['torn'] = (e.a > s.get('bytes', e.a) and not e.b) or (s.get('torn') and not e.b)
             s['bytes'] = e.a
         elif k == 'tls_retire':
             s = ssl.pop(tls_ids.pop(e.id, None), {})
-            counts['W12.handshake'] += bool(s.get('partial_handshake'))
+            # Torn down mid-handshake after consuming part of the client's flight.
+            counts['W12.handshake'] += bool(s.get('waiting') and not s.get('done'))
             counts['W12.record'] += bool(s.get('record'))
             counts['W12.parser'] += bool(partial.pop(e.id, {}).get('tls'))
         elif k == 'tracking_post':
