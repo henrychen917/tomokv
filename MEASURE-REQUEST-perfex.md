@@ -374,3 +374,29 @@ The superseded unit run's stale-build checks remain recorded in `units/`.
 
 The repeated live campaign is in progress; its final results and the quiet-box
 measurement handoff will be recorded here before completion.
+
+The maintainer's performance comparison for this follow-up is merged perfex PRE
+against perfex2 POST, using the digests above. This isolates the freshness repair
+from the seven-lane merge. Run the gate's unchanged ABBA instrument at its
+declared matched loads: the four GET/SET p8/p32 split cells and the existing
+14 generic guard cells. Rate decides non-regression in each cell; cycles/op,
+instructions/op and IPC explain it. No measured performance claim is made by
+the coding lane.
+
+```sh
+PERFEX2_PRE=/home/user/Projects/cx-perfex/build/perfex2/pre/tomokv
+PERFEX2_POST=/home/user/Projects/cx-perfex/build/tomokv
+taskset -c 0-111 python3 tests/abbagate.py --cells docs/perfex/split-cells.txt --candidate-binary "$PERFEX2_POST" --reference-binary "$PERFEX2_PRE" --build-reference 0 --server-cores 0-31 --load-cores 32-111 --load-smt '' --ports 25020-25029 --output build/perfex2/split-merit
+taskset -c 0-111 python3 tests/abbagate.py --cells /tmp/claude-1000/generic_merit_cells.txt --only h05,h06,p8g,p8s,d1g_l0,d1s_l0,d32s_l1,d8s_l1,d32g_l1,x9_32_l1,x9_32_l0,m8g_l0,v1g_l0,d128g_l0 --candidate-binary "$PERFEX2_POST" --reference-binary "$PERFEX2_PRE" --build-reference 0 --server-cores 0-31 --load-cores 32-111 --load-smt '' --ports 25010-25019 --output build/perfex2/generic-merit
+taskset -c 0-111 docs/pfconfirm/run.sh --only PFKEYSPA.1 --binary "$PERFEX2_POST" --sha256 e1d6258f0f74ffc5b2bb237bef81bb2a115070dbae1c434d400e2188010cf0c4 --port 25000 --output build/perfex2/pfconfirm-full-post
+```
+
+The requested full PFKEYSPA.1 POST verdict remains **NOT CONFIRMED** (the TTL
+tax must stay absent), using the branch-local tool's unchanged trigger, caps,
+quiet screen and verdict rules. These are maintainer commands, not lane
+executions. The lane executes only the explicitly requested `--smoke`.
+
+| Follow-up cells | Merged PRE rate / cycles / instructions / IPC | POST rate / cycles / instructions / IPC | Verdict |
+|---|---|---|---|
+| GET/SET p8/p32, split | Not measured | Not measured | Maintainer ABBA required |
+| Fourteen generic guards | Not measured | Not measured | Maintainer ABBA required |
