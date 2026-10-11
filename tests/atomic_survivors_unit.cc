@@ -39,6 +39,15 @@ void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
 void operator delete[](void* p, const std::nothrow_t&) noexcept { std::free(p); }
 
 namespace tomo {
+struct CoreConcurrencyTest {
+    static uint32_t consume_txn_fence(Server& server, uint32_t io) {
+        // Bind only the cold owner-pass context: no listener, ring or worker.
+        IoLoop loop;
+        loop.srv_ = &server;
+        loop.self_ = &server.thread(io);
+        return multi_owner_pass_entry_impl<false>(loop);
+    }
+};
 struct AtomicSurvivorsTest {
     static void publish_stale_sample(Server& server, uint64_t drawn) {
         // Exactly the last half of A's publication, after B reserved and
@@ -345,6 +354,46 @@ void txn_intents(Server& server) {
                 "shutdown leaves no carrier pointer to the discarded attempt");
         require(!server.atomic_work_active(), "shutdown releases the admission credit");
     }
+}
+
+void txn_admission(Server& server) {
+    Client client{-1}; client.set_id(891);
+    auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+    require(state != nullptr, "exclusive drain attempt allocated");
+    require(server.serves_clients(0) && server.serves_clients(1), "two IO admission actors");
+    Ring ring;
+    uint64_t credit = 0;
+    require(server.atomic_try_admit(1, credit, true), "foreign IO admitted before barrier");
+    // Suspend IO 1 at the real admission/open boundary. No apply window exists
+    // yet, so the former barrier + zero-only predicate would falsely succeed.
+    require(server.atomic_apply_inflight() == 0, "admitted-but-not-open window witnessed");
+    require(!multi_exclusive_ready(server, *state, server.thread(0), ring),
+            "exclusive cannot pass an IO suspended between admission and open");
+    require(!server.atomic_can_admit(1, true), "exclusive barrier blocks new admissions");
+    for (uint32_t io : state->exclusive_fences)
+        if (io != 0 && io != 1)
+            require(CoreConcurrencyTest::consume_txn_fence(server, io) == 1,
+                    "other cold IO consumes exactly its fence");
+    require(!multi_exclusive_ready(server, *state, server.thread(0), ring),
+            "all other IO acknowledgements cannot stand in for suspended IO");
+    std::atomic<bool> apply{false};
+    server.atomic_apply_open(1, apply);
+    require(CoreConcurrencyTest::consume_txn_fence(server, 1) == 1,
+            "resumed cold IO acknowledges after publishing its apply window");
+    require(server.multi_retry_lane(1).fence_ack.load() == state->exclusive_generation,
+            "IO admission fence is acknowledged before the owner finishes");
+    require(!multi_exclusive_ready(server, *state, server.thread(0), ring),
+            "an acknowledged fence is not an exclusive drain completion");
+    server.atomic_apply_close(1, apply);
+    require(multi_exclusive_ready(server, *state, server.thread(0), ring),
+            "exclusive dispatch requires every fence and the completed owner drain");
+    server.atomic_retire_group(1, credit);
+    server.txn_exclusive_release(state);
+    destroy_multi_state(state);
+    require(!server.atomic_work_active() && server.atomic_can_admit(1, true),
+            "admission reproduction leaves no credit or barrier");
+    require(server.txn_counter(TxnCounter::ExclusiveDrainTimeouts) == 0,
+            "directed admission schedule never uses the timeout valve");
 }
 
 void txn_help(Server& server) {
@@ -724,6 +773,7 @@ int main(int argc, char** argv) {
     else if (name == "script_keys") script_keys(server);
     else if (name == "txn_intents") txn_intents(server);
     else if (name == "txn_help") txn_help(server);
+    else if (name == "txn_admission") txn_admission(server);
     else if (name == "rename_overlay" || name == "watch_parent") rename(server, name == "watch_parent");
     else if (name == "write_latest") write_latest(server);
     else if (name == "script_apply") script_apply(server);

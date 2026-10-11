@@ -119,9 +119,9 @@ The external round-4 REGISTER.md is outside this lane's worktree and was not edi
 
 ## txnfix2
 
-**WIP — not ready to merge or measure.** Merged `origin/cpp` at `a363c2c5e` in
-`ee48b465e`. Housekeeping and the repeated NX proof are complete. Admission fencing is
-next; hot-body identity, Stage B, and the merged-base proof remain
+**WIP — not ready to merge or measure.** Merged `origin/cpp` at `991d48f65` in
+`ee48b465e`. Housekeeping, the repeated NX proof, and the deterministic admission
+proof are complete. Hot-body identity is next; Stage B and the merged-base proof remain
 open. No benchmarks or full gate runs are authorized for this lane. No push.
 
 The six previously untracked evidence directories are preserved as historical
@@ -162,3 +162,26 @@ failures with a nonzero exit status. The gate does not turn atomic on secretly.
 Four new txn_nx rows (two per geometry) are before the quick exit. Including the
 four txniso rows, **DQ=+8, DF=+8**, required EXPECT **633/650** from **625/642**.
 The comments/label fixture are updated; the protected assignments are unchanged.
+
+### Exclusive admission reproduction
+
+The old report's admission paragraph describes the race and its existing repair,
+not an unresolved failure in the current code. `multi_exclusive_ready` already
+requires **all IO fences AND zero apply windows**. An IO fence acknowledges the
+end of that IO's admission/open interval; it intentionally precedes completion
+of the owner-side drain. It is not a drain-completion acknowledgement.
+
+The new `txn_admission` case in `atomic-survivors-unit` suspends a foreign IO
+after `atomic_try_admit` and before `atomic_apply_open`. It drives the real cold
+IO inbox consumer, verifies the missing fence blocks exclusive dispatch, then
+opens the apply window and consumes the last fence. Exclusive still must wait
+until the owner closes that window. The current default unit passes. Two copied
+source controls fail at the corresponding safety assertion: [without the IO
+fence](docs/txnfix/txnfix2/admission-unfenced.log), [without the apply
+drain](docs/txnfix/txnfix2/admission-undrained.log). The control builder is
+`tools/txnfix_admission_control.py`; all copies/binaries stay under `build/`.
+No server starts for this proof. The case is included in the existing txniso
+row's unit subchecks, with no additional gate row.
+
+This proof-only fallback commit stays separate from cost/Stage B changes, so
+the owner's still-open fallback decision remains independently revisable.
