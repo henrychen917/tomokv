@@ -1,0 +1,13 @@
+armed=0 merge stalled: 256 post-flush keys, 128-slot destination, old cursor 486/1024, 128 keys unmoved
+FAIL: post-capture merge completes: the prepared table holds the flushed shard
+EXIT=1
+armed=0 merge stalled: 256 post-flush keys, 128-slot destination, old cursor 486/1024, 128 keys unmoved
+FAIL: post-capture merge completes: the prepared table holds the flushed shard
+EXIT=1
+armed=0 merge stalled: 256 post-flush keys, 128-slot destination, old cursor 486/1024, 128 keys unmoved
+FAIL: post-capture merge completes: the prepared table holds the flushed shard
+EXIT=1
+# armed-first control (scratch copy of this case with {true, false}), same PRE sources
+armed=1 merge stalled: 256 post-flush keys, 128-slot destination, old cursor 486/1024, 128 keys unmoved
+FAIL: post-capture merge completes: the prepared table holds the flushed shard
+EXIT=1
