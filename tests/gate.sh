@@ -3460,6 +3460,16 @@ unit_ready(){
 job_dependencies(){
   local dependency
   case "$1" in
+    perfio_stream)
+      # The fixed 3 ms GET-after-XREADGROUP bound needs the same quiet boundary
+      # as atomic_ryow. Run after ordinary jobs, then allow atomic_batteries
+      # (which already waits for every other family) to follow without a cycle.
+      if [ "${GATE_PARTIAL:-0}" = 1 ]; then echo release; return; fi
+      for dependency in "${JOB_NAMES[@]}"; do
+        [ "$dependency" = perfio_stream ] || [ "$dependency" = atomic_batteries ] ||
+          printf '%s\n' "$dependency"
+      done
+      return;;
     atomic_batteries)
       # A measured 3 ms scheduling pause alone flips atomic_ryow's unchanged 24-command
       # rate assertion. Preserve the entire boot/battery chain and every assertion, but

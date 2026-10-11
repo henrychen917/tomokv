@@ -16,7 +16,7 @@ rows=[]
 for engine in ("epoll","uring"):
     for mode in ("2s","1s"):
         args=SimpleNamespace(output=out,binary=ROOT/"build/tomokv",port=25133,cores="112-119",
-            mode=mode,ratio="6:2",net_io=engine,oracle=False)
+            mode=mode,ratio="6:2",net_io=engine,oracle=False,read_local=0)
         with boot(args,f"{mode}-{engine}",["--key-lb","1","--client-lb","1"]) as (c,p):
             jobs=[("netio",["tests/netio.py","127.0.0.1","25133",engine]),
                   ("lb-stationary",["tests/lb_stationary.py","--port","25133",

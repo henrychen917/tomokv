@@ -92,11 +92,12 @@ def epoll_snapshot(pid):
                 registrations=sum(map(len, registered.values()))), registered
 
 
-def audit(pid, phase):
+def audit(pid, phase, expected):
     row, registered = epoll_snapshot(pid)
     emit(event="epoll", phase=phase, stale=len(row["stale"]),
          duplicates=len(row["duplicates"]), registrations=row["registrations"])
     assert not row["stale"] and not row["duplicates"], (phase, row)
+    assert row["registrations"] == expected, (phase, row, expected)
     return registered
 
 
@@ -117,6 +118,7 @@ def events(admin, peers, phase):
     after = info(admin, "stats")
     e = int(after["net_io_epoll_events"]) - int(before["net_io_epoll_events"])
     n = int(after["total_commands_processed"]) - int(before["total_commands_processed"])
+    assert n == 40*len(peers)+1, (phase, "unexpected command count", n)
     emit(event="events", phase=phase, events=e, commands=n, per_command=e/n)
     assert e == n, f"{phase}: expected 1.000 epoll event/command, got {e}/{n}"
 
@@ -127,7 +129,7 @@ def epoll_flip(args):
         traffic(peers, 1)
         shape = dict(zip(*[iter(admin.must("FLIP"))]*2))
         total = shape[b"live_io"] + shape[b"live_ex"]
-        audit(p.pid, "initial")
+        audit(p.pid, "initial", len(peers)+1)
         events(admin, peers[:64], "initial")
         failures = []
         for i, nio in enumerate([total//4, total//2, total*3//4, total//2]*3):
@@ -138,7 +140,7 @@ def epoll_flip(args):
             traffic(peers, 2)
             # Retain both T16's growth and T16b's event amplification on a broken arm.
             # Every failed assertion is retained and fails the row after collection.
-            for check in (lambda: audit(p.pid, f"flip-{i}"),
+            for check in (lambda: audit(p.pid, f"flip-{i}", len(peers)+1),
                           lambda: events(admin, peers[:64], f"flip-{i}")):
                 try: check()
                 except AssertionError as error: failures.append(str(error))
@@ -152,7 +154,7 @@ def epoll_lb(args):
         peers = [stack.enter_context(closing(Conn("127.0.0.1", args.port))) for _ in range(96)]
         traffic(peers, 1)
         assert admin.must("SET", "perfio-lb", "v") == b"OK"
-        registered = audit(p.pid, "lb-initial")
+        registered = audit(p.pid, "lb-initial", len(peers)+1)
         events(admin, peers, "lb-initial")
         ports = {}
         for line in Path(f"/proc/{p.pid}/net/tcp").read_text().splitlines()[1:]:
@@ -183,7 +185,7 @@ def epoll_lb(args):
         emit(event="lb-witness", hot_clients=len(hot), rounds=rounds, before=before, after=after)
         assert after > before, "client-lb move never armed within 35 seconds"
         time.sleep(.05)  # let the already witnessed transfer finish before the fd snapshot
-        audit(p.pid, "lb-moved")
+        audit(p.pid, "lb-moved", len(peers)+1)
         events(admin, peers, "lb-moved")
 
 
@@ -265,6 +267,7 @@ def metadata(c):
 
 
 def main():
+    started = time.monotonic()
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("case", choices=["epoll-flip", "epoll-lb", "stream", "metadata"])
     ap.add_argument("--binary", type=Path, required=True)
@@ -292,7 +295,7 @@ def main():
                 emit(event="metadata", cases=len(actual), differences=differences)
                 if args.case == "stream": stream_latency(c)
                 assert actual == expected, "entries-read/lag differ from Redis 7.4 oracle"
-    emit(result="PASS", case=args.case)
+    emit(result="PASS", case=args.case, elapsed_s=time.monotonic()-started)
 
 
 if __name__ == "__main__":
