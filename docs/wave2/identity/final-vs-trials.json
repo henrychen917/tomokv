@@ -1,0 +1,67 @@
+{
+ "src/core/rl2s.o": {
+  "value": "162305",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_rl2s.o.e2c24cc16d43.o",
+  "result": "0 differing of 705"
+ },
+ "db0/src/core/genthread.o": {
+  "value": "129704",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_core_genthread.o.c056274d8ab9.o",
+  "result": "0 differing of 767"
+ },
+ "db0/src/core/reorder.o": {
+  "value": "148358",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_core_reorder.o.df07c7d41545.o",
+  "result": "0 differing of 830"
+ },
+ "src/core/genthread.o": {
+  "value": "129447",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_core_genthread.o.24853b14959c.o",
+  "result": "0 differing of 775"
+ },
+ "db0/src/cmd/xshard.o": {
+  "value": "126566",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_xshard.o.95e1b7c6069c.o",
+  "result": "0 differing of 875"
+ },
+ "db0/src/persist/aof.o": {
+  "value": "34840",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_persist_aof.o.72d616ed110c.o",
+  "result": "0 differing of 315"
+ },
+ "db0/src/cmd/t_server.o": {
+  "value": "31776",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_t_server.o.ee63b08a0cc7.o",
+  "result": "0 differing of 232"
+ },
+ "src/cmd/t_server.o": {
+  "value": "31379",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.e0b87c24258c.o",
+  "result": "0 differing of 229"
+ },
+ "src/cmd/xshard.o": {
+  "value": "127924",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_xshard.o.42f91447dbe5.o",
+  "result": "0 differing of 882"
+ },
+ "src/persist/aof.o": {
+  "value": "34437",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_persist_aof.o.0770d7479403.o",
+  "result": "0 differing of 317"
+ },
+ "src/main.o": {
+  "value": "147428",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_main.o.c49db7fc35df.o",
+  "result": "0 differing of 661"
+ },
+ "db0/src/main.o": {
+  "value": "147449",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_main.o.4994fe7042bf.o",
+  "result": "0 differing of 657"
+ },
+ "db0/src/core/rl2s.o": {
+  "value": "162334",
+  "trial": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_core_rl2s.o.632ae9c3243f.o",
+  "result": "0 differing of 695"
+ }
+}

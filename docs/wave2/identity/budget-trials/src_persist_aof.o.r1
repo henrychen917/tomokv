@@ -1,0 +1,22 @@
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34400", "unit": 26456, "changed": 6, "hot_changed": 0, "A": 4, "B": 0, "C": 2, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_persist_aof.o.6e6be8ab44d7.o"}
+    C T=new code 794->522 lanes=- eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    C T=new code 5688->5672 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34420", "unit": 26456, "changed": 7, "hot_changed": 0, "A": 4, "B": 0, "C": 3, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_persist_aof.o.fdd522fb4158.o"}
+    C T=new code 794->522 lanes=- eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    C T=new code 235->267 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_assign(std::__cxx11::basic
+    C T=new code 633->681 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34430", "unit": 26456, "changed": 10, "hot_changed": 0, "A": 4, "B": 0, "C": 6, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_persist_aof.o.5dff4c672a8b.o"}
+    C T=new code 1665->1651 lanes=- eq=- tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)
+    C T=new code 53->32 lanes=- eq=- tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int) [clone .cold]
+    C T=new code 780->796 lanes=- eq=- tomo::AofManager::debug_ack_window(unsigned int, tomo::Ring&)
+    C T=new code 794->522 lanes=- eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    C T=new code 633->681 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char
+    C T=new removed 77->0 lanes=- eq=- tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)::{lambda()#1}::operator()() const
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34437", "unit": 26456, "changed": 4, "hot_changed": 0, "A": 4, "B": 0, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_persist_aof.o.0770d7479403.o"}
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34445", "unit": 26456, "changed": 5, "hot_changed": 0, "A": 4, "B": 0, "C": 1, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_persist_aof.o.c9f05242ae5e.o"}
+    C T=new code 633->681 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34460", "unit": 26456, "changed": 8, "hot_changed": 0, "A": 4, "B": 0, "C": 4, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_persist_aof.o.bc1d567b47ec.o"}
+    C T=new code 1665->1651 lanes=- eq=- tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)
+    C T=new code 53->32 lanes=- eq=- tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int) [clone .cold]
+    C T=new code 633->681 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char
+    C T=new removed 77->0 lanes=- eq=- tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)::{lambda()#1}::operator()() const
