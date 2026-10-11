@@ -121,6 +121,62 @@ class RunnerTests(unittest.TestCase):
                          {'131', '165', '200', '207', '214', '249', '357'})
 
 
+class DriverTests(unittest.TestCase):
+    """The battery driver, serverless: marker insertion and observer connections."""
+
+    def run_driver(self, family, source):
+        import os
+        import sys
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        import lottery_test_driver as driver
+        calls = []
+
+        class FakeConn:
+            def __init__(self, host, port):
+                calls.append(('open', port))
+
+            def must(self, *command):
+                calls.append(command)
+                return b'OK'
+
+            def close(self):
+                calls.append(('close',))
+
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'battery.py'
+            path.write_text(source)
+            with patch.dict(os.environ, LOTTERY_PORT='25399', LOTTERY_FAMILY=family), \
+                    patch.object(driver, 'Conn', FakeConn), \
+                    patch.object(sys, 'argv', ['driver', str(path)]):
+                driver.main()
+        return calls
+
+    def test_expiry_sections_are_marked_in_order_on_short_lived_connections(self):
+        names = ('test_fanout_hook', 'test_transaction_family', 'test_script_clock',
+                 'test_ordinary_expiry_still_works')
+        source = ''.join(f'def {name}(conn): pass\n' for name in names)
+        source += 'def main():\n    conn = None\n    if conn is None:\n'
+        source += ''.join(f'        {name}(conn)\n' for name in names) + 'main()\n'
+        calls = self.run_driver('expwide', source)
+        marks = [c[3] for c in calls if c[:3] == ('DEBUG', 'LOTTERY', 'MARK')]
+        self.assertEqual(marks, ['expiry_section_fanout', 'expiry_section_exec',
+                                 'expiry_section_script', 'expiry_section_ordinary'])
+        # Every observer connection opens, sends one command and closes.
+        self.assertEqual(calls, [c for mark in marks for c in
+                                 (('open', 25399), ('DEBUG', 'LOTTERY', 'MARK', mark), ('close',))])
+
+    def test_config_probe_follows_only_propagation_sleeps(self):
+        source = 'import time\ntime.sleep(0.01)\ntime.sleep(0.06)\n'
+        calls = self.run_driver('blocking', source)
+        self.assertEqual(calls, [('open', 25399), ('DEBUG', 'LOTTERY', 'CONFIG'), ('close',)])
+
+    def test_changed_battery_anchor_refuses_to_run(self):
+        with self.assertRaisesRegex(ValueError, 'changed expiry section anchor'):
+            self.run_driver('expwide', 'pass\n')
+
+
 class CalibrationTests(unittest.TestCase):
     def result(self, row, attempts, hits, seconds, witnesses=None):
         return dict(row=dict(id=row), verdict='INSUFFICIENT', attempts=attempts, hits=hits,

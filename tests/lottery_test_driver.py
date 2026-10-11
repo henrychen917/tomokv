@@ -21,7 +21,7 @@ def main():
     port = int(os.environ['LOTTERY_PORT'])
     family = os.environ['LOTTERY_FAMILY']
 
-    def call(*command, parse=None):
+    def observe(*command, parse=None):
         # One short-lived observer connection per call: the battery never runs
         # beside an extra idle client the gate does not have (maxclients,
         # CLIENT LIST and connection-count assertions stay exactly as gated).
@@ -37,31 +37,32 @@ def main():
         directory = Path(auto)
         directory.mkdir(parents=True, exist_ok=True)
         base = directory / uuid.uuid4().hex
-        before = call(parse=info)
+        before = observe(parse=info)
         metadata = dict(pid=int(before['process_id']), trace=str(base.with_suffix('.trace')),
                         before=before, argv=sys.argv)
-        call('DEBUG', 'LOTTERY', 'ARM', os.environ['LOTTERY_MASK'], metadata['trace'])
+        observe('DEBUG', 'LOTTERY', 'ARM', os.environ['LOTTERY_MASK'], metadata['trace'])
 
     def mark(name):
-        call('DEBUG', 'LOTTERY', 'MARK', name)
+        observe('DEBUG', 'LOTTERY', 'MARK', name)
 
     def config_sleep(seconds):
         time.sleep(seconds)
         # A single sample after the battery's existing propagation sleep, with
         # no poll/wait/retry. Failure to observe all owners is a missed attempt.
         if seconds >= .05:
-            call('DEBUG', 'LOTTERY', 'CONFIG')
+            observe('DEBUG', 'LOTTERY', 'CONFIG')
 
     source = path.read_text()
     original_hash = hashlib.sha256(source.encode()).hexdigest()
     if family in ('blocking', 'servertail', 'slowlog'):
         source = source.replace('time.sleep(', 'lottery_config_sleep(')
     if family == 'expwide':
-        for call, name in [('test_fanout_hook', 'fanout'), ('test_transaction_family', 'exec'),
-                           ('test_script_clock', 'script'), ('test_ordinary_expiry_still_works', 'ordinary')]:
-            anchor = f'        {call}(conn)'
+        for function, name in [('test_fanout_hook', 'fanout'), ('test_transaction_family', 'exec'),
+                               ('test_script_clock', 'script'),
+                               ('test_ordinary_expiry_still_works', 'ordinary')]:
+            anchor = f'        {function}(conn)'
             if source.count(anchor) != 1:
-                raise ValueError(f'changed expiry section anchor: {call}')
+                raise ValueError(f'changed expiry section anchor: {function}')
             source = source.replace(anchor, f'        lottery_mark("expiry_section_{name}")\n' + anchor)
     if path.name == 'differ.py':
         anchor = '        a = parked["t"] + collect(tt); b = parked["o"] + collect(ot)'
@@ -78,8 +79,8 @@ def main():
              lottery_mark=mark, lottery_config_sleep=config_sleep))
     finally:
         if metadata is not None:
-            metadata['after'] = call(parse=info)
-            metadata['stopped'] = call('DEBUG', 'LOTTERY', 'STOP') == b'OK'
+            metadata['after'] = observe(parse=info)
+            metadata['stopped'] = observe('DEBUG', 'LOTTERY', 'STOP') == b'OK'
             base.with_suffix('.json').write_text(json.dumps(metadata, indent=2) + '\n')
 
 
