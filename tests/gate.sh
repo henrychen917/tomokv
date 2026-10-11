@@ -2046,6 +2046,12 @@ row_begin "read-local GET miss battery (1s)"
 py tests/rlfix.py 127.0.0.1 "$PORT" --case miss >$TMPDIR/gate-rlfix-miss-1s.txt 2>&1 \
     && ok "read-local GET miss battery (1s)" \
     || bad "read-local GET miss battery (1s)" "see $TMPDIR/gate-rlfix-miss-1s.txt"
+# RL4.4: precise DEL/UNLINK plus same-key RYOW; multi-key control stays broad.
+# These two rows also precede quick exit: RL4.3+RL4.4 total DQ=DF=+4.
+row_begin "read-local one-key delete battery (1s)"
+py tests/rlfix.py 127.0.0.1 "$PORT" --case delete >$TMPDIR/gate-rlfix-del-1s.txt 2>&1 \
+    && ok "read-local one-key delete battery (1s)" \
+    || bad "read-local one-key delete battery (1s)" "see $TMPDIR/gate-rlfix-del-1s.txt"
 stop
 row_begin "read-local MGET fence battery (2s)"
 if boot "$CANDIDATE_BINARY" --atomic 1 --read-local 1 --enable-debug-command yes && \
@@ -2059,6 +2065,10 @@ row_begin "read-local GET miss battery (2s)"
 py tests/rlfix.py 127.0.0.1 "$PORT" --case miss >$TMPDIR/gate-rlfix-miss-2s.txt 2>&1 \
     && ok "read-local GET miss battery (2s)" \
     || bad "read-local GET miss battery (2s)" "see $TMPDIR/gate-rlfix-miss-2s.txt"
+row_begin "read-local one-key delete battery (2s)"
+py tests/rlfix.py 127.0.0.1 "$PORT" --case delete >$TMPDIR/gate-rlfix-del-2s.txt 2>&1 \
+    && ok "read-local one-key delete battery (2s)" \
+    || bad "read-local one-key delete battery (2s)" "see $TMPDIR/gate-rlfix-del-2s.txt"
 stop
 }
 

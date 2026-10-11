@@ -137,13 +137,82 @@ def misses(host, port, oracle=False):
         ctl.close()
 
 
+def deletes(host, port):
+    ctl = _lib.Conn(host, port)
+    saved_notify = ctl.must("CONFIG", "GET", "notify-keyspace-events")[1]
+    try:
+        expect(_lib.info(ctl, "server")["read_local"], "1", "armed server")
+        ctl.must("CONFIG", "SET", "notify-keyspace-events", "")
+        ctl.must("SET", "rlfix:arm", "armed")
+        # Read keys must avoid the write shards: a concurrent owner deletion can
+        # legitimately invalidate a probe of a different key in the same table.
+        # Prove this geometry on this boot instead of accepting fewer local reads.
+        shards = {}
+        for key, shard, owner in _lib.probe_keys(ctl, "rlfix:delete", _lib.topology(ctl)):
+            shards.setdefault(shard, key)
+            if len(shards) == 6:
+                break
+        assert len(shards) == 6, "delete precision witness needs six distinct shards"
+        a, b, *keys = shards.values()
+        for key in keys:
+            ctl.must("SET", key, key)
+        for command in ("DEL", "UNLINK", "dEl", "uNlInK"):
+            for broad in (False, True):
+                ctl.must("SET", a, "old-a")
+                ctl.must("SET", b, "old-b")
+                c = armed_connection(host, port, ctl)
+                try:
+                    write = (command, a, b) if broad else (command, a)
+                    frames = [("GET", key) for key in keys[:3]]
+                    frames += [write, ("GET", keys[3]), ("GET", a)]
+                    expected = [key.encode() for key in keys[:3]]
+                    expected += [2 if broad else 1, keys[3].encode(), None]
+                    before = snapshot(ctl)
+                    c.sock.sendall(b"".join(_lib.encode(*frame) for frame in frames))
+                    replies = [c.read() for _ in frames]
+                    d = delta(before, snapshot(ctl))
+                    # The final GET is an exact same-connection RYOW witness, not
+                    # an independent connection's eventual view of the deletion.
+                    expect(replies, expected, f"{command} broad={broad} replies/RYOW")
+                    counted(d, {"read_local_hits": 0 if broad else 4,
+                                "read_local_keyspace_hits": 0 if broad else 4,
+                                "read_local_keyspace_misses": 0,
+                                "read_local_fallbacks": 5 if broad else 1,
+                                "read_local_fallback_inflight_write": 5 if broad else 1,
+                                "read_local_write_ring_records": 0 if broad else 1,
+                                "keyspace_hits": 4, "keyspace_misses": 1})
+                    print(json.dumps(dict(command=command, broad=broad, counters=d,
+                                          replies=repr(replies))), flush=True)
+                finally:
+                    c.close()
+            # An older read of the deleted key must execute before the delete.
+            ctl.must("SET", a, "old-a")
+            c = armed_connection(host, port, ctl)
+            try:
+                before = snapshot(ctl)
+                frames = [("GET", a), (command, a), ("GET", a)]
+                c.sock.sendall(b"".join(_lib.encode(*frame) for frame in frames))
+                expect([c.read() for _ in frames], [b"old-a", 1, None], command + " older/younger RYOW")
+                counted(delta(before, snapshot(ctl)), {"read_local_hits": 0,
+                        "read_local_fallback_inflight_write": 2})
+            finally:
+                c.close()
+    finally:
+        ctl.must("CONFIG", "SET", "notify-keyspace-events", saved_notify)
+        ctl.close()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("host")
     parser.add_argument("port", type=int)
-    parser.add_argument("--case", choices=("miss",), required=True)
+    parser.add_argument("--case", choices=("miss", "delete"), required=True)
     parser.add_argument("--oracle-port", type=int)
     args = parser.parse_args()
+    if args.case == "delete":
+        deletes(args.host, args.port)
+        print("rlfix delete: PASS")
+        return
     rows = misses(args.host, args.port)
     if args.oracle_port:
         oracle = misses(args.host, args.oracle_port, oracle=True)

@@ -1,0 +1,15 @@
+{"command": "DEL", "broad": false, "counters": {"keyspace_hits": 4, "keyspace_misses": 1, "read_local_hits": 4, "read_local_keyspace_hits": 4, "read_local_fallbacks": 1, "read_local_fallback_inflight_write": 1, "read_local_write_ring_sidecars": 1, "read_local_write_ring_records": 1}, "replies": "[b'rlfix:z1', b'rlfix:z2', b'rlfix:z3', 1, b'rlfix:z4', None]"}
+{"command": "DEL", "broad": true, "counters": {"keyspace_hits": 4, "keyspace_misses": 1, "read_local_fallbacks": 5, "read_local_fallback_inflight_write": 5, "read_local_write_ring_sidecars": 1}, "replies": "[b'rlfix:z1', b'rlfix:z2', b'rlfix:z3', 2, b'rlfix:z4', None]"}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 219, in <module>
+    main()
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 204, in main
+    deletes(args.host, args.port)
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 168, in deletes
+    counted(d, {"read_local_hits": 0 if broad else 4,
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 34, in counted
+    expect(d.get(key, 0), value, key)
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 29, in expect
+    assert actual == expected, f"{label}: got {actual!r}, wanted {expected!r}"
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: read_local_hits: got 3, wanted 4
