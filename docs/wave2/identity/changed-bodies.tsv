@@ -1,8 +1,8 @@
 object	body	class	lane	hot	kind	pre_bytes	post_bytes	equals_lane_build	call_targets	reason
-db0/src/main.o	tomo_db0::Config::Config()	A	dbdefault		code	890	890	dbdefault	991d48f65	Config default databases 1 -> 16 (two immediate bytes)
-db0/src/main.o	tomo_db0::Config::Config()	A	dbdefault		code	890	890	dbdefault	991d48f65	Config default databases 1 -> 16 (two immediate bytes)
-src/main.o	tomo::Config::Config()	A	dbdefault		code	890	890	dbdefault	991d48f65	Config default databases 1 -> 16 (two immediate bytes)
-src/main.o	tomo::Config::Config()	A	dbdefault		code	890	890	dbdefault	991d48f65	Config default databases 1 -> 16 (two immediate bytes)
+db0/src/main.o	tomo_db0::Config::Config()	A	dbdefault		code	890	890	dbdefault	991d48f65	Config default databases 1 -> 16 (one immediate per body)
+db0/src/main.o	tomo_db0::Config::Config()	A	dbdefault		code	890	890	dbdefault	991d48f65	Config default databases 1 -> 16 (one immediate per body)
+src/main.o	tomo::Config::Config()	A	dbdefault		code	890	890	dbdefault	991d48f65	Config default databases 1 -> 16 (one immediate per body)
+src/main.o	tomo::Config::Config()	A	dbdefault		code	890	890	dbdefault	991d48f65	Config default databases 1 -> 16 (one immediate per body)
 db0/src/cmd/storesize.o	tomo_db0::FlatStore::publish_keyspace_sample() const	A	perfex		code	603	568	perfex	991d48f65	perfex: EX4.2: field attention moves to count publication; this method only samples TTLs
 db0/src/cmd/storesize.o	tomo_db0::Shard::publish_size()	A	perfex		code	232	232	perfex	perfex	perfex: EX4.2: batch publication retains counts/field attention and drops monitoring probes
 db0/src/cmd/t_server.o	tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)	A	perfex		code	1802	1834	perfex	991d48f65	perfex2: snapshot-time cold clear resets the TTL sample (inlined)
@@ -168,6 +168,6 @@ src/core/reorder.o	tomo::FlatStore::atomic_collapse_read_local(unsigned long, un
 src/core/reorder.o	tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)	B	perfio+perfex+rlresize		code	1190	1158	perfio+perfex+rlresize	perfio+perfex+rlresize	composite: each of perfio + perfex + rlresize changes this body in its own build; merged translation unit (unbudgeted src reorder.o)
 src/core/rl2s.o	unsigned int tomo::IoLoop::flip_control_pass<true>()	B	perfio+perfex+rlresize		code	5579	5488	rlresize	rlresize	composite: each of perfio + perfex + rlresize changes this body in its own build; merged translation unit (shared header edits)
 src/core/reorder.o	tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)	B	perfio+rlresize		code	7039	7093	perfio+rlresize	perfio+rlresize	composite: each of perfio + rlresize changes this body in its own build; merged translation unit (unbudgeted src reorder.o)
-db0/src/persist/aof.o	tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)	C	-		code	898	898	-	991d48f65	no lane changes it; same size and call targets as 991d48f65, register allocation only (every clean db0 aof.o budget shows it; the linker keeps another object's copy)
+db0/src/persist/aof.o	tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)	C	-		code	898	898	-	991d48f65	no lane changes it; same size and call targets as 991d48f65, register allocation only (C at every scanned db0 aof.o budget; the linker keeps another object's copy)
 src/core/genthread.o	tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)	D	rlresize		code	1043	1217	-	rlresize	rlresize body with rlresize's exact call targets; code generation differs in the merged src genthread.o unit (D at every scanned budget)
 src/core/genthread.o	unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()	D	rlresize		code	3230	3119	-	rlresize	rlresize body with rlresize's exact call targets; code generation differs in the merged src genthread.o unit (D at every scanned budget)

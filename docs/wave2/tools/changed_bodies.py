@@ -9,7 +9,7 @@ import sys
 from collections import Counter
 
 REASONS = [  # (lane set, name pattern, reason) -- first match wins
-    ('dbdefault', r'Config::Config\(\)', 'Config default databases 1 -> 16 (two immediate bytes)'),
+    ('dbdefault', r'Config::Config\(\)', 'Config default databases 1 -> 16 (one immediate per body)'),
     ('perfex', r'drain_tasks', 'EX4.13: received tasks constructed in byte storage; no batch zero-fill'),
     ('perfex', r'exec_batch', 'EX4.13: batch execution now inlined into the changed drain'),
     ('perfex', r'ExLoopT<(?:true|false)>::run\(\)', 'EX4.12: CPU clock sampled on the 100 us beat; wall clock read after it'),
@@ -58,7 +58,7 @@ def reason(row):
             return KNOWN[(lane, row['object'], row['name'])]
     if row['cls'] == 'C':
         return ('no lane changes it; same size and call targets as 991d48f65, register allocation '
-                'only (every clean db0 aof.o budget shows it; the linker keeps another object\'s copy)'
+                'only (C at every scanned db0 aof.o budget; the linker keeps another object\'s copy)'
                 if 'make_room_for' in row['name'] else 'unattributed')
     if row['cls'] == 'D':
         return ('rlresize body with rlresize\'s exact call targets; code generation differs in the '
