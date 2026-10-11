@@ -1483,6 +1483,15 @@ job_hexpread(){
         bad "$label" "see $TMPDIR/hexpread-$case-$mode.log"
       fi
     done
+    label="hexpread OBJECT expiry ($mode)"
+    row_begin "$label"
+    if py tests/objectpread.py --binary "$CANDIDATE_BINARY" --port "$PORT" \
+        --cores "$CORES" --ratio "$GATE_RATIO" --mode "$mode" \
+        --artifacts "$TMPDIR/hexpread-object-$mode" >"$TMPDIR/hexpread-object-$mode.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/hexpread-object-$mode.log"
+    fi
   done
 }
 
@@ -3606,7 +3615,7 @@ collect_job readonly
 collect_job release_batteries
 
 collect_job atomic_batteries
-# hexpread: six independently scored rows before the quick exit (DQ +6 / DF +6).
+# hexpread: eight independently scored rows before the quick exit (DQ +8 / DF +8).
 # EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 collect_job hexpread
 
