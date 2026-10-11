@@ -1,7 +1,7 @@
 {
   "base": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
-  "implementation_commit": "25d5e4b33ed82ec980c444789cbbb41e4e246689",
-  "binary_sha256": "1ed66938ed638009b8774c444e74e1473ab53def920bf2ff2baca9e3e7a6eb6c",
+  "implementation_commit": "ab2dc7d28f0b40c91bd7fe210b37da203964ad52",
+  "binary_sha256": "b09bb31041e5400ebb68df32baf55abd39bc46e78921701acc86d208068a980d",
   "gate_delta": {
     "quick": 8,
     "full": 8
@@ -21,7 +21,7 @@
   "allowed_cores": "96-111",
   "ratio": "6:2",
   "shards": 16,
-  "source_tree": "6774462f37eb39197ad748ed719de57b3ee6a6ec",
+  "source_tree": "b9c048212c4c33d10d318c943a43fe7f1c2d6e60",
   "service_ports_only": [
     25800,
     25802,

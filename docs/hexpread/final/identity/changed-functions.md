@@ -131,8 +131,8 @@ Exact opcodes plus relocation targets; no error-callee or instruction masking.
 | `src/cmd/hexpread.o` | `tomo::hexpread::filtered_cmd_hstrlen(tomo::Shard&, tomo::Op&, tomo::KvObj*, tomo::hexpread::HashReadView&)` | 0 → 654 | read / added helper |
 | `src/cmd/hexpread.o` | `tomo::hexpread::filtered_select_unique(tomo::hexpread::HashReadView&, unsigned int, unsigned int, std::vector<unsigned int, std::allocator<unsigned int> >&)` | 0 → 2318 | read / added helper |
 | `src/cmd/hexpread.o` | `tomo::hexpread::filtered_select_unique(tomo::hexpread::HashReadView&, unsigned int, unsigned int, std::vector<unsigned int, std::allocator<unsigned int> >&) [clone .cold]` | 0 → 192 | read / added helper |
-| `src/cmd/hexpread.o` | `tomo::hexpread::filtered_cmd_hrandfield(tomo::Shard&, tomo::Op&, tomo::KvObj*, tomo::hexpread::HashReadView&)` | 0 → 3108 | read / added helper |
-| `src/cmd/hexpread.o` | `tomo::hexpread::filtered_cmd_hrandfield(tomo::Shard&, tomo::Op&, tomo::KvObj*, tomo::hexpread::HashReadView&) [clone .cold]` | 0 → 139 | read / added helper |
+| `src/cmd/hexpread.o` | `tomo::hexpread::filtered_cmd_hrandfield(tomo::Shard&, tomo::Op&, tomo::KvObj*, tomo::hexpread::HashReadView&)` | 0 → 3324 | read / added helper |
+| `src/cmd/hexpread.o` | `tomo::hexpread::filtered_cmd_hrandfield(tomo::Shard&, tomo::Op&, tomo::KvObj*, tomo::hexpread::HashReadView&) [clone .cold]` | 0 → 137 | read / added helper |
 | `src/cmd/hexpread.o` | `tomo::hexpread::filtered_generic_getall(tomo::Shard&, tomo::Op&, tomo::hexpread::GetAllMode, tomo::KvObj*, tomo::hexpread::HashReadView&)` | 0 → 986 | read / added helper |
 | `src/cmd/hexpread.o` | `tomo::hexpread::parse_i64(tomo::Slice, long&)` | 0 → 327 | read / added helper |
 | `src/cmd/hexpread.o` | `tomo::FlatStore::atomic_resolve_internal(unsigned long, tomo::Slice, unsigned long, bool)` | 0 → 2769 | read / added helper |
@@ -188,8 +188,8 @@ Exact opcodes plus relocation targets; no error-callee or instruction masking.
 | `db0/src/cmd/hexpread.o` | `tomo_db0::hexpread::filtered_cmd_hstrlen(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*, tomo_db0::hexpread::HashReadView&)` | 0 → 654 | read / added helper |
 | `db0/src/cmd/hexpread.o` | `tomo_db0::hexpread::filtered_select_unique(tomo_db0::hexpread::HashReadView&, unsigned int, unsigned int, std::vector<unsigned int, std::allocator<unsigned int> >&)` | 0 → 2318 | read / added helper |
 | `db0/src/cmd/hexpread.o` | `tomo_db0::hexpread::filtered_select_unique(tomo_db0::hexpread::HashReadView&, unsigned int, unsigned int, std::vector<unsigned int, std::allocator<unsigned int> >&) [clone .cold]` | 0 → 192 | read / added helper |
-| `db0/src/cmd/hexpread.o` | `tomo_db0::hexpread::filtered_cmd_hrandfield(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*, tomo_db0::hexpread::HashReadView&)` | 0 → 3108 | read / added helper |
-| `db0/src/cmd/hexpread.o` | `tomo_db0::hexpread::filtered_cmd_hrandfield(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*, tomo_db0::hexpread::HashReadView&) [clone .cold]` | 0 → 139 | read / added helper |
+| `db0/src/cmd/hexpread.o` | `tomo_db0::hexpread::filtered_cmd_hrandfield(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*, tomo_db0::hexpread::HashReadView&)` | 0 → 3324 | read / added helper |
+| `db0/src/cmd/hexpread.o` | `tomo_db0::hexpread::filtered_cmd_hrandfield(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*, tomo_db0::hexpread::HashReadView&) [clone .cold]` | 0 → 137 | read / added helper |
 | `db0/src/cmd/hexpread.o` | `tomo_db0::hexpread::filtered_generic_getall(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::hexpread::GetAllMode, tomo_db0::KvObj*, tomo_db0::hexpread::HashReadView&)` | 0 → 986 | read / added helper |
 | `db0/src/cmd/hexpread.o` | `tomo_db0::hexpread::parse_i64(tomo_db0::Slice, long&)` | 0 → 327 | read / added helper |
 | `db0/src/cmd/hexpread.o` | `tomo_db0::FlatStore::atomic_resolve_internal(unsigned long, tomo_db0::Slice, unsigned long, bool)` | 0 → 3713 | read / added helper |

@@ -1401,8 +1401,8 @@
     "name": "tomo::hexpread::filtered_cmd_hrandfield(tomo::Shard&, tomo::Op&, tomo::KvObj*, tomo::hexpread::HashReadView&)",
     "hot": false,
     "pre_size": 0,
-    "post_size": 3108,
-    "differing_bytes": 3108,
+    "post_size": 3324,
+    "differing_bytes": 3324,
     "targets_equal": false,
     "object": "src/cmd/hexpread.o",
     "allowed_read_change": true
@@ -1412,8 +1412,8 @@
     "name": "tomo::hexpread::filtered_cmd_hrandfield(tomo::Shard&, tomo::Op&, tomo::KvObj*, tomo::hexpread::HashReadView&) [clone .cold]",
     "hot": false,
     "pre_size": 0,
-    "post_size": 139,
-    "differing_bytes": 139,
+    "post_size": 137,
+    "differing_bytes": 137,
     "targets_equal": false,
     "object": "src/cmd/hexpread.o",
     "allowed_read_change": true
@@ -2028,8 +2028,8 @@
     "name": "tomo_db0::hexpread::filtered_cmd_hrandfield(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*, tomo_db0::hexpread::HashReadView&)",
     "hot": false,
     "pre_size": 0,
-    "post_size": 3108,
-    "differing_bytes": 3108,
+    "post_size": 3324,
+    "differing_bytes": 3324,
     "targets_equal": false,
     "object": "db0/src/cmd/hexpread.o",
     "allowed_read_change": true
@@ -2039,8 +2039,8 @@
     "name": "tomo_db0::hexpread::filtered_cmd_hrandfield(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*, tomo_db0::hexpread::HashReadView&) [clone .cold]",
     "hot": false,
     "pre_size": 0,
-    "post_size": 139,
-    "differing_bytes": 139,
+    "post_size": 137,
+    "differing_bytes": 137,
     "targets_equal": false,
     "object": "db0/src/cmd/hexpread.o",
     "allowed_read_change": true
