@@ -166,6 +166,12 @@ Failed tool attempts were retained under `build/mkfix`: an initially invalid fus
 
 ## mkfix2
 
+**Three confirmed leads retained in separate commits; correctness proof passes.**
+A restores batching under the existing WB rule but remains below plain MSET; B
+removes the 64-block free/reacquire cycle; C eliminates abandoned prepares in all
+measured POST cells. All GET/SET handlers and locked layouts match PRE. **40 broader
+hot bodies differ and need maintainer merit.** No throughput claim.
+
 PRE production source remains `991d48f651d3c6e1324c061bd9ea801ac085afe8`;
 this lane starts from `33bb0bd8f` after the requested fetch/merge (already current).
 The task-specific finite count and correctness runs use CPUs 32–47 and ports
@@ -286,3 +292,132 @@ Both retain all **1,211 command handlers** and the same **40 changed hot bodies*
 as A. [AB inventory](docs/mkfix2/ab-full/changed-bodies.json),
 [ABC inventory](docs/mkfix2/abc-full/changed-bodies.json). B/C add no further ordinary
 GET/SET body changes. These remain candidates for maintainer merit.
+
+### Artifacts, proof and handoff
+
+All primary receipts are consolidated in [counts.csv](docs/mkfix2/counts.csv):
+144 paired cell records from **288 fresh boots** (36 WB + 36 scratch count cells
+for PRE, A, AB and ABC). There is one replica per cell, not a repeatability or
+throughput result. WB ratios include warm-up/population/control replies; allocator
+and mechanism counters cover only the 65,536 checked commands. The scratch v2
+runs did not instrument floor sweeps or WB bypass visits; their reserved zero
+words are not evidence about those mechanisms.
+
+| Arm | Production source commit | Executable | SHA-256 |
+|---|---|---|---|
+| pre | `991d48f651d3c6e1324c061bd9ea801ac085afe8` | `build/mkfix2/pre/tomokv` | `330eb467062473b99c9913e024bbbcdc87a79108fcf2c3a783fced7f229fedef` |
+| a | `2fa94d2dc97c20bbe13ddeeaebf3cd4328d5e1d5` | `build/mkfix2/a/tomokv` | `4a4842e8dffdb2b51b97b32e2288285dde41a24e7c6d52382274519fa29ac93d` |
+| ab | `5b8ab21f400b161ac2690c960bbdf522bfc08499` | `build/mkfix2/ab/tomokv` | `3bb97dae385d2a90b87d7907c77b53b25c43d2154f8a11ee4b8843977c97b023` |
+| abc | `ba0160c0ce359781db05fc4f2ef4206aea3da5c7` | `build/mkfix2/abc/tomokv` | `f5fc255ff286a450210e914683de2b0171ed7258b2fe124da4b3eec07d00b104` |
+| a-pad | `A binary patched; see PAD receipt` | `build/mkfix2/a-pad/tomokv` | `007acf2cca08107900b297b69fa552d703b3c87a64ab926c7197603854e435a3` |
+| final | `ba0160c0ce359781db05fc4f2ef4206aea3da5c7` | `build/tomokv` | `f5fc255ff286a450210e914683de2b0171ed7258b2fe124da4b3eec07d00b104` |
+
+[Binary and scratch-source/library manifest](docs/mkfix2/binaries.json).
+The PRE executable/objects reuse mkfix's byte-verified `991d48f65` artifacts.
+A rebuilt all production objects. B and C rebuild both xshard objects and relink,
+reusing the unchanged A objects; the final ordinary **`make all` rebuilt the whole
+production tree** and produced exactly ABC's SHA-256, not just matching hot bytes.
+No instrumented executable is a merit arm.
+
+**PAD kind A — behaviour twin for A only:** PRE completion behavior with A's
+exact ELF section sizes, addresses and all non-text bytes. The artifact tool
+bypasses only successful MSET's early reply materialization in both namespaces;
+the unused candidate code stays in place. [Patch receipt](docs/mkfix2/a-pad.json),
+[tool](tools/mkfix2_pad.py), [six finite control cells](docs/mkfix2/a-pad-wb.jsonl.gz).
+Its p8/p32/p128 atomic-MSET ratios are **1.000/1.001/1.000 in 1s** and
+**1.002/1.004/1.005 in 2s**, restoring PRE's observed mechanism. This is no rate
+claim and is not a bundle-wide PAD. All object layouts are unchanged; `.text`
+grows by 496/656/752 bytes for A/AB/ABC respectively.
+
+- **Builds:** `taskset -c 32-47 make -k -j16 all` plus every target named by
+  `job_production_units`: **29/29 targets built and passed `make -q`**. Both
+  `mdbqsbr-live-arms` controls built. This is a build/freshness claim, not execution
+  of every unit. [Receipt](docs/mkfix2/production-units.json),
+  [build log](docs/mkfix2/production-units-build.log.gz),
+  [MDBQSBR build log](docs/mkfix2/mdbqsbr-live-build.log.gz).
+- **Differential:** Redis **7.4.10**, string/xshard/multi/fanout, seeds
+  **7/19/20/23**, atomic **0/1**, both thread modes, read-local 0:
+  **64/64 legs, zero differences**. `differ_gate.sh` runs unchanged. The same
+  documented fused wrapper used by mkfix supplies 1s/read-local 0 because the
+  script has only split/armed-fused presets. [Wrapper](docs/mkfix2/fused-rl0-wrapper.txt).
+- **Atomic proof:** torn/window (`--release-build`), RYOW/mixed-write (including
+  its unchanged rate assertion), and owner-local hazards all pass in **both modes**.
+  The requested `xshard_plain_stale_cuts()` checks live in the existing
+  **plain-write lost updates** rows: the self-test, `atomic-survivors-unit plain_0`
+  and `plain_1`, plus the live battery at atomic 0/1 in both modes all pass.
+  All ten battery boots pass the gate's `shutdown_report.py ... clean` check.
+  [Commands/exits](docs/mkfix2/live-proof.json),
+  [raw logs and differential witnesses](docs/mkfix2/live-proof-raw.tar.gz).
+- **WB:** `python3 tests/wbland_checks.py check clauses` passes **83/83 strict
+  outcomes**, including its original negative controls.
+  [Receipt](docs/mkfix2/wbland-clauses.json), [log](docs/mkfix2/wbland-clauses.log.gz).
+- **Gate harness:** `python3 tests/gates_test.py` passes **66/66**, nested **14/14**;
+  no deadline failures and no assertion edits.
+  [Log](docs/mkfix2/gates-test.log.gz).
+- **Directed regressions:** the completed-reply unit passes; its scratch control
+  aliases the new tag back to opaque and fails at the batching assertion.
+  [Negative control](docs/mkfix2/unit-a-negative.log). The room unit's ABC pass and
+  AB failure are above. These are standalone units, not added gate rows.
+  [Exact build/run commands](docs/mkfix2/standalone-units.json).
+- **Identity:** every GET/SET handler remains identical. Full inventories above
+  retain **40 ordinary hot-body differences** for maintainer merit. The narrower
+  lbstall selector also reports 40 differences (1,164/1,204 equal).
+  [A](docs/mkfix2/a-hot.json.gz), [AB](docs/mkfix2/ab-hot.json.gz),
+  [ABC](docs/mkfix2/abc-hot.json.gz). All comparison failures are recorded as
+  differences, never passes. [Commands/exits](docs/mkfix2/identity-commands.json).
+  Linked section inventories: [A](docs/mkfix2/a-linked.json),
+  [AB](docs/mkfix2/ab-linked.json), [ABC](docs/mkfix2/abc-linked.json).
+- **Layouts:** Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore 944,
+  Rob<64> 192, AtomicEntry 144, Config 624, in **both namespaces and all arms**.
+  Server size/observed fields, ScatterArenaPool size and IoLoop size also match.
+  [Layouts](docs/mkfix2/layouts.json). Final `build/tomokv` is exactly the ABC arm:
+  [linked proof](docs/mkfix2/final-linked.json).
+
+DQ **+0**, DF **+0**. No gate rows or assertions changed on either side of the
+quick-tier exit at `tests/gate.sh:3700`. `EXPECT_QUICK=625` / `EXPECT_FULL=642`
+remain unchanged and should remain **625 / 642**. No full gate or throughput
+benchmark was run; the finite counts and requested focused correctness proofs
+above are the task-specific runs. No push.
+
+### Maintainer measurement request — unrun
+
+Use the gate's own matched-load ABBA/PMU instrument, one measuring lane at a time.
+The exact 52 requested cells are [merit-cells.txt](docs/mkfix2/merit-cells.txt):
+GET/SET/MGET-8/MSET-8 × p8/p32/p128 × 1s/2s × atomic 0/1, plus atomic-1 GET/SET p1
+in both modes. Values are 64 B, 64 connections, read-local 0, wb-policy 1 with
+unchanged S=16/D=3. Use independently generated keys from the gate workload,
+not the fixed tuple used by the count census. Server CPUs **32–39**, load CPUs
+**40–47**, ports **25500–25599**, **16 shards**, split **6:2**.
+
+Pairs: **PRE/ABC** for the bundle; **PRE/A**, **A/AB**, **AB/ABC** for the parts;
+**PRE/A-PAD** and **A-PAD/A** for A's type-A layout control. Start the part runs
+with each lead's affected multi-key cells, then retain the GET/SET controls.
+Freeze the same offered load and valid null/bands for both arms. The verdict is
+rate/attainment at matched offered load, with the gate's latency and single-key
+nonregression requirements. Per-cell cycles/op, instructions/op and IPC explain
+that verdict; allocation and prepare counts alone do not establish a win. A's
+partial batching improvement and its 40 hot-body differences need explicit merit.
+B's retained peak memory needs a long-run plateau/RSS observation after a deep
+burst and drain. Keep or reject each prefix on those measurements.
+
+**Instrument geometry caveat:** this checkout's standalone `abbagate.py` catalog
+has only a 32-core 16:16 ABBA shape, and derives 64 shards for eight-core fused.
+It cannot directly issue the above eight-core/16-shard matrix as-is. The maintainer
+must select/register the intended instrument geometry before running it; no
+measurement catalog, asserted floor or tolerance was fabricated here. The cell
+file deliberately has no invented load pins. The ordinary gate iteration and
+mainline GET/SET merit remain maintainer-owned acceptance work. Append the quiet
+box results as `MEASURE-RESULT` in this worktree.
+
+Finite-count rechecks (fresh output directories; run serially, not during merit):
+
+```sh
+for mkfix2_arm in pre a ab abc; do
+  taskset -c 32-47 python3 tools/mkfix_counts.py --binary "build/mkfix2/$mkfix2_arm/tomokv" --output "build/mkfix2/recheck-$mkfix2_arm-wb"
+  taskset -c 32-47 python3 tools/mkfix_counts.py --binary "build/mkfix2/count-$mkfix2_arm/tomokv" --shim build/mkfix2/scratch/count.so --output "build/mkfix2/recheck-$mkfix2_arm-counts"
+done
+```
+
+The ignored scratch source forks and interposer remain available under
+`build/mkfix2/scratch`; their digests are in the manifest. No production counter,
+measurement flag, time constant or adaptive policy was introduced.
