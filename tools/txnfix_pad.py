@@ -5,6 +5,7 @@ This controls total .text size, not internal function placement or Server's
 cold-tail layout. It is insufficient to accept a candidate that fails a static
 instruction bar. No server or workload is started.
 """
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -20,11 +21,15 @@ def text_size(path):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--output', type=Path, default=Path('build/txnfix2/pad'))
+    parser.add_argument('--receipt', type=Path, default=Path('docs/txnfix/txnfix2/pad'))
+    args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     pre = root / 'build/txnfix2/pre/tomokv'
     post = root / 'build/tomokv'
-    out = root / 'build/txnfix2/pad'
-    receipts = root / 'docs/txnfix/txnfix2/pad'
+    out = root / args.output
+    receipts = root / args.receipt
     out.mkdir(exist_ok=True)
     receipts.mkdir(exist_ok=True)
     lines = (root / 'build/txnfix2/pre-build.log').read_text().splitlines()

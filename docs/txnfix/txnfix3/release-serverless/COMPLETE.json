@@ -1,0 +1,27 @@
+[
+  {
+    "name": "gates-full",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "exit_code": 0,
+    "seconds": 82.24582225782797
+  },
+  {
+    "name": "ledger-self-tests",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/gate_ledger_fixture.py",
+      "--self-test"
+    ],
+    "exit_code": 1,
+    "seconds": 0.4642834239639342
+  }
+]

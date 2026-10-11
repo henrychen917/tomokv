@@ -1,0 +1,18 @@
+  ok   geometry: reads fan out over more than one owner keyed=8 over [0, 2, 3, 4, 6, 8, 10, 14]; walker=16 over [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  ok   CONFIG SET atomic 0
+  ok   unarmed control completes far inside the park budget (atomic 0) elapsed=0.0001s budget=0.400s
+  FAIL deterministic EXEC straddle: MGET (atomic 0) rounds=4 torn=1 windows_opened=4 fanout_cuts=+0 ["round 2 saw [b'g2-new', b'g2-new', b'g2-new', b'g2-new', b'g2-new', b'g2-new', b'g2-new', b'g2-new']"]
+  ok   deterministic EXEC straddle: EXISTS (atomic 0) rounds=4 torn=0 windows_opened=4 fanout_cuts=+4 []
+  ok   deterministic EXEC straddle: KEYS (atomic 0) rounds=4 torn=0 windows_opened=4 fanout_cuts=+4 []
+  ok   committed transaction is fully visible to a later read (atomic 0) values=[b'fresh', b'fresh', b'fresh']
+  ok   own plain and transactional writes stay visible under the cut (atomic 0) plain=[b'own0', b'own1'] after=[b'txn', b'txn']
+  ok   concurrent MGET never straddles a transaction (atomic 0) reads=89127 commits=2172 torn=0 fanout_cuts=+15 errors=[] []
+  ok   CONFIG SET atomic 1
+  ok   unarmed control completes far inside the park budget (atomic 1) elapsed=0.0000s budget=0.400s
+  ok   deterministic EXEC straddle: MGET (atomic 1) rounds=4 torn=0 windows_opened=4 fanout_cuts=+0 []
+  ok   deterministic EXEC straddle: EXISTS (atomic 1) rounds=4 torn=0 windows_opened=4 fanout_cuts=+0 []
+  ok   deterministic EXEC straddle: KEYS (atomic 1) rounds=4 torn=0 windows_opened=4 fanout_cuts=+0 []
+  ok   committed transaction is fully visible to a later read (atomic 1) values=[b'fresh', b'fresh', b'fresh']
+  ok   own plain and transactional writes stay visible under the cut (atomic 1) plain=[b'own0', b'own1'] after=[b'txn', b'txn']
+  ok   concurrent MGET never straddles a transaction (atomic 1) reads=89379 commits=2164 torn=0 fanout_cuts=+0 errors=[] []
+1 EXEC fan-out checks failed
