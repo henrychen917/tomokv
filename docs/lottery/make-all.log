@@ -1,0 +1,4 @@
+$ taskset -c 112-127 make -j12 all   (HEAD 2e9dc09e1, 2026-10-11T11:02:28Z)
+make: Nothing to be done for 'all'.
+exit 0
+eff6d7c74bedf94459c8b999a7df083d261ef33141966e465fe0faa8c387afef  build/tomokv
