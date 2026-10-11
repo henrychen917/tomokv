@@ -3529,8 +3529,8 @@ job_dependencies(){
   local dependency
   case "$1" in
     perfio_stream)
-      # The fixed 3 ms GET-after-XREADGROUP bound needs the same quiet boundary
-      # as atomic_ryow. Run after ordinary jobs, then allow atomic_batteries
+      # The fixed GET-after-XREADGROUP bounds (median < 3 ms, max < 12 ms) need the
+      # same quiet boundary as atomic_ryow. Run after ordinary jobs, then allow atomic_batteries
       # (which already waits for every other family) to follow without a cycle.
       if [ "${GATE_PARTIAL:-0}" = 1 ]; then echo release; return; fi
       for dependency in "${JOB_NAMES[@]}"; do

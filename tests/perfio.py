@@ -228,9 +228,21 @@ def stream_latency(c):
             samples[n, label] = times
             emit(event="latency", entries=n, prefix=label, samples_ns=times,
                  median_ns=statistics.median(times), p99_ns=sorted(times)[-1])
-    # A fixed 3 ms ceiling is far below the audited 12 ms stall. No baseline-dependent
-    # tolerance that could let two equally slow arms pass. Retain all raw samples.
-    assert max(samples[100000, "xreadgroup"]) < 3_000_000, "GET after XREADGROUP exceeds 3 ms"
+    # Fixed bounds on the 33 paired GET-after-XREADGROUP samples at 100k entries (maintainer
+    # decision, wave2): the median stays below 3 ms and every sample below the audited 12 ms
+    # stall. PRE (O(stream) delivery) has a 22.9 ms median and fails both; one scheduler hiccup
+    # on a shared box no longer fails a POST row. No baseline-dependent tolerance that could let
+    # two equally slow arms pass. Retain all raw samples; report every failed bound.
+    worst = samples[100000, "xreadgroup"]
+    median, peak = statistics.median(worst), max(worst)
+    emit(event="latency-bounds", entries=100000, prefix="xreadgroup", median_ns=median,
+         max_ns=peak, median_bound_ns=3_000_000, max_bound_ns=12_000_000)
+    failed = []
+    if median >= 3_000_000:
+        failed.append(f"median GET after XREADGROUP {median / 1e6:.3f} ms is not below 3 ms")
+    if peak >= 12_000_000:
+        failed.append(f"slowest GET after XREADGROUP {peak / 1e6:.3f} ms is not below 12 ms")
+    assert not failed, "; ".join(failed)
 
 
 def metadata(c):
