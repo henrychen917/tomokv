@@ -274,6 +274,11 @@ void filtered_cmd_hrandfield(Shard& shard, Op& op, KvObj* object, HashReadView& 
         return;
     }
     const uint32_t population = hash_ttl_field_count(object) - view.expired;
+    if (!population) {
+        if (op.argc() == 2) reply_null(op.sink(), op.resp3());
+        else reply_array_header(op.sink(), 0);
+        return;
+    }
     std::vector<ScanItem> live;
     try {
         live.reserve(population);
