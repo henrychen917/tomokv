@@ -396,6 +396,110 @@ void txn_admission(Server& server) {
             "directed admission schedule never uses the timeout valve");
 }
 
+void txn_group(Server& server) {
+    static_assert(sizeof(ScatterState) == 896);
+    static_assert(sizeof(Shard::WatchReservation) == 88);
+    static_assert(offsetof(Shard::WatchReservation, dirty_databases) == 56);
+    const auto a = key_on(server, 0, "txn-group-a");
+    const auto b = key_on(server, 1, "txn-group-b");
+    Request request({"SMOVE", a, b, "m"});
+    struct Attempt {
+        Server& server;
+        ScatterState state;
+        KeyRef keys[2];
+        ShardGroup groups[2];
+        uint32_t order[2]{0, 1};
+        Attempt(Server& server_, Request& request) : server(server_) {
+            state.server = &server;
+            state.atomic_group = state.atomic_apply = true;
+            state.kind = Kind::Smove;
+            state.keys = keys;
+            state.groups = groups;
+            state.key_order = order;
+            state.key_count = state.nsub = 2;
+            for (uint32_t i = 0; i != 2; ++i) {
+                keys[i] = KeyRef{FlatStore::hash_key(request.op.arg(i + 1)), i + 1, int32_t(i)};
+                groups[i].shard = i;
+                groups[i].begin = i;
+                groups[i].count = 1;
+            }
+            require(txn_group_prepare(state, server, 0), "group cold state allocated");
+        }
+        ~Attempt() {
+            if (!state.epoch.load()) state.aborted.store(true);
+            for (uint32_t i = 0; i != 2; ++i)
+                xshard_cleanup_shard_at(server.shard(i), UINT64_MAX, UINT64_MAX, 256);
+            require(state.watch_refs.load() == 0, "group intent/reservation lifetime pins drained");
+        }
+    };
+    require(local(server, {"SET", a, "old"}) == "+OK\r\n", "group predecessor seeded");
+    release_records(server);
+    {
+        Attempt run(server, request);
+        auto& state = run.state;
+        require(txn_group_touch(state, server.shard(0), run.keys[0].hash, slice(a)),
+                "read-only group key protected before read");
+        require(state.watch_refs.load() == 1 && state.record_refs.load() == 0,
+                "phase-one intent pins survive without owner-record sentinels");
+        require(local(server, {"SET", a, "new"}) == "+OK\r\n", "plain writer never waits on group read");
+        require(state.epoch.load() == kAtomicCancelledEpoch && state.group_attempt->cause_ready.load(),
+                "writer veto and retry cause published");
+        require(!txn_group_decide(state, server.atomic_commit()), "veto cannot be overwritten by commit");
+    }
+    release_records(server);
+    {
+        Attempt run(server, request);
+        auto& state = run.state;
+        // Suspend the doomer immediately after its CAS. The batch must take
+        // its existing abort arm even before that doomer stores the flag.
+        state.epoch.store(kAtomicCancelledEpoch);
+        require(!state.aborted.load() && !state.group_attempt->cause_ready.load(),
+                "cancelled word precedes doomer metadata");
+        require(!txn_group_decide(state, server.atomic_commit()) && state.aborted.load(),
+                "failed commit CAS publishes abort before batch completion");
+        require(!state.group_attempt->cause_ready.load(), "IO still waits for the actual doomer");
+    }
+    {
+        Attempt run(server, request);
+        auto& state = run.state;
+        state.group_attempt->exclusive = true;
+        require(server.txn_exclusive_claim(&state.group_attempt->retry), "group owns fallback token");
+        server.txn_exclusive_barrier(true);
+        require(!txn_group_ready(state, server.shard(0), request.op), "first fragment waits for arrival");
+        require(!server.shard(0).has_watches(), "no early reservation before final fragment arrives");
+        require(txn_group_arrive(state, 1), "direct destination can arrive before source readiness");
+        require(txn_group_ready(state, server.shard(0), request.op) &&
+                txn_group_ready(state, server.shard(1), request.op), "exclusive owners reserve after arrival");
+        require(state.watch_refs.load() == 4, "two reservations and two lazy cleanup anchors");
+        require(!server.shard(0).watch_write_ready(slice(a)) &&
+                !server.shard(1).watch_write_ready(slice(b)), "fallback guards both owners' writes");
+        Request writer({"SET", a, "racing"});
+        writer.op.hash = run.keys[0].hash;
+        writer.op.shard = 0;
+        Client foreign{-1}; foreign.set_id(899);
+        const Task blocked{&foreign, 0, 0, nullptr};
+        require(!writer.op.atomic_hazard(), "ordinary writer starts without a hazard mark");
+        require(!multi_plain_write_ready(server.shard(0), writer.op) && writer.op.atomic_hazard(),
+                "reservation wait marks only the blocked writer");
+        require(xshard_task_should_defer(server, server.shard(0), blocked, writer.op),
+                "blocked writer parks without preventing the group's next owner wave");
+        require(server.shard(0).store().find(run.keys[0].hash, slice(a)) != nullptr,
+                "fallback does not obstruct a reader");
+        const uint64_t ticket = server.atomic_commit_reserve();
+        require(txn_group_decide(state, ticket), "exclusive group commits by CAS");
+        server.atomic_commit_publish();
+        require(!server.txn_exclusive_owner() && server.atomic_can_admit(0, true),
+                "group decision releases token and admission barrier");
+        xshard_cleanup_shard_at(server.shard(0), UINT64_MAX, UINT64_MAX, 256);
+        xshard_cleanup_shard_at(server.shard(1), UINT64_MAX, UINT64_MAX, 256);
+        require(state.watch_refs.load() == 0 && !server.shard(0).has_watches() &&
+                !server.shard(1).has_watches(), "read-only owner cleanup retires every reservation");
+    }
+    require(server.txn_counter(TxnCounter::ExclusiveViolations) == 0 &&
+            server.txn_counter(TxnCounter::IntentsLive) == 0,
+            "group unit leaves no violation or live intent");
+}
+
 void txn_help(Server& server) {
     {
         const auto a = key_on(server, 0, "txn-watch-arrive-a");
@@ -774,6 +878,7 @@ int main(int argc, char** argv) {
     else if (name == "txn_intents") txn_intents(server);
     else if (name == "txn_help") txn_help(server);
     else if (name == "txn_admission") txn_admission(server);
+    else if (name == "txn_group") txn_group(server);
     else if (name == "rename_overlay" || name == "watch_parent") rename(server, name == "watch_parent");
     else if (name == "write_latest") write_latest(server);
     else if (name == "script_apply") script_apply(server);

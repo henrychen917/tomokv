@@ -3375,6 +3375,7 @@ bool Shard::watch_txn_write_ready(Slice key, MultiExecState& state) {
     for (const WatchReservation& reservation : found->second) {
         if (!reservation.blocking || reservation.token == &state ||
             multi_state_owns_epoch(state, reservation.epoch)) continue;
+        if (reservation.group_exclusive) return multi_wait(state, *this);
         auto& holder = *static_cast<MultiExecState*>(const_cast<void*>(reservation.token));
         if (holder.decision.exclusive || !multi_older(state.decision, holder.decision))
             return multi_wait(state, *this);
@@ -3554,6 +3555,11 @@ bool multi_plain_write_ready(Shard& shard, Op& op) {
     if (!shard.has_watches()) return true;
     bool ready = true;
     for_each_spec_key(op, [&](Slice key) { ready &= shard.watch_write_ready(key); });
+    // An exclusive group's next owner wave can be behind this writer in the
+    // inbox. On the next retry, the existing hazard seam moves this blocked
+    // writer to atomic_deferred_, which keeps draining that inbox. Mark only
+    // an actual reservation wait; ordinary commands acquire no new check.
+    if (!ready) op.mark_atomic_hazard();
     return ready;
 }
 

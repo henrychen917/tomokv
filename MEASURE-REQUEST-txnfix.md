@@ -123,8 +123,9 @@ The external round-4 REGISTER.md is outside this lane's worktree and was not edi
 `ee48b465e`. Housekeeping, the repeated NX proof, and the deterministic admission
 proof are complete. TLS placement and all 1,208 selected ordinary hot bodies
 match merged PRE at the cost checkpoint. Stage B core/retry code and its battery
-pass their directed atomic-1 checks in both modes; group fallback, final cost/proof, and baseline
-atomic-0 RPOPLPUSH failures remain open. No benchmarks or full gate runs are authorized for this lane. No push.
+pass their directed atomic-1 checks in both modes. The separately wired group
+fallback exposed a live queue deadlock; a cold-path parking repair is building.
+Final cost/proof and baseline atomic-0 RPOPLPUSH failures remain open. No benchmarks or full gate runs are authorized for this lane. No push.
 
 The six previously untracked evidence directories are preserved as historical
 receipts. Inspection of every file (including ignored files) found no ELF
@@ -269,3 +270,21 @@ this checkpoint and remains a separate, required follow-up.
 
 Current row source lines: fused txngroup 2062, split txngroup 2237, both before
 the quick exit at 3771. Thus each contributes +1 to each tier.
+
+### Group fallback checkpoint (not yet accepted)
+
+The first group fallback passes the directed forced-fallback battery (GX),
+plus the new CAS/lifetime/reservation unit. G3 mixed SMOVE/SADD wedges in both
+modes. The failing logs and two debugger captures are retained in
+[group fallback receipts](docs/txnfix/txnfix2/txngroup-exclusive/runs.json) and
+[group queue trace](docs/txnfix/txnfix2/group-exclusive-stress-trace2/gdb.log).
+A plain writer waiting on an exclusive group enters `xshard_retries_`, which
+stops draining the inbox containing that group's next apply wave.
+
+The repair marks only a writer that has actually encountered a reservation.
+Its next pass reaches the existing atomic-hazard seam and parks it in
+`atomic_deferred_`, allowing the inbox to drain. Scatter reservation waits use
+the same deferred queue. Ordinary GET/SET acquire no new path or check. A unit
+asserts the initial writer has no hazard mark, the reservation wait adds it,
+and the next dispatch parks. This is in the separate fallback commit; neither
+executor nor IO loop source is edited. Live reproof is pending.

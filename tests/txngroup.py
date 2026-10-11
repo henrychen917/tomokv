@@ -174,6 +174,18 @@ class GroupBattery(Battery):
         for checks, expected in self.reload_checks:
             assert [self.admin.must(*check) for check in checks] == expected, checks
 
+    def exclusive(self):
+        self.hook("TXN-OCC-LIMIT", 1)
+        try:
+            for name in ("SMOVE", "LMOVE", "PFMERGE", "RPOPLPUSH-source",
+                         "RENAME-source", "MSETNX"):
+                before = self.counter("atomic_group_exclusive")
+                self.directed(name)
+                self.advanced("atomic_group_exclusive", before)
+                self.rest()
+        finally:
+            self.hook("TXN-OCC-LIMIT", 8)
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -196,6 +208,7 @@ def main():
         battery.run("G3", lambda: battery.moves("smove", adders=True))
         battery.run("G4-smove", lambda: battery.moves("smove"))
         battery.run("G4-rpoplpush", lambda: battery.moves("rpoplpush"))
+        battery.run("GX", battery.exclusive)
         battery.run("G5", battery.off_control)
         battery.run("G6", battery.rest)
         if args.only and "AOF" in args.only.split(","):

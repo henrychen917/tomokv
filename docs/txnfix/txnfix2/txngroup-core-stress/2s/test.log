@@ -1,0 +1,6 @@
+FAIL G3 AssertionError('mover conservation deadline')
+conservation smove atomic 1 members 2000
+PASS G4-smove
+conservation rpoplpush atomic 1 members 2000
+PASS G4-rpoplpush
+PASS G6

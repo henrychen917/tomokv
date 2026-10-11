@@ -2002,6 +2002,8 @@ txngroup_checks(){
   local mode=$1 log=$2 passed=1 boot_fn=boot
   [ "$mode" != 1s ] || boot_fn=boot_fused
   py tests/txngroup.py 127.0.0.1 "$PORT" --mode "$mode" >"$log" 2>&1 || passed=0
+  unit_ready atomic-survivors-unit \
+      && taskset -c "$CORES" ./build/atomic-survivors-unit txn_group >>"$log" 2>&1 || passed=0
   stop
   "$boot_fn" "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes \
       --key-lb 0 --client-lb 0 --flip-auto 0 --appendonly yes --appendfsync no \

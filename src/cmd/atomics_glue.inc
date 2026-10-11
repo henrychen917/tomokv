@@ -94,6 +94,12 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
     for (uint32_t i = 0; i < group.count; i++)
         source_group |= state.key_order[group.begin + i] == 0;
 
+    if (!txn_group_ready(state, shard, op)) {
+        if (!state.aborted.load(std::memory_order_acquire)) return ScatterTaskResult::Retry;
+        if (source_group) state.direct_ready.store(2, std::memory_order_release);
+        return ScatterTaskResult::Complete;
+    }
+
     for (uint32_t i = 0; i < group.count; ++i) {
         const KeyRef& key = state.keys[state.key_order[group.begin + i]];
         if (!txn_group_touch(state, shard, key.hash, op.arg(key.arg))) {
@@ -672,6 +678,7 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
             shard.id() != state.script_coordinator_shard &&
             now_ns() < state.debug_script_defer_deadline)
             return true;
+        if (state.atomic_direct && !txn_group_arrive(state, shard.id())) return true;
         if (state.atomic_direct &&
             (state.direct_ready.load(std::memory_order_acquire) == 0 ||
              __builtin_expect(state.debug_direct_defer != 0, false))) {
@@ -718,6 +725,11 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
 
     FlatStore& store = shard.store();
     if (!store.atomic_has_records()) return false;
+    // multi_plain_write_ready marks a blocked reservation on the first pass.
+    // Keep its retry off xshard_retries_: that queue stops incoming waves,
+    // including the exclusive group's apply wave that releases this writer.
+    if ((op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
+        shard.has_watches() && !multi_plain_write_ready(shard, op)) return true;
     bool own_undecided = false;
     auto check_own = [&](uint64_t hash, Slice key) {
         own_undecided |= store.atomic_has_own_undecided(hash, key, origin_conn_id);

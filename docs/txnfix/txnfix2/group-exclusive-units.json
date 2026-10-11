@@ -1,0 +1,46 @@
+[
+  {
+    "case": "txn_group",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/atomic-survivors-unit",
+      "txn_group"
+    ],
+    "exit_code": 0
+  },
+  {
+    "case": "txn_admission",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/atomic-survivors-unit",
+      "txn_admission"
+    ],
+    "exit_code": 0
+  },
+  {
+    "case": "txn_intents",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/atomic-survivors-unit",
+      "txn_intents"
+    ],
+    "exit_code": 0
+  },
+  {
+    "case": "txn_help",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/atomic-survivors-unit",
+      "txn_help"
+    ],
+    "exit_code": 0
+  }
+]

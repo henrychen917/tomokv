@@ -17,6 +17,59 @@ bool txn_group_prepare(ScatterState& state, Server& server, uint32_t io) {
     }
 }
 
+void txn_group_exclusive_violation(ScatterState& state, uint32_t shard) {
+    state.server->note_txn(state.server->worker_of_shard(shard), TxnCounter::ExclusiveViolations);
+    uint64_t zero = 0;
+    state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch, std::memory_order_acq_rel);
+    state.aborted.store(true, std::memory_order_release);
+    state.group_attempt->cause_ready.store(true, std::memory_order_release);
+}
+
+bool txn_group_arrive(ScatterState& state, uint32_t shard) {
+    auto* attempt = state.group_attempt;
+    if (!attempt || !attempt->exclusive) return true;
+    if (!attempt->arrived[shard]) {
+        attempt->arrived[shard] = 1;
+        attempt->arrivals.fetch_add(1, std::memory_order_acq_rel);
+    }
+    return attempt->arrivals.load(std::memory_order_acquire) == state.nsub;
+}
+
+bool txn_group_ready(ScatterState& state, Shard& shard, Op& op) {
+    auto* attempt = state.group_attempt;
+    if (!attempt || !attempt->exclusive) return true;
+    if (state.aborted.load(std::memory_order_acquire)) return false;
+    // As with WATCH/EXEC, no reservation may precede the last initial fragment's
+    // arrival. Direct RENAME records destination arrival before its source-ready
+    // park, otherwise that park and this barrier would wait on one another.
+    if (!sort_deref_gathering(state) && !txn_group_arrive(state, shard.id())) return false;
+    // One owner-local cleanup anchor precedes every reservation, including an
+    // MSETNX owner that later fails existence and installs no candidate. It also
+    // protects reservation cleanup if a later allocation fails.
+    UnitRef ref{&state.epoch, &state.aborted, &state, UnitRef::Kind::Group, true};
+    const int added = shard.store().atomic_unit_pin(ref, shard.id(), {}, true);
+    if (added < 0) {
+        group_for(state, shard.id())->error = WorkError::Oom;
+        state.aborted.store(true, std::memory_order_release);
+        return false;
+    }
+    if (added) {
+        state.watch_refs.fetch_add(1, std::memory_order_release);
+        state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::Intents);
+        state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::IntentsLive);
+        attempt->intents[shard.id()] = kTxnIntentsPerShard;
+    }
+    const auto& group = *group_for(state, shard.id());
+    for (uint32_t i = 0; i < group.count; ++i) {
+        const Slice key = sort_deref_gathering(state)
+            ? sort_deref_key(state.sort_deref->requests[
+                  state.sort_deref->key_order[group.begin + i]])
+            : op.arg(state.keys[state.key_order[group.begin + i]].arg);
+        if (!shard.watch_reserve_group(key, state)) return false;
+    }
+    return true;
+}
+
 void txn_group_cancel(ScatterState& state, uint32_t shard) {
     auto* attempt = state.group_attempt;
     if (!attempt || attempt->exclusive || state.aborted.load(std::memory_order_acquire)) return;
@@ -51,7 +104,8 @@ bool txn_group_touch(ScatterState& state, Shard& shard, uint64_t hash, Slice key
                        entry.group_aborted->load(std::memory_order_acquire))) foreign = true;
     });
     if (foreign) {
-        txn_group_cancel(state, shard.id());
+        if (state.group_attempt->exclusive) txn_group_exclusive_violation(state, shard.id());
+        else txn_group_cancel(state, shard.id());
         return false;
     }
     // MSETNX's preflight and installs occupy one uninterrupted owner turn.
@@ -89,7 +143,11 @@ bool txn_group_touch(ScatterState& state, Shard& shard, uint64_t hash, Slice key
 bool txn_group_decide(ScatterState& state, uint64_t ticket) {
     uint64_t undecided = 0;
     if (state.epoch.compare_exchange_strong(undecided, ticket,
-                                           std::memory_order_acq_rel)) return true;
+                                           std::memory_order_acq_rel)) {
+        if (state.group_attempt->exclusive)
+            state.server->txn_exclusive_release(&state.group_attempt->retry);
+        return true;
+    }
     if (undecided != kAtomicCancelledEpoch) std::abort();
     // The doomer may be suspended after its CAS but before the flag store.
     // Publish the abort before the batch's existing abort/completion branch.
@@ -121,8 +179,17 @@ void txn_group_redispatch(Server& server, ThreadCtx& self, Ring& ring,
     Op& op = client.rob().at(previous.commit_op_id);
     auto again = [&] { multi_enqueue_node(server, self.id(), attempt.retry); };
     if (client.closing() || client.dead()) {
+        server.txn_exclusive_release(&attempt.retry);
         previous.final_reply = FinalReply::Internal;
         op.state.store(OpState::Done, std::memory_order_release);
+        return;
+    }
+    const bool exclusive = attempt.writer_dooms + 1 >= server.debug_txn_occ_limit() ||
+        server.txn_exclusive_owner() == &attempt.retry;
+    if (exclusive && !unit_exclusive_ready(server, attempt.retry,
+            attempt.exclusive_since_ns, attempt.exclusive_generation,
+            attempt.exclusive_fences, self, ring)) {
+        again();
         return;
     }
     if (!attempt.cause_ready.load(std::memory_order_acquire) ||
@@ -166,6 +233,11 @@ void txn_group_redispatch(Server& server, ThreadCtx& self, Ring& ring,
     }
     next->group_attempt->attempt = attempt.attempt + 1;
     next->group_attempt->writer_dooms = attempt.writer_dooms + 1;
+    next->group_attempt->exclusive = exclusive;
+    if (exclusive) {
+        server.txn_exclusive_transfer(&attempt.retry, &next->group_attempt->retry);
+        server.note_txn(self.id(), TxnCounter::GroupExclusive);
+    }
     next->admitted = previous.admitted;
     next->admission_generation = previous.admission_generation;
     previous.admitted = false;
@@ -209,6 +281,34 @@ void txn_group_shutdown(ScatterState& state, ScatterArenaPool& pool) {
 void atomic_release_unit_intent(const UnitRef& unit) {
     if (unit.unit_kind != UnitRef::Kind::Group) return;
     auto& state = *static_cast<ScatterState*>(const_cast<void*>(unit.unit));
+    if (state.group_attempt->exclusive) {
+        const auto& intent = *reinterpret_cast<const AtomicScriptIntent*>(&unit + 1);
+        const uint32_t shard = intent.kind == 2 ? intent.hash
+            : state.server->router().shard_of(intent.hash);
+        state.server->shard(shard).watch_finish_exclusive(&state);
+    }
     if (state.watch_refs.fetch_sub(1, std::memory_order_release) == 0) std::abort();
+}
+
+bool Shard::watch_reserve_group(Slice key, ScatterState& state) {
+    const std::string owned = watch_key_string(key);
+    watch_finalize_reservation(owned);
+    if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end()) {
+        for (const auto& reservation : found->second) {
+            if (reservation.token == &state) return true;
+            if (reservation.blocking) {
+                txn_group_exclusive_violation(state, id());
+                return false;
+            }
+        }
+    }
+    if (!watch_append_reservation(owned, WatchReservation{
+            &state, &state.epoch, &state.aborted, &state.watch_refs,
+            state.commit_client, 0, false, true, true})) {
+        group_for(state, id())->error = WorkError::Oom;
+        state.aborted.store(true, std::memory_order_release);
+        return false;
+    }
+    return true;
 }
 } // namespace tomo

@@ -276,6 +276,7 @@ public:
         // with no timeout and no detector: tests/watchlive.py wedged 6/6 on it. Group reservations
         // now coexist on a key (the map holds a list) and block nobody.
         bool blocking = false;
+        bool group_exclusive = false; // existing padding; avoids casting a group as EXEC
         // A swap-containing EXEC can write the same physical key while it names
         // different logical databases. Keep the identities at each write, not
         // the mapping at reservation retirement. WATCH state is cold/heap-owned.
@@ -300,6 +301,7 @@ public:
     bool watch_write_ready(Slice key, const void* token = nullptr);
     bool watch_txn_write_ready(Slice key, MultiExecState& state);
     bool watch_reserve_exclusive(Slice key, MultiExecState& state, bool whole_shard = false);
+    bool watch_reserve_group(Slice key, ScatterState& state);
     void watch_finish_exclusive(const void* unit);
     void watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                              const void* token, std::atomic<uint64_t>* epoch,

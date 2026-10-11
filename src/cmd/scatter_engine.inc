@@ -657,6 +657,8 @@ namespace {
 [[gnu::noinline]] ScatterFinish txn_group_retry(Server&, ThreadCtx&, Ring&,
                                                const Task&);
 [[gnu::noinline]] bool txn_group_decide(ScatterState&, uint64_t);
+[[gnu::noinline]] bool txn_group_ready(ScatterState&, Shard&, Op&);
+[[gnu::noinline]] bool txn_group_arrive(ScatterState&, uint32_t);
 template <bool IofusedPrivateQueue>
 void txn_group_redispatch(Server&, ThreadCtx&, Ring&, ScatterArenaPool&, ScatterState&);
 void txn_group_shutdown(ScatterState&, ScatterArenaPool&);
@@ -2774,14 +2776,13 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         const void* token = state.multi_parent ? state.multi_parent
             : state.atomic_group ? static_cast<const void*>(&state) : nullptr;
         if (group.count == 0) {
-            if (!shard.watch_all_write_ready()) return state.kind == Kind::Swapdb
-                ? ScatterTaskResult::Defer : ScatterTaskResult::Retry;
+            if (!shard.watch_all_write_ready()) return ScatterTaskResult::Defer;
         } else {
             for (uint32_t i = 0; i < group.count; i++) {
                 const uint32_t pos = state.key_order[group.begin + i];
                 const KeyRef& key = state.keys[pos];
                 if (!shard.watch_write_ready(op.arg(key.arg), token))
-                    return ScatterTaskResult::Retry;
+                    return ScatterTaskResult::Defer;
             }
             if (state.atomic_group) {
                 for (uint32_t i = 0; i < group.count; i++) {
@@ -2905,6 +2906,11 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             // intentionally linked only after the complete shard pass. Preflight every local key
             // before any exchange, then materialize the whole candidate span.
             if (state.kind == Kind::Msetnx) {
+                if (!txn_group_ready(state, shard, op)) {
+                    shard.store().atomic_discard_group(pending_entry);
+                    return state.aborted.load(std::memory_order_acquire)
+                        ? ScatterTaskResult::Complete : ScatterTaskResult::Retry;
+                }
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
@@ -3028,6 +3034,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         // only by its routed owner, under the ReadEpochGuard and PinnedNowMs installed above.
         if (sort_deref_gathering(state)) {
             SortDerefState& sort = *state.sort_deref;
+            if (state.atomic_apply && !txn_group_ready(state, shard, op))
+                return state.aborted.load(std::memory_order_acquire)
+                    ? ScatterTaskResult::Complete : ScatterTaskResult::Retry;
             for (uint32_t i = 0; i < group.count; i++) {
                 SortDerefRequest& request = sort.requests[sort.key_order[group.begin + i]];
                 const Slice key = sort_deref_key(request);
@@ -3511,6 +3520,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             case Kind::Renamenx:
             case Kind::Copy:
                 if (state.atomic_apply) {
+                    if (!txn_group_ready(state, shard, op))
+                        return state.aborted.load(std::memory_order_acquire)
+                            ? ScatterTaskResult::Complete : ScatterTaskResult::Retry;
                     for (uint32_t i = 0; i < group.count; i++) {
                         const uint32_t pos = state.key_order[group.begin + i];
                         const KeyRef& key = state.keys[pos];
@@ -3554,6 +3566,9 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 }
                 [[fallthrough]];
             default:
+                if (state.atomic_apply && !txn_group_ready(state, shard, op))
+                    return state.aborted.load(std::memory_order_acquire)
+                        ? ScatterTaskResult::Complete : ScatterTaskResult::Retry;
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
