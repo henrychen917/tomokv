@@ -1,0 +1,127 @@
+{
+ "affinity": "112-127",
+ "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+ "pre_commit": "991d48f65",
+ "pre_source": {
+  "path": "build/lottery/pre-source",
+  "check": "all 212 files tracked under src/, third_party/ and Makefile at 991d48f65 are byte-identical in the PRE source copy; no extra files"
+ },
+ "post_source": "src/ and third_party/ unchanged versus 991d48f65 (git diff --stat empty); Makefile adds two opt-in lottery targets only",
+ "builds": [
+  {
+   "arm": "PRE",
+   "command": "taskset -c 112-127 make -C build/lottery/pre-source BUILD_ROOT=$PWD/build/lottery/pre all",
+   "exit_code": 0,
+   "log": "docs/lottery/pre-build.log",
+   "binary": "build/lottery/pre/tomokv",
+   "sha256": "aa42039e352551a9688d366d35cb533623009cc73696cb0988b468388061e381"
+  },
+  {
+   "arm": "POST",
+   "command": "taskset -c 112-127 make all",
+   "exit_code": 0,
+   "log": "docs/lottery/post-build.log",
+   "freshness": "docs/lottery/make-all.log",
+   "binary": "build/tomokv",
+   "sha256": "eff6d7c74bedf94459c8b999a7df083d261ef33141966e465fe0faa8c387afef"
+  },
+  {
+   "arm": "WITNESS",
+   "command": "taskset -c 112-127 make -j12 build/lottery/tomokv build/lottery/tomokv-asan",
+   "exit_code": 0,
+   "log": "docs/lottery/witness-build.log",
+   "warnings": 0,
+   "binary": "build/lottery/tomokv",
+   "sha256": "25d3b00bdba4fa619f3d92ecd61dbdec3ca48e48e95ab29c3058e2ce32939347"
+  }
+ ],
+ "identity": {
+  "hot": {
+   "command": "taskset -c 112-127 python3 tools/lbstall_artifacts.py compare build/lottery/pre build docs/lottery/identity/hot.json",
+   "log": "docs/lottery/identity/hot.log",
+   "inventory": "docs/lottery/identity/hot.json.gz"
+  },
+  "full": {
+   "command": "taskset -c 112-127 python3 tools/ccfix_audit.py build/lottery/pre build docs/lottery/identity/full",
+   "log": "docs/lottery/identity/full.log",
+   "summary": "docs/lottery/identity/full/summary.json"
+  },
+  "linked": {
+   "command": "taskset -c 112-127 python3 docs/deadswitch/linked_bytes.py build/lottery/pre/tomokv build/tomokv docs/lottery/identity/linked.json",
+   "log": "docs/lottery/identity/linked.log",
+   "result": "docs/lottery/identity/linked.json"
+  }
+ },
+ "production_units": {
+  "command": "taskset -c 112-127 make -k -j12 <the 29 job_production_units targets>; make -q build/<each>; taskset -c 112-127 make -j12 mdbqsbr-live-arms",
+  "summary": "docs/lottery/production-units/summary.txt",
+  "build_log": "docs/lottery/production-units/build.log.gz",
+  "mdbqsbr_log": "docs/lottery/production-units/mdbqsbr-live-arms.log.gz",
+  "fresh": 29,
+  "stale_or_failed": 0
+ },
+ "tests": {
+  "lottery_units": {
+   "command": "cd tests && taskset -c 112-127 python3 -m unittest -v lottery_runner_test lottery_evidence_test",
+   "tests": 34,
+   "exit_code": 0,
+   "log": "docs/lottery/unit-tests.log"
+  },
+  "gates_test": {
+   "command": "taskset -c 112-127 python3 tests/gates_test.py",
+   "tests": 66,
+   "nested_gate_subset_tests": 14,
+   "failures": 1,
+   "exit_code": 1,
+   "failure": "SchedulerWiring.test_worker_exit_before_done_is_a_failure: fixture hit its 45 s timeout (exit 124) while another lane ran a full gate iteration on 112-127",
+   "rerun": {
+    "log": "docs/lottery/gates-test-rerun.log",
+    "exit_code": 0
+   },
+   "log": "docs/lottery/gates-test.log",
+   "contended_run": {
+    "log": "docs/lottery/gates-test-contended.log",
+    "tests": 66,
+    "failures": 9,
+    "failure": "all nine: scheduler fixture 45 s timeout (exit 124) while the lane's own builds ran on 112-127"
+   }
+  }
+ },
+ "calibration": {
+  "command": "taskset -c 112-127 python3 tests/lottery_runner.py --all --hits 20 --cap 120 --attempt-timeout 1800 --output build/lottery/calibration-20261011T111536Z",
+  "rerun": "taskset -c 112-127 python3 tests/lottery_runner.py 159 --hits 20 --cap 120 --attempt-timeout 1800 --output build/lottery/calibration-20261011T111536Z-rerun159",
+  "report": "cd tests && python3 lottery_calibration.py ../docs/lottery/calibration/results-main.json ../docs/lottery/calibration/results-rerun159.json --json ../docs/lottery/calibration.json --markdown ../docs/lottery/calibration.md",
+  "results": [
+   "docs/lottery/calibration/results-main.json",
+   "docs/lottery/calibration/results-rerun159.json"
+  ],
+  "campaign_log": "docs/lottery/calibration/campaign-main.log",
+  "table": "docs/lottery/calibration.md",
+  "summary": "docs/lottery/calibration.json",
+  "rows": 58,
+  "verdicts": {
+   "PASS": 31,
+   "INSUFFICIENT": 26,
+   "FAIL": 1
+  },
+  "within_10_minutes": 48,
+  "rate_limited": [
+   "159",
+   "193",
+   "242",
+   "277",
+   "324",
+   "443"
+  ],
+  "attempt_length_limited": [
+   "126",
+   "503",
+   "515",
+   "516"
+  ],
+  "failed": [
+   "310"
+  ],
+  "fail_evidence": "docs/lottery/calibration/evidence-310/"
+ }
+}
