@@ -129,13 +129,17 @@ class Elf:
         return {s['name']: s for s in self.symbols if s['info'] & 15 == 2 and s['size']}
 
 
+# ExLoopT<true>::prepare_local_read is the read-local GET hit resolver: every armed-lane GET hit
+# runs it. Round-4 rlfix found it outside this selection (it changed by a stack slot while every
+# selected body stayed identical), so it is selected explicitly.
 HOT = re.compile(r'parse_and_dispatch|fused_pass_impl|drain_tasks|genthread_ifid_batch|'
                  r'genthread_wb_|pipeline_pass|flush_ready|collect_retire_work|'
                  r'IoLoop::(?:ifid_|wb_)|'
                  r'IoLoop::(?:drive_tls|run_loop|on_cqe)|IoLoop::init.*lambda|'
                  r'FlatStore::(?:insert|erase|find|lookup)|'
                  r'ExLoopT.*(?:sweep|fused_baseline)|'
-                 r'ExLoopT.*execute|WbEngine.*serve|cmd_(?:get|set|mget|mset)(?:\(|<)')
+                 r'ExLoopT.*execute|WbEngine.*serve|cmd_(?:get|set|mget|mset)(?:\(|<)|'
+                 r'ExLoopT<true>::prepare_local_read')
 
 
 def compare(before, after, output):
