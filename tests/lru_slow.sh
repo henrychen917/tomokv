@@ -9,7 +9,7 @@ BINARY=${TOMOKV_BIN:-$ROOT/build/tomokv}
 
 (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null \
     && { echo "LRU-SLOW BOOT-FAIL: port $PORT already accepting"; exit 1; }
-taskset -c "$CORES" "$BINARY" --port "$PORT" --bind 127.0.0.1 --shards 16 --ratio 1:1 \
+taskset -c "$CORES" "$BINARY" --databases 1 --port "$PORT" --bind 127.0.0.1 --shards 16 --ratio 1:1 \
     >/dev/null 2>&1 &
 for _ in $(seq 50); do
     (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && break

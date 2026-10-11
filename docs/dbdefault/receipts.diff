@@ -1,0 +1,78 @@
+--- PRE
++++ POST
+@@ -24,7 +24,9 @@
+       "--dir",
+       "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/t00/n1-1-A",
+       "--shards",
+-      "64"
++      "64",
++      "--databases",
++      "1"
+     ],
+     "load_layout": [
+       {
+@@ -47,6 +49,7 @@
+       "process_id": "123",
+       "read_local": "0"
+     },
++    "configured_databases": 1,
+     "error": "RuntimeError: serverless population boundary",
+     "wall_seconds": 0.0
+   },
+@@ -75,7 +78,9 @@
+       "--dir",
+       "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/t00/n1-1-B",
+       "--shards",
+-      "64"
++      "64",
++      "--databases",
++      "1"
+     ],
+     "load_layout": [
+       {
+@@ -98,6 +103,7 @@
+       "process_id": "123",
+       "read_local": "0"
+     },
++    "configured_databases": 1,
+     "error": "RuntimeError: serverless population boundary",
+     "wall_seconds": 0.0
+   },
+@@ -126,7 +132,9 @@
+       "--dir",
+       "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/ttls/n1-1-A",
+       "--shards",
+-      "64"
++      "64",
++      "--databases",
++      "1"
+     ],
+     "load_layout": [
+       {
+@@ -149,6 +157,7 @@
+       "process_id": "123",
+       "read_local": "0"
+     },
++    "configured_databases": 1,
+     "error": "RuntimeError: serverless population boundary",
+     "wall_seconds": 0.0
+   },
+@@ -177,7 +186,9 @@
+       "--dir",
+       "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/ttls/n1-1-B",
+       "--shards",
+-      "64"
++      "64",
++      "--databases",
++      "1"
+     ],
+     "load_layout": [
+       {
+@@ -200,6 +211,7 @@
+       "process_id": "123",
+       "read_local": "0"
+     },
++    "configured_databases": 1,
+     "error": "RuntimeError: serverless population boundary",
+     "wall_seconds": 0.0
+   },

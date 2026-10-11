@@ -378,7 +378,7 @@ def boot(port, extra=(), conf=None, wait=6.0):
     args = ["taskset", "-c", CORES, os.path.abspath(BINARY)]
     if conf:
         args += [conf]
-    args += ["--port", str(port), "--bind", HOST, "--enable-debug-command", "yes"]
+    args += ["--databases", "1", "--port", str(port), "--bind", HOST, "--enable-debug-command", "yes"]
     args += list(extra)
     # LeakSanitizer's exit-time accounting would turn every clean stop into exit 1: terminating
     # with a client still connected leaves that connection's ROB block unreclaimed, identically on

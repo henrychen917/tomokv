@@ -1,0 +1,52 @@
+{
+  "subset": "full",
+  "count": 8,
+  "ids": [
+    "execfix_nx_1s_a0",
+    "execfix_ms_1s_a0",
+    "execfix_nx_2s_a0",
+    "execfix_ms_2s_a0",
+    "execfix_nx_1s_a1",
+    "execfix_ms_1s_a1",
+    "execfix_nx_2s_a1",
+    "execfix_ms_2s_a1"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "MSET",
+    "MSETNX"
+  ],
+  "commands": [
+    "MSET",
+    "MSETNX"
+  ],
+  "depths": [
+    8
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    0,
+    1
+  ],
+  "scores": [
+    "rate"
+  ],
+  "pending_pins": [
+    "execfix_nx_1s_a0",
+    "execfix_ms_1s_a0",
+    "execfix_nx_2s_a0",
+    "execfix_ms_2s_a0",
+    "execfix_nx_1s_a1",
+    "execfix_ms_1s_a1",
+    "execfix_nx_2s_a1",
+    "execfix_ms_2s_a1"
+  ]
+}

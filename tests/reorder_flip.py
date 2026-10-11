@@ -94,7 +94,7 @@ def main():
             probe.bind(("127.0.0.1", port))
         assert sha(binary) == binary_sha and sha(DRIVER) == driver_sha
         server_argv = ["taskset", "-c", "112-119", str(binary),
-                       "--port", str(port), "--shards", "16", "--ratio", "6:2",
+                       "--databases", "1", "--port", str(port), "--shards", "16", "--ratio", "6:2",
                        "--atomic", "0", "--enable-debug-command", "yes", "--flip-auto", "1"]
         if args.reorder is not None:
             server_argv += ["--reorder", args.reorder]

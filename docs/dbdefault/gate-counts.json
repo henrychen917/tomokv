@@ -1,0 +1,12 @@
+{
+  "base_commit": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "base_quick": 625,
+  "base_full": 642,
+  "quick": 626,
+  "full": 643,
+  "DQ": 1,
+  "DF": 1,
+  "quick_exit_line": 3719,
+  "default_row_collection_line": 3599,
+  "fixture_labels_match": true
+}

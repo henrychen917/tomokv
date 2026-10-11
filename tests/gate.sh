@@ -305,6 +305,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # flipfix (IO4.1/IO4.2/IO4.4/CT4.3): +3 live rows in job_flip (close during FLIP on uring and
 # epoll, signal stop during FLIP + second SIGINT) and +2 serverless rows in job_flipfix_units;
 # both jobs are collected before the quick-tier exit: 511+5 = 516 quick, 528+5 = 533 full.
+# dbdefault: one default-config row (both modes), collected BEFORE the quick exit.
+# DQ=+1 / DF=+1; maintainer sets EXPECT_QUICK=625+1=626, EXPECT_FULL=642+1=643.
 EXPECT_QUICK=625
 EXPECT_FULL=642                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -734,7 +736,15 @@ settle(){ # after a server is gone: wait for $PORT to stop accepting, then a sho
   for _ in $(seq 50); do (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null || break; sleep 0.1; done
   sleep "${GATE_STOP_SETTLE:-1}"
 }
-launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30 s for the port
+launch(){ # Preserve the DB0 battery; explicit multi-DB rows own their image.
+  local tag=$1 bin=$2 arg; shift 2
+  local database_args=(--databases 1)
+  for arg in "$@"; do
+    case "$arg" in --databases|--databases=*) database_args=();; esac
+  done
+  launch_default "$tag" "$bin" "${database_args[@]}" "$@"
+}
+launch_default(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30 s for the port
   local tag=$1 bin=$2; shift 2
   quiet_wait
   SRV=0; SRVLOG=/dev/null
@@ -1049,7 +1059,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
+              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1214,7 +1224,7 @@ reject_boot(){
   if [[ "$1" != --* ]]; then conf=("$1"); shift; fi
   directory=$(mktemp -d "$TMPDIR/reject-boot.XXXXXX") || return 1
   timeout --kill-after=5 10 taskset -c "$CORES" "$CANDIDATE_BINARY" "${conf[@]}" \
-      --port "$PORT" --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --dir "$directory" --save '' "$@"
+      --port "$PORT" --bind 127.0.0.1 --databases 1 --shards 16 --ratio "$GATE_RATIO" --dir "$directory" --save '' "$@"
 }
 
 store_build(){
@@ -2965,7 +2975,7 @@ tlsboot(){ # auth-mode [extra TLS knobs]
   guard_port "$PORT"
   guard_port "$TLS_PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-tls-srv.XXXXXX)
-  taskset -c $CORES "$CANDIDATE_BINARY" --port "$PORT" --tls-port "$TLS_PORT" \
+  taskset -c $CORES "$CANDIDATE_BINARY" --databases 1 --port "$PORT" --tls-port "$TLS_PORT" \
       --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --protected-mode no --dir "$TLS_DIR" --save '' \
       --tls-cert-file "$TLS_DIR/server.crt" --tls-key-file "$TLS_DIR/server.key" \
       --tls-ca-cert-file "$TLS_DIR/ca.crt" --tls-auth-clients "$auth" "$@" \
@@ -3174,7 +3184,7 @@ zcboot(){
   SRV=0; SRVLOG=/dev/null
   guard_port "$PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-srv-zc.XXXXXX)
-  taskset -c $CORES "$1" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO \
+  taskset -c $CORES "$1" --databases 1 --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO \
       --dir "$(mktemp -d "$TMPDIR/zc-data.XXXXXX")" --save '' --zc-min 16384 > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do
@@ -3368,6 +3378,15 @@ job_tailgen_build(){
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/tailgen \
       >"$TMPDIR/build.log" 2>&1 && : > "$RUN_DIR/unit-ready/tailgen"
+}
+
+job_dbdefault(){
+  row_begin "Redis default databases 16 (both modes)"
+  # Deliberately bypass launch(): this row alone tests the unqualified default.
+  py tests/dbdefault.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/dbdefault" >"$TMPDIR/dbdefault.log" 2>&1 \
+      && ok "Redis default databases 16 (both modes)" \
+      || bad "Redis default databases 16 (both modes)" "see $TMPDIR/dbdefault.log"
 }
 
 job_production_units(){
@@ -3577,6 +3596,7 @@ collect_job acl_metadata
 
 # ---- 2. boot matrix: deleted flags stay dead; live grammar boots ------------------------------
 collect_job boot_grammar
+collect_job dbdefault
 
 collect_job cmd_metadata
 
@@ -3890,7 +3910,7 @@ PY
       nic_kill_srv $NIC_PORT || return 1
       # --protected-mode no: protected mode (vanilla-compat: no bind check) denies non-local
       # peers when no password is set — which is every NIC cell.
-      NIC_SRV_CORES=$2 nic_boot "gate_$1" "$CPP" --port $NIC_PORT --bind $NIC_SRV_IP --ratio $3 --shards $4 --protected-mode no || return 1
+      NIC_SRV_CORES=$2 nic_boot "gate_$1" "$CPP" --databases 1 --port $NIC_PORT --bind $NIC_SRV_IP --ratio $3 --shards $4 --protected-mode no || return 1
       NIC_TO=1200 NIC_LG_CORES=$6 nic_memtier -t 16 -c 4 --pipeline=32 --ratio=1:0 --key-pattern=P:P \
           --key-minimum=1 --key-maximum=$KMAX -n allkeys -d 64 >/dev/null 2>&1
       local f=$BL_LOGDIR/g_$1.log

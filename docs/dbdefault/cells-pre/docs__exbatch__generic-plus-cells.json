@@ -1,0 +1,67 @@
+{
+  "subset": "full",
+  "count": 23,
+  "ids": [
+    "h05",
+    "h06",
+    "p8g",
+    "p8s",
+    "d1g_l0",
+    "d1s_l0",
+    "m8g_l0",
+    "v1g_l0",
+    "d128g_l0",
+    "d32g_l1",
+    "d8s_l1",
+    "d32s_l1",
+    "x9_32_l1",
+    "x9_32_l0",
+    "exbatch_2s_rl0_g32",
+    "exbatch_2s_rl0_s32",
+    "exbatch_2s_rl0_g8",
+    "exbatch_2s_rl0_s8",
+    "exbatch_2s_rl0_mg8",
+    "exbatch_2s_rl0_ms8",
+    "exbatch_1s_rl0_ms8",
+    "exbatch_1s_rl1_mg8",
+    "exbatch_1s_rl1_ms8"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "MGET",
+    "MIX",
+    "MSET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "MGET",
+    "MSET",
+    "SET"
+  ],
+  "depths": [
+    1,
+    8,
+    32,
+    128
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64,
+    1024
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "latency_ms",
+    "rate"
+  ],
+  "pending_pins": []
+}

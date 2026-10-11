@@ -1,0 +1,644 @@
+row	job	label	image decision
+1	release	release build (+footprint locks)	serverless / linked image audit; no server default
+2	asan	ASAN build	serverless / linked image audit; no server default
+3	config_unit	configuration docs match parser	serverless / linked image audit; no server default
+4	config_unit	Redis config quoting + mid-value #	serverless / linked image audit; no server default
+5	flip_unit	flip controller model unit	serverless / linked image audit; no server default
+6	filter_unit	B+ counting-fingerprint filter unit	serverless / linked image audit; no server default
+7	ring_unit	read-local write ring + arming transient unit	serverless / linked image audit; no server default
+8	ring_unit	climon 128-owner delivery mask	serverless / linked image audit; no server default
+9	ring_unit	read-local MGET fence symmetry unit	serverless / linked image audit; no server default
+10	climonfix	shutdown policy + signal handoff serverless	explicit 1 via launch/direct helper; any serverless portion has no boot
+11	climonfix	shutdown persistence (1s, command)	explicit 1 via launch/direct helper; any serverless portion has no boot
+12	climonfix	shutdown persistence (1s, sigterm)	explicit 1 via launch/direct helper; any serverless portion has no boot
+13	climonfix	shutdown persistence (1s, sigint)	explicit 1 via launch/direct helper; any serverless portion has no boot
+14	climonfix	shutdown persistence (2s, command)	explicit 1 via launch/direct helper; any serverless portion has no boot
+15	climonfix	shutdown persistence (2s, sigterm)	explicit 1 via launch/direct helper; any serverless portion has no boot
+16	climonfix	shutdown persistence (2s, sigint)	explicit 1 via launch/direct helper; any serverless portion has no boot
+17	racefix_counters	INFO command/socket counters (TSan, both modes)	explicit 1 via launch/direct helper; any serverless portion has no boot
+18	racefix_climon	Climon armed refresh + stale-store suppression control	explicit 1 via launch/direct helper; any serverless portion has no boot
+19	lbplanner_units	LB sampler exceptional cleanup + negative control	serverless / linked image audit; no server default
+20	lbplanner_units	LB monitor plan handoff + negative controls	serverless / linked image audit; no server default
+21	exbatch_units	exbatch publication unit + negative controls	serverless / linked image audit; no server default
+22	exbatch_units	exbatch watch unit + negative controls	serverless / linked image audit; no server default
+23	exbatch_units	exbatch metadata unit + negative controls	serverless / linked image audit; no server default
+24	exbatch_live	exbatch publication and WATCH lifecycle (1s)	explicit 4 (launch override)
+25	exbatch_live	exbatch publication and WATCH lifecycle (2s)	explicit 4 (launch override)
+26	persistfix_units	AOF publication/shutdown witnesses + negative controls	serverless / linked image audit; no server default
+27	clientfix	clientfix tracking-cap (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+28	clientfix	clientfix tracking-pipeline (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+29	clientfix	clientfix reply-skip (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+30	clientfix	clientfix pattern-cleanup (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+31	clientfix	clientfix pause-deadline (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+32	clientfix	clientfix geo-count (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+33	clientfix	clientfix geo-store (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+34	clientfix	clientfix tracking-cap (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+35	clientfix	clientfix tracking-pipeline (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+36	clientfix	clientfix reply-skip (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+37	clientfix	clientfix pattern-cleanup (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+38	clientfix	clientfix pause-deadline (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+39	clientfix	clientfix geo-count (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+40	clientfix	clientfix geo-store (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+41	core_units	core concurrency watch	explicit 1 via launch/direct helper; any serverless portion has no boot
+42	core_units	core concurrency lifetime	explicit 1 via launch/direct helper; any serverless portion has no boot
+43	core_units	core concurrency drain	explicit 1 via launch/direct helper; any serverless portion has no boot
+44	core_units	core concurrency route	explicit 1 via launch/direct helper; any serverless portion has no boot
+45	core_units	core concurrency snapshot	explicit 1 via launch/direct helper; any serverless portion has no boot
+46	core_units	core concurrency config	explicit 1 via launch/direct helper; any serverless portion has no boot
+47	core_units	core concurrency notify	explicit 1 via launch/direct helper; any serverless portion has no boot
+48	core_units	read-local topology demotion (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+49	core_units	read-local topology demotion (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+50	flipfix_units	FLIP planned-connection close lifetime (ASAN+TSAN)	serverless / linked image audit; no server default
+51	flipfix_units	FLIP fingerprint publication (ASAN+TSAN)	serverless / linked image audit; no server default
+52	wb_rule_units	writeback c12 policy witnesses + negative controls	serverless / linked image audit; no server default
+53	wb_rule_units	writeback c12 phase witnesses + negative controls	serverless / linked image audit; no server default
+54	wb_rule_units	writeback c12 stages witnesses + negative controls	serverless / linked image audit; no server default
+55	wb_rule_units	writeback c12 split-phase witnesses + negative controls	serverless / linked image audit; no server default
+56	wbland_units	writeback policy clauses witnesses + negative controls	serverless / linked image audit; no server default
+57	wbland_units	writeback policy paths witnesses + negative controls	serverless / linked image audit; no server default
+58	reorder_sync	R7 generated envelope parity	serverless / linked image audit; no server default
+59	reorder_engagement	R7 production engagement (both database runtimes)	serverless / linked image audit; no server default
+60	reorder_identity	R7 FIFO twin off-path identity + negative controls	serverless / linked image audit; no server default
+61	wb_policy	writeback policies 0/1: 22 standard fixtures	explicit 1 via launch/direct helper; any serverless portion has no boot
+62	lb-stationary-1s	stationary balanced LB holds still (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+63	lb-stationary-2s	stationary balanced LB holds still (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+64	netio-1s	epoll directed correctness (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+65	netio-2s	epoll directed correctness (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+66	splitlocal_units	splitlocal template forwarding + old-argument controls	serverless / linked image audit; no server default
+67	storage_units	storage unlinked regression	serverless / linked image audit; no server default
+68	storage_units	storage randomkey regression	serverless / linked image audit; no server default
+69	storage_units	storage rehash regression	serverless / linked image audit; no server default
+70	storage_units	storage rollback regression	serverless / linked image audit; no server default
+71	storage_units	storage snapshot-eviction regression	serverless / linked image audit; no server default
+72	storage_units	storage flags regression	serverless / linked image audit; no server default
+73	storage_units	storage aof-eviction regression	serverless / linked image audit; no server default
+74	storage_units	storage intents regression	serverless / linked image audit; no server default
+75	storage_units	storage imported-hash regression	serverless / linked image audit; no server default
+76	storage_units	storage field-index-failure regression	serverless / linked image audit; no server default
+77	storage_units	storage hash-bytes regression	serverless / linked image audit; no server default
+78	storage_units	storage deadline-allocation-failure regression	serverless / linked image audit; no server default
+79	atomic_units	flushfix flush witnesses	serverless / linked image audit; no server default
+80	atomic_units	flushfix headers witnesses	serverless / linked image audit; no server default
+81	atomic_units	multidb serverless owners	serverless / linked image audit; no server default
+82	atomic_units	multidb global namespace boundary	serverless / linked image audit; no server default
+83	atomic_units	storesize published monitoring	serverless / linked image audit; no server default
+84	atomic_units	MULTI admin command replies	serverless / linked image audit; no server default
+85	atomic_units	EXECABORT releases WATCH reservation	serverless / linked image audit; no server default
+86	atomic_units	atomic survivors unit build	serverless / linked image audit; no server default
+87	atomic_units	atomic survivor: admission	serverless / linked image audit; no server default
+88	atomic_units	atomic survivor: closure	serverless / linked image audit; no server default
+89	atomic_units	atomic survivor: script_keys	serverless / linked image audit; no server default
+90	atomic_units	atomic survivor: rename_overlay	serverless / linked image audit; no server default
+91	atomic_units	atomic survivor: write_latest	serverless / linked image audit; no server default
+92	atomic_units	atomic survivor: script_apply	serverless / linked image audit; no server default
+93	atomic_units	atomic survivor: post_apply_probe	serverless / linked image audit; no server default
+94	atomic_units	atomic survivor: lua_conversion	serverless / linked image audit; no server default
+95	atomic_units	atomic survivor: watch_parent	serverless / linked image audit; no server default
+96	atomic_units	atomic survivor: watch_cycle	serverless / linked image audit; no server default
+97	atomic_units	atomic survivor: mset_arity	serverless / linked image audit; no server default
+98	atomic_units	atomic survivor: watch_oom	serverless / linked image audit; no server default
+99	atomic_units	atomic survivor: lua_lines	serverless / linked image audit; no server default
+100	atomic_units	atomic survivor: library_limit	serverless / linked image audit; no server default
+101	atomic_units	atomic survivor: stage_flag	serverless / linked image audit; no server default
+102	atomic_units	atomic survivor: instruction_limit	serverless / linked image audit; no server default
+103	netcmd_units	netcmd regression build	serverless / linked image audit; no server default
+104	netcmd_units	netcmd streams regression	serverless / linked image audit; no server default
+105	netcmd_units	netcmd zpop regression	serverless / linked image audit; no server default
+106	netcmd_units	netcmd notify-oom regression	serverless / linked image audit; no server default
+107	netcmd_units	netcmd notify-retry regression	serverless / linked image audit; no server default
+108	netcmd_units	netcmd flush regression	serverless / linked image audit; no server default
+109	netcmd_units	netcmd output regression	serverless / linked image audit; no server default
+110	netcmd_units	netcmd pubsub regression	serverless / linked image audit; no server default
+111	netcmd_units	netcmd receive regression	serverless / linked image audit; no server default
+112	netcmd_units	netcmd config regression	serverless / linked image audit; no server default
+113	netcmd_units	netcmd wb-small-pipe regression	serverless / linked image audit; no server default
+114	netcmd_units	netcmd wb-complete-visits regression	serverless / linked image audit; no server default
+115	netcmd_units	netcmd hexpire-oom regression	serverless / linked image audit; no server default
+116	netcmd_units	encodingfix knob	serverless / linked image audit; no server default
+117	netcmd_units	encodingfix precedence	serverless / linked image audit; no server default
+118	netcmd_units	NET1 serverless bounds + scan + reclamation	serverless / linked image audit; no server default
+119	netcap	NET1 inline + query cap (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+120	netcap	NET1 inline + query cap (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+121	netcap	NET1 inline + query cap (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+122	netcap	NET1 inline + query cap (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+123	respcompat	RESP protocol error compatibility	explicit 1 via launch/direct helper; any serverless portion has no boot
+124	acl_metadata	generated Redis 7.4 ACL categories	serverless / linked image audit; no server default
+125	boot_grammar	reject --mode (flag deleted)	explicit 1 via launch/direct helper; any serverless portion has no boot
+126	boot_grammar	reject --spread	explicit 1 via launch/direct helper; any serverless portion has no boot
+127	boot_grammar	reject --nodes	explicit 1 via launch/direct helper; any serverless portion has no boot
+128	boot_grammar	reject 3-part ratio	explicit 1 via launch/direct helper; any serverless portion has no boot
+129	boot_grammar	reject missing conf	explicit 1 via launch/direct helper; any serverless portion has no boot
+130	boot_grammar	reject bad conf key	explicit 1 via launch/direct helper; any serverless portion has no boot
+131	boot_grammar	reject aclfile + conf user lines	explicit 1 via launch/direct helper; any serverless portion has no boot
+132	dbdefault	Redis default databases 16 (both modes)	default 16, no --databases; 1s and 2s
+133	cmd_metadata	cmdmeta covers every registered command	serverless / linked image audit; no server default
+134	wait_units	waits config publication + admission unit	explicit 1 via launch/direct helper; any serverless portion has no boot
+135	wait_units	reads never wait for retirement quiescence	explicit 1 via launch/direct helper; any serverless portion has no boot
+136	readonly	read-only resize split read-local=0	explicit 1 via launch/direct helper; any serverless portion has no boot
+137	readonly	read-only resize split read-local=1	explicit 1 via launch/direct helper; any serverless portion has no boot
+138	readonly	read-only resize fused read-local=0	explicit 1 via launch/direct helper; any serverless portion has no boot
+139	readonly	read-only resize fused read-local=1	explicit 1 via launch/direct helper; any serverless portion has no boot
+140	release_batteries	torture battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+141	release_batteries	RYOW battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+142	release_batteries	ACL category runtime table	explicit 1 via launch/direct helper; any serverless portion has no boot
+143	release_batteries	ACL LOAD/SAVE no-file errors	explicit 1 via launch/direct helper; any serverless portion has no boot
+144	release_batteries	idle loop ceiling (LBSIGNALS, 1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+145	release_batteries	shutdown invariants (nothing stuck)	explicit 1 via launch/direct helper; any serverless portion has no boot
+146	release_batteries	direct-reply fired (direct=N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+147	release_batteries	dispatched==executed (N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+148	atomic_batteries	atomic torn/window battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+149	atomic_batteries	atomic RYOW/mixed-write battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+150	atomic_batteries	atomic owner-local hazard battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+151	atomic_batteries	atomic shutdown invariants	explicit 1 via launch/direct helper; any serverless portion has no boot
+152	feature-split-0	s6 battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+153	feature-split-0	multi_exec battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+154	feature-split-0	blocking battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+155	feature-split-0	blockmulti battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+156	feature-split-0	stream battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+157	feature-split-0	streamgroups battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+158	feature-split-0	pubsub battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+159	feature-split-0	lua_scripting battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+160	feature-split-0	scriptsurf battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+161	feature-split-0	limits battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+162	feature-split-0	resp3 battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+163	feature-split-0	bitfield battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+164	feature-split-0	dumprestore battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+165	feature-split-0	zsetops battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+166	feature-split-0	geo battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+167	feature-split-0	climon battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+168	feature-split-0	climon2 battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+169	feature-split-0	tracking battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+170	feature-split-0	hexpire battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+171	feature-split-0	servertail battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+172	feature-split-0	lcs battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+173	feature-split-0	concur battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+174	feature-split-0	edgeproto battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+175	feature-split-0	edgeenc battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+176	feature-split-0	edgetime battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+177	feature-split-0	arity battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+178	feature-split-0	contarity battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+179	feature-split-0	cmdgap battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+180	feature-split-0	aclsel battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+181	feature-split-0	expwide battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+182	feature-split-0	infofix battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+183	feature-split-0	pushtear battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+184	feature-split-0	netcmd battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+185	feature-split-0	feature shutdown invariants (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+186	feature-split-1	s6 battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+187	feature-split-1	multi_exec battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+188	feature-split-1	blocking battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+189	feature-split-1	blockmulti battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+190	feature-split-1	stream battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+191	feature-split-1	streamgroups battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+192	feature-split-1	pubsub battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+193	feature-split-1	lua_scripting battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+194	feature-split-1	scriptsurf battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+195	feature-split-1	limits battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+196	feature-split-1	resp3 battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+197	feature-split-1	bitfield battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+198	feature-split-1	dumprestore battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+199	feature-split-1	zsetops battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+200	feature-split-1	geo battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+201	feature-split-1	climon battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+202	feature-split-1	climon2 battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+203	feature-split-1	tracking battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+204	feature-split-1	hexpire battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+205	feature-split-1	servertail battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+206	feature-split-1	lcs battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+207	feature-split-1	concur battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+208	feature-split-1	edgeproto battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+209	feature-split-1	edgeenc battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+210	feature-split-1	edgetime battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+211	feature-split-1	arity battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+212	feature-split-1	contarity battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+213	feature-split-1	cmdgap battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+214	feature-split-1	aclsel battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+215	feature-split-1	expwide battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+216	feature-split-1	infofix battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+217	feature-split-1	pushtear battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+218	feature-split-1	netcmd battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+219	feature-split-1	feature shutdown invariants (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+220	fused-0	fused boot line (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+221	fused-0	fused s6 battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+222	fused-0	fused multi_exec battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+223	fused-0	fused edgeproto battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+224	fused-0	fused atomfix battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+225	fused-0	fused spinprobe battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+226	fused-0	fused shutdown report (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+227	fused-1	fused boot line (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+228	fused-1	fused s6 battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+229	fused-1	fused multi_exec battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+230	fused-1	fused edgeproto battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+231	fused-1	fused atomfix battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+232	fused-1	fused spinprobe battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+233	fused-1	fused shutdown report (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+234	feature-armed-0	fused+armed boot line (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+235	feature-armed-0	fused+armed s6 battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+236	feature-armed-0	fused+armed multi_exec battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+237	feature-armed-0	fused+armed blocking battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+238	feature-armed-0	fused+armed blockmulti battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+239	feature-armed-0	fused+armed stream battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+240	feature-armed-0	fused+armed streamgroups battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+241	feature-armed-0	fused+armed pubsub battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+242	feature-armed-0	fused+armed lua_scripting battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+243	feature-armed-0	fused+armed scriptsurf battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+244	feature-armed-0	fused+armed limits battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+245	feature-armed-0	fused+armed resp3 battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+246	feature-armed-0	fused+armed bitfield battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+247	feature-armed-0	fused+armed dumprestore battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+248	feature-armed-0	fused+armed zsetops battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+249	feature-armed-0	fused+armed geo battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+250	feature-armed-0	fused+armed climon battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+251	feature-armed-0	fused+armed climon2 battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+252	feature-armed-0	fused+armed tracking battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+253	feature-armed-0	fused+armed hexpire battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+254	feature-armed-0	fused+armed servertail battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+255	feature-armed-0	fused+armed lcs battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+256	feature-armed-0	fused+armed concur battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+257	feature-armed-0	fused+armed edgeproto battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+258	feature-armed-0	fused+armed edgeenc battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+259	feature-armed-0	fused+armed edgetime battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+260	feature-armed-0	fused+armed arity battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+261	feature-armed-0	fused+armed contarity battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+262	feature-armed-0	fused+armed cmdgap battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+263	feature-armed-0	fused+armed aclsel battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+264	feature-armed-0	fused+armed expwide battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+265	feature-armed-0	fused+armed infofix battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+266	feature-armed-0	fused+armed pushtear battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+267	feature-armed-0	fused+armed netcmd battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+268	feature-armed-0	fused+armed shutdown report + lane fired (hits=N, atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+269	feature-armed-1	fused+armed boot line (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+270	feature-armed-1	fused+armed s6 battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+271	feature-armed-1	fused+armed multi_exec battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+272	feature-armed-1	fused+armed blocking battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+273	feature-armed-1	fused+armed blockmulti battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+274	feature-armed-1	fused+armed stream battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+275	feature-armed-1	fused+armed streamgroups battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+276	feature-armed-1	fused+armed pubsub battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+277	feature-armed-1	fused+armed lua_scripting battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+278	feature-armed-1	fused+armed scriptsurf battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+279	feature-armed-1	fused+armed limits battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+280	feature-armed-1	fused+armed resp3 battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+281	feature-armed-1	fused+armed bitfield battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+282	feature-armed-1	fused+armed dumprestore battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+283	feature-armed-1	fused+armed zsetops battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+284	feature-armed-1	fused+armed geo battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+285	feature-armed-1	fused+armed climon battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+286	feature-armed-1	fused+armed climon2 battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+287	feature-armed-1	fused+armed tracking battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+288	feature-armed-1	fused+armed hexpire battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+289	feature-armed-1	fused+armed servertail battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+290	feature-armed-1	fused+armed lcs battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+291	feature-armed-1	fused+armed concur battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+292	feature-armed-1	fused+armed edgeproto battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+293	feature-armed-1	fused+armed edgeenc battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+294	feature-armed-1	fused+armed edgetime battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+295	feature-armed-1	fused+armed arity battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+296	feature-armed-1	fused+armed contarity battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+297	feature-armed-1	fused+armed cmdgap battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+298	feature-armed-1	fused+armed aclsel battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+299	feature-armed-1	fused+armed expwide battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+300	feature-armed-1	fused+armed infofix battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+301	feature-armed-1	fused+armed pushtear battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+302	feature-armed-1	fused+armed netcmd battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+303	feature-armed-1	fused+armed shutdown report + lane fired (hits=N, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+304	evict-lfu-split-0	eviction lfu battery (split, atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+305	evict-lfu-armed-0	eviction lfu battery (fused+armed, atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+306	evict-lruclock-split-0	eviction lruclock battery (split, atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+307	evict-lruclock-armed-0	eviction lruclock battery (fused+armed, atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+308	evict-lfu-split-1	eviction lfu battery (split, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+309	evict-lfu-armed-1	eviction lfu battery (fused+armed, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+310	evict-lruclock-split-1	eviction lruclock battery (split, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+311	evict-lruclock-armed-1	eviction lruclock battery (fused+armed, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+312	bplus	B+ held-group GET/MGET filter battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+313	bplus	read-local lane admission battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+314	bplus	read-local MGET fence battery (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+315	bplus	read-local MGET fence battery (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+316	acl_recheck	ACL recheck one-reply battery (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+317	acl_recheck	ACL recheck one-reply battery (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+318	aclfix	aclfix sort (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+319	aclfix	aclfix streams-name (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+320	aclfix	aclfix save-load (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+321	aclfix	aclfix capacity (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+322	aclfix	aclfix wake-pop (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+323	aclfix	aclfix wake-scatter (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+324	aclfix	aclfix sort (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+325	aclfix	aclfix streams-name (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+326	aclfix	aclfix save-load (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+327	aclfix	aclfix capacity (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+328	aclfix	aclfix wake-pop (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+329	aclfix	aclfix wake-scatter (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+330	sort	cross-owner SORT battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+331	sort	cross-owner SORT battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+332	debug-0	plain-write lost updates (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+333	debug-0	lbsignals battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+334	debug-0	slowlog battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+335	debug-0	atomfix battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+336	debug-0	scriptatomic battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+337	debug-0	execatomic battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+338	debug-0	execiso battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+339	debug-0	execfix battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+340	debug-0	multires battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+341	debug-0	multirace battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+342	debug-0	session_monotonic battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+343	debug-0	xacct battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+344	debug-0	xmove battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+345	debug-0	xscript battery (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+346	debug-1	plain-write lost updates (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+347	debug-1	lbsignals battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+348	debug-1	slowlog battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+349	debug-1	atomfix battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+350	debug-1	scriptatomic battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+351	debug-1	execatomic battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+352	debug-1	execiso battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+353	debug-1	execfix battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+354	debug-1	multires battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+355	debug-1	multirace battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+356	debug-1	session_monotonic battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+357	debug-1	xacct battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+358	debug-1	xmove battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+359	debug-1	xscript battery (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+360	script_bounds	xscript limit control	explicit 1 via launch/direct helper; any serverless portion has no boot
+361	script_bounds	xscript window control	explicit 1 via launch/direct helper; any serverless portion has no boot
+362	scriptfix	scriptfix sandbox (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+363	scriptfix	scriptfix functions (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+364	scriptfix	scriptfix replies (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+365	scriptfix	scriptfix dump (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+366	scriptfix	scriptfix sandbox (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+367	scriptfix	scriptfix functions (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+368	scriptfix	scriptfix replies (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+369	scriptfix	scriptfix dump (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+370	efficiency	expire-index growth bound	explicit 1 via launch/direct helper; any serverless portion has no boot
+371	efficiency	borrow-registry growth bound	explicit 1 via launch/direct helper; any serverless portion has no boot
+372	efficiency	cross-shard dispatch scaling	explicit 1 via launch/direct helper; any serverless portion has no boot
+373	dump_restore	DUMP/RESTORE prepare + native SAVE	explicit 1 via launch/direct helper; any serverless portion has no boot
+374	dump_restore	DUMP/RESTORE cross-restart round-trip	explicit 1 via launch/direct helper; any serverless portion has no boot
+375	dump_restore	DUMP/RESTORE restart shutdown invariants	explicit 1 via launch/direct helper; any serverless portion has no boot
+376	auth	reject bad protected-mode	explicit 1 via launch/direct helper; any serverless portion has no boot
+377	auth	reject bad enable-debug-command	explicit 1 via launch/direct helper; any serverless portion has no boot
+378	auth	AUTH/HELLO/protected state machine	explicit 1 via launch/direct helper; any serverless portion has no boot
+379	auth	ACL battery (atomic off)	explicit 1 via launch/direct helper; any serverless portion has no boot
+380	auth	ACL battery (atomic on)	explicit 1 via launch/direct helper; any serverless portion has no boot
+381	auth	DEBUG toggle/reload battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+382	auth	typed snapshot round-trip incl stream	explicit 1 via launch/direct helper; any serverless portion has no boot
+383	authfix	authfix CG4.1 binary config requirepass	explicit 1 via launch/direct helper; any serverless portion has no boot
+384	authfix	authfix CG4.2 missing config value refuses boot	explicit 1 via launch/direct helper; any serverless portion has no boot
+385	authfix	authfix SV4.2 binary requirepass rewrite restart	explicit 1 via launch/direct helper; any serverless portion has no boot
+386	authfix	authfix SV4.1 slowlog credential redaction (1s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+387	authfix	authfix SV4.1 slowlog credential redaction (2s)	explicit 1 via launch/direct helper; any serverless portion has no boot
+388	snapshot-epoll	snapshot concurrent cut (epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+389	snapshot-epoll	snapshot cut reload (epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+390	snapshot-epoll	snapshot never tears a cross-shard MSET group (epoll, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+391	snapshot-epoll	snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+392	snapshot-epoll	typed snapshot save (epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+393	snapshot-epoll	typed snapshot reload (epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+394	snapshot-epoll	typed snapshot preimage race (epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+395	snapshot-epoll	typed snapshot race reload (epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+396	snapshot-epoll	shutdown keeps acknowledged writes (1s, sigterm, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+397	snapshot-epoll	shutdown keeps acknowledged writes (1s, command, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+398	snapshot-epoll	shutdown cancels BGSAVE capture (1s, atomic 0, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+399	snapshot-epoll	shutdown cancels BGSAVE capture (1s, atomic 1, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+400	snapshot-epoll	shutdown keeps acknowledged writes (2s, sigterm, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+401	snapshot-epoll	shutdown keeps acknowledged writes (2s, command, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+402	snapshot-epoll	shutdown cancels BGSAVE capture (2s, atomic 0, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+403	snapshot-epoll	shutdown cancels BGSAVE capture (2s, atomic 1, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+404	snapshot-uring	snapshot concurrent cut (uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+405	snapshot-uring	snapshot cut reload (uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+406	snapshot-uring	snapshot never tears a cross-shard MSET group (uring, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+407	snapshot-uring	snapshot never tears a MULTI/EXEC group (uring, default atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+408	snapshot-uring	typed snapshot save (uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+409	snapshot-uring	typed snapshot reload (uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+410	snapshot-uring	typed snapshot preimage race (uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+411	snapshot-uring	typed snapshot race reload (uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+412	snapshot-uring	shutdown keeps acknowledged writes (1s, sigterm, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+413	snapshot-uring	shutdown keeps acknowledged writes (1s, command, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+414	snapshot-uring	shutdown cancels BGSAVE capture (1s, atomic 0, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+415	snapshot-uring	shutdown cancels BGSAVE capture (1s, atomic 1, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+416	snapshot-uring	shutdown keeps acknowledged writes (2s, sigterm, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+417	snapshot-uring	shutdown keeps acknowledged writes (2s, command, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+418	snapshot-uring	shutdown cancels BGSAVE capture (2s, atomic 0, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+419	snapshot-uring	shutdown cancels BGSAVE capture (2s, atomic 1, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+420	notify	MULTI feature battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+421	notify	blocking feature battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+422	notify	pubsub feature battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+423	notify	Lua feature battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+424	notify	keyspace notification battery (atomic 0/1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+425	notify	feature battery shutdown invariants	explicit 1 via launch/direct helper; any serverless portion has no boot
+426	flip	FLIP state battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+427	flip	FLIP under verified load	explicit 1 via launch/direct helper; any serverless portion has no boot
+428	flip	FLIP TTL + expiry events	explicit 1 via launch/direct helper; any serverless portion has no boot
+429	flip	partial-frame conn parks (no io spin)	explicit 1 via launch/direct helper; any serverless portion has no boot
+430	flip	FLIP close during FLIP (uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+431	flip	FLIP close during FLIP (epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+432	flip	FLIP signal stop during FLIP + second SIGINT	explicit 1 via launch/direct helper; any serverless portion has no boot
+433	flipctl	flip controller: ramp gate, hold, surge + mix re-maneuvers	explicit 1 via launch/direct helper; any serverless portion has no boot
+434	flip_saturated	FLIP applies under saturated load	explicit 1 via launch/direct helper; any serverless portion has no boot
+435	flip_saturated	flip battery shutdown invariants	explicit 1 via launch/direct helper; any serverless portion has no boot
+436	atomic_floor	atomic MGET/MSET floor (N/s >= 120k)	explicit 1 via launch/direct helper; any serverless portion has no boot
+437	atomic_floor	tripwire arm/disarm round-trip	explicit 1 via launch/direct helper; any serverless portion has no boot
+438	atomic_floor	pipelined same-conn program order (400 rolls)	explicit 1 via launch/direct helper; any serverless portion has no boot
+439	aof-epoll	configuration reduction + actual geometry (epoll, atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+440	aof-epoll	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+441	aof-epoll	AOF writer fired (records=N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+442	aof-epoll	AOF process-restart script replay (epoll, atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+443	aof-epoll	AOF native snapshot streams byte-exact	explicit 1 via launch/direct helper; any serverless portion has no boot
+444	aof-epoll	AOF replay fired (records=N skipped=N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+445	aof-epoll	configuration reduction + actual geometry (epoll, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+446	aof-epoll	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+447	aof-epoll	AOF writer fired (records=N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+448	aof-epoll	AOF process-restart script replay (epoll, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+449	aof-epoll	AOF native snapshot streams byte-exact	explicit 1 via launch/direct helper; any serverless portion has no boot
+450	aof-epoll	AOF replay fired (records=N skipped=N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+451	aof-epoll	AOF directed group interruption fired	explicit 1 via launch/direct helper; any serverless portion has no boot
+452	aof-epoll	AOF atomic-group recovery + writer order	explicit 1 via launch/direct helper; any serverless portion has no boot
+453	aof-epoll	AOF group shutdown invariants	explicit 1 via launch/direct helper; any serverless portion has no boot
+454	aof-epoll	AOF always sync + reply gate fired	explicit 1 via launch/direct helper; any serverless portion has no boot
+455	aof-epoll	AOF always recovery after quiescent SIGKILL	explicit 1 via launch/direct helper; any serverless portion has no boot
+456	aof-epoll	AOF in-window kill recovery (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+457	aof-epoll	AOF in-window term recovery (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+458	aof-epoll	AOF in-window kill recovery (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+459	aof-epoll	AOF in-window term recovery (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+460	aof-epoll	shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+461	aof-epoll	shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+462	aof-epoll	shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+463	aof-epoll	shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+464	aof-epoll	AOF everysec write gate + idle sync fired	explicit 1 via launch/direct helper; any serverless portion has no boot
+465	aof-epoll	AOF everysec durability window + tail warning	explicit 1 via launch/direct helper; any serverless portion has no boot
+466	aof-epoll	AOF no-sync bypassed sync + reply gate	explicit 1 via launch/direct helper; any serverless portion has no boot
+467	aof-epoll	AOF rewrite atomic/stage/corruption matrix	explicit 1 via launch/direct helper; any serverless portion has no boot
+468	aof-epoll	AOF rewrite triggers + observability matrix	explicit 1 via launch/direct helper; any serverless portion has no boot
+469	aof-epoll	AOF-off negative-control seed landed	explicit 1 via launch/direct helper; any serverless portion has no boot
+470	aof-epoll	AOF-off negative control lost data	explicit 1 via launch/direct helper; any serverless portion has no boot
+471	aof-epoll	aoffix2 snapshot (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+472	aof-epoll	aoffix2 filename (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+473	aof-epoll	aoffix2 error (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+474	aof-epoll	aoffix2 tickets (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+475	aof-epoll	aoffix2 exec_tickets (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+476	aof-epoll	aoffix2 resurrection (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+477	aof-epoll	aoffix2 rewrite_fail2 (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+478	aof-epoll	aoffix2 manifest_missing (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+479	aof-epoll	aoffix2 off-writer acknowledgement everysec (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+480	aof-epoll	aoffix2 off-writer acknowledgement always (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+481	aof-epoll	aoffix2 snapshot (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+482	aof-epoll	aoffix2 filename (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+483	aof-epoll	aoffix2 error (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+484	aof-epoll	aoffix2 tickets (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+485	aof-epoll	aoffix2 exec_tickets (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+486	aof-epoll	aoffix2 resurrection (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+487	aof-epoll	aoffix2 rewrite_fail2 (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+488	aof-epoll	aoffix2 manifest_missing (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+489	aof-epoll	aoffix2 off-writer acknowledgement everysec (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+490	aof-epoll	aoffix2 off-writer acknowledgement always (2s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+491	aof-epoll	aoffix2 large (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+492	aof-epoll	aoffix2 large_placed (1s, epoll)	explicit 1 via launch/direct helper; any serverless portion has no boot
+493	aof-uring	configuration reduction + actual geometry (uring, atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+494	aof-uring	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+495	aof-uring	AOF writer fired (records=N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+496	aof-uring	AOF process-restart script replay (uring, atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+497	aof-uring	AOF native snapshot streams byte-exact	explicit 1 via launch/direct helper; any serverless portion has no boot
+498	aof-uring	AOF replay fired (records=N skipped=N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+499	aof-uring	configuration reduction + actual geometry (uring, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+500	aof-uring	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+501	aof-uring	AOF writer fired (records=N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+502	aof-uring	AOF process-restart script replay (uring, atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+503	aof-uring	AOF native snapshot streams byte-exact	explicit 1 via launch/direct helper; any serverless portion has no boot
+504	aof-uring	AOF replay fired (records=N skipped=N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+505	aof-uring	AOF directed group interruption fired	explicit 1 via launch/direct helper; any serverless portion has no boot
+506	aof-uring	AOF atomic-group recovery + writer order	explicit 1 via launch/direct helper; any serverless portion has no boot
+507	aof-uring	AOF group shutdown invariants	explicit 1 via launch/direct helper; any serverless portion has no boot
+508	aof-uring	AOF always sync + reply gate fired	explicit 1 via launch/direct helper; any serverless portion has no boot
+509	aof-uring	AOF always recovery after quiescent SIGKILL	explicit 1 via launch/direct helper; any serverless portion has no boot
+510	aof-uring	AOF in-window kill recovery (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+511	aof-uring	AOF in-window term recovery (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+512	aof-uring	AOF in-window kill recovery (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+513	aof-uring	AOF in-window term recovery (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+514	aof-uring	shutdown cancels AOF rewrite capture (1s, atomic 0, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+515	aof-uring	shutdown cancels AOF rewrite capture (1s, atomic 1, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+516	aof-uring	shutdown cancels AOF rewrite capture (2s, atomic 0, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+517	aof-uring	shutdown cancels AOF rewrite capture (2s, atomic 1, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+518	aof-uring	AOF everysec write gate + idle sync fired	explicit 1 via launch/direct helper; any serverless portion has no boot
+519	aof-uring	AOF everysec durability window + tail warning	explicit 1 via launch/direct helper; any serverless portion has no boot
+520	aof-uring	AOF no-sync bypassed sync + reply gate	explicit 1 via launch/direct helper; any serverless portion has no boot
+521	aof-uring	AOF rewrite atomic/stage/corruption matrix	explicit 1 via launch/direct helper; any serverless portion has no boot
+522	aof-uring	AOF rewrite triggers + observability matrix	explicit 1 via launch/direct helper; any serverless portion has no boot
+523	aof-uring	AOF-off negative-control seed landed	explicit 1 via launch/direct helper; any serverless portion has no boot
+524	aof-uring	AOF-off negative control lost data	explicit 1 via launch/direct helper; any serverless portion has no boot
+525	aof-uring	aoffix2 snapshot (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+526	aof-uring	aoffix2 filename (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+527	aof-uring	aoffix2 error (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+528	aof-uring	aoffix2 tickets (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+529	aof-uring	aoffix2 exec_tickets (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+530	aof-uring	aoffix2 resurrection (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+531	aof-uring	aoffix2 rewrite_fail2 (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+532	aof-uring	aoffix2 manifest_missing (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+533	aof-uring	aoffix2 off-writer acknowledgement everysec (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+534	aof-uring	aoffix2 off-writer acknowledgement always (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+535	aof-uring	aoffix2 snapshot (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+536	aof-uring	aoffix2 filename (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+537	aof-uring	aoffix2 error (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+538	aof-uring	aoffix2 tickets (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+539	aof-uring	aoffix2 exec_tickets (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+540	aof-uring	aoffix2 resurrection (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+541	aof-uring	aoffix2 rewrite_fail2 (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+542	aof-uring	aoffix2 manifest_missing (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+543	aof-uring	aoffix2 off-writer acknowledgement everysec (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+544	aof-uring	aoffix2 off-writer acknowledgement always (2s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+545	aof-uring	aoffix2 large (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+546	aof-uring	aoffix2 large_placed (1s, uring)	explicit 1 via launch/direct helper; any serverless portion has no boot
+547	aof_frame	AOF control frame never inside a large record (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+548	aof_frame	AOF control frame never inside a large record (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+549	tls	TLS ephemeral CA/server/client certificates	explicit 1 via launch/direct helper; any serverless portion has no boot
+550	tls	NET2 serverless RX policy and KeyUpdate controls	explicit 1 via launch/direct helper; any serverless portion has no boot
+551	tls	reject TLS listener without certificate	explicit 1 via launch/direct helper; any serverless portion has no boot
+552	tls	reject invalid tls-protocols	explicit 1 via launch/direct helper; any serverless portion has no boot
+553	tls	reject invalid tls-ciphers	explicit 1 via launch/direct helper; any serverless portion has no boot
+554	tls	TLS client-auth yes matrix	explicit 1 via launch/direct helper; any serverless portion has no boot
+555	tls	TLS yes shutdown invariants	explicit 1 via launch/direct helper; any serverless portion has no boot
+556	tls	TLS client-auth optional matrix	explicit 1 via launch/direct helper; any serverless portion has no boot
+557	tls	kTLS TLS 1.2 engaged live (default boot)	explicit 1 via launch/direct helper; any serverless portion has no boot
+558	tls	TLS 1.3 KeyUpdate survives (NET2)	explicit 1 via launch/direct helper; any serverless portion has no boot
+559	tls	TLS 1.3 userspace KeyUpdate survives (NET2)	explicit 1 via launch/direct helper; any serverless portion has no boot
+560	tls	TLS optional shutdown invariants	explicit 1 via launch/direct helper; any serverless portion has no boot
+561	tls	TLS pipeline/torn-record/coexistence battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+562	tls	TLS shutdown invariants	explicit 1 via launch/direct helper; any serverless portion has no boot
+563	tls	TLS application send path error-free	explicit 1 via launch/direct helper; any serverless portion has no boot
+564	tls	TLS connection slots all freed (N/N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+565	tls	TLS zc borrow gates fired (suppressed=N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+566	feature-cell-1s-0-0-0-0	feature 1s-0-0-0-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+567	feature-cell-1s-0-0-0-1	feature 1s-0-0-0-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+568	feature-cell-1s-0-0-1-0	feature 1s-0-0-1-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+569	feature-cell-1s-0-0-1-1	feature 1s-0-0-1-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+570	feature-cell-1s-0-1-0-0	feature 1s-0-1-0-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+571	feature-cell-1s-0-1-0-1	feature 1s-0-1-0-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+572	feature-cell-1s-0-1-1-0	feature 1s-0-1-1-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+573	feature-cell-1s-0-1-1-1	feature 1s-0-1-1-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+574	feature-cell-1s-1-0-0-0	feature 1s-1-0-0-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+575	feature-cell-1s-1-0-0-1	feature 1s-1-0-0-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+576	feature-cell-1s-1-0-1-0	feature 1s-1-0-1-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+577	feature-cell-1s-1-0-1-1	feature 1s-1-0-1-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+578	feature-cell-1s-1-1-0-0	feature 1s-1-1-0-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+579	feature-cell-1s-1-1-0-1	feature 1s-1-1-0-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+580	feature-cell-1s-1-1-1-0	feature 1s-1-1-1-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+581	feature-cell-1s-1-1-1-1	feature 1s-1-1-1-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+582	feature-cell-2s-0-0-0-0	feature 2s-0-0-0-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+583	feature-cell-2s-0-0-0-1	feature 2s-0-0-0-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+584	feature-cell-2s-0-0-1-0	feature 2s-0-0-1-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+585	feature-cell-2s-0-0-1-1	feature 2s-0-0-1-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+586	feature-cell-2s-0-1-0-0	feature 2s-0-1-0-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+587	feature-cell-2s-0-1-0-1	feature 2s-0-1-0-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+588	feature-cell-2s-0-1-1-0	feature 2s-0-1-1-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+589	feature-cell-2s-0-1-1-1	feature 2s-0-1-1-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+590	feature-cell-2s-1-0-0-0	feature 2s-1-0-0-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+591	feature-cell-2s-1-0-0-1	feature 2s-1-0-0-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+592	feature-cell-2s-1-0-1-0	feature 2s-1-0-1-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+593	feature-cell-2s-1-0-1-1	feature 2s-1-0-1-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+594	feature-cell-2s-1-1-0-0	feature 2s-1-1-0-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+595	feature-cell-2s-1-1-0-1	feature 2s-1-1-0-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+596	feature-cell-2s-1-1-1-0	feature 2s-1-1-1-0	explicit 1 via launch/direct helper; any serverless portion has no boot
+597	feature-cell-2s-1-1-1-1	feature 2s-1-1-1-1	explicit 1 via launch/direct helper; any serverless portion has no boot
+598	feature-cell-split-home-min	feature split-home-min	explicit 1 via launch/direct helper; any serverless portion has no boot
+599	feature-cell-fused-home-max-nopin	feature fused-home-max-nopin	explicit 1 via launch/direct helper; any serverless portion has no boot
+600	feature-cell-split-shards-auto	feature split-shards-auto	explicit 1 via launch/direct helper; any serverless portion has no boot
+601	abba_selftest	ABBA comparison + saturation negative controls	serverless / linked image audit; no server default
+602	multidb-1s-0-0	multidb (1s, read-local 0, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
+603	multidb-1s-0-0	multidb (1s, read-local 0, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+604	multidb-1s-0-0	multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+605	multidb-1s-0-1	multidb (1s, read-local 0, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
+606	multidb-1s-0-1	multidb (1s, read-local 0, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+607	multidb-1s-0-1	multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+608	multidb-1s-1-0	multidb (1s, read-local 1, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
+609	multidb-1s-1-0	multidb (1s, read-local 1, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+610	multidb-1s-1-0	multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+611	multidb-1s-1-1	multidb (1s, read-local 1, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
+612	multidb-1s-1-1	multidb (1s, read-local 1, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+613	multidb-1s-1-1	multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+614	multidb-2s-0-0	multidb (2s, read-local 0, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
+615	multidb-2s-0-0	multidb (2s, read-local 0, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+616	multidb-2s-0-0	multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+617	multidb-2s-0-1	multidb (2s, read-local 0, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
+618	multidb-2s-0-1	multidb (2s, read-local 0, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+619	multidb-2s-0-1	multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+620	multidb-2s-1-0	multidb (2s, read-local 1, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
+621	multidb-2s-1-0	multidb (2s, read-local 1, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+622	multidb-2s-1-0	multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+623	multidb-2s-1-1	multidb (2s, read-local 1, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
+624	multidb-2s-1-1	multidb (2s, read-local 1, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+625	multidb-2s-1-1	multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+626	coordinator	tailgen client-lb outstanding bound	explicit 1 via launch/direct helper; any serverless portion has no boot
+627	asan_batteries	torture under ASAN	explicit 1 via launch/direct helper; any serverless portion has no boot
+628	asan_batteries	RYOW under ASAN	explicit 1 via launch/direct helper; any serverless portion has no boot
+629	asan_batteries	atomic torn/window under ASAN	explicit 1 via launch/direct helper; any serverless portion has no boot
+630	asan_batteries	atomic RYOW under ASAN	explicit 1 via launch/direct helper; any serverless portion has no boot
+631	asan_batteries	ASAN clean	explicit 1 via launch/direct helper; any serverless portion has no boot
+632	replyoff	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)	explicit 1 via launch/direct helper; any serverless portion has no boot
+633	replyoff	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)	explicit 1 via launch/direct helper; any serverless portion has no boot
+634	zc	zc borrow battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+635	zc	zc fired (zc_sends=N)	explicit 1 via launch/direct helper; any serverless portion has no boot
+636	zc	zc borrow battery under ASAN	explicit 1 via launch/direct helper; any serverless portion has no boot
+637	zc	zc ASAN clean	explicit 1 via launch/direct helper; any serverless portion has no boot
+638	rldbg	read-local ownership-invariant build	explicit 1 via launch/direct helper; any serverless portion has no boot
+639	rlcache	armed block-cache churn battery	explicit 1 via launch/direct helper; any serverless portion has no boot
+640	rlcache	read-local ownership invariants	explicit 1 via launch/direct helper; any serverless portion has no boot
+641	differ-split	Redis 7.4 differential matrix	explicit 16 differential; mode equivalence uses _gate_process default 1
+642	differ-armed	Redis 7.4 differential matrix (armed fused + read-local)	explicit 16 differential; mode equivalence uses _gate_process default 1
+643	globcase	glob/scan grammar parity vs Redis 7.4	explicit 1 via launch/direct helper; any serverless portion has no boot

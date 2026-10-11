@@ -1,0 +1,45 @@
+{
+  "subset": "full",
+  "count": 7,
+  "ids": [
+    "h05",
+    "h06",
+    "p8g",
+    "p8s",
+    "m8g_l0",
+    "v1g_l0",
+    "d128g_l0"
+  ],
+  "modes": [
+    "1s"
+  ],
+  "operations": [
+    "GET",
+    "MGET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "MGET",
+    "SET"
+  ],
+  "depths": [
+    8,
+    32,
+    128
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64,
+    1024
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "rate"
+  ],
+  "pending_pins": []
+}

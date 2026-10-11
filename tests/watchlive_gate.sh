@@ -56,7 +56,7 @@ boot() {   # boot <extra server args...>
     # A leftover listener would join the next start under SO_REUSEPORT and split the client load
     # silently across two servers, which invalidates the measurement. Refuse instead.
     if [ -n "$(listener_pids)" ]; then echo "  FAIL listener already on $PORT"; return 1; fi
-    taskset -c "$CORES" "$BIN" --port "$PORT" --enable-debug-command yes "$@" \
+    taskset -c "$CORES" "$BIN" --databases 1 --port "$PORT" --enable-debug-command yes "$@" \
         >"$LOG/server.log" 2>&1 &
     local owned_pid=$! pids
     PYTHONPATH="$HERE" python3 - "$PORT" "$LOG/server.log" "$owned_pid" <<'PYREADY'

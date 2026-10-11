@@ -258,7 +258,7 @@ def server_command(args, cell, folder, policy):
     n = len(parse_cpu_range(args.cores[0]))
     command = ["taskset", "-c", args.cores[0], str(args.binary), "--port", str(args.port),
                "--bind", "127.0.0.1", "--dir", str(folder), "--save", "", "--appendonly", "no",
-               "--enable-debug-command", "yes", "--thread-mode", cell.mode,
+               "--databases", "1", "--enable-debug-command", "yes", "--thread-mode", cell.mode,
                "--read-local", str(cell.read_local), "--overlap", str(cell.overlap),
                "--reorder", str(cell.reorder), "--atomic", str(cell.atomic), "--wb-policy", str(policy),
                "--key-lb", "1", "--client-lb", "1", "--flip-auto", "0"]
@@ -268,7 +268,7 @@ def server_command(args, cell, folder, policy):
         io, ex = map(int, ratio.split(":"))
         require(io > 0 and ex > 0 and io + ex == n, "split ratio must cover selected server CPUs")
         command += ["--ratio", ratio]
-    # Use the shipped default, not the gate's --shards 16 geometry.
+    # Preserve the paper shard geometry; database count is explicit above.
     command += ["--shards", str(256 if ex >= 32 else 8 * ex)]
     return command
 
