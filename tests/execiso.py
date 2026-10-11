@@ -210,6 +210,7 @@ def straddle_arm(mode, kind):
     before_cuts = info_field("atomic_exec_read_cuts")
     before_dooms = info_field("atomic_txn_dooms")
     before_retries = info_field("atomic_txn_retries")
+    before_waits = info_field("atomic_txn_writer_waits")
     for round_id in range(ROUNDS):
         old, new = "g%d-old" % round_id, "g%d-new" % round_id
         if kind == "EXISTS":
@@ -240,6 +241,10 @@ def straddle_arm(mode, kind):
         read_cmd = {"MGET": ("MGET",) + tuple(keys),
                     "EXISTS": ("EXISTS",) + tuple(keys),
                     "SUNION": ("SUNION",) + tuple(keys)}[kind]
+        marker = next("execiso-marker:%d:%d" % (round_id, i) for i in range(4096)
+                      if ADMIN.cmd("DEBUG", "SHARD", "execiso-marker:%d:%d" % (round_id, i)) ==
+                         ADMIN.cmd("DEBUG", "SHARD", keys[0]))
+        assert reader.cmd("INCR", marker) == b"QUEUED"
         if reader.cmd(*read_cmd) != b"QUEUED":
             note(label, False, "read was not queued")
             reader.close()
@@ -248,12 +253,17 @@ def straddle_arm(mode, kind):
         time.sleep(0.05)                     # the lead fragment has answered; the rest are parked
         arm(0)                              # replacement attempts must not inherit the park
         writer = Resp()
-        # A younger EXEC now waits for this older reader. Plain writers cancel
-        # its read intents and preserve the intended foreign-write window.
-        reply = [writer.cmd(*command) for command in commands]
-        exec_done = time.time()
-        writer.close()
+        waits = info_field("atomic_txn_writer_waits")
+        for command in commands:
+            writer.send(*command)
+        end = time.monotonic() + HOLD_US / 1e6
+        while info_field("atomic_txn_writer_waits") == waits and time.monotonic() < end:
+            time.sleep(.001)
+        blocked = info_field("atomic_txn_writer_waits") > waits
         outer = reader.read()
+        exec_done = time.time()
+        reply = [writer.read() for command in commands]
+        writer.close()
         elapsed = time.time() - started
         reader.close()
         arm(0)
@@ -264,25 +274,25 @@ def straddle_arm(mode, kind):
             detail.append("round %d foreign writes=%r" % (round_id, reply))
             torn += 1
             continue
-        if not isinstance(outer, list) or len(outer) != 1:
+        if not isinstance(outer, list) or len(outer) != 2:
             detail.append("round %d in-EXEC reply=%r" % (round_id, outer))
             torn += 1
             continue
-        values = outer[0]
+        values = outer[1]
         # The window really opened: the whole foreign transaction completed while the read was held.
-        if exec_done < started or elapsed < HOLD_US / 4e6:
+        if not blocked or exec_done < started or elapsed < HOLD_US / 4e6:
             detail.append("round %d window did not open (read %.3fs, foreign exec ended %.3fs in)"
                           % (round_id, elapsed, exec_done - started))
         else:
             opened += 1
         if kind == "MGET":
             ok = bool(values) and all(value == values[0] for value in values[1:])
-            # The cancelled attempt is invisible; its replacement sees all writes.
-            ok = ok and values[0] == new.encode()
+            # Claims keep the old generation stable until this write unit commits.
+            ok = ok and values[0] == old.encode()
         elif kind == "EXISTS":
-            ok = values in (0, len(keys))
+            ok = values == 0
         else:
-            ok = isinstance(values, list) and len(values) == 1 and values[0] == new.encode()
+            ok = isinstance(values, list) and len(values) == 1 and values[0] == old.encode()
         if not ok:
             torn += 1
             if len(detail) < 3:
@@ -290,7 +300,8 @@ def straddle_arm(mode, kind):
     cuts = info_field("atomic_exec_read_cuts") - before_cuts
     dooms = info_field("atomic_txn_dooms") - before_dooms
     retries = info_field("atomic_txn_retries") - before_retries
-    ok = torn == 0 and opened == ROUNDS and cuts >= ROUNDS and dooms >= ROUNDS and retries >= ROUNDS
+    waits = info_field("atomic_txn_writer_waits") - before_waits
+    ok = torn == 0 and opened == ROUNDS and cuts >= ROUNDS and dooms == 0 and retries == 0 and waits > 0
     note(label, ok, "rounds=%d torn=%d windows_opened=%d exec_read_cuts=+%d dooms=+%d retries=+%d %r"
          % (ROUNDS, torn, opened, cuts, dooms, retries, detail[:2]))
 

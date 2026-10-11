@@ -2657,37 +2657,8 @@ public:
         return total;
     }
     MultiRetryLane& multi_retry_lane(uint32_t io) { return multi_retry_lanes_[io]; }
-    bool txn_retry_held(const void* unit = nullptr) const {
-        return (snapshot_atomic_barrier_.load(std::memory_order_acquire) & 1) ||
-            (txn_exclusive_owner_.load(std::memory_order_acquire) != nullptr &&
-             txn_exclusive_owner_.load(std::memory_order_acquire) != unit);
-    }
-    bool txn_exclusive_claim(const void* unit) {
-        const void* empty = nullptr;
-        return txn_exclusive_owner_.compare_exchange_strong(empty, unit, std::memory_order_acq_rel);
-    }
-    const void* txn_exclusive_owner() const {
-        return txn_exclusive_owner_.load(std::memory_order_acquire);
-    }
-    void txn_exclusive_barrier(bool enabled) {
-        if (enabled) snapshot_atomic_barrier_.fetch_or(2, std::memory_order_acq_rel);
-        else snapshot_atomic_barrier_.fetch_and(uint8_t{0xfd}, std::memory_order_acq_rel);
-    }
-    uint64_t txn_exclusive_generation() { return ++txn_exclusive_generation_; }
-    void txn_exclusive_transfer(const void* from, const void* to) {
-        if (!txn_exclusive_owner_.compare_exchange_strong(from, to, std::memory_order_acq_rel))
-            std::abort();
-    }
-    void txn_exclusive_release(const void* unit) {
-        if (txn_exclusive_owner_.load(std::memory_order_acquire) != unit) return;
-        txn_exclusive_barrier(false);
-        txn_exclusive_owner_.store(nullptr, std::memory_order_release);
-    }
-    uint32_t debug_txn_occ_limit() const {
-        return debug_txn_occ_limit_.load(std::memory_order_relaxed);
-    }
-    void set_debug_txn_occ_limit(uint32_t limit) {
-        debug_txn_occ_limit_.store(limit, std::memory_order_relaxed);
+    bool txn_retry_held(const void* = nullptr) const {
+        return snapshot_atomic_barrier_.load(std::memory_order_acquire) & 1;
     }
     uint32_t take_debug_txn_place_defer() {
         return debug_txn_place_defer_.exchange(0, std::memory_order_relaxed);
@@ -3583,7 +3554,7 @@ private:
     std::atomic<uint64_t> commit_seq_{0};
     std::atomic<uint64_t> atomic_commit_inflight_{0};
     std::atomic<uint64_t> atomic_commit_safe_{0};
-    std::atomic<uint8_t> snapshot_atomic_barrier_{0}; // bit 0: snapshot; bit 1: exclusive EXEC/group
+    std::atomic<uint8_t> snapshot_atomic_barrier_{0}; // bit 0: snapshot
     AtomicApplySlot atomic_apply_slots_[kMaxThreads] = {};
     std::atomic<uint64_t> atomic_window_stalls_{0};
     std::atomic<uint32_t> debug_atomic_direct_defer_{0};
@@ -3717,9 +3688,6 @@ private:
     // slot has one physical owner writer; INFO reads them with relaxed loads.
     TxnOwnerCounters txn_counters_[kMaxThreads];
     MultiRetryLane multi_retry_lanes_[kMaxThreads];
-    alignas(64) std::atomic<const void*> txn_exclusive_owner_{nullptr};
-    uint64_t txn_exclusive_generation_ = 0; // serialized by the exclusive token
-    std::atomic<uint32_t> debug_txn_occ_limit_{kTxnWriterDoomBound};
     std::atomic<uint32_t> debug_txn_place_defer_{0};
 
 };

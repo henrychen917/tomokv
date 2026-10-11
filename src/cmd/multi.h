@@ -26,7 +26,6 @@ struct AtomicEntry;
 struct AtomicScriptIntent;
 struct ScatterState;
 
-inline constexpr uint32_t kTxnWriterDoomBound = 8;
 inline constexpr uint32_t kTxnIntentsPerShard = 256;
 inline constexpr uint32_t kTxnClaimsPerShard = 256;
 
@@ -40,12 +39,10 @@ struct TxnClaim {
 };
 inline constexpr uint32_t kTxnRetryBackoffMin = 1; // one IO pass
 inline constexpr uint64_t kTxnRetryBackoffMax = 1000000; // ns
-inline constexpr uint64_t kTxnExclusiveDrainMax = 1000000000; // ns
 
 enum class TxnCounter : uint8_t {
-    Attempts, Retries, Dooms, Wounds, SelfDooms, Waits, ForcedWrites,
-    Exclusive, ExclusiveViolations, ExclusiveDrainTimeouts, Intents, IntentsLive,
-    GroupDooms, GroupRetries, GroupExclusive, GroupBarriers,
+    Attempts, Retries, Dooms, Wounds, Waits, Intents, IntentsLive,
+    GroupDooms, GroupRetries, GroupBarriers,
     Executed, PlaceWaits, WriterWaits, WriterMarks, BlindRestarts, Readonly,
     OrderViolations, GroupWounds, Count
 };
@@ -56,19 +53,16 @@ struct alignas(64) TxnOwnerCounters {
     std::atomic<uint64_t> values[static_cast<unsigned>(TxnCounter::Count)]{};
 };
 struct MultiRetryNode {
-    enum class Kind : uint8_t { Execute, Fence, Group };
+    enum class Kind : uint8_t { Execute, Group };
     MultiRetryNode* next = nullptr;
     void* unit = nullptr;
-    uint64_t generation = 0;
     Kind kind = Kind::Execute;
     uint32_t owner_io = 0;            // fits the existing tail padding
 };
-static_assert(sizeof(MultiRetryNode) == 32);
+static_assert(sizeof(MultiRetryNode) == 24);
 struct alignas(64) MultiRetryLane {
     std::atomic<MultiRetryNode*> head{nullptr};
     uint32_t age_seq = 0;              // IO-owned, used only at first admission
-    MultiRetryNode fence{nullptr, nullptr, 0, MultiRetryNode::Kind::Fence};
-    std::atomic<uint64_t> fence_ack{0};
     std::atomic<std::atomic<bool>*> signal{nullptr}; // worker TLS; bound before serving
 };
 
@@ -81,7 +75,6 @@ void multi_cancel_intent(AtomicScriptIntent&, const ScatterState* self = nullptr
 struct MultiDecision {
     std::atomic<uint64_t> epoch{0};
     std::atomic<bool> aborted{false};
-    bool exclusive = false;
     std::atomic<TxnPhase> phase{TxnPhase::Placing};
     uint64_t age_ns = 0;
     uint32_t age_io = 0;

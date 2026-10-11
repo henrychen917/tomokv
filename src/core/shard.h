@@ -277,7 +277,6 @@ public:
         // with no timeout and no detector: tests/watchlive.py wedged 6/6 on it. Group reservations
         // now coexist on a key (the map holds a list) and block nobody.
         bool blocking = false;
-        bool group_exclusive = false; // existing padding; avoids casting a group as EXEC
         uint8_t unit_kind = 0; // 1 EXEC, 2 read-dependent group
         uint8_t unit_mode = 0; // TxnClaimMode
         uint8_t entry_kind = 0; // 0 validation/dirty deferral, 1 claim, 2 writer, 3 waiter
@@ -312,9 +311,6 @@ public:
     bool watch_writer_mark(Slice key, const void* token);
     void watch_writer_unmark(Slice key, const void* token);
     bool watch_txn_write_ready(Slice key, MultiExecState& state);
-    bool watch_reserve_exclusive(Slice key, MultiExecState& state, bool whole_shard = false);
-    bool watch_reserve_group(Slice key, ScatterState& state);
-    void watch_finish_exclusive(const void* unit);
     void watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                              const void* token, std::atomic<uint64_t>* epoch,
                              std::atomic<bool>* aborted, std::atomic<uint32_t>* refs);

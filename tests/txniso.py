@@ -136,12 +136,17 @@ class Battery:
                 commands = [("INCR", marker), ("MGET", a, b), ("GET", a)]
             watched = self.same_shard(a) if kind.startswith("D4") else None
             if kind == "D4b":
-                with self.wounded(commands, watch=watched,
-                                  older_extra=[("SET", watched, "changed")]) as holder:
-                    assert holder.read() is None, "changed WATCH must yield null"
-                assert self.admin.must("MGET", a, b) == [b"1", b"0"]
-                assert self.counter("atomic_txn_dooms") == dooms
-                return
+                try:
+                    with self.wounded(commands, watch=watched,
+                                      older_extra=[("SET", watched, "changed")]) as holder:
+                        assert holder.read() is None, "changed WATCH must yield null"
+                    assert self.admin.must("MGET", a, b) == [b"1", b"0"]
+                    assert self.counter("atomic_txn_dooms") == dooms
+                    return
+                except WindowMiss:
+                    if arm == 3:
+                        raise
+                    continue
             try:
                 with self.parked(commands, True, watched) as holder:
                     writer = self.conn()
@@ -308,7 +313,7 @@ class Battery:
         if not self.args.pre:
             after = self.stats()
             conflicts = sum(int(after[key]) - int(before[key]) for key in
-                            ("atomic_txn_wounds", "atomic_txn_self_dooms"))
+                            ("atomic_txn_wounds",))
             assert conflicts > 0, "crossed WATCH reservation conflict never occurred"
 
     @contextlib.contextmanager
@@ -412,53 +417,13 @@ class Battery:
         assert self.admin.must("DEBUG", "LOADAOF") == b"OK"
         assert self.admin.must("MGET", *expected) == list(expected.values()), "discarded attempt in AOF"
 
-    def fallback(self):
-        self.hook("TXN-OCC-LIMIT", 1)
-        end = time.monotonic() + 15
-        try:
-            # A scheduler can finish all 200 short EXECs between the writers'
-            # turns. That arm did not exercise fallback. Re-arm on fresh keys;
-            # never turn a missing exclusive witness into a passing check.
-            for arm in range(4):
-                a, b = self.pair()
-                self.admin.must("MSET", a, 0, b, 0)
-                exclusive = self.counter("atomic_txn_exclusive")
-                stop = threading.Event()
-                counts = [0] * 4
-                def hammer(index):
-                    c = self.conn(timeout=5)
-                    while not stop.is_set():
-                        assert isinstance(c.must("INCR", a), int)
-                        counts[index] += 1
-                with concurrent.futures.ThreadPoolExecutor(4) as pool:
-                    writers = [pool.submit(hammer, i) for i in range(4)]
-                    try:
-                        c = self.conn(timeout=5)
-                        for _ in range(200):
-                            result = self.transaction(c, [("INCR", a), ("INCR", b)])
-                            assert isinstance(result, list) and len(result) == 2, result
-                            assert time.monotonic() < end, "fallback deadline"
-                    finally:
-                        stop.set()
-                        for writer in writers:
-                            writer.result(timeout=5)
-                assert self.admin.must("MGET", a, b) == [str(200 + sum(counts)).encode(), b"200"], counts
-                for name in ("atomic_txn_exclusive_violations", "atomic_txn_exclusive_drain_timeouts"):
-                    assert self.counter(name) in (0, None), name
-                if exclusive is None or self.counter("atomic_txn_exclusive") > exclusive:
-                    return
-                print("re-arm X1: no exclusive attempt on fresh arm", arm + 1, flush=True)
-            raise AssertionError("four fresh X1 arms never entered exclusive fallback")
-        finally:
-            self.hook("TXN-OCC-LIMIT", 8)
-
-    def exclusive_admin(self):
+    def admin_once(self):
         a, b = self.pair()
         self.admin.must("MSET", a, 0, b, 0)
         timeout = self.admin.must("CONFIG", "GET", "timeout")[1]
-        before = self.counter("atomic_txn_exclusive")
-        # Put the all-owner CONFIG barrier after the witnessed park. Classification
-        # must still select exclusive before the first command of attempt one.
+        before = self.counter("atomic_txn_executed")
+        # The CONFIG handler is reached only after placement. It must execute
+        # exactly once while the conflicting writer waits on the unit.
         commands = [("INCR", a), ("MGET", a, b), ("CONFIG", "SET", "timeout", timeout), ("INCR", b)]
         with self.parked(commands, writes=True) as holder:
             writer = self.conn()
@@ -467,13 +432,13 @@ class Battery:
             assert writer.read() == 2
         assert self.admin.must("MGET", a, b) == [b"2", b"1"]
         if before is not None:
-            assert self.counter("atomic_txn_exclusive") == before + 1
+            assert self.counter("atomic_txn_executed") == before + 1
 
     def rest(self):
         self.wait(lambda: self.counter("atomic_pending_entries") == 0,
                   "pending entries did not drain", timeout=1)
         for name in ("atomic_txn_intents_live", "atomic_exec_order_late", "atomic_gauge_underflows",
-                     "atomic_txn_exclusive_violations", "atomic_txn_exclusive_drain_timeouts"):
+                     "atomic_txn_dooms", "atomic_group_dooms", "atomic_txn_order_violations"):
             assert self.counter(name) in (0, None), (name, self.counter(name))
         assert self.counter("script_intents_live") == self.script_intents_before
 
@@ -538,8 +503,7 @@ def main():
         # The gate appends this companion check from a separate appendonly boot.
         if args.only and "V4" in args.only.split(","):
             battery.run("V4", battery.aof_replay)
-        battery.run("X1", battery.fallback)
-        battery.run("X2", battery.exclusive_admin)
+        battery.run("X2", battery.admin_once)
         battery.run("Z1", battery.rest)
         battery.run("Z2", battery.plain_rest)
     finally:

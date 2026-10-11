@@ -46,7 +46,6 @@ WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t 
     }
     if (script_forced) {
         if (store.atomic_has_script_pin(hash, key)) server.note_script_forced_write();
-        else server.note_txn(server.worker_of_shard(shard.id()), TxnCounter::ForcedWrites);
     }
 
     // Writers must clone the newest committed version, even while an unrelated reservation
@@ -90,7 +89,7 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
         source_group |= state.key_order[group.begin + i] == 0;
 
     if (!txn_group_ready(state, shard, op)) {
-        if (!state.aborted.load(std::memory_order_acquire)) return ScatterTaskResult::Retry;
+        if (!state.aborted.load(std::memory_order_acquire)) return ScatterTaskResult::Defer;
         if (source_group) state.direct_ready.store(2, std::memory_order_release);
         return ScatterTaskResult::Complete;
     }
@@ -98,6 +97,7 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
     for (uint32_t i = 0; i < group.count; ++i) {
         const KeyRef& key = state.keys[state.key_order[group.begin + i]];
         if (!txn_group_touch(state, shard, key.hash, op.arg(key.arg))) {
+            if (!state.aborted.load(std::memory_order_acquire)) return ScatterTaskResult::Defer;
             if (source_group) state.direct_ready.store(2, std::memory_order_release);
             return ScatterTaskResult::Complete;
         }
@@ -675,7 +675,7 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
             now_ns() < state.debug_script_defer_deadline)
             return true;
         if (state.atomic_direct) {
-            if (!txn_group_arrive(state, shard.id())) return true;
+            if (!txn_group_arrive(state, shard, op)) return true;
             if (state.direct_ready.load(std::memory_order_acquire) == 0 ||
                 __builtin_expect(state.debug_direct_defer != 0, false)) {
                 ShardGroup* group = group_for(state, shard.id());
@@ -938,8 +938,7 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
             if (!store.atomic_has_record(hash, key) &&
                 (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
                 if (store.atomic_has_script_pin(hash, key)) server.note_script_forced_write();
-                else server.note_txn(server.worker_of_shard(shard.id()), TxnCounter::ForcedWrites);
-            }
+                    }
             for (const RecordedKey& prior : recorded)
                 if (prior.hash == hash && prior.key == key) return;
             try { recorded.push_back(RecordedKey{hash, key}); }

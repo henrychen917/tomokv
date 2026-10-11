@@ -449,18 +449,15 @@ struct TxnGroupAttempt {
     uint64_t age_ns = 0;
     uint32_t age_io = 0;
     uint32_t age_seq = 0;
-    MultiRetryNode retry{nullptr, nullptr, 0, MultiRetryNode::Kind::Group};
+    MultiRetryNode retry{nullptr, nullptr, MultiRetryNode::Kind::Group};
     uint32_t attempt = 0;
-    uint32_t writer_dooms = 0;
-    std::atomic<bool> cause_ready{false};
     uint64_t retry_after_ns = 0;
-    bool exclusive = false;
-    uint64_t exclusive_since_ns = 0;
-    uint64_t exclusive_generation = 0;
-    std::vector<uint32_t> exclusive_fences;
     std::atomic<uint32_t> arrivals{0};
     std::vector<uint8_t> arrived;
-    std::vector<uint16_t> intents;
+    uint32_t participants = 0;
+    std::atomic<uint32_t> placements{0};
+    std::vector<std::vector<TxnClaim>> claims;
+    std::unique_ptr<ShardGroup[]> placement_groups;
 };
 
 struct ScatterState : SnapshotCut {
@@ -679,7 +676,7 @@ template <bool IofusedPrivateQueue>
                                                const Task&);
 [[gnu::noinline]] bool txn_group_decide(ScatterState&, uint64_t);
 [[gnu::noinline]] bool txn_group_ready(ScatterState&, Shard&, Op&);
-[[gnu::noinline]] bool txn_group_arrive(ScatterState&, uint32_t);
+[[gnu::noinline]] bool txn_group_arrive(ScatterState&, Shard&, Op&);
 template <bool IofusedPrivateQueue>
 void txn_group_redispatch(Server&, ThreadCtx&, Ring&, ScatterArenaPool&, ScatterState&);
 void txn_group_shutdown(ScatterState&, ScatterArenaPool&);
@@ -2871,7 +2868,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             const auto prepared = txn_group_read_prepare(state, shard, op);
             if (prepared != TxnGroupRead::Ready)
                 return prepared == TxnGroupRead::Wait
-                    ? ScatterTaskResult::Retry : ScatterTaskResult::Complete;
+                    ? ScatterTaskResult::Defer : ScatterTaskResult::Complete;
         }
         if (state.atomic_write) {
             // One owner pass preflights the table, allocates one shard entry, and performs ordinary
@@ -2918,14 +2915,15 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 if (!txn_group_ready(state, shard, op)) {
                     shard.store().atomic_discard_group(pending_entry);
                     return state.aborted.load(std::memory_order_acquire)
-                        ? ScatterTaskResult::Complete : ScatterTaskResult::Retry;
+                        ? ScatterTaskResult::Complete : ScatterTaskResult::Defer;
                 }
                 for (uint32_t i = 0; i < group.count; i++) {
                     const uint32_t pos = state.key_order[group.begin + i];
                     const KeyRef& key = state.keys[pos];
                     if (!txn_group_touch(state, shard, key.hash, op.arg(key.arg), false)) {
                         shard.store().atomic_discard_group(pending_entry);
-                        return ScatterTaskResult::Complete;
+                        return state.aborted.load(std::memory_order_acquire)
+                            ? ScatterTaskResult::Complete : ScatterTaskResult::Defer;
                     }
                     if (notify ? shard.store_find<true>(key.hash, op.arg(key.arg))
                                : shard.store().find(key.hash, op.arg(key.arg))) {

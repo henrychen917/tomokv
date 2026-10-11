@@ -1988,7 +1988,7 @@ txniso_checks(){
   unit_ready atomic-survivors-unit \
       && taskset -c "$CORES" ./build/atomic-survivors-unit txn_intents >>"$log" 2>&1 \
       && taskset -c "$CORES" ./build/atomic-survivors-unit txn_help >>"$log" 2>&1 \
-      && taskset -c "$CORES" ./build/atomic-survivors-unit txn_admission >>"$log" 2>&1 || passed=0
+      && taskset -c "$CORES" ./build/atomic-survivors-unit txnorder_placement >>"$log" 2>&1 || passed=0
   stop
   "$boot_fn" "$CANDIDATE_BINARY" --atomic "$atomic" --enable-debug-command yes \
       --key-lb 0 --client-lb 0 --flip-auto 0 --appendonly yes --appendfsync no \

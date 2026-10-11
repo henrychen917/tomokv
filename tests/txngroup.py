@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atomic group OCC: witnessed stale-image races and exact mover conservation."""
+"""Version-ordered atomic groups: witnessed stale-image races and exact mover conservation."""
 import argparse
 import concurrent.futures
 import select
@@ -26,6 +26,7 @@ class GroupBattery(Battery):
         entries = self.counter("atomic_entries")
         dooms = self.counter("atomic_group_dooms")
         retries = self.counter("atomic_group_retries")
+        waits = self.counter("atomic_txn_writer_waits")
         self.hook("ATOMIC-COMMIT-HOLD", 1)
         try:
             mover.send(*command)
@@ -39,7 +40,11 @@ class GroupBattery(Battery):
                 # The commit hook has no effect on the atomic-0 control. This
                 # is the same completed-mover arm as the auditor's T03 control.
                 result = mover.read()
-            foreign = writer.must(*writer_command)
+            writer.send(*writer_command)
+            if atomic:
+                self.wait(lambda: self.counter("atomic_txn_writer_waits") > waits,
+                          "writer never reached the executing group claim", timeout=1)
+                assert not select.select([writer.sock], [], [], 0)[0], "writer passed held group"
         except WindowMiss:
             self.hook("ATOMIC-COMMIT-HOLD", 0)
             mover.read()  # retire the missed arm before fresh state can witness it
@@ -48,6 +53,7 @@ class GroupBattery(Battery):
             self.hook("ATOMIC-COMMIT-HOLD", 0)
         if atomic:
             result = mover.read()
+        foreign = writer.read()
         return result, foreign, dooms, retries
 
     def directed(self, name):
@@ -100,8 +106,8 @@ class GroupBattery(Battery):
             values = [self.admin.must(*check) for check in checks]
             assert valid(result, values), (name, result, foreign, values)
             if self.atomic():
-                self.advanced("atomic_group_dooms", dooms)
-                self.advanced("atomic_group_retries", retries)
+                assert self.counter("atomic_group_dooms") == dooms
+                assert self.counter("atomic_group_retries") == retries
             self.reload_checks.append((checks, values))
             print("directed", name, "result", result, "state", values, flush=True)
             return
@@ -174,18 +180,6 @@ class GroupBattery(Battery):
         for checks, expected in self.reload_checks:
             assert [self.admin.must(*check) for check in checks] == expected, checks
 
-    def exclusive(self):
-        self.hook("TXN-OCC-LIMIT", 1)
-        try:
-            for name in ("SMOVE", "LMOVE", "PFMERGE", "RPOPLPUSH-source",
-                         "RENAME-source", "MSETNX"):
-                before = self.counter("atomic_group_exclusive")
-                self.directed(name)
-                self.advanced("atomic_group_exclusive", before)
-                self.rest()
-        finally:
-            self.hook("TXN-OCC-LIMIT", 8)
-
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -208,7 +202,6 @@ def main():
         battery.run("G3", lambda: battery.moves("smove", adders=True))
         battery.run("G4-smove", lambda: battery.moves("smove"))
         battery.run("G4-rpoplpush", lambda: battery.moves("rpoplpush"))
-        battery.run("GX", battery.exclusive)
         battery.run("G5", battery.off_control)
         battery.run("G6", battery.rest)
         if args.only and "AOF" in args.only.split(","):

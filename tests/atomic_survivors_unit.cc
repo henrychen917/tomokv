@@ -39,15 +39,6 @@ void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
 void operator delete[](void* p, const std::nothrow_t&) noexcept { std::free(p); }
 
 namespace tomo {
-struct CoreConcurrencyTest {
-    static uint32_t consume_txn_fence(Server& server, uint32_t io) {
-        // Bind only the cold owner-pass context: no listener, ring or worker.
-        IoLoop loop;
-        loop.srv_ = &server;
-        loop.self_ = &server.thread(io);
-        return multi_owner_pass_entry_impl<false>(loop);
-    }
-};
 struct AtomicSurvivorsTest {
     static void publish_stale_sample(Server& server, uint64_t drawn) {
         // Exactly the last half of A's publication, after B reserved and
@@ -316,20 +307,15 @@ void txn_intents(Server& server) {
             "unit removal does not decrement PIN owner accounting");
     store.atomic_script_unpin(hash, slice(key));
     require(!server.script_intents_active() && !store.atomic_has_records(), "final accounting");
-    for (bool exclusive : {false, true}) {
+    {
         Client client{-1}; client.set_id(887);
         auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
         require(state != nullptr, "shutdown attempt allocated");
         state->shards.push_back(0);
         state->exec_op_id = 0;
-        state->decision.exclusive = exclusive;
         require(server.atomic_try_admit(0, state->admission_generation, true),
                 "shutdown attempt keeps admission credit");
         state->admitted = true;
-        if (exclusive) {
-            require(server.txn_exclusive_claim(&state->retry), "shutdown attempt owns exclusive token");
-            server.txn_exclusive_barrier(true);
-        }
         auto* op = client.rob().acquire();
         require(op != nullptr, "shutdown carrier allocated");
         op->attach_multi_state(state);
@@ -348,56 +334,16 @@ void txn_intents(Server& server) {
                 "shutdown releases a live unit intent without a PIN accounting change");
         require(state->decision.aborted.load() &&
                 state->decision.epoch.load() == kAtomicCancelledEpoch,
-                "shutdown withdraws optimistic and exclusive undecided attempts");
+                "shutdown withdraws an undecided attempt");
         ScatterArenaPool pool;
         std::vector<MultiExecState*> deferred;
         multi_shutdown_attempt(state, pool, deferred);
-        require(deferred.empty() && !server.txn_exclusive_owner() && server.atomic_can_admit(0),
-                "shutdown releases pending attempt, exclusive token and barrier");
+        require(deferred.empty() && server.atomic_can_admit(0),
+                "shutdown releases pending attempt and admission credit");
         require(!op->multi_state() && op->state.load() == OpState::Done,
                 "shutdown leaves no carrier pointer to the discarded attempt");
         require(!server.atomic_work_active(), "shutdown releases the admission credit");
     }
-}
-
-void txn_admission(Server& server) {
-    Client client{-1}; client.set_id(891);
-    auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
-    require(state != nullptr, "exclusive drain attempt allocated");
-    require(server.serves_clients(0) && server.serves_clients(1), "two IO admission actors");
-    Ring ring;
-    uint64_t credit = 0;
-    require(server.atomic_try_admit(1, credit, true), "foreign IO admitted before barrier");
-    // Suspend IO 1 at the real admission/open boundary. No apply window exists
-    // yet, so the former barrier + zero-only predicate would falsely succeed.
-    require(server.atomic_apply_inflight() == 0, "admitted-but-not-open window witnessed");
-    require(!multi_exclusive_ready(server, *state, server.thread(0), ring),
-            "exclusive cannot pass an IO suspended between admission and open");
-    require(!server.atomic_can_admit(1, true), "exclusive barrier blocks new admissions");
-    for (uint32_t io : state->exclusive_fences)
-        if (io != 0 && io != 1)
-            require(CoreConcurrencyTest::consume_txn_fence(server, io) == 1,
-                    "other cold IO consumes exactly its fence");
-    require(!multi_exclusive_ready(server, *state, server.thread(0), ring),
-            "all other IO acknowledgements cannot stand in for suspended IO");
-    std::atomic<bool> apply{false};
-    server.atomic_apply_open(1, apply);
-    require(CoreConcurrencyTest::consume_txn_fence(server, 1) == 1,
-            "resumed cold IO acknowledges after publishing its apply window");
-    require(server.multi_retry_lane(1).fence_ack.load() == state->exclusive_generation,
-            "IO admission fence is acknowledged before the owner finishes");
-    require(!multi_exclusive_ready(server, *state, server.thread(0), ring),
-            "an acknowledged fence is not an exclusive drain completion");
-    server.atomic_apply_close(1, apply);
-    require(multi_exclusive_ready(server, *state, server.thread(0), ring),
-            "exclusive dispatch requires every fence and the completed owner drain");
-    server.atomic_retire_group(1, credit);
-    server.txn_exclusive_release(&state->retry);
-    destroy_multi_state(state);
-    require(!server.atomic_work_active() && server.atomic_can_admit(1, true),
-            "admission reproduction leaves no credit or barrier");
-    require(server.txn_counter(TxnCounter::ExclusiveDrainTimeouts) == 0,
-            "directed admission schedule never uses the timeout valve");
 }
 
 void txn_group(Server& server) {
@@ -420,7 +366,7 @@ void txn_group(Server& server) {
             state.keys = keys;
             state.groups = groups;
             state.key_order = order;
-            state.key_count = state.nsub = 2;
+            state.key_count = state.nsub = state.group_cap = 2;
             for (uint32_t i = 0; i != 2; ++i) {
                 keys[i] = KeyRef{FlatStore::hash_key(request.op.arg(i + 1)), i + 1, int32_t(i)};
                 groups[i].shard = i;
@@ -442,15 +388,26 @@ void txn_group(Server& server) {
     {
         Attempt run(server, request);
         auto& state = run.state;
-        require(txn_group_touch(state, server.shard(0), run.keys[0].hash, slice(a)),
-                "read-only group key protected before read");
-        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef + 1 && state.record_refs.load() == 0,
-                "phase-one intent pins survive without owner-record sentinels");
-        require(!txn_group_release(state), "live owner intent prevents cold attempt release");
-        require(local(server, {"SET", a, "new"}) == "+OK\r\n", "plain writer never waits on group read");
-        require(state.epoch.load() == kAtomicCancelledEpoch && state.group_attempt()->cause_ready.load(),
-                "writer veto and retry cause published");
-        require(!txn_group_decide(state, server.atomic_commit()), "veto cannot be overwritten by commit");
+        require(!txn_group_ready(state, server.shard(0), request.op), "group waits for all arrivals");
+        require(txn_group_arrive(state, server.shard(1), request.op), "second group arrival");
+        require(txn_group_ready(state, server.shard(0), request.op), "group places source");
+        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef + 2,
+                "source claim and lazy anchor retain the attempt");
+        require(!txn_group_release(state), "live owner pins prevent sidecar release");
+        Client older_client{-1}; older_client.set_id(898);
+        auto* older = allocate_state(server, older_client, 0, MultiStateKind::Execute);
+        older->decision.age_ns = state.group_attempt()->age_ns - 1;
+        txn_add_claim(older->claims[0], slice(a), TxnClaimMode::Write);
+        Shard::WatchReservation claim{older, &older->decision.epoch, &older->decision.aborted,
+            &older->watch_refs, &older_client, 0, false, true};
+        claim.unit_kind = 1;
+        require(server.shard(0).watch_place_unit(older->claims[0], claim), "older EXEC places");
+        require(state.epoch.load() == kAtomicCancelledEpoch && state.aborted.load(),
+                "older EXEC wounds a placing group");
+        require(!txn_group_decide(state, server.atomic_commit()), "wound cannot be overwritten by commit");
+        older->decision.aborted.store(true);
+        server.shard(0).watch_finish_unit(older->claims[0], older);
+        destroy_multi_state(older);
     }
     release_records(server);
     {
@@ -459,26 +416,22 @@ void txn_group(Server& server) {
         // Suspend the doomer immediately after its CAS. The batch must take
         // its existing abort arm even before that doomer stores the flag.
         state.epoch.store(kAtomicCancelledEpoch);
-        require(!state.aborted.load() && !state.group_attempt()->cause_ready.load(),
+        require(!state.aborted.load(),
                 "cancelled word precedes doomer metadata");
         require(!txn_group_decide(state, server.atomic_commit()) && state.aborted.load(),
                 "failed commit CAS publishes abort before batch completion");
-        require(!state.group_attempt()->cause_ready.load(), "IO still waits for the actual doomer");
     }
     {
         Attempt run(server, request);
         auto& state = run.state;
-        state.group_attempt()->exclusive = true;
-        require(server.txn_exclusive_claim(&state.group_attempt()->retry), "group owns fallback token");
-        server.txn_exclusive_barrier(true);
         require(!txn_group_ready(state, server.shard(0), request.op), "first fragment waits for arrival");
         require(!server.shard(0).has_watches(), "no early reservation before final fragment arrives");
-        require(txn_group_arrive(state, 1), "direct destination can arrive before source readiness");
+        require(txn_group_arrive(state, server.shard(1), request.op), "direct destination can arrive before source readiness");
         require(txn_group_ready(state, server.shard(0), request.op) &&
-                txn_group_ready(state, server.shard(1), request.op), "exclusive owners reserve after arrival");
+                txn_group_ready(state, server.shard(1), request.op), "owners place after arrival");
         require(state.watch_refs.load() == ScatterState::kGroupAttemptRef + 4, "two reservations and two lazy cleanup anchors");
         require(!server.shard(0).watch_write_ready(slice(a)) &&
-                !server.shard(1).watch_write_ready(slice(b)), "fallback guards both owners' writes");
+                !server.shard(1).watch_write_ready(slice(b)), "started group guards both owners' writes");
         Request writer({"SET", a, "racing"});
         writer.op.hash = run.keys[0].hash;
         writer.op.shard = 0;
@@ -490,12 +443,11 @@ void txn_group(Server& server) {
         require(xshard_task_should_defer(server, server.shard(0), blocked, writer.op),
                 "blocked writer parks without preventing the group's next owner wave");
         require(server.shard(0).store().find(run.keys[0].hash, slice(a)) != nullptr,
-                "fallback does not obstruct a reader");
+                "group does not obstruct a reader");
         const uint64_t ticket = server.atomic_commit_reserve();
-        require(txn_group_decide(state, ticket), "exclusive group commits by CAS");
+        require(txn_group_decide(state, ticket), "immune group commits by CAS");
         server.atomic_commit_publish();
-        require(!server.txn_exclusive_owner() && server.atomic_can_admit(0, true),
-                "group decision releases token and admission barrier");
+        require(server.atomic_can_admit(0, true), "group placement never blocks admission");
         xshard_cleanup_shard_at(server.shard(0), UINT64_MAX, UINT64_MAX, 256);
         xshard_cleanup_shard_at(server.shard(1), UINT64_MAX, UINT64_MAX, 256);
         require(multi_plain_write_ready(server.shard(0), writer.op),
@@ -503,7 +455,7 @@ void txn_group(Server& server) {
         require(state.watch_refs.load() == ScatterState::kGroupAttemptRef && !server.shard(0).has_watches() &&
                 !server.shard(1).has_watches(), "read-only owner cleanup retires every reservation");
     }
-    require(server.txn_counter(TxnCounter::ExclusiveViolations) == 0 &&
+    require(server.txn_counter(TxnCounter::OrderViolations) == 0 &&
             server.txn_counter(TxnCounter::IntentsLive) == 0,
             "group unit leaves no violation or live intent");
 }
@@ -889,7 +841,6 @@ int main(int argc, char** argv) {
     else if (name == "script_keys") script_keys(server);
     else if (name == "txn_intents") txn_intents(server);
     else if (name == "txn_help") txn_help(server);
-    else if (name == "txn_admission") txn_admission(server);
     else if (name == "txn_group") txn_group(server);
     else if (name == "rename_overlay" || name == "watch_parent") rename(server, name == "watch_parent");
     else if (name == "write_latest") write_latest(server);

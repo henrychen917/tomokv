@@ -201,21 +201,14 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::vector<MultiOwnerRecordRefs> owner_record_refs;
     ScatterArenaPool scatter_pool;
     MultiDecision decision;
-    std::atomic<bool> writer_cancelled{false};
-    std::atomic<bool> cancel_cause_ready{false};
-    uint32_t writer_dooms = 0;
     bool doomed = false;               // published by finalized
     MultiRetryNode retry;
     uint64_t exec_op_id = UINT64_MAX;
     uint32_t attempt = 0;
-    bool reexecutable = true;
     bool has_publication = false;
     bool publication_started = false; // IO-owned after all participant tasks finish
     std::atomic<bool> backoff{false};
     uint64_t retry_after_ns = 0;
-    uint64_t exclusive_since_ns = 0;
-    uint64_t exclusive_generation = 0;
-    std::vector<uint32_t> exclusive_fences;
     std::atomic<uint32_t> record_refs{0};
     bool record_refs_precounted = false;
     std::atomic<uint32_t> watch_refs{0};
@@ -271,25 +264,17 @@ void multi_help_child(AtomicEntry& entry, uint64_t ticket) {
 }
 
 uint64_t multi_cancel_decision(MultiDecision& decision, uint32_t shard,
-                               TxnCounter cause = TxnCounter::Dooms, bool force = false,
-                               bool writer_cause = true) {
+                               TxnCounter cause = TxnCounter::Dooms) {
     uint64_t epoch = decision.epoch.load(std::memory_order_acquire);
     if (decision.phase.load(std::memory_order_acquire) == TxnPhase::Executing) {
         if (!epoch) decision.owner->server->note_txn(
             decision.owner->server->worker_of_shard(shard), TxnCounter::OrderViolations);
         return epoch;
     }
-    if ((decision.exclusive && !force) || decision.aborted.load(std::memory_order_acquire)) return epoch;
-    if (epoch == 0 && decision.epoch.compare_exchange_strong(
+    if (!epoch && decision.epoch.compare_exchange_strong(
             epoch, kAtomicCancelledEpoch, std::memory_order_acq_rel)) {
-        MultiExecState& state = *decision.owner;
-        if (writer_cause && (cause == TxnCounter::Dooms || cause == TxnCounter::SelfDooms))
-            state.writer_cancelled.store(true, std::memory_order_relaxed);
+        auto& state = *decision.owner;
         state.server->note_txn(state.server->worker_of_shard(shard), cause);
-        // Epoch cancellation is visible before this metadata. The last owner
-        // can finish meanwhile; the IO must acquire this publication before
-        // inheriting the writer-doom count for the bounded fallback.
-        state.cancel_cause_ready.store(true, std::memory_order_release);
         decision.aborted.store(true, std::memory_order_release);
         return kAtomicCancelledEpoch;
     }
@@ -316,7 +301,7 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
     ScatterState& script = *entry.group;
     if (script.group_attempt()) {
         const uint32_t shard = script.keys[script.key_order[entry.begin]].shard;
-        txn_group_cancel(script, shard);
+        if (!self) txn_group_cancel(script, shard);
         return;
     }
     if (script.kind != Kind::Script || script.aborted.load(std::memory_order_acquire)) return;
@@ -330,14 +315,10 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
 
 void multi_cancel_intent(AtomicScriptIntent& intent, const ScatterState* self) {
     UnitRef& unit = atomic_intent_unit(intent);
-    if (unit.unit_kind == UnitRef::Kind::Group) {
-        auto& group = *static_cast<ScatterState*>(const_cast<void*>(unit.unit));
-        if (&group != self)
-            txn_group_cancel(group, intent.kind == 2 ? intent.hash
-                : group.server->router().shard_of(intent.hash));
-        return;
-    }
-    if (unit.unit_kind != UnitRef::Kind::Txn || unit.exclusive ||
+    // Group wildcard intents are lifetime anchors, not dependencies. Claims
+    // gate writes on the actual keys; unrelated keys must ignore this anchor.
+    if (unit.unit_kind == UnitRef::Kind::Group) return;
+    if (unit.unit_kind != UnitRef::Kind::Txn ||
         (self && self->multi_parent == unit.unit)) return;
     auto& decision = *reinterpret_cast<MultiDecision*>(unit.epoch);
     const uint32_t shard = intent.kind == 2 ? intent.hash
@@ -357,7 +338,6 @@ void atomic_shutdown_unit_intent(AtomicScriptIntent& intent) {
         uint64_t zero = 0;
         if (state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch)) {
             state.aborted.store(true, std::memory_order_relaxed);
-            state.group_attempt()->cause_ready.store(true, std::memory_order_relaxed);
             aof_abort_scatter_group(state);
         }
         const uint32_t shard = intent.kind == 2 ? intent.hash
@@ -372,9 +352,7 @@ void atomic_shutdown_unit_intent(AtomicScriptIntent& intent) {
     uint64_t undecided = 0;
     if (decision.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
                                                std::memory_order_relaxed)) {
-        // All producers have stopped. Shutdown may cancel an exclusive attempt
-        // too; it is not a writer conflict or a fallback-violation event.
-        state.cancel_cause_ready.store(true, std::memory_order_relaxed);
+        // All producers have stopped; shutdown cancels any undecided attempt.
         decision.aborted.store(true, std::memory_order_relaxed);
         aof_abort_group(state.aof_group);
     }
@@ -832,18 +810,6 @@ bool prepare_commands(Server& server, MultiExecState& state,
             command->notify_order_base =
                 static_cast<uint32_t>(state.commands.size()) * 0x10000u;
             command->queued = std::move(queued);
-            // These handlers publish effects outside the attempt's private MVCC,
-            // AOF and notification state. They must run exactly once under the
-            // exclusive lane, including when lowered to an all-shards child.
-            if (has_name(command->queued, "swapdb") ||
-                (has_name(command->queued, "debug") &&
-                 (command->queued.argv.size() < 2 ||
-                  !Slice(command->queued.argv[1].data(), command->queued.argv[1].size())
-                       .eq_icase("sleep"))) ||
-                (has_name(command->queued, "config") && command->queued.argv.size() > 1 &&
-                 !Slice(command->queued.argv[1].data(), command->queued.argv[1].size())
-                      .eq_icase("get")))
-                state.reexecutable = false;
             command->blocking_pop = multi_blocking_pop(command->queued);
             command_key_args(command->queued, command->key_args);
             if (!make_child_op(*command)) return false;
@@ -1247,33 +1213,6 @@ bool load_clone(Shard& shard, Slice key, KvObj* visible, KvObj*& clone) {
 // helpers. The READER that INFO calls cannot: it is declared in multi.h and defined out beyond
 // this anonymous namespace, next to multi_task_owns_epoch().
 std::atomic<uint64_t> g_exec_order_late{0};
-
-bool multi_older(const MultiDecision& a, const MultiDecision& b) {
-    if (a.exclusive != b.exclusive) return a.exclusive;
-    if (a.age_ns != b.age_ns) return a.age_ns < b.age_ns;
-    if (a.age_io != b.age_io) return a.age_io < b.age_io;
-    return a.age_seq < b.age_seq;
-}
-
-void multi_self_doom(MultiExecState& state, Shard& shard, bool writer_cause) {
-    state.backoff.store(true, std::memory_order_relaxed);
-    if (state.decision.exclusive)
-        state.server->note_txn(state.server->worker_of_shard(shard.id()),
-                               TxnCounter::ExclusiveViolations);
-    multi_cancel_decision(state.decision, shard.id(), TxnCounter::SelfDooms,
-                          /*force=*/true, writer_cause);
-}
-
-bool multi_wait(MultiExecState& state, Shard& shard) {
-    // A WATCH holder must release its claims before waiting for another unit.
-    // Otherwise two transactions watching one another's writes form a cycle.
-    if (!state.watched.empty() || state.decision.exclusive) {
-        multi_self_doom(state, shard, !state.watched.empty());
-        return false;
-    }
-    state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::Waits);
-    return false;
-}
 
 bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice key,
                      bool, bool wildcard = false) {
@@ -1729,7 +1668,7 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
             if (state.decision.phase.compare_exchange_strong(placing, TxnPhase::Wounded,
                                                              std::memory_order_acq_rel)) {
                 state.backoff.store(true, std::memory_order_relaxed);
-                multi_cancel_decision(state.decision, shard.id(), TxnCounter::BlindRestarts, true, false);
+                multi_cancel_decision(state.decision, shard.id(), TxnCounter::BlindRestarts);
             }
         } else {
             Shard::WatchReservation claim{&state, &state.decision.epoch, &state.decision.aborted,
@@ -2286,19 +2225,7 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
         return true;
     }
 
-    const bool first_exclusive = dispatch->kind == MultiStateKind::Execute &&
-        (!dispatch->reexecutable || loop.srv_->debug_txn_occ_limit() == 0);
-    if (first_exclusive) {
-        // Publish once on the parse path. Admission and the ROB slot stay owned
-        // while the cold lane drains; no owner task is visible yet.
-        loop.srv_->atomic_apply_close(loop.self_->id(), dispatch->apply_open);
-        dispatch->exec_op_id = op_id;
-        op.attach_multi_state(dispatch);
-        client.atomic_group_started();
-        client.rob().publish();
-        if (auto* session = client.multi_session()) session->pending = nullptr;
-        multi_enqueue_retry(*dispatch);
-    } else if (!multi_dispatch_attempt<IofusedPrivateQueue>(
+    if (!multi_dispatch_attempt<IofusedPrivateQueue>(
             *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, dispatch, op_id,
             loop.touched_, loop.touched_list_, loop.ntouched_, [&] {
                 client.atomic_group_started();
@@ -2358,58 +2285,6 @@ uint32_t multi_owner_reap_entry(IoLoop& loop) {
 }
 
 namespace {
-bool unit_exclusive_ready(Server& server, MultiRetryNode& node,
-                           uint64_t& since_ns, uint64_t& generation,
-                           std::vector<uint32_t>& fences, ThreadCtx& self, Ring& ring) {
-    if (server.txn_retry_held(&node)) return false;
-    if (server.txn_exclusive_owner() != &node && !server.txn_exclusive_claim(&node)) return false;
-    if (!generation) {
-        // A closing predecessor can release its token before all IOs consumed
-        // its fence nodes. Never reuse a node still owned by an inbox.
-        for (uint32_t tid = 0; tid < server.nthreads(); ++tid) {
-            auto& lane = server.multi_retry_lane(tid);
-            if (lane.fence_ack.load(std::memory_order_acquire) != lane.fence.generation) return false;
-        }
-        try {
-            fences.clear();
-            for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
-                if (server.serves_clients(tid)) fences.push_back(tid);
-        } catch (const std::bad_alloc&) {
-            server.txn_exclusive_release(&node);
-            return false;
-        }
-        server.txn_exclusive_barrier(true);
-        since_ns = now_ns();
-        generation = server.txn_exclusive_generation();
-        for (uint32_t tid : fences) {
-            auto& lane = server.multi_retry_lane(tid);
-            lane.fence.generation = generation;
-            if (tid == self.id()) {
-                lane.fence_ack.store(generation, std::memory_order_release);
-            } else {
-                multi_enqueue_node(server, tid, lane.fence);
-                server.thread(tid).wake_if_parked(ring, self.sig());
-            }
-        }
-    }
-    bool fenced = true;
-    for (uint32_t tid : fences)
-        fenced &= server.multi_retry_lane(tid).fence_ack.load(std::memory_order_acquire) ==
-                  generation;
-    if (fenced && server.atomic_apply_inflight() == 0) return true;
-    if (now_ns() - since_ns >= kTxnExclusiveDrainMax) {
-        server.note_txn(self.id(), TxnCounter::ExclusiveDrainTimeouts);
-        server.txn_exclusive_barrier(false);
-        generation = 0;
-    }
-    return false;
-}
-
-bool multi_exclusive_ready(Server& server, MultiExecState& state, ThreadCtx& self, Ring& ring) {
-    return unit_exclusive_ready(server, state.retry, state.exclusive_since_ns,
-                                state.exclusive_generation, state.exclusive_fences, self, ring);
-}
-
 MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
     Server& server = *previous.server;
     auto* next = allocate_state(server, *previous.client, previous.owner_io, MultiStateKind::Execute);
@@ -2436,11 +2311,8 @@ MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
     next->decision.age_ns = previous.decision.age_ns;
     next->decision.age_io = previous.decision.age_io;
     next->decision.age_seq = previous.decision.age_seq;
-    next->writer_dooms = previous.writer_dooms +
-        previous.writer_cancelled.load(std::memory_order_acquire);
     next->attempt = previous.attempt + 1;
     next->exec_op_id = previous.exec_op_id;
-    next->reexecutable &= previous.reexecutable;
     next->watch_generation = previous.watch_generation;
     next->reset_watch = true;
     next->final_reply = MultiFinalReply::Exec;
@@ -2479,12 +2351,6 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
         while (pending) {
             auto* node = pending;
             pending = node->next;
-            if (node->kind == MultiRetryNode::Kind::Fence) {
-                loop.srv_->multi_retry_lane(loop.self_->id()).fence_ack.store(
-                    node->generation, std::memory_order_release);
-                ++work;
-                continue;
-            }
             if (node->kind == MultiRetryNode::Kind::Group) {
                 auto& previous = *static_cast<ScatterState*>(node->unit);
                 Client* client = previous.commit_client;
@@ -2537,7 +2403,6 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 continue;
             }
             if (client.closing() || client.dead()) {
-                loop.srv_->txn_exclusive_release(&previous->retry);
                 previous->decision.aborted.store(true, std::memory_order_release);
                 if (auto* session = ensure_multi_session(client))
                     session->watched = std::move(previous->watched);
@@ -2549,33 +2414,6 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             }
             if (loop.srv_->txn_retry_held(&previous->retry) || now_ns() < previous->retry_after_ns) {
                 multi_enqueue_retry(*previous);
-                continue;
-            }
-            if (previous->doomed &&
-                !previous->cancel_cause_ready.load(std::memory_order_acquire)) {
-                multi_enqueue_retry(*previous);
-                continue;
-            }
-            const bool exclusive = !previous->reexecutable ||
-                previous->writer_dooms + previous->writer_cancelled.load(std::memory_order_acquire) >=
-                    loop.srv_->debug_txn_occ_limit() ||
-                loop.srv_->txn_exclusive_owner() == &previous->retry;
-            if (exclusive && !multi_exclusive_ready(*loop.srv_, *previous, *loop.self_, loop.ring_)) {
-                multi_enqueue_retry(*previous);
-                continue;
-            }
-            if (!previous->published) {
-                previous->decision.exclusive = true;
-                if (!multi_dispatch_attempt<IofusedPrivateQueue>(
-                        *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, previous,
-                        previous->exec_op_id, loop.touched_, loop.touched_list_, loop.ntouched_, [] {})) {
-                    multi_enqueue_retry(*previous);
-                    continue;
-                }
-                loop.srv_->note_txn(loop.self_->id(), TxnCounter::Exclusive);
-                loop.flush_ifid_posts();
-                loop.mark_active(&client);
-                ++work;
                 continue;
             }
             // No owner can still read P. Release its cleanup pin before asking
@@ -2597,12 +2435,9 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             next->admitted = previous->admitted;
             next->admission_generation = previous->admission_generation;
             previous->admitted = false;
-            next->decision.exclusive = exclusive;
-            if (exclusive) loop.srv_->txn_exclusive_transfer(&previous->retry, &next->retry);
             if (!multi_dispatch_attempt<IofusedPrivateQueue>(
                     *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, next,
                     previous->exec_op_id, loop.touched_, loop.touched_list_, loop.ntouched_, [] {})) {
-                if (exclusive) loop.srv_->txn_exclusive_transfer(&next->retry, &previous->retry);
                 previous->admitted = next->admitted;
                 next->admitted = false;
                 destroy_multi_state(next);
@@ -2613,7 +2448,6 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             previous->retired = true;
             loop.multi_deferred_.push_back(previous);
             loop.srv_->note_txn(loop.self_->id(), TxnCounter::Retries);
-            if (exclusive) loop.srv_->note_txn(loop.self_->id(), TxnCounter::Exclusive);
             loop.flush_ifid_posts();
             loop.mark_active(&client);
             ++work;
@@ -2679,7 +2513,6 @@ void multi_close_entry(IoLoop& loop, Client& client) {
 
 static void multi_shutdown_attempt(MultiExecState* state, ScatterArenaPool& pool,
                                    std::vector<MultiExecState*>& deferred) {
-    state->server->txn_exclusive_release(&state->retry);
     uint64_t undecided = 0;
     if (state->decision.epoch.compare_exchange_strong(
             undecided, kAtomicCancelledEpoch, std::memory_order_relaxed)) {
@@ -2692,7 +2525,7 @@ static void multi_shutdown_attempt(MultiExecState* state, ScatterArenaPool& pool
             Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
             state->client, state->watch_generation);
     for (int32_t sid : state->shards)
-        state->server->shard(sid).watch_finish_exclusive(state);
+        state->server->shard(sid).watch_finish_unit(state->claims[sid], state);
     if (state->snapshot_registered)
         pool.unregister_snapshot(*state->server, state, state->owner_io);
     if (!state->published) clear_unpublished_multi_record_refs(*state);
@@ -2709,23 +2542,13 @@ static void multi_shutdown_attempt(MultiExecState* state, ScatterArenaPool& pool
 
 void multi_shutdown_entry(IoLoop& loop) {
     if (loop.srv_ && loop.self_) {
-        // IoLoop destruction follows the join of every producer and the
-        // store-record drain. No node can arrive after this exchange. A first
-        // exclusive attempt has no owner tasks yet; a retry has finished all
-        // of them. Neither is allowed to keep a cut, credit or barrier alive.
-        if (auto* exclusive = static_cast<const MultiRetryNode*>(loop.srv_->txn_exclusive_owner());
-            exclusive && exclusive->owner_io == loop.self_->id())
-            loop.srv_->txn_exclusive_release(exclusive);
+        // Every producer is joined and the store records have drained. Only
+        // completed attempts remain in this IO-owned retry inbox.
         auto* pending = loop.srv_->multi_retry_lane(loop.self_->id()).head.exchange(
             nullptr, std::memory_order_relaxed);
         while (pending) {
             auto* node = pending;
             pending = node->next;
-            if (node->kind == MultiRetryNode::Kind::Fence) {
-                loop.srv_->multi_retry_lane(loop.self_->id()).fence_ack.store(
-                    node->generation, std::memory_order_relaxed);
-                continue;
-            }
             if (node->kind == MultiRetryNode::Kind::Group) {
                 txn_group_shutdown(*static_cast<ScatterState*>(node->unit), loop.scatter_pool_);
                 continue;
@@ -3056,8 +2879,6 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                                 server.databases().publish_prepared(std::move(state.database_publish));
                         });
                     if (!ticket) {
-                        if (state.decision.exclusive)
-                            server.note_txn(owner_thread_id, TxnCounter::ExclusiveViolations);
                         state.decision.aborted.store(true, std::memory_order_release);
                         abort_multi_children(state);
                         aof_abort_group(state.aof_group);
@@ -3093,7 +2914,6 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 // transaction writes can land on a shard after this point, so it can no longer
                 // straddle a snapshot cut. Closed here, on an OWNER, not at reply retirement.
                 server.atomic_apply_close(owner_thread_id, state.apply_open);
-                if (state.decision.exclusive) server.txn_exclusive_release(&state.retry);
             }
         }
     }
@@ -3293,12 +3113,6 @@ bool txn_wound(const Shard::WatchReservation& holder, Shard& shard, Server& serv
                                              std::memory_order_acq_rel)) {
         server.note_txn(server.worker_of_shard(shard.id()), holder.unit_kind == 1
             ? TxnCounter::Wounds : TxnCounter::GroupWounds);
-        if (holder.unit_kind == 1)
-            static_cast<MultiExecState*>(const_cast<void*>(holder.token))
-                ->cancel_cause_ready.store(true, std::memory_order_release);
-        else
-            static_cast<ScatterState*>(const_cast<void*>(holder.token))
-                ->group_attempt()->cause_ready.store(true, std::memory_order_release);
         holder.aborted->store(true, std::memory_order_release);
     }
     return true;
@@ -3587,36 +3401,6 @@ bool Shard::watch_txn_write_ready(Slice key, MultiExecState& state) {
     return false;
 }
 
-bool Shard::watch_reserve_exclusive(Slice key, MultiExecState& state, bool whole_shard) {
-    const std::string owned = whole_shard ? std::string{} : watch_key_string(key);
-    watch_finalize_reservation(owned);
-    if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end()) {
-        for (const auto& reservation : found->second) {
-            if (reservation.token == &state) return true;
-            if (reservation.blocking) {
-                multi_self_doom(state, *this, false);
-                return false;
-            }
-        }
-    }
-    if (!watch_append_reservation(owned, WatchReservation{
-            &state, &state.decision.epoch, &state.decision.aborted, &state.watch_refs,
-            state.client, state.watch_generation, false, true})) {
-        state.decision.aborted.store(true, std::memory_order_release);
-        return false;
-    }
-    return true;
-}
-
-void Shard::watch_finish_exclusive(const void* unit) {
-    for (auto it = watch_reservations_.begin(); it != watch_reservations_.end();) {
-        auto current = it++;
-        bool matches = false;
-        for (const auto& reservation : current->second) matches |= reservation.token == unit;
-        if (matches) watch_finalize_reservation(current->first);
-    }
-}
-
 void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                                 const void* token, std::atomic<uint64_t>* epoch,
                                 std::atomic<bool>* aborted,
@@ -3760,7 +3544,7 @@ bool multi_plain_write_ready(Shard& shard, Op& op) {
     else if (op.spec->flags & CmdFlags::ScriptRoute)
         for_each_spec_key(op, [&](Slice key) { check(0, key); });
     else check(op.hash, op_routed_key(op));
-    // An exclusive group's next owner wave can be behind this writer in the
+    // A group's next owner wave can be behind this writer in the
     // inbox. On the next retry, the existing hazard seam moves this blocked
     // writer to atomic_deferred_, which keeps draining that inbox. Mark only
     // an actual reservation wait; ordinary commands acquire no new check.
@@ -3793,7 +3577,13 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
     const void* token = state.multi_parent ? state.multi_parent
         : state.atomic_group ? static_cast<const void*>(&state) : nullptr;
     bool ready = true;
-    if (!group.count) ready = shard.watch_all_write_ready();
+    if (state.group_attempt()) {
+        // Placement arbitrates these groups, including MSETNX before its first
+        // install. The early scatter visitor and gate must not bypass that order.
+        if (!txn_group_ready(state, shard, op))
+            return state.aborted.load(std::memory_order_acquire);
+    }
+    if (!group.count && !state.group_attempt()) ready = shard.watch_all_write_ready();
     for (uint32_t i = 0; i < group.count; ++i) {
         const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
         const bool key_ready = state.atomic_group && !state.multi_child

@@ -6373,10 +6373,11 @@ def infofields_sections(raw):
 
 INFOFIELDS_TXN_STATS = {
     b"atomic_txn_attempts", b"atomic_txn_retries", b"atomic_txn_dooms", b"atomic_txn_wounds",
-    b"atomic_txn_self_dooms", b"atomic_txn_waits", b"atomic_txn_forced_writes",
-    b"atomic_txn_exclusive", b"atomic_txn_exclusive_violations",
-    b"atomic_txn_exclusive_drain_timeouts", b"atomic_txn_intents", b"atomic_txn_intents_live",
-    b"atomic_group_dooms", b"atomic_group_retries", b"atomic_group_exclusive",
+    b"atomic_txn_waits", b"atomic_txn_intents", b"atomic_txn_intents_live",
+    b"atomic_group_dooms", b"atomic_group_retries", b"atomic_group_barriers",
+    b"atomic_txn_executed", b"atomic_txn_place_waits", b"atomic_txn_writer_waits",
+    b"atomic_txn_writer_marks", b"atomic_txn_blind_restarts", b"atomic_txn_readonly",
+    b"atomic_txn_order_violations", b"atomic_group_wounds",
 }
 
 
