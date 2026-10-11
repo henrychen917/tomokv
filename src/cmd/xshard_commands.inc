@@ -1686,7 +1686,11 @@ bool finish_phase2(ScatterState& state) {
         case Kind::Bitop: state.final_reply = FinalReply::Integer; break;
         case Kind::Pfmerge: state.final_reply = FinalReply::Ok; break;
         case Kind::Lmove:
-        case Kind::Rpoplpush: state.final_reply = FinalReply::Bulk; break;
+        case Kind::Rpoplpush:
+            state.final_reply = !state.atomic_apply &&
+                state.direct_ready.load(std::memory_order_acquire) == 2
+                ? FinalReply::Nil : FinalReply::Bulk;
+            break;
         case Kind::Lmpop:
             state.final_reply = state.result && !state.result->members.empty()
                 ? FinalReply::Lmpop : FinalReply::NullArray;

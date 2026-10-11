@@ -539,3 +539,23 @@ reaper frees the attempt only after record and intent/reservation pins drain.
 Group setup and the barrier assignment run under the existing atomic-group
 prepare branch. Static instruction identity and the final proof are pending;
 this checkpoint does not claim the cost bar is met.
+
+The corrected PRE G5 legs fail **duplicate delivery** in both modes
+(`cost-check/G5-pre-*`); no missing-counter failure is used as evidence.
+The first mover candidate passes G5 in both modes, plus the new
+`tests/txn_movers.py` coverage of RPOPLPUSH, all four LMOVE directions,
+BRPOPLPUSH and all four BLMOVE directions after witnessed blocking registration,
+LMPOP LEFT/RIGHT, ZMPOP MIN/MAX and same-member SMOVE races. The source owner
+selects/removes the live value; a destination that arrives first defers until
+that result is published. Missing source claims cannot push or return the old
+phase-one value. Bare multi-pops now explicitly use the newest owner view;
+EXEC children retain their parent overlay.
+
+The first barrier-witness candidate passes both existing test batteries in
+both modes. Its independently broken barrier control is still required.
+The destructor now matches PRE canonically, **751 bytes in both namespaces**;
+other scatter functions and selected hot bodies still require reconciliation.
+The initial group-unit invocation used only seven client CPUs; a corrected
+invocation exposed one remaining assertion that counted the new ownership bit
+as a live owner pin. That assertion now distinguishes the ownership bit from
+actual pins. Both failures are retained; the final unit rerun remains required.

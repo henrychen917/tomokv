@@ -53,6 +53,7 @@
 
 #include "scatter_engine.inc"
 #include "xshard_commands.inc"
+#include "xshard_movers.inc"
 #include "bitfield.inc"
 #include "atomics_glue.inc"
 #include "blocking.inc"
