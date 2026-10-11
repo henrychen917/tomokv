@@ -1,0 +1,11 @@
+threshold matrix
+  FAIL armed: recorder fired                                got=0
+  FAIL one entry landed                                     got=0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-authfix/tests/slowlog.py", line 309, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/user/Projects/cx-authfix/tests/slowlog.py", line 161, in main
+    entry = entries[0]
+            ~~~~~~~^^^
+IndexError: list index out of range

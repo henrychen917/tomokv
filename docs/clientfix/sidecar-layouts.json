@@ -1,0 +1,126 @@
+{
+  "pre": {
+    "tomo::IoLoop::ClimonConn": {
+      "fields_bitpos": {
+        "bcast": 88,
+        "broken_redirect": 128,
+        "caching_armed": 120,
+        "client": 0,
+        "monitor": 72,
+        "noloop": 112,
+        "optin": 96,
+        "optout": 104,
+        "prefixes": 256,
+        "redirect": 192,
+        "reply_mode": 64,
+        "tracking_on": 80
+      },
+      "size": 56
+    },
+    "tomo_db0::IoLoop::ClimonConn": {
+      "fields_bitpos": {
+        "bcast": 88,
+        "broken_redirect": 128,
+        "caching_armed": 120,
+        "client": 0,
+        "monitor": 72,
+        "noloop": 112,
+        "optin": 96,
+        "optout": 104,
+        "prefixes": 256,
+        "redirect": 192,
+        "reply_mode": 64,
+        "tracking_on": 80
+      },
+      "size": 56
+    }
+  },
+  "post": {
+    "tomo::IoLoop::ClimonConn": {
+      "fields_bitpos": {
+        "bcast": 88,
+        "broken_redirect": 128,
+        "caching_armed": 120,
+        "client": 0,
+        "gate_op_id": 448,
+        "gate_reply_skip": 512,
+        "monitor": 72,
+        "noloop": 112,
+        "optin": 96,
+        "optout": 104,
+        "prefixes": 256,
+        "redirect": 192,
+        "reply_mode": 64,
+        "tracking_on": 80,
+        "tracking_pending": 1024,
+        "tracking_reads": 576
+      },
+      "size": 184
+    },
+    "tomo_db0::IoLoop::ClimonConn": {
+      "fields_bitpos": {
+        "bcast": 88,
+        "broken_redirect": 128,
+        "caching_armed": 120,
+        "client": 0,
+        "gate_op_id": 448,
+        "gate_reply_skip": 512,
+        "monitor": 72,
+        "noloop": 112,
+        "optin": 96,
+        "optout": 104,
+        "prefixes": 256,
+        "redirect": 192,
+        "reply_mode": 64,
+        "tracking_on": 80,
+        "tracking_pending": 1024,
+        "tracking_reads": 576
+      },
+      "size": 184
+    }
+  },
+  "pad-a": {
+    "tomo::IoLoop::ClimonConn": {
+      "fields_bitpos": {
+        "bcast": 88,
+        "broken_redirect": 128,
+        "caching_armed": 120,
+        "client": 0,
+        "gate_op_id": 448,
+        "gate_reply_skip": 512,
+        "monitor": 72,
+        "noloop": 112,
+        "optin": 96,
+        "optout": 104,
+        "prefixes": 256,
+        "redirect": 192,
+        "reply_mode": 64,
+        "tracking_on": 80,
+        "tracking_pending": 1024,
+        "tracking_reads": 576
+      },
+      "size": 184
+    },
+    "tomo_db0::IoLoop::ClimonConn": {
+      "fields_bitpos": {
+        "bcast": 88,
+        "broken_redirect": 128,
+        "caching_armed": 120,
+        "client": 0,
+        "gate_op_id": 448,
+        "gate_reply_skip": 512,
+        "monitor": 72,
+        "noloop": 112,
+        "optin": 96,
+        "optout": 104,
+        "prefixes": 256,
+        "redirect": 192,
+        "reply_mode": 64,
+        "tracking_on": 80,
+        "tracking_pending": 1024,
+        "tracking_reads": 576
+      },
+      "size": 184
+    }
+  }
+}

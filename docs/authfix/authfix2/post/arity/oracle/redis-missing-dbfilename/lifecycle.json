@@ -1,0 +1,25 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-119",
+    "/home/user/Projects/redis/src/redis-server",
+    "/home/user/Projects/cx-authfix/docs/authfix/authfix2/post/arity/oracle/redis-missing-dbfilename.conf",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "25029",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-authfix/docs/authfix/authfix2/post/arity/oracle/redis-missing-dbfilename/data",
+    "--protected-mode",
+    "no"
+  ],
+  "pid": 2524889,
+  "booted": false,
+  "exit": 1,
+  "port_closed": true
+}

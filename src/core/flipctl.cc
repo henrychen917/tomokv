@@ -300,9 +300,11 @@ bool FlipController::sample_fingerprint(Server& server) {
     FlipFingerprintWindow aggregate;
     bool any = false;
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
-        const FlipFingerprintWindow current = server.thread(tid).flip_fingerprint().published();
         FlipFingerprintWindow& previous = fingerprint_last_[tid];
-        if (current.closed_windows == previous.closed_windows) continue;
+        // Acquire the owner's window count and compare it BEFORE copying any counter (CT4.3).
+        FlipFingerprintWindow current;
+        if (!server.thread(tid).flip_fingerprint().published_since(previous.closed_windows,
+                                                                   current)) continue;
         add_delta(current.commands, previous.commands, aggregate.commands);
         add_delta(current.multikey_keys, previous.multikey_keys, aggregate.multikey_keys);
         add_delta(current.multikey_ops, previous.multikey_ops, aggregate.multikey_ops);

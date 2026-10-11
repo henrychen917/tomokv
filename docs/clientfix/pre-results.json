@@ -1,0 +1,948 @@
+[
+  {
+    "file": "docs/clientfix/pre/geo-count-1s.log",
+    "case": "geo-count",
+    "centers": 20,
+    "failures": 20,
+    "sample": [
+      {
+        "center": 0,
+        "expected": [
+          "p237",
+          "p298",
+          "p47",
+          "p128",
+          "p246"
+        ],
+        "got": [
+          "p31",
+          "p250",
+          "p184",
+          "p289",
+          "p222"
+        ],
+        "radius": [
+          "p31",
+          "p250",
+          "p184",
+          "p289",
+          "p222"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "docs/clientfix/pre/geo-count-2s.log",
+    "case": "geo-count",
+    "centers": 20,
+    "failures": 20,
+    "sample": [
+      {
+        "center": 0,
+        "expected": [
+          "p237",
+          "p298",
+          "p47",
+          "p128",
+          "p246"
+        ],
+        "got": [
+          "p31",
+          "p250",
+          "p184",
+          "p289",
+          "p222"
+        ],
+        "radius": [
+          "p31",
+          "p250",
+          "p184",
+          "p289",
+          "p222"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "docs/clientfix/pre/geo-store-1s.log",
+    "case": "geo-store",
+    "centers": 20,
+    "failures": 20,
+    "sample": [
+      {
+        "center": 0,
+        "expected": [
+          "p237",
+          "p298",
+          "p47",
+          "p128",
+          "p246"
+        ],
+        "got": [
+          "p31",
+          "p250",
+          "p184",
+          "p289",
+          "p222"
+        ],
+        "radius": [
+          "p31",
+          "p250",
+          "p184",
+          "p289",
+          "p222"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "docs/clientfix/pre/geo-store-2s.log",
+    "case": "geo-store",
+    "centers": 20,
+    "failures": 20,
+    "sample": [
+      {
+        "center": 0,
+        "expected": [
+          "p237",
+          "p298",
+          "p47",
+          "p128",
+          "p246"
+        ],
+        "got": [
+          "p31",
+          "p250",
+          "p184",
+          "p289",
+          "p222"
+        ],
+        "radius": [
+          "p31",
+          "p250",
+          "p184",
+          "p289",
+          "p222"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "docs/clientfix/pre/pattern-cleanup-1s.log",
+    "case": "pattern-cleanup",
+    "count": 0,
+    "empty_count": 1,
+    "empty_frames": [
+      [
+        "message",
+        "",
+        "empty"
+      ]
+    ],
+    "frames": []
+  },
+  {
+    "file": "docs/clientfix/pre/pattern-cleanup-2s.log",
+    "case": "pattern-cleanup",
+    "count": 0,
+    "empty_count": 1,
+    "empty_frames": [
+      [
+        "message",
+        "",
+        "empty"
+      ]
+    ],
+    "frames": []
+  },
+  {
+    "file": "docs/clientfix/pre/pause-deadline-1s.log",
+    "attempt": 0,
+    "case": "pause-deadline",
+    "completed": 0.10020458744838834,
+    "observed": 0.10018575703725219,
+    "ready": true,
+    "reply": "OK"
+  },
+  {
+    "file": "docs/clientfix/pre/pause-deadline-2s.log",
+    "attempt": 0,
+    "case": "pause-deadline",
+    "completed": 0.1002240120433271,
+    "observed": 0.10019401181489229,
+    "ready": true,
+    "reply": "OK"
+  },
+  {
+    "file": "docs/clientfix/pre/reply-skip-1s.log",
+    "case": "reply-skip",
+    "failures": 240,
+    "monitor": {
+      "BLPOP": 2,
+      "WAIT": 11
+    },
+    "repetitions": 20,
+    "sample": [
+      {
+        "attempt": 0,
+        "replies": [
+          "v",
+          0,
+          "end-0"
+        ],
+        "shape": "older",
+        "target": [
+          "WAIT",
+          0,
+          0
+        ]
+      },
+      {
+        "attempt": 1,
+        "replies": [
+          "v",
+          0,
+          "end-1"
+        ],
+        "shape": "older",
+        "target": [
+          "WAIT",
+          0,
+          0
+        ]
+      },
+      {
+        "attempt": 2,
+        "replies": [
+          "v",
+          0,
+          "end-2"
+        ],
+        "shape": "older",
+        "target": [
+          "WAIT",
+          0,
+          0
+        ]
+      },
+      {
+        "attempt": 3,
+        "replies": [
+          "v",
+          0,
+          "end-3"
+        ],
+        "shape": "older",
+        "target": [
+          "WAIT",
+          0,
+          0
+        ]
+      },
+      {
+        "attempt": 4,
+        "replies": [
+          "v",
+          0,
+          "end-4"
+        ],
+        "shape": "older",
+        "target": [
+          "WAIT",
+          0,
+          0
+        ]
+      }
+    ],
+    "targets": 8
+  },
+  {
+    "file": "docs/clientfix/pre/reply-skip-2s.log",
+    "case": "reply-skip",
+    "failures": 240,
+    "monitor": {
+      "BLPOP": 2,
+      "WAIT": 5
+    },
+    "repetitions": 20,
+    "sample": [
+      {
+        "attempt": 0,
+        "replies": [
+          "v",
+          0,
+          "end-0"
+        ],
+        "shape": "older",
+        "target": [
+          "WAIT",
+          0,
+          0
+        ]
+      },
+      {
+        "attempt": 1,
+        "replies": [
+          "v",
+          0,
+          "end-1"
+        ],
+        "shape": "older",
+        "target": [
+          "WAIT",
+          0,
+          0
+        ]
+      },
+      {
+        "attempt": 2,
+        "replies": [
+          "v",
+          0,
+          "end-2"
+        ],
+        "shape": "older",
+        "target": [
+          "WAIT",
+          0,
+          0
+        ]
+      },
+      {
+        "attempt": 3,
+        "replies": [
+          "v",
+          0,
+          "end-3"
+        ],
+        "shape": "older",
+        "target": [
+          "WAIT",
+          0,
+          0
+        ]
+      },
+      {
+        "attempt": 4,
+        "replies": [
+          "v",
+          0,
+          "end-4"
+        ],
+        "shape": "older",
+        "target": [
+          "WAIT",
+          0,
+          0
+        ]
+      }
+    ],
+    "targets": 8
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-cap-1s.log",
+    "case": "tracking-cap",
+    "invalidated": 1024,
+    "missing": 76,
+    "sample": [
+      "clientfix:cap:1024",
+      "clientfix:cap:1025",
+      "clientfix:cap:1026",
+      "clientfix:cap:1027",
+      "clientfix:cap:1028"
+    ],
+    "tracked": 1100
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-cap-1s.log",
+    "case": "tracking-cap",
+    "invalidated": 1024,
+    "missing": 76,
+    "sample": [
+      "clientfix:cap:1024",
+      "clientfix:cap:1025",
+      "clientfix:cap:1026",
+      "clientfix:cap:1027",
+      "clientfix:cap:1028"
+    ],
+    "tracked": 1100
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-cap-1s.log",
+    "case": "tracking-cap",
+    "invalidated": 1024,
+    "missing": 76,
+    "sample": [
+      "clientfix:cap:1024",
+      "clientfix:cap:1025",
+      "clientfix:cap:1026",
+      "clientfix:cap:1027",
+      "clientfix:cap:1028"
+    ],
+    "tracked": 1100
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-cap-2s.log",
+    "case": "tracking-cap",
+    "invalidated": 1024,
+    "missing": 76,
+    "sample": [
+      "clientfix:cap:1024",
+      "clientfix:cap:1025",
+      "clientfix:cap:1026",
+      "clientfix:cap:1027",
+      "clientfix:cap:1028"
+    ],
+    "tracked": 1100
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-cap-2s.log",
+    "case": "tracking-cap",
+    "invalidated": 1024,
+    "missing": 76,
+    "sample": [
+      "clientfix:cap:1024",
+      "clientfix:cap:1025",
+      "clientfix:cap:1026",
+      "clientfix:cap:1027",
+      "clientfix:cap:1028"
+    ],
+    "tracked": 1100
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-cap-2s.log",
+    "case": "tracking-cap",
+    "invalidated": 1024,
+    "missing": 76,
+    "sample": [
+      "clientfix:cap:1024",
+      "clientfix:cap:1025",
+      "clientfix:cap:1026",
+      "clientfix:cap:1027",
+      "clientfix:cap:1028"
+    ],
+    "tracked": 1100
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-pipeline-1s.log",
+    "attempts": 20,
+    "case": "tracking-pipeline",
+    "failures": [
+      {
+        "attempt": 0,
+        "frames": []
+      },
+      {
+        "attempt": 1,
+        "frames": []
+      },
+      {
+        "attempt": 2,
+        "frames": []
+      },
+      {
+        "attempt": 3,
+        "frames": []
+      },
+      {
+        "attempt": 4,
+        "frames": []
+      },
+      {
+        "attempt": 5,
+        "frames": []
+      },
+      {
+        "attempt": 6,
+        "frames": []
+      },
+      {
+        "attempt": 7,
+        "frames": []
+      },
+      {
+        "attempt": 8,
+        "frames": []
+      },
+      {
+        "attempt": 9,
+        "frames": []
+      },
+      {
+        "attempt": 10,
+        "frames": []
+      },
+      {
+        "attempt": 11,
+        "frames": []
+      },
+      {
+        "attempt": 12,
+        "frames": []
+      },
+      {
+        "attempt": 13,
+        "frames": []
+      },
+      {
+        "attempt": 14,
+        "frames": []
+      },
+      {
+        "attempt": 15,
+        "frames": []
+      },
+      {
+        "attempt": 16,
+        "frames": []
+      },
+      {
+        "attempt": 17,
+        "frames": []
+      },
+      {
+        "attempt": 18,
+        "frames": []
+      },
+      {
+        "attempt": 19,
+        "frames": []
+      }
+    ]
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-pipeline-1s.log",
+    "attempts": 20,
+    "case": "tracking-pipeline",
+    "failures": [
+      {
+        "attempt": 0,
+        "frames": []
+      },
+      {
+        "attempt": 1,
+        "frames": []
+      },
+      {
+        "attempt": 2,
+        "frames": []
+      },
+      {
+        "attempt": 3,
+        "frames": []
+      },
+      {
+        "attempt": 4,
+        "frames": []
+      },
+      {
+        "attempt": 5,
+        "frames": []
+      },
+      {
+        "attempt": 6,
+        "frames": []
+      },
+      {
+        "attempt": 7,
+        "frames": []
+      },
+      {
+        "attempt": 8,
+        "frames": []
+      },
+      {
+        "attempt": 9,
+        "frames": []
+      },
+      {
+        "attempt": 10,
+        "frames": []
+      },
+      {
+        "attempt": 11,
+        "frames": []
+      },
+      {
+        "attempt": 12,
+        "frames": []
+      },
+      {
+        "attempt": 13,
+        "frames": []
+      },
+      {
+        "attempt": 14,
+        "frames": []
+      },
+      {
+        "attempt": 15,
+        "frames": []
+      },
+      {
+        "attempt": 16,
+        "frames": []
+      },
+      {
+        "attempt": 17,
+        "frames": []
+      },
+      {
+        "attempt": 18,
+        "frames": []
+      },
+      {
+        "attempt": 19,
+        "frames": []
+      }
+    ]
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-pipeline-1s.log",
+    "attempts": 20,
+    "case": "tracking-pipeline",
+    "failures": [
+      {
+        "attempt": 0,
+        "frames": []
+      },
+      {
+        "attempt": 1,
+        "frames": []
+      },
+      {
+        "attempt": 2,
+        "frames": []
+      },
+      {
+        "attempt": 3,
+        "frames": []
+      },
+      {
+        "attempt": 4,
+        "frames": []
+      },
+      {
+        "attempt": 5,
+        "frames": []
+      },
+      {
+        "attempt": 6,
+        "frames": []
+      },
+      {
+        "attempt": 7,
+        "frames": []
+      },
+      {
+        "attempt": 8,
+        "frames": []
+      },
+      {
+        "attempt": 9,
+        "frames": []
+      },
+      {
+        "attempt": 10,
+        "frames": []
+      },
+      {
+        "attempt": 11,
+        "frames": []
+      },
+      {
+        "attempt": 12,
+        "frames": []
+      },
+      {
+        "attempt": 13,
+        "frames": []
+      },
+      {
+        "attempt": 14,
+        "frames": []
+      },
+      {
+        "attempt": 15,
+        "frames": []
+      },
+      {
+        "attempt": 16,
+        "frames": []
+      },
+      {
+        "attempt": 17,
+        "frames": []
+      },
+      {
+        "attempt": 18,
+        "frames": []
+      },
+      {
+        "attempt": 19,
+        "frames": []
+      }
+    ]
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-pipeline-2s.log",
+    "attempts": 20,
+    "case": "tracking-pipeline",
+    "failures": [
+      {
+        "attempt": 0,
+        "frames": []
+      },
+      {
+        "attempt": 1,
+        "frames": []
+      },
+      {
+        "attempt": 2,
+        "frames": []
+      },
+      {
+        "attempt": 3,
+        "frames": []
+      },
+      {
+        "attempt": 4,
+        "frames": []
+      },
+      {
+        "attempt": 5,
+        "frames": []
+      },
+      {
+        "attempt": 6,
+        "frames": []
+      },
+      {
+        "attempt": 7,
+        "frames": []
+      },
+      {
+        "attempt": 8,
+        "frames": []
+      },
+      {
+        "attempt": 9,
+        "frames": []
+      },
+      {
+        "attempt": 10,
+        "frames": []
+      },
+      {
+        "attempt": 11,
+        "frames": []
+      },
+      {
+        "attempt": 12,
+        "frames": []
+      },
+      {
+        "attempt": 13,
+        "frames": []
+      },
+      {
+        "attempt": 14,
+        "frames": []
+      },
+      {
+        "attempt": 15,
+        "frames": []
+      },
+      {
+        "attempt": 16,
+        "frames": []
+      },
+      {
+        "attempt": 17,
+        "frames": []
+      },
+      {
+        "attempt": 18,
+        "frames": []
+      },
+      {
+        "attempt": 19,
+        "frames": []
+      }
+    ]
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-pipeline-2s.log",
+    "attempts": 20,
+    "case": "tracking-pipeline",
+    "failures": [
+      {
+        "attempt": 0,
+        "frames": []
+      },
+      {
+        "attempt": 1,
+        "frames": []
+      },
+      {
+        "attempt": 2,
+        "frames": []
+      },
+      {
+        "attempt": 3,
+        "frames": []
+      },
+      {
+        "attempt": 4,
+        "frames": []
+      },
+      {
+        "attempt": 5,
+        "frames": []
+      },
+      {
+        "attempt": 6,
+        "frames": []
+      },
+      {
+        "attempt": 7,
+        "frames": []
+      },
+      {
+        "attempt": 8,
+        "frames": []
+      },
+      {
+        "attempt": 9,
+        "frames": []
+      },
+      {
+        "attempt": 10,
+        "frames": []
+      },
+      {
+        "attempt": 11,
+        "frames": []
+      },
+      {
+        "attempt": 12,
+        "frames": []
+      },
+      {
+        "attempt": 13,
+        "frames": []
+      },
+      {
+        "attempt": 14,
+        "frames": []
+      },
+      {
+        "attempt": 15,
+        "frames": []
+      },
+      {
+        "attempt": 16,
+        "frames": []
+      },
+      {
+        "attempt": 17,
+        "frames": []
+      },
+      {
+        "attempt": 18,
+        "frames": []
+      },
+      {
+        "attempt": 19,
+        "frames": []
+      }
+    ]
+  },
+  {
+    "file": "docs/clientfix/pre/tracking-pipeline-2s.log",
+    "attempts": 20,
+    "case": "tracking-pipeline",
+    "failures": [
+      {
+        "attempt": 0,
+        "frames": []
+      },
+      {
+        "attempt": 1,
+        "frames": []
+      },
+      {
+        "attempt": 2,
+        "frames": []
+      },
+      {
+        "attempt": 3,
+        "frames": []
+      },
+      {
+        "attempt": 4,
+        "frames": []
+      },
+      {
+        "attempt": 5,
+        "frames": []
+      },
+      {
+        "attempt": 6,
+        "frames": []
+      },
+      {
+        "attempt": 7,
+        "frames": []
+      },
+      {
+        "attempt": 8,
+        "frames": []
+      },
+      {
+        "attempt": 9,
+        "frames": []
+      },
+      {
+        "attempt": 10,
+        "frames": []
+      },
+      {
+        "attempt": 11,
+        "frames": []
+      },
+      {
+        "attempt": 12,
+        "frames": []
+      },
+      {
+        "attempt": 13,
+        "frames": []
+      },
+      {
+        "attempt": 14,
+        "frames": []
+      },
+      {
+        "attempt": 15,
+        "frames": []
+      },
+      {
+        "attempt": 16,
+        "frames": []
+      },
+      {
+        "attempt": 17,
+        "frames": []
+      },
+      {
+        "attempt": 18,
+        "frames": []
+      },
+      {
+        "attempt": 19,
+        "frames": []
+      }
+    ]
+  }
+]

@@ -1,0 +1,477 @@
+{
+  "row_count": 44,
+  "pre_failures": 44,
+  "post_passes": 44,
+  "max_final_row_seconds": 9.900846587959677,
+  "rows": [
+    {
+      "label": "snapshot-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.47244908986613154,
+      "post_seconds": 2.646511216647923,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "filename-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.4044298306107521,
+      "post_seconds": 8.398729796055704,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "error-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 6.238408400211483,
+      "post_seconds": 1.0696091237477958,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "tickets-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.469921016599983,
+      "post_seconds": 4.328509269282222,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "exec_tickets-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.46618268406018615,
+      "post_seconds": 4.275877675041556,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "resurrection-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.4753305367194116,
+      "post_seconds": 3.4714053929783404,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "rewrite_fail2-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.7637182669714093,
+      "post_seconds": 2.4356155060231686,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "manifest_missing-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.4052408980205655,
+      "post_seconds": 1.8894265969283879,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "latency-everysec-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.5765795861370862,
+      "post_seconds": 2.0964201297611,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "latency-always-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.4876263942569494,
+      "post_seconds": 2.0317817479372025,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "snapshot-2s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.47438020911067724,
+      "post_seconds": 3.343211757019162,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "filename-2s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.4552354710176587,
+      "post_seconds": 7.50626730825752,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "error-2s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 6.227121685165912,
+      "post_seconds": 0.9826485100202262,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "tickets-2s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.5169919203035533,
+      "post_seconds": 4.011228124145418,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "exec_tickets-2s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.47178831696510315,
+      "post_seconds": 3.8738006758503616,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "resurrection-2s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.5702752131037414,
+      "post_seconds": 4.008194711059332,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "rewrite_fail2-2s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.749871329870075,
+      "post_seconds": 2.4965388402342796,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "manifest_missing-2s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.4965365380048752,
+      "post_seconds": 1.93870185688138,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "latency-everysec-2s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.5835592378862202,
+      "post_seconds": 2.3952015098184347,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "latency-always-2s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 1,
+      "post_final_rc": 0,
+      "pre_seconds": 1.7325098998844624,
+      "post_seconds": 0.8242521570064127,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-recheck/commands.json"
+    },
+    {
+      "label": "large-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 8.25555376522243,
+      "post_seconds": 2.190572396852076,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "large_placed-1s-uring",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 8.259541776031256,
+      "post_seconds": 1.3862964580766857,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "snapshot-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.6027962760999799,
+      "post_seconds": 3.461260187905282,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "filename-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 0.7579874801449478,
+      "post_seconds": 9.900846587959677,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "error-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 6.817495937924832,
+      "post_seconds": 1.2318374090828001,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "tickets-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.3354827179573476,
+      "post_seconds": 3.187873686198145,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "exec_tickets-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.2164732250384986,
+      "post_seconds": 2.435879629570991,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "resurrection-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.1940808058716357,
+      "post_seconds": 2.936186025850475,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "rewrite_fail2-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.3103630859404802,
+      "post_seconds": 1.8722446481697261,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "manifest_missing-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.1033662180416286,
+      "post_seconds": 1.5803167400881648,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "latency-everysec-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 2.030340766068548,
+      "post_seconds": 1.4795951610431075,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "latency-always-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 2.189615410286933,
+      "post_seconds": 1.5811576042324305,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "snapshot-2s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.5627723108045757,
+      "post_seconds": 2.231559058651328,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "filename-2s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.0818193736486137,
+      "post_seconds": 6.971394324675202,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "error-2s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 6.83509924588725,
+      "post_seconds": 0.8207544279284775,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "tickets-2s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.9720769273117185,
+      "post_seconds": 2.7332302229478955,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "exec_tickets-2s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.8508980558253825,
+      "post_seconds": 3.037705178838223,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "resurrection-2s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.8558233096264303,
+      "post_seconds": 2.6814330918714404,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "rewrite_fail2-2s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.921365060377866,
+      "post_seconds": 1.7312179519794881,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "manifest_missing-2s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 1.44837063876912,
+      "post_seconds": 1.6270138178952038,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "latency-everysec-2s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 3.1683428999967873,
+      "post_seconds": 1.4225722765550017,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "latency-always-2s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 3.4443748081102967,
+      "post_seconds": 1.4855861100368202,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "large-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 8.60833529708907,
+      "post_seconds": 1.5292588416486979,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    },
+    {
+      "label": "large_placed-1s-epoll",
+      "pre_rc": 1,
+      "post_initial_rc": 0,
+      "post_final_rc": 0,
+      "pre_seconds": 9.441080790013075,
+      "post_seconds": 0.7716638101264834,
+      "pre_receipt": "pre/rows.json",
+      "post_receipt": "post-final-rows/commands.json"
+    }
+  ],
+  "production_build_and_freshness_commands": 30,
+  "production_unit_targets": 28,
+  "aof_matrix_passed_phases": 136,
+  "uring_frame_fresh_passed_cases": 4,
+  "differ_comparison_legs": 64,
+  "differ_read_local_witnesses": 2,
+  "protected_counts": {
+    "current_quick": 511,
+    "current_full": 528,
+    "DQ": 44,
+    "DF": 44,
+    "required_quick": 555,
+    "required_full": 572
+  },
+  "gates_self_test": {
+    "status": "needs quiet-allocation rerun",
+    "best_full_attempt": "64/66 plus 14/14 nested controls",
+    "best_failure_entries": 2,
+    "serial_failure_entries": 5,
+    "unchanged_watchdog_seconds": 45,
+    "scheduler_source_unchanged": true
+  },
+  "ledger_fixture": {
+    "status": "maintainer EXPECT_FULL update required",
+    "current_expected_full": 528,
+    "fixture_labels": 572,
+    "missing_labels": [],
+    "extra_labels": []
+  }
+}

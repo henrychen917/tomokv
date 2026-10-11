@@ -1,0 +1,55 @@
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35300", "unit": 29209, "hot_changed": 0, "A": 48, "B": 5, "C": 2, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new code 771->1064 lanes=- tomo_db0::(anonymous namespace)::AclLogEntry& std::deque<tomo_db0::(anonymous namespace)::AclLogEntr
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35310", "unit": 29209, "hot_changed": 0, "A": 48, "B": 6, "C": 3, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 4, "Chot": 0, "Dhot": 0}
+    C T=new code 255->366 lanes=- void tomo_db0::reply_int<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, long long)
+    C T=new code 771->1064 lanes=- tomo_db0::(anonymous namespace)::AclLogEntry& std::deque<tomo_db0::(anonymous namespace)::AclLogEntr
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35320", "unit": 29209, "hot_changed": 0, "A": 48, "B": 6, "C": 1, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35324", "unit": 29209, "hot_changed": 0, "A": 47, "B": 6, "C": 1, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35330", "unit": 29209, "hot_changed": 0, "A": 48, "B": 6, "C": 2, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new code 771->1064 lanes=- tomo_db0::(anonymous namespace)::AclLogEntry& std::deque<tomo_db0::(anonymous namespace)::AclLogEntr
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35340", "unit": 29209, "hot_changed": 0, "A": 48, "B": 6, "C": 3, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 3, "Chot": 0, "Dhot": 0}
+    C T=new code 255->366 lanes=- void tomo_db0::reply_int<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, long long)
+    C T=new code 771->1064 lanes=- tomo_db0::(anonymous namespace)::AclLogEntry& std::deque<tomo_db0::(anonymous namespace)::AclLogEntr
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35350", "unit": 29209, "hot_changed": 0, "A": 47, "B": 5, "C": 1, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 3, "Chot": 0, "Dhot": 0}
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 1136->1226 lanes=aclfix tomo_db0::(anonymous namespace)::acl_join_patterns(tomo_db0::AclSelector const&, bool)
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35360", "unit": 29209, "hot_changed": 0, "A": 47, "B": 5, "C": 2, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 4, "Chot": 0, "Dhot": 0}
+    C T=new code 771->1064 lanes=- tomo_db0::(anonymous namespace)::AclLogEntry& std::deque<tomo_db0::(anonymous namespace)::AclLogEntr
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 1136->1226 lanes=aclfix tomo_db0::(anonymous namespace)::acl_join_patterns(tomo_db0::AclSelector const&, bool)
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35368", "unit": 29209, "hot_changed": 0, "A": 46, "B": 5, "C": 2, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 3, "Chot": 0, "Dhot": 0}
+    C T=new code 771->1064 lanes=- tomo_db0::(anonymous namespace)::AclLogEntry& std::deque<tomo_db0::(anonymous namespace)::AclLogEntr
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 1136->1226 lanes=aclfix tomo_db0::(anonymous namespace)::acl_join_patterns(tomo_db0::AclSelector const&, bool)
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35380", "unit": 29209, "hot_changed": 0, "A": 46, "B": 5, "C": 3, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 4, "Chot": 0, "Dhot": 0}
+    C T=new code 255->366 lanes=- void tomo_db0::reply_int<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, long long)
+    C T=new code 771->1064 lanes=- tomo_db0::(anonymous namespace)::AclLogEntry& std::deque<tomo_db0::(anonymous namespace)::AclLogEntr
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 1136->1226 lanes=aclfix tomo_db0::(anonymous namespace)::acl_join_patterns(tomo_db0::AclSelector const&, bool)
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35400", "unit": 29209, "hot_changed": 0, "A": 46, "B": 6, "C": 2, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 4, "Chot": 0, "Dhot": 0}
+    C T=new code 771->1064 lanes=- tomo_db0::(anonymous namespace)::AclLogEntry& std::deque<tomo_db0::(anonymous namespace)::AclLogEntr
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 1136->1226 lanes=aclfix tomo_db0::(anonymous namespace)::acl_join_patterns(tomo_db0::AclSelector const&, bool)
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)
+{"object": "db0/src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35420", "unit": 29209, "hot_changed": 0, "A": 45, "B": 6, "C": 3, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 4, "Chot": 0, "Dhot": 0}
+    C T=new code 255->366 lanes=- void tomo_db0::reply_int<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, long long)
+    C T=new code 771->1064 lanes=- tomo_db0::(anonymous namespace)::AclLogEntry& std::deque<tomo_db0::(anonymous namespace)::AclLogEntr
+    C T=new removed 368->0 lanes=- std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::push_back(tomo_db0::Client* cons
+    D T=new code 1136->1226 lanes=aclfix tomo_db0::(anonymous namespace)::acl_join_patterns(tomo_db0::AclSelector const&, bool)
+    D T=new code 7544->7239 lanes=flipfix tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)

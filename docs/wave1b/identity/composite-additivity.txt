@@ -1,0 +1,61 @@
+src/main.o: hot changed 13, non-additive target deviations 1
+    dev=  1 lanes=clientfix+racefix+flipfix tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)
+        expected 12 got 13  ('_ZN4tomo6IoLoop29flip_fingerprint_note_sampledERKNS_11CommandSpecERKNS_2OpE', -4)
+db0/src/main.o: hot changed 13, non-additive target deviations 1
+    dev=  1 lanes=clientfix+racefix+flipfix tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)
+        expected 14 got 13  ('_ZN8tomo_db06IoLoop29flip_fingerprint_note_sampledERKNS_11CommandSpecERKNS_2OpE', -4)
+src/core/rl2s.o: hot changed 32, non-additive target deviations 22
+    dev=  4 lanes=clientfix+racefix+flipfix tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0
+        expected  1 got  3  ('_ZN4tomo3RobILj64EE18mark_current_writeEv', -4)
+        expected  1 got  2  ('_ZN4tomo6now_nsEv', -4)
+        expected  5 got  4  ('clock_gettime', -4)
+    dev=  5 lanes=clientfix+racefix+flipfix tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+        expected  3 got  4  ('_ZN4tomo3RobILj64EE7publishEv', -4)
+        expected  3 got  2  ('_ZN4tomo6now_nsEv', -4)
+        expected  0 got  1  ('_ZNK4tomo3RobILj64EE9in_flightEv', -4)
+        expected  1 got  2  ('_ZNK4tomo5Slice8eq_icaseESt17basic_string_viewIcSt11char_traitsIcEE.isra.0', 0)
+        expected  3 got  4  ('clock_gettime', -4)
+    dev=  2 lanes=clientfix+racefix+flipfix tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+        expected 15 got 14  ('_ZN4tomo6IoLoop29flip_fingerprint_note_sampledERKNS_11CommandSpecERKNS_2OpE', -4)
+        expected  5 got  4  ('_ZN4tomo9ThreadCtx12note_commandEt', -4)
+    dev=  4 lanes=clientfix+racefix+flipfix tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]
+        expected  4 got  2  ('_ZN4tomo3RobILj64EE18mark_current_writeEv', -4)
+        expected  1 got  2  ('_ZN4tomo6now_nsEv', -4)
+        expected  5 got  4  ('clock_gettime', -4)
+    dev=  7 lanes=clientfix+racefix+flipfix tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+        expected  3 got  2  ('_ZN4tomo3RobILj64EE18mark_current_writeEv', -4)
+        expected  4 got  5  ('_ZN4tomo6IoLoop21flip_fingerprint_noteERKNS_11CommandSpecERKNS_2OpE', -4)
+        expected 12 got 11  ('_ZN4tomo6IoLoop29flip_fingerprint_note_sampledERKNS_11CommandSpecERKNS_2OpE', -4)
+        expected  0 got  2  ('_ZN4tomo6now_nsEv', -4)
+        expected  6 got  4  ('clock_gettime', -4)
+db0/src/core/rl2s.o: hot changed 33, non-additive target deviations 2
+    dev=  2 lanes=clientfix+racefix+flipfix tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+        expected  1 got  3  ('_ZN8tomo_db03RobILj64EE18mark_current_writeEv', -4)
+src/core/genthread.o: hot changed 28, non-additive target deviations 0
+
+db0/src/core/genthread.o: hot changed 29, non-additive target deviations 8
+    dev=  8 lanes=savefix unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+        expected  4 got  6  ('_ZN8tomo_db011DatabaseMap12consume_wakeEjRNS_4RingE', -4)
+        expected  4 got  6  ('_ZN8tomo_db06Server10databases_E', -4)
+        expected  4 got  6  ('_ZN8tomo_db07ExLoopTILb1EE14begin_snapshotEPNS_15SnapshotManagerE', -4)
+        expected  2 got  0  ('_ZN8tomo_db07ExLoopTILb1EE6on_cqeEP12io_uring_cqe', -4)
+db0/src/core/reorder.o: hot changed 33, non-additive target deviations 6
+    dev=  1 lanes=clientfix+racefix tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)
+        expected  3 got  2  ('_ZN8tomo_db03RobILj64EE18mark_current_writeEv', -4)
+    dev=  1 lanes=clientfix+racefix tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)
+        expected  1 got  2  ('_ZN8tomo_db03RobILj64EE18mark_current_writeEv', -4)
+    dev=  4 lanes=savefix+racefix bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+        expected -1 got  1  ('_ZNSt5dequeIN8tomo_db04TaskESaIS1_EE16_M_push_back_auxIJRKS1_EEEvDpOT_', -4)
+        expected  7 got  5  ('_ZNSt5dequeIN8tomo_db04TaskESaIS1_EE9push_backERKS1_', -4)
+src/core/reorder.o: hot changed 33, non-additive target deviations 6
+    dev=  2 lanes=clientfix+racefix tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+        expected 12 got 13  ('_ZN4tomo6IoLoop21flip_fingerprint_noteERKNS_11CommandSpecERKNS_2OpE', -4)
+        expected  1 got  0  ('_ZN4tomo6IoLoop29flip_fingerprint_note_sampledERKNS_11CommandSpecERKNS_2OpE', -4)
+    dev=  1 lanes=savefix unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+        expected  0 got  1  ('_ZNK4tomo7ExLoopTILb1EE30shutdown_snapshot_blocks_tasksEv', -4)
+    dev=  1 lanes=savefix unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+        expected  0 got  1  ('_ZNK4tomo7ExLoopTILb1EE30shutdown_snapshot_blocks_tasksEv', -4)
+    dev=  1 lanes=- unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+        expected  0 got  1  ('_ZNK4tomo7ExLoopTILb1EE30shutdown_snapshot_blocks_tasksEv', -4)
+    dev=  1 lanes=- unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+        expected  0 got  1  ('_ZNK4tomo7ExLoopTILb1EE30shutdown_snapshot_blocks_tasksEv', -4)

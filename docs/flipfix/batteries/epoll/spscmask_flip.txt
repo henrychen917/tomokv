@@ -1,0 +1,6 @@
+load 19.02 13.12 13.84 10/3381 1146064
+covered all 63 initial IO producers after 422 connections
+all streams advanced under 63-producer mask
+all streams advanced under one-producer mask
+all streams advanced under re-expanded 63-producer mask
+spscmask_flip: PASS producers=63 -> 1 -> 63 verified_pairs=902560

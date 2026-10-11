@@ -1,0 +1,18 @@
+==================
+WARNING: ThreadSanitizer: heap-use-after-free (pid=480444)
+  Read of size 1 at 0x727000000833 by main thread:
+    #0 tomo::IoLoop::client_transfer_ready(tomo::Client*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const <null> (core-concurrency-tsan+0x48e61a) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #1 tomo::IoLoop::flip_candidate_clients_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const <null> (core-concurrency-tsan+0x48ebfc) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #2 unsigned int tomo::IoLoop::flip_control_pass<false>() <null> (core-concurrency-tsan+0x4a59bf) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #3 tomo::CoreConcurrencyTest::FlipfixPlan::prepare_and_finish(char const*) <null> (core-concurrency-tsan+0x4f1a5a) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #4 tomo::CoreConcurrencyTest::flipfix_plan_lifetime() <null> (core-concurrency-tsan+0x4f4212) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #5 main tests/core_concurrency_unit.cc:1197 (core-concurrency-tsan+0x40ae06) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+
+  Previous write of size 8 at 0x727000000830 by main thread:
+    #0 operator delete(void*, unsigned long, std::align_val_t) ../../../../src/libsanitizer/tsan/tsan_new_delete.cpp:190 (libtsan.so.2+0xa6d88) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 tomo::IoLoop::reap_dead() <null> (core-concurrency-tsan+0x4e796b) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #2 tomo::CoreConcurrencyTest::flipfix_plan_lifetime() <null> (core-concurrency-tsan+0x4f4201) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #3 main tests/core_concurrency_unit.cc:1197 (core-concurrency-tsan+0x40ae06) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+
+SUMMARY: ThreadSanitizer: heap-use-after-free (/home/user/Projects/cx-flipfix/build/flipfix/units-pre/core-concurrency-tsan+0x48e61a) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022) in tomo::IoLoop::client_transfer_ready(tomo::Client*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const
+==================

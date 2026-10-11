@@ -1,0 +1,29 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-119",
+    "/home/user/Projects/cx-authfix/build/tomokv",
+    "/home/user/Projects/cx-authfix/docs/authfix/authfix2/post/arity/candidate/1s-requirepass-middle.conf",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "25029",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-authfix/docs/authfix/authfix2/post/arity/candidate/1s-requirepass-middle/data",
+    "--protected-mode",
+    "no",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16"
+  ],
+  "pid": 2525085,
+  "booted": false,
+  "exit": 1,
+  "port_closed": true
+}

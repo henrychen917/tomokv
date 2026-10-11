@@ -1027,12 +1027,35 @@ public:
             return UINT32_MAX;
         return flip_client_destinations_[source][ordinal];
     }
+    // Only the source IO reads its own row, at ClientPrepare. Every planned Client* stays allocated
+    // until then: the source holds each close before it leaves ThreadCtx::clients from its IoDrain
+    // acknowledgement on (IoLoop::flip_close_pin_), so no planned connection can be reaped.
     Client* flip_client_at(uint32_t source, uint32_t ordinal) const {
         if (source >= nthreads() || ordinal >= flip_client_plan_[source].size()) return nullptr;
         return flip_client_plan_[source][ordinal];
     }
     uint32_t flip_client_quota(uint32_t tid) const {
-        return tid < nthreads() ? flip_client_quota_[tid] : 0;
+        return tid < nthreads() ? flip_client_quota_[tid].load(std::memory_order_acquire) : 0;
+    }
+    // A planned connection that was already closing at its source's ClientPrepare never moves.
+    // Its destination expects one connection fewer; a surviving source keeps it (pinned until the
+    // FLIP retires), while a converting source finishes its close before ClientInstall.
+    void flip_drop_planned_client(uint32_t source, uint32_t destination, bool source_keeps) {
+        if (source >= nthreads() || destination >= nthreads()) std::abort();
+        if (flip_client_quota_[destination].fetch_sub(1, std::memory_order_relaxed) == 0)
+            std::abort();
+        if (source_keeps) flip_client_quota_[source].fetch_add(1, std::memory_order_relaxed);
+        flip_dropped_client_transfers_.fetch_add(1, std::memory_order_relaxed);
+    }
+    // The source's own row is private to it from ClientPrepare on; a forgotten entry is never
+    // dereferenced again, so a dropped connection may finish closing and be reaped.
+    void flip_forget_planned_client(uint32_t source, uint32_t ordinal) {
+        if (source >= nthreads() || ordinal >= flip_client_plan_[source].size()) std::abort();
+        flip_client_plan_[source][ordinal] = nullptr;
+    }
+    // Signal-safe read of a pending SIGTERM/SIGINT stop that the save cron has not yet served.
+    bool signal_shutdown_pending() const {
+        return live_save_armed_.load(std::memory_order_acquire) & kSignalShutdown;
     }
     uint32_t flip_shard_destination(uint32_t sid) const {
         return sid < nshards() ? flip_shard_destination_[sid] : UINT32_MAX;
@@ -1057,11 +1080,17 @@ public:
             return false;
         }
         const uint32_t total = static_cast<uint32_t>(total64);
+        // Cross-thread read of every IO's private client vector (IO4.4a). It is frozen here: each
+        // IO acknowledged IoDrain (release; this coordinator acquired every ack) only after its own
+        // closes, LB move and UNIX hand-offs settled, and from that ack its closes stop before
+        // remove_client (flip_close_pin_), accepts are refused and no transfer is posted. The next
+        // write to any vector follows this plan's IoPrepare publication.
+        flip_dropped_client_transfers_.store(0, std::memory_order_relaxed);
         try {
             for (uint32_t tid = 0; tid < nthreads(); tid++) {
                 flip_client_destinations_[tid].clear();
                 flip_client_plan_[tid].clear();
-                flip_client_quota_[tid] = 0;
+                flip_client_quota_[tid].store(0, std::memory_order_relaxed);
                 flip_incoming_clients_[tid].store(0, std::memory_order_relaxed);
                 flip_source_clients_[tid].store(0, std::memory_order_relaxed);
             }
@@ -1105,7 +1134,7 @@ public:
                     assignment.destination >= nthreads()) std::abort();
                 before[assignment.source] += assignment.weight;
                 after[assignment.destination] += assignment.weight;
-                flip_client_quota_[assignment.destination]++;
+                flip_client_quota_[assignment.destination].fetch_add(1, std::memory_order_relaxed);
                 if (assignment.source == assignment.destination) continue;
                 flip_client_plan_[assignment.source].push_back(clients[i]);
                 flip_client_destinations_[assignment.source].push_back(assignment.destination);
@@ -1127,7 +1156,8 @@ public:
                 }
             }
             for (uint32_t target : targets) {
-                if (flip_client_quota_[target] < low || flip_client_quota_[target] > high) {
+                const uint32_t quota = flip_client_quota_[target].load(std::memory_order_relaxed);
+                if (quota < low || quota > high) {
                     error = "ERR FLIP weighted client plan violates count balance";
                     return false;
                 }
@@ -1697,6 +1727,10 @@ public:
         }
         uint32_t bucket_min = UINT32_MAX, bucket_max = 0;
         uint32_t client_min = UINT32_MAX, client_max = 0;
+        // Every IO holds its closes from its IoDrain acknowledgement until this FLIP retires, so
+        // counts are exact here; only planned connections that were already closing at
+        // ClientPrepare moved a quota unit (destination -1, surviving source +1).
+        const uint32_t dropped = flip_dropped_client_transfers_.load(std::memory_order_relaxed);
         for (uint32_t tid = 0; tid < nthreads(); tid++) {
             if (thread(tid).role() == Role::Ex) {
                 if (buckets[tid] != flip_bucket_quota_[tid]) std::abort();
@@ -1704,17 +1738,19 @@ public:
                 bucket_max = std::max(bucket_max, buckets[tid]);
             } else if (thread(tid).role() == Role::Ifid) {
                 const uint32_t clients = thread(tid).client_count();
-                if (clients != flip_client_quota_[tid]) std::abort();
+                if (clients != flip_client_quota_[tid].load(std::memory_order_relaxed))
+                    std::abort();
                 client_min = std::min(client_min, clients);
                 client_max = std::max(client_max, clients);
             }
         }
         if (bucket_min == UINT32_MAX || client_min == UINT32_MAX ||
-            bucket_max - bucket_min > 1 || client_max - client_min > 1)
+            bucket_max - bucket_min > 1 ||
+            client_max - client_min > 1 + 2 * static_cast<uint64_t>(dropped))
             std::abort();
         const uint64_t transfers = flip_active_transfers_.load(std::memory_order_relaxed);
-        if (transfers != static_cast<uint64_t>(flip_planned_shard_transfers_) +
-                         flip_planned_client_transfers_)
+        if (transfers + dropped != static_cast<uint64_t>(flip_planned_shard_transfers_) +
+                                   flip_planned_client_transfers_)
             std::abort();
 
         flip_last_transfers_.store(transfers, std::memory_order_relaxed);
@@ -2239,7 +2275,10 @@ public:
     static constexpr uint8_t kPauseWrite = 1;
     void climon_set_pause(uint64_t end_ms, uint8_t mode) {
         climon_pause_mode_.store(mode, std::memory_order_relaxed);
-        climon_pause_end_ms_.store(end_ms, std::memory_order_relaxed);
+        uint64_t previous = climon_pause_end_ms_.load(std::memory_order_relaxed);
+        while (previous < end_ms &&
+               !climon_pause_end_ms_.compare_exchange_weak(
+                   previous, end_ms, std::memory_order_relaxed)) {}
         refresh_climon_armed();
     }
     void climon_clear_pause() {
@@ -2522,8 +2561,8 @@ public:
     // the drawn sequence it read BEFORE its own decrement into atomic_commit_safe_: at that
     // instant every ticket at or below that value has already stored its epoch, because a
     // committer that had not would still be holding the count up. Readers load one word exactly
-    // as before -- the cost is on the commit side, and it is two RMWs on a line commits already
-    // own.
+    // as before -- the commit side pays two RMWs on a line commits already own.
+    void restore_aof_ticket_floor(uint64_t floor); // Boot only, before owners run.
     uint64_t atomic_commit_reserve(uint64_t tickets = 1) {
         if (!tickets) std::abort();
         atomic_commit_inflight_.fetch_add(1, std::memory_order_seq_cst);
@@ -3208,12 +3247,25 @@ private:
     }
 
     void refresh_climon_armed() {
-        uint32_t armed = 0;
-        if (climon_monitors_.load(std::memory_order_relaxed)) armed |= kClimonMonitor;
-        if (climon_tracking_.load(std::memory_order_relaxed)) armed |= kClimonTracking;
-        if (climon_pause_end_ms_.load(std::memory_order_relaxed)) armed |= kClimonPause;
-        if (climon_reply_.load(std::memory_order_relaxed)) armed |= kClimonReply;
-        climon_armed_.store(armed, std::memory_order_release);
+        const auto snapshot = [this] {
+            uint32_t armed = 0;
+            if (climon_monitors_.load(std::memory_order_relaxed)) armed |= kClimonMonitor;
+            if (climon_tracking_.load(std::memory_order_relaxed)) armed |= kClimonTracking;
+            if (climon_pause_end_ms_.load(std::memory_order_relaxed)) armed |= kClimonPause;
+            if (climon_reply_.load(std::memory_order_relaxed)) armed |= kClimonReply;
+            return armed;
+        };
+        uint32_t armed = snapshot();
+        for (;;) {
+            // The acquire half observes all mutations preceding earlier refreshes
+            // in the word's modification order. Recheck AFTER publishing so a
+            // delayed remover cannot leave its stale zero after a newer armer.
+            // Only this cold writer retries; per-batch readers retain one load.
+            climon_armed_.exchange(armed, std::memory_order_acq_rel);
+            const uint32_t current = snapshot();
+            if (current == armed) return;
+            armed = current;
+        }
     }
 
     void refresh_client_cron_armed() {
@@ -3306,9 +3358,14 @@ private:
     Role flip_convert_[kMaxThreads] = {};
     uint32_t flip_surviving_io_[kMaxThreads] = {};
     uint32_t flip_surviving_io_count_ = 0;
+    // Planned connection transfers that a source dropped because the connection was closing at
+    // ClientPrepare (IO4.1). Occupies the existing hole after flip_surviving_io_count_.
+    std::atomic<uint32_t> flip_dropped_client_transfers_{0};
     std::vector<Client*> flip_client_plan_[kMaxThreads];
     std::vector<uint32_t> flip_client_destinations_[kMaxThreads];
-    uint32_t flip_client_quota_[kMaxThreads] = {};
+    // Final connection count per surviving IO. Written by the planner, then adjusted by a source
+    // that drops a closing planned connection; same size/alignment as the former plain array.
+    std::atomic<uint32_t> flip_client_quota_[kMaxThreads] = {};
     uint32_t flip_bucket_quota_[kMaxThreads] = {};
     uint32_t flip_shard_destination_[256] = {};
     std::atomic<uint32_t> flip_incoming_clients_[kMaxThreads] = {};

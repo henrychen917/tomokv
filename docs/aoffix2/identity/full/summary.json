@@ -1,0 +1,83 @@
+{
+  "total": 16342,
+  "equal": 16160,
+  "changed": 182,
+  "handlers": 1210,
+  "handlers_equal": 1210,
+  "hot": 1208,
+  "hot_equal": 1205,
+  "changed_handlers": [],
+  "changed_hot": [
+    {
+      "object": "db0/src/persist/aof.o",
+      "symbol": "_ZN8tomo_db09FlatStore5eraseEmNS_5SliceE",
+      "name": "tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 543,
+      "post_size": 479,
+      "classification": "other"
+    },
+    {
+      "object": "src/persist/aof.o",
+      "symbol": "_ZN4tomo9FlatStore17insert_read_localEmPNS_5KvObjE",
+      "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1511,
+      "post_size": 1274,
+      "classification": "other"
+    },
+    {
+      "object": "src/persist/aof.o",
+      "symbol": "_ZN4tomo9FlatStore6insertEmPNS_5KvObjE",
+      "name": "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1589,
+      "post_size": 1376,
+      "classification": "other"
+    }
+  ],
+  "hot_nonerror_equal": 1205,
+  "handlers_nonerror_equal": 1210,
+  "other_handlers": [],
+  "other_hot": [
+    {
+      "object": "db0/src/persist/aof.o",
+      "symbol": "_ZN8tomo_db09FlatStore5eraseEmNS_5SliceE",
+      "name": "tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 543,
+      "post_size": 479,
+      "classification": "other"
+    },
+    {
+      "object": "src/persist/aof.o",
+      "symbol": "_ZN4tomo9FlatStore17insert_read_localEmPNS_5KvObjE",
+      "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1511,
+      "post_size": 1274,
+      "classification": "other"
+    },
+    {
+      "object": "src/persist/aof.o",
+      "symbol": "_ZN4tomo9FlatStore6insertEmPNS_5KvObjE",
+      "name": "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1589,
+      "post_size": 1376,
+      "classification": "other"
+    }
+  ]
+}

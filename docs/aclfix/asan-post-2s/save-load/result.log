@@ -1,0 +1,21 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aclfix/build/tomokv-asan", "--bind", "127.0.0.1", "--port", "25042", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/asan-post-2s/save-load", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/asan-post-2s/save-load/users.acl", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--ratio", "6:2"], "case": "save-load"}
+invalid pattern b'~key with-space' RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")
+invalid pattern b'~key\twith-space' RespError(b"ERR Error in ACL SETUSER modifier '~key\twith-space': Syntax error")
+invalid pattern b'~key\nwith-space' RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")
+invalid pattern b'~key\rwith-space' RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")
+invalid pattern b'~key\x0bwith-space' RespError(b"ERR Error in ACL SETUSER modifier '~key\x0bwith-space': Syntax error")
+invalid pattern b'~key\x0cwith-space' RespError(b"ERR Error in ACL SETUSER modifier '~key\x0cwith-space': Syntax error")
+invalid pattern b'~key\x00with-space' RespError(b"ERR Error in ACL SETUSER modifier '~key': Syntax error")
+invalid pattern b'&key with-space' RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")
+invalid pattern b'&key\twith-space' RespError(b"ERR Error in ACL SETUSER modifier '&key\twith-space': Syntax error")
+invalid pattern b'&key\nwith-space' RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")
+invalid pattern b'&key\rwith-space' RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")
+invalid pattern b'&key\x0bwith-space' RespError(b"ERR Error in ACL SETUSER modifier '&key\x0bwith-space': Syntax error")
+invalid pattern b'&key\x0cwith-space' RespError(b"ERR Error in ACL SETUSER modifier '&key\x0cwith-space': Syntax error")
+invalid pattern b'&key\x00with-space' RespError(b"ERR Error in ACL SETUSER modifier '&key': Syntax error")
+invalid selector RespError(b'ERR Error in ACL SETUSER modifier \'(~"key with space" +get)\': ACL selectors are not supported')
+invalid selector RespError(b'ERR Error in ACL SETUSER modifier \'(&"channel with space" +subscribe)\': ACL selectors are not supported')
+saved b'user default on nopass sanitize-payload ~* &* +@all\nuser roundtrip on nopass sanitize-payload ~a"b ~a\'b ~a\\b resetchannels &a"b &a\'b &a\\b -@all +get\n'
+reload b'OK'
+SIGTERM exit 0
+aclfix save-load PASS (0.307s)

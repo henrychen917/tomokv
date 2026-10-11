@@ -1,0 +1,112 @@
+[
+  {
+    "case": "config-nul",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/authfix.py",
+      "--binary",
+      "build/authfix/acl-preview/tomokv",
+      "--port",
+      "25028",
+      "--cores",
+      "112-119",
+      "--case",
+      "config-nul",
+      "--output",
+      "docs/authfix/acl-preview/config-nul"
+    ],
+    "exit": 0,
+    "seconds": 6.2894748779945076
+  },
+  {
+    "case": "arity",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/authfix.py",
+      "--binary",
+      "build/authfix/acl-preview/tomokv",
+      "--port",
+      "25029",
+      "--cores",
+      "112-119",
+      "--case",
+      "arity",
+      "--output",
+      "docs/authfix/acl-preview/arity"
+    ],
+    "exit": 0,
+    "seconds": 11.348671616055071
+  },
+  {
+    "case": "rewrite",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/authfix.py",
+      "--binary",
+      "build/authfix/acl-preview/tomokv",
+      "--port",
+      "25030",
+      "--cores",
+      "112-119",
+      "--case",
+      "rewrite",
+      "--output",
+      "docs/authfix/acl-preview/rewrite"
+    ],
+    "exit": 0,
+    "seconds": 5.9256589990109205
+  },
+  {
+    "case": "slowlog-1s",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/authfix.py",
+      "--binary",
+      "build/authfix/acl-preview/tomokv",
+      "--port",
+      "25031",
+      "--cores",
+      "112-119",
+      "--case",
+      "slowlog-1s",
+      "--output",
+      "docs/authfix/acl-preview/slowlog-1s"
+    ],
+    "exit": 0,
+    "seconds": 1.7497399938292801
+  },
+  {
+    "case": "slowlog-2s",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/authfix.py",
+      "--binary",
+      "build/authfix/acl-preview/tomokv",
+      "--port",
+      "25032",
+      "--cores",
+      "112-119",
+      "--case",
+      "slowlog-2s",
+      "--output",
+      "docs/authfix/acl-preview/slowlog-2s"
+    ],
+    "exit": 0,
+    "seconds": 1.8682410791516304
+  }
+]

@@ -1,0 +1,37 @@
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/flipfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-late-2/late", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "late", "loadavg": [77.93505859375, 60.79931640625, 57.73291015625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/flipfix/pre/tomokv", "label": "late", "pid": 2820723}
+{"attempt": 0, "closes": 27, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 1, "closes": 27, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 2, "closes": 22, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 3, "closes": 27, "reply": "ERR FLIP timed out before the ownership commit"}
+{"attempt": 4, "closes": 21, "reply": "ERR FLIP timed out before the ownership commit"}
+{"attempt": 5, "closes": 27, "reply": "ERR FLIP timed out before the ownership commit"}
+{"attempt": 6, "closes": 27, "reply": "ERR FLIP timed out before the ownership commit"}
+{"attempt": 7, "closes": 24, "reply": "ERR FLIP coordinator connection left the ownership set"}
+{"attempt": 8, "closes": 27, "reply": "ERR FLIP timed out before the ownership commit"}
+{"event": "stop", "label": "late", "loadavg": [67.0322265625, 60.5712890625, 57.82177734375], "log": "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-late-2/late/late.log", "rc": 0}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 276, in late_closes
+    reply = admin.read()
+            ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-flipfix/tests/_lib.py", line 161, in read
+    head = read(1)
+           ^^^^^^^
+  File "/home/user/Projects/cx-flipfix/tests/_lib.py", line 124, in _read
+    return self.file.read(size)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 455, in <module>
+    main()
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 447, in main
+    late_closes(args)
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 278, in late_closes
+    raise AssertionError(f'FLIP {heavy} {total - heavy} unanswered (attempt '
+AssertionError: FLIP 6 2 unanswered (attempt 9): wedged

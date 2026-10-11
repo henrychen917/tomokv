@@ -1,0 +1,11 @@
+{
+  "source_rows": 542,
+  "fixture_rows": 542,
+  "same_labels": true,
+  "expect_quick": 511,
+  "expect_full": 528,
+  "dq": 14,
+  "df": 14,
+  "required_quick": 525,
+  "required_full": 542
+}

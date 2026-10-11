@@ -1,0 +1,77 @@
+{
+ "post_sha256": "19e49a0aae78c9037e02ad1dd70a7a4d71911d9c6c3feed15e17392c318c40cd",
+ "oracle": "/tmp/claude-1000/redis74/src/redis-server (Redis 7.4.10)",
+ "suites": [
+  "aclsel",
+  "aclkeys",
+  "ccfix",
+  "sort",
+  "stream",
+  "streamgrp",
+  "blocking"
+ ],
+ "seeds": [
+  "7",
+  "19",
+  "20",
+  "23"
+ ],
+ "runs": [
+  {
+   "geometry": "split",
+   "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-aclfix/build/tomokv",
+    "25044",
+    "25045",
+    "112-119",
+    "6:2"
+   ],
+   "environment": {
+    "REDIS74_ROOT": "/tmp/claude-1000/redis74",
+    "GATE_LOAD_CORES": "121-127",
+    "GATE_DIFFER_ORACLE_CORES": "120",
+    "GATE_DIFFER_GEOMETRY": "split",
+    "GATE_DIFFER_PROOF_SUITES": "docs/aclfix/differ-suites.txt",
+    "GATE_DIFFER_PROOF_SEEDS": "docs/aclfix/differ-seeds.txt",
+    "GATE_DIFFER_OUT": "build/aclfix/differ-split"
+   },
+   "exit_code": 0,
+   "passed": 56,
+   "failed": 0,
+   "skipped_by_design": 0,
+   "log": "docs/aclfix/differ-split.log"
+  },
+  {
+   "geometry": "armed-fused",
+   "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-aclfix/build/tomokv",
+    "25044",
+    "25045",
+    "112-119",
+    "6:2"
+   ],
+   "environment": {
+    "REDIS74_ROOT": "/tmp/claude-1000/redis74",
+    "GATE_LOAD_CORES": "121-127",
+    "GATE_DIFFER_ORACLE_CORES": "120",
+    "GATE_DIFFER_GEOMETRY": "armed-fused",
+    "GATE_DIFFER_PROOF_SUITES": "docs/aclfix/differ-suites.txt",
+    "GATE_DIFFER_PROOF_SEEDS": "docs/aclfix/differ-seeds.txt",
+    "GATE_DIFFER_OUT": "build/aclfix/differ-armed-fused"
+   },
+   "exit_code": 0,
+   "passed": 50,
+   "failed": 0,
+   "skipped_by_design": 8,
+   "log": "docs/aclfix/differ-armed-fused.log"
+  }
+ ]
+}

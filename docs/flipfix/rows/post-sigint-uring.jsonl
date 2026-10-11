@@ -1,0 +1,7 @@
+load 6.71 11.89 13.76 1/3106 1137846
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/post-sigint-uring/sigint", "--save", "3600 1", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "sigint", "loadavg": [6.7099609375, 11.88916015625, 13.75732421875]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/tomokv", "label": "sigint", "pid": 1137850}
+{"acknowledged": 1000, "case": "sigint", "event": "armed", "moving": 1}
+{"elapsed": 0.0011, "event": "second-sigint-exit", "status": 1}
+{"event": "stop", "label": "sigint", "loadavg": [6.7099609375, 11.88916015625, 13.75732421875], "log": "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/post-sigint-uring/sigint/sigint.log", "rc": 1}
+{"case": "sigint", "result": "PASS"}

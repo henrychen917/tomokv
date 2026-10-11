@@ -285,11 +285,30 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
-# perfex: two binary rows plus two live sampler rows (1s/2s), all collected
-# before the quick-tier exit: DQ=4, DF=4; 511+4=515 quick, 528+4=532 full.
-# EXPECT constants remain maintainer-owned.
-EXPECT_QUICK=511
-EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
+# aoffix2: job_aof adds 44 rows before the quick exit: 8 cases x 2 modes x 2
+# engines + 2 fsync policies x 2 modes x 2 engines + 4 fused large-value rows.
+# Maintainer action: DQ=+44, DF=+44; 511+44=555 quick, 528+44=572 full.
+# scriptfix: eight rows (four cases x two modes), collected before the quick exit.
+# DQ=+8, DF=+8: 511+8=519 quick; 528+8=536 full. Owner updates EXPECT.
+# savefix: 12 rows per network engine in snapshot/aof, collected BEFORE quick exit.
+# DQ=DF=24; owner update required: 511+24=535 quick, 528+24=552 full.
+# aclfix: six round-4 ACL reproductions per thread mode (sort, streams-name, save-load, capacity,
+# wake-pop, wake-scatter x 1s/2s), emitted by job_aclfix and collected after acl_recheck, above
+# the quick-tier exit: DQ=+12, DF=+12. Quick 511+12 = 523; full 528+12 = 540.
+# authfix: five rows collected before quick exit; DQ=+5 / DF=+5.
+# Maintainer must set EXPECT_QUICK=511+5=516 and EXPECT_FULL=528+5=533.
+# clientfix: 7 findings/forms x 2 modes = DQ +14 / DF +14. job_clientfix is
+# collected BEFORE the quick-tier exit: required EXPECT = 511+14=525 / 528+14=542.
+# EXPECT assignments remain maintainer-owned.
+# racefix: two rows collected before the quick-tier exit: DQ=+2, DF=+2.
+# Maintainer updates EXPECT: 511+2=513 quick; 528+2=530 full.
+# flipfix (IO4.1/IO4.2/IO4.4/CT4.3): +3 live rows in job_flip (close during FLIP on uring and
+# epoll, signal stop during FLIP + second SIGINT) and +2 serverless rows in job_flipfix_units;
+# both jobs are collected before the quick-tier exit: 511+5 = 516 quick, 528+5 = 533 full.
+# perfex: two binary rows plus two live sampler rows, all before quick exit.
+# DQ=+4, DF=+4; maintainer-owned EXPECT becomes 629 quick / 646 full.
+EXPECT_QUICK=625
+EXPECT_FULL=642                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1008,7 +1027,7 @@ plan_jobs(){
   # Correctness traffic is modest and stays on each slot's two or more physical load cores.
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
-  JOB_NAMES=(release asan core_tsan_build waits_tsan_build tailgen_build)
+  JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit storage_units
               production_units acl_metadata cmd_metadata abba_selftest)
@@ -1032,9 +1051,9 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units climonfix persistfix_units perfex_units perfex_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
-              release_batteries atomic_batteries bplus acl_recheck sort script_bounds
-              efficiency dump_restore auth notify flip flip_saturated atomic_floor
+              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
+              release_batteries atomic_batteries bplus acl_recheck aclfix sort script_bounds scriptfix
+              efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
@@ -1279,6 +1298,30 @@ g++ -std=c++20 -O2 -I. tests/flipctl_unit.cc src/core/flipctl.cc -o $TMPDIR/tomo
     || bad "flip controller model unit" "see $TMPDIR/gate-flipctl-unit.txt"
 }
 
+job_flipfix_units(){
+# flipfix IO4.4/CT4.3: two serverless rows, collected BEFORE the quick-tier exit (+2/+2). Each runs
+# the core fixture's selection under ASAN/UBSAN (production_units) and under TSAN (core_tsan_build):
+# a planned connection closing during FLIP must stay owned and allocated until its source drops it,
+# and the monitor must read fingerprint windows through the release/acquire publication.
+flipfix_unit(){
+  quiet_wait
+  unit_ready core-concurrency-unit && \
+      ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+      taskset -c "$CORES" ./build/core-concurrency-unit "$1" \
+          >"$TMPDIR/gate-$1.txt" 2>&1 && \
+      tsan_unit "$CORE_TSAN" core-concurrency-tsan \
+          "PASS core concurrency $1 (state assertions fired)" "$1"
+}
+row_begin "FLIP planned-connection close lifetime (ASAN+TSAN)"
+flipfix_unit flipfix-plan \
+    && ok "FLIP planned-connection close lifetime (ASAN+TSAN)" \
+    || bad "FLIP planned-connection close lifetime (ASAN+TSAN)" "see $TMPDIR/gate-flipfix-plan.txt and $TMPDIR/tsan-core-concurrency-tsan-flipfix-plan.log"
+row_begin "FLIP fingerprint publication (ASAN+TSAN)"
+flipfix_unit flipfix-fingerprint \
+    && ok "FLIP fingerprint publication (ASAN+TSAN)" \
+    || bad "FLIP fingerprint publication (ASAN+TSAN)" "see $TMPDIR/gate-flipfix-fingerprint.txt and $TMPDIR/tsan-core-concurrency-tsan-flipfix-fingerprint.log"
+}
+
 job_filter_unit(){
 row_begin "B+ counting-fingerprint filter unit"
 g++ -std=c++20 -O2 -pthread -I. tests/foreign_read_safety_test.cc \
@@ -1441,6 +1484,24 @@ job_exbatch_live(){
       bad "$label" "see $TMPDIR/exbatch-$mode.log and $SRVLOG"
     fi
     stop
+  done
+}
+
+job_clientfix(){
+  local mode case label
+  # Each regression owns its boot on this job's assigned port; no preboot to collide with.
+  for mode in 1s 2s; do
+    for case in tracking-cap tracking-pipeline reply-skip pattern-cleanup pause-deadline geo-count geo-store; do
+      label="clientfix $case ($mode)"
+      row_begin "$label"
+      if py tests/clientfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" \
+          --cores "$CORES" --ratio "$GATE_RATIO" --mode "$mode" --case "$case" \
+          >"$TMPDIR/clientfix-$case-$mode.log" 2>&1; then
+        ok "$label"
+      else
+        bad "$label" "see $TMPDIR/clientfix-$case-$mode.log"
+      fi
+    done
   done
 }
 
@@ -2050,6 +2111,29 @@ py tests/aclreply.py 127.0.0.1 "$PORT" >$TMPDIR/gate-aclreply-1s.txt 2>&1 \
 stop
 }
 
+job_aclfix(){
+# ---- round-4 ACL reproductions: each row boots its own listener (tests/aclfix.py) -------------
+# sort CC4.8, streams-name CC4.9, save-load CC4.10, capacity CC4.24, wake-pop AT4.4 and
+# wake-scatter AT4.6, in both thread modes on this slot's CORES/PORT: 16 shards, 2s at
+# GATE_RATIO, 1s with read-local 1. Expectations are Redis 7.4.10 replies; the woken rows also
+# require the element/PEL state the denial must leave. A row stays under 60 s (capacity's
+# 65535 create/delete pairs plus the live-slot ceiling are about 8 s here).
+  local mode case label
+  for mode in 1s 2s; do
+    for case in sort streams-name save-load capacity wake-pop wake-scatter; do
+      label="aclfix $case ($mode)"
+      row_begin "$label"
+      if py tests/aclfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+          --mode "$mode" --ratio "$GATE_RATIO" --case "$case" \
+          --output "$TMPDIR/aclfix-$case-$mode" >"$TMPDIR/aclfix-$case-$mode.log" 2>&1; then
+        ok "$label"
+      else
+        bad "$label" "see $TMPDIR/aclfix-$case-$mode.log"
+      fi
+    done
+  done
+}
+
 job_sort(){
 # ---- SORT's dynamic keys: exact production gate geometry, both atomic modes -------------------
 # tests/sort.py rejects any boot other than 16 shards at 6:2, buckets candidate names with
@@ -2139,6 +2223,26 @@ for XS_MODE in limit window; do
 done
 }
 
+job_scriptfix(){
+  # These rows own their boots and their one slot port. Never leave the slot's
+  # preboot running while the Python lifetime guard starts a candidate.
+  stop
+  local mode case label
+  for mode in 1s 2s; do
+    for case in sandbox functions replies dump; do
+      label="scriptfix $case ($mode)"
+      row_begin "$label"
+      if py tests/scriptfix.py "$case" --binary "$CANDIDATE_BINARY" \
+          --port "$PORT" --cores "$CORES" --mode "$mode" \
+          --output "$TMPDIR/scriptfix" >"$TMPDIR/scriptfix-$case-$mode.log" 2>&1; then
+        ok "$label"
+      else
+        bad "$label" "see $TMPDIR/scriptfix-$case-$mode.log"
+      fi
+    done
+  done
+}
+
 job_efficiency(){
 # ---- efficiency guards: each needs a boot geometry of its own, so each gets its own server ----
 # Exact mechanism checks run on every build; timing budgets require the explicit release-build
@@ -2193,6 +2297,36 @@ row_begin "DUMP/RESTORE restart shutdown invariants"
 shutdown_clean \
     && ok "DUMP/RESTORE restart shutdown invariants" \
     || bad "DUMP/RESTORE restart shutdown invariants"
+}
+
+job_authfix(){
+# Each row owns fresh config files, server PIDs and this worker's reserved port.
+stop
+row_begin "authfix CG4.1 binary config requirepass"
+py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+    --case config-nul --output "$TMPDIR/authfix-config" >"$TMPDIR/authfix-config.log" 2>&1 \
+    && ok "authfix CG4.1 binary config requirepass" \
+    || bad "authfix CG4.1 binary config requirepass" "see $TMPDIR/authfix-config.log"
+row_begin "authfix CG4.2 missing config value refuses boot"
+py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+    --case arity --output "$TMPDIR/authfix-arity" >"$TMPDIR/authfix-arity.log" 2>&1 \
+    && ok "authfix CG4.2 missing config value refuses boot" \
+    || bad "authfix CG4.2 missing config value refuses boot" "see $TMPDIR/authfix-arity.log"
+row_begin "authfix SV4.2 binary requirepass rewrite restart"
+py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+    --case rewrite --output "$TMPDIR/authfix-rewrite" >"$TMPDIR/authfix-rewrite.log" 2>&1 \
+    && ok "authfix SV4.2 binary requirepass rewrite restart" \
+    || bad "authfix SV4.2 binary requirepass rewrite restart" "see $TMPDIR/authfix-rewrite.log"
+row_begin "authfix SV4.1 slowlog credential redaction (1s)"
+py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+    --case slowlog-1s --output "$TMPDIR/authfix-slowlog-1s" >"$TMPDIR/authfix-slowlog-1s.log" 2>&1 \
+    && ok "authfix SV4.1 slowlog credential redaction (1s)" \
+    || bad "authfix SV4.1 slowlog credential redaction (1s)" "see $TMPDIR/authfix-slowlog-1s.log"
+row_begin "authfix SV4.1 slowlog credential redaction (2s)"
+py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+    --case slowlog-2s --output "$TMPDIR/authfix-slowlog-2s" >"$TMPDIR/authfix-slowlog-2s.log" 2>&1 \
+    && ok "authfix SV4.1 slowlog credential redaction (2s)" \
+    || bad "authfix SV4.1 slowlog credential redaction (2s)" "see $TMPDIR/authfix-slowlog-2s.log"
 }
 
 job_auth(){
@@ -2341,6 +2475,32 @@ local NET_IO=${1##*-}
       || bad "typed snapshot race reload ($NET_IO)" \
              "see $TMPDIR/gate-snapshot-race-${NET_IO}.txt"
   stop
+
+  # Each savefix row owns its boot and recovery; stop the job's listener first.
+  for SAVEFIX_MODE in 1s 2s; do
+    for SAVEFIX_ACTION in sigterm command; do
+      row_begin "shutdown keeps acknowledged writes ($SAVEFIX_MODE, $SAVEFIX_ACTION, $NET_IO)"
+      py tests/savefix.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+          --case acks --mode "$SAVEFIX_MODE" --action "$SAVEFIX_ACTION" \
+          --net-io "$NET_IO" --ratio "$GATE_RATIO" \
+          --output "$TMPDIR/savefix-acks-$SAVEFIX_MODE-$SAVEFIX_ACTION" \
+          >"$TMPDIR/savefix-acks-$SAVEFIX_MODE-$SAVEFIX_ACTION.log" 2>&1 \
+          && ok "shutdown keeps acknowledged writes ($SAVEFIX_MODE, $SAVEFIX_ACTION, $NET_IO)" \
+          || bad "shutdown keeps acknowledged writes ($SAVEFIX_MODE, $SAVEFIX_ACTION, $NET_IO)" \
+                 "see $TMPDIR/savefix-acks-$SAVEFIX_MODE-$SAVEFIX_ACTION.log"
+    done
+    for SAVEFIX_ATOMIC in 0 1; do
+      row_begin "shutdown cancels BGSAVE capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)"
+      py tests/savefix.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+          --case bgsave --mode "$SAVEFIX_MODE" --atomic "$SAVEFIX_ATOMIC" \
+          --net-io "$NET_IO" --ratio "$GATE_RATIO" \
+          --output "$TMPDIR/savefix-bgsave-$SAVEFIX_MODE-$SAVEFIX_ATOMIC" \
+          >"$TMPDIR/savefix-bgsave-$SAVEFIX_MODE-$SAVEFIX_ATOMIC.log" 2>&1 \
+          && ok "shutdown cancels BGSAVE capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+          || bad "shutdown cancels BGSAVE capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+                 "see $TMPDIR/savefix-bgsave-$SAVEFIX_MODE-$SAVEFIX_ATOMIC.log"
+    done
+  done
 }
 
 job_notify(){
@@ -2394,6 +2554,24 @@ row_begin "partial-frame conn parks (no io spin)"
 py tests/spinprobe.py $PORT "$SRV" >$TMPDIR/gate-spinprobe.txt 2>&1 \
     && ok "partial-frame conn parks (no io spin)" || bad "partial-frame conn parks (no io spin)" "see $TMPDIR/gate-spinprobe.txt"
 stop
+# flipfix (IO4.1, IO4.2). Each row owns its boots on this slot's $PORT, now free. Closing peers
+# during FLIPs once wedged the server or held each FLIP to its 5 s deadline; with save clauses
+# armed a SIGTERM during a FLIP was not served and a second SIGINT was absorbed.
+for NET_IO in uring epoll; do
+  row_begin "FLIP close during FLIP ($NET_IO)"
+  py tests/flipfix.py close --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --net-io "$NET_IO" --output "$TMPDIR/flipfix-close-$NET_IO" \
+      >"$TMPDIR/gate-flipfix-close-$NET_IO.txt" 2>&1 \
+      && ok "FLIP close during FLIP ($NET_IO)" \
+      || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-close-$NET_IO.txt"
+done
+row_begin "FLIP signal stop during FLIP + second SIGINT"
+{ py tests/flipfix.py sigterm --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigterm" &&
+  py tests/flipfix.py sigint --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigint"; } >"$TMPDIR/gate-flipfix-signal.txt" 2>&1 \
+    && ok "FLIP signal stop during FLIP + second SIGINT" \
+    || bad "FLIP signal stop during FLIP + second SIGINT" "see $TMPDIR/gate-flipfix-signal.txt"
 }
 
 job_flip_saturated(){
@@ -2611,6 +2789,22 @@ for PERSIST_MODE in 2s 1s; do
   done
 done
 
+# persistfix rows above own and reap their processes. This row owns the same
+# now-free port, including its recovery boot; the following boot takes it back.
+for SAVEFIX_MODE in 1s 2s; do
+  for SAVEFIX_ATOMIC in 0 1; do
+    row_begin "shutdown cancels AOF rewrite capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)"
+    py tests/savefix.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+        --case rewrite --mode "$SAVEFIX_MODE" --atomic "$SAVEFIX_ATOMIC" \
+        --net-io "$NET_IO" --ratio "$GATE_RATIO" \
+        --output "$TMPDIR/savefix-rewrite-$SAVEFIX_MODE-$SAVEFIX_ATOMIC" \
+        >"$TMPDIR/savefix-rewrite-$SAVEFIX_MODE-$SAVEFIX_ATOMIC.log" 2>&1 \
+        && ok "shutdown cancels AOF rewrite capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+        || bad "shutdown cancels AOF rewrite capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+               "see $TMPDIR/savefix-rewrite-$SAVEFIX_MODE-$SAVEFIX_ATOMIC.log"
+  done
+done
+
 AOF_EVERY_DIR=$(mktemp -d "$TMPDIR/gate-aof-everysec-${NET_IO}.XXXXXX")
 AOF_EVERY_STATE=$AOF_EVERY_DIR/state.json
 AOF_EVERY_FILE=$AOF_EVERY_DIR/appendonlydir/appendonly.aof.1.incr.tomo
@@ -2689,6 +2883,51 @@ AOF_OFF_SIZE=$(redis-cli -h 127.0.0.1 -p $PORT DBSIZE 2>/dev/null | tr -d '\r')
 [ "$AOF_OFF_SIZE" = 0 ] && [ ! -e "$AOF_OFF_DIR/appendonlydir" ] \
     && ok "AOF-off negative control lost data" || bad "AOF-off negative control"
 stop
+
+# All child boots below own the job's PORT only after the historical AOF server
+# is reaped. Keeping these in job_aof also serializes its persistence row timings.
+for AOFFIX_MODE in 1s 2s; do
+  for AOFFIX_CASE in snapshot filename error tickets exec_tickets resurrection rewrite_fail2 manifest_missing; do
+    row_begin "aoffix2 $AOFFIX_CASE ($AOFFIX_MODE, $NET_IO)"
+    quiet_wait
+    if python3 tests/aoffix2.py "$AOFFIX_CASE" --binary "$CANDIDATE_BINARY" \
+        --mode "$AOFFIX_MODE" --engine "$NET_IO" --cores "$CORES" --ratio "$GATE_RATIO" \
+        --port "$PORT" --artifacts "$TMPDIR/aoffix2-$AOFFIX_CASE-$AOFFIX_MODE-$NET_IO" \
+        >"$TMPDIR/aoffix2-$AOFFIX_CASE-$AOFFIX_MODE-$NET_IO.log" 2>&1; then
+      ok "aoffix2 $AOFFIX_CASE ($AOFFIX_MODE, $NET_IO)"
+    else
+      bad "aoffix2 $AOFFIX_CASE ($AOFFIX_MODE, $NET_IO)" \
+          "see $TMPDIR/aoffix2-$AOFFIX_CASE-$AOFFIX_MODE-$NET_IO.log"
+    fi
+  done
+  for AOFFIX_POLICY in everysec always; do
+    row_begin "aoffix2 off-writer acknowledgement $AOFFIX_POLICY ($AOFFIX_MODE, $NET_IO)"
+    quiet_wait
+    if python3 tests/aoffix2.py latency --binary "$CANDIDATE_BINARY" \
+        --mode "$AOFFIX_MODE" --engine "$NET_IO" --policy "$AOFFIX_POLICY" \
+        --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" \
+        --artifacts "$TMPDIR/aoffix2-latency-$AOFFIX_POLICY-$AOFFIX_MODE-$NET_IO" \
+        >"$TMPDIR/aoffix2-latency-$AOFFIX_POLICY-$AOFFIX_MODE-$NET_IO.log" 2>&1; then
+      ok "aoffix2 off-writer acknowledgement $AOFFIX_POLICY ($AOFFIX_MODE, $NET_IO)"
+    else
+      bad "aoffix2 off-writer acknowledgement $AOFFIX_POLICY ($AOFFIX_MODE, $NET_IO)" \
+          "see $TMPDIR/aoffix2-latency-$AOFFIX_POLICY-$AOFFIX_MODE-$NET_IO.log"
+    fi
+  done
+done
+for AOFFIX_LARGE_CASE in large large_placed; do
+row_begin "aoffix2 $AOFFIX_LARGE_CASE (1s, $NET_IO)"
+quiet_wait
+if python3 tests/aoffix2.py "$AOFFIX_LARGE_CASE" --binary "$CANDIDATE_BINARY" \
+    --mode 1s --engine "$NET_IO" --cores "$CORES" --port "$PORT" \
+    --artifacts "$TMPDIR/aoffix2-$AOFFIX_LARGE_CASE-$NET_IO" \
+    >"$TMPDIR/aoffix2-$AOFFIX_LARGE_CASE-$NET_IO.log" 2>&1; then
+  ok "aoffix2 $AOFFIX_LARGE_CASE (1s, $NET_IO)"
+else
+  bad "aoffix2 $AOFFIX_LARGE_CASE (1s, $NET_IO)" \
+      "see $TMPDIR/aoffix2-$AOFFIX_LARGE_CASE-$NET_IO.log"
+fi
+done
 }
 
 job_aof_frame(){
@@ -3124,6 +3363,44 @@ tsan_unit(){
   fi
 }
 
+# SV4.9 uses a fully instrumented server, with its own object cache and readiness
+# marker, just like core_tsan_build/waits_tsan_build. Build failure is a red row.
+job_racefix_tsan_build(){
+  mkdir -p "$RUN_DIR/unit-ready"
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" tsan \
+      >"$TMPDIR/build.log" 2>&1 && : > "$RUN_DIR/unit-ready/racefix-tsan"
+}
+job_racefix_counters(){
+  local mode failed=0
+  row_begin "INFO command/socket counters (TSan, both modes)"
+  if unit_ready racefix-tsan; then
+    for mode in 2s 1s; do
+      py tests/racefix.py counters --binary build/tomokv-tsan --mode "$mode" \
+          --cores "$CORES" --port "$PORT" --output "$TMPDIR/counters-$mode" \
+          >"$TMPDIR/counters-$mode.log" 2>&1 || failed=1
+    done
+  else failed=1; fi
+  if [ "$failed" = 0 ]; then ok "INFO command/socket counters (TSan, both modes)"
+  else bad "INFO command/socket counters (TSan, both modes)" "see $TMPDIR/counters-*.log"; fi
+}
+job_racefix_climon(){
+  local mode control failed=0
+  row_begin "Climon armed refresh + stale-store suppression control"
+  if unit_ready racefix-climon; then
+    for mode in 2s 1s; do
+      for control in store suppress; do
+        local args=()
+        [ "$control" != suppress ] || args+=(--suppress-stale)
+        py tests/racefix.py climon --binary build/racefix-climon --mode "$mode" \
+            --cores "$CORES" --port "$PORT" --output "$TMPDIR/climon-$mode-$control" \
+            "${args[@]}" >"$TMPDIR/climon-$mode-$control.log" 2>&1 || failed=1
+      done
+    done
+  else failed=1; fi
+  if [ "$failed" = 0 ]; then ok "Climon armed refresh + stale-store suppression control"
+  else bad "Climon armed refresh + stale-store suppression control" "see $TMPDIR/climon-*.log"; fi
+}
+
 job_tailgen_build(){
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/tailgen \
@@ -3136,10 +3413,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit \
-      build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
+      build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
+  for target in at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -3207,8 +3484,10 @@ job_dependencies(){
       for dependency in "${JOB_NAMES[@]}"; do
         [ "$dependency" = atomic_batteries ] || printf '%s\n' "$dependency"
       done;;
-    release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
-    core_units) echo 'production_units core_tsan_build';;
+    release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
+    core_units|flipfix_units) echo 'production_units core_tsan_build';;
+    racefix_counters) echo racefix_tsan_build;;
+    racefix_climon) echo production_units;;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|aof_frame) echo 'release production_units';;
@@ -3285,6 +3564,8 @@ collect_job ring_unit
 
 # SV2: collect all seven shutdown rows before the quick-tier exit.
 collect_job climonfix
+collect_job racefix_counters
+collect_job racefix_climon
 collect_job lbplanner_units
 
 # EX1/EX3/EX6: three unit rows and two live rows, all before the quick exit.
@@ -3295,7 +3576,10 @@ collect_job exbatch_live
 collect_job persistfix_units
 collect_job perfex_units
 collect_job perfex_live
+collect_job clientfix
 collect_job core_units
+# flipfix: two serverless sanitizer rows before the quick exit (+2 quick / +2 full).
+collect_job flipfix_units
 
 collect_job wb_rule_units
 
@@ -3371,18 +3655,21 @@ done
 collect_job bplus
 
 collect_job acl_recheck
+collect_job aclfix
 
 collect_job sort
 
 for AT in 0 1; do collect_job "debug-$AT"; done
 
 collect_job script_bounds
+collect_job scriptfix
 
 collect_job efficiency
 
 collect_job dump_restore
 
 collect_job auth
+collect_job authfix
 
 for NET_IO in epoll uring; do collect_job "snapshot-$NET_IO"; done
 

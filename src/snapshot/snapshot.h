@@ -51,6 +51,20 @@ public:
     SnapshotManager(const SnapshotManager&) = delete;
     SnapshotManager& operator=(const SnapshotManager&) = delete;
 
+    // Declared before the AOF lifetime guard: AOF drains first, then the
+    // snapshot writer reaps its own ring before the physical worker exits.
+    class WorkerLifetime {
+    public:
+        WorkerLifetime(SnapshotManager& manager, ThreadCtx& writer)
+            : manager_(manager), writer_(writer) {}
+        ~WorkerLifetime() { manager_.worker_shutdown(writer_); }
+        WorkerLifetime(const WorkerLifetime&) = delete;
+        WorkerLifetime& operator=(const WorkerLifetime&) = delete;
+    private:
+        SnapshotManager& manager_;
+        ThreadCtx& writer_;
+    };
+
     void init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count,
               const char* dir, const char* dbfilename, PersistIoEngine engine);
 
@@ -60,6 +74,8 @@ public:
                       bool shutdown = false);
     uint32_t writer_pass(ThreadCtx& writer, Ring& writer_ring, bool drain_all = false);
     void on_io_complete(ThreadCtx& writer, Ring& writer_ring, void* request, int result);
+    // All workers joined, their rings/pools still alive; precedes atomic-record release.
+    void cancel_after_join(Server& server);
 
     Phase phase() const { return phase_.load(std::memory_order_acquire); }
     uint64_t epoch() const { return epoch_.load(std::memory_order_acquire); }
@@ -109,6 +125,7 @@ private:
     bool complete_file_success();
     uint32_t pump_io_completions(ThreadCtx& writer, Ring& ring);
     bool drain_atomic_groups(Server& server, ThreadCtx& writer, uint64_t deadline_ns = 0);
+    void worker_shutdown(ThreadCtx& writer);
     void abort_file();
     void discard_chunks();
     void set_error(const char* text);

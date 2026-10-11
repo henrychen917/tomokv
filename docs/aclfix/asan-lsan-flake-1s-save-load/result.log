@@ -1,0 +1,123 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aclfix/build/tomokv-asan", "--bind", "127.0.0.1", "--port", "25042", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/asan-post-1s/save-load", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/asan-post-1s/save-load/users.acl", "--shards", "16", "--thread-mode", "1s", "--read-local", "1"], "case": "save-load"}
+invalid pattern b'~key with-space' RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")
+invalid pattern b'~key\twith-space' RespError(b"ERR Error in ACL SETUSER modifier '~key\twith-space': Syntax error")
+invalid pattern b'~key\nwith-space' RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")
+invalid pattern b'~key\rwith-space' RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")
+invalid pattern b'~key\x0bwith-space' RespError(b"ERR Error in ACL SETUSER modifier '~key\x0bwith-space': Syntax error")
+invalid pattern b'~key\x0cwith-space' RespError(b"ERR Error in ACL SETUSER modifier '~key\x0cwith-space': Syntax error")
+invalid pattern b'~key\x00with-space' RespError(b"ERR Error in ACL SETUSER modifier '~key': Syntax error")
+invalid pattern b'&key with-space' RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")
+invalid pattern b'&key\twith-space' RespError(b"ERR Error in ACL SETUSER modifier '&key\twith-space': Syntax error")
+invalid pattern b'&key\nwith-space' RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")
+invalid pattern b'&key\rwith-space' RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")
+invalid pattern b'&key\x0bwith-space' RespError(b"ERR Error in ACL SETUSER modifier '&key\x0bwith-space': Syntax error")
+invalid pattern b'&key\x0cwith-space' RespError(b"ERR Error in ACL SETUSER modifier '&key\x0cwith-space': Syntax error")
+invalid pattern b'&key\x00with-space' RespError(b"ERR Error in ACL SETUSER modifier '&key': Syntax error")
+invalid selector RespError(b'ERR Error in ACL SETUSER modifier \'(~"key with space" +get)\': ACL selectors are not supported')
+invalid selector RespError(b'ERR Error in ACL SETUSER modifier \'(&"channel with space" +subscribe)\': ACL selectors are not supported')
+saved b'user default on nopass sanitize-payload ~* &* +@all\nuser roundtrip on nopass sanitize-payload ~a"b ~a\'b ~a\\b resetchannels &a"b &a\'b &a\\b -@all +get\n'
+reload b'OK'
+SIGTERM exit 1
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 411, in main
+    with listener(args), connection(args.port) as admin:
+  File "/usr/lib/python3.12/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 390, in listener
+    assert process.returncode == 0, (args.output / "server.log").read_text()[-12000:]
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: :IoLoop::run_loop<false, false, false, true, false>() (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9c410ff) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #12 0x556e1f4b5f35 in operator() src/core/genthread.cc:60
+    #13 0x556e1f4b5f35 in tomo_db0::IoLoop::run_fused() src/core/genthread.cc:64
+    #14 0x556e1f4ba811 in operator() src/core/genthread.cc:192
+    #15 0x556e1f4ba811 in __invoke_impl<void, tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #16 0x556e1f4ba811 in __invoke<tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #17 0x556e1f4ba811 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #18 0x556e1f4ba811 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #19 0x556e1f4ba811 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #20 0x7fbd258ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #21 0x7fbd2625ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #22 0x7fbd24c9cb83 in start_thread nptl/pthread_create.c:447
+
+Indirect leak of 1152 byte(s) in 3 object(s) allocated from:
+    #0 0x7fbd262fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x556e1e6a14eb in tomo_db0::SmallBuf<96ul>::grow(unsigned long) src/core/../net/../exec/../base/slice.h:273
+    #2 0x556e1e6a1e9a in tomo_db0::SmallBuf<96ul>::reserve(unsigned long) src/cmd/../base/slice.h:264
+    #3 0x556e1e6a1e9a in tomo_db0::Op::Sink::reserve(unsigned long) src/cmd/../core/../store/../net/../exec/op.h:299
+    #4 0x556e1e6a2b2a in void tomo_db0::reply_bulk<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, tomo_db0::Slice) src/cmd/../store/../net/resp.h:446
+    #5 0x556e1ed1df02 in tomo_db0::acl_command_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&) src/cmd/acl.inc:1403
+    #6 0x556e1f59fbc8 in tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) src/core/io_loop.h:3592
+    #7 0x556e1f5b5ddb in void tomo_db0::IoLoop::on_recv<false, false, true>(tomo_db0::Client*, int) src/core/io_loop.h:2359
+    #8 0x556e1f5b611a in void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*) src/core/io_loop.h:1075
+    #9 0x556e1f5b8167 in tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}::operator()(io_uring_cqe*) const (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb2167) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #10 0x556e1f5b923b in unsigned int tomo_db0::Ring::for_each_cqe<tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}>(tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}&&) (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb323b) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #11 0x556e1f6470ff in void tomo_db0::IoLoop::run_loop<false, false, false, true, false>() (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9c410ff) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #12 0x556e1f4b5f35 in operator() src/core/genthread.cc:60
+    #13 0x556e1f4b5f35 in tomo_db0::IoLoop::run_fused() src/core/genthread.cc:64
+    #14 0x556e1f4ba811 in operator() src/core/genthread.cc:192
+    #15 0x556e1f4ba811 in __invoke_impl<void, tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #16 0x556e1f4ba811 in __invoke<tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #17 0x556e1f4ba811 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #18 0x556e1f4ba811 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #19 0x556e1f4ba811 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #20 0x7fbd258ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #21 0x7fbd2625ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #22 0x7fbd24c9cb83 in start_thread nptl/pthread_create.c:447
+
+Indirect leak of 192 byte(s) in 1 object(s) allocated from:
+    #0 0x7fbd262fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x556e1e6a14eb in tomo_db0::SmallBuf<96ul>::grow(unsigned long) src/core/../net/../exec/../base/slice.h:273
+    #2 0x556e1e6a1e9a in tomo_db0::SmallBuf<96ul>::reserve(unsigned long) src/cmd/../base/slice.h:264
+    #3 0x556e1e6a1e9a in tomo_db0::Op::Sink::reserve(unsigned long) src/cmd/../core/../store/../net/../exec/op.h:299
+    #4 0x556e1e6a3a5b in tomo_db0::Op::Sink::append(char const*, unsigned long) src/core/../net/../exec/op.h:313
+    #5 0x556e1e6a469c in void tomo_db0::reply_line_text<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, char const*, unsigned long) src/cmd/../core/../store/../net/resp.h:398
+    #6 0x556e1e6a469c in void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*) src/cmd/../core/../store/../net/resp.h:401
+    #7 0x556e1ed253a7 in tomo_db0::acl_command_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&) src/cmd/acl.inc:1473
+    #8 0x556e1f59fbc8 in tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) src/core/io_loop.h:3592
+    #9 0x556e1f5b5ddb in void tomo_db0::IoLoop::on_recv<false, false, true>(tomo_db0::Client*, int) src/core/io_loop.h:2359
+    #10 0x556e1f5b611a in void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*) src/core/io_loop.h:1075
+    #11 0x556e1f5b8167 in tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}::operator()(io_uring_cqe*) const (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb2167) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #12 0x556e1f5b923b in unsigned int tomo_db0::Ring::for_each_cqe<tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}>(tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}&&) (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb323b) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #13 0x556e1f6470ff in void tomo_db0::IoLoop::run_loop<false, false, false, true, false>() (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9c410ff) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #14 0x556e1f4b5f35 in operator() src/core/genthread.cc:60
+    #15 0x556e1f4b5f35 in tomo_db0::IoLoop::run_fused() src/core/genthread.cc:64
+    #16 0x556e1f4ba811 in operator() src/core/genthread.cc:192
+    #17 0x556e1f4ba811 in __invoke_impl<void, tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #18 0x556e1f4ba811 in __invoke<tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #19 0x556e1f4ba811 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #20 0x556e1f4ba811 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #21 0x556e1f4ba811 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #22 0x7fbd258ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #23 0x7fbd2625ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #24 0x7fbd24c9cb83 in start_thread nptl/pthread_create.c:447
+
+Indirect leak of 192 byte(s) in 1 object(s) allocated from:
+    #0 0x7fbd262fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x556e1e6a14eb in tomo_db0::SmallBuf<96ul>::grow(unsigned long) src/core/../net/../exec/../base/slice.h:273
+    #2 0x556e1e6a1e9a in tomo_db0::SmallBuf<96ul>::reserve(unsigned long) src/cmd/../base/slice.h:264
+    #3 0x556e1e6a1e9a in tomo_db0::Op::Sink::reserve(unsigned long) src/cmd/../core/../store/../net/../exec/op.h:299
+    #4 0x556e1e6a3a5b in tomo_db0::Op::Sink::append(char const*, unsigned long) src/core/../net/../exec/op.h:313
+    #5 0x556e1e6a469c in void tomo_db0::reply_line_text<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, char const*, unsigned long) src/cmd/../core/../store/../net/resp.h:398
+    #6 0x556e1e6a469c in void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*) src/cmd/../core/../store/../net/resp.h:401
+    #7 0x556e1ed1bad8 in tomo_db0::acl_command_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&) src/cmd/acl.inc:1356
+    #8 0x556e1f59fbc8 in tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) src/core/io_loop.h:3592
+    #9 0x556e1f5b5ddb in void tomo_db0::IoLoop::on_recv<false, false, true>(tomo_db0::Client*, int) src/core/io_loop.h:2359
+    #10 0x556e1f5b611a in void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*) src/core/io_loop.h:1075
+    #11 0x556e1f5b8167 in tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}::operator()(io_uring_cqe*) const (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb2167) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #12 0x556e1f5b923b in unsigned int tomo_db0::Ring::for_each_cqe<tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}>(tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}&&) (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb323b) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #13 0x556e1f6470ff in void tomo_db0::IoLoop::run_loop<false, false, false, true, false>() (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9c410ff) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #14 0x556e1f4b5f35 in operator() src/core/genthread.cc:60
+    #15 0x556e1f4b5f35 in tomo_db0::IoLoop::run_fused() src/core/genthread.cc:64
+    #16 0x556e1f4ba811 in operator() src/core/genthread.cc:192
+    #17 0x556e1f4ba811 in __invoke_impl<void, tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #18 0x556e1f4ba811 in __invoke<tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #19 0x556e1f4ba811 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #20 0x556e1f4ba811 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #21 0x556e1f4ba811 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #22 0x7fbd258ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #23 0x7fbd2625ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #24 0x7fbd24c9cb83 in start_thread nptl/pthread_create.c:447
+
+SUMMARY: AddressSanitizer: 47232 byte(s) leaked in 45 allocation(s).
+
+aclfix save-load FAIL (1.028s)

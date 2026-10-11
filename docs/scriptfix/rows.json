@@ -1,0 +1,256 @@
+[
+  {
+    "row": "scriptfix sandbox (1s)",
+    "pre": {
+      "log": "docs/scriptfix/pre-sandbox-1s.log",
+      "case": "sandbox",
+      "mode": "1s",
+      "checks": 37,
+      "failures": 18,
+      "seconds": 0.183,
+      "checks_failed": [
+        "redis.call is readonly",
+        "other client script GET",
+        "_G.tonumber=1",
+        "_G.cc4new=1",
+        "rawset(_G,'cc4new',1)",
+        "rawset(redis,'call',1)",
+        "setmetatable(redis,{})",
+        "string.byte=1",
+        "math.abs=1",
+        "table.insert=1",
+        "table.insert(redis,1)",
+        "getmetatable('').__index.byte=1",
+        "getmetatable('').__index={}",
+        "getmetatable(_G).__index=1",
+        "no environment replacement API: getfenv",
+        "no environment replacement API: setfenv",
+        "function sandbox readonly",
+        "function cannot poison EVAL"
+      ]
+    },
+    "post": {
+      "log": "docs/scriptfix/post-sandbox-1s.log",
+      "case": "sandbox",
+      "mode": "1s",
+      "checks": 37,
+      "failures": 0,
+      "seconds": 0.47,
+      "checks_failed": []
+    }
+  },
+  {
+    "row": "scriptfix functions (1s)",
+    "pre": {
+      "log": "docs/scriptfix/pre-functions-1s.log",
+      "case": "functions",
+      "mode": "1s",
+      "checks": 26,
+      "failures": 10,
+      "seconds": 0.141,
+      "checks_failed": [
+        "after SCRIPT FLUSH",
+        "after unrelated LOAD",
+        "unrelated DELETE preserves closure",
+        "unrelated reload preserves closure",
+        "failed LOAD preserves closure",
+        "unrelated REPLACE preserves closure",
+        "unrelated RESTORE preserves closure",
+        "APPEND preserves closure",
+        "failed RESTORE preserves closure",
+        "failed replacement preserves closure"
+      ]
+    },
+    "post": {
+      "log": "docs/scriptfix/post-functions-1s.log",
+      "case": "functions",
+      "mode": "1s",
+      "checks": 26,
+      "failures": 0,
+      "seconds": 0.407,
+      "checks_failed": []
+    }
+  },
+  {
+    "row": "scriptfix replies (1s)",
+    "pre": {
+      "log": "docs/scriptfix/pre-replies-1s.log",
+      "case": "replies",
+      "mode": "1s",
+      "checks": 52,
+      "failures": 10,
+      "seconds": 10.298,
+      "checks_failed": [
+        "RESP2 map depth 5",
+        "RESP2 set depth 5",
+        "RESP2 FCALL map bound",
+        "RESP2 map budget 100001",
+        "RESP2 set budget 100001",
+        "RESP3 map depth 5",
+        "RESP3 set depth 5",
+        "RESP3 FCALL map bound",
+        "RESP3 map budget 100001",
+        "RESP3 set budget 100001"
+      ]
+    },
+    "post": {
+      "log": "docs/scriptfix/post-replies-1s.log",
+      "case": "replies",
+      "mode": "1s",
+      "checks": 52,
+      "failures": 0,
+      "seconds": 3.364,
+      "checks_failed": []
+    }
+  },
+  {
+    "row": "scriptfix dump (1s)",
+    "pre": {
+      "log": "docs/scriptfix/pre-dump-1s.log",
+      "case": "dump",
+      "mode": "1s",
+      "checks": 8,
+      "failures": 1,
+      "seconds": 1.4,
+      "checks_failed": [
+        "restore 4097"
+      ]
+    },
+    "post": {
+      "log": "docs/scriptfix/post-dump-1s.log",
+      "case": "dump",
+      "mode": "1s",
+      "checks": 8,
+      "failures": 0,
+      "seconds": 4.128,
+      "checks_failed": []
+    }
+  },
+  {
+    "row": "scriptfix sandbox (2s)",
+    "pre": {
+      "log": "docs/scriptfix/pre-sandbox-2s.log",
+      "case": "sandbox",
+      "mode": "2s",
+      "checks": 37,
+      "failures": 18,
+      "seconds": 0.141,
+      "checks_failed": [
+        "redis.call is readonly",
+        "other client script GET",
+        "_G.tonumber=1",
+        "_G.cc4new=1",
+        "rawset(_G,'cc4new',1)",
+        "rawset(redis,'call',1)",
+        "setmetatable(redis,{})",
+        "string.byte=1",
+        "math.abs=1",
+        "table.insert=1",
+        "table.insert(redis,1)",
+        "getmetatable('').__index.byte=1",
+        "getmetatable('').__index={}",
+        "getmetatable(_G).__index=1",
+        "no environment replacement API: getfenv",
+        "no environment replacement API: setfenv",
+        "function sandbox readonly",
+        "function cannot poison EVAL"
+      ]
+    },
+    "post": {
+      "log": "docs/scriptfix/post-sandbox-2s.log",
+      "case": "sandbox",
+      "mode": "2s",
+      "checks": 37,
+      "failures": 0,
+      "seconds": 0.39,
+      "checks_failed": []
+    }
+  },
+  {
+    "row": "scriptfix functions (2s)",
+    "pre": {
+      "log": "docs/scriptfix/pre-functions-2s.log",
+      "case": "functions",
+      "mode": "2s",
+      "checks": 26,
+      "failures": 10,
+      "seconds": 0.129,
+      "checks_failed": [
+        "after SCRIPT FLUSH",
+        "after unrelated LOAD",
+        "unrelated DELETE preserves closure",
+        "unrelated reload preserves closure",
+        "failed LOAD preserves closure",
+        "unrelated REPLACE preserves closure",
+        "unrelated RESTORE preserves closure",
+        "APPEND preserves closure",
+        "failed RESTORE preserves closure",
+        "failed replacement preserves closure"
+      ]
+    },
+    "post": {
+      "log": "docs/scriptfix/post-functions-2s.log",
+      "case": "functions",
+      "mode": "2s",
+      "checks": 26,
+      "failures": 0,
+      "seconds": 0.48,
+      "checks_failed": []
+    }
+  },
+  {
+    "row": "scriptfix replies (2s)",
+    "pre": {
+      "log": "docs/scriptfix/pre-replies-2s.log",
+      "case": "replies",
+      "mode": "2s",
+      "checks": 52,
+      "failures": 10,
+      "seconds": 10.354,
+      "checks_failed": [
+        "RESP2 map depth 5",
+        "RESP2 set depth 5",
+        "RESP2 FCALL map bound",
+        "RESP2 map budget 100001",
+        "RESP2 set budget 100001",
+        "RESP3 map depth 5",
+        "RESP3 set depth 5",
+        "RESP3 FCALL map bound",
+        "RESP3 map budget 100001",
+        "RESP3 set budget 100001"
+      ]
+    },
+    "post": {
+      "log": "docs/scriptfix/post-replies-2s.log",
+      "case": "replies",
+      "mode": "2s",
+      "checks": 52,
+      "failures": 0,
+      "seconds": 2.83,
+      "checks_failed": []
+    }
+  },
+  {
+    "row": "scriptfix dump (2s)",
+    "pre": {
+      "log": "docs/scriptfix/pre-dump-2s.log",
+      "case": "dump",
+      "mode": "2s",
+      "checks": 8,
+      "failures": 1,
+      "seconds": 1.016,
+      "checks_failed": [
+        "restore 4097"
+      ]
+    },
+    "post": {
+      "log": "docs/scriptfix/post-dump-2s.log",
+      "case": "dump",
+      "mode": "2s",
+      "checks": 8,
+      "failures": 0,
+      "seconds": 4.379,
+      "checks_failed": []
+    }
+  }
+]

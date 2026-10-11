@@ -1,0 +1,40 @@
+FLIPDIAG tid=0 role=1 stage=7 epoch=17 acked=0 pin=1 count=333 quota=334 xq=0 inq=0 psinf=0 pspend=0 closing=3 active=3 serve=0 dn=0 dr=0 mig=0 epc=0 drained=0 coord=1 dropped_local=0
+FLIPDIAG tid=2 role=1 stage=7 epoch=17 acked=1 pin=0 count=0 quota=0 xq=1 inq=1 psinf=0 pspend=0 closing=0 active=0 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=0
+FLIPDIAG tid=7 role=1 stage=7 epoch=17 acked=1 pin=0 count=0 quota=0 xq=1 inq=1 psinf=0 pspend=0 closing=0 active=0 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=0
+FLIPDIAG tid=6 role=1 stage=7 epoch=17 acked=1 pin=1 count=334 quota=334 xq=1 inq=1 psinf=0 pspend=0 closing=3 active=3 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=0
+FLIPDIAG tid=1 role=1 stage=7 epoch=17 acked=1 pin=1 count=335 quota=335 xq=1 inq=1 psinf=0 pspend=0 closing=2 active=3 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=1
+FLIPDIAG   t0 role=1 ready=1 target=0 acked=0 count=333 quota=334
+FLIPDIAG   t1 role=1 ready=1 target=0 acked=1 count=335 quota=335
+FLIPDIAG tid=5 role=1 stage=7 epoch=17 acked=1 pin=1 count=333 quota=333 xq=1 inq=1 psinf=0 pspend=0 closing=2 active=2 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=0
+FLIPDIAG   t2 role=1 ready=1 target=2 acked=1 count=0 quota=0
+FLIPDIAG   t3 role=2 ready=2 target=0 acked=0 count=0 quota=0
+FLIPDIAG   t4 role=2 ready=2 target=0 acked=0 count=0 quota=0
+FLIPDIAG   t5 role=1 ready=1 target=0 acked=1 count=333 quota=333
+FLIPDIAG   t6 role=1 ready=1 target=0 acked=1 count=334 quota=334
+FLIPDIAG   t7 role=1 ready=1 target=2 acked=1 count=0 quota=0
+FLIPDIAG tid=0 role=1 stage=7 epoch=17 acked=0 pin=1 count=333 quota=334 xq=0 inq=0 psinf=0 pspend=0 closing=3 active=3 serve=0 dn=0 dr=0 mig=0 epc=0 drained=0 coord=1 dropped_local=0
+FLIPDIAG tid=2 role=1 stage=7 epoch=17 acked=1 pin=0 count=0 quota=0 xq=1 inq=1 psinf=0 pspend=0 closing=0 active=0 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=0
+FLIPDIAG tid=7 role=1 stage=7 epoch=17 acked=1 pin=0 count=0 quota=0 xq=1 inq=1 psinf=0 pspend=0 closing=0 active=0 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=0
+FLIPDIAG tid=5 role=1 stage=7 epoch=17 acked=1 pin=1 count=333 quota=333 xq=1 inq=1 psinf=0 pspend=0 closing=2 active=2 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=0
+FLIPDIAG tid=1 role=1 stage=7 epoch=17 acked=1 pin=1 count=335 quota=335 xq=1 inq=1 psinf=0 pspend=0 closing=2 active=3 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=1
+FLIPDIAG   t0 role=1 ready=1 target=0 acked=0 count=333 quota=334
+FLIPDIAG   t1 role=1 ready=1 target=0 acked=1 count=335 quota=335
+FLIPDIAG   t2 role=1 ready=1 target=2 acked=1 count=0 quota=0
+FLIPDIAG   t3 role=2 ready=2 target=0 acked=0 count=0 quota=0
+FLIPDIAG   t4 role=2 ready=2 target=0 acked=0 count=0 quota=0
+FLIPDIAG   t5 role=1 ready=1 target=0 acked=1 count=333 quota=333
+FLIPDIAG   t6 role=1 ready=1 target=0 acked=1 count=334 quota=334
+FLIPDIAG   t7 role=1 ready=1 target=2 acked=1 count=0 quota=0
+FLIPDIAG tid=6 role=1 stage=7 epoch=17 acked=1 pin=1 count=334 quota=334 xq=1 inq=1 psinf=0 pspend=0 closing=3 active=3 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=0
+FLIPDIAG tid=0 role=1 stage=7 epoch=17 acked=0 pin=1 count=333 quota=334 xq=0 inq=0 psinf=0 pspend=0 closing=3 active=3 serve=0 dn=0 dr=0 mig=0 epc=0 drained=0 coord=1 dropped_local=0
+FLIPDIAG tid=1 role=1 stage=7 epoch=17 acked=1 pin=1 count=335 quota=335 xq=1 inq=1 psinf=0 pspend=0 closing=2 active=3 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=1
+FLIPDIAG   t0 role=1 ready=1 target=0 acked=0 count=333 quota=334
+FLIPDIAG   t1 role=1 ready=1 target=0 acked=1 count=335 quota=335
+FLIPDIAG tid=6 role=1 stage=7 epoch=17 acked=1 pin=1 count=334 quota=334 xq=1 inq=1 psinf=0 pspend=0 closing=3 active=3 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=0
+FLIPDIAG tid=2 role=1 stage=7 epoch=17 acked=1 pin=0 count=0 quota=0 xq=1 inq=1 psinf=0 pspend=0 closing=0 active=0 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=0
+FLIPDIAG tid=5 role=1 stage=7 epoch=17 acked=1 pin=1 count=333 quota=333 xq=1 inq=1 psinf=0 pspend=0 closing=2 active=2 serve=0 dn=0 dr=0 mig=0 epc=0 drained=1 coord=1 dropped_local=0
+FLIPDIAG   t2 role=1 ready=1 target=2 acked=1 count=0 quota=0
+FLIPDIAG   t3 role=2 ready=2 target=0 acked=0 count=0 quota=0
+FLIPDIAG   t4 role=2 ready=2 target=0 acked=0 count=0 quota=0
+FLIPDIAG   t5 role=1 ready=1 target=0 acked=1 count=333 quota=333
+FLIPDIAG   t6 role=1 ready=1 target=0 acked=1 count=334 quota=334

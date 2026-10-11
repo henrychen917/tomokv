@@ -1,0 +1,33 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-119",
+    "/home/user/Projects/cx-authfix/build/authfix/pre/tomokv",
+    "/home/user/Projects/cx-authfix/docs/authfix/pre-verified/config-nul/candidate/2s-leading.conf",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "25028",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-authfix/docs/authfix/pre-verified/config-nul/candidate/2s-override/data",
+    "--protected-mode",
+    "no",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--ratio",
+    "6:2",
+    "--requirepass",
+    "cli-password"
+  ],
+  "pid": 3691341,
+  "booted": true,
+  "exit": 0,
+  "port_closed": true
+}

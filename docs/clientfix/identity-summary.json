@@ -1,0 +1,22 @@
+{
+  "tomo": {
+    "bodies": 8407,
+    "bodies_equal": 8238,
+    "hot": 601,
+    "hot_equal": 525,
+    "main_commands": 5,
+    "main_commands_equal": 5,
+    "objects_with_bodies": 49,
+    "objects": 50
+  },
+  "tomo_db0": {
+    "bodies": 7917,
+    "bodies_equal": 7749,
+    "hot": 603,
+    "hot_equal": 523,
+    "main_commands": 5,
+    "main_commands_equal": 5,
+    "objects_with_bodies": 50,
+    "objects": 50
+  }
+}

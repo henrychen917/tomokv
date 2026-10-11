@@ -1,0 +1,14 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "python3",
+    "docs/deadswitch/linked_bytes.py",
+    "build/authfix/pre/tomokv",
+    "build/tomokv",
+    "docs/authfix/authfix2/linked.json"
+  ],
+  "exit": 1,
+  "seconds": 2.3807913651689887
+}

@@ -1,0 +1,8 @@
+all rc=0 secs=126 load=23.41
+production-units rc=0 secs=255 load=21.26
+mdbqsbr-live-arms rc=0 secs=147 load=16.17
+asan rc=0 secs=162 load=9.02
+tsan rc=0 secs=70 load=14.20
+core-tsan rc=0 secs=46 load=13.42
+flipctl-unit rc=0 secs=4 load=12.67
+DONE

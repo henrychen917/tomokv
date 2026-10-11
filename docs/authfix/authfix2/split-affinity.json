@@ -1,0 +1,76 @@
+[
+  {
+    "geometry": "split",
+    "role": "vanilla Redis oracle",
+    "pid": 2845429,
+    "threads": [
+      {
+        "tid": 2845429,
+        "allowed_cpus": "120"
+      },
+      {
+        "tid": 2845438,
+        "allowed_cpus": "120"
+      },
+      {
+        "tid": 2845439,
+        "allowed_cpus": "120"
+      },
+      {
+        "tid": 2845440,
+        "allowed_cpus": "120"
+      },
+      {
+        "tid": 2845441,
+        "allowed_cpus": "120"
+      },
+      {
+        "tid": 2845442,
+        "allowed_cpus": "120"
+      }
+    ]
+  },
+  {
+    "geometry": "split",
+    "role": "target atomic=0",
+    "pid": 2845454,
+    "threads": [
+      {
+        "tid": 2845454,
+        "allowed_cpus": "112-119"
+      },
+      {
+        "tid": 2845463,
+        "allowed_cpus": "118"
+      },
+      {
+        "tid": 2845464,
+        "allowed_cpus": "119"
+      },
+      {
+        "tid": 2845465,
+        "allowed_cpus": "112"
+      },
+      {
+        "tid": 2845466,
+        "allowed_cpus": "113"
+      },
+      {
+        "tid": 2845467,
+        "allowed_cpus": "114"
+      },
+      {
+        "tid": 2845468,
+        "allowed_cpus": "115"
+      },
+      {
+        "tid": 2845469,
+        "allowed_cpus": "116"
+      },
+      {
+        "tid": 2845470,
+        "allowed_cpus": "117"
+      }
+    ]
+  }
+]

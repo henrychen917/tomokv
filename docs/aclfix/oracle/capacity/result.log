@@ -1,0 +1,5 @@
+{"command": ["taskset", "-c", "120", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "25043", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/oracle/capacity", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/oracle/capacity/users.acl"], "case": "capacity"}
+65535 create/delete pairs; extra creations: b'OK' b'OK'
+live-slot boundary: two exact b'OK' replies
+SIGTERM exit 0
+aclfix capacity PASS (4.805s)

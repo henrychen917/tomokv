@@ -1,0 +1,16 @@
+diff --git a/src/cmd/acl.inc b/src/cmd/acl.inc
+--- a/src/cmd/acl.inc
++++ b/src/cmd/acl.inc
+@@ -984,10 +984,10 @@ bool acl_initialize(Server& server, const Config& config, std::string& error) {
+     default_image.flags = AclUserEnabled | AclUserNoPass | AclUserSanitize;
+     default_image.perm.flags = AclAllKeys | AclAllChannels;
+     acl_reset_commands(default_image.perm, true);
+-    if (config.requirepass && *config.requirepass) {
++    if (!cfg_requirepass(config).empty()) {
+         default_image.flags &= ~AclUserNoPass;
+         default_image.passwords.push_back(
+-            auth_password_digest(Slice(config.requirepass, std::strlen(config.requirepass))));
++            auth_password_digest(cfg_requirepass(config)));
+     }
+     if (!acl_create_locked(std::move(default_image), kAclDefaultUser)) {
+         error = "ACL initialization failed: out of memory";

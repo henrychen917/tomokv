@@ -457,9 +457,17 @@ struct Config {
     // Boot-only writeback bounds; measured defaults, occupying the reserved tail.
     uint32_t wb_small_pipe = wb_rule::kSmallPipe;
     uint32_t wb_complete_visits = wb_rule::kCompleteVisits;
-    uint8_t layout_reserved[44]{};
+    // Boot token length; zero also permits ordinary C-string callers of Config.
+    // Password bytes remain owned by the config token store (or argv).
+    uint32_t requirepass_size = 0;
+    uint8_t layout_reserved[40]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
+
+inline Slice cfg_requirepass(const Config& cfg) {
+    const char* password = cfg.requirepass ? cfg.requirepass : "";
+    return Slice(password, cfg.requirepass_size ? cfg.requirepass_size : std::strlen(password));
+}
 
 // Boot-latched R7 capability; the exact-layout measurement twin disables it.
 bool reorder_available();
@@ -623,7 +631,8 @@ enum : int { kConfigParsed = 0, kConfigError = 1, kConfigHelp = 2 };
 // Parses one token stream (no argv[0]) into cfg. `source` is 1 for the conf file, 2 for the CLI.
 // Prints its own error messages; the caller adds file context on conf failures.
 inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
-                             ConfigParseState& st, int source, const char* prog) {
+                             ConfigParseState& st, int source, const char* prog,
+                             const std::vector<size_t>* lengths = nullptr) {
     const int argc = static_cast<int>(args.size());
     for (int i = 0; i < argc; i++) {
         auto next = [&](const char* d) { return (i + 1 < argc) ? args[++i] : d; };
@@ -742,7 +751,15 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             i = end - 1;
         }
-        else if (!std::strcmp(a, "--requirepass")) cfg.requirepass = next("");
+        else if (!std::strcmp(a, "--requirepass")) {
+            const char* value = next(nullptr);
+            if (!value) {
+                std::fprintf(stderr, "wrong number of arguments\n");
+                return kConfigError;
+            }
+            cfg.requirepass = value;
+            cfg.requirepass_size = lengths ? (*lengths)[i] : std::strlen(value);
+        }
         else if (!std::strcmp(a, "--aclfile")) cfg.aclfile = next("");
         else if (!std::strcmp(a, "--user")) {
             const int begin = i + 1;
@@ -1378,7 +1395,8 @@ inline bool cfg_split_args(const char* line, std::vector<std::string>& out) {
 // parser consumes, so the file cannot drift from the flag grammar. `pin yes|no` maps to the
 // valueless --no-pin. Token storage lives in `store` (must outlive parsing — Config keeps
 // const char* views into it).
-inline bool load_conf_file(const char* path, std::vector<std::string>& store) {
+inline bool load_conf_file(const char* path, std::vector<std::string>& store,
+                           std::vector<size_t>* line_ends = nullptr) {
     std::FILE* f = std::fopen(path, "r");
     if (!f) {
         std::fprintf(stderr, "cannot open conf file '%s'\n", path);
@@ -1411,14 +1429,48 @@ inline bool load_conf_file(const char* path, std::vector<std::string>& store) {
                 ok = false;
             } else if (words[1] == "no") {
                 store.emplace_back("--no-pin");
+                if (line_ends) line_ends->push_back(store.size());
             }
+            continue;
+        }
+        // Preserve each directive's arity before flattening storage. An omitted value is
+        // different from an explicit empty string, and cannot consume the next line.
+        const bool valueless = words[0] == "no-pin" || words[0] == "help";
+        const bool variadic = words[0] == "user" || words[0] == "save" ||
+                              words[0] == "client-output-buffer-limit";
+        if ((valueless && words.size() != 1) ||
+            (!valueless && (words.size() < 2 || (!variadic && words.size() != 2)))) {
+            std::fprintf(stderr, "%s:%d: wrong number of arguments\n", path, lineno);
+            ok = false;
             continue;
         }
         store.emplace_back("--" + words[0]);
         for (size_t w = 1; w < words.size(); w++) store.emplace_back(words[w]);
+        if (line_ends) line_ends->push_back(store.size());
     }
     std::fclose(f);
     return ok;
+}
+
+// Parse one physical directive at a time while retaining the decoded byte lengths.
+// ConfigParseState spans lines so repeated save/user directives and CLI precedence retain
+// their existing semantics. The string store outlives Config's borrowed pointers.
+__attribute__((noipa)) inline int parse_config_file(const std::vector<std::string>& store,
+        const std::vector<size_t>& line_ends, Config& cfg, ConfigParseState& st,
+        const char* prog) {
+    size_t begin = 0;
+    for (size_t end : line_ends) {
+        std::vector<const char*> args;
+        std::vector<size_t> lengths;
+        for (size_t i = begin; i < end; i++) {
+            args.push_back(store[i].c_str());
+            lengths.push_back(store[i].size());
+        }
+        const int rc = parse_config_args(args, cfg, st, 1, prog, &lengths);
+        if (rc != kConfigParsed) return rc;
+        begin = end;
+    }
+    return kConfigParsed;
 }
 
 }  // namespace tomo

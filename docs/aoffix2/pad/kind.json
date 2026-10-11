@@ -1,0 +1,171 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "PRE 5146b78ee",
+  "layout": "POST AOF-only ChunkChan and replay plan, plus total .text size",
+  "limitation": "Function addresses may differ; no claim of identical function placement",
+  "padding_bytes": 14272,
+  "text_bytes": 7596604,
+  "layouts": {
+    "POST": {
+      "tomo::AofReplayPlan": {
+        "size": 184,
+        "fields": {
+          "shard_count": 0,
+          "hash_kind": 32,
+          "hash_seed": 64,
+          "sip_k0": 128,
+          "sip_k1": 192,
+          "replayed_records": 256,
+          "groups_skipped": 320,
+          "ticket_floor": 384,
+          "next_sequence": 448,
+          "sections": 640,
+          "control_section": 832,
+          "committed_groups": 1024
+        }
+      },
+      "tomo::AofManager::ChunkChan": {
+        "size": 896,
+        "fields": {
+          "tomo::Channel<tomo::AofChunk*, 64>": 0,
+          "pending": 5184,
+          "reusable": 5376,
+          "pending_remote": 5568,
+          "completions": 5632,
+          "refused": 6272,
+          "pending_at_stop": 6336,
+          "drain_gave_up": 6344,
+          "buffered": 6400,
+          "published": 6464,
+          "execution_stopped": 6528,
+          "stopped": 6536,
+          "debug_window": 6592,
+          "debug_armed": 6656,
+          "rewrite_epoch": 6720,
+          "rewrite_commit": 6784,
+          "sealing_on_writer": 6848
+        }
+      },
+      "tomo_db0::AofReplayPlan": {
+        "size": 184,
+        "fields": {
+          "shard_count": 0,
+          "hash_kind": 32,
+          "hash_seed": 64,
+          "sip_k0": 128,
+          "sip_k1": 192,
+          "replayed_records": 256,
+          "groups_skipped": 320,
+          "ticket_floor": 384,
+          "next_sequence": 448,
+          "sections": 640,
+          "control_section": 832,
+          "committed_groups": 1024
+        }
+      },
+      "tomo_db0::AofManager::ChunkChan": {
+        "size": 896,
+        "fields": {
+          "tomo_db0::Channel<tomo_db0::AofChunk*, 64>": 0,
+          "pending": 5184,
+          "reusable": 5376,
+          "pending_remote": 5568,
+          "completions": 5632,
+          "refused": 6272,
+          "pending_at_stop": 6336,
+          "drain_gave_up": 6344,
+          "buffered": 6400,
+          "published": 6464,
+          "execution_stopped": 6528,
+          "stopped": 6536,
+          "debug_window": 6592,
+          "debug_armed": 6656,
+          "rewrite_epoch": 6720,
+          "rewrite_commit": 6784,
+          "sealing_on_writer": 6848
+        }
+      }
+    },
+    "PAD": {
+      "tomo::AofReplayPlan": {
+        "size": 184,
+        "fields": {
+          "shard_count": 0,
+          "hash_kind": 32,
+          "hash_seed": 64,
+          "sip_k0": 128,
+          "sip_k1": 192,
+          "replayed_records": 256,
+          "groups_skipped": 320,
+          "ticket_floor": 384,
+          "next_sequence": 448,
+          "sections": 640,
+          "control_section": 832,
+          "committed_groups": 1024
+        }
+      },
+      "tomo::AofManager::ChunkChan": {
+        "size": 896,
+        "fields": {
+          "tomo::Channel<tomo::AofChunk*, 64>": 0,
+          "pending": 5184,
+          "reusable": 5376,
+          "pending_remote": 5568,
+          "completions": 5632,
+          "refused": 6272,
+          "pending_at_stop": 6336,
+          "drain_gave_up": 6344,
+          "buffered": 6400,
+          "published": 6464,
+          "execution_stopped": 6528,
+          "stopped": 6536,
+          "debug_window": 6592,
+          "debug_armed": 6656,
+          "rewrite_epoch": 6720,
+          "rewrite_commit": 6784,
+          "sealing_on_writer": 6848
+        }
+      },
+      "tomo_db0::AofReplayPlan": {
+        "size": 184,
+        "fields": {
+          "shard_count": 0,
+          "hash_kind": 32,
+          "hash_seed": 64,
+          "sip_k0": 128,
+          "sip_k1": 192,
+          "replayed_records": 256,
+          "groups_skipped": 320,
+          "ticket_floor": 384,
+          "next_sequence": 448,
+          "sections": 640,
+          "control_section": 832,
+          "committed_groups": 1024
+        }
+      },
+      "tomo_db0::AofManager::ChunkChan": {
+        "size": 896,
+        "fields": {
+          "tomo_db0::Channel<tomo_db0::AofChunk*, 64>": 0,
+          "pending": 5184,
+          "reusable": 5376,
+          "pending_remote": 5568,
+          "completions": 5632,
+          "refused": 6272,
+          "pending_at_stop": 6336,
+          "drain_gave_up": 6344,
+          "buffered": 6400,
+          "published": 6464,
+          "execution_stopped": 6528,
+          "stopped": 6536,
+          "debug_window": 6592,
+          "debug_armed": 6656,
+          "rewrite_epoch": 6720,
+          "rewrite_commit": 6784,
+          "sealing_on_writer": 6848
+        }
+      }
+    }
+  },
+  "sha256": "6d486382887e3d284d161023787b46ecdf4af10dc792031640a1d8e2f0e29cdb"
+}

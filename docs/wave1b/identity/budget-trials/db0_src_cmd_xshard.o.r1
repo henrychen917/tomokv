@@ -1,0 +1,16 @@
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126421", "unit": 98974, "hot_changed": 0, "A": 19, "B": 0, "C": 2, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+    C T=new code 7646->7454 lanes=- tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, to
+    C T=new code 236->242 lanes=- tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, to
+    D T=racefix code 947->979 lanes=racefix tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace):
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126440", "unit": 98974, "hot_changed": 0, "A": 17, "B": 0, "C": 2, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 3, "Chot": 0, "Dhot": 0}
+    C T=new code 1297->1230 lanes=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespa
+    C T=PRE code 90->86 lanes=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespa
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126450", "unit": 98974, "hot_changed": 0, "A": 17, "B": 0, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 1, "Chot": 0, "Dhot": 0}
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126460", "unit": 98974, "hot_changed": 0, "A": 16, "B": 0, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126464", "unit": 98974, "hot_changed": 0, "A": 19, "B": 0, "C": 0, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+    D T=racefix code 947->979 lanes=racefix tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace):
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126470", "unit": 98974, "hot_changed": 0, "A": 20, "B": 0, "C": 0, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 1, "Chot": 0, "Dhot": 0}
+    D T=racefix code 947->979 lanes=racefix tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace):
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126480", "unit": 98974, "hot_changed": 0, "A": 15, "B": 0, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126500", "unit": 98974, "hot_changed": 0, "A": 16, "B": 0, "C": 1, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new code 1304->1404 lanes=- tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard

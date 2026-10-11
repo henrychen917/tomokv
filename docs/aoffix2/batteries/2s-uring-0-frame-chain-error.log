@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py", line 106, in battery_chain
+    action()
+  File "/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py", line 153, in chain
+    s.p.wait(timeout=10)
+  File "/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py", line 133, in live
+    data = h.ARGS.artifacts / f'{name}-{atomic}'
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py", line 43, in run
+    assert rc == 0, log
+           ^^^^^^^
+AssertionError: /home/user/Projects/cx-aoffix2/docs/aoffix2/batteries/2s-uring-0-frame-run.log

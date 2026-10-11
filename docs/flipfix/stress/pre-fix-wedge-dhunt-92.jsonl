@@ -1,0 +1,48 @@
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/flipfix/diag/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/runs/dhunt-92/close", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "epoll", "--enable-debug-command", "yes"], "event": "boot", "label": "close", "loadavg": [6.666015625, 9.17822265625, 14.2197265625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/flipfix/diag/tomokv", "label": "close", "pid": 739919}
+{"attempt": 0, "elapsed": 0.0144, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 1, "elapsed": 0.0001, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 2, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 3, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 4, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 5, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 6, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 7, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 4}
+{"attempt": 8, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve destination epoll registration", "target": 2}
+{"attempt": 9, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 4}
+{"attempt": 10, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 6}
+{"attempt": 11, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 12, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve destination epoll registration", "target": 2}
+{"attempt": 13, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 14, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 15, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 16, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve destination epoll registration", "target": 2}
+{"attempt": 17, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 18, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 19, "event": "wedged", "report": {"bucket_max": 8, "bucket_min": 8, "client_max": 335, "client_min": 0, "last_transfers": 739, "live_ex": 2, "live_io": 6, "moving": 1, "smt_mode": 0, "target_ex": 4, "target_io": 4, "unit_threads": 1}, "target": 4}
+{"event": "stop", "label": "close", "loadavg": [6.69287109375, 9.1416015625, 14.1806640625], "log": "/home/user/Projects/cx-flipfix/build/flipfix/runs/dhunt-92/close/close.log", "rc": 0}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 208, in disconnects
+    reply = admin.read()
+            ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-flipfix/tests/_lib.py", line 161, in read
+    head = read(1)
+           ^^^^^^^
+  File "/home/user/Projects/cx-flipfix/tests/_lib.py", line 124, in _read
+    return self.file.read(size)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 465, in <module>
+    main()
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 455, in main
+    disconnects(args, args.case == 'churn')
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 218, in disconnects
+    raise AssertionError(
+AssertionError: FLIP 4 4 unanswered after 6.5s (attempt 19): wedged

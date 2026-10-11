@@ -1,0 +1,37 @@
+tests/gates_test.py SchedulerWiring, alternated PRE (5146b78ee tests, build/aclfix/pre-source) and POST, 2026-10-10T19:11:47Z.
+Every failure below is the fixture's hard 45 s 'timeout' (exit 124) on a shared box; none is an assertion about job wiring.
+
+== round 1 pre: FAILED (failures=7)
+FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green
+FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green
+FAIL: test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment
+FAIL: test_one_slot_uses_the_same_queue_without_losing_coverage
+FAIL: test_opposite_completion_orders_have_byte_identical_canonical_ledgers
+FAIL: test_release_boots_do_not_wait_for_independent_asan_build
+FAIL: test_worker_exit_before_done_is_a_failure
+  exit-124 assertions: 7; other assertions: 0
+
+== round 1 post: FAILED (failures=6)
+FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green
+FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green
+FAIL: test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment
+FAIL: test_one_slot_uses_the_same_queue_without_losing_coverage
+FAIL: test_opposite_completion_orders_have_byte_identical_canonical_ledgers
+FAIL: test_worker_exit_before_done_is_a_failure
+  exit-124 assertions: 6; other assertions: 0
+
+== round 2 pre: FAILED (failures=7)
+FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green
+FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green
+FAIL: test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment
+FAIL: test_one_slot_uses_the_same_queue_without_losing_coverage
+FAIL: test_opposite_completion_orders_have_byte_identical_canonical_ledgers
+FAIL: test_release_boots_do_not_wait_for_independent_asan_build
+FAIL: test_worker_exit_before_done_is_a_failure
+  exit-124 assertions: 7; other assertions: 0
+
+== round 2 post: FAILED (failures=3)
+FAIL: test_one_slot_uses_the_same_queue_without_losing_coverage
+FAIL: test_opposite_completion_orders_have_byte_identical_canonical_ledgers
+FAIL: test_worker_exit_before_done_is_a_failure
+  exit-124 assertions: 3; other assertions: 0

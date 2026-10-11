@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/aof.py", line 611, in <module>
+    wait_for_script_aof(script_state)
+  File "/home/user/Projects/cx-aoffix2/tests/aof.py", line 537, in wait_for_script_aof
+    assert_script_aof(script_state)
+  File "/home/user/Projects/cx-aoffix2/tests/aof.py", line 495, in assert_script_aof
+    for path in increment_files():
+                ^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/aof.py", line 436, in increment_files
+    raise AssertionError("no AOF increment file found in %s" % appenddir)
+AssertionError: no AOF increment file found in /home/user/Projects/cx-aoffix2/build/aoffix2/batteries/1s-epoll/appendonlydir

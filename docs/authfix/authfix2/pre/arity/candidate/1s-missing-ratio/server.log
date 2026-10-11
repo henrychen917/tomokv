@@ -1,0 +1,3 @@
+--ratio wants global ifid:ex (e.g. 30:34); 3s was deleted 2026-08-24
+(while parsing /home/user/Projects/cx-authfix/docs/authfix/authfix2/pre/arity/candidate/1s-missing-ratio.conf)
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)

@@ -1,0 +1,32 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-119",
+    "/home/user/Projects/cx-authfix/build/tomokv",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "25032",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-authfix/docs/authfix/authfix2/post/slowlog-2s/candidate/slowlog-2s/data",
+    "--protected-mode",
+    "no",
+    "--thread-mode",
+    "2s",
+    "--shards",
+    "16",
+    "--ratio",
+    "6:2",
+    "--slowlog-log-slower-than",
+    "0"
+  ],
+  "pid": 2530895,
+  "booted": true,
+  "exit": 0,
+  "port_closed": true
+}

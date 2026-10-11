@@ -16,8 +16,8 @@
 //             controller chase its own tail.
 //
 // THE 3% RULE. This machinery is always on, so it must cost under 3% or it does not ship. Hence:
-// counters are plain non-atomic uint64 written only by their owning thread; the only atomic on the
-// hot path is the peer-blocked flag, and it is read, not written.
+// scheduling counters are owner-written. Socket totals also have cross-thread INFO readers;
+// their single-writer atomic updates use relaxed load/store, never a shared atomic RMW.
 #pragma once
 #include <algorithm>
 #include <atomic>
@@ -107,10 +107,10 @@ struct LoopSignals {
     uint64_t acl_access_denied_channel = 0;
     uint64_t acl_access_denied_auth = 0;
 
-    // Socket bytes are owned by the connection's IO thread and summed only by INFO. Keeping these
-    // plain avoids a shared atomic RMW on every recv/send completion.
-    uint64_t net_input_bytes = 0;
-    uint64_t net_output_bytes = 0;
+    // Socket bytes have one IO-owner writer and concurrent INFO/cron readers. Updates use
+    // relaxed load/store, preserving the single writer without a shared atomic RMW.
+    std::atomic<uint64_t> net_input_bytes{0};
+    std::atomic<uint64_t> net_output_bytes{0};
 
     // TLS counters are written only by the owning IO thread. With tls-port=0 the clean loop
     // specialization contains no increments or per-operation TLS tests.
@@ -401,6 +401,16 @@ public:
             my_ring.msg_to(*peer_ring, ur_tag(UrKind::Wake, nullptr));
             sig.wakes_sent++;
         }
+    }
+
+    // Persistence writers do not arm these channels in ThreadCtx's park. Their
+    // empty->flagged mask edge owns one unconditional wake, amortized per batch.
+    // A failed SQE reservation must not consume that edge without a notification.
+    void wake_edge(Ring& my_ring, LoopSignals& sig, Ring* peer_ring) {
+        if (!peer_ring || peer_ring == &my_ring) return;
+        while (!my_ring.msg_to(*peer_ring, ur_tag(UrKind::Wake, nullptr)))
+            my_ring.submit_and_reap();
+        sig.wakes_sent++;
     }
 
     // ---- consumer side --------------------------------------------------------------------------

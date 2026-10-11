@@ -16,8 +16,10 @@ def main():
     shutil.copytree(ROOT / 'src', overlay / 'src', dirs_exist_ok=True)
     path = overlay / 'src/core/io_loop.h'
     source = path.read_text()
-    guard = ('        for (Client* client : active_.v)\n'
-             '            if (client->closing() && !client->dead()) return false;\n')
+    # The drain's closing-connection wait (unpinned IO; flipfix holds closes only after the ack).
+    guard = ('        if (!flip_close_pin_)\n'
+             '            for (Client* client : active_.v)\n'
+             '                if (client->closing() && !client->dead()) return false;\n')
     assert source.count(guard) == 1
     path.write_text(source.replace(guard, '', 1))
     target = str((OUT / 'negative').relative_to(ROOT))

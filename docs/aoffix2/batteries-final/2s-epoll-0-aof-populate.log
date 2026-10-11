@@ -1,0 +1,3 @@
+AOF SCRIPT BYTES PASS: write_keys=7 groups=5 readonly_absent=3
+AOF LARGE RECORD PASS: key=70000 value=70000 aof_last_write_status:ok
+AOF DATASET CAPTURED: 54 static replies, PTTL=3599365 ms

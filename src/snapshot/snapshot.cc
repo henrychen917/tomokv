@@ -172,6 +172,42 @@ SnapshotManager::~SnapshotManager() {
     }
 }
 
+void SnapshotManager::worker_shutdown(ThreadCtx& writer) {
+    if (!writer_is(writer.id())) return;
+    fail(epoch(), "snapshot cancelled by shutdown");
+    // SINGLE_ISSUER/DEFER_TASKRUN require the physical writer to reap its
+    // submitted IO. Main cannot finish these requests on a joined worker's ring.
+    Ring* ring = writer_ring_.load(std::memory_order_acquire);
+    while (io_inflight_) {
+        if (!ring) std::abort();
+        ring->submit_and_reap();
+        pump_io_completions(writer, *ring);
+        std::this_thread::yield();
+    }
+    // Peers can still be leaving their final owner pass. Keep their stores and
+    // channel chunks alive until cancel_after_join has the global join edge.
+}
+
+void SnapshotManager::cancel_after_join(Server& server) {
+    // A no-save stop can leave captures pinned while atomic entries still name
+    // IO-owned arenas. Collapse must not run until those captures are gone.
+    // With workers joined, main owns both the manager and every shard here.
+    if (in_progress()) {
+        fail(epoch(), "snapshot cancelled by shutdown");
+        // The writer's physical lifetime guard already reaped every request.
+        if (io_inflight_) std::abort();
+        discard_chunks();
+        // Also ends an AOF rewrite through rewrite_abort, after the ordinary
+        // AOF worker/writer shutdown rendezvous has drained acknowledged writes.
+        abort_file();
+        phase_.store(Phase::Idle, std::memory_order_release);
+    }
+    for (uint32_t sid = 0; sid < server.nshards(); ++sid)
+        server.shard(static_cast<int32_t>(sid)).store().snapshot_cancel();
+    server.set_snapshot_atomic_barrier(false);
+    server.set_shutdown_snapshot_active(false);
+}
+
 void SnapshotManager::init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count,
                            const char* dir, const char* dbfilename,
                            PersistIoEngine engine) {
@@ -546,7 +582,7 @@ bool SnapshotManager::post_chunk(uint32_t producer, std::unique_ptr<SnapshotChun
     chunk.release();
     if (chunk_notify_.set(producer) && !blocking()) {
         Ring* target = writer_ring_.load(std::memory_order_acquire);
-        chunk_in_[producer].wake(producer_ring, signals, target);
+        chunk_in_[producer].wake_edge(producer_ring, signals, target);
     }
     return true;
 }
