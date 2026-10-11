@@ -56,8 +56,16 @@ def server(binary, output, mode=None, atomic=1):
                 proc.kill()
                 proc.wait()
                 raise AssertionError(f"server TERM deadline: {label}")
-            with socket.socket() as probe:
-                assert probe.connect_ex(("127.0.0.1", port)) != 0, f"port {port} still open"
+            # io_uring can defer its last socket reference past process reap.
+            # Require closure before reusing the port, with a bounded wait.
+            close_deadline = time.monotonic() + 2
+            while True:
+                with socket.socket() as probe:
+                    probe.settimeout(0.1)
+                    if probe.connect_ex(("127.0.0.1", port)) != 0:
+                        break
+                assert time.monotonic() < close_deadline, f"port {port} still open"
+                time.sleep(0.02)
             assert proc.returncode == 0, f"server exit {proc.returncode}: {label}"
 
 
