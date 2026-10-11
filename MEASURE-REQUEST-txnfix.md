@@ -374,3 +374,36 @@ merged-base **625/642 → 635/652**. EXPECT assignments stay 625/642, so the
 ledger checker must report that ten-row discrepancy until the maintainer
 updates them. A Stage-A-only selection with NX but without groups is +8/+8,
 requiring **633/650**; it must not retain the two rejected Stage B rows.
+
+### Final build and proof (running)
+
+The frozen POST builds with `make -j16 all`; all **29** targets currently listed
+in `job_production_units` build successfully, as does `mdbqsbr-live-arms`.
+All 30 `make -q` freshness checks return zero. [Build receipts](docs/txnfix/txnfix2/final-build/runs.json),
+[freshness](docs/txnfix/txnfix2/final-build/freshness.json). Live proof starts
+only after this lane's compilation finishes. Final PRE/POST TLS offsets also
+match for every prior named symbol: [TLS](docs/txnfix/txnfix2/tls-final.json).
+ScatterState remains 896 bytes, WatchReservation remains 88 bytes, and their
+prior offsets match in both namespaces. The executor/IO loop files and the
+three required atomic fast predicates remain byte-identical source:
+[source check](docs/txnfix/txnfix2/source-identity.json).
+
+### Final live checkpoint and ledger repair
+
+All eight txniso cells pass (split and armed-fused; atomic 0/1; databases 1/16),
+as do all four V4 AOF reload companions. Final EXEC RENAMENX repeats again show
+**0/8,192 in every mode/atomic cell**; bare atomic-1 RENAMENX again shows
+0/8,192 in both modes. Full group rows pass their atomic-1 directed, mixed
+writer, conservation, forced-exclusive and cleanup checks; their atomic-0 G5
+control still detects the duplicate RPOPLPUSH delivery already reproduced on
+merged PRE. This is retained as a failing row, not turned into a skip.
+
+The first ledger invocation also exposed a wiring defect beyond the protected
+count: its source projector counted each `if AT=1` group row twice inside jobs
+collected at both atomic settings. Two dedicated group jobs now declare each
+row exactly once, depend on release and production units, and are collected
+before quick exit. No assertion or protected EXPECT assignment changed.
+Source and fixture both have **652** rows, with no missing or extra labels;
+only EXPECT_FULL=642 still disagrees. [Corrected ledger result](docs/txnfix/txnfix2/ledger-after-job-split.log).
+The earlier source-line table is superseded by [current row/collection lines](docs/txnfix/txnfix2/gate-row-lines.json);
+DQ/DF remain +10/+10 and the required counts remain 635/652.

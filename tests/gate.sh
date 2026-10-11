@@ -1055,7 +1055,7 @@ plan_jobs(){
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
-              aof_frame tls fused-0 fused-1)
+              aof_frame tls fused-0 fused-1 txn_group_fused txn_group_split)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -2060,15 +2060,6 @@ local AT=${1##*-}
       && ok "fused txniso battery (atomic $AT)" \
       || bad "fused txniso battery (atomic $AT)" "see $TMPDIR/gate-fused-txniso-$AT.txt"
   stop
-  if [ "$AT" = 1 ]; then
-    row_begin "fused txngroup battery (atomic 1)"
-    boot_fused "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes \
-        --key-lb 0 --client-lb 0 --flip-auto 0 \
-        && txngroup_checks 1s "$TMPDIR/gate-fused-txngroup.txt" \
-        && ok "fused txngroup battery (atomic 1)" \
-        || bad "fused txngroup battery (atomic 1)" "see $TMPDIR/gate-fused-txngroup.txt"
-    stop
-  fi
 }
 
 job_bplus(){
@@ -2235,15 +2226,26 @@ local AT=${1##*-}
     fi
   done
   stop
-  if [ "$AT" = 1 ]; then
-    row_begin "txngroup battery (atomic 1)"
-    boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes \
-        --key-lb 0 --client-lb 0 --flip-auto 0 \
-        && txngroup_checks 2s "$TMPDIR/gate-txngroup.txt" \
-        && ok "txngroup battery (atomic 1)" \
-        || bad "txngroup battery (atomic 1)" "see $TMPDIR/gate-txngroup.txt"
-    stop
-  fi
+}
+
+job_txn_group_fused(){
+  row_begin "fused txngroup battery (atomic 1)"
+  boot_fused "$CANDIDATE_BINARY" --atomic 1 --read-local 1 --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 \
+      && txngroup_checks 1s "$TMPDIR/gate-fused-txngroup.txt" \
+      && ok "fused txngroup battery (atomic 1)" \
+      || bad "fused txngroup battery (atomic 1)" "see $TMPDIR/gate-fused-txngroup.txt"
+  stop
+}
+
+job_txn_group_split(){
+  row_begin "txngroup battery (atomic 1)"
+  boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 \
+      && txngroup_checks 2s "$TMPDIR/gate-txngroup.txt" \
+      && ok "txngroup battery (atomic 1)" \
+      || bad "txngroup battery (atomic 1)" "see $TMPDIR/gate-txngroup.txt"
+  stop
 }
 
 job_script_bounds(){
@@ -3526,7 +3528,7 @@ job_dependencies(){
     racefix_climon) echo production_units;;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*|aof_frame) echo 'release production_units';;
+    debug-*|txn_group_*|aof_frame) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
@@ -3666,6 +3668,7 @@ collect_job atomic_batteries
 for AT in 0 1; do collect_job "feature-split-$AT"; done
 
 for AT in 0 1; do collect_job "fused-$AT"; done
+collect_job txn_group_fused
 
 # Whole armed boots run independently; collect their rows in the original atomic-mode order.
 for AT in 0 1; do collect_job "feature-armed-$AT"; done
@@ -3694,6 +3697,7 @@ collect_job aclfix
 collect_job sort
 
 for AT in 0 1; do collect_job "debug-$AT"; done
+collect_job txn_group_split
 
 collect_job script_bounds
 collect_job scriptfix
