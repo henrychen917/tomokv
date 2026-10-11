@@ -36,13 +36,13 @@ class Client(h.Client):
         if tag in (b'*', b'>', b'~'):
             count = int(body)
             return None if count < 0 else [self.read() for _ in range(count)]
-        if tag == b'$':
+        if tag in (b'$', b'='):
             count = int(body)
             if count < 0:
                 return None
             value = self.f.read(count)
             assert len(value) == count and self.f.read(2) == b'\r\n'
-            return value
+            return value[4:] if tag == b'=' else value
         raise AssertionError(line)
 
 
@@ -139,7 +139,8 @@ def arm(server, admin, group, sub, *, partial=False, sentinel=True, rename=False
                                      else None), 'group never installed on both owners')
         assert not select.select([group.s], [], [], 0)[0], 'held group already replied'
         live = admin.cmd('HGET', a, 'f')
-        if live == b'old' and time.time_ns() // 1_000_000 < deadline:
+        if time.time_ns() // 1_000_000 < deadline:
+            assert live == b'old', 'in-window read did not resolve the installed predecessor'
             h.emit('armed', attempt=attempt, deadline=deadline, a=a, b=b,
                    partial=partial, sentinel=sentinel, rename=rename,
                    before=before, installed=installed, live=live)

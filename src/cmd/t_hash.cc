@@ -807,7 +807,8 @@ const HashFieldTtl* hash_ttls_of(const KvObj* object) {
 // THE ZERO-COST CLAIM LIVES ON THIS LINE. field_expire_count() is a plain uint32_t in the store; a
 // shard that has never seen HEXPIRE pays one load and one predicted-false test per hash command and
 // reaches no field-TTL code at all. Reaping (rather than filtering at each read site) is also what
-// keeps every handler below unchanged: after this returns, all remaining fields are live.
+// keeps the ordinary handlers below on live fields. A parked read branches to hexpread.cc
+// before this lookup; its borrowed version must never reach this eager reaper.
 template <bool kNotify>
 inline bool hash_lookup(Shard& shard, Op& op, KvObj*& object) {
     object = (op.spec->flags & CmdFlags::Readonly)
@@ -816,62 +817,6 @@ inline bool hash_lookup(Shard& shard, Op& op, KvObj*& object) {
     if (!obj_type_check(object, Type::Hash, op.sink())) return false;
     if (__builtin_expect(shard.store().field_expire_count() != 0, false) && object)
         object = hash_ttl_on_access(shard, op, object, kNotify);
-    return true;
-}
-
-// A parked value is immutable. Keep a command-local view of its live fields, including when
-// replacement of the physical hash has disarmed field_expire_count(). No TTL-table min cache,
-// random state, expiry accounting, AOF record or notification is changed by this view.
-struct HashReadView {
-    const HashFieldTtl* ttls = nullptr;
-    int64_t now_ms = 0;
-    uint32_t expired = 0;
-    bool immutable = false;
-    uint64_t random_state = 0;
-
-    bool visible(Slice field) const {
-        if (!ttls) return true;
-        const int64_t at = ttls->get(field);
-        return at < 0 || at > now_ms;
-    }
-    uint32_t count(const CollectionRef& hash) const { return hash.entries() - expired; }
-    uint64_t random(CollectionRef& hash, uint64_t bound) {
-        if (!immutable) return hash_random_bounded(hash, bound);
-        // Random selection must not update the parked hash's PRNG either. Seed this reply's
-        // private generator once, then use the same bounded mapping as the ordinary handler.
-        if (!random_state) {
-            timespec ts{};
-            ::clock_gettime(CLOCK_MONOTONIC, &ts);
-            random_state = hash_random_state(hash) ^ static_cast<uint64_t>(ts.tv_nsec) ^
-                           static_cast<uint64_t>(ts.tv_sec);
-            if (!random_state) random_state = 0x9e3779b97f4a7c15ULL;
-        }
-        random_state ^= random_state >> 12;
-        random_state ^= random_state << 25;
-        random_state ^= random_state >> 27;
-        const uint64_t value = random_state * 0x2545f4914f6cdd1dULL;
-        return static_cast<uint64_t>((static_cast<unsigned __int128>(value) * bound) >> 64);
-    }
-};
-
-template <bool kNotify>
-bool hash_read_lookup(Shard& shard, Op& op, KvObj*& object, HashReadView& view) {
-    object = shard.store_find_read<kNotify>(op.hash, op.key());
-    if (!obj_type_check(object, Type::Hash, op.sink())) return false;
-    if (!object) return true;
-    if (__builtin_expect(!shard.store().atomic_read_owns_value(op.hash, op.key(), object), false)) {
-        view.immutable = true;
-        view.ttls = hash_ttls_of(object);
-        view.now_ms = shard.now_ms();
-        if (view.ttls) {
-            view.ttls->for_each([&](Slice field, int64_t at) {
-                if (at <= view.now_ms && hash_ttl_field_exists(object, field)) ++view.expired;
-            });
-            if (view.expired == as_hash(object).entries()) object = nullptr;
-        }
-    } else if (__builtin_expect(shard.store().field_expire_count() != 0, false)) {
-        object = hash_ttl_on_access(shard, op, object, kNotify);
-    }
     return true;
 }
 
@@ -1023,24 +968,26 @@ void cmd_hsetnx(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hget(Shard& shard, Op& op) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
-    HashReadView view;
-    if (!hash_read_lookup<kNotify>(shard, op, object, view)) return;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
-    if (!object || !view.visible(op.arg(2)) || !hash_get(as_hash(object), op.arg(2), value))
+    if (!object || !hash_get(as_hash(object), op.arg(2), value))
         reply_null(op.sink(), op.resp3());
     else reply_bulk(op.sink(), value);
 }
 
 template <bool kNotify>
 void cmd_hmget(Shard& shard, Op& op) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
-    HashReadView view;
-    if (!hash_read_lookup<kNotify>(shard, op, object, view)) return;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     reply_array_header(op.sink(), op.argc() - 2);
     for (uint32_t i = 2; i < op.argc(); i++) {
         Slice value;
-        if (!object || !view.visible(op.arg(i)) || !hash_get(as_hash(object), op.arg(i), value))
+        if (!object || !hash_get(as_hash(object), op.arg(i), value))
             reply_null(op.sink(), op.resp3());
         else reply_bulk(op.sink(), value);
     }
@@ -1080,30 +1027,31 @@ void cmd_hdel(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hlen(Shard& shard, Op& op) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
-    HashReadView view;
-    if (!hash_read_lookup<kNotify>(shard, op, object, view)) return;
-    reply_int(op.sink(), object ? view.count(as_hash(object)) : 0);
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
+    reply_int(op.sink(), object ? as_hash(object).entries() : 0);
 }
 
 template <bool kNotify>
 void cmd_hexists(Shard& shard, Op& op) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
-    HashReadView view;
-    if (!hash_read_lookup<kNotify>(shard, op, object, view)) return;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
-    reply_int(op.sink(), object && view.visible(op.arg(2)) &&
-                        hash_get(as_hash(object), op.arg(2), value) ? 1 : 0);
+    reply_int(op.sink(), object && hash_get(as_hash(object), op.arg(2), value) ? 1 : 0);
 }
 
 template <bool kNotify>
 void cmd_hstrlen(Shard& shard, Op& op) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
-    HashReadView view;
-    if (!hash_read_lookup<kNotify>(shard, op, object, view)) return;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
-    reply_int(op.sink(), object && view.visible(op.arg(2)) &&
-                        hash_get(as_hash(object), op.arg(2), value) ? value.n : 0);
+    reply_int(op.sink(), object && hash_get(as_hash(object), op.arg(2), value) ? value.n : 0);
 }
 
 template <bool kNotify>
@@ -1215,9 +1163,10 @@ enum class GetAllMode : uint8_t { Fields, Values, Both };
 
 template <bool kNotify>
 void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
-    HashReadView view;
-    if (!hash_read_lookup<kNotify>(shard, op, object, view)) return;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
         if (mode == GetAllMode::Both) reply_map_header(op.sink(), 0, op.resp3());
         else reply_array_header(op.sink(), 0);
@@ -1226,11 +1175,10 @@ void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
     CollectionRef hash = as_hash(object);
     const uint64_t multiplier = mode == GetAllMode::Both ? 2 : 1;
     if (mode == GetAllMode::Both)
-        reply_map_header(op.sink(), view.count(hash), op.resp3());
+        reply_map_header(op.sink(), hash.entries(), op.resp3());
     else
-        reply_array_header(op.sink(), static_cast<uint64_t>(view.count(hash)) * multiplier);
+        reply_array_header(op.sink(), static_cast<uint64_t>(hash.entries()) * multiplier);
     auto emit = [&](Slice field, Slice value) {
-        if (!view.visible(field)) return;
         if (mode != GetAllMode::Values) reply_bulk(op.sink(), field);
         if (mode != GetAllMode::Fields) reply_bulk(op.sink(), value);
     };
@@ -1312,9 +1260,10 @@ void cmd_hscan(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
-    HashReadView view;
-    if (!hash_read_lookup<kNotify>(shard, op, object, view)) return;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
         // Redis returns the empty scan reply before parsing trailing options for a missing key.
         reply_scan(op, 0, {}, false);
@@ -1339,8 +1288,7 @@ void cmd_hscan(Shard& shard, Op& op) {
                     break;
                 }
                 sampled++;
-                if (view.visible(pair.field) &&
-                    (!options.use_pattern || command_glob_match(options.pattern, pair.field)))
+                if (!options.use_pattern || command_glob_match(options.pattern, pair.field))
                     items.push_back({pair.field, pair.value});
             }
             cursor = position >= hash.entries() ? 0 : position;
@@ -1353,8 +1301,7 @@ void cmd_hscan(Shard& shard, Op& op) {
                 cursor = hash_fields(hash)->scan(cursor, [&](const HashFieldMap::Node& node) {
                     sampled++;
                     const Slice field(node.field.data(), static_cast<uint32_t>(node.field.size()));
-                    if (view.visible(field) &&
-                        (!options.use_pattern || command_glob_match(options.pattern, field)))
+                    if (!options.use_pattern || command_glob_match(options.pattern, field))
                         items.push_back({field, Slice(node.value.data(),
                                                      static_cast<uint32_t>(node.value.size()))});
                 });
@@ -1383,7 +1330,7 @@ bool compact_pairs(const CollectionRef& hash, std::vector<PairView>& pairs) {
     return pairs.size() == hash.entries();
 }
 
-bool select_unique(CollectionRef& hash, HashReadView& view, uint32_t population, uint32_t count,
+bool select_unique(CollectionRef& hash, uint32_t population, uint32_t count,
                    std::vector<uint32_t>& selected) {
     try {
         selected.reserve(count);
@@ -1392,7 +1339,7 @@ bool select_unique(CollectionRef& hash, HashReadView& view, uint32_t population,
             for (uint32_t i = 0; i < population; i++) all[i] = i;
             for (uint32_t i = 0; i < count; i++) {
                 const uint32_t chosen = i + static_cast<uint32_t>(
-                    view.random(hash, static_cast<uint64_t>(population - i)));
+                    hash_random_bounded(hash, static_cast<uint64_t>(population - i)));
                 std::swap(all[i], all[chosen]);
                 selected.push_back(all[i]);
             }
@@ -1401,7 +1348,7 @@ bool select_unique(CollectionRef& hash, HashReadView& view, uint32_t population,
         std::unordered_set<uint32_t> seen;
         seen.reserve(static_cast<size_t>(count) * 2);
         while (selected.size() < count) {
-            const uint32_t candidate = static_cast<uint32_t>(view.random(hash, population));
+            const uint32_t candidate = static_cast<uint32_t>(hash_random_bounded(hash, population));
             if (seen.insert(candidate).second) selected.push_back(candidate);
         }
         return true;
@@ -1442,16 +1389,17 @@ void cmd_hrandfield(Shard& shard, Op& op) {
         }
     }
 
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
-    HashReadView view;
-    if (!hash_read_lookup<kNotify>(shard, op, object, view)) return;
+    if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
         if (op.argc() == 2) reply_null(op.sink(), op.resp3());
         else reply_array_header(op.sink(), 0);
         return;
     }
     CollectionRef hash = as_hash(object);
-    const uint32_t population = view.count(hash);
+    const uint32_t population = hash.entries();
     if (!population) {
         if (op.argc() == 2) reply_null(op.sink(), op.resp3());
         else reply_array_header(op.sink(), 0);
@@ -1463,33 +1411,7 @@ void cmd_hrandfield(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
-    // Only the immutable, partially expired view needs an index of surviving fields. Slices
-    // borrow the unchanged version for this owner turn; no detached stored value is created.
-    std::vector<std::pair<Slice, Slice>> live;
-    if (view.expired) {
-        try {
-            live.reserve(population);
-            if (hash.encoding() == CollectionEncoding::Compact) {
-                for (const PairView& pair : compact)
-                    if (view.visible(pair.field)) live.emplace_back(pair.field, pair.value);
-            } else {
-                hash_fields(hash)->for_each([&](const HashFieldMap::Node& node) {
-                    const Slice field(node.field.data(), static_cast<uint32_t>(node.field.size()));
-                    if (view.visible(field))
-                        live.emplace_back(field, Slice(node.value.data(),
-                                                       static_cast<uint32_t>(node.value.size())));
-                });
-            }
-        } catch (const std::bad_alloc&) {
-            reply_err(op.sink(), "ERR out of memory");
-            return;
-        } catch (const std::length_error&) {
-            reply_err(op.sink(), "ERR out of memory");
-            return;
-        }
-    }
     auto pair_at = [&](uint32_t index) -> std::pair<Slice, Slice> {
-        if (view.expired) return live[index];
         if (hash.encoding() == CollectionEncoding::Compact)
             return {compact[index].field, compact[index].value};
         const HashFieldMap::Node& node = hash_fields(hash)->at(index);
@@ -1498,7 +1420,7 @@ void cmd_hrandfield(Shard& shard, Op& op) {
     };
 
     if (op.argc() == 2) {
-        const auto pair = pair_at(static_cast<uint32_t>(view.random(hash, population)));
+        const auto pair = pair_at(static_cast<uint32_t>(hash_random_bounded(hash, population)));
         reply_bulk(op.sink(), pair.first);
         return;
     }
@@ -1514,7 +1436,7 @@ void cmd_hrandfield(Shard& shard, Op& op) {
         const bool pairs = with_values && op.resp3();
         reply_array_header(op.sink(), requested * (with_values && !pairs ? 2 : 1));
         for (uint64_t i = 0; i < requested; i++) {
-            const auto pair = pair_at(static_cast<uint32_t>(view.random(hash, population)));
+            const auto pair = pair_at(static_cast<uint32_t>(hash_random_bounded(hash, population)));
             if (pairs) reply_array_header(op.sink(), 2);
             reply_bulk(op.sink(), pair.first);
             if (with_values) reply_bulk(op.sink(), pair.second);
@@ -1537,7 +1459,7 @@ void cmd_hrandfield(Shard& shard, Op& op) {
     }
 
     std::vector<uint32_t> selected;
-    if (!select_unique(hash, view, population, count, selected)) {
+    if (!select_unique(hash, population, count, selected)) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
@@ -1780,6 +1702,44 @@ CommandTable hash_command_table() {
 bool hash_field_value_ro(const KvObj* object, Slice field, Slice& value) {
     if (!object || !object->is_type(Type::Hash)) return false;
     return hash_get(CollectionRef(const_cast<KvObj*>(object)), field, value);
+}
+
+// Borrow fields without touching the hash, including its random state and TTL min cache.
+// count==0 visits every field; otherwise this is HSCAN's existing physical cursor walk.
+__attribute__((cold, noinline))
+uint64_t hash_read_visit(const KvObj* object, uint64_t cursor, uint64_t count,
+                         void* context, void (*visit)(void*, Slice, Slice)) {
+    CollectionRef hash = as_hash(const_cast<KvObj*>(object));
+    if (hash.encoding() == CollectionEncoding::Compact) {
+        uint64_t position = 0, sampled = 0;
+        for (auto it = hash.begin(); it != hash.end(); ++it) {
+            PairView pair;
+            if (!decode_pair(*it, pair)) continue;
+            if (position++ < cursor) continue;
+            if (count && sampled >= count) { --position; break; }
+            ++sampled;
+            visit(context, pair.field, pair.value);
+        }
+        return position >= hash.entries() ? 0 : position;
+    }
+    if (!count) {
+        hash_fields(hash)->for_each([&](const HashFieldMap::Node& node) {
+            visit(context, Slice(node.field.data(), static_cast<uint32_t>(node.field.size())),
+                  Slice(node.value.data(), static_cast<uint32_t>(node.value.size())));
+        });
+        return 0;
+    }
+    uint64_t sampled = 0, iterations = 0;
+    const uint64_t max_iterations = count > UINT64_MAX / 10 ? UINT64_MAX : count * 10;
+    do {
+        cursor = hash_fields(hash)->scan(cursor, [&](const HashFieldMap::Node& node) {
+            ++sampled;
+            visit(context, Slice(node.field.data(), static_cast<uint32_t>(node.field.size())),
+                  Slice(node.value.data(), static_cast<uint32_t>(node.value.size())));
+        });
+        ++iterations;
+    } while (cursor && sampled < count && iterations < max_iterations);
+    return cursor;
 }
 
 }  // namespace tomo
