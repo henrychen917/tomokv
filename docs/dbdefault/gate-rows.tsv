@@ -25,620 +25,631 @@ row	job	label	image decision
 24	exbatch_live	exbatch publication and WATCH lifecycle (1s)	explicit 4 (launch override)
 25	exbatch_live	exbatch publication and WATCH lifecycle (2s)	explicit 4 (launch override)
 26	persistfix_units	AOF publication/shutdown witnesses + negative controls	serverless / linked image audit; no server boot
-27	clientfix	clientfix tracking-cap (1s)	explicit 1 via launch or audited direct helper
-28	clientfix	clientfix tracking-pipeline (1s)	explicit 1 via launch or audited direct helper
-29	clientfix	clientfix reply-skip (1s)	explicit 1 via launch or audited direct helper
-30	clientfix	clientfix pattern-cleanup (1s)	explicit 1 via launch or audited direct helper
-31	clientfix	clientfix pause-deadline (1s)	explicit 1 via launch or audited direct helper
-32	clientfix	clientfix geo-count (1s)	explicit 1 via launch or audited direct helper
-33	clientfix	clientfix geo-store (1s)	explicit 1 via launch or audited direct helper
-34	clientfix	clientfix tracking-cap (2s)	explicit 1 via launch or audited direct helper
-35	clientfix	clientfix tracking-pipeline (2s)	explicit 1 via launch or audited direct helper
-36	clientfix	clientfix reply-skip (2s)	explicit 1 via launch or audited direct helper
-37	clientfix	clientfix pattern-cleanup (2s)	explicit 1 via launch or audited direct helper
-38	clientfix	clientfix pause-deadline (2s)	explicit 1 via launch or audited direct helper
-39	clientfix	clientfix geo-count (2s)	explicit 1 via launch or audited direct helper
-40	clientfix	clientfix geo-store (2s)	explicit 1 via launch or audited direct helper
-41	core_units	core concurrency watch	serverless / linked image audit; no server boot
-42	core_units	core concurrency lifetime	serverless / linked image audit; no server boot
-43	core_units	core concurrency drain	serverless / linked image audit; no server boot
-44	core_units	core concurrency route	serverless / linked image audit; no server boot
-45	core_units	core concurrency snapshot	serverless / linked image audit; no server boot
-46	core_units	core concurrency config	serverless / linked image audit; no server boot
-47	core_units	core concurrency notify	serverless / linked image audit; no server boot
-48	core_units	read-local topology demotion (1s)	serverless / linked image audit; no server boot
-49	core_units	read-local topology demotion (2s)	serverless / linked image audit; no server boot
-50	flipfix_units	FLIP planned-connection close lifetime (ASAN+TSAN)	serverless / linked image audit; no server boot
-51	flipfix_units	FLIP fingerprint publication (ASAN+TSAN)	serverless / linked image audit; no server boot
-52	wb_rule_units	writeback c12 policy witnesses + negative controls	serverless / linked image audit; no server boot
-53	wb_rule_units	writeback c12 phase witnesses + negative controls	serverless / linked image audit; no server boot
-54	wb_rule_units	writeback c12 stages witnesses + negative controls	serverless / linked image audit; no server boot
-55	wb_rule_units	writeback c12 split-phase witnesses + negative controls	serverless / linked image audit; no server boot
-56	wbland_units	writeback policy clauses witnesses + negative controls	serverless / linked image audit; no server boot
-57	wbland_units	writeback policy paths witnesses + negative controls	serverless / linked image audit; no server boot
-58	reorder_sync	R7 generated envelope parity	serverless / linked image audit; no server boot
-59	reorder_engagement	R7 production engagement (both database runtimes)	serverless / linked image audit; no server boot
-60	reorder_identity	R7 FIFO twin off-path identity + negative controls	serverless / linked image audit; no server boot
-61	wb_policy	writeback policies 0/1: 22 standard fixtures	explicit 1 via launch or audited direct helper
-62	lb-stationary-1s	stationary balanced LB holds still (1s)	explicit 1 via launch or audited direct helper
-63	lb-stationary-2s	stationary balanced LB holds still (2s)	explicit 1 via launch or audited direct helper
-64	netio-1s	epoll directed correctness (1s)	explicit 1 via launch or audited direct helper
-65	netio-2s	epoll directed correctness (2s)	explicit 1 via launch or audited direct helper
-66	splitlocal_units	splitlocal template forwarding + old-argument controls	serverless / linked image audit; no server boot
-67	storage_units	storage unlinked regression	serverless / linked image audit; no server boot
-68	storage_units	storage randomkey regression	serverless / linked image audit; no server boot
-69	storage_units	storage rehash regression	serverless / linked image audit; no server boot
-70	storage_units	storage rollback regression	serverless / linked image audit; no server boot
-71	storage_units	storage snapshot-eviction regression	serverless / linked image audit; no server boot
-72	storage_units	storage flags regression	serverless / linked image audit; no server boot
-73	storage_units	storage aof-eviction regression	serverless / linked image audit; no server boot
-74	storage_units	storage intents regression	serverless / linked image audit; no server boot
-75	storage_units	storage imported-hash regression	serverless / linked image audit; no server boot
-76	storage_units	storage field-index-failure regression	serverless / linked image audit; no server boot
-77	storage_units	storage hash-bytes regression	serverless / linked image audit; no server boot
-78	storage_units	storage deadline-allocation-failure regression	serverless / linked image audit; no server boot
-79	atomic_units	flushfix flush witnesses	serverless / linked image audit; no server boot
-80	atomic_units	flushfix headers witnesses	serverless / linked image audit; no server boot
-81	atomic_units	multidb serverless owners	serverless / linked image audit; no server boot
-82	atomic_units	multidb global namespace boundary	serverless / linked image audit; no server boot
-83	atomic_units	storesize published monitoring	serverless / linked image audit; no server boot
-84	atomic_units	MULTI admin command replies	serverless / linked image audit; no server boot
-85	atomic_units	EXECABORT releases WATCH reservation	serverless / linked image audit; no server boot
-86	atomic_units	atomic survivors unit build	serverless / linked image audit; no server boot
-87	atomic_units	atomic survivor: admission	serverless / linked image audit; no server boot
-88	atomic_units	atomic survivor: closure	serverless / linked image audit; no server boot
-89	atomic_units	atomic survivor: script_keys	serverless / linked image audit; no server boot
-90	atomic_units	atomic survivor: rename_overlay	serverless / linked image audit; no server boot
-91	atomic_units	atomic survivor: write_latest	serverless / linked image audit; no server boot
-92	atomic_units	atomic survivor: script_apply	serverless / linked image audit; no server boot
-93	atomic_units	atomic survivor: post_apply_probe	serverless / linked image audit; no server boot
-94	atomic_units	atomic survivor: lua_conversion	serverless / linked image audit; no server boot
-95	atomic_units	atomic survivor: watch_parent	serverless / linked image audit; no server boot
-96	atomic_units	atomic survivor: watch_cycle	serverless / linked image audit; no server boot
-97	atomic_units	atomic survivor: mset_arity	serverless / linked image audit; no server boot
-98	atomic_units	atomic survivor: watch_oom	serverless / linked image audit; no server boot
-99	atomic_units	atomic survivor: lua_lines	serverless / linked image audit; no server boot
-100	atomic_units	atomic survivor: library_limit	serverless / linked image audit; no server boot
-101	atomic_units	atomic survivor: stage_flag	serverless / linked image audit; no server boot
-102	atomic_units	atomic survivor: instruction_limit	serverless / linked image audit; no server boot
-103	netcmd_units	netcmd regression build	serverless / linked image audit; no server boot
-104	netcmd_units	netcmd streams regression	serverless / linked image audit; no server boot
-105	netcmd_units	netcmd zpop regression	serverless / linked image audit; no server boot
-106	netcmd_units	netcmd notify-oom regression	serverless / linked image audit; no server boot
-107	netcmd_units	netcmd notify-retry regression	serverless / linked image audit; no server boot
-108	netcmd_units	netcmd flush regression	serverless / linked image audit; no server boot
-109	netcmd_units	netcmd output regression	serverless / linked image audit; no server boot
-110	netcmd_units	netcmd pubsub regression	serverless / linked image audit; no server boot
-111	netcmd_units	netcmd receive regression	serverless / linked image audit; no server boot
-112	netcmd_units	netcmd config regression	serverless / linked image audit; no server boot
-113	netcmd_units	netcmd wb-small-pipe regression	serverless / linked image audit; no server boot
-114	netcmd_units	netcmd wb-complete-visits regression	serverless / linked image audit; no server boot
-115	netcmd_units	netcmd hexpire-oom regression	serverless / linked image audit; no server boot
-116	netcmd_units	encodingfix knob	serverless / linked image audit; no server boot
-117	netcmd_units	encodingfix precedence	serverless / linked image audit; no server boot
-118	netcmd_units	NET1 serverless bounds + scan + reclamation	serverless / linked image audit; no server boot
-119	netcap	NET1 inline + query cap (1s, uring)	explicit 1 via launch or audited direct helper
-120	netcap	NET1 inline + query cap (1s, epoll)	explicit 1 via launch or audited direct helper
-121	netcap	NET1 inline + query cap (2s, uring)	explicit 1 via launch or audited direct helper
-122	netcap	NET1 inline + query cap (2s, epoll)	explicit 1 via launch or audited direct helper
-123	respcompat	RESP protocol error compatibility	explicit 1 via launch or audited direct helper
-124	acl_metadata	generated Redis 7.4 ACL categories	serverless / linked image audit; no server boot
-125	boot_grammar	reject --mode (flag deleted)	reject_boot supplies 1; parser must reject before listener
-126	boot_grammar	reject --spread	reject_boot supplies 1; parser must reject before listener
-127	boot_grammar	reject --nodes	reject_boot supplies 1; parser must reject before listener
-128	boot_grammar	reject 3-part ratio	reject_boot supplies 1; parser must reject before listener
-129	boot_grammar	reject missing conf	reject_boot supplies 1; parser must reject before listener
-130	boot_grammar	reject bad conf key	reject_boot supplies 1; parser must reject before listener
-131	boot_grammar	reject aclfile + conf user lines	reject_boot supplies 1; parser must reject before listener
-132	dbdefault	Redis default databases 16 (both modes)	default 16, no --databases; 1s and 2s
-133	cmd_metadata	cmdmeta covers every registered command	serverless / linked image audit; no server boot
-134	wait_units	waits config publication + admission unit	serverless / linked image audit; no server boot
-135	wait_units	reads never wait for retirement quiescence	serverless / linked image audit; no server boot
-136	readonly	read-only resize split read-local=0	explicit 1 via launch or audited direct helper
-137	readonly	read-only resize split read-local=1	explicit 1 via launch or audited direct helper
-138	readonly	read-only resize fused read-local=0	explicit 1 via launch or audited direct helper
-139	readonly	read-only resize fused read-local=1	explicit 1 via launch or audited direct helper
-140	release_batteries	torture battery	explicit 1 via launch or audited direct helper
-141	release_batteries	RYOW battery	explicit 1 via launch or audited direct helper
-142	release_batteries	ACL category runtime table	explicit 1 via launch or audited direct helper
-143	release_batteries	ACL LOAD/SAVE no-file errors	explicit 1 via launch or audited direct helper
-144	release_batteries	idle loop ceiling (LBSIGNALS, 1s)	explicit 1 via launch or audited direct helper
-145	release_batteries	shutdown invariants (nothing stuck)	explicit 1 via launch or audited direct helper
-146	release_batteries	direct-reply fired (direct=N)	explicit 1 via launch or audited direct helper
-147	release_batteries	dispatched==executed (N)	explicit 1 via launch or audited direct helper
-148	atomic_batteries	atomic torn/window battery	explicit 1 via launch or audited direct helper
-149	atomic_batteries	atomic RYOW/mixed-write battery	explicit 1 via launch or audited direct helper
-150	atomic_batteries	atomic owner-local hazard battery	explicit 1 via launch or audited direct helper
-151	atomic_batteries	atomic shutdown invariants	explicit 1 via launch or audited direct helper
-152	feature-split-0	s6 battery (atomic 0)	explicit 1 via launch or audited direct helper
-153	feature-split-0	multi_exec battery (atomic 0)	explicit 1 via launch or audited direct helper
-154	feature-split-0	blocking battery (atomic 0)	explicit 1 via launch or audited direct helper
-155	feature-split-0	blockmulti battery (atomic 0)	explicit 1 via launch or audited direct helper
-156	feature-split-0	stream battery (atomic 0)	explicit 1 via launch or audited direct helper
-157	feature-split-0	streamgroups battery (atomic 0)	explicit 1 via launch or audited direct helper
-158	feature-split-0	pubsub battery (atomic 0)	explicit 1 via launch or audited direct helper
-159	feature-split-0	lua_scripting battery (atomic 0)	explicit 1 via launch or audited direct helper
-160	feature-split-0	scriptsurf battery (atomic 0)	explicit 1 via launch or audited direct helper
-161	feature-split-0	limits battery (atomic 0)	explicit 1 via launch or audited direct helper
-162	feature-split-0	resp3 battery (atomic 0)	explicit 1 via launch or audited direct helper
-163	feature-split-0	bitfield battery (atomic 0)	explicit 1 via launch or audited direct helper
-164	feature-split-0	dumprestore battery (atomic 0)	explicit 1 via launch or audited direct helper
-165	feature-split-0	zsetops battery (atomic 0)	explicit 1 via launch or audited direct helper
-166	feature-split-0	geo battery (atomic 0)	explicit 1 via launch or audited direct helper
-167	feature-split-0	climon battery (atomic 0)	explicit 1 via launch or audited direct helper
-168	feature-split-0	climon2 battery (atomic 0)	explicit 1 via launch or audited direct helper
-169	feature-split-0	tracking battery (atomic 0)	explicit 1 via launch or audited direct helper
-170	feature-split-0	hexpire battery (atomic 0)	explicit 1 via launch or audited direct helper
-171	feature-split-0	servertail battery (atomic 0)	explicit 1 via launch or audited direct helper
-172	feature-split-0	lcs battery (atomic 0)	explicit 1 via launch or audited direct helper
-173	feature-split-0	concur battery (atomic 0)	explicit 1 via launch or audited direct helper
-174	feature-split-0	edgeproto battery (atomic 0)	explicit 1 via launch or audited direct helper
-175	feature-split-0	edgeenc battery (atomic 0)	explicit 1 via launch or audited direct helper
-176	feature-split-0	edgetime battery (atomic 0)	explicit 1 via launch or audited direct helper
-177	feature-split-0	arity battery (atomic 0)	explicit 1 via launch or audited direct helper
-178	feature-split-0	contarity battery (atomic 0)	explicit 1 via launch or audited direct helper
-179	feature-split-0	cmdgap battery (atomic 0)	explicit 1 via launch or audited direct helper
-180	feature-split-0	aclsel battery (atomic 0)	explicit 1 via launch or audited direct helper
-181	feature-split-0	expwide battery (atomic 0)	explicit 1 via launch or audited direct helper
-182	feature-split-0	infofix battery (atomic 0)	explicit 1 via launch or audited direct helper
-183	feature-split-0	pushtear battery (atomic 0)	explicit 1 via launch or audited direct helper
-184	feature-split-0	netcmd battery (atomic 0)	explicit 1 via launch or audited direct helper
-185	feature-split-0	feature shutdown invariants (atomic 0)	explicit 1 via launch or audited direct helper
-186	feature-split-1	s6 battery (atomic 1)	explicit 1 via launch or audited direct helper
-187	feature-split-1	multi_exec battery (atomic 1)	explicit 1 via launch or audited direct helper
-188	feature-split-1	blocking battery (atomic 1)	explicit 1 via launch or audited direct helper
-189	feature-split-1	blockmulti battery (atomic 1)	explicit 1 via launch or audited direct helper
-190	feature-split-1	stream battery (atomic 1)	explicit 1 via launch or audited direct helper
-191	feature-split-1	streamgroups battery (atomic 1)	explicit 1 via launch or audited direct helper
-192	feature-split-1	pubsub battery (atomic 1)	explicit 1 via launch or audited direct helper
-193	feature-split-1	lua_scripting battery (atomic 1)	explicit 1 via launch or audited direct helper
-194	feature-split-1	scriptsurf battery (atomic 1)	explicit 1 via launch or audited direct helper
-195	feature-split-1	limits battery (atomic 1)	explicit 1 via launch or audited direct helper
-196	feature-split-1	resp3 battery (atomic 1)	explicit 1 via launch or audited direct helper
-197	feature-split-1	bitfield battery (atomic 1)	explicit 1 via launch or audited direct helper
-198	feature-split-1	dumprestore battery (atomic 1)	explicit 1 via launch or audited direct helper
-199	feature-split-1	zsetops battery (atomic 1)	explicit 1 via launch or audited direct helper
-200	feature-split-1	geo battery (atomic 1)	explicit 1 via launch or audited direct helper
-201	feature-split-1	climon battery (atomic 1)	explicit 1 via launch or audited direct helper
-202	feature-split-1	climon2 battery (atomic 1)	explicit 1 via launch or audited direct helper
-203	feature-split-1	tracking battery (atomic 1)	explicit 1 via launch or audited direct helper
-204	feature-split-1	hexpire battery (atomic 1)	explicit 1 via launch or audited direct helper
-205	feature-split-1	servertail battery (atomic 1)	explicit 1 via launch or audited direct helper
-206	feature-split-1	lcs battery (atomic 1)	explicit 1 via launch or audited direct helper
-207	feature-split-1	concur battery (atomic 1)	explicit 1 via launch or audited direct helper
-208	feature-split-1	edgeproto battery (atomic 1)	explicit 1 via launch or audited direct helper
-209	feature-split-1	edgeenc battery (atomic 1)	explicit 1 via launch or audited direct helper
-210	feature-split-1	edgetime battery (atomic 1)	explicit 1 via launch or audited direct helper
-211	feature-split-1	arity battery (atomic 1)	explicit 1 via launch or audited direct helper
-212	feature-split-1	contarity battery (atomic 1)	explicit 1 via launch or audited direct helper
-213	feature-split-1	cmdgap battery (atomic 1)	explicit 1 via launch or audited direct helper
-214	feature-split-1	aclsel battery (atomic 1)	explicit 1 via launch or audited direct helper
-215	feature-split-1	expwide battery (atomic 1)	explicit 1 via launch or audited direct helper
-216	feature-split-1	infofix battery (atomic 1)	explicit 1 via launch or audited direct helper
-217	feature-split-1	pushtear battery (atomic 1)	explicit 1 via launch or audited direct helper
-218	feature-split-1	netcmd battery (atomic 1)	explicit 1 via launch or audited direct helper
-219	feature-split-1	feature shutdown invariants (atomic 1)	explicit 1 via launch or audited direct helper
-220	fused-0	fused boot line (atomic 0)	explicit 1 via launch or audited direct helper
-221	fused-0	fused s6 battery (atomic 0)	explicit 1 via launch or audited direct helper
-222	fused-0	fused multi_exec battery (atomic 0)	explicit 1 via launch or audited direct helper
-223	fused-0	fused edgeproto battery (atomic 0)	explicit 1 via launch or audited direct helper
-224	fused-0	fused atomfix battery (atomic 0)	explicit 1 via launch or audited direct helper
-225	fused-0	fused spinprobe battery (atomic 0)	explicit 1 via launch or audited direct helper
-226	fused-0	fused shutdown report (atomic 0)	explicit 1 via launch or audited direct helper
-227	fused-1	fused boot line (atomic 1)	explicit 1 via launch or audited direct helper
-228	fused-1	fused s6 battery (atomic 1)	explicit 1 via launch or audited direct helper
-229	fused-1	fused multi_exec battery (atomic 1)	explicit 1 via launch or audited direct helper
-230	fused-1	fused edgeproto battery (atomic 1)	explicit 1 via launch or audited direct helper
-231	fused-1	fused atomfix battery (atomic 1)	explicit 1 via launch or audited direct helper
-232	fused-1	fused spinprobe battery (atomic 1)	explicit 1 via launch or audited direct helper
-233	fused-1	fused shutdown report (atomic 1)	explicit 1 via launch or audited direct helper
-234	feature-armed-0	fused+armed boot line (atomic 0)	explicit 1 via launch or audited direct helper
-235	feature-armed-0	fused+armed s6 battery (atomic 0)	explicit 1 via launch or audited direct helper
-236	feature-armed-0	fused+armed multi_exec battery (atomic 0)	explicit 1 via launch or audited direct helper
-237	feature-armed-0	fused+armed blocking battery (atomic 0)	explicit 1 via launch or audited direct helper
-238	feature-armed-0	fused+armed blockmulti battery (atomic 0)	explicit 1 via launch or audited direct helper
-239	feature-armed-0	fused+armed stream battery (atomic 0)	explicit 1 via launch or audited direct helper
-240	feature-armed-0	fused+armed streamgroups battery (atomic 0)	explicit 1 via launch or audited direct helper
-241	feature-armed-0	fused+armed pubsub battery (atomic 0)	explicit 1 via launch or audited direct helper
-242	feature-armed-0	fused+armed lua_scripting battery (atomic 0)	explicit 1 via launch or audited direct helper
-243	feature-armed-0	fused+armed scriptsurf battery (atomic 0)	explicit 1 via launch or audited direct helper
-244	feature-armed-0	fused+armed limits battery (atomic 0)	explicit 1 via launch or audited direct helper
-245	feature-armed-0	fused+armed resp3 battery (atomic 0)	explicit 1 via launch or audited direct helper
-246	feature-armed-0	fused+armed bitfield battery (atomic 0)	explicit 1 via launch or audited direct helper
-247	feature-armed-0	fused+armed dumprestore battery (atomic 0)	explicit 1 via launch or audited direct helper
-248	feature-armed-0	fused+armed zsetops battery (atomic 0)	explicit 1 via launch or audited direct helper
-249	feature-armed-0	fused+armed geo battery (atomic 0)	explicit 1 via launch or audited direct helper
-250	feature-armed-0	fused+armed climon battery (atomic 0)	explicit 1 via launch or audited direct helper
-251	feature-armed-0	fused+armed climon2 battery (atomic 0)	explicit 1 via launch or audited direct helper
-252	feature-armed-0	fused+armed tracking battery (atomic 0)	explicit 1 via launch or audited direct helper
-253	feature-armed-0	fused+armed hexpire battery (atomic 0)	explicit 1 via launch or audited direct helper
-254	feature-armed-0	fused+armed servertail battery (atomic 0)	explicit 1 via launch or audited direct helper
-255	feature-armed-0	fused+armed lcs battery (atomic 0)	explicit 1 via launch or audited direct helper
-256	feature-armed-0	fused+armed concur battery (atomic 0)	explicit 1 via launch or audited direct helper
-257	feature-armed-0	fused+armed edgeproto battery (atomic 0)	explicit 1 via launch or audited direct helper
-258	feature-armed-0	fused+armed edgeenc battery (atomic 0)	explicit 1 via launch or audited direct helper
-259	feature-armed-0	fused+armed edgetime battery (atomic 0)	explicit 1 via launch or audited direct helper
-260	feature-armed-0	fused+armed arity battery (atomic 0)	explicit 1 via launch or audited direct helper
-261	feature-armed-0	fused+armed contarity battery (atomic 0)	explicit 1 via launch or audited direct helper
-262	feature-armed-0	fused+armed cmdgap battery (atomic 0)	explicit 1 via launch or audited direct helper
-263	feature-armed-0	fused+armed aclsel battery (atomic 0)	explicit 1 via launch or audited direct helper
-264	feature-armed-0	fused+armed expwide battery (atomic 0)	explicit 1 via launch or audited direct helper
-265	feature-armed-0	fused+armed infofix battery (atomic 0)	explicit 1 via launch or audited direct helper
-266	feature-armed-0	fused+armed pushtear battery (atomic 0)	explicit 1 via launch or audited direct helper
-267	feature-armed-0	fused+armed netcmd battery (atomic 0)	explicit 1 via launch or audited direct helper
-268	feature-armed-0	fused+armed shutdown report + lane fired (hits=N, atomic 0)	explicit 1 via launch or audited direct helper
-269	feature-armed-1	fused+armed boot line (atomic 1)	explicit 1 via launch or audited direct helper
-270	feature-armed-1	fused+armed s6 battery (atomic 1)	explicit 1 via launch or audited direct helper
-271	feature-armed-1	fused+armed multi_exec battery (atomic 1)	explicit 1 via launch or audited direct helper
-272	feature-armed-1	fused+armed blocking battery (atomic 1)	explicit 1 via launch or audited direct helper
-273	feature-armed-1	fused+armed blockmulti battery (atomic 1)	explicit 1 via launch or audited direct helper
-274	feature-armed-1	fused+armed stream battery (atomic 1)	explicit 1 via launch or audited direct helper
-275	feature-armed-1	fused+armed streamgroups battery (atomic 1)	explicit 1 via launch or audited direct helper
-276	feature-armed-1	fused+armed pubsub battery (atomic 1)	explicit 1 via launch or audited direct helper
-277	feature-armed-1	fused+armed lua_scripting battery (atomic 1)	explicit 1 via launch or audited direct helper
-278	feature-armed-1	fused+armed scriptsurf battery (atomic 1)	explicit 1 via launch or audited direct helper
-279	feature-armed-1	fused+armed limits battery (atomic 1)	explicit 1 via launch or audited direct helper
-280	feature-armed-1	fused+armed resp3 battery (atomic 1)	explicit 1 via launch or audited direct helper
-281	feature-armed-1	fused+armed bitfield battery (atomic 1)	explicit 1 via launch or audited direct helper
-282	feature-armed-1	fused+armed dumprestore battery (atomic 1)	explicit 1 via launch or audited direct helper
-283	feature-armed-1	fused+armed zsetops battery (atomic 1)	explicit 1 via launch or audited direct helper
-284	feature-armed-1	fused+armed geo battery (atomic 1)	explicit 1 via launch or audited direct helper
-285	feature-armed-1	fused+armed climon battery (atomic 1)	explicit 1 via launch or audited direct helper
-286	feature-armed-1	fused+armed climon2 battery (atomic 1)	explicit 1 via launch or audited direct helper
-287	feature-armed-1	fused+armed tracking battery (atomic 1)	explicit 1 via launch or audited direct helper
-288	feature-armed-1	fused+armed hexpire battery (atomic 1)	explicit 1 via launch or audited direct helper
-289	feature-armed-1	fused+armed servertail battery (atomic 1)	explicit 1 via launch or audited direct helper
-290	feature-armed-1	fused+armed lcs battery (atomic 1)	explicit 1 via launch or audited direct helper
-291	feature-armed-1	fused+armed concur battery (atomic 1)	explicit 1 via launch or audited direct helper
-292	feature-armed-1	fused+armed edgeproto battery (atomic 1)	explicit 1 via launch or audited direct helper
-293	feature-armed-1	fused+armed edgeenc battery (atomic 1)	explicit 1 via launch or audited direct helper
-294	feature-armed-1	fused+armed edgetime battery (atomic 1)	explicit 1 via launch or audited direct helper
-295	feature-armed-1	fused+armed arity battery (atomic 1)	explicit 1 via launch or audited direct helper
-296	feature-armed-1	fused+armed contarity battery (atomic 1)	explicit 1 via launch or audited direct helper
-297	feature-armed-1	fused+armed cmdgap battery (atomic 1)	explicit 1 via launch or audited direct helper
-298	feature-armed-1	fused+armed aclsel battery (atomic 1)	explicit 1 via launch or audited direct helper
-299	feature-armed-1	fused+armed expwide battery (atomic 1)	explicit 1 via launch or audited direct helper
-300	feature-armed-1	fused+armed infofix battery (atomic 1)	explicit 1 via launch or audited direct helper
-301	feature-armed-1	fused+armed pushtear battery (atomic 1)	explicit 1 via launch or audited direct helper
-302	feature-armed-1	fused+armed netcmd battery (atomic 1)	explicit 1 via launch or audited direct helper
-303	feature-armed-1	fused+armed shutdown report + lane fired (hits=N, atomic 1)	explicit 1 via launch or audited direct helper
-304	evict-lfu-split-0	eviction lfu battery (split, atomic 0)	explicit 1 via launch or audited direct helper
-305	evict-lfu-armed-0	eviction lfu battery (fused+armed, atomic 0)	explicit 1 via launch or audited direct helper
-306	evict-lruclock-split-0	eviction lruclock battery (split, atomic 0)	explicit 1 via launch or audited direct helper
-307	evict-lruclock-armed-0	eviction lruclock battery (fused+armed, atomic 0)	explicit 1 via launch or audited direct helper
-308	evict-lfu-split-1	eviction lfu battery (split, atomic 1)	explicit 1 via launch or audited direct helper
-309	evict-lfu-armed-1	eviction lfu battery (fused+armed, atomic 1)	explicit 1 via launch or audited direct helper
-310	evict-lruclock-split-1	eviction lruclock battery (split, atomic 1)	explicit 1 via launch or audited direct helper
-311	evict-lruclock-armed-1	eviction lruclock battery (fused+armed, atomic 1)	explicit 1 via launch or audited direct helper
-312	bplus	B+ held-group GET/MGET filter battery	explicit 1 via launch or audited direct helper
-313	bplus	read-local lane admission battery	explicit 1 via launch or audited direct helper
-314	bplus	read-local MGET fence battery (1s)	explicit 1 via launch or audited direct helper
-315	bplus	read-local MGET fence battery (2s)	explicit 1 via launch or audited direct helper
-316	acl_recheck	ACL recheck one-reply battery (2s)	explicit 1 via launch or audited direct helper
-317	acl_recheck	ACL recheck one-reply battery (1s)	explicit 1 via launch or audited direct helper
-318	aclfix	aclfix sort (1s)	explicit 1 via launch or audited direct helper
-319	aclfix	aclfix streams-name (1s)	explicit 1 via launch or audited direct helper
-320	aclfix	aclfix save-load (1s)	explicit 1 via launch or audited direct helper
-321	aclfix	aclfix capacity (1s)	explicit 1 via launch or audited direct helper
-322	aclfix	aclfix wake-pop (1s)	explicit 1 via launch or audited direct helper
-323	aclfix	aclfix wake-scatter (1s)	explicit 1 via launch or audited direct helper
-324	aclfix	aclfix sort (2s)	explicit 1 via launch or audited direct helper
-325	aclfix	aclfix streams-name (2s)	explicit 1 via launch or audited direct helper
-326	aclfix	aclfix save-load (2s)	explicit 1 via launch or audited direct helper
-327	aclfix	aclfix capacity (2s)	explicit 1 via launch or audited direct helper
-328	aclfix	aclfix wake-pop (2s)	explicit 1 via launch or audited direct helper
-329	aclfix	aclfix wake-scatter (2s)	explicit 1 via launch or audited direct helper
-330	sort	cross-owner SORT battery (atomic 0)	explicit 1 via launch or audited direct helper
-331	sort	cross-owner SORT battery (atomic 1)	explicit 1 via launch or audited direct helper
-332	debug-0	plain-write lost updates (atomic 0)	explicit 1 via launch or audited direct helper
-333	debug-0	lbsignals battery (atomic 0)	explicit 1 via launch or audited direct helper
-334	debug-0	slowlog battery (atomic 0)	explicit 1 via launch or audited direct helper
-335	debug-0	atomfix battery (atomic 0)	explicit 1 via launch or audited direct helper
-336	debug-0	scriptatomic battery (atomic 0)	explicit 1 via launch or audited direct helper
-337	debug-0	execatomic battery (atomic 0)	explicit 1 via launch or audited direct helper
-338	debug-0	execiso battery (atomic 0)	explicit 1 via launch or audited direct helper
-339	debug-0	execfix battery (atomic 0)	explicit 1 via launch or audited direct helper
-340	debug-0	multires battery (atomic 0)	explicit 1 via launch or audited direct helper
-341	debug-0	multirace battery (atomic 0)	explicit 1 via launch or audited direct helper
-342	debug-0	session_monotonic battery (atomic 0)	explicit 1 via launch or audited direct helper
-343	debug-0	xacct battery (atomic 0)	explicit 1 via launch or audited direct helper
-344	debug-0	xmove battery (atomic 0)	explicit 1 via launch or audited direct helper
-345	debug-0	xscript battery (atomic 0)	explicit 1 via launch or audited direct helper
-346	debug-1	plain-write lost updates (atomic 1)	explicit 1 via launch or audited direct helper
-347	debug-1	lbsignals battery (atomic 1)	explicit 1 via launch or audited direct helper
-348	debug-1	slowlog battery (atomic 1)	explicit 1 via launch or audited direct helper
-349	debug-1	atomfix battery (atomic 1)	explicit 1 via launch or audited direct helper
-350	debug-1	scriptatomic battery (atomic 1)	explicit 1 via launch or audited direct helper
-351	debug-1	execatomic battery (atomic 1)	explicit 1 via launch or audited direct helper
-352	debug-1	execiso battery (atomic 1)	explicit 1 via launch or audited direct helper
-353	debug-1	execfix battery (atomic 1)	explicit 1 via launch or audited direct helper
-354	debug-1	multires battery (atomic 1)	explicit 1 via launch or audited direct helper
-355	debug-1	multirace battery (atomic 1)	explicit 1 via launch or audited direct helper
-356	debug-1	session_monotonic battery (atomic 1)	explicit 1 via launch or audited direct helper
-357	debug-1	xacct battery (atomic 1)	explicit 1 via launch or audited direct helper
-358	debug-1	xmove battery (atomic 1)	explicit 1 via launch or audited direct helper
-359	debug-1	xscript battery (atomic 1)	explicit 1 via launch or audited direct helper
-360	script_bounds	xscript limit control	explicit 1 via launch or audited direct helper
-361	script_bounds	xscript window control	explicit 1 via launch or audited direct helper
-362	scriptfix	scriptfix sandbox (1s)	explicit 1 via launch or audited direct helper
-363	scriptfix	scriptfix functions (1s)	explicit 1 via launch or audited direct helper
-364	scriptfix	scriptfix replies (1s)	explicit 1 via launch or audited direct helper
-365	scriptfix	scriptfix dump (1s)	explicit 1 via launch or audited direct helper
-366	scriptfix	scriptfix sandbox (2s)	explicit 1 via launch or audited direct helper
-367	scriptfix	scriptfix functions (2s)	explicit 1 via launch or audited direct helper
-368	scriptfix	scriptfix replies (2s)	explicit 1 via launch or audited direct helper
-369	scriptfix	scriptfix dump (2s)	explicit 1 via launch or audited direct helper
-370	efficiency	expire-index growth bound	explicit 1 via launch or audited direct helper
-371	efficiency	borrow-registry growth bound	explicit 1 via launch or audited direct helper
-372	efficiency	cross-shard dispatch scaling	explicit 1 via launch or audited direct helper
-373	dump_restore	DUMP/RESTORE prepare + native SAVE	explicit 1 via launch or audited direct helper
-374	dump_restore	DUMP/RESTORE cross-restart round-trip	explicit 1 via launch or audited direct helper
-375	dump_restore	DUMP/RESTORE restart shutdown invariants	explicit 1 via launch or audited direct helper
-376	auth	reject bad protected-mode	explicit 1 via launch or audited direct helper
-377	auth	reject bad enable-debug-command	explicit 1 via launch or audited direct helper
-378	auth	AUTH/HELLO/protected state machine	explicit 1 via launch or audited direct helper
-379	auth	ACL battery (atomic off)	explicit 1 via launch or audited direct helper
-380	auth	ACL battery (atomic on)	explicit 1 via launch or audited direct helper
-381	auth	DEBUG toggle/reload battery	explicit 1 via launch or audited direct helper
-382	auth	typed snapshot round-trip incl stream	explicit 1 via launch or audited direct helper
-383	authfix	authfix CG4.1 binary config requirepass	explicit 1 via launch or audited direct helper
-384	authfix	authfix CG4.2 missing config value refuses boot	explicit 1 via launch or audited direct helper
-385	authfix	authfix SV4.2 binary requirepass rewrite restart	explicit 1 via launch or audited direct helper
-386	authfix	authfix SV4.1 slowlog credential redaction (1s)	explicit 1 via launch or audited direct helper
-387	authfix	authfix SV4.1 slowlog credential redaction (2s)	explicit 1 via launch or audited direct helper
-388	snapshot-epoll	snapshot concurrent cut (epoll)	explicit 1 via launch or audited direct helper
-389	snapshot-epoll	snapshot cut reload (epoll)	explicit 1 via launch or audited direct helper
-390	snapshot-epoll	snapshot never tears a cross-shard MSET group (epoll, atomic 1)	explicit 1 via launch or audited direct helper
-391	snapshot-epoll	snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)	explicit 1 via launch or audited direct helper
-392	snapshot-epoll	typed snapshot save (epoll)	explicit 1 via launch or audited direct helper
-393	snapshot-epoll	typed snapshot reload (epoll)	explicit 1 via launch or audited direct helper
-394	snapshot-epoll	typed snapshot preimage race (epoll)	explicit 1 via launch or audited direct helper
-395	snapshot-epoll	typed snapshot race reload (epoll)	explicit 1 via launch or audited direct helper
-396	snapshot-epoll	shutdown keeps acknowledged writes (1s, sigterm, epoll)	explicit 1 via launch or audited direct helper
-397	snapshot-epoll	shutdown keeps acknowledged writes (1s, command, epoll)	explicit 1 via launch or audited direct helper
-398	snapshot-epoll	shutdown cancels BGSAVE capture (1s, atomic 0, epoll)	explicit 1 via launch or audited direct helper
-399	snapshot-epoll	shutdown cancels BGSAVE capture (1s, atomic 1, epoll)	explicit 1 via launch or audited direct helper
-400	snapshot-epoll	shutdown keeps acknowledged writes (2s, sigterm, epoll)	explicit 1 via launch or audited direct helper
-401	snapshot-epoll	shutdown keeps acknowledged writes (2s, command, epoll)	explicit 1 via launch or audited direct helper
-402	snapshot-epoll	shutdown cancels BGSAVE capture (2s, atomic 0, epoll)	explicit 1 via launch or audited direct helper
-403	snapshot-epoll	shutdown cancels BGSAVE capture (2s, atomic 1, epoll)	explicit 1 via launch or audited direct helper
-404	snapshot-uring	snapshot concurrent cut (uring)	explicit 1 via launch or audited direct helper
-405	snapshot-uring	snapshot cut reload (uring)	explicit 1 via launch or audited direct helper
-406	snapshot-uring	snapshot never tears a cross-shard MSET group (uring, atomic 1)	explicit 1 via launch or audited direct helper
-407	snapshot-uring	snapshot never tears a MULTI/EXEC group (uring, default atomic 0)	explicit 1 via launch or audited direct helper
-408	snapshot-uring	typed snapshot save (uring)	explicit 1 via launch or audited direct helper
-409	snapshot-uring	typed snapshot reload (uring)	explicit 1 via launch or audited direct helper
-410	snapshot-uring	typed snapshot preimage race (uring)	explicit 1 via launch or audited direct helper
-411	snapshot-uring	typed snapshot race reload (uring)	explicit 1 via launch or audited direct helper
-412	snapshot-uring	shutdown keeps acknowledged writes (1s, sigterm, uring)	explicit 1 via launch or audited direct helper
-413	snapshot-uring	shutdown keeps acknowledged writes (1s, command, uring)	explicit 1 via launch or audited direct helper
-414	snapshot-uring	shutdown cancels BGSAVE capture (1s, atomic 0, uring)	explicit 1 via launch or audited direct helper
-415	snapshot-uring	shutdown cancels BGSAVE capture (1s, atomic 1, uring)	explicit 1 via launch or audited direct helper
-416	snapshot-uring	shutdown keeps acknowledged writes (2s, sigterm, uring)	explicit 1 via launch or audited direct helper
-417	snapshot-uring	shutdown keeps acknowledged writes (2s, command, uring)	explicit 1 via launch or audited direct helper
-418	snapshot-uring	shutdown cancels BGSAVE capture (2s, atomic 0, uring)	explicit 1 via launch or audited direct helper
-419	snapshot-uring	shutdown cancels BGSAVE capture (2s, atomic 1, uring)	explicit 1 via launch or audited direct helper
-420	notify	MULTI feature battery	explicit 1 via launch or audited direct helper
-421	notify	blocking feature battery	explicit 1 via launch or audited direct helper
-422	notify	pubsub feature battery	explicit 1 via launch or audited direct helper
-423	notify	Lua feature battery	explicit 1 via launch or audited direct helper
-424	notify	keyspace notification battery (atomic 0/1)	explicit 1 via launch or audited direct helper
-425	notify	feature battery shutdown invariants	explicit 1 via launch or audited direct helper
-426	flip	FLIP state battery	explicit 1 via launch or audited direct helper
-427	flip	FLIP under verified load	explicit 1 via launch or audited direct helper
-428	flip	FLIP TTL + expiry events	explicit 1 via launch or audited direct helper
-429	flip	partial-frame conn parks (no io spin)	explicit 1 via launch or audited direct helper
-430	flip	FLIP close during FLIP (uring)	explicit 1 via launch or audited direct helper
-431	flip	FLIP close during FLIP (epoll)	explicit 1 via launch or audited direct helper
-432	flip	FLIP signal stop during FLIP + second SIGINT	explicit 1 via launch or audited direct helper
-433	flipctl	flip controller: ramp gate, hold, surge + mix re-maneuvers	explicit 1 via launch or audited direct helper
-434	flip_saturated	FLIP applies under saturated load	explicit 1 via launch or audited direct helper
-435	flip_saturated	flip battery shutdown invariants	explicit 1 via launch or audited direct helper
-436	atomic_floor	atomic MGET/MSET floor (N/s >= 120k)	explicit 1 via launch or audited direct helper
-437	atomic_floor	tripwire arm/disarm round-trip	explicit 1 via launch or audited direct helper
-438	atomic_floor	pipelined same-conn program order (400 rolls)	explicit 1 via launch or audited direct helper
-439	aof-epoll	configuration reduction + actual geometry (epoll, atomic 0)	explicit 1 via launch or audited direct helper
-440	aof-epoll	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)	explicit 1 via launch or audited direct helper
-441	aof-epoll	AOF writer fired (records=N)	explicit 1 via launch or audited direct helper
-442	aof-epoll	AOF process-restart script replay (epoll, atomic 0)	explicit 1 via launch or audited direct helper
-443	aof-epoll	AOF native snapshot streams byte-exact	explicit 1 via launch or audited direct helper
-444	aof-epoll	AOF replay fired (records=N skipped=N)	explicit 1 via launch or audited direct helper
-445	aof-epoll	configuration reduction + actual geometry (epoll, atomic 1)	explicit 1 via launch or audited direct helper
-446	aof-epoll	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)	explicit 1 via launch or audited direct helper
-447	aof-epoll	AOF writer fired (records=N)	explicit 1 via launch or audited direct helper
-448	aof-epoll	AOF process-restart script replay (epoll, atomic 1)	explicit 1 via launch or audited direct helper
-449	aof-epoll	AOF native snapshot streams byte-exact	explicit 1 via launch or audited direct helper
-450	aof-epoll	AOF replay fired (records=N skipped=N)	explicit 1 via launch or audited direct helper
-451	aof-epoll	AOF directed group interruption fired	explicit 1 via launch or audited direct helper
-452	aof-epoll	AOF atomic-group recovery + writer order	explicit 1 via launch or audited direct helper
-453	aof-epoll	AOF group shutdown invariants	explicit 1 via launch or audited direct helper
-454	aof-epoll	AOF always sync + reply gate fired	explicit 1 via launch or audited direct helper
-455	aof-epoll	AOF always recovery after quiescent SIGKILL	explicit 1 via launch or audited direct helper
-456	aof-epoll	AOF in-window kill recovery (2s, epoll)	explicit 1 via launch or audited direct helper
-457	aof-epoll	AOF in-window term recovery (2s, epoll)	explicit 1 via launch or audited direct helper
-458	aof-epoll	AOF in-window kill recovery (1s, epoll)	explicit 1 via launch or audited direct helper
-459	aof-epoll	AOF in-window term recovery (1s, epoll)	explicit 1 via launch or audited direct helper
-460	aof-epoll	shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)	explicit 1 via launch or audited direct helper
-461	aof-epoll	shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)	explicit 1 via launch or audited direct helper
-462	aof-epoll	shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)	explicit 1 via launch or audited direct helper
-463	aof-epoll	shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)	explicit 1 via launch or audited direct helper
-464	aof-epoll	AOF everysec write gate + idle sync fired	explicit 1 via launch or audited direct helper
-465	aof-epoll	AOF everysec durability window + tail warning	explicit 1 via launch or audited direct helper
-466	aof-epoll	AOF no-sync bypassed sync + reply gate	explicit 1 via launch or audited direct helper
-467	aof-epoll	AOF rewrite atomic/stage/corruption matrix	explicit 1 via launch or audited direct helper
-468	aof-epoll	AOF rewrite triggers + observability matrix	explicit 1 via launch or audited direct helper
-469	aof-epoll	AOF-off negative-control seed landed	explicit 1 via launch or audited direct helper
-470	aof-epoll	AOF-off negative control lost data	explicit 1 via launch or audited direct helper
-471	aof-epoll	aoffix2 snapshot (1s, epoll)	explicit 1 via launch or audited direct helper
-472	aof-epoll	aoffix2 filename (1s, epoll)	explicit 1 via launch or audited direct helper
-473	aof-epoll	aoffix2 error (1s, epoll)	explicit 1 via launch or audited direct helper
-474	aof-epoll	aoffix2 tickets (1s, epoll)	explicit 1 via launch or audited direct helper
-475	aof-epoll	aoffix2 exec_tickets (1s, epoll)	explicit 1 via launch or audited direct helper
-476	aof-epoll	aoffix2 resurrection (1s, epoll)	explicit 1 via launch or audited direct helper
-477	aof-epoll	aoffix2 rewrite_fail2 (1s, epoll)	explicit 1 via launch or audited direct helper
-478	aof-epoll	aoffix2 manifest_missing (1s, epoll)	explicit 1 via launch or audited direct helper
-479	aof-epoll	aoffix2 off-writer acknowledgement everysec (1s, epoll)	explicit 1 via launch or audited direct helper
-480	aof-epoll	aoffix2 off-writer acknowledgement always (1s, epoll)	explicit 1 via launch or audited direct helper
-481	aof-epoll	aoffix2 snapshot (2s, epoll)	explicit 1 via launch or audited direct helper
-482	aof-epoll	aoffix2 filename (2s, epoll)	explicit 1 via launch or audited direct helper
-483	aof-epoll	aoffix2 error (2s, epoll)	explicit 1 via launch or audited direct helper
-484	aof-epoll	aoffix2 tickets (2s, epoll)	explicit 1 via launch or audited direct helper
-485	aof-epoll	aoffix2 exec_tickets (2s, epoll)	explicit 1 via launch or audited direct helper
-486	aof-epoll	aoffix2 resurrection (2s, epoll)	explicit 1 via launch or audited direct helper
-487	aof-epoll	aoffix2 rewrite_fail2 (2s, epoll)	explicit 1 via launch or audited direct helper
-488	aof-epoll	aoffix2 manifest_missing (2s, epoll)	explicit 1 via launch or audited direct helper
-489	aof-epoll	aoffix2 off-writer acknowledgement everysec (2s, epoll)	explicit 1 via launch or audited direct helper
-490	aof-epoll	aoffix2 off-writer acknowledgement always (2s, epoll)	explicit 1 via launch or audited direct helper
-491	aof-epoll	aoffix2 large (1s, epoll)	explicit 1 via launch or audited direct helper
-492	aof-epoll	aoffix2 large_placed (1s, epoll)	explicit 1 via launch or audited direct helper
-493	aof-uring	configuration reduction + actual geometry (uring, atomic 0)	explicit 1 via launch or audited direct helper
-494	aof-uring	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)	explicit 1 via launch or audited direct helper
-495	aof-uring	AOF writer fired (records=N)	explicit 1 via launch or audited direct helper
-496	aof-uring	AOF process-restart script replay (uring, atomic 0)	explicit 1 via launch or audited direct helper
-497	aof-uring	AOF native snapshot streams byte-exact	explicit 1 via launch or audited direct helper
-498	aof-uring	AOF replay fired (records=N skipped=N)	explicit 1 via launch or audited direct helper
-499	aof-uring	configuration reduction + actual geometry (uring, atomic 1)	explicit 1 via launch or audited direct helper
-500	aof-uring	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)	explicit 1 via launch or audited direct helper
-501	aof-uring	AOF writer fired (records=N)	explicit 1 via launch or audited direct helper
-502	aof-uring	AOF process-restart script replay (uring, atomic 1)	explicit 1 via launch or audited direct helper
-503	aof-uring	AOF native snapshot streams byte-exact	explicit 1 via launch or audited direct helper
-504	aof-uring	AOF replay fired (records=N skipped=N)	explicit 1 via launch or audited direct helper
-505	aof-uring	AOF directed group interruption fired	explicit 1 via launch or audited direct helper
-506	aof-uring	AOF atomic-group recovery + writer order	explicit 1 via launch or audited direct helper
-507	aof-uring	AOF group shutdown invariants	explicit 1 via launch or audited direct helper
-508	aof-uring	AOF always sync + reply gate fired	explicit 1 via launch or audited direct helper
-509	aof-uring	AOF always recovery after quiescent SIGKILL	explicit 1 via launch or audited direct helper
-510	aof-uring	AOF in-window kill recovery (2s, uring)	explicit 1 via launch or audited direct helper
-511	aof-uring	AOF in-window term recovery (2s, uring)	explicit 1 via launch or audited direct helper
-512	aof-uring	AOF in-window kill recovery (1s, uring)	explicit 1 via launch or audited direct helper
-513	aof-uring	AOF in-window term recovery (1s, uring)	explicit 1 via launch or audited direct helper
-514	aof-uring	shutdown cancels AOF rewrite capture (1s, atomic 0, uring)	explicit 1 via launch or audited direct helper
-515	aof-uring	shutdown cancels AOF rewrite capture (1s, atomic 1, uring)	explicit 1 via launch or audited direct helper
-516	aof-uring	shutdown cancels AOF rewrite capture (2s, atomic 0, uring)	explicit 1 via launch or audited direct helper
-517	aof-uring	shutdown cancels AOF rewrite capture (2s, atomic 1, uring)	explicit 1 via launch or audited direct helper
-518	aof-uring	AOF everysec write gate + idle sync fired	explicit 1 via launch or audited direct helper
-519	aof-uring	AOF everysec durability window + tail warning	explicit 1 via launch or audited direct helper
-520	aof-uring	AOF no-sync bypassed sync + reply gate	explicit 1 via launch or audited direct helper
-521	aof-uring	AOF rewrite atomic/stage/corruption matrix	explicit 1 via launch or audited direct helper
-522	aof-uring	AOF rewrite triggers + observability matrix	explicit 1 via launch or audited direct helper
-523	aof-uring	AOF-off negative-control seed landed	explicit 1 via launch or audited direct helper
-524	aof-uring	AOF-off negative control lost data	explicit 1 via launch or audited direct helper
-525	aof-uring	aoffix2 snapshot (1s, uring)	explicit 1 via launch or audited direct helper
-526	aof-uring	aoffix2 filename (1s, uring)	explicit 1 via launch or audited direct helper
-527	aof-uring	aoffix2 error (1s, uring)	explicit 1 via launch or audited direct helper
-528	aof-uring	aoffix2 tickets (1s, uring)	explicit 1 via launch or audited direct helper
-529	aof-uring	aoffix2 exec_tickets (1s, uring)	explicit 1 via launch or audited direct helper
-530	aof-uring	aoffix2 resurrection (1s, uring)	explicit 1 via launch or audited direct helper
-531	aof-uring	aoffix2 rewrite_fail2 (1s, uring)	explicit 1 via launch or audited direct helper
-532	aof-uring	aoffix2 manifest_missing (1s, uring)	explicit 1 via launch or audited direct helper
-533	aof-uring	aoffix2 off-writer acknowledgement everysec (1s, uring)	explicit 1 via launch or audited direct helper
-534	aof-uring	aoffix2 off-writer acknowledgement always (1s, uring)	explicit 1 via launch or audited direct helper
-535	aof-uring	aoffix2 snapshot (2s, uring)	explicit 1 via launch or audited direct helper
-536	aof-uring	aoffix2 filename (2s, uring)	explicit 1 via launch or audited direct helper
-537	aof-uring	aoffix2 error (2s, uring)	explicit 1 via launch or audited direct helper
-538	aof-uring	aoffix2 tickets (2s, uring)	explicit 1 via launch or audited direct helper
-539	aof-uring	aoffix2 exec_tickets (2s, uring)	explicit 1 via launch or audited direct helper
-540	aof-uring	aoffix2 resurrection (2s, uring)	explicit 1 via launch or audited direct helper
-541	aof-uring	aoffix2 rewrite_fail2 (2s, uring)	explicit 1 via launch or audited direct helper
-542	aof-uring	aoffix2 manifest_missing (2s, uring)	explicit 1 via launch or audited direct helper
-543	aof-uring	aoffix2 off-writer acknowledgement everysec (2s, uring)	explicit 1 via launch or audited direct helper
-544	aof-uring	aoffix2 off-writer acknowledgement always (2s, uring)	explicit 1 via launch or audited direct helper
-545	aof-uring	aoffix2 large (1s, uring)	explicit 1 via launch or audited direct helper
-546	aof-uring	aoffix2 large_placed (1s, uring)	explicit 1 via launch or audited direct helper
-547	aof_frame	AOF control frame never inside a large record (atomic 0)	explicit 1 via launch or audited direct helper
-548	aof_frame	AOF control frame never inside a large record (atomic 1)	explicit 1 via launch or audited direct helper
-549	tls	TLS ephemeral CA/server/client certificates	explicit 1 via launch or audited direct helper
-550	tls	NET2 serverless RX policy and KeyUpdate controls	explicit 1 via launch or audited direct helper
-551	tls	reject TLS listener without certificate	explicit 1 via launch or audited direct helper
-552	tls	reject invalid tls-protocols	explicit 1 via launch or audited direct helper
-553	tls	reject invalid tls-ciphers	explicit 1 via launch or audited direct helper
-554	tls	TLS client-auth yes matrix	explicit 1 via launch or audited direct helper
-555	tls	TLS yes shutdown invariants	explicit 1 via launch or audited direct helper
-556	tls	TLS client-auth optional matrix	explicit 1 via launch or audited direct helper
-557	tls	kTLS TLS 1.2 engaged live (default boot)	explicit 1 via launch or audited direct helper
-558	tls	TLS 1.3 KeyUpdate survives (NET2)	explicit 1 via launch or audited direct helper
-559	tls	TLS 1.3 userspace KeyUpdate survives (NET2)	explicit 1 via launch or audited direct helper
-560	tls	TLS optional shutdown invariants	explicit 1 via launch or audited direct helper
-561	tls	TLS pipeline/torn-record/coexistence battery	explicit 1 via launch or audited direct helper
-562	tls	TLS shutdown invariants	explicit 1 via launch or audited direct helper
-563	tls	TLS application send path error-free	explicit 1 via launch or audited direct helper
-564	tls	TLS connection slots all freed (N/N)	explicit 1 via launch or audited direct helper
-565	tls	TLS zc borrow gates fired (suppressed=N)	explicit 1 via launch or audited direct helper
-566	feature-cell-1s-0-0-0-0	feature 1s-0-0-0-0	explicit 1 via launch or audited direct helper
-567	feature-cell-1s-0-0-0-1	feature 1s-0-0-0-1	explicit 1 via launch or audited direct helper
-568	feature-cell-1s-0-0-1-0	feature 1s-0-0-1-0	explicit 1 via launch or audited direct helper
-569	feature-cell-1s-0-0-1-1	feature 1s-0-0-1-1	explicit 1 via launch or audited direct helper
-570	feature-cell-1s-0-1-0-0	feature 1s-0-1-0-0	explicit 1 via launch or audited direct helper
-571	feature-cell-1s-0-1-0-1	feature 1s-0-1-0-1	explicit 1 via launch or audited direct helper
-572	feature-cell-1s-0-1-1-0	feature 1s-0-1-1-0	explicit 1 via launch or audited direct helper
-573	feature-cell-1s-0-1-1-1	feature 1s-0-1-1-1	explicit 1 via launch or audited direct helper
-574	feature-cell-1s-1-0-0-0	feature 1s-1-0-0-0	explicit 1 via launch or audited direct helper
-575	feature-cell-1s-1-0-0-1	feature 1s-1-0-0-1	explicit 1 via launch or audited direct helper
-576	feature-cell-1s-1-0-1-0	feature 1s-1-0-1-0	explicit 1 via launch or audited direct helper
-577	feature-cell-1s-1-0-1-1	feature 1s-1-0-1-1	explicit 1 via launch or audited direct helper
-578	feature-cell-1s-1-1-0-0	feature 1s-1-1-0-0	explicit 1 via launch or audited direct helper
-579	feature-cell-1s-1-1-0-1	feature 1s-1-1-0-1	explicit 1 via launch or audited direct helper
-580	feature-cell-1s-1-1-1-0	feature 1s-1-1-1-0	explicit 1 via launch or audited direct helper
-581	feature-cell-1s-1-1-1-1	feature 1s-1-1-1-1	explicit 1 via launch or audited direct helper
-582	feature-cell-2s-0-0-0-0	feature 2s-0-0-0-0	explicit 1 via launch or audited direct helper
-583	feature-cell-2s-0-0-0-1	feature 2s-0-0-0-1	explicit 1 via launch or audited direct helper
-584	feature-cell-2s-0-0-1-0	feature 2s-0-0-1-0	explicit 1 via launch or audited direct helper
-585	feature-cell-2s-0-0-1-1	feature 2s-0-0-1-1	explicit 1 via launch or audited direct helper
-586	feature-cell-2s-0-1-0-0	feature 2s-0-1-0-0	explicit 1 via launch or audited direct helper
-587	feature-cell-2s-0-1-0-1	feature 2s-0-1-0-1	explicit 1 via launch or audited direct helper
-588	feature-cell-2s-0-1-1-0	feature 2s-0-1-1-0	explicit 1 via launch or audited direct helper
-589	feature-cell-2s-0-1-1-1	feature 2s-0-1-1-1	explicit 1 via launch or audited direct helper
-590	feature-cell-2s-1-0-0-0	feature 2s-1-0-0-0	explicit 1 via launch or audited direct helper
-591	feature-cell-2s-1-0-0-1	feature 2s-1-0-0-1	explicit 1 via launch or audited direct helper
-592	feature-cell-2s-1-0-1-0	feature 2s-1-0-1-0	explicit 1 via launch or audited direct helper
-593	feature-cell-2s-1-0-1-1	feature 2s-1-0-1-1	explicit 1 via launch or audited direct helper
-594	feature-cell-2s-1-1-0-0	feature 2s-1-1-0-0	explicit 1 via launch or audited direct helper
-595	feature-cell-2s-1-1-0-1	feature 2s-1-1-0-1	explicit 1 via launch or audited direct helper
-596	feature-cell-2s-1-1-1-0	feature 2s-1-1-1-0	explicit 1 via launch or audited direct helper
-597	feature-cell-2s-1-1-1-1	feature 2s-1-1-1-1	explicit 1 via launch or audited direct helper
-598	feature-cell-split-home-min	feature split-home-min	explicit 1 via launch or audited direct helper
-599	feature-cell-fused-home-max-nopin	feature fused-home-max-nopin	explicit 1 via launch or audited direct helper
-600	feature-cell-split-shards-auto	feature split-shards-auto	explicit 1 via launch or audited direct helper
-601	abba_selftest	ABBA comparison + saturation negative controls	serverless / linked image audit; no server boot
-602	multidb-1s-0-0	multidb (1s, read-local 0, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
-603	multidb-1s-0-0	multidb (1s, read-local 0, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
-604	multidb-1s-0-0	multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
-605	multidb-1s-0-1	multidb (1s, read-local 0, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
-606	multidb-1s-0-1	multidb (1s, read-local 0, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
-607	multidb-1s-0-1	multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
-608	multidb-1s-1-0	multidb (1s, read-local 1, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
-609	multidb-1s-1-0	multidb (1s, read-local 1, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
-610	multidb-1s-1-0	multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
-611	multidb-1s-1-1	multidb (1s, read-local 1, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
-612	multidb-1s-1-1	multidb (1s, read-local 1, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
-613	multidb-1s-1-1	multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
-614	multidb-2s-0-0	multidb (2s, read-local 0, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
-615	multidb-2s-0-0	multidb (2s, read-local 0, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
-616	multidb-2s-0-0	multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
-617	multidb-2s-0-1	multidb (2s, read-local 0, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
-618	multidb-2s-0-1	multidb (2s, read-local 0, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
-619	multidb-2s-0-1	multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
-620	multidb-2s-1-0	multidb (2s, read-local 1, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
-621	multidb-2s-1-0	multidb (2s, read-local 1, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
-622	multidb-2s-1-0	multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
-623	multidb-2s-1-1	multidb (2s, read-local 1, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
-624	multidb-2s-1-1	multidb (2s, read-local 1, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
-625	multidb-2s-1-1	multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
-626	coordinator	tailgen client-lb outstanding bound	explicit 1 via launch or audited direct helper
-627	asan_batteries	torture under ASAN	explicit 1 via launch or audited direct helper
-628	asan_batteries	RYOW under ASAN	explicit 1 via launch or audited direct helper
-629	asan_batteries	atomic torn/window under ASAN	explicit 1 via launch or audited direct helper
-630	asan_batteries	atomic RYOW under ASAN	explicit 1 via launch or audited direct helper
-631	asan_batteries	ASAN clean	explicit 1 via launch or audited direct helper
-632	replyoff	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)	explicit 1 via launch or audited direct helper
-633	replyoff	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)	explicit 1 via launch or audited direct helper
-634	zc	zc borrow battery	explicit 1 via launch or audited direct helper
-635	zc	zc fired (zc_sends=N)	explicit 1 via launch or audited direct helper
-636	zc	zc borrow battery under ASAN	explicit 1 via launch or audited direct helper
-637	zc	zc ASAN clean	explicit 1 via launch or audited direct helper
-638	rldbg	read-local ownership-invariant build	explicit 1 via launch or audited direct helper
-639	rlcache	armed block-cache churn battery	explicit 1 via launch or audited direct helper
-640	rlcache	read-local ownership invariants	explicit 1 via launch or audited direct helper
-641	differ-split	Redis 7.4 differential matrix	explicit 16 differential; equivalence subtest inherits explicit 1
-642	differ-armed	Redis 7.4 differential matrix (armed fused + read-local)	explicit 16 differential; equivalence subtest inherits explicit 1
-643	globcase	glob/scan grammar parity vs Redis 7.4	explicit 1 via launch or audited direct helper
+27	perfex_units	perfex clock binary regression	explicit 1 via launch or audited direct helper
+28	perfex_units	perfex batch binary regression	explicit 1 via launch or audited direct helper
+29	perfex_live	perfex TTL sampler beat (1s)	explicit 1 via launch or audited direct helper
+30	perfex_live	perfex TTL sampler beat (2s)	explicit 1 via launch or audited direct helper
+31	clientfix	clientfix tracking-cap (1s)	explicit 1 via launch or audited direct helper
+32	clientfix	clientfix tracking-pipeline (1s)	explicit 1 via launch or audited direct helper
+33	clientfix	clientfix reply-skip (1s)	explicit 1 via launch or audited direct helper
+34	clientfix	clientfix pattern-cleanup (1s)	explicit 1 via launch or audited direct helper
+35	clientfix	clientfix pause-deadline (1s)	explicit 1 via launch or audited direct helper
+36	clientfix	clientfix geo-count (1s)	explicit 1 via launch or audited direct helper
+37	clientfix	clientfix geo-store (1s)	explicit 1 via launch or audited direct helper
+38	clientfix	clientfix tracking-cap (2s)	explicit 1 via launch or audited direct helper
+39	clientfix	clientfix tracking-pipeline (2s)	explicit 1 via launch or audited direct helper
+40	clientfix	clientfix reply-skip (2s)	explicit 1 via launch or audited direct helper
+41	clientfix	clientfix pattern-cleanup (2s)	explicit 1 via launch or audited direct helper
+42	clientfix	clientfix pause-deadline (2s)	explicit 1 via launch or audited direct helper
+43	clientfix	clientfix geo-count (2s)	explicit 1 via launch or audited direct helper
+44	clientfix	clientfix geo-store (2s)	explicit 1 via launch or audited direct helper
+45	core_units	core concurrency watch	serverless / linked image audit; no server boot
+46	core_units	core concurrency lifetime	serverless / linked image audit; no server boot
+47	core_units	core concurrency drain	serverless / linked image audit; no server boot
+48	core_units	core concurrency route	serverless / linked image audit; no server boot
+49	core_units	core concurrency snapshot	serverless / linked image audit; no server boot
+50	core_units	core concurrency config	serverless / linked image audit; no server boot
+51	core_units	core concurrency notify	serverless / linked image audit; no server boot
+52	core_units	read-local topology demotion (1s)	serverless / linked image audit; no server boot
+53	core_units	read-local topology demotion (2s)	serverless / linked image audit; no server boot
+54	flipfix_units	FLIP planned-connection close lifetime (ASAN+TSAN)	serverless / linked image audit; no server boot
+55	flipfix_units	FLIP fingerprint publication (ASAN+TSAN)	serverless / linked image audit; no server boot
+56	wb_rule_units	writeback c12 policy witnesses + negative controls	serverless / linked image audit; no server boot
+57	wb_rule_units	writeback c12 phase witnesses + negative controls	serverless / linked image audit; no server boot
+58	wb_rule_units	writeback c12 stages witnesses + negative controls	serverless / linked image audit; no server boot
+59	wb_rule_units	writeback c12 split-phase witnesses + negative controls	serverless / linked image audit; no server boot
+60	wbland_units	writeback policy clauses witnesses + negative controls	serverless / linked image audit; no server boot
+61	wbland_units	writeback policy paths witnesses + negative controls	serverless / linked image audit; no server boot
+62	reorder_sync	R7 generated envelope parity	serverless / linked image audit; no server boot
+63	reorder_engagement	R7 production engagement (both database runtimes)	serverless / linked image audit; no server boot
+64	reorder_identity	R7 FIFO twin off-path identity + negative controls	serverless / linked image audit; no server boot
+65	wb_policy	writeback policies 0/1: 22 standard fixtures	explicit 1 via launch or audited direct helper
+66	lb-stationary-1s	stationary balanced LB holds still (1s)	explicit 1 via launch or audited direct helper
+67	lb-stationary-2s	stationary balanced LB holds still (2s)	explicit 1 via launch or audited direct helper
+68	netio-1s	epoll directed correctness (1s)	explicit 1 via launch or audited direct helper
+69	netio-2s	epoll directed correctness (2s)	explicit 1 via launch or audited direct helper
+70	perfio_stream	perfio XREADGROUP bounded delivery + Redis metadata (1s)	explicit 1 via launch or audited direct helper
+71	perfio_stream	perfio XREADGROUP bounded delivery + Redis metadata (2s)	explicit 1 via launch or audited direct helper
+72	splitlocal_units	splitlocal template forwarding + old-argument controls	serverless / linked image audit; no server boot
+73	storage_units	storage unlinked regression	serverless / linked image audit; no server boot
+74	storage_units	storage randomkey regression	serverless / linked image audit; no server boot
+75	storage_units	storage rehash regression	serverless / linked image audit; no server boot
+76	storage_units	storage rollback regression	serverless / linked image audit; no server boot
+77	storage_units	storage snapshot-eviction regression	serverless / linked image audit; no server boot
+78	storage_units	storage flags regression	serverless / linked image audit; no server boot
+79	storage_units	storage aof-eviction regression	serverless / linked image audit; no server boot
+80	storage_units	storage intents regression	serverless / linked image audit; no server boot
+81	storage_units	storage imported-hash regression	serverless / linked image audit; no server boot
+82	storage_units	storage field-index-failure regression	serverless / linked image audit; no server boot
+83	storage_units	storage hash-bytes regression	serverless / linked image audit; no server boot
+84	storage_units	storage deadline-allocation-failure regression	serverless / linked image audit; no server boot
+85	storage_units	storage flush-prepared-capacity regression	serverless / linked image audit; no server boot
+86	atomic_units	flushfix flush witnesses	serverless / linked image audit; no server boot
+87	atomic_units	flushfix headers witnesses	serverless / linked image audit; no server boot
+88	atomic_units	multidb serverless owners	serverless / linked image audit; no server boot
+89	atomic_units	multidb global namespace boundary	serverless / linked image audit; no server boot
+90	atomic_units	storesize published monitoring	serverless / linked image audit; no server boot
+91	atomic_units	MULTI admin command replies	serverless / linked image audit; no server boot
+92	atomic_units	EXECABORT releases WATCH reservation	serverless / linked image audit; no server boot
+93	atomic_units	atomic survivors unit build	serverless / linked image audit; no server boot
+94	atomic_units	atomic survivor: admission	serverless / linked image audit; no server boot
+95	atomic_units	atomic survivor: closure	serverless / linked image audit; no server boot
+96	atomic_units	atomic survivor: script_keys	serverless / linked image audit; no server boot
+97	atomic_units	atomic survivor: rename_overlay	serverless / linked image audit; no server boot
+98	atomic_units	atomic survivor: write_latest	serverless / linked image audit; no server boot
+99	atomic_units	atomic survivor: script_apply	serverless / linked image audit; no server boot
+100	atomic_units	atomic survivor: post_apply_probe	serverless / linked image audit; no server boot
+101	atomic_units	atomic survivor: lua_conversion	serverless / linked image audit; no server boot
+102	atomic_units	atomic survivor: watch_parent	serverless / linked image audit; no server boot
+103	atomic_units	atomic survivor: watch_cycle	serverless / linked image audit; no server boot
+104	atomic_units	atomic survivor: mset_arity	serverless / linked image audit; no server boot
+105	atomic_units	atomic survivor: watch_oom	serverless / linked image audit; no server boot
+106	atomic_units	atomic survivor: lua_lines	serverless / linked image audit; no server boot
+107	atomic_units	atomic survivor: library_limit	serverless / linked image audit; no server boot
+108	atomic_units	atomic survivor: stage_flag	serverless / linked image audit; no server boot
+109	atomic_units	atomic survivor: instruction_limit	serverless / linked image audit; no server boot
+110	atomic_units	armed resize retirement: atomic-growth	serverless / linked image audit; no server boot
+111	atomic_units	armed resize retirement: flush-prepared	serverless / linked image audit; no server boot
+112	netcmd_units	netcmd regression build	serverless / linked image audit; no server boot
+113	netcmd_units	netcmd streams regression	serverless / linked image audit; no server boot
+114	netcmd_units	netcmd zpop regression	serverless / linked image audit; no server boot
+115	netcmd_units	netcmd notify-oom regression	serverless / linked image audit; no server boot
+116	netcmd_units	netcmd notify-retry regression	serverless / linked image audit; no server boot
+117	netcmd_units	netcmd flush regression	serverless / linked image audit; no server boot
+118	netcmd_units	netcmd output regression	serverless / linked image audit; no server boot
+119	netcmd_units	netcmd pubsub regression	serverless / linked image audit; no server boot
+120	netcmd_units	netcmd receive regression	serverless / linked image audit; no server boot
+121	netcmd_units	netcmd config regression	serverless / linked image audit; no server boot
+122	netcmd_units	netcmd wb-small-pipe regression	serverless / linked image audit; no server boot
+123	netcmd_units	netcmd wb-complete-visits regression	serverless / linked image audit; no server boot
+124	netcmd_units	netcmd hexpire-oom regression	serverless / linked image audit; no server boot
+125	netcmd_units	encodingfix knob	serverless / linked image audit; no server boot
+126	netcmd_units	encodingfix precedence	serverless / linked image audit; no server boot
+127	netcmd_units	NET1 serverless bounds + scan + reclamation	serverless / linked image audit; no server boot
+128	netcap	NET1 inline + query cap (1s, uring)	explicit 1 via launch or audited direct helper
+129	netcap	NET1 inline + query cap (1s, epoll)	explicit 1 via launch or audited direct helper
+130	netcap	NET1 inline + query cap (2s, uring)	explicit 1 via launch or audited direct helper
+131	netcap	NET1 inline + query cap (2s, epoll)	explicit 1 via launch or audited direct helper
+132	respcompat	RESP protocol error compatibility	explicit 1 via launch or audited direct helper
+133	acl_metadata	generated Redis 7.4 ACL categories	serverless / linked image audit; no server boot
+134	boot_grammar	reject --mode (flag deleted)	reject_boot supplies 1; parser must reject before listener
+135	boot_grammar	reject --spread	reject_boot supplies 1; parser must reject before listener
+136	boot_grammar	reject --nodes	reject_boot supplies 1; parser must reject before listener
+137	boot_grammar	reject 3-part ratio	reject_boot supplies 1; parser must reject before listener
+138	boot_grammar	reject missing conf	reject_boot supplies 1; parser must reject before listener
+139	boot_grammar	reject bad conf key	reject_boot supplies 1; parser must reject before listener
+140	boot_grammar	reject aclfile + conf user lines	reject_boot supplies 1; parser must reject before listener
+141	dbdefault	Redis default databases 16 (both modes)	default 16, no --databases; 1s and 2s
+142	cmd_metadata	cmdmeta covers every registered command	serverless / linked image audit; no server boot
+143	wait_units	waits config publication + admission unit	serverless / linked image audit; no server boot
+144	wait_units	reads never wait for retirement quiescence	serverless / linked image audit; no server boot
+145	readonly	read-only resize split read-local=0	explicit 1 via launch or audited direct helper
+146	readonly	read-only resize split read-local=1	explicit 1 via launch or audited direct helper
+147	readonly	read-only resize fused read-local=0	explicit 1 via launch or audited direct helper
+148	readonly	read-only resize fused read-local=1	explicit 1 via launch or audited direct helper
+149	release_batteries	torture battery	explicit 1 via launch or audited direct helper
+150	release_batteries	RYOW battery	explicit 1 via launch or audited direct helper
+151	release_batteries	ACL category runtime table	explicit 1 via launch or audited direct helper
+152	release_batteries	ACL LOAD/SAVE no-file errors	explicit 1 via launch or audited direct helper
+153	release_batteries	idle loop ceiling (LBSIGNALS, 1s)	explicit 1 via launch or audited direct helper
+154	release_batteries	shutdown invariants (nothing stuck)	explicit 1 via launch or audited direct helper
+155	release_batteries	direct-reply fired (direct=N)	explicit 1 via launch or audited direct helper
+156	release_batteries	dispatched==executed (N)	explicit 1 via launch or audited direct helper
+157	atomic_batteries	atomic torn/window battery	explicit 1 via launch or audited direct helper
+158	atomic_batteries	atomic RYOW/mixed-write battery	explicit 1 via launch or audited direct helper
+159	atomic_batteries	atomic owner-local hazard battery	explicit 1 via launch or audited direct helper
+160	atomic_batteries	atomic shutdown invariants	explicit 1 via launch or audited direct helper
+161	feature-split-0	s6 battery (atomic 0)	explicit 1 via launch or audited direct helper
+162	feature-split-0	multi_exec battery (atomic 0)	explicit 1 via launch or audited direct helper
+163	feature-split-0	blocking battery (atomic 0)	explicit 1 via launch or audited direct helper
+164	feature-split-0	blockmulti battery (atomic 0)	explicit 1 via launch or audited direct helper
+165	feature-split-0	stream battery (atomic 0)	explicit 1 via launch or audited direct helper
+166	feature-split-0	streamgroups battery (atomic 0)	explicit 1 via launch or audited direct helper
+167	feature-split-0	pubsub battery (atomic 0)	explicit 1 via launch or audited direct helper
+168	feature-split-0	lua_scripting battery (atomic 0)	explicit 1 via launch or audited direct helper
+169	feature-split-0	scriptsurf battery (atomic 0)	explicit 1 via launch or audited direct helper
+170	feature-split-0	limits battery (atomic 0)	explicit 1 via launch or audited direct helper
+171	feature-split-0	resp3 battery (atomic 0)	explicit 1 via launch or audited direct helper
+172	feature-split-0	bitfield battery (atomic 0)	explicit 1 via launch or audited direct helper
+173	feature-split-0	dumprestore battery (atomic 0)	explicit 1 via launch or audited direct helper
+174	feature-split-0	zsetops battery (atomic 0)	explicit 1 via launch or audited direct helper
+175	feature-split-0	geo battery (atomic 0)	explicit 1 via launch or audited direct helper
+176	feature-split-0	climon battery (atomic 0)	explicit 1 via launch or audited direct helper
+177	feature-split-0	climon2 battery (atomic 0)	explicit 1 via launch or audited direct helper
+178	feature-split-0	tracking battery (atomic 0)	explicit 1 via launch or audited direct helper
+179	feature-split-0	hexpire battery (atomic 0)	explicit 1 via launch or audited direct helper
+180	feature-split-0	servertail battery (atomic 0)	explicit 1 via launch or audited direct helper
+181	feature-split-0	lcs battery (atomic 0)	explicit 1 via launch or audited direct helper
+182	feature-split-0	concur battery (atomic 0)	explicit 1 via launch or audited direct helper
+183	feature-split-0	edgeproto battery (atomic 0)	explicit 1 via launch or audited direct helper
+184	feature-split-0	edgeenc battery (atomic 0)	explicit 1 via launch or audited direct helper
+185	feature-split-0	edgetime battery (atomic 0)	explicit 1 via launch or audited direct helper
+186	feature-split-0	arity battery (atomic 0)	explicit 1 via launch or audited direct helper
+187	feature-split-0	contarity battery (atomic 0)	explicit 1 via launch or audited direct helper
+188	feature-split-0	cmdgap battery (atomic 0)	explicit 1 via launch or audited direct helper
+189	feature-split-0	aclsel battery (atomic 0)	explicit 1 via launch or audited direct helper
+190	feature-split-0	expwide battery (atomic 0)	explicit 1 via launch or audited direct helper
+191	feature-split-0	infofix battery (atomic 0)	explicit 1 via launch or audited direct helper
+192	feature-split-0	pushtear battery (atomic 0)	explicit 1 via launch or audited direct helper
+193	feature-split-0	netcmd battery (atomic 0)	explicit 1 via launch or audited direct helper
+194	feature-split-0	feature shutdown invariants (atomic 0)	explicit 1 via launch or audited direct helper
+195	feature-split-1	s6 battery (atomic 1)	explicit 1 via launch or audited direct helper
+196	feature-split-1	multi_exec battery (atomic 1)	explicit 1 via launch or audited direct helper
+197	feature-split-1	blocking battery (atomic 1)	explicit 1 via launch or audited direct helper
+198	feature-split-1	blockmulti battery (atomic 1)	explicit 1 via launch or audited direct helper
+199	feature-split-1	stream battery (atomic 1)	explicit 1 via launch or audited direct helper
+200	feature-split-1	streamgroups battery (atomic 1)	explicit 1 via launch or audited direct helper
+201	feature-split-1	pubsub battery (atomic 1)	explicit 1 via launch or audited direct helper
+202	feature-split-1	lua_scripting battery (atomic 1)	explicit 1 via launch or audited direct helper
+203	feature-split-1	scriptsurf battery (atomic 1)	explicit 1 via launch or audited direct helper
+204	feature-split-1	limits battery (atomic 1)	explicit 1 via launch or audited direct helper
+205	feature-split-1	resp3 battery (atomic 1)	explicit 1 via launch or audited direct helper
+206	feature-split-1	bitfield battery (atomic 1)	explicit 1 via launch or audited direct helper
+207	feature-split-1	dumprestore battery (atomic 1)	explicit 1 via launch or audited direct helper
+208	feature-split-1	zsetops battery (atomic 1)	explicit 1 via launch or audited direct helper
+209	feature-split-1	geo battery (atomic 1)	explicit 1 via launch or audited direct helper
+210	feature-split-1	climon battery (atomic 1)	explicit 1 via launch or audited direct helper
+211	feature-split-1	climon2 battery (atomic 1)	explicit 1 via launch or audited direct helper
+212	feature-split-1	tracking battery (atomic 1)	explicit 1 via launch or audited direct helper
+213	feature-split-1	hexpire battery (atomic 1)	explicit 1 via launch or audited direct helper
+214	feature-split-1	servertail battery (atomic 1)	explicit 1 via launch or audited direct helper
+215	feature-split-1	lcs battery (atomic 1)	explicit 1 via launch or audited direct helper
+216	feature-split-1	concur battery (atomic 1)	explicit 1 via launch or audited direct helper
+217	feature-split-1	edgeproto battery (atomic 1)	explicit 1 via launch or audited direct helper
+218	feature-split-1	edgeenc battery (atomic 1)	explicit 1 via launch or audited direct helper
+219	feature-split-1	edgetime battery (atomic 1)	explicit 1 via launch or audited direct helper
+220	feature-split-1	arity battery (atomic 1)	explicit 1 via launch or audited direct helper
+221	feature-split-1	contarity battery (atomic 1)	explicit 1 via launch or audited direct helper
+222	feature-split-1	cmdgap battery (atomic 1)	explicit 1 via launch or audited direct helper
+223	feature-split-1	aclsel battery (atomic 1)	explicit 1 via launch or audited direct helper
+224	feature-split-1	expwide battery (atomic 1)	explicit 1 via launch or audited direct helper
+225	feature-split-1	infofix battery (atomic 1)	explicit 1 via launch or audited direct helper
+226	feature-split-1	pushtear battery (atomic 1)	explicit 1 via launch or audited direct helper
+227	feature-split-1	netcmd battery (atomic 1)	explicit 1 via launch or audited direct helper
+228	feature-split-1	feature shutdown invariants (atomic 1)	explicit 1 via launch or audited direct helper
+229	fused-0	fused boot line (atomic 0)	explicit 1 via launch or audited direct helper
+230	fused-0	fused s6 battery (atomic 0)	explicit 1 via launch or audited direct helper
+231	fused-0	fused multi_exec battery (atomic 0)	explicit 1 via launch or audited direct helper
+232	fused-0	fused edgeproto battery (atomic 0)	explicit 1 via launch or audited direct helper
+233	fused-0	fused atomfix battery (atomic 0)	explicit 1 via launch or audited direct helper
+234	fused-0	fused spinprobe battery (atomic 0)	explicit 1 via launch or audited direct helper
+235	fused-0	fused shutdown report (atomic 0)	explicit 1 via launch or audited direct helper
+236	fused-1	fused boot line (atomic 1)	explicit 1 via launch or audited direct helper
+237	fused-1	fused s6 battery (atomic 1)	explicit 1 via launch or audited direct helper
+238	fused-1	fused multi_exec battery (atomic 1)	explicit 1 via launch or audited direct helper
+239	fused-1	fused edgeproto battery (atomic 1)	explicit 1 via launch or audited direct helper
+240	fused-1	fused atomfix battery (atomic 1)	explicit 1 via launch or audited direct helper
+241	fused-1	fused spinprobe battery (atomic 1)	explicit 1 via launch or audited direct helper
+242	fused-1	fused shutdown report (atomic 1)	explicit 1 via launch or audited direct helper
+243	feature-armed-0	fused+armed boot line (atomic 0)	explicit 1 via launch or audited direct helper
+244	feature-armed-0	fused+armed s6 battery (atomic 0)	explicit 1 via launch or audited direct helper
+245	feature-armed-0	fused+armed multi_exec battery (atomic 0)	explicit 1 via launch or audited direct helper
+246	feature-armed-0	fused+armed blocking battery (atomic 0)	explicit 1 via launch or audited direct helper
+247	feature-armed-0	fused+armed blockmulti battery (atomic 0)	explicit 1 via launch or audited direct helper
+248	feature-armed-0	fused+armed stream battery (atomic 0)	explicit 1 via launch or audited direct helper
+249	feature-armed-0	fused+armed streamgroups battery (atomic 0)	explicit 1 via launch or audited direct helper
+250	feature-armed-0	fused+armed pubsub battery (atomic 0)	explicit 1 via launch or audited direct helper
+251	feature-armed-0	fused+armed lua_scripting battery (atomic 0)	explicit 1 via launch or audited direct helper
+252	feature-armed-0	fused+armed scriptsurf battery (atomic 0)	explicit 1 via launch or audited direct helper
+253	feature-armed-0	fused+armed limits battery (atomic 0)	explicit 1 via launch or audited direct helper
+254	feature-armed-0	fused+armed resp3 battery (atomic 0)	explicit 1 via launch or audited direct helper
+255	feature-armed-0	fused+armed bitfield battery (atomic 0)	explicit 1 via launch or audited direct helper
+256	feature-armed-0	fused+armed dumprestore battery (atomic 0)	explicit 1 via launch or audited direct helper
+257	feature-armed-0	fused+armed zsetops battery (atomic 0)	explicit 1 via launch or audited direct helper
+258	feature-armed-0	fused+armed geo battery (atomic 0)	explicit 1 via launch or audited direct helper
+259	feature-armed-0	fused+armed climon battery (atomic 0)	explicit 1 via launch or audited direct helper
+260	feature-armed-0	fused+armed climon2 battery (atomic 0)	explicit 1 via launch or audited direct helper
+261	feature-armed-0	fused+armed tracking battery (atomic 0)	explicit 1 via launch or audited direct helper
+262	feature-armed-0	fused+armed hexpire battery (atomic 0)	explicit 1 via launch or audited direct helper
+263	feature-armed-0	fused+armed servertail battery (atomic 0)	explicit 1 via launch or audited direct helper
+264	feature-armed-0	fused+armed lcs battery (atomic 0)	explicit 1 via launch or audited direct helper
+265	feature-armed-0	fused+armed concur battery (atomic 0)	explicit 1 via launch or audited direct helper
+266	feature-armed-0	fused+armed edgeproto battery (atomic 0)	explicit 1 via launch or audited direct helper
+267	feature-armed-0	fused+armed edgeenc battery (atomic 0)	explicit 1 via launch or audited direct helper
+268	feature-armed-0	fused+armed edgetime battery (atomic 0)	explicit 1 via launch or audited direct helper
+269	feature-armed-0	fused+armed arity battery (atomic 0)	explicit 1 via launch or audited direct helper
+270	feature-armed-0	fused+armed contarity battery (atomic 0)	explicit 1 via launch or audited direct helper
+271	feature-armed-0	fused+armed cmdgap battery (atomic 0)	explicit 1 via launch or audited direct helper
+272	feature-armed-0	fused+armed aclsel battery (atomic 0)	explicit 1 via launch or audited direct helper
+273	feature-armed-0	fused+armed expwide battery (atomic 0)	explicit 1 via launch or audited direct helper
+274	feature-armed-0	fused+armed infofix battery (atomic 0)	explicit 1 via launch or audited direct helper
+275	feature-armed-0	fused+armed pushtear battery (atomic 0)	explicit 1 via launch or audited direct helper
+276	feature-armed-0	fused+armed netcmd battery (atomic 0)	explicit 1 via launch or audited direct helper
+277	feature-armed-0	fused+armed shutdown report + lane fired (hits=N, atomic 0)	explicit 1 via launch or audited direct helper
+278	feature-armed-1	fused+armed boot line (atomic 1)	explicit 1 via launch or audited direct helper
+279	feature-armed-1	fused+armed s6 battery (atomic 1)	explicit 1 via launch or audited direct helper
+280	feature-armed-1	fused+armed multi_exec battery (atomic 1)	explicit 1 via launch or audited direct helper
+281	feature-armed-1	fused+armed blocking battery (atomic 1)	explicit 1 via launch or audited direct helper
+282	feature-armed-1	fused+armed blockmulti battery (atomic 1)	explicit 1 via launch or audited direct helper
+283	feature-armed-1	fused+armed stream battery (atomic 1)	explicit 1 via launch or audited direct helper
+284	feature-armed-1	fused+armed streamgroups battery (atomic 1)	explicit 1 via launch or audited direct helper
+285	feature-armed-1	fused+armed pubsub battery (atomic 1)	explicit 1 via launch or audited direct helper
+286	feature-armed-1	fused+armed lua_scripting battery (atomic 1)	explicit 1 via launch or audited direct helper
+287	feature-armed-1	fused+armed scriptsurf battery (atomic 1)	explicit 1 via launch or audited direct helper
+288	feature-armed-1	fused+armed limits battery (atomic 1)	explicit 1 via launch or audited direct helper
+289	feature-armed-1	fused+armed resp3 battery (atomic 1)	explicit 1 via launch or audited direct helper
+290	feature-armed-1	fused+armed bitfield battery (atomic 1)	explicit 1 via launch or audited direct helper
+291	feature-armed-1	fused+armed dumprestore battery (atomic 1)	explicit 1 via launch or audited direct helper
+292	feature-armed-1	fused+armed zsetops battery (atomic 1)	explicit 1 via launch or audited direct helper
+293	feature-armed-1	fused+armed geo battery (atomic 1)	explicit 1 via launch or audited direct helper
+294	feature-armed-1	fused+armed climon battery (atomic 1)	explicit 1 via launch or audited direct helper
+295	feature-armed-1	fused+armed climon2 battery (atomic 1)	explicit 1 via launch or audited direct helper
+296	feature-armed-1	fused+armed tracking battery (atomic 1)	explicit 1 via launch or audited direct helper
+297	feature-armed-1	fused+armed hexpire battery (atomic 1)	explicit 1 via launch or audited direct helper
+298	feature-armed-1	fused+armed servertail battery (atomic 1)	explicit 1 via launch or audited direct helper
+299	feature-armed-1	fused+armed lcs battery (atomic 1)	explicit 1 via launch or audited direct helper
+300	feature-armed-1	fused+armed concur battery (atomic 1)	explicit 1 via launch or audited direct helper
+301	feature-armed-1	fused+armed edgeproto battery (atomic 1)	explicit 1 via launch or audited direct helper
+302	feature-armed-1	fused+armed edgeenc battery (atomic 1)	explicit 1 via launch or audited direct helper
+303	feature-armed-1	fused+armed edgetime battery (atomic 1)	explicit 1 via launch or audited direct helper
+304	feature-armed-1	fused+armed arity battery (atomic 1)	explicit 1 via launch or audited direct helper
+305	feature-armed-1	fused+armed contarity battery (atomic 1)	explicit 1 via launch or audited direct helper
+306	feature-armed-1	fused+armed cmdgap battery (atomic 1)	explicit 1 via launch or audited direct helper
+307	feature-armed-1	fused+armed aclsel battery (atomic 1)	explicit 1 via launch or audited direct helper
+308	feature-armed-1	fused+armed expwide battery (atomic 1)	explicit 1 via launch or audited direct helper
+309	feature-armed-1	fused+armed infofix battery (atomic 1)	explicit 1 via launch or audited direct helper
+310	feature-armed-1	fused+armed pushtear battery (atomic 1)	explicit 1 via launch or audited direct helper
+311	feature-armed-1	fused+armed netcmd battery (atomic 1)	explicit 1 via launch or audited direct helper
+312	feature-armed-1	fused+armed shutdown report + lane fired (hits=N, atomic 1)	explicit 1 via launch or audited direct helper
+313	evict-lfu-split-0	eviction lfu battery (split, atomic 0)	explicit 1 via launch or audited direct helper
+314	evict-lfu-armed-0	eviction lfu battery (fused+armed, atomic 0)	explicit 1 via launch or audited direct helper
+315	evict-lruclock-split-0	eviction lruclock battery (split, atomic 0)	explicit 1 via launch or audited direct helper
+316	evict-lruclock-armed-0	eviction lruclock battery (fused+armed, atomic 0)	explicit 1 via launch or audited direct helper
+317	evict-lfu-split-1	eviction lfu battery (split, atomic 1)	explicit 1 via launch or audited direct helper
+318	evict-lfu-armed-1	eviction lfu battery (fused+armed, atomic 1)	explicit 1 via launch or audited direct helper
+319	evict-lruclock-split-1	eviction lruclock battery (split, atomic 1)	explicit 1 via launch or audited direct helper
+320	evict-lruclock-armed-1	eviction lruclock battery (fused+armed, atomic 1)	explicit 1 via launch or audited direct helper
+321	bplus	B+ held-group GET/MGET filter battery	explicit 1 via launch or audited direct helper
+322	bplus	read-local lane admission battery	explicit 1 via launch or audited direct helper
+323	bplus	read-local MGET fence battery (1s)	explicit 1 via launch or audited direct helper
+324	bplus	read-local MGET fence battery (2s)	explicit 1 via launch or audited direct helper
+325	acl_recheck	ACL recheck one-reply battery (2s)	explicit 1 via launch or audited direct helper
+326	acl_recheck	ACL recheck one-reply battery (1s)	explicit 1 via launch or audited direct helper
+327	aclfix	aclfix sort (1s)	explicit 1 via launch or audited direct helper
+328	aclfix	aclfix streams-name (1s)	explicit 1 via launch or audited direct helper
+329	aclfix	aclfix save-load (1s)	explicit 1 via launch or audited direct helper
+330	aclfix	aclfix capacity (1s)	explicit 1 via launch or audited direct helper
+331	aclfix	aclfix wake-pop (1s)	explicit 1 via launch or audited direct helper
+332	aclfix	aclfix wake-scatter (1s)	explicit 1 via launch or audited direct helper
+333	aclfix	aclfix sort (2s)	explicit 1 via launch or audited direct helper
+334	aclfix	aclfix streams-name (2s)	explicit 1 via launch or audited direct helper
+335	aclfix	aclfix save-load (2s)	explicit 1 via launch or audited direct helper
+336	aclfix	aclfix capacity (2s)	explicit 1 via launch or audited direct helper
+337	aclfix	aclfix wake-pop (2s)	explicit 1 via launch or audited direct helper
+338	aclfix	aclfix wake-scatter (2s)	explicit 1 via launch or audited direct helper
+339	sort	cross-owner SORT battery (atomic 0)	explicit 1 via launch or audited direct helper
+340	sort	cross-owner SORT battery (atomic 1)	explicit 1 via launch or audited direct helper
+341	debug-0	plain-write lost updates (atomic 0)	explicit 1 via launch or audited direct helper
+342	debug-0	lbsignals battery (atomic 0)	explicit 1 via launch or audited direct helper
+343	debug-0	slowlog battery (atomic 0)	explicit 1 via launch or audited direct helper
+344	debug-0	atomfix battery (atomic 0)	explicit 1 via launch or audited direct helper
+345	debug-0	scriptatomic battery (atomic 0)	explicit 1 via launch or audited direct helper
+346	debug-0	execatomic battery (atomic 0)	explicit 1 via launch or audited direct helper
+347	debug-0	execiso battery (atomic 0)	explicit 1 via launch or audited direct helper
+348	debug-0	execfix battery (atomic 0)	explicit 1 via launch or audited direct helper
+349	debug-0	multires battery (atomic 0)	explicit 1 via launch or audited direct helper
+350	debug-0	multirace battery (atomic 0)	explicit 1 via launch or audited direct helper
+351	debug-0	session_monotonic battery (atomic 0)	explicit 1 via launch or audited direct helper
+352	debug-0	xacct battery (atomic 0)	explicit 1 via launch or audited direct helper
+353	debug-0	xmove battery (atomic 0)	explicit 1 via launch or audited direct helper
+354	debug-0	xscript battery (atomic 0)	explicit 1 via launch or audited direct helper
+355	debug-1	plain-write lost updates (atomic 1)	explicit 1 via launch or audited direct helper
+356	debug-1	lbsignals battery (atomic 1)	explicit 1 via launch or audited direct helper
+357	debug-1	slowlog battery (atomic 1)	explicit 1 via launch or audited direct helper
+358	debug-1	atomfix battery (atomic 1)	explicit 1 via launch or audited direct helper
+359	debug-1	scriptatomic battery (atomic 1)	explicit 1 via launch or audited direct helper
+360	debug-1	execatomic battery (atomic 1)	explicit 1 via launch or audited direct helper
+361	debug-1	execiso battery (atomic 1)	explicit 1 via launch or audited direct helper
+362	debug-1	execfix battery (atomic 1)	explicit 1 via launch or audited direct helper
+363	debug-1	multires battery (atomic 1)	explicit 1 via launch or audited direct helper
+364	debug-1	multirace battery (atomic 1)	explicit 1 via launch or audited direct helper
+365	debug-1	session_monotonic battery (atomic 1)	explicit 1 via launch or audited direct helper
+366	debug-1	xacct battery (atomic 1)	explicit 1 via launch or audited direct helper
+367	debug-1	xmove battery (atomic 1)	explicit 1 via launch or audited direct helper
+368	debug-1	xscript battery (atomic 1)	explicit 1 via launch or audited direct helper
+369	script_bounds	xscript limit control	explicit 1 via launch or audited direct helper
+370	script_bounds	xscript window control	explicit 1 via launch or audited direct helper
+371	scriptfix	scriptfix sandbox (1s)	explicit 1 via launch or audited direct helper
+372	scriptfix	scriptfix functions (1s)	explicit 1 via launch or audited direct helper
+373	scriptfix	scriptfix replies (1s)	explicit 1 via launch or audited direct helper
+374	scriptfix	scriptfix dump (1s)	explicit 1 via launch or audited direct helper
+375	scriptfix	scriptfix sandbox (2s)	explicit 1 via launch or audited direct helper
+376	scriptfix	scriptfix functions (2s)	explicit 1 via launch or audited direct helper
+377	scriptfix	scriptfix replies (2s)	explicit 1 via launch or audited direct helper
+378	scriptfix	scriptfix dump (2s)	explicit 1 via launch or audited direct helper
+379	efficiency	expire-index growth bound	explicit 1 via launch or audited direct helper
+380	efficiency	borrow-registry growth bound	explicit 1 via launch or audited direct helper
+381	efficiency	cross-shard dispatch scaling	explicit 1 via launch or audited direct helper
+382	dump_restore	DUMP/RESTORE prepare + native SAVE	explicit 1 via launch or audited direct helper
+383	dump_restore	DUMP/RESTORE cross-restart round-trip	explicit 1 via launch or audited direct helper
+384	dump_restore	DUMP/RESTORE restart shutdown invariants	explicit 1 via launch or audited direct helper
+385	auth	reject bad protected-mode	explicit 1 via launch or audited direct helper
+386	auth	reject bad enable-debug-command	explicit 1 via launch or audited direct helper
+387	auth	AUTH/HELLO/protected state machine	explicit 1 via launch or audited direct helper
+388	auth	ACL battery (atomic off)	explicit 1 via launch or audited direct helper
+389	auth	ACL battery (atomic on)	explicit 1 via launch or audited direct helper
+390	auth	DEBUG toggle/reload battery	explicit 1 via launch or audited direct helper
+391	auth	typed snapshot round-trip incl stream	explicit 1 via launch or audited direct helper
+392	authfix	authfix CG4.1 binary config requirepass	explicit 1 via launch or audited direct helper
+393	authfix	authfix CG4.2 missing config value refuses boot	explicit 1 via launch or audited direct helper
+394	authfix	authfix SV4.2 binary requirepass rewrite restart	explicit 1 via launch or audited direct helper
+395	authfix	authfix SV4.1 slowlog credential redaction (1s)	explicit 1 via launch or audited direct helper
+396	authfix	authfix SV4.1 slowlog credential redaction (2s)	explicit 1 via launch or audited direct helper
+397	snapshot-epoll	snapshot concurrent cut (epoll)	explicit 1 via launch or audited direct helper
+398	snapshot-epoll	snapshot cut reload (epoll)	explicit 1 via launch or audited direct helper
+399	snapshot-epoll	snapshot never tears a cross-shard MSET group (epoll, atomic 1)	explicit 1 via launch or audited direct helper
+400	snapshot-epoll	snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)	explicit 1 via launch or audited direct helper
+401	snapshot-epoll	typed snapshot save (epoll)	explicit 1 via launch or audited direct helper
+402	snapshot-epoll	typed snapshot reload (epoll)	explicit 1 via launch or audited direct helper
+403	snapshot-epoll	typed snapshot preimage race (epoll)	explicit 1 via launch or audited direct helper
+404	snapshot-epoll	typed snapshot race reload (epoll)	explicit 1 via launch or audited direct helper
+405	snapshot-epoll	shutdown keeps acknowledged writes (1s, sigterm, epoll)	explicit 1 via launch or audited direct helper
+406	snapshot-epoll	shutdown keeps acknowledged writes (1s, command, epoll)	explicit 1 via launch or audited direct helper
+407	snapshot-epoll	shutdown cancels BGSAVE capture (1s, atomic 0, epoll)	explicit 1 via launch or audited direct helper
+408	snapshot-epoll	shutdown cancels BGSAVE capture (1s, atomic 1, epoll)	explicit 1 via launch or audited direct helper
+409	snapshot-epoll	shutdown keeps acknowledged writes (2s, sigterm, epoll)	explicit 1 via launch or audited direct helper
+410	snapshot-epoll	shutdown keeps acknowledged writes (2s, command, epoll)	explicit 1 via launch or audited direct helper
+411	snapshot-epoll	shutdown cancels BGSAVE capture (2s, atomic 0, epoll)	explicit 1 via launch or audited direct helper
+412	snapshot-epoll	shutdown cancels BGSAVE capture (2s, atomic 1, epoll)	explicit 1 via launch or audited direct helper
+413	snapshot-uring	snapshot concurrent cut (uring)	explicit 1 via launch or audited direct helper
+414	snapshot-uring	snapshot cut reload (uring)	explicit 1 via launch or audited direct helper
+415	snapshot-uring	snapshot never tears a cross-shard MSET group (uring, atomic 1)	explicit 1 via launch or audited direct helper
+416	snapshot-uring	snapshot never tears a MULTI/EXEC group (uring, default atomic 0)	explicit 1 via launch or audited direct helper
+417	snapshot-uring	typed snapshot save (uring)	explicit 1 via launch or audited direct helper
+418	snapshot-uring	typed snapshot reload (uring)	explicit 1 via launch or audited direct helper
+419	snapshot-uring	typed snapshot preimage race (uring)	explicit 1 via launch or audited direct helper
+420	snapshot-uring	typed snapshot race reload (uring)	explicit 1 via launch or audited direct helper
+421	snapshot-uring	shutdown keeps acknowledged writes (1s, sigterm, uring)	explicit 1 via launch or audited direct helper
+422	snapshot-uring	shutdown keeps acknowledged writes (1s, command, uring)	explicit 1 via launch or audited direct helper
+423	snapshot-uring	shutdown cancels BGSAVE capture (1s, atomic 0, uring)	explicit 1 via launch or audited direct helper
+424	snapshot-uring	shutdown cancels BGSAVE capture (1s, atomic 1, uring)	explicit 1 via launch or audited direct helper
+425	snapshot-uring	shutdown keeps acknowledged writes (2s, sigterm, uring)	explicit 1 via launch or audited direct helper
+426	snapshot-uring	shutdown keeps acknowledged writes (2s, command, uring)	explicit 1 via launch or audited direct helper
+427	snapshot-uring	shutdown cancels BGSAVE capture (2s, atomic 0, uring)	explicit 1 via launch or audited direct helper
+428	snapshot-uring	shutdown cancels BGSAVE capture (2s, atomic 1, uring)	explicit 1 via launch or audited direct helper
+429	notify	MULTI feature battery	explicit 1 via launch or audited direct helper
+430	notify	blocking feature battery	explicit 1 via launch or audited direct helper
+431	notify	pubsub feature battery	explicit 1 via launch or audited direct helper
+432	notify	Lua feature battery	explicit 1 via launch or audited direct helper
+433	notify	keyspace notification battery (atomic 0/1)	explicit 1 via launch or audited direct helper
+434	notify	feature battery shutdown invariants	explicit 1 via launch or audited direct helper
+435	flip	FLIP state battery	explicit 1 via launch or audited direct helper
+436	flip	FLIP under verified load	explicit 1 via launch or audited direct helper
+437	flip	FLIP TTL + expiry events	explicit 1 via launch or audited direct helper
+438	flip	partial-frame conn parks (no io spin)	explicit 1 via launch or audited direct helper
+439	flip	FLIP close during FLIP (uring)	explicit 1 via launch or audited direct helper
+440	flip	FLIP close during FLIP (epoll)	explicit 1 via launch or audited direct helper
+441	flip	FLIP signal stop during FLIP + second SIGINT	explicit 1 via launch or audited direct helper
+442	flip	perfio stale epoll registration (epoll-flip)	explicit 1 via launch or audited direct helper
+443	flip	perfio stale epoll registration (epoll-lb)	explicit 1 via launch or audited direct helper
+444	flipctl	flip controller: ramp gate, hold, surge + mix re-maneuvers	explicit 1 via launch or audited direct helper
+445	flip_saturated	FLIP applies under saturated load	explicit 1 via launch or audited direct helper
+446	flip_saturated	flip battery shutdown invariants	explicit 1 via launch or audited direct helper
+447	atomic_floor	atomic MGET/MSET floor (N/s >= 120k)	explicit 1 via launch or audited direct helper
+448	atomic_floor	tripwire arm/disarm round-trip	explicit 1 via launch or audited direct helper
+449	atomic_floor	pipelined same-conn program order (400 rolls)	explicit 1 via launch or audited direct helper
+450	aof-epoll	configuration reduction + actual geometry (epoll, atomic 0)	explicit 1 via launch or audited direct helper
+451	aof-epoll	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)	explicit 1 via launch or audited direct helper
+452	aof-epoll	AOF writer fired (records=N)	explicit 1 via launch or audited direct helper
+453	aof-epoll	AOF process-restart script replay (epoll, atomic 0)	explicit 1 via launch or audited direct helper
+454	aof-epoll	AOF native snapshot streams byte-exact	explicit 1 via launch or audited direct helper
+455	aof-epoll	AOF replay fired (records=N skipped=N)	explicit 1 via launch or audited direct helper
+456	aof-epoll	configuration reduction + actual geometry (epoll, atomic 1)	explicit 1 via launch or audited direct helper
+457	aof-epoll	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)	explicit 1 via launch or audited direct helper
+458	aof-epoll	AOF writer fired (records=N)	explicit 1 via launch or audited direct helper
+459	aof-epoll	AOF process-restart script replay (epoll, atomic 1)	explicit 1 via launch or audited direct helper
+460	aof-epoll	AOF native snapshot streams byte-exact	explicit 1 via launch or audited direct helper
+461	aof-epoll	AOF replay fired (records=N skipped=N)	explicit 1 via launch or audited direct helper
+462	aof-epoll	AOF directed group interruption fired	explicit 1 via launch or audited direct helper
+463	aof-epoll	AOF atomic-group recovery + writer order	explicit 1 via launch or audited direct helper
+464	aof-epoll	AOF group shutdown invariants	explicit 1 via launch or audited direct helper
+465	aof-epoll	AOF always sync + reply gate fired	explicit 1 via launch or audited direct helper
+466	aof-epoll	AOF always recovery after quiescent SIGKILL	explicit 1 via launch or audited direct helper
+467	aof-epoll	AOF in-window kill recovery (2s, epoll)	explicit 1 via launch or audited direct helper
+468	aof-epoll	AOF in-window term recovery (2s, epoll)	explicit 1 via launch or audited direct helper
+469	aof-epoll	AOF in-window kill recovery (1s, epoll)	explicit 1 via launch or audited direct helper
+470	aof-epoll	AOF in-window term recovery (1s, epoll)	explicit 1 via launch or audited direct helper
+471	aof-epoll	shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)	explicit 1 via launch or audited direct helper
+472	aof-epoll	shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)	explicit 1 via launch or audited direct helper
+473	aof-epoll	shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)	explicit 1 via launch or audited direct helper
+474	aof-epoll	shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)	explicit 1 via launch or audited direct helper
+475	aof-epoll	AOF everysec write gate + idle sync fired	explicit 1 via launch or audited direct helper
+476	aof-epoll	AOF everysec durability window + tail warning	explicit 1 via launch or audited direct helper
+477	aof-epoll	AOF no-sync bypassed sync + reply gate	explicit 1 via launch or audited direct helper
+478	aof-epoll	AOF rewrite atomic/stage/corruption matrix	explicit 1 via launch or audited direct helper
+479	aof-epoll	AOF rewrite triggers + observability matrix	explicit 1 via launch or audited direct helper
+480	aof-epoll	AOF-off negative-control seed landed	explicit 1 via launch or audited direct helper
+481	aof-epoll	AOF-off negative control lost data	explicit 1 via launch or audited direct helper
+482	aof-epoll	aoffix2 snapshot (1s, epoll)	explicit 1 via launch or audited direct helper
+483	aof-epoll	aoffix2 filename (1s, epoll)	explicit 1 via launch or audited direct helper
+484	aof-epoll	aoffix2 error (1s, epoll)	explicit 1 via launch or audited direct helper
+485	aof-epoll	aoffix2 tickets (1s, epoll)	explicit 1 via launch or audited direct helper
+486	aof-epoll	aoffix2 exec_tickets (1s, epoll)	explicit 1 via launch or audited direct helper
+487	aof-epoll	aoffix2 resurrection (1s, epoll)	explicit 1 via launch or audited direct helper
+488	aof-epoll	aoffix2 rewrite_fail2 (1s, epoll)	explicit 1 via launch or audited direct helper
+489	aof-epoll	aoffix2 manifest_missing (1s, epoll)	explicit 1 via launch or audited direct helper
+490	aof-epoll	aoffix2 off-writer acknowledgement everysec (1s, epoll)	explicit 1 via launch or audited direct helper
+491	aof-epoll	aoffix2 off-writer acknowledgement always (1s, epoll)	explicit 1 via launch or audited direct helper
+492	aof-epoll	aoffix2 snapshot (2s, epoll)	explicit 1 via launch or audited direct helper
+493	aof-epoll	aoffix2 filename (2s, epoll)	explicit 1 via launch or audited direct helper
+494	aof-epoll	aoffix2 error (2s, epoll)	explicit 1 via launch or audited direct helper
+495	aof-epoll	aoffix2 tickets (2s, epoll)	explicit 1 via launch or audited direct helper
+496	aof-epoll	aoffix2 exec_tickets (2s, epoll)	explicit 1 via launch or audited direct helper
+497	aof-epoll	aoffix2 resurrection (2s, epoll)	explicit 1 via launch or audited direct helper
+498	aof-epoll	aoffix2 rewrite_fail2 (2s, epoll)	explicit 1 via launch or audited direct helper
+499	aof-epoll	aoffix2 manifest_missing (2s, epoll)	explicit 1 via launch or audited direct helper
+500	aof-epoll	aoffix2 off-writer acknowledgement everysec (2s, epoll)	explicit 1 via launch or audited direct helper
+501	aof-epoll	aoffix2 off-writer acknowledgement always (2s, epoll)	explicit 1 via launch or audited direct helper
+502	aof-epoll	aoffix2 large (1s, epoll)	explicit 1 via launch or audited direct helper
+503	aof-epoll	aoffix2 large_placed (1s, epoll)	explicit 1 via launch or audited direct helper
+504	aof-uring	configuration reduction + actual geometry (uring, atomic 0)	explicit 1 via launch or audited direct helper
+505	aof-uring	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)	explicit 1 via launch or audited direct helper
+506	aof-uring	AOF writer fired (records=N)	explicit 1 via launch or audited direct helper
+507	aof-uring	AOF process-restart script replay (uring, atomic 0)	explicit 1 via launch or audited direct helper
+508	aof-uring	AOF native snapshot streams byte-exact	explicit 1 via launch or audited direct helper
+509	aof-uring	AOF replay fired (records=N skipped=N)	explicit 1 via launch or audited direct helper
+510	aof-uring	configuration reduction + actual geometry (uring, atomic 1)	explicit 1 via launch or audited direct helper
+511	aof-uring	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)	explicit 1 via launch or audited direct helper
+512	aof-uring	AOF writer fired (records=N)	explicit 1 via launch or audited direct helper
+513	aof-uring	AOF process-restart script replay (uring, atomic 1)	explicit 1 via launch or audited direct helper
+514	aof-uring	AOF native snapshot streams byte-exact	explicit 1 via launch or audited direct helper
+515	aof-uring	AOF replay fired (records=N skipped=N)	explicit 1 via launch or audited direct helper
+516	aof-uring	AOF directed group interruption fired	explicit 1 via launch or audited direct helper
+517	aof-uring	AOF atomic-group recovery + writer order	explicit 1 via launch or audited direct helper
+518	aof-uring	AOF group shutdown invariants	explicit 1 via launch or audited direct helper
+519	aof-uring	AOF always sync + reply gate fired	explicit 1 via launch or audited direct helper
+520	aof-uring	AOF always recovery after quiescent SIGKILL	explicit 1 via launch or audited direct helper
+521	aof-uring	AOF in-window kill recovery (2s, uring)	explicit 1 via launch or audited direct helper
+522	aof-uring	AOF in-window term recovery (2s, uring)	explicit 1 via launch or audited direct helper
+523	aof-uring	AOF in-window kill recovery (1s, uring)	explicit 1 via launch or audited direct helper
+524	aof-uring	AOF in-window term recovery (1s, uring)	explicit 1 via launch or audited direct helper
+525	aof-uring	shutdown cancels AOF rewrite capture (1s, atomic 0, uring)	explicit 1 via launch or audited direct helper
+526	aof-uring	shutdown cancels AOF rewrite capture (1s, atomic 1, uring)	explicit 1 via launch or audited direct helper
+527	aof-uring	shutdown cancels AOF rewrite capture (2s, atomic 0, uring)	explicit 1 via launch or audited direct helper
+528	aof-uring	shutdown cancels AOF rewrite capture (2s, atomic 1, uring)	explicit 1 via launch or audited direct helper
+529	aof-uring	AOF everysec write gate + idle sync fired	explicit 1 via launch or audited direct helper
+530	aof-uring	AOF everysec durability window + tail warning	explicit 1 via launch or audited direct helper
+531	aof-uring	AOF no-sync bypassed sync + reply gate	explicit 1 via launch or audited direct helper
+532	aof-uring	AOF rewrite atomic/stage/corruption matrix	explicit 1 via launch or audited direct helper
+533	aof-uring	AOF rewrite triggers + observability matrix	explicit 1 via launch or audited direct helper
+534	aof-uring	AOF-off negative-control seed landed	explicit 1 via launch or audited direct helper
+535	aof-uring	AOF-off negative control lost data	explicit 1 via launch or audited direct helper
+536	aof-uring	aoffix2 snapshot (1s, uring)	explicit 1 via launch or audited direct helper
+537	aof-uring	aoffix2 filename (1s, uring)	explicit 1 via launch or audited direct helper
+538	aof-uring	aoffix2 error (1s, uring)	explicit 1 via launch or audited direct helper
+539	aof-uring	aoffix2 tickets (1s, uring)	explicit 1 via launch or audited direct helper
+540	aof-uring	aoffix2 exec_tickets (1s, uring)	explicit 1 via launch or audited direct helper
+541	aof-uring	aoffix2 resurrection (1s, uring)	explicit 1 via launch or audited direct helper
+542	aof-uring	aoffix2 rewrite_fail2 (1s, uring)	explicit 1 via launch or audited direct helper
+543	aof-uring	aoffix2 manifest_missing (1s, uring)	explicit 1 via launch or audited direct helper
+544	aof-uring	aoffix2 off-writer acknowledgement everysec (1s, uring)	explicit 1 via launch or audited direct helper
+545	aof-uring	aoffix2 off-writer acknowledgement always (1s, uring)	explicit 1 via launch or audited direct helper
+546	aof-uring	aoffix2 snapshot (2s, uring)	explicit 1 via launch or audited direct helper
+547	aof-uring	aoffix2 filename (2s, uring)	explicit 1 via launch or audited direct helper
+548	aof-uring	aoffix2 error (2s, uring)	explicit 1 via launch or audited direct helper
+549	aof-uring	aoffix2 tickets (2s, uring)	explicit 1 via launch or audited direct helper
+550	aof-uring	aoffix2 exec_tickets (2s, uring)	explicit 1 via launch or audited direct helper
+551	aof-uring	aoffix2 resurrection (2s, uring)	explicit 1 via launch or audited direct helper
+552	aof-uring	aoffix2 rewrite_fail2 (2s, uring)	explicit 1 via launch or audited direct helper
+553	aof-uring	aoffix2 manifest_missing (2s, uring)	explicit 1 via launch or audited direct helper
+554	aof-uring	aoffix2 off-writer acknowledgement everysec (2s, uring)	explicit 1 via launch or audited direct helper
+555	aof-uring	aoffix2 off-writer acknowledgement always (2s, uring)	explicit 1 via launch or audited direct helper
+556	aof-uring	aoffix2 large (1s, uring)	explicit 1 via launch or audited direct helper
+557	aof-uring	aoffix2 large_placed (1s, uring)	explicit 1 via launch or audited direct helper
+558	aof_frame	AOF control frame never inside a large record (atomic 0)	explicit 1 via launch or audited direct helper
+559	aof_frame	AOF control frame never inside a large record (atomic 1)	explicit 1 via launch or audited direct helper
+560	tls	TLS ephemeral CA/server/client certificates	explicit 1 via launch or audited direct helper
+561	tls	NET2 serverless RX policy and KeyUpdate controls	explicit 1 via launch or audited direct helper
+562	tls	reject TLS listener without certificate	explicit 1 via launch or audited direct helper
+563	tls	reject invalid tls-protocols	explicit 1 via launch or audited direct helper
+564	tls	reject invalid tls-ciphers	explicit 1 via launch or audited direct helper
+565	tls	TLS client-auth yes matrix	explicit 1 via launch or audited direct helper
+566	tls	TLS yes shutdown invariants	explicit 1 via launch or audited direct helper
+567	tls	TLS client-auth optional matrix	explicit 1 via launch or audited direct helper
+568	tls	kTLS TLS 1.2 engaged live (default boot)	explicit 1 via launch or audited direct helper
+569	tls	TLS 1.3 KeyUpdate survives (NET2)	explicit 1 via launch or audited direct helper
+570	tls	TLS 1.3 userspace KeyUpdate survives (NET2)	explicit 1 via launch or audited direct helper
+571	tls	TLS optional shutdown invariants	explicit 1 via launch or audited direct helper
+572	tls	TLS pipeline/torn-record/coexistence battery	explicit 1 via launch or audited direct helper
+573	tls	TLS shutdown invariants	explicit 1 via launch or audited direct helper
+574	tls	TLS application send path error-free	explicit 1 via launch or audited direct helper
+575	tls	TLS connection slots all freed (N/N)	explicit 1 via launch or audited direct helper
+576	tls	TLS zc borrow gates fired (suppressed=N)	explicit 1 via launch or audited direct helper
+577	feature-cell-1s-0-0-0-0	feature 1s-0-0-0-0	explicit 1 via launch or audited direct helper
+578	feature-cell-1s-0-0-0-1	feature 1s-0-0-0-1	explicit 1 via launch or audited direct helper
+579	feature-cell-1s-0-0-1-0	feature 1s-0-0-1-0	explicit 1 via launch or audited direct helper
+580	feature-cell-1s-0-0-1-1	feature 1s-0-0-1-1	explicit 1 via launch or audited direct helper
+581	feature-cell-1s-0-1-0-0	feature 1s-0-1-0-0	explicit 1 via launch or audited direct helper
+582	feature-cell-1s-0-1-0-1	feature 1s-0-1-0-1	explicit 1 via launch or audited direct helper
+583	feature-cell-1s-0-1-1-0	feature 1s-0-1-1-0	explicit 1 via launch or audited direct helper
+584	feature-cell-1s-0-1-1-1	feature 1s-0-1-1-1	explicit 1 via launch or audited direct helper
+585	feature-cell-1s-1-0-0-0	feature 1s-1-0-0-0	explicit 1 via launch or audited direct helper
+586	feature-cell-1s-1-0-0-1	feature 1s-1-0-0-1	explicit 1 via launch or audited direct helper
+587	feature-cell-1s-1-0-1-0	feature 1s-1-0-1-0	explicit 1 via launch or audited direct helper
+588	feature-cell-1s-1-0-1-1	feature 1s-1-0-1-1	explicit 1 via launch or audited direct helper
+589	feature-cell-1s-1-1-0-0	feature 1s-1-1-0-0	explicit 1 via launch or audited direct helper
+590	feature-cell-1s-1-1-0-1	feature 1s-1-1-0-1	explicit 1 via launch or audited direct helper
+591	feature-cell-1s-1-1-1-0	feature 1s-1-1-1-0	explicit 1 via launch or audited direct helper
+592	feature-cell-1s-1-1-1-1	feature 1s-1-1-1-1	explicit 1 via launch or audited direct helper
+593	feature-cell-2s-0-0-0-0	feature 2s-0-0-0-0	explicit 1 via launch or audited direct helper
+594	feature-cell-2s-0-0-0-1	feature 2s-0-0-0-1	explicit 1 via launch or audited direct helper
+595	feature-cell-2s-0-0-1-0	feature 2s-0-0-1-0	explicit 1 via launch or audited direct helper
+596	feature-cell-2s-0-0-1-1	feature 2s-0-0-1-1	explicit 1 via launch or audited direct helper
+597	feature-cell-2s-0-1-0-0	feature 2s-0-1-0-0	explicit 1 via launch or audited direct helper
+598	feature-cell-2s-0-1-0-1	feature 2s-0-1-0-1	explicit 1 via launch or audited direct helper
+599	feature-cell-2s-0-1-1-0	feature 2s-0-1-1-0	explicit 1 via launch or audited direct helper
+600	feature-cell-2s-0-1-1-1	feature 2s-0-1-1-1	explicit 1 via launch or audited direct helper
+601	feature-cell-2s-1-0-0-0	feature 2s-1-0-0-0	explicit 1 via launch or audited direct helper
+602	feature-cell-2s-1-0-0-1	feature 2s-1-0-0-1	explicit 1 via launch or audited direct helper
+603	feature-cell-2s-1-0-1-0	feature 2s-1-0-1-0	explicit 1 via launch or audited direct helper
+604	feature-cell-2s-1-0-1-1	feature 2s-1-0-1-1	explicit 1 via launch or audited direct helper
+605	feature-cell-2s-1-1-0-0	feature 2s-1-1-0-0	explicit 1 via launch or audited direct helper
+606	feature-cell-2s-1-1-0-1	feature 2s-1-1-0-1	explicit 1 via launch or audited direct helper
+607	feature-cell-2s-1-1-1-0	feature 2s-1-1-1-0	explicit 1 via launch or audited direct helper
+608	feature-cell-2s-1-1-1-1	feature 2s-1-1-1-1	explicit 1 via launch or audited direct helper
+609	feature-cell-split-home-min	feature split-home-min	explicit 1 via launch or audited direct helper
+610	feature-cell-fused-home-max-nopin	feature fused-home-max-nopin	explicit 1 via launch or audited direct helper
+611	feature-cell-split-shards-auto	feature split-shards-auto	explicit 1 via launch or audited direct helper
+612	abba_selftest	ABBA comparison + saturation negative controls	serverless / linked image audit; no server boot
+613	multidb-1s-0-0	multidb (1s, read-local 0, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
+614	multidb-1s-0-0	multidb (1s, read-local 0, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+615	multidb-1s-0-0	multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+616	multidb-1s-0-1	multidb (1s, read-local 0, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
+617	multidb-1s-0-1	multidb (1s, read-local 0, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+618	multidb-1s-0-1	multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+619	multidb-1s-1-0	multidb (1s, read-local 1, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
+620	multidb-1s-1-0	multidb (1s, read-local 1, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+621	multidb-1s-1-0	multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+622	multidb-1s-1-1	multidb (1s, read-local 1, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
+623	multidb-1s-1-1	multidb (1s, read-local 1, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+624	multidb-1s-1-1	multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+625	multidb-2s-0-0	multidb (2s, read-local 0, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
+626	multidb-2s-0-0	multidb (2s, read-local 0, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+627	multidb-2s-0-0	multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+628	multidb-2s-0-1	multidb (2s, read-local 0, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
+629	multidb-2s-0-1	multidb (2s, read-local 0, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+630	multidb-2s-0-1	multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+631	multidb-2s-1-0	multidb (2s, read-local 1, atomic 0)	explicit 16 (launch override + mdbqsbr_live.py)
+632	multidb-2s-1-0	multidb (2s, read-local 1, atomic 0) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+633	multidb-2s-1-0	multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+634	multidb-2s-1-1	multidb (2s, read-local 1, atomic 1)	explicit 16 (launch override + mdbqsbr_live.py)
+635	multidb-2s-1-1	multidb (2s, read-local 1, atomic 1) SWAPDB serial order	explicit 16 (launch override + mdbqsbr_live.py)
+636	multidb-2s-1-1	multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB	explicit 16 (launch override + mdbqsbr_live.py)
+637	coordinator	tailgen client-lb outstanding bound	explicit 1 via launch or audited direct helper
+638	asan_batteries	torture under ASAN	explicit 1 via launch or audited direct helper
+639	asan_batteries	RYOW under ASAN	explicit 1 via launch or audited direct helper
+640	asan_batteries	atomic torn/window under ASAN	explicit 1 via launch or audited direct helper
+641	asan_batteries	atomic RYOW under ASAN	explicit 1 via launch or audited direct helper
+642	asan_batteries	ASAN clean	explicit 1 via launch or audited direct helper
+643	replyoff	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)	explicit 1 via launch or audited direct helper
+644	replyoff	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)	explicit 1 via launch or audited direct helper
+645	zc	zc borrow battery	explicit 1 via launch or audited direct helper
+646	zc	zc fired (zc_sends=N)	explicit 1 via launch or audited direct helper
+647	zc	zc borrow battery under ASAN	explicit 1 via launch or audited direct helper
+648	zc	zc ASAN clean	explicit 1 via launch or audited direct helper
+649	rldbg	read-local ownership-invariant build	explicit 1 via launch or audited direct helper
+650	rlcache	armed block-cache churn battery	explicit 1 via launch or audited direct helper
+651	rlcache	read-local ownership invariants	explicit 1 via launch or audited direct helper
+652	differ-split	Redis 7.4 differential matrix	explicit 16 differential; equivalence subtest inherits explicit 1
+653	differ-armed	Redis 7.4 differential matrix (armed fused + read-local)	explicit 16 differential; equivalence subtest inherits explicit 1
+654	globcase	glob/scan grammar parity vs Redis 7.4	explicit 1 via launch or audited direct helper

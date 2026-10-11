@@ -1,0 +1,12 @@
+path	lane	boots TomoKV?	database image after the merge	evidence
+tests/perfio.py	perfio	yes, own boot() for the four perfio gate rows	explicit --databases 1 (pinned in 0d859e218, the dbdefault policy dbdefault applied to aclfix.py/clientfix.py); the Redis oracle boot is unchanged	boot(): argv += ["--databases", "1", ...] when not --oracle
+tests/perfex_checks.py	perfex	sampler: yes (server() passes --databases 1); clock/batch: no (nm/objdump of the candidate)	explicit 1 / serverless	server(): "--databases", "1"; gate job_perfex_live boots with --databases 1
+tests/gate.sh job_perfex_live	perfex	yes, boot/boot_fused	explicit --databases 1 (also launch() default)	job_perfex_live argv
+tests/gate.sh job_perfex_units	perfex	no (binary analysis)	serverless; row_audit.py's generic label 'explicit 1 via launch or audited direct helper' is conservative	perfex_checks.py clock/batch
+tests/rehash_waits_unit.cc, tests/store_regression.cc	rlresize	no (serverless units)	n/a	job_atomic_units / job_storage_units
+tests/lottery_attempt.py	lottery	yes, via _gate_process.server()	explicit 1 (server() default databases=1); differential rows via differ_gate.sh keep explicit 16	_gate_process.server(..., databases=1)
+tests/lottery_runner.py	lottery	no (spawns lottery_attempt.py)	n/a	Popen of the attempt driver
+docs/pfconfirm/confirm.py	perfex (d867a1073 = perfio c8fc2d147)	yes	explicit 1 unless a cell's srv= overrides (one explicit-16 flush cell)	cells / argv builder
+docs/perfex/proof.py, docs/perfex/perf_stat.py, docs/perfex2/proof.py	perfex	yes, via perfex_checks.server() / _gate_process.server()	explicit 1	lane receipt tools, not gate
+docs/rlresize/run_battery.py	rlresize	yes, direct	explicit (proof_batteries.sh passes --databases 16 / 1 per arm)	lane receipt tool, not gate
+docs/perfio/batteries.py, docs/perfio/nt4_probe.py	perfio	yes, via tests/perfio.py boot()	explicit 1 (inherit the perfio.py pin)	lane receipt/probe tools, not gate: from perfio import boot
