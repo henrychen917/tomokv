@@ -335,8 +335,12 @@ void txn_intents(Server& server) {
         op->attach_multi_state(state);
         client.rob().publish();
         client.atomic_group_started();
-        require(multi_touch_key(*state, server.shard(0), hash, slice(key), false),
-                "shutdown read intent armed");
+        // The generic intent cleanup API is retained for Stage B anchors.
+        // EXEC placement no longer registers read intents.
+        UnitRef shutdown_ref{&state->decision.epoch, &state->decision.aborted, state};
+        require(store.atomic_unit_pin(shutdown_ref, hash, slice(key)) == 1,
+                "shutdown legacy intent armed directly");
+        server.note_txn(server.worker_of_shard(0), TxnCounter::IntentsLive);
         require(server.txn_counter(TxnCounter::IntentsLive) == 1, "live shutdown intent counted");
         store.atomic_shutdown_release_records();
         require(!store.atomic_has_records() && !server.script_intents_active() &&
@@ -494,6 +498,8 @@ void txn_group(Server& server) {
                 "group decision releases token and admission barrier");
         xshard_cleanup_shard_at(server.shard(0), UINT64_MAX, UINT64_MAX, 256);
         xshard_cleanup_shard_at(server.shard(1), UINT64_MAX, UINT64_MAX, 256);
+        require(multi_plain_write_ready(server.shard(0), writer.op),
+                "released writer passes and removes its fairness mark");
         require(state.watch_refs.load() == ScatterState::kGroupAttemptRef && !server.shard(0).has_watches() &&
                 !server.shard(1).has_watches(), "read-only owner cleanup retires every reservation");
     }

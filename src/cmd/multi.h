@@ -161,6 +161,7 @@ uint32_t multi_session_queue_size(const Client& client);
 uint32_t multi_session_watch_size(const Client& client);
 uint64_t multi_session_memory(const Client& client);
 uint64_t multi_session_query_bytes(const Client& client);
+uint32_t multi_last_attempts(const Client& client);
 
 // Ordinary owner-local write hook.  The false result means an EXEC still holds a WATCH validation
 // reservation on one of this command's keys and the task must be retried, not executed early.

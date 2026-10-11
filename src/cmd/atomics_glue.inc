@@ -25,11 +25,6 @@ void cancel_applied_scripts(FlatStore& store, uint64_t hash, Slice key,
     });
 }
 
-void cancel_wildcard_units(FlatStore& store) {
-    store.atomic_visit_unit_intents(0, {}, true, [](AtomicScriptIntent& intent) {
-        if (intent.kind == 2) multi_cancel_intent(intent);
-    });
-}
 
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id) {
@@ -223,7 +218,7 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
                             undecided = true;
                     });
                 if (undecided && store.atomic_has_physical(key.hash, op.arg(key.arg)))
-                    return ScatterTaskResult::Retry;
+                    return ScatterTaskResult::Defer;
             }
             // A foreign finalizer can publish its ticket during this owner turn.
             // Check decisions before reading: finding absence first, then seeing
@@ -971,8 +966,6 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         }
         if (!enumerated) return false;
         if (allocation_failed) { set_oom(op); return false; }
-        if (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))
-            cancel_wildcard_units(store);
         if (recorded.empty()) return true;
 
         if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
@@ -1064,8 +1057,6 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
     const Slice routed = op_routed_key(op);
     store.atomic_promote_key(op.hash, routed, floor, cleanup_cutoff);
     if (!store.atomic_needs_version(op.hash, routed)) {
-        if (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))
-            cancel_wildcard_units(store);
         return true;
     }
     if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {

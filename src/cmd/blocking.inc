@@ -669,7 +669,6 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         blocking_publish_completion(state, self, ring);
         return true;
     }
-    if (shard.store().atomic_has_records()) cancel_wildcard_units(shard.store());
     if (state.kind == BlockingKind::Xreadgroup) {
         for (const auto& stream : state.keys)
             if (stream.shard == shard.id() && !shard.watch_write_ready(blocking_key_slice(stream))) {

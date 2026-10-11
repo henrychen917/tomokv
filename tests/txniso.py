@@ -90,7 +90,7 @@ class Battery:
         self.queue(holder, commands)
         cuts = self.counter("atomic_exec_read_cuts")
         entries = self.counter("atomic_entries")
-        intents = self.counter("atomic_txn_intents")
+        executed = self.counter("atomic_txn_executed")
         self.hook("ATOMIC-FANOUT-DEFER", 400000)
         holder.send("EXEC")
         try:
@@ -100,9 +100,9 @@ class Battery:
             if writes:
                 self.wait(lambda: self.counter("atomic_entries") > entries,
                           "lead did not install before the competing operation")
-            elif intents is not None:
-                self.wait(lambda: self.counter("atomic_txn_intents") > intents,
-                          "lead did not read before the competing operation")
+            else:
+                self.wait(lambda: self.counter("atomic_txn_executed") > executed,
+                          "EXEC did not complete placement")
             if select.select([holder.sock], [], [], 0)[0]:
                 raise WindowMiss("holder already replied")
             yield holder
@@ -123,7 +123,8 @@ class Battery:
             self.admin.must("MSET", a, 0, b, 0)
             dooms = self.counter("atomic_txn_dooms")
             retries = self.counter("atomic_txn_retries")
-            waits = self.counter("atomic_txn_waits")
+            waits = self.counter("atomic_txn_place_waits")
+            writer_waits = self.counter("atomic_txn_writer_waits")
             commands = [("INCR", a), ("MGET", a, b), ("INCR", b)]
             if kind == "D3":
                 shard = self.admin.must("DEBUG", "SHARD", a)
@@ -133,7 +134,14 @@ class Battery:
                 # to a distinct key in that same owner turn proves the lead ran
                 # before the foreign writer, including on PRE without intents.
                 commands = [("INCR", marker), ("MGET", a, b), ("GET", a)]
-            watched = a + ":watch" if kind.startswith("D4") else None
+            watched = self.same_shard(a) if kind.startswith("D4") else None
+            if kind == "D4b":
+                with self.wounded(commands, watch=watched,
+                                  older_extra=[("SET", watched, "changed")]) as holder:
+                    assert holder.read() is None, "changed WATCH must yield null"
+                assert self.admin.must("MGET", a, b) == [b"1", b"0"]
+                assert self.counter("atomic_txn_dooms") == dooms
+                return
             try:
                 with self.parked(commands, True, watched) as holder:
                     writer = self.conn()
@@ -143,12 +151,12 @@ class Battery:
                         result = holder.read()
                         foreign = writer.read()[0]
                     else:
-                        foreign = writer.must("SET", a, "new") if kind == "D3" else writer.must("INCR", a)
-                        if select.select([holder.sock], [], [], 0)[0]:
-                            raise WindowMiss("foreign write did not precede holder reply")
-                        if kind == "D4b":
-                            writer.must("SET", watched, "changed")
+                        writer.send("SET", a, "new") if kind == "D3" else writer.send("INCR", a)
+                        self.wait(lambda: self.counter("atomic_txn_writer_waits") > writer_waits,
+                                  "plain writer did not encounter the executing claim")
+                        assert not select.select([writer.sock], [], [], 0)[0], "writer passed an executing unit"
                         result = holder.read()
+                        foreign = writer.read()
                     if kind == "D3":
                         assert result[1][0] == result[2], ("read changed inside EXEC", result)
                     elif kind == "D4b":
@@ -160,17 +168,11 @@ class Battery:
                         assert sorted([result[0], foreign]) == [1, 2], (result, foreign)
                         assert result[1] == [str(result[0]).encode(), b"0"], result
                 if kind == "D2":
-                    # Cached admission timestamps can tie across IOs; the IO
-                    # tie-break may make this writer the older attempt. That
-                    # round still must pass every data check above, but it did
-                    # not open the younger-writer wait window. Re-arm on fresh
-                    # keys within the existing four-attempt bound.
-                    if waits is not None and self.counter("atomic_txn_waits") == waits:
-                        raise WindowMiss("younger-writer wait window did not open")
-                    self.advanced("atomic_txn_waits", waits)
+                    self.advanced("atomic_txn_place_waits", waits)
                 else:
-                    self.advanced("atomic_txn_dooms", dooms)
-                    self.advanced("atomic_txn_retries", retries)
+                    self.advanced("atomic_txn_writer_waits", writer_waits)
+                assert self.counter("atomic_txn_dooms") == dooms
+                assert self.counter("atomic_txn_retries") == retries
                 return
             except WindowMiss:
                 if attempt == 3:
@@ -188,6 +190,7 @@ class Battery:
             writers = [("INCR", a), ("INCR", b)]
         holder, one, two = self.conn(), self.conn(), self.conn()
         retries = self.counter("atomic_txn_retries")
+        writer_waits = self.counter("atomic_txn_writer_waits")
         self.queue(holder, commands)
         self.hook("ATOMIC-COMMIT-DELAY", 200000)
         try:
@@ -203,7 +206,7 @@ class Battery:
                 r1, r2 = first.result(), second.result()
             self.hook("ATOMIC-COMMIT-DELAY", 0)
             result = holder.read()
-            assert min(r1[1], r2[1]) < .1, ("no unstalled writer window", r1, r2)
+            self.advanced("atomic_txn_writer_waits", writer_waits)
             if child:
                 assert result == [1], result
                 assert set(self.admin.must("SMEMBERS", a)) == {b"y"}
@@ -212,7 +215,7 @@ class Battery:
                 assert self.admin.must("MGET", a, b) == [b"2", b"2"], (result, r1, r2)
                 assert sorted([result[0], r1[0]]) == [1, 2]
                 assert sorted([result[1], r2[0]]) == [1, 2]
-            self.advanced("atomic_txn_retries", retries)
+            assert self.counter("atomic_txn_retries") == retries
         finally:
             self.hook("ATOMIC-COMMIT-DELAY", 0)
 
@@ -308,7 +311,49 @@ class Battery:
                             ("atomic_txn_wounds", "atomic_txn_self_dooms"))
             assert conflicts > 0, "crossed WATCH reservation conflict never occurred"
 
+    @contextlib.contextmanager
+    def wounded(self, commands, watch=None, older_extra=()):
+        a = commands[0][1]
+        other = next(key for command in commands for key in command[1:]
+                     if isinstance(key, str) and key != a and
+                     self.admin.must("DEBUG", "SHARD", key) != self.admin.must("DEBUG", "SHARD", a))
+        marker = self.same_shard(other)
+        older, younger = self.conn(), self.conn()
+        if watch:
+            assert younger.must("WATCH", watch) == b"OK"
+        self.queue(older, [("INCR", marker), ("INCR", a), *older_extra])
+        self.queue(younger, commands)
+        attempts = self.counter("atomic_txn_attempts")
+        wounds = self.counter("atomic_txn_wounds")
+        executed = self.counter("atomic_txn_executed")
+        try:
+            self.hook("TXN-PLACE-DEFER", 150000)
+            older.send("EXEC")
+            self.wait(lambda: self.counter("atomic_txn_attempts") > attempts, "older version not dispatched")
+            self.hook("TXN-PLACE-DEFER", 400000)
+            younger.send("EXEC")
+            self.wait(lambda: self.counter("atomic_txn_attempts") >= attempts + 2, "younger version not dispatched")
+            yield younger
+            assert older.read()[1] == 1
+            if self.counter("atomic_txn_wounds") == wounds:
+                raise WindowMiss("placement wound did not open")
+            assert self.counter("atomic_txn_executed") == executed + (1 if watch else 2), \
+                "discarded attempt executed commands"
+        finally:
+            self.hook("TXN-PLACE-DEFER", 0)
+            older.close()
+            younger.close()
+
     def invisible(self, kind):
+        for arm in range(4):
+            try:
+                self.invisible_attempt(kind)
+                return
+            except WindowMiss:
+                if arm == 3:
+                    raise
+
+    def invisible_attempt(self, kind):
         a, b = self.pair()
         self.admin.must("MSET", a, 0, b, 0)
         commands = [("INCR", a), ("MGET", a, b), ("INCR", b)]
@@ -331,8 +376,7 @@ class Battery:
             commands.insert(1, ("SPOP", collection))
         retries = self.counter("atomic_txn_retries")
         try:
-            with self.parked(commands, writes=True) as holder:
-                assert self.admin.must("INCR", a) == 1
+            with self.wounded(commands) as holder:
                 result = holder.read()
             assert result is not None and result[0] == 2, result
             self.advanced("atomic_txn_retries", retries)
@@ -361,8 +405,7 @@ class Battery:
             a, b = self.pair()
             self.admin.must("MSET", a, 0, b, 0)
             retries = self.counter("atomic_txn_retries")
-            with self.parked([("INCR", a), ("MGET", a, b), ("INCR", b)], writes=True) as holder:
-                self.admin.must("INCR", a)
+            with self.wounded([("INCR", a), ("MGET", a, b), ("INCR", b)]) as holder:
                 assert holder.read() == [2, [b"2", b"0"], 1]
             self.advanced("atomic_txn_retries", retries)
             expected.update({a: b"2", b: b"1"})

@@ -120,7 +120,7 @@ void txnorder_checks(Server& server, const std::string& name) {
         require(xshard_task_should_defer(server, shard, Task{&client, 0, 0, nullptr}, request.op),
                 "F1 claim-blocked writer parks without MVCC records");
         aborted.store(true);
-        require(shard.watch_write_ready(slice(src)), "F1 claim released");
+        require(multi_plain_write_ready(shard, request.op), "F1 claim and writer mark released");
     } else if (name == "txnorder_f4") {
         require(shard.watch_add(slice(dst), &client, client.watch_generation()), "F4 WATCH dst");
         Request request({"SORT", src, "STORE", dst});
@@ -131,7 +131,7 @@ void txnorder_checks(Server& server, const std::string& name) {
                                            &client, 0, false, true}), "F4 dst validation claim");
         require(!multi_plain_write_ready(shard, request.op), "F4 SORT STORE checks destination claim");
         aborted.store(true);
-        require(shard.watch_write_ready(slice(dst)), "F4 claim released");
+        require(multi_plain_write_ready(shard, request.op), "F4 claim and writer mark released");
         multi_plain_write_committed(shard, request.op);
         require(client.watch_dirty(), "F4 SORT STORE dirties destination WATCH");
         shard.watch_remove(slice(dst), &client, client.watch_generation());

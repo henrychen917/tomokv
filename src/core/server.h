@@ -2689,6 +2689,12 @@ public:
     void set_debug_txn_occ_limit(uint32_t limit) {
         debug_txn_occ_limit_.store(limit, std::memory_order_relaxed);
     }
+    uint32_t take_debug_txn_place_defer() {
+        return debug_txn_place_defer_.exchange(0, std::memory_order_relaxed);
+    }
+    void set_debug_txn_place_defer(uint32_t delay) {
+        debug_txn_place_defer_.store(delay, std::memory_order_relaxed);
+    }
     // Same-owner tickets (a localfast plain version, FLUSH's logical clear) have no window: the
     // shard that draws them installs their records before it yields, and no other task may touch
     // that shard in between. They still travel through the bracket so the watermark can never
@@ -3714,6 +3720,7 @@ private:
     alignas(64) std::atomic<const void*> txn_exclusive_owner_{nullptr};
     uint64_t txn_exclusive_generation_ = 0; // serialized by the exclusive token
     std::atomic<uint32_t> debug_txn_occ_limit_{kTxnWriterDoomBound};
+    std::atomic<uint32_t> debug_txn_place_defer_{0};
 
 };
 

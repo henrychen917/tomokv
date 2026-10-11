@@ -301,8 +301,11 @@ public:
     bool watch_validate_and_reserve(Slice key, Client* client, uint64_t generation,
                                     const void* token, std::atomic<uint64_t>* epoch,
                                     std::atomic<bool>* aborted,
-                                    std::atomic<uint32_t>* refs, bool mutates);
+                                    std::atomic<uint32_t>* refs, bool mutates,
+                                    MultiExecState* unit = nullptr, bool reserve = true);
     bool watch_write_ready(Slice key, const void* token = nullptr);
+    bool watch_group_write_ready(Slice key, const void* token = nullptr);
+    bool watch_key_ready(const std::string& key, const void* token, bool all_units);
     bool watch_place_unit(const std::vector<struct TxnClaim>& keys,
                           WatchReservation unit);
     void watch_finish_unit(const std::vector<struct TxnClaim>& keys, const void* token);

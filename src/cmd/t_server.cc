@@ -1189,6 +1189,21 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    if (eq_icase(subcommand, "txn-place-defer") && op.argc() == 3) {
+        uint64_t delay = 0;
+        if (!parse_u64(op.arg(2), delay) || delay > 10000000) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_txn_place_defer(static_cast<uint32_t>(delay));
+        reply_ok(op.sink());
+        return;
+    }
+    if (eq_icase(subcommand, "txn-last-attempts") && op.argc() == 2) {
+        reply_int(op.sink(), g_client ? multi_last_attempts(*g_client) : 0);
+        return;
+    }
     if (eq_icase(subcommand, "atomic-fanout-defer") && op.argc() == 3) {
         uint64_t microseconds = 0;
         if (!parse_u64(op.arg(2), microseconds) || microseconds > 10000000) {

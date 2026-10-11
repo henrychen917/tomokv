@@ -663,6 +663,7 @@ namespace {
 
 [[gnu::noinline]] ScatterTaskResult execute_plain_element_mover(const Task&, Shard&, Op&);
 [[gnu::noinline]] ScatterTaskResult execute_live_pop(const Task&, Shard&, Op&);
+[[gnu::noinline]] bool txn_scatter_write_ready(const Task&, Shard&, Op&);
 [[gnu::noinline]] bool txn_group_prepare(ScatterState&, Server&, uint32_t,
                                         ScatterArenaPool* = nullptr);
 enum class TxnGroupRead : uint8_t { Ready, Done, Wait };
@@ -2792,27 +2793,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             cancel_applied_scripts(shard.store(), key.hash, op.arg(key.arg), &state);
         }
     if (xshard_owner_mutation_phase(state, op) && shard.has_watches()) {
-        const void* token = state.multi_parent ? state.multi_parent
-            : state.atomic_group ? static_cast<const void*>(&state) : nullptr;
-        if (group.count == 0) {
-            if (!shard.watch_all_write_ready()) return ScatterTaskResult::Defer;
-        } else {
-            for (uint32_t i = 0; i < group.count; i++) {
-                const uint32_t pos = state.key_order[group.begin + i];
-                const KeyRef& key = state.keys[pos];
-                if (!shard.watch_write_ready(op.arg(key.arg), token))
-                    return ScatterTaskResult::Defer;
-            }
-            if (state.atomic_group) {
-                for (uint32_t i = 0; i < group.count; i++) {
-                    const uint32_t pos = state.key_order[group.begin + i];
-                    const KeyRef& key = state.keys[pos];
-                    shard.watch_reserve_write(
-                        op.arg(key.arg), task.client, task.client->watch_generation(), &state,
-                        publish_epoch(state), publish_aborted(state), &state.watch_refs);
-                }
-            }
-        }
+        if (!txn_scatter_write_ready(task, shard, op)) return ScatterTaskResult::Defer;
     }
     // The executor-wide batch prefetch deliberately excludes scatter tasks. Recover their structural
     // advantage here, after routing has made the batch owner-local and before MVCC promotion or the
@@ -3307,6 +3288,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 return ScatterTaskResult::Complete;
             }
             case Kind::DebugReload: {
+                if (!shard.watch_all_write_ready()) return ScatterTaskResult::Defer;
                 auto foreign_read_scope = shard.store().foreign_read_poison_guard();
                 if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 shard.store().clear();
@@ -3319,6 +3301,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 return ScatterTaskResult::Complete;
             }
             case Kind::DebugLoadAof: {
+                if (!shard.watch_all_write_ready()) return ScatterTaskResult::Defer;
                 auto foreign_read_scope = shard.store().foreign_read_poison_guard();
                 if (!shard.store().atomic_tombstone_all()) return ScatterTaskResult::Retry;
                 shard.store().clear();
