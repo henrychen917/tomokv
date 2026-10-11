@@ -1,0 +1,13 @@
+Hot bodies: 1204; raw byte equal: 1183; bytes + resolved relocation targets equal: 1192
+DIFF db0/src/cmd/xshard.o 732 606 tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)
+DIFF db0/src/cmd/xshard.o 1602 1493 tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)
+DIFF db0/src/cmd/xshard.o 933 869 tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent)
+DIFF db0/src/cmd/xshard.o 942 878 tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)
+DIFF db0/src/core/reorder.o 796 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+DIFF src/cmd/xshard.o 630 540 tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const
+DIFF src/cmd/xshard.o 1014 942 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+DIFF src/cmd/xshard.o 783 580 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+DIFF src/cmd/xshard.o 846 782 tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)
+DIFF src/cmd/xshard.o 812 737 tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent)
+DIFF src/core/rl2s.o 12093 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 21058 21083 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)

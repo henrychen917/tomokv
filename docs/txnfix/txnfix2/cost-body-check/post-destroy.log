@@ -1,0 +1,900 @@
+
+build/src/cmd/xshard.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000000301d0 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj>:
+   301d0:	f3 0f 1e fa          	endbr64
+   301d4:	48 85 ff             	test   %rdi,%rdi
+   301d7:	0f 84 a3 02 00 00    	je     30480 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x2b0>
+   301dd:	41 56                	push   %r14
+   301df:	41 55                	push   %r13
+   301e1:	41 54                	push   %r12
+   301e3:	49 89 f4             	mov    %rsi,%r12
+   301e6:	55                   	push   %rbp
+   301e7:	89 d5                	mov    %edx,%ebp
+   301e9:	53                   	push   %rbx
+   301ea:	48 8b 57 78          	mov    0x78(%rdi),%rdx
+   301ee:	48 89 fb             	mov    %rdi,%rbx
+   301f1:	48 85 d2             	test   %rdx,%rdx
+   301f4:	74 0a                	je     30200 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x30>
+   301f6:	80 7f 2e 03          	cmpb   $0x3,0x2e(%rdi)
+   301fa:	0f 84 30 02 00 00    	je     30430 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x260>
+   30200:	0f b6 05 00 00 00 00 	movzbl 0x0(%rip),%eax        # 30207 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x37>
+			30203: R_X86_64_PC32	_ZN4tomo22atomic_tripwire_detail5armedE-0x4
+   30207:	84 c0                	test   %al,%al
+   30209:	74 55                	je     30260 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x90>
+   3020b:	4c 8b 35 00 00 00 00 	mov    0x0(%rip),%r14        # 30212 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x42>
+			3020e: R_X86_64_PC32	_ZN4tomo22atomic_tripwire_detail5stateE-0x4
+   30212:	4d 85 f6             	test   %r14,%r14
+   30215:	74 49                	je     30260 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x90>
+   30217:	4c 89 f7             	mov    %r14,%rdi
+   3021a:	e8 00 00 00 00       	call   3021f <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x4f>
+			3021b: R_X86_64_PLT32	pthread_mutex_lock-0x4
+   3021f:	85 c0                	test   %eax,%eax
+   30221:	0f 85 89 02 00 00    	jne    304b0 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x2e0>
+   30227:	49 8b b6 a0 08 00 00 	mov    0x8a0(%r14),%rsi
+   3022e:	4d 8d ae 90 08 00 00 	lea    0x890(%r14),%r13
+   30235:	48 85 f6             	test   %rsi,%rsi
+   30238:	74 12                	je     3024c <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x7c>
+   3023a:	48 3b 5e 08          	cmp    0x8(%rsi),%rbx
+   3023e:	0f 84 2c 02 00 00    	je     30470 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x2a0>
+   30244:	48 8b 36             	mov    (%rsi),%rsi
+   30247:	48 85 f6             	test   %rsi,%rsi
+   3024a:	75 ee                	jne    3023a <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x6a>
+   3024c:	4c 89 f7             	mov    %r14,%rdi
+   3024f:	e8 00 00 00 00       	call   30254 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x84>
+			30250: R_X86_64_PLT32	pthread_mutex_unlock-0x4
+   30254:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+   3025b:	00 00 00 00 
+   3025f:	90                   	nop
+   30260:	39 6b 5c             	cmp    %ebp,0x5c(%rbx)
+   30263:	0f 85 00 00 00 00    	jne    30269 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x99>
+			30265: R_X86_64_PC32	.text.unlikely+0x1771
+   30269:	80 7b 0c 00          	cmpb   $0x0,0xc(%rbx)
+   3026d:	48 8b 73 78          	mov    0x78(%rbx),%rsi
+   30271:	74 1a                	je     3028d <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0xbd>
+   30273:	48 85 f6             	test   %rsi,%rsi
+   30276:	0f 84 b0 00 00 00    	je     3032c <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x15c>
+   3027c:	89 e9                	mov    %ebp,%ecx
+   3027e:	48 89 da             	mov    %rbx,%rdx
+   30281:	4c 89 e7             	mov    %r12,%rdi
+   30284:	e8 f7 60 fd ff       	call   6380 <_ZN4tomo16ScatterArenaPool19unregister_snapshotERNS_6ServerEPNS_11SnapshotCutEj.part.0>
+   30289:	48 8b 73 78          	mov    0x78(%rbx),%rsi
+   3028d:	48 85 f6             	test   %rsi,%rsi
+   30290:	0f 84 96 00 00 00    	je     3032c <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x15c>
+   30296:	48 8b 86 e8 03 01 00 	mov    0x103e8(%rsi),%rax
+   3029d:	48 2b 86 e0 03 01 00 	sub    0x103e0(%rsi),%rax
+   302a4:	48 c1 f8 03          	sar    $0x3,%rax
+   302a8:	39 c5                	cmp    %eax,%ebp
+   302aa:	0f 83 00 00 00 00    	jae    302b0 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0xe0>
+			302ac: R_X86_64_PC32	.text.unlikely+0x1771
+   302b0:	0f b6 43 58          	movzbl 0x58(%rbx),%eax
+   302b4:	48 8d 53 58          	lea    0x58(%rbx),%rdx
+   302b8:	84 c0                	test   %al,%al
+   302ba:	0f 85 d0 01 00 00    	jne    30490 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x2c0>
+   302c0:	80 7b 57 00          	cmpb   $0x0,0x57(%rbx)
+   302c4:	74 66                	je     3032c <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x15c>
+   302c6:	48 8b 43 78          	mov    0x78(%rbx),%rax
+   302ca:	48 85 c0             	test   %rax,%rax
+   302cd:	0f 84 e4 01 00 00    	je     304b7 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x2e7>
+   302d3:	8b 4b 5c             	mov    0x5c(%rbx),%ecx
+   302d6:	48 8b 90 e0 03 01 00 	mov    0x103e0(%rax),%rdx
+   302dd:	48 83 7b 68 01       	cmpq   $0x1,0x68(%rbx)
+   302e2:	48 8b 0c ca          	mov    (%rdx,%rcx,8),%rcx
+   302e6:	0f 85 00 00 00 00    	jne    302ec <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x11c>
+			302e8: R_X86_64_PC32	.text.unlikely+0x1771
+   302ec:	8b 91 c0 01 00 00    	mov    0x1c0(%rcx),%edx
+   302f2:	85 d2                	test   %edx,%edx
+   302f4:	0f 84 00 00 00 00    	je     302fa <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x12a>
+			302f6: R_X86_64_PC32	.text.unlikely+0x1771
+   302fa:	ff ca                	dec    %edx
+   302fc:	89 91 c0 01 00 00    	mov    %edx,0x1c0(%rcx)
+   30302:	48 c7 c2 ff ff ff ff 	mov    $0xffffffffffffffff,%rdx
+   30309:	f0 48 0f c1 90 70 6d 	lock xadd %rdx,0x16d70(%rax)
+   30310:	01 00 
+   30312:	85 d2                	test   %edx,%edx
+   30314:	0f 84 00 00 00 00    	je     3031a <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x14a>
+			30316: R_X86_64_PC32	.text.unlikely+0x1771
+   3031a:	8b 91 c0 01 00 00    	mov    0x1c0(%rcx),%edx
+   30320:	85 d2                	test   %edx,%edx
+   30322:	0f 84 38 01 00 00    	je     30460 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x290>
+   30328:	c6 43 57 00          	movb   $0x0,0x57(%rbx)
+   3032c:	80 7b 3a 00          	cmpb   $0x0,0x3a(%rbx)
+   30330:	74 1d                	je     3034f <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x17f>
+   30332:	48 8b 43 78          	mov    0x78(%rbx),%rax
+   30336:	48 85 c0             	test   %rax,%rax
+   30339:	74 3c                	je     30377 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x1a7>
+   3033b:	31 d2                	xor    %edx,%edx
+   3033d:	86 90 28 76 01 00    	xchg   %dl,0x17628(%rax)
+   30343:	84 d2                	test   %dl,%dl
+   30345:	0f 84 00 00 00 00    	je     3034b <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x17b>
+			30347: R_X86_64_PC32	.text.unlikely+0x1771
+   3034b:	c6 43 3a 00          	movb   $0x0,0x3a(%rbx)
+   3034f:	80 7b 3b 00          	cmpb   $0x0,0x3b(%rbx)
+   30353:	74 22                	je     30377 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x1a7>
+   30355:	48 8b 43 78          	mov    0x78(%rbx),%rax
+   30359:	48 85 c0             	test   %rax,%rax
+   3035c:	74 19                	je     30377 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x1a7>
+   3035e:	ba ff ff ff ff       	mov    $0xffffffff,%edx
+   30363:	f0 0f c1 90 70 4b 01 	lock xadd %edx,0x14b70(%rax)
+   3036a:	00 
+   3036b:	85 d2                	test   %edx,%edx
+   3036d:	0f 84 00 00 00 00    	je     30373 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x1a3>
+			3036f: R_X86_64_PC32	.text.unlikely+0x1771
+   30373:	c6 43 3b 00          	movb   $0x0,0x3b(%rbx)
+   30377:	48 8b 83 b0 02 00 00 	mov    0x2b0(%rbx),%rax
+   3037e:	48 85 c0             	test   %rax,%rax
+   30381:	74 0c                	je     3038f <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x1bf>
+   30383:	48 8b 00             	mov    (%rax),%rax
+   30386:	48 85 c0             	test   %rax,%rax
+   30389:	0f 84 81 00 00 00    	je     30410 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x240>
+   3038f:	80 7b 59 00          	cmpb   $0x0,0x59(%rbx)
+   30393:	0f b6 6b 49          	movzbl 0x49(%rbx),%ebp
+   30397:	75 08                	jne    303a1 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x1d1>
+   30399:	48 89 df             	mov    %rbx,%rdi
+   3039c:	e8 9f 55 fe ff       	call   15940 <_ZN4tomo12_GLOBAL__N_119free_state_contentsERNS_12ScatterStateE.part.0>
+   303a1:	c6 43 5a 01          	movb   $0x1,0x5a(%rbx)
+   303a5:	8b 43 14             	mov    0x14(%rbx),%eax
+   303a8:	85 c0                	test   %eax,%eax
+   303aa:	75 07                	jne    303b3 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x1e3>
+   303ac:	8b 43 18             	mov    0x18(%rbx),%eax
+   303af:	85 c0                	test   %eax,%eax
+   303b1:	74 1d                	je     303d0 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x200>
+   303b3:	48 89 de             	mov    %rbx,%rsi
+   303b6:	4c 89 e7             	mov    %r12,%rdi
+   303b9:	5b                   	pop    %rbx
+   303ba:	5d                   	pop    %rbp
+   303bb:	41 5c                	pop    %r12
+   303bd:	41 5d                	pop    %r13
+   303bf:	41 5e                	pop    %r14
+   303c1:	e9 da 1a fe ff       	jmp    11ea0 <_ZN4tomo16ScatterArenaPool13defer_destroyEPNS_12ScatterStateE>
+   303c6:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+   303cd:	00 00 00 
+   303d0:	48 89 df             	mov    %rbx,%rdi
+   303d3:	e8 f8 e8 fe ff       	call   1ecd0 <_ZN4tomo12_GLOBAL__N_122free_state_key_anchorsERNS_12ScatterStateE>
+   303d8:	48 89 df             	mov    %rbx,%rdi
+   303db:	e8 00 00 00 00       	call   303e0 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x210>
+			303dc: R_X86_64_PLT32	_ZN4tomo12ScatterStateD1Ev-0x4
+   303e0:	40 84 ed             	test   %bpl,%bpl
+   303e3:	74 6b                	je     30450 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x280>
+   303e5:	41 8b 84 24 00 02 00 	mov    0x200(%r12),%eax
+   303ec:	00 
+   303ed:	83 f8 3f             	cmp    $0x3f,%eax
+   303f0:	77 5e                	ja     30450 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x280>
+   303f2:	8d 50 01             	lea    0x1(%rax),%edx
+   303f5:	41 89 94 24 00 02 00 	mov    %edx,0x200(%r12)
+   303fc:	00 
+   303fd:	49 89 1c c4          	mov    %rbx,(%r12,%rax,8)
+   30401:	5b                   	pop    %rbx
+   30402:	5d                   	pop    %rbp
+   30403:	41 5c                	pop    %r12
+   30405:	41 5d                	pop    %r13
+   30407:	41 5e                	pop    %r14
+   30409:	c3                   	ret
+   3040a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+   30410:	48 8d bb b0 02 00 00 	lea    0x2b0(%rbx),%rdi
+   30417:	e8 00 00 00 00       	call   3041c <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x24c>
+			30418: R_X86_64_PLT32	_ZN4tomo15aof_abort_groupERKSt10shared_ptrINS_16AofGroupDecisionEE-0x4
+   3041c:	e9 6e ff ff ff       	jmp    3038f <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x1bf>
+   30421:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+   30428:	00 00 00 00 
+   3042c:	0f 1f 40 00          	nopl   0x0(%rax)
+   30430:	31 c9                	xor    %ecx,%ecx
+   30432:	48 89 f8             	mov    %rdi,%rax
+   30435:	f0 48 0f b1 4a 18    	lock cmpxchg %rcx,0x18(%rdx)
+   3043b:	0f b6 05 00 00 00 00 	movzbl 0x0(%rip),%eax        # 30442 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x272>
+			3043e: R_X86_64_PC32	_ZN4tomo22atomic_tripwire_detail5armedE-0x4
+   30442:	84 c0                	test   %al,%al
+   30444:	0f 84 16 fe ff ff    	je     30260 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x90>
+   3044a:	e9 bc fd ff ff       	jmp    3020b <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x3b>
+   3044f:	90                   	nop
+   30450:	48 89 df             	mov    %rbx,%rdi
+   30453:	5b                   	pop    %rbx
+   30454:	5d                   	pop    %rbp
+   30455:	41 5c                	pop    %r12
+   30457:	41 5d                	pop    %r13
+   30459:	41 5e                	pop    %r14
+   3045b:	e9 00 00 00 00       	jmp    30460 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x290>
+			3045c: R_X86_64_PLT32	free-0x4
+   30460:	f0 48 ff 88 88 6d 01 	lock decq 0x16d88(%rax)
+   30467:	00 
+   30468:	e9 bb fe ff ff       	jmp    30328 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x158>
+   3046d:	0f 1f 00             	nopl   (%rax)
+   30470:	4c 89 ef             	mov    %r13,%rdi
+   30473:	e8 00 00 00 00       	call   30478 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x2a8>
+			30474: R_X86_64_PLT32	_ZNSt10_HashtableIN4tomo22atomic_tripwire_detail8ProbeKeyESt4pairIKS2_NS1_5ProbeEESaIS6_ENSt8__detail10_Select1stESt8equal_toIS2_ENS1_12ProbeKeyHashENS8_18_Mod_range_hashingENS8_20_Default_ranged_hashENS8_20_Prime_rehash_policyENS8_17_Hashtable_traitsILb1ELb0ELb1EEEE5eraseENS8_20_Node_const_iteratorIS6_Lb0ELb1EEE-0x4
+   30478:	48 89 c6             	mov    %rax,%rsi
+   3047b:	e9 b5 fd ff ff       	jmp    30235 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x65>
+   30480:	c3                   	ret
+   30481:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+   30488:	00 00 00 00 
+   3048c:	0f 1f 40 00          	nopl   0x0(%rax)
+   30490:	31 c0                	xor    %eax,%eax
+   30492:	86 02                	xchg   %al,(%rdx)
+   30494:	84 c0                	test   %al,%al
+   30496:	0f 84 24 fe ff ff    	je     302c0 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0xf0>
+   3049c:	48 c1 e5 06          	shl    $0x6,%rbp
+   304a0:	48 01 ee             	add    %rbp,%rsi
+   304a3:	f0 48 ff 86 08 4d 01 	lock incq 0x14d08(%rsi)
+   304aa:	00 
+   304ab:	e9 10 fe ff ff       	jmp    302c0 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0xf0>
+   304b0:	89 c7                	mov    %eax,%edi
+   304b2:	e8 00 00 00 00       	call   304b7 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x2e7>
+			304b3: R_X86_64_PLT32	_ZSt20__throw_system_errori-0x4
+   304b7:	80 7b 3a 00          	cmpb   $0x0,0x3a(%rbx)
+   304bb:	0f 85 b6 fe ff ff    	jne    30377 <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x1a7>
+   304c1:	e9 89 fe ff ff       	jmp    3034f <_ZN4tomo14xshard_destroyEPNS_12ScatterStateERNS_16ScatterArenaPoolEj+0x17f>
+
+Disassembly of section .text._ZNSt23_Sp_counted_ptr_inplaceIN4tomo23PubSubNotificationChainESaIvELN9__gnu_cxx12_Lock_policyE2EED2Ev:
+
+Disassembly of section .text._ZN4tomo9FlatStore24read_local_reclaim_tableEPvS1_m:
+
+Disassembly of section .text._ZNSt23_Sp_counted_ptr_inplaceIN4tomo23PubSubNotificationChainESaIvELN9__gnu_cxx12_Lock_policyE2EED0Ev:
+
+Disassembly of section .text.unlikely:
+
+Disassembly of section .text._ZNSt23_Sp_counted_ptr_inplaceIN4tomo23PubSubNotificationChainESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv:
+
+Disassembly of section .text._ZZN4tomo9siphash12EPKcmENKUlvE_clEv.isra.0:
+
+Disassembly of section .text._ZNSt23_Sp_counted_ptr_inplaceIN4tomo23PubSubNotificationChainESaIvELN9__gnu_cxx12_Lock_policyE2EE14_M_get_deleterERKSt9type_info:
+
+Disassembly of section .text._ZNSt10unique_ptrIN4tomo22atomic_tripwire_detail5StateESt14default_deleteIS2_EED2Ev:
+
+Disassembly of section .text._ZN4tomo9FlatStore25read_local_topology_storeIjEEvPT_S2_.isra.0:
+
+Disassembly of section .text._ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPPN4tomo5KvObjESt6vectorIS4_SaIS4_EEEElNS0_5__ops15_Iter_less_iterEEvT_SC_T0_T1_.isra.0:
+
+Disassembly of section .text._ZZN4tomo27multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopEENUlPvE_4_FUNES3_:
+
+Disassembly of section .text._ZN4tomo8WbEngine17submit_tls_cipherILb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPKcj.isra.0:
+
+Disassembly of section .text._ZNSt23_Sp_counted_ptr_inplaceIN4tomo23PubSubNotificationChainESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv:
+
+Disassembly of section .text._ZSt16__insertion_sortIN9__gnu_cxx17__normal_iteratorIPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIS7_SaIS7_EEEENS0_5__ops15_Iter_less_iterEEvT_SF_T0_.isra.0:
+
+Disassembly of section .text._ZN4tomo10reply_bulkIRNS_2Op4SinkEEEvOT_NS_5SliceE.isra.0:
+
+Disassembly of section .text._ZNSt5mutex4lockEv:
+
+Disassembly of section .text._ZNSt7__cxx119to_stringEi:
+
+Disassembly of section .text._ZN4tomo23atomic_tripwire_enabledEv:
+
+Disassembly of section .text._ZN4tomo30atomic_tripwire_collapse_writeEmbbm:
+
+Disassembly of section .text._ZN4tomo23atomic_tripwire_samekeyENS_21AtomicTripwireSamekeyE:
+
+Disassembly of section .text._ZNK4tomo5Slice6key_eqERKS0_:
+
+Disassembly of section .text._ZN4tomo4dtoa13grisu2_digitsEdPcRi:
+
+Disassembly of section .text._ZN4tomo17redis_double_textEPcmd.isra.0:
+
+Disassembly of section .text._ZNK4tomo2Op8cmd_nameEv:
+
+Disassembly of section .text._ZN4tomo2Op4Sink7reserveEm:
+
+Disassembly of section .text._ZN4tomo2Op4Sink6appendEPKcm:
+
+Disassembly of section .text._ZN4tomo10u64_to_decEPcm:
+
+Disassembly of section .text._ZN4tomo10i64_to_decEPcl:
+
+Disassembly of section .text._ZN4tomo21format_reply_code_intEPci:
+
+Disassembly of section .text._ZN4tomo19op_materialise_codeERNS_2OpE:
+
+Disassembly of section .text._ZN4tomo5KvObj17set_eviction_metaEh:
+
+Disassembly of section .text._ZNK4tomo5KvObj3keyEv:
+
+Disassembly of section .text._ZN4tomo9FlatStore30retire_detached_obj_read_localEPNS_5KvObjE.part.0:
+
+Disassembly of section .text._ZNK4tomo5KvObj7val_ptrEv:
+
+Disassembly of section .text._ZNK4tomo5KvObj12expire_at_msEv:
+
+Disassembly of section .text._ZNK4tomo5KvObj9str_valueEv:
+
+Disassembly of section .text._ZN4tomo13CollectionRefC2EPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo14kvobj_init_intEPvNS_5SliceEllb:
+
+Disassembly of section .text._ZN4tomo13kvobj_new_intENS_5SliceEllb:
+
+Disassembly of section .text._ZN4tomo14kvobj_capacityEPKNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo20kvobj_external_bytesEPKNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo10kvobj_sizeEPKNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo17ForeignReadSafety8add_hashEm:
+
+Disassembly of section .text._ZN4tomo17ForeignReadSafety28rebuild_saturated_if_drainedEm:
+
+Disassembly of section .text._ZN4tomo17ForeignReadSafety18poison_permanentlyEv:
+
+Disassembly of section .text._ZN4tomo6now_nsEv:
+
+Disassembly of section .text._ZN4tomo11ExpireIndexD2Ev:
+
+Disassembly of section .text.unlikely._ZN4tomo11ExpireIndex14collapse_emptyEv:
+
+Disassembly of section .text._ZN4tomo11ExpireIndex16finish_migrationEv:
+
+Disassembly of section .text._ZN4tomo9FlatStore19ForeignReadKeyGuardC2ERS0_m:
+
+Disassembly of section .text._ZN4tomo9FlatStore19ForeignReadKeyGuardD2Ev:
+
+Disassembly of section .text._ZN4tomo9FlatStore17atomic_script_pinEmNS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore19atomic_script_unpinEmNS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore15atomic_unit_pinERKNS_7UnitRefEmNS_5SliceEb:
+
+Disassembly of section .text._ZN4tomo9FlatStore20atomic_discard_groupERPv:
+
+Disassembly of section .text._ZN4tomo9FlatStore20atomic_publish_groupEPv:
+
+Disassembly of section .text._ZN4tomo9FlatStore17atomic_link_entryERNS_11AtomicEntryE:
+
+Disassembly of section .text._ZN4tomo9FlatStore18atomic_unlink_connERNS_11AtomicEntryE:
+
+Disassembly of section .text._ZNK4tomo9FlatStore20atomic_find_physicalEmNS_5SliceE:
+
+Disassembly of section .text._ZZN4tomo9FlatStore23atomic_resolve_internalEmNS_5SliceEmbENKUlRNS_11AtomicEntryEPNS_5KvObjEbE_clES3_S5_b:
+
+Disassembly of section .text._ZNK4tomo9FlatStore17atomic_live_valueEPNS_5KvObjE:
+
+Disassembly of section .text._ZZN4tomo9FlatStore35atomic_exchange_physical_read_localEmNS_5SliceEPNS_5KvObjEENKUliE_clEi:
+
+Disassembly of section .text._ZZN4tomo9FlatStore35atomic_exchange_physical_read_localEmNS_5SliceEPNS_5KvObjEENKUlvE_clEv:
+
+Disassembly of section .text._ZN4tomo9FlatStore35atomic_exchange_physical_read_localEmNS_5SliceEPNS_5KvObjE:
+
+Disassembly of section .text._ZZN4tomo9FlatStore24atomic_exchange_physicalEmNS_5SliceEPNS_5KvObjEENKUliE_clEi:
+
+Disassembly of section .text._ZZN4tomo9FlatStore24atomic_exchange_physicalEmNS_5SliceEPNS_5KvObjEENKUlvE_clEv:
+
+Disassembly of section .text._ZN4tomo9FlatStore20atomic_install_groupEPvmNS_5SliceEPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore20atomic_install_plainEmNS_5SliceERPvRPNS_5KvObjEm:
+
+Disassembly of section .text._ZN4tomo9FlatStore24atomic_exchange_physicalEmNS_5SliceEPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore8hash_keyENS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore21snapshot_start_recordEPKNS_5KvObjEjb:
+
+Disassembly of section .text._ZNK4tomo9FlatStore11borrow_findEPKc:
+
+Disassembly of section .text._ZN4tomo9FlatStore20atomic_recycle_valueEPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore20read_local_cache_putEPNS_5KvObjEm:
+
+Disassembly of section .text._ZN4tomo9FlatStore5touchEPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore25random_volatile_candidateEv:
+
+Disassembly of section .text._ZNK4tomo9FlatStore7find_inEimNS_5SliceE:
+
+Disassembly of section .text._ZNK4tomo9FlatStore15projected_bytesENS_5SliceEm:
+
+Disassembly of section .text._ZN4tomo9FlatStore22snapshot_prepare_writeEmNS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore11notify_emitEPNS_14FlatNotifySinkEjNS_13NotifyEventIdENS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore30install_empty_table_read_localEiPmj:
+
+Disassembly of section .text._ZN4tomo9FlatStore19erase_in_read_localEimNS_5SliceEPb:
+
+Disassembly of section .text._ZN4tomo9FlatStore21retire_obj_read_localEPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore22insert_into_read_localEimPNS_5KvObjEb:
+
+Disassembly of section .text._ZN4tomo9FlatStore22rehash_step_read_localEv:
+
+Disassembly of section .text._ZN4tomo9FlatStore34atomic_prepare_capacity_read_localEj:
+
+Disassembly of section .text._ZN4tomo9FlatStore26read_local_pending_publishERNS_11AtomicEntryE:
+
+Disassembly of section .text._ZN4tomo9FlatStore20atomic_prepare_groupEPNS_12ScatterStateEjjPSt6atomicImEPS3_IjEPS3_IbEmPjmbm:
+
+Disassembly of section .text._ZN4tomo9FlatStore20atomic_prepare_plainENS_5SliceEmmRPv:
+
+Disassembly of section .text._ZN4tomo9FlatStore26atomic_prepare_transactionENS_5SliceEmmPSt6atomicImEPS2_IjEPS2_IbEPjRPv:
+
+Disassembly of section .text._ZN4tomo9FlatStore24foreign_read_poison_openEv:
+
+Disassembly of section .text._ZN4tomo9FlatStore16clear_read_localEv:
+
+Disassembly of section .text._ZN4tomo9FlatStore12start_rehashEj:
+
+Disassembly of section .text._ZNK4tomo5Shard11has_watchesEv:
+
+Disassembly of section .text._ZN4tomo9ThreadCtx17flush_task_notifyEjRNS_4RingERNS_11LoopSignalsE:
+
+Disassembly of section .text._ZN4tomo9ThreadCtx14wake_if_parkedERNS_4RingERNS_11LoopSignalsE:
+
+Disassembly of section .text._ZN4tomo6Server16atomic_try_admitEjRmb:
+
+Disassembly of section .text._ZN4tomo6Server19atomic_retire_groupEjm:
+
+Disassembly of section .text._ZN4tomo6Server21atomic_commit_publishEv:
+
+Disassembly of section .text._ZN4tomo6Server21txn_exclusive_releaseEPKv:
+
+Disassembly of section .text._ZN4tomo6Server17atomic_apply_openEjRSt6atomicIbE:
+
+Disassembly of section .text._ZN4tomo6Server18atomic_apply_closeEjRSt6atomicIbE:
+
+Disassembly of section .text.unlikely._ZN4tomo6Server14debug_stall_usEj:
+
+Disassembly of section .text._ZNK4tomo6Server19capture_live_configEm:
+
+Disassembly of section .text._ZN4tomo6Server22end_live_config_updateEm:
+
+Disassembly of section .text._ZN4tomo6IoLoop16pubsub_new_eventENS_15PubSubEventKindE:
+
+Disassembly of section .text.unlikely._ZN4tomo6IoLoop15flip_close_heldEv:
+
+Disassembly of section .text._ZN4tomo6IoLoop29flip_fingerprint_note_sampledERKNS_11CommandSpecERKNS_2OpE:
+
+Disassembly of section .text._ZN4tomo6IoLoop11mark_activeEPNS_6ClientE:
+
+Disassembly of section .text._ZN4tomo12ScatterStateC2Ev:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1ERKS4_:
+
+Disassembly of section .text._ZNK4tomo9FlatStore20atomic_needs_versionEmNS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore23atomic_resolve_internalEmNS_5SliceEmb:
+
+Disassembly of section .text._ZN4tomo9FlatStore24choose_victim_read_localENS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore13choose_victimENS_5SliceE:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1EOS4_:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC2EPKcmRKS3_:
+
+Disassembly of section .text._ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE24_M_release_last_use_coldEv:
+
+Disassembly of section .text._ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_releaseEv:
+
+Disassembly of section .text._ZN4tomo11PubSubEventD2Ev:
+
+Disassembly of section .text._ZN4tomo11AofProducerD2Ev:
+
+Disassembly of section .text._ZNSt6vectorIhSaIhEED2Ev:
+
+Disassembly of section .text._ZNSt6vectorIjSaIjEED2Ev:
+
+Disassembly of section .text._ZN4tomo9FlatStore20borrow_index_rebuildEv:
+
+Disassembly of section .text._ZNSt6vectorIhSaIhEE6resizeEm:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo17AtomicCollapseKeyESaIS1_EED2Ev:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo18AtomicCollapseSlotESaIS1_EED2Ev:
+
+Disassembly of section .text._ZNSt6vectorIPN4tomo5KvObjESaIS2_EED2Ev:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo13AtomicSeenKeyESaIS1_EED2Ev:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo9FlatStore6BorrowESaIS2_EED2Ev:
+
+Disassembly of section .text._ZNSt6vectorISt10unique_ptrIN4tomo8AofChunkESt14default_deleteIS2_EESaIS5_EED2Ev:
+
+Disassembly of section .text._ZN4tomo9FlatStoreC2Ej:
+
+Disassembly of section .text._ZZN4tomo9FlatStore20atomic_collapse_implILb0EEEbmmENKUlmNS_5SliceEPNS_5KvObjEE_clEmS2_S4_:
+
+Disassembly of section .text._ZZN4tomo9FlatStore20atomic_collapse_implILb1EEEbmmENKUlmNS_5SliceEPNS_5KvObjEE_clEmS2_S4_:
+
+Disassembly of section .text._ZNSt6vectorIjSaIjEE9push_backERKj:
+
+Disassembly of section .text._ZN4tomo12_GLOBAL__N_120unit_exclusive_readyERNS_6ServerERNS_14MultiRetryNodeERmS5_RSt6vectorIjSaIjEERNS_9ThreadCtxERNS_4RingE:
+
+Disassembly of section .text._ZN4tomo12SegmentQueueILj8ELm4294967295EE10append_bufEPKcm:
+
+Disassembly of section .text._ZN4tomo6Client10append_oobEPKcmS2_m:
+
+Disassembly of section .text._ZSteqIcSt11char_traitsIcESaIcEEbRKNSt7__cxx1112basic_stringIT_T0_T1_EESA_:
+
+Disassembly of section .text._ZNSt12_Vector_baseINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED2Ev:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED2Ev:
+
+Disassembly of section .text._ZN4tomo9reply_intINS_2Op4SinkEEEvOT_x:
+
+Disassembly of section .text._ZN4tomo18reply_array_headerIRNS_2Op4SinkEEEvOT_m:
+
+Disassembly of section .text._ZN4tomo9reply_intIRNS_2Op4SinkEEEvOT_x:
+
+Disassembly of section .text._ZNSt11_Deque_baseIPN4tomo11PubSubEventESaIS2_EED2Ev:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE7reserveEm:
+
+Disassembly of section .text._ZN4tomo9reply_errINS_2Op4SinkEEEvOT_PKc:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE10_M_disposeEv:
+
+Disassembly of section .text._ZN4tomo24kvobj_free_with_capacityEPNS_5KvObjEm:
+
+Disassembly of section .text._ZN4tomo9FlatStore32read_local_reclaim_atomic_objectEPvS1_m:
+
+Disassembly of section .text._ZN4tomo9FlatStore8unborrowEPKc:
+
+Disassembly of section .text._ZN4tomo9FlatStore10retire_objEPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore11insert_intoEimPNS_5KvObjEb:
+
+Disassembly of section .text._ZN4tomo9FlatStore11rehash_stepEv:
+
+Disassembly of section .text._ZN4tomo9FlatStore23atomic_prepare_capacityEj:
+
+Disassembly of section .text._ZN4tomo9FlatStore32atomic_prepare_rollback_capacityEPNS_11AtomicEntryE:
+
+Disassembly of section .text._ZN4tomo9FlatStore8erase_inEimNS_5SliceEPb:
+
+Disassembly of section .text._ZN4tomo9FlatStore14live_or_expireEimNS_5SliceEPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore4findEmNS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore11find_notifyEmNS_5SliceEPNS_14FlatNotifySinkE:
+
+Disassembly of section .text._ZN4tomo9FlatStore5clearEv:
+
+Disassembly of section .text._ZN4tomo9FlatStore5eraseEmNS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore12atomic_admitENS_5SliceEPKNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore13make_room_forENS_5SliceEm:
+
+Disassembly of section .text._ZN4tomo9FlatStore17insert_read_localEmPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore6insertEmPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore13insert_notifyEmPNS_5KvObjEPNS_14FlatNotifySinkE:
+
+Disassembly of section .text._ZN4tomo9FlatStore12erase_notifyEmNS_5SliceEPNS_14FlatNotifySinkENS0_10EraseEventE:
+
+Disassembly of section .text._ZN4tomo9FlatStore25read_local_reclaim_objectEPvS1_m:
+
+Disassembly of section .text._ZN4tomo12_GLOBAL__N_111local_applyILb0EEEvRNS_5ShardERNS_2OpERKSt6vectorINS0_11ObjectImageESaIS7_EERKS6_IjSaIjEERNS0_9WorkErrorEi.isra.0:
+
+Disassembly of section .text._ZN4tomo12_GLOBAL__N_111local_applyILb1EEEvRNS_5ShardERNS_2OpERKSt6vectorINS0_11ObjectImageESaIS7_EERKS6_IjSaIjEERNS0_9WorkErrorEi:
+
+Disassembly of section .text._ZN4tomo9FlatStore19retire_detached_objEPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo6IoLoop23pubsub_home_add_patternERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS0_9PubSubRefE:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo15PubSubEventItemESaIS1_EEaSERKS3_.isra.0:
+
+Disassembly of section .text._ZN4tomo18reply_array_headerINS_2Op4SinkEEEvOT_m:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_mutateEmmPKcm:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE6appendEPKcm:
+
+Disassembly of section .text._ZN4tomo6IoLoop15pubsub_blob_newERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_b:
+
+Disassembly of section .text._ZNSt6vectorISt10unique_ptrIN4tomo13AofReplayPlanESt14default_deleteIS2_EESaIS5_EED2Ev:
+
+Disassembly of section .text._ZNSt12_Vector_baseIdSaIdEED2Ev:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo8LcsMatchESaIS1_EED2Ev:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE6resizeEm:
+
+Disassembly of section .text._ZNSt6vectorIS_INSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EESaIS7_EED2Ev:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo9ZsetEntryESaIS1_EED2Ev:
+
+Disassembly of section .text._ZN4tomo16reply_set_headerINS_2Op4SinkEEEvOT_mb:
+
+Disassembly of section .text._ZN4tomo12reply_doubleINS_2Op4SinkEEEvOT_db:
+
+Disassembly of section .text._ZN4tomo16reply_map_headerINS_2Op4SinkEEEvOT_mb:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo18MultiQueuedCommandESaIS1_EE5clearEv:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo18MultiQueuedCommandESaIS1_EED2Ev:
+
+Disassembly of section .text._ZN4tomo5Shard15store_find_readILb1EEEPNS_5KvObjEmNS_5SliceE:
+
+Disassembly of section .text._ZN4tomo5Shard15store_find_readILb0EEEPNS_5KvObjEmNS_5SliceE:
+
+Disassembly of section .text._ZNSt6vectorIPN4tomo14MultiExecStateESaIS2_EE9push_backERKS2_:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo16NotifyRecordImplESaIS1_EED2Ev:
+
+Disassembly of section .text._ZN4tomo11NotifyBatchC2Ev:
+
+Disassembly of section .text._ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED2Ev:
+
+Disassembly of section .text._ZN4tomo13BlockingStateD2Ev:
+
+Disassembly of section .text._ZN4tomo12ScatterStateD2Ev:
+
+Disassembly of section .text._ZN4tomo14MultiExecStateD2Ev:
+
+Disassembly of section .text._ZNSt11_Deque_baseIN4tomo9NotifyOutESaIS1_EED2Ev:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo22PubSubNotificationItemESaIS1_EE7reserveEm:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE10_M_replaceEmmPKcm:
+
+Disassembly of section .text._ZNSt6vectorIjSaIjEE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo13AtomicSeenKeyESaIS1_EE7reserveEm:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo17AtomicCollapseKeyESaIS1_EE7reserveEm:
+
+Disassembly of section .text._ZNSt6vectorIPN4tomo5KvObjESaIS2_EE7reserveEm:
+
+Disassembly of section .text._ZNSt6vectorIPN4tomo5KvObjESaIS2_EE9push_backERKS2_:
+
+Disassembly of section .text._ZSt4sortIN9__gnu_cxx17__normal_iteratorIPPN4tomo5KvObjESt6vectorIS4_SaIS4_EEEEEvT_SA_:
+
+Disassembly of section .text._ZNSt6vectorIPN4tomo5KvObjESaIS2_EE5eraseEN9__gnu_cxx17__normal_iteratorIPKS2_S4_EES9_:
+
+Disassembly of section .text._ZSt6uniqueIN9__gnu_cxx17__normal_iteratorIPPN4tomo5KvObjESt6vectorIS4_SaIS4_EEEEET_SA_SA_:
+
+Disassembly of section .text._ZNSt5dequeIPN4tomo11PubSubEventESaIS2_EE16_M_push_back_auxIJRKS2_EEEvDpOT_:
+
+Disassembly of section .text._ZN4tomo6IoLoop11pubsub_postEjPNS_11PubSubEventE:
+
+Disassembly of section .text._ZN4tomo6IoLoop24pubsub_notification_sendERKSt10shared_ptrINS_23PubSubNotificationChainEE:
+
+Disassembly of section .text._ZN4tomo6IoLoop28pubsub_notification_continueERNS_11PubSubEventE:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo6IoLoop9PubSubRefESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE5clearEv:
+
+Disassembly of section .text._ZN4tomo6IoLoop25pubsub_clear_home_indexesEv:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo6IoLoop9PubSubRefESaIS2_EE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo6IoLoop16PubSubPatternRefESaIS2_EE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_SaIS5_ENSt8__detail9_IdentityESt8equal_toIS5_ESt4hashIS5_ENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb1ELb1ELb1EEEE5clearEv:
+
+Disassembly of section .text._ZN4tomo6IoLoop32pubsub_clear_local_subscriptionsERNS0_15PubSubLocalConnE:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_SaIS5_ENSt8__detail9_IdentityESt8equal_toIS5_ESt4hashIS5_ENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb1ELb1ELb1EEEE21_M_deallocate_bucketsEv:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE17_M_realloc_insertIJRKS5_EEEvN9__gnu_cxx17__normal_iteratorIPS5_S7_EEDpOT_:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE9push_backERKS5_:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE6insertEN9__gnu_cxx17__normal_iteratorIPKS5_S7_EERSA_:
+
+Disassembly of section .text._ZNSt5dequeIPN4tomo6ClientESaIS2_EE16_M_push_back_auxIJRKS2_EEEvDpOT_:
+
+Disassembly of section .text._ZN4tomo6IoLoop15finish_prebuiltEPNS_6ClientERNS_2OpE:
+
+Disassembly of section .text._ZN4tomo6IoLoop21pubsub_finish_publishERKNS_12PubSubResultE:
+
+Disassembly of section .text._ZNSt6vectorIhSaIhEE14_M_fill_assignEmRKh:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE17_M_realloc_insertIJRPKcRjEEEvN9__gnu_cxx17__normal_iteratorIPS5_S7_EEDpOT_:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE8_M_eraseEN9__gnu_cxx17__normal_iteratorIPS5_S7_EE:
+
+Disassembly of section .text._ZNSt6vectorIjSaIjEEC2ESt16initializer_listIjERKS0_:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo11DatabaseKeyESaIS1_EE17_M_realloc_insertIJNS0_5SliceEEEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE17_M_realloc_insertIJRPKcEEEvN9__gnu_cxx17__normal_iteratorIPS5_S7_EEDpOT_:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE17_M_realloc_insertIJPKcEEEvN9__gnu_cxx17__normal_iteratorIPS5_S7_EEDpOT_:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE17_M_realloc_insertIJRA6_KcEEEvN9__gnu_cxx17__normal_iteratorIPS5_S7_EEDpOT_:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE17_M_realloc_insertIJRA2_KcEEEvN9__gnu_cxx17__normal_iteratorIPS5_S7_EEDpOT_:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo10MultiValueESaIS1_EE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt6vectorIS_ISt4pairIPN4tomo6ClientEmESaIS4_EESaIS6_EE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt6vectorIS_IjSaIjEESaIS1_EE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo15MultiWatchedKeyESaIS1_EE17_M_realloc_insertIJRKS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo15MultiWatchedKeyESaIS1_EE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo18MultiQueuedCommandESaIS1_EE17_M_realloc_insertIJRKS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo5Shard16WatchReservationESaIS2_EE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo5Shard10WatchEntryESaIS2_EE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE16_M_push_back_auxIJRPKcRjEEEvDpOT_:
+
+Disassembly of section .text._ZZN4tomo20xshard_complete_implILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpEENKUlvE_clEv:
+
+Disassembly of section .text._ZZN4tomo20xshard_complete_implILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpEENKUlvE_clEv:
+
+Disassembly of section .text._ZNSt10_HashtableIN4tomo22atomic_tripwire_detail8ProbeKeyESt4pairIKS2_NS1_5ProbeEESaIS6_ENSt8__detail10_Select1stESt8equal_toIS2_ENS1_12ProbeKeyHashENS8_18_Mod_range_hashingENS8_20_Default_ranged_hashENS8_20_Prime_rehash_policyENS8_17_Hashtable_traitsILb1ELb0ELb1EEEE5eraseENS8_20_Node_const_iteratorIS6_Lb0ELb1EEE:
+
+Disassembly of section .text._ZNSt6vectorIZN4tomo9FlatStore20atomic_tombstone_allEiE13PreparedClearSaIS2_EE17_M_realloc_insertIJS2_EEEvN9__gnu_cxx17__normal_iteratorIPS2_S4_EEDpOT_:
+
+Disassembly of section .text._ZN4tomo9FlatStore20atomic_tombstone_allEi:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo18AtomicCollapseSlotESaIS1_EE14_M_fill_assignEmRKS1_:
+
+Disassembly of section .text._ZN4tomo9FlatStore26atomic_collapse_read_localEmm:
+
+Disassembly of section .text._ZN4tomo9FlatStore15atomic_collapseEmm:
+
+Disassembly of section .text._ZN4tomo15MaskedSpscArrayINS_4TaskELj128EE14note_lane_fullERNS2_12ProducerLineE:
+
+Disassembly of section .text._ZN4tomo9ThreadCtx15post_task_quietEjRKNS_4TaskERNS_11LoopSignalsE:
+
+Disassembly of section .text._ZN4tomo22multi_dispatch_attemptILb0EZNS_27multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopEEUlvE0_EEbRNS_6ServerERNS_9ThreadCtxERNS_16ScatterArenaPoolERNS_6ClientERNS_2OpEPNS_14MultiExecStateEmPbPjRjOT0_:
+
+Disassembly of section .text._ZN4tomo22multi_dispatch_attemptILb0EZNS_25multi_dispatch_entry_implILb0EEEbRNS_6IoLoopERNS_6ClientERNS_2OpEjEUlvE_EEbRNS_6ServerERNS_9ThreadCtxERNS_16ScatterArenaPoolES5_S7_PNS_14MultiExecStateEmPbPjRjOT0_:
+
+Disassembly of section .text._ZN4tomo9ThreadCtx16post_tasks_quietEjPKNS_4TaskEjRNS_11LoopSignalsE:
+
+Disassembly of section .text._ZN4tomo12_GLOBAL__N_117script_post_phaseILb0EEENS0_16ScriptPostResultERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateENS0_11ScriptPhaseE.constprop.0:
+
+Disassembly of section .text._ZZN4tomo22xshard_complete_scriptILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateEENKUlNS_12_GLOBAL__N_111ScriptPhaseEE_clESG_:
+
+Disassembly of section .text._ZN4tomo22xshard_complete_scriptILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE:
+
+Disassembly of section .text._ZN4tomo9ThreadCtx23post_iofused_task_quietEjRKNS_4TaskERNS_11LoopSignalsE:
+
+Disassembly of section .text._ZN4tomo9ThreadCtx24post_iofused_tasks_quietEjPKNS_4TaskEjRNS_11LoopSignalsE:
+
+Disassembly of section .text._ZN4tomo12_GLOBAL__N_117script_post_phaseILb1EEENS0_16ScriptPostResultERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateENS0_11ScriptPhaseE.constprop.0:
+
+Disassembly of section .text._ZZN4tomo22xshard_complete_scriptILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateEENKUlNS_12_GLOBAL__N_111ScriptPhaseEE_clESG_:
+
+Disassembly of section .text._ZN4tomo22xshard_complete_scriptILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE:
+
+Disassembly of section .text._ZN4tomo12_GLOBAL__N_118publish_sort_derefILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE:
+
+Disassembly of section .text._ZN4tomo12_GLOBAL__N_118publish_sort_derefILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE:
+
+Disassembly of section .text._ZN4tomo12_GLOBAL__N_114publish_phase2ILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE:
+
+Disassembly of section .text._ZN4tomo12_GLOBAL__N_117publish_pop_retryILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE:
+
+Disassembly of section .text._ZN4tomo12_GLOBAL__N_114publish_phase2ILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE:
+
+Disassembly of section .text._ZN4tomo12_GLOBAL__N_117publish_pop_retryILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_12ScatterStateE:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_assignERKS4_:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo6IoLoop9PubSubRefESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE5eraseENSG_20_Node_const_iteratorISE_Lb0ELb1EEE:
+
+Disassembly of section .text._ZN4tomo6IoLoop19pubsub_home_cleanupERKNS0_9PubSubRefE:
+
+Disassembly of section .text._ZNSt10_HashtableImSt4pairIKmN4tomo6IoLoop13PubSubPendingEESaIS5_ENSt8__detail10_Select1stESt8equal_toImESt4hashImENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb0ELb0ELb1EEEE5eraseENS7_20_Node_const_iteratorIS5_Lb0ELb0EEE:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo11BlockingKeyESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_:
+
+Disassembly of section .text._ZN4tomo25blocking_resume_move_implILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE:
+
+Disassembly of section .text._ZN4tomo25blocking_resume_move_implILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo22PubSubNotificationItemESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_:
+
+Disassembly of section .text._ZNKSt10_HashtableIN4tomo22atomic_tripwire_detail8ProbeKeyESt4pairIKS2_NS1_5ProbeEESaIS6_ENSt8__detail10_Select1stESt8equal_toIS2_ENS1_12ProbeKeyHashENS8_18_Mod_range_hashingENS8_20_Default_ranged_hashENS8_20_Prime_rehash_policyENS8_17_Hashtable_traitsILb1ELb0ELb1EEEE19_M_find_before_nodeEmRS4_m:
+
+Disassembly of section .text._ZNSt10_HashtableIN4tomo22atomic_tripwire_detail8ProbeKeyESt4pairIKS2_NS1_5ProbeEESaIS6_ENSt8__detail10_Select1stESt8equal_toIS2_ENS1_12ProbeKeyHashENS8_18_Mod_range_hashingENS8_20_Default_ranged_hashENS8_20_Prime_rehash_policyENS8_17_Hashtable_traitsILb1ELb0ELb1EEEE4findERS4_:
+
+Disassembly of section .text._ZNSt10_HashtableIN4tomo22atomic_tripwire_detail8ProbeKeyESt4pairIKS2_NS1_5ProbeEESaIS6_ENSt8__detail10_Select1stESt8equal_toIS2_ENS1_12ProbeKeyHashENS8_18_Mod_range_hashingENS8_20_Default_ranged_hashENS8_20_Prime_rehash_policyENS8_17_Hashtable_traitsILb1ELb0ELb1EEEE9_M_rehashEmRKm:
+
+Disassembly of section .text._ZN4tomo27atomic_tripwire_plain_beginEPKvS1_mmmmb:
+
+Disassembly of section .text._ZNSt10_HashtableIPN4tomo6ClientESt4pairIKS2_St5dequeINS0_8WbEngine11DeferredOobESaIS7_EEESaISA_ENSt8__detail10_Select1stESt8equal_toIS2_ESt4hashIS2_ENSC_18_Mod_range_hashingENSC_20_Default_ranged_hashENSC_20_Prime_rehash_policyENSC_17_Hashtable_traitsILb0ELb0ELb1EEEE9_M_rehashEmRKm:
+
+Disassembly of section .text._ZNKSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo6IoLoop9PubSubRefESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE19_M_find_before_nodeEmRS7_m:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo6IoLoop9PubSubRefESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE4findERS7_:
+
+Disassembly of section .text._ZN4tomo6IoLoop19pubsub_home_publishERNS_11PubSubEventEb:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo6IoLoop9PubSubRefESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE9_M_rehashEmRKm:
+
+Disassembly of section .text._ZN4tomo6IoLoop23pubsub_home_add_channelERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS0_9PubSubRefEb:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_SaIS5_ENSt8__detail9_IdentityESt8equal_toIS5_ESt4hashIS5_ENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb1ELb1ELb1EEEE9_M_rehashEmRKm:
+
+Disassembly of section .text._ZNKSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_SaIS5_ENSt8__detail9_IdentityESt8equal_toIS5_ESt4hashIS5_ENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb1ELb1ELb1EEEE19_M_find_before_nodeEmRKS5_m:
+
+Disassembly of section .text._ZNKSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_SaIS5_ENSt8__detail9_IdentityESt8equal_toIS5_ESt4hashIS5_ENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb1ELb1ELb1EEEE4findERKS5_:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_SaIS5_ENSt8__detail9_IdentityESt8equal_toIS5_ESt4hashIS5_ENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb1ELb1ELb1EEEE8_M_eraseEmPNS7_15_Hash_node_baseEPNS7_10_Hash_nodeIS5_Lb1EEE:
+
+Disassembly of section .text._ZNSt10_HashtableIPN4tomo6ClientESt4pairIKS2_NS0_6IoLoop15ClientWorkFenceEESaIS7_ENSt8__detail10_Select1stESt8equal_toIS2_ESt4hashIS2_ENS9_18_Mod_range_hashingENS9_20_Default_ranged_hashENS9_20_Prime_rehash_policyENS9_17_Hashtable_traitsILb0ELb0ELb1EEEE9_M_rehashEmRKm:
+
+Disassembly of section .text._ZNK4tomo6IoLoop24client_executor_quiescedEPNS_6ClientE:
+
+Disassembly of section .text._ZNSt10_HashtableIN4tomo13MultiWriteKeyES1_SaIS1_ENSt8__detail9_IdentityENS0_18MultiWriteKeyEqualENS0_17MultiWriteKeyHashENS3_18_Mod_range_hashingENS3_20_Default_ranged_hashENS3_20_Prime_rehash_policyENS3_17_Hashtable_traitsILb1ELb1ELb1EEEE9_M_rehashEmRKm:
+
+Disassembly of section .text._ZN4tomo25multi_dispatch_entry_implILb0EEEbRNS_6IoLoopERNS_6ClientERNS_2OpEj:
+
+Disassembly of section .text._ZN4tomo27multi_owner_pass_entry_implILb0EEEjRNS_6IoLoopE:
+
+Disassembly of section .text._ZNKSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo5Shard16WatchReservationESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE19_M_find_before_nodeEmRS7_m:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo5Shard16WatchReservationESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE4findERS7_:
+
+Disassembly of section .text._ZNKSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo5Shard10WatchEntryESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE19_M_find_before_nodeEmRS7_m:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo5Shard10WatchEntryESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE4findERS7_:
+
+Disassembly of section .text._ZN4tomo9FlatStore26atomic_remove_unit_intentsIZNS0_17atomic_unit_unpinEPKvbEUlRKNS_7UnitRefEE_EEjOT_:
+
+Disassembly of section .text._ZN4tomo9FlatStore22atomic_destroy_pendingEv:
+
+Disassembly of section .text._ZN4tomo9FlatStoreD2Ev:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo5Shard10WatchEntryESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE8_M_eraseEmPNSG_15_Hash_node_baseEPNSG_10_Hash_nodeISE_Lb1EEE:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo5Shard10WatchEntryESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE9_M_rehashEmRKm:
+
+Disassembly of section .text._ZNSt8__detail9_Map_baseINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS6_St6vectorIN4tomo5Shard10WatchEntryESaISC_EEESaISF_ENS_10_Select1stESt8equal_toIS6_ESt4hashIS6_ENS_18_Mod_range_hashingENS_20_Default_ranged_hashENS_20_Prime_rehash_policyENS_17_Hashtable_traitsILb1ELb0ELb1EEELb1EEixERS8_:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIN4tomo5Shard16WatchReservationESaISB_EEESaISE_ENSt8__detail10_Select1stESt8equal_toIS5_ESt4hashIS5_ENSG_18_Mod_range_hashingENSG_20_Default_ranged_hashENSG_20_Prime_rehash_policyENSG_17_Hashtable_traitsILb1ELb0ELb1EEEE9_M_rehashEmRKm:
+
+Disassembly of section .text._ZNSt8__detail9_Map_baseINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS6_St6vectorIN4tomo5Shard16WatchReservationESaISC_EEESaISF_ENS_10_Select1stESt8equal_toIS6_ESt4hashIS6_ENS_18_Mod_range_hashingENS_20_Default_ranged_hashENS_20_Prime_rehash_policyENS_17_Hashtable_traitsILb1ELb0ELb1EEELb1EEixERS8_:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_SaIS5_ENSt8__detail9_IdentityESt8equal_toIS5_ESt4hashIS5_ENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb1ELb1ELb1EEEE12_Scoped_nodeD2Ev:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_SaIS5_ENSt8__detail9_IdentityESt8equal_toIS5_ESt4hashIS5_ENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb1ELb1ELb1EEEE21_M_insert_unique_nodeEmmPNS7_10_Hash_nodeIS5_Lb1EEEm:
+
+Disassembly of section .text._ZNSt13unordered_setINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4hashIS5_ESt8equal_toIS5_ESaIS5_EEC2IN9__gnu_cxx17__normal_iteratorIPS5_St6vectorIS5_SA_EEEEET_SJ_mRKS7_RKS9_RKSA_:
+
+Disassembly of section .text._ZNSt8__detail12_Insert_baseINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES6_SaIS6_ENS_9_IdentityESt8equal_toIS6_ESt4hashIS6_ENS_18_Mod_range_hashingENS_20_Default_ranged_hashENS_20_Prime_rehash_policyENS_17_Hashtable_traitsILb1ELb1ELb1EEEE6insertERKS6_:
+
+Disassembly of section .text._ZN4tomo20xshard_complete_implILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE:
+
+Disassembly of section .text._ZN4tomo20xshard_complete_implILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpE:
+
+Disassembly of section .text._ZN4tomo20cmd_xshard_only_implILb1EEEvRNS_5ShardERNS_2OpE:
+
+Disassembly of section .text._ZN4tomo20cmd_xshard_only_implILb0EEEvRNS_5ShardERNS_2OpE:
+
+Disassembly of section .text._ZNSt11_Deque_baseIN4tomo8WbEngine11DeferredOobESaIS2_EED2Ev:
+
+Disassembly of section .text._ZNSt10_HashtableIPN4tomo6ClientESt4pairIKS2_St5dequeINS0_8WbEngine11DeferredOobESaIS7_EEESaISA_ENSt8__detail10_Select1stESt8equal_toIS2_ESt4hashIS2_ENSC_18_Mod_range_hashingENSC_20_Default_ranged_hashENSC_20_Prime_rehash_policyENSC_17_Hashtable_traitsILb0ELb0ELb1EEEE12_Scoped_nodeD2Ev:
+
+Disassembly of section .text._ZNSt8__detail9_Map_baseIPN4tomo6ClientESt4pairIKS3_St5dequeINS1_8WbEngine11DeferredOobESaIS8_EEESaISB_ENS_10_Select1stESt8equal_toIS3_ESt4hashIS3_ENS_18_Mod_range_hashingENS_20_Default_ranged_hashENS_20_Prime_rehash_policyENS_17_Hashtable_traitsILb0ELb0ELb1EEELb1EEixEOS3_:
+
+Disassembly of section .text._ZN4tomo8WbEngine9defer_oobERNS_6ClientEPKcmS4_m:
+
+Disassembly of section .text._ZN4tomo6IoLoop11pubsub_emitEPNS_6ClientEPKcmb:
+
+Disassembly of section .text._ZN4tomo6IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE:
+
+Disassembly of section .text._ZN4tomo6IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE:
+
+Disassembly of section .text._ZN4tomo6IoLoop26pubsub_handle_home_requestERNS_11PubSubEventE:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE4swapERS4_:
+
+Disassembly of section .text._ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIS7_SaIS7_EEEElNS0_5__ops15_Iter_less_iterEEvT_SF_T0_T1_.isra.0:
+
+Disassembly of section .text._ZN4tomo6IoLoop21pubsub_finish_pendingEm:
+
+Disassembly of section .text._ZN4tomo6IoLoop20pubsub_handle_resultERNS_11PubSubEventE:
+
+Disassembly of section .text._ZN4tomo6IoLoop19pubsub_handle_eventERNS_11PubSubEventE:
+
+Disassembly of section .text._ZN4tomo6IoLoop23pubsub_disconnect_readyEPNS_6ClientE:
+
+Disassembly of section .text._ZN4tomo6IoLoop12close_clientEPNS_6ClientEb:
+
+Disassembly of section .text._ZN4tomo6IoLoop23pubsub_handle_acl_eventERNS_11PubSubEventE:
+
+Disassembly of section .text.startup:

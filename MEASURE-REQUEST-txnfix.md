@@ -119,13 +119,14 @@ The external round-4 REGISTER.md is outside this lane's worktree and was not edi
 
 ## txnfix2
 
-**WIP — not ready to merge or measure.** Merged `origin/cpp` at `991d48f65` in
-`ee48b465e`. Housekeeping, the repeated NX proof, and the deterministic admission
-proof are complete. TLS placement and all 1,208 selected ordinary hot bodies
-match merged PRE at the cost checkpoint. Stage B core/retry code and its battery
-pass their directed atomic-1 checks in both modes. The separately wired group
-fallback exposed a live queue deadlock; a cold-path parking repair is building.
-Final cost/proof and baseline atomic-0 RPOPLPUSH failures remain open. No benchmarks or full gate runs are authorized for this lane. No push.
+**NOT READY TO MERGE — Stage B stopped at its explicit cost bar.** Merged base
+is `991d48f65`; the pre-final fetch/merge still resolves to that commit.
+Housekeeping, NX and admission proofs are complete. The Stage A checkpoint
+restores TLS placement and 1,208/1,208 selected ordinary hot bodies. Stage B
+adds three executed instructions to ordinary MGET destruction and therefore
+fails the zero-new-instruction rule. Its core and separately revisable fallback
+commits are retained for review. Final proof and identity attribution are in
+progress. No benchmark, full gate, or push has been run.
 
 The six previously untracked evidence directories are preserved as historical
 receipts. Inspection of every file (including ignored files) found no ELF
@@ -288,3 +289,88 @@ the same deferred queue. Ordinary GET/SET acquire no new path or check. A unit
 asserts the initial writer has no hazard mark, the reservation wait adds it,
 and the next dispatch parks. This is in the separate fallback commit; neither
 executor nor IO loop source is edited. Live reproof is pending.
+
+### Stage B cost stop
+
+Default POST `e1609593d` (SHA
+`e633058692653058efe5a546003bd474ebbe09cf4cc84183e14c74dc68a4d1b8`)
+adds a load, test and branch for null `group_attempt` in `~ScatterState` on every
+ordinary cross-shard MGET. This is an executed-path change even when no unit is
+active. [Disassembly and finding](docs/txnfix/txnfix2/cost-body-check/finding.md).
+It fails the design's explicit instruction bar; **Stage B implementation stops
+here under the owner's stated exception**, with its commits retained. Changing
+inlining budgets would not remove this lifetime check. No benchmark can turn
+that static result into an instruction-identity pass.
+
+The complete inventory is 15,941/16,639 equal, 698 changed, selected hot
+1,196/1,208 equal. The 12 unintended hot differences remain rejected; the
+individual table is part of final proof. Group fallback `e1609593d` removes the
+reproduced inbox wedge: all selected atomic-1 checks pass armed-fused, while
+split G3 reaches the unchanged 30-second deadline and the following checks
+complete. [Parking receipts](docs/txnfix/txnfix2/txngroup-park/runs.json).
+The four group/admission/intent/help unit cases pass.
+
+### Review boundaries and current artifacts
+
+- `993216d6a` is the last Stage A runtime checkpoint; `8318131e5` supplies
+  the ordinary-body/TLS restoration. The Stage A cost binary predates only the
+  shared typed fallback-token refactor. Its static inventory is retained and
+  is not substituted for the final Stage B inventory.
+- `21858278e` adds Stage B core OCC and txngroup rows. `e1609593d` is the
+  separate group fallback/parking adjustment. Stage A fallback remains
+  `fa5b21d45`, with the separate admission proof and `993216d6a` token adjustment.
+  The owner's fallback decision remains open; no merge decision is inferred.
+- PRE: `build/txnfix2/pre/tomokv`, SHA
+  `5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20`.
+  Rejected Stage B POST: `build/tomokv` and
+  `build/txnfix2/group-park-tomokv`, SHA
+  `e633058692653058efe5a546003bd474ebbe09cf4cc84183e14c74dc68a4d1b8`.
+- PAD: **(A) PRE-behaviour aggregate-text-size twin**,
+  `build/txnfix2/pad/tomokv`, SHA
+  `92a6319747e7d7024396f705a0dbc7c4047ab9c42c1028f9e77010715e708f10`.
+  It links unchanged merged PRE objects plus unreachable padding, matching
+  POST .text exactly at 7,713,740 bytes (PRE 7,646,972). It controls aggregate
+  text size only: it does **not** reproduce internal function placement or
+  Server's appended cold tail, and is not a full layout twin. Build recipe and
+  exact commands: [PAD receipt](docs/txnfix/txnfix2/pad/build.json),
+  `tools/txnfix_pad.py`. No PAD performance inference is made.
+
+[Every changed hot body and scatter/lifetime attribution](docs/txnfix/txnfix2/identity-group-park/README.md)
+and the linked/full inventories describe the default build. All existing
+locked-layout fields and sizes match PRE in both namespaces. Server alone
+has the deliberate 24,640-byte cold append; every existing Server field offset
+matches. [Layout comparison](docs/txnfix/txnfix2/layouts-compare.json).
+A full Server-layout behaviour twin is still absent; the rejected Stage B arm
+is **not ready for a performance acceptance run**.
+
+No rate, cycles/op, IPC, instructions/op or EXEC retry-rate measurement was
+run. The table in the original request remains **unmeasured**. After selecting
+an acceptable candidate, the owner can run the exact full-geometry null below
+on the quiet box; changing the protected CPU allocation for this owner-run
+request is intentional, and the lane did not execute it:
+
+```sh
+taskset -c 0-127 tests/gate.sh perf --subset full \
+  --server-cores 0-31 --server-smt "" --load-cores 32-127 --load-smt "" \
+  --ports 22600-22699 \
+  --reference-binary "$PWD/build/txnfix2/pre/tomokv" \
+  --candidate-binary "$PWD/build/tomokv"
+```
+
+The required cells are plain GET, SET, MGET and MSET, both thread modes and
+atomic settings, with the gate's existing value-size/pipeline/offered-load
+cells. PRE/POST/POST/PRE per cell; matched-load rate decides zero regression,
+with cycles/op, IPC and instructions/op explaining it. The PAD size-only
+control is optional diagnostic evidence and cannot rescue the static cost
+failure. EXEC uncontended and hot-two-key-plus-four-plain-INCR commands in the
+original section still apply to the updated PRE path; counters missing on PRE
+remain -1 rather than invented zeros.
+
+Current line-based accounting: fused NX at 2049 (two atomic rows), fused
+transaction isolation at 2056 (two), fused groups at 2064 (one); split NX in
+the loop at 2224 (two), split transaction isolation at 2230 (two), split groups
+at 2239 (one). Every row is before quick exit 3773: **DQ=10, DF=10**;
+merged-base **625/642 → 635/652**. EXPECT assignments stay 625/642, so the
+ledger checker must report that ten-row discrepancy until the maintainer
+updates them. A Stage-A-only selection with NX but without groups is +8/+8,
+requiring **633/650**; it must not retain the two rejected Stage B rows.
