@@ -700,6 +700,9 @@ bool AofProducer::make_ready(std::unique_ptr<AofChunk> chunk) {
 bool AofProducer::resolve_groups() {
     if (active_group_) return false;
     if (staged_.empty()) return true;
+    // A terminal allocation/publish error may leave already-moved entries in this window.
+    // Shutdown still calls flush; never traverse those entries again after fail().
+    if (manager_->failed()) return false;
     // Install order is not commit order: a foreign plain writer can commit below an undecided
     // group, and two groups can install in opposite orders on their participants. An undecided
     // AOF decision can even have an already-published live ticket, so do not treat zero as a
