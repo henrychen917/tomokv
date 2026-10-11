@@ -306,6 +306,19 @@ public:
     size_t rcap() const { return rcap_; }
     void     advance_parse(uint32_t n) { rpos_ += n; inline_scanned_ = 0; }
     uint32_t& inline_scanned() { return inline_scanned_; }
+    bool multibulk_pending() const { return inline_scanned_ & kRespMultibulkPending; }
+    RespFrontier& multibulk_frontier() { return multibulk_; }
+    void suspend_multibulk() { inline_scanned_ = kRespMultibulkPending; }
+    [[gnu::noinline, gnu::cold]] ParseResult resume_multibulk(
+            uint32_t& pos, Op& op, const char** err, uint64_t max_multibulk, uint64_t max_bulk) {
+        const auto result = resp_resume(rbuf_, rlen_, pos, op, err,
+                                        max_multibulk, max_bulk, multibulk_);
+        if (result != ParseResult::Incomplete) {
+            inline_scanned_ = 0;
+            multibulk_.finish();
+        }
+        return result;
+    }
     bool query_buffer_exceeded(uint64_t limit, uint64_t queued = 0) const {
         return queued > limit || rlen_ - rpos_ > limit - queued;
     }
@@ -368,12 +381,14 @@ public:
     // are different: quiescence means no Slice into this buffer is still referenced by an op, while
     // !recv_armed means the KERNEL is not holding a pointer into it. Violating the second corrupts
     // the heap — the recv lands at a stale offset, or into freed memory if the realloc below runs.
-    // Preserves any partially received command at the tail, which has no Slices pointing at it yet.
+    // Preserves a partial command and its frame-relative frontier. Saved argv
+    // contains offsets, never Slices into the allocation being moved here.
     void reset_rbuf_at_quiescence() {
         const uint32_t rest = rlen_ - rpos_;
         if (rest && rpos_) std::memmove(rbuf_, rbuf_ + rpos_, rest);
         rlen_ = rest;
         rpos_ = 0;
+        if (!rest) inline_scanned_ = 0;
         // Also shed burst-grown WRITE buffers here. The guard is size()==0 itself: a buffer with
         // a send in flight (or staged bytes) always has size > 0 and is skipped, so shrinking can
         // never truncate bytes the kernel or the sender still references -- the same invariant
@@ -582,6 +597,10 @@ public:
     // This release/acquire store is the connection ownership edge. Registration and queue
     // membership follow it; neither is allowed to stand in for it.
     uint32_t ifid_thread() const { return ifid_thread_.load(std::memory_order_acquire); }
+    // The same Client (including the offset frontier) crosses this ownership
+    // edge. Resetting a live frontier here would replay its completed arguments.
+    // FLIP, client-LB, R7 adoption and rollback all use this edge; none replaces
+    // the unconsumed frame. No IO-local pointer is retained by the parser.
     void set_ifid_thread(uint32_t t) { ifid_thread_.store(t, std::memory_order_release); }
     Session& session() { return session_; }
     const Session& session() const { return session_; }
@@ -589,9 +608,9 @@ public:
     // Torn down but not yet freed: still legal to READ while outstanding CQEs retire (it sits on
     // the io thread's deferred-free list), but no longer part of any working set.
     bool dead() const { return dead_; }
-    void mark_dead() { dead_ = true; }
+    void mark_dead() { dead_ = true; inline_scanned_ = 0; multibulk_.finish(); }
     bool closing() const { return closing_; }
-    void mark_closing() { closing_ = true; }
+    void mark_closing() { closing_ = true; inline_scanned_ = 0; multibulk_.finish(); }
 
     // Membership in its io thread's active set, as a FLAG rather than a search; and whether this
     // conn's ready bit fired since io last served it. Plain bools — one thread.
@@ -830,6 +849,7 @@ private:
     // Ordinary Client construction and every reorder=0 path keep their bytes.
     uint64_t  r7_long_slots_;
     uint64_t  r7_long_newest_;
+    RespFrontier multibulk_;            // 96..127: IO-only alignment hole
 
     // --- the ROB (manages its own cross-thread layout) ------------------------------------------
     Rob<kRobWindow> rob_;

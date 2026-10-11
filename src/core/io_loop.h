@@ -3247,16 +3247,20 @@ private:
             // +83 instr/op lesson behind this split.
             bool security_check = auth_required && !conn.authenticated();
             ParseResult pr;
-            if (__builtin_expect(pos < pass_rlen && pass_rbuf[pos] != '*', false)) {
+            if (__builtin_expect(conn.multibulk_pending(), false)) {
+                pr = conn.resume_multibulk(pos, *op, &err,
+                    security_check ? 10 : 1024 * 1024, security_check ? 16384 : pass_max_bulk_len);
+            } else if (__builtin_expect(pos < pass_rlen && pass_rbuf[pos] != '*', false)) {
                 pr = resp_parse_inline(pass_rbuf, pass_rlen, pos, *op, &err, conn.inline_scanned());
             } else if (__builtin_expect(security_check, false)) {
-                pr = resp_parse_limited(
-                    pass_rbuf, pass_rlen, pos, *op, &err, 10, 16384);
+                pr = resp_parse_t<true, true>(
+                    pass_rbuf, pass_rlen, pos, *op, &err, 10, 16384, &conn.multibulk_frontier());
             } else if (__builtin_expect(default_bulk_limit, true)) {
-                pr = resp_parse(pass_rbuf, pass_rlen, pos, *op, &err);
+                pr = resp_parse_t<false, true>(pass_rbuf, pass_rlen, pos, *op, &err,
+                                         0, 0, &conn.multibulk_frontier());
             } else {
-                pr = resp_parse_limited(pass_rbuf, pass_rlen, pos, *op, &err,
-                                        1024 * 1024, pass_max_bulk_len);
+                pr = resp_parse_t<true, true>(pass_rbuf, pass_rlen, pos, *op, &err,
+                                        1024 * 1024, pass_max_bulk_len, &conn.multibulk_frontier());
             }
             security_check |= acl_active;
 
@@ -3265,6 +3269,7 @@ private:
                 continue;
             }
             if (pr == ParseResult::Incomplete) {
+                if (pos < pass_rlen && pass_rbuf[pos] == '*') conn.suspend_multibulk();
                 if (pass_rlen == UINT32_MAX) {
                     finish_locally(c, *op, "ERR command exceeds receive buffer limit");
                     conn.advance_parse(pass_rlen - conn.rpos());

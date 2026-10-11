@@ -1,0 +1,8 @@
+redis N=2000000: frame cpu=  0.11s sent_in= 0.45s reply_at=  0.47s reply=b"-ERR wrong number of arguments for 'ping"
+      neighbour PING: n=409 median=   0.02ms max=   26.46ms (idle baseline max 0.17ms)
+tomo  N=2000000: frame cpu=  0.50s sent_in= 0.45s reply_at=  0.50s reply=b"-ERR wrong number of arguments for 'ping"
+      neighbour PING: n=23 median=   8.62ms max=   98.60ms (idle baseline max 0.04ms)
+redis N=4000000: frame cpu=  0.21s sent_in= 0.89s reply_at=  0.95s reply=b"-ERR wrong number of arguments for 'ping"
+      neighbour PING: n=813 median=   0.02ms max=   53.18ms (idle baseline max 0.16ms)
+tomo  N=4000000: frame cpu=  0.96s sent_in= 0.89s reply_at=  0.95s reply=b"-ERR wrong number of arguments for 'ping"
+      neighbour PING: n=26 median=   9.43ms max=  166.36ms (idle baseline max 0.03ms)
