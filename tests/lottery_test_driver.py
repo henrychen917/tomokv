@@ -20,27 +20,37 @@ def main():
         return
     port = int(os.environ['LOTTERY_PORT'])
     family = os.environ['LOTTERY_FAMILY']
-    admin = Conn('127.0.0.1', port)
+
+    def call(*command, parse=None):
+        # One short-lived observer connection per call: the battery never runs
+        # beside an extra idle client the gate does not have (maxclients,
+        # CLIENT LIST and connection-count assertions stay exactly as gated).
+        conn = Conn('127.0.0.1', port)
+        try:
+            return parse(conn) if parse else conn.must(*command)
+        finally:
+            conn.close()
+
     auto = os.environ.get('LOTTERY_AUTO_TRACE')
     metadata = None
     if auto:
         directory = Path(auto)
         directory.mkdir(parents=True, exist_ok=True)
         base = directory / uuid.uuid4().hex
-        before = info(admin)
+        before = call(parse=info)
         metadata = dict(pid=int(before['process_id']), trace=str(base.with_suffix('.trace')),
                         before=before, argv=sys.argv)
-        admin.must('DEBUG', 'LOTTERY', 'ARM', os.environ['LOTTERY_MASK'], metadata['trace'])
+        call('DEBUG', 'LOTTERY', 'ARM', os.environ['LOTTERY_MASK'], metadata['trace'])
 
     def mark(name):
-        admin.must('DEBUG', 'LOTTERY', 'MARK', name)
+        call('DEBUG', 'LOTTERY', 'MARK', name)
 
     def config_sleep(seconds):
         time.sleep(seconds)
         # A single sample after the battery's existing propagation sleep, with
         # no poll/wait/retry. Failure to observe all owners is a missed attempt.
         if seconds >= .05:
-            admin.must('DEBUG', 'LOTTERY', 'CONFIG')
+            call('DEBUG', 'LOTTERY', 'CONFIG')
 
     source = path.read_text()
     original_hash = hashlib.sha256(source.encode()).hexdigest()
@@ -68,10 +78,9 @@ def main():
              lottery_mark=mark, lottery_config_sleep=config_sleep))
     finally:
         if metadata is not None:
-            metadata['after'] = info(admin)
-            metadata['stopped'] = admin.must('DEBUG', 'LOTTERY', 'STOP') == b'OK'
+            metadata['after'] = call(parse=info)
+            metadata['stopped'] = call('DEBUG', 'LOTTERY', 'STOP') == b'OK'
             base.with_suffix('.json').write_text(json.dumps(metadata, indent=2) + '\n')
-        admin.close()
 
 
 if __name__ == '__main__':

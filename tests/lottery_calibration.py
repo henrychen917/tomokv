@@ -69,7 +69,15 @@ def calibrate(results, goal, budget):
                      attempts_for_k=need, seconds_for_k=estimate,
                      witness_attempts=result.get('witness_attempts', {}),
                      reaches_k_in_budget=(estimate is not None and estimate <= budget))
+        witnessed = entry['witness_attempts']
+        if witnessed:
+            entry['limiting_witness'] = min(row['requires'], key=lambda k: witnessed.get(k, 0))
         if not entry['reaches_k_in_budget']:
+            # Rate-limited: K attempts would fit the budget if every one were a hit;
+            # only those rows are pause-point candidates. Otherwise the attempt itself
+            # is too long for K within the budget, whatever its hit rate.
+            fits_at_full_rate = per_attempt is not None and goal * per_attempt <= budget
+            entry['limited_by'] = 'hit rate' if fits_at_full_rate or not hits else 'attempt length'
             entry['pause_point'] = PAUSE_POINT[row['family']]
         rows.append(entry)
     return rows
@@ -81,7 +89,7 @@ def fmt(value, spec):
 
 def markdown(rows, goal, budget):
     lines = [f'| Row | Name | Witness | Verdict | Attempts | Hits | Hit rate | s/attempt '
-             f'| Attempts for K={goal} | Minutes for K={goal} | Within {budget / 60:g} min? |',
+             f'| Attempts for K={goal} | Minutes for K={goal} | K within {budget / 60:g} min? |',
              '|---:|---|---|---|---:|---:|---:|---:|---:|---:|---|']
     for r in rows:
         if not r['measured']:
@@ -89,8 +97,13 @@ def markdown(rows, goal, budget):
                          '| - | - | - | - | - | - | - |')
             continue
         rate = (fmt(r['hit_rate'], '.0%') if r['hits'] else
-                f"0 (<{r['hit_rate_upper95']:.0%})" if r['attempts'] else '-')
-        within = ('yes' if r['reaches_k_in_budget'] else f"NO - {r['pause_point']}")
+                f"0 (95% < {r['hit_rate_upper95']:.0%})" if r['attempts'] else '-')
+        if r['reaches_k_in_budget']:
+            within = 'yes'
+        elif r['limited_by'] == 'hit rate':
+            within = f"NO (rate; limiting {r.get('limiting_witness', '-')}) - {r['pause_point']}"
+        else:
+            within = 'NO (attempt length)'
         lines.append(
             f"| {r['id']} | {r['name']} | {', '.join(r['requires'])} | {r['verdict']} "
             f"| {r['attempts']} | {r['hits']} | {rate} | {fmt(r['seconds_per_attempt'], '.1f')} "

@@ -90,10 +90,14 @@ def attempt(row, args):
             record = dict(pid=child.pid, before=before, trace=path and str(path),
                           binary=str(binary))
             boots.append(record)
+            # Park the harness connection: the gate runs each battery without an
+            # extra idle client. The same Conn object reconnects for the close.
+            admin.close()
             try:
                 yield admin, child
             finally:
                 if child.poll() is None:
+                    admin.__init__('127.0.0.1', args.port)
                     record['after'] = info(admin)
                     record['stopped'] = (not path or
                                          admin.must('DEBUG', 'LOTTERY', 'STOP') == b'OK')

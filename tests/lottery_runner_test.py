@@ -121,5 +121,31 @@ class RunnerTests(unittest.TestCase):
                          {'131', '165', '200', '207', '214', '249', '357'})
 
 
+class CalibrationTests(unittest.TestCase):
+    def result(self, row, attempts, hits, seconds, witnesses=None):
+        return dict(row=dict(id=row), verdict='INSUFFICIENT', attempts=attempts, hits=hits,
+                    failures=0, errors=0, incomplete=0, seconds=seconds,
+                    witness_attempts=witnesses or {})
+
+    def test_rate_limited_rows_name_their_pause_point(self):
+        from lottery_calibration import calibrate
+        rows = {r['id']: r for r in calibrate({
+            '131': self.result('131', 40, 2, 120, {'W16': 2}),    # 3 s/attempt, 5% hits
+            '130': self.result('130', 3, 3, 120, {'W3': 3}),      # 40 s/attempt, all hits
+            '139': self.result('139', 30, 30, 60),                # 2 s/attempt, all hits
+            '368': self.result('368', 10, 0, 100, {'W11': 0}),    # never hit
+        }, 20, 600)}
+        self.assertEqual((rows['131']['attempts_for_k'], rows['131']['seconds_for_k']), (400, 1200))
+        self.assertEqual((rows['131']['limited_by'], rows['131']['limiting_witness']),
+                         ('hit rate', 'W16'))
+        self.assertIn('W16', rows['131']['pause_point'])
+        self.assertEqual(rows['130']['limited_by'], 'attempt length')
+        self.assertTrue(rows['139']['reaches_k_in_budget'])
+        self.assertNotIn('pause_point', rows['139'])
+        self.assertEqual(rows['368']['limited_by'], 'hit rate')
+        self.assertAlmostEqual(rows['368']['hit_rate_upper95'], 1 - .05 ** .1)
+        self.assertFalse(rows['164']['measured'])
+
+
 if __name__ == '__main__':
     unittest.main()
