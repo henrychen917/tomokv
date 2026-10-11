@@ -13,6 +13,7 @@ import mmap
 import multiprocessing as mp
 import os
 from pathlib import Path
+import re
 import signal
 import socket
 import struct
@@ -75,10 +76,20 @@ def worker(cpu, port, frame, reply, pipeline, connections, commands, barrier):
 def case(args, mode, command, atomic, pipeline, keys, rep):
     label = f'{mode}-{command.lower()}-a{atomic}-p{pipeline}-k{keys}-r{rep}'
     out = args.output / label
+    if args.resume and (out / 'row.json').is_file():
+        row = json.loads((out / 'row.json').read_text())
+        require(row['binary_sha256'] == args.binary_sha256 and row['policy'] == args.policy
+                and row['value_size'] == args.value_size
+                and row['measured_calls'] == args.commands * args.connections
+                and row['instrumented'] == bool(args.shim), 'resume configuration differs')
+        return
+    if args.resume and out.is_dir():
+        # Preserve failed attempts instead of replacing evidence.
+        out.rename(out.with_name(label + f'-failed-{time.time_ns()}'))
     out.mkdir(parents=True, exist_ok=False)
     require(25500 <= args.port <= 25599, 'port outside lane allocation')
-    with socket.socket() as guard:
-        guard.bind(('127.0.0.1', args.port))
+    require(not subprocess.check_output(['ss', '-H', '-ltn', f'sport = :{args.port}']),
+            'port already has a listener')
     names = [f'mkfix:{i:06d}'.encode() for i in range(keys)]
     value = b'x' * args.value_size
     frame = encode(command, *([x for k in names for x in (k, value)]
@@ -93,22 +104,28 @@ def case(args, mode, command, atomic, pipeline, keys, rep):
         path.write_bytes(bytes(4096))
         with path.open('r+b') as handle:
             shared = mmap.mmap(handle.fileno(), 4096)
-        env.update(LD_PRELOAD=str(args.shim), MKFIX_COUNTS_FILE=str(path))
     argv = ['taskset', '-c', '32-39', str(args.binary), '--port', str(args.port),
             '--bind', '127.0.0.1', '--thread-mode', mode,
             '--shards', '16', '--read-local', '0', '--atomic', str(atomic),
             '--save', '', '--dir', str(out), '--wb-policy', str(args.policy)]
     if mode == '2s':
         argv += ['--ratio', '6:2']
+    if args.shim:
+        # Load the jemalloc interposer in the server, after taskset has exec'd.
+        argv[3:3] = ['env', 'LD_PRELOAD=' + str(args.shim),
+                     'MKFIX_COUNTS_FILE=' + str(path)]
     children = []
     connection = None
     server = None
+    profile = None
+    profiler_children = None
     barrier = mp.Barrier(9)
     try:
         with (out / 'server.log').open('w') as log:
             server = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT, env=env)
         for _ in range(300):
-            require(server.poll() is None, f'{label}: server exited; see {out}/server.log')
+            require(server.poll() is None,
+                    f'{label}: server exited {server.returncode}; see {out}/server.log')
             try:
                 connection = Conn('127.0.0.1', args.port, timeout=10)
                 require(connection.cmd('PING') == b'PONG', 'readiness reply')
@@ -125,12 +142,23 @@ def case(args, mode, command, atomic, pipeline, keys, rep):
             children.append(child)
         barrier.wait(90)
         before = info(connection)
+        if args.profile:
+            from exbatch_directed import Children
+            from mkprobe_probe import PerfWindow
+            profiler_children = Children()
+            profile = PerfWindow(argparse.Namespace(cores=('32-39', '40-47')),
+                                 out, profiler_children, 'symbols', server.pid)
+            profile.command('enable')
         if shared:
             struct.pack_into('<Q', shared, 0, 1)
         barrier.wait(90)
         barrier.wait(90)
         if shared:
             struct.pack_into('<Q', shared, 0, 0)
+        if profile:
+            profile.command('disable')
+            profile.close()
+            profile = None
         after = info(connection)
         barrier.wait(90)
         for child in children:
@@ -168,12 +196,29 @@ def case(args, mode, command, atomic, pipeline, keys, rep):
                                      for i, name in enumerate(names)}
             result['allocations_per_call'] = sum(x['calls'] for x in result['allocations'].values()) / measured
             result['sweeps'] = dict(zip(['calls', 'visited', 'removed', 'max_length'], totals[128:132]))
+        if args.profile:
+            from mkprobe_probe import symbol_shares
+            text = subprocess.check_output(['taskset', '-c', '40-47', 'perf', 'report',
+                '--stdio', '--no-children', '--show-total-period', '--percent-limit', '0',
+                '-F', 'overhead,period,symbol', '-t', ';', '-i', str(out / 'perf.data')], text=True)
+            (out / 'symbols.txt').write_text(text)
+            # perf abbreviates the report header as e.g. "1K"; its capture log
+            # retains the exact record count. Keep the raw report unchanged.
+            exact = re.search(r'\((\d+) samples\)', (out / 'perf.log').read_text())
+            require(exact is not None, 'missing exact perf sample count')
+            normalized = re.sub(r"# Samples: .* of event 'cycles'",
+                                "# Samples: " + exact[1] + " of event 'cycles'", text)
+            result['symbol_shares'] = symbol_shares(normalized)
         (out / 'row.json').write_text(json.dumps(result, indent=2) + '\n')
         with (args.output / 'rows.jsonl').open('a') as handle:
             handle.write(json.dumps(result) + '\n')
         print(json.dumps({k: result[k] for k in ('label', 'measured_calls', 'replies_per_send',
               'fanout_cuts_per_call', 'allocations_per_call', 'sweeps') if k in result}), flush=True)
     finally:
+        if profile:
+            profile.close()
+        if profiler_children:
+            profiler_children.close()
         try:
             barrier.abort()
         except Exception:
@@ -200,10 +245,12 @@ def main():
     p.add_argument('--binary', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--shim', type=Path)
+    p.add_argument('--profile', action='store_true', help='symbol sample counts, without rates')
     p.add_argument('--port', type=int, default=25500)
     p.add_argument('--connections', type=int, default=64)
     p.add_argument('--commands', type=int, default=1024, help='per connection, after 128 warm commands')
     p.add_argument('--replicas', type=int, default=1)
+    p.add_argument('--resume', action='store_true')
     p.add_argument('--modes', nargs='+', choices=['1s', '2s'], default=['1s', '2s'])
     p.add_argument('--depths', nargs='+', type=int, default=[8, 32, 128])
     p.add_argument('--keys', nargs='+', type=int, default=[8])
