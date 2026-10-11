@@ -1,0 +1,13 @@
+k1=key:0(ex6) k2=key:1(ex5) EXEC=[1, 1] INCR=2 incr_latency=0.251s -> GET k1=2 GET k2=1
+k1=key:2(ex3) k2=key:0(ex6) EXEC=[2, 1] INCR=1 incr_latency=0.0s -> GET k1=2 GET k2=1
+k1=key:4(ex1) k2=key:0(ex6) EXEC=[1, 1] INCR=2 incr_latency=0.251s -> GET k1=2 GET k2=1
+k1=key:6(ex2) k2=key:0(ex6) EXEC=[1, 1] INCR=2 incr_latency=0.251s -> GET k1=2 GET k2=1
+k1=key:8(ex5) k2=key:0(ex6) EXEC=[1, 1] INCR=2 incr_latency=0.253s -> GET k1=2 GET k2=1
+k1=key:10(ex7) k2=key:0(ex6) EXEC=[1, 1] INCR=2 incr_latency=0.252s -> GET k1=2 GET k2=1
+k1=key:12(ex0) k2=key:0(ex6) EXEC=[1, 1] INCR=2 incr_latency=0.252s -> GET k1=2 GET k2=1
+k1=key:14(ex0) k2=key:0(ex6) EXEC=[1, 1] INCR=2 incr_latency=0.25s -> GET k1=2 GET k2=1
+k1=key:16(ex1) k2=key:0(ex6) EXEC=[1, 1] INCR=2 incr_latency=0.25s -> GET k1=2 GET k2=1
+k1=key:18(ex4) k2=key:0(ex6) EXEC=[1, 1] INCR=2 incr_latency=0.251s -> GET k1=2 GET k2=1
+atomic=0 mode=1s: rounds=10, rounds with a lost INCR (k1 != 2): 0
+atomic_commit_windows 1 atomic_groups 10
+server rc 0

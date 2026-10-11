@@ -1,0 +1,4 @@
+RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=642, fixture=652, source declarations=654
+Missing fixture labels: 'fused txngroup battery (atomic 1)' (x1); 'txngroup battery (atomic 1)' (x1)
+Extra fixture labels: none
+Review the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.

@@ -53,5 +53,18 @@
     ],
     "exit_code": 0,
     "seconds": 509.71243405668065
+  },
+  {
+    "name": "mdbqsbr",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-j16",
+      "mdbqsbr-live-arms"
+    ],
+    "exit_code": 0,
+    "seconds": 276.6583221699111
   }
 ]

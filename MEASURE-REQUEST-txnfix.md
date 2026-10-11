@@ -125,8 +125,11 @@ Housekeeping, NX and admission proofs are complete. The Stage A checkpoint
 restores TLS placement and 1,208/1,208 selected ordinary hot bodies. Stage B
 adds three executed instructions to ordinary MGET destruction and therefore
 fails the zero-new-instruction rule. Its core and separately revisable fallback
-commits are retained for review. Final proof and identity attribution are in
-progress. No benchmark, full gate, or push has been run.
+commits are retained for review. Identity attribution is complete; final proof
+is still running. Known failures include the baseline atomic-0 control, old
+MSETNX-overlap witnesses, one armed-fused expected-old read assertion, and an
+armed-fused SIGABRT during the atomic-window battery (attribution pending).
+No benchmark, full gate, or push has been run.
 
 The six previously untracked evidence directories are preserved as historical
 receipts. Inspection of every file (including ignored files) found no ELF
@@ -367,9 +370,10 @@ original section still apply to the updated PRE path; counters missing on PRE
 remain -1 rather than invented zeros.
 
 Current line-based accounting: fused NX at 2049 (two atomic rows), fused
-transaction isolation at 2056 (two), fused groups at 2064 (one); split NX in
-the loop at 2224 (two), split transaction isolation at 2230 (two), split groups
-at 2239 (one). Every row is before quick exit 3773: **DQ=10, DF=10**;
+transaction isolation at 2056 (two), fused groups at 2232 (one); split NX in
+the loop at 2215 (two), split transaction isolation at 2221 (two), split groups
+at 2242 (one). Group jobs are collected at 3671/3700; every row is before
+quick exit 3777: **DQ=10, DF=10**;
 merged-base **625/642 → 635/652**. EXPECT assignments stay 625/642, so the
 ledger checker must report that ten-row discrepancy until the maintainer
 updates them. A Stage-A-only selection with NX but without groups is +8/+8,
@@ -405,10 +409,42 @@ row exactly once, depend on release and production units, and are collected
 before quick exit. No assertion or protected EXPECT assignment changed.
 Source and fixture both have **652** rows, with no missing or extra labels;
 only EXPECT_FULL=642 still disagrees. [Corrected ledger result](docs/txnfix/txnfix2/ledger-after-job-split.log).
-The earlier source-line table is superseded by [current row/collection lines](docs/txnfix/txnfix2/gate-row-lines.json);
+The source-line table is recorded in [current row/collection lines](docs/txnfix/txnfix2/gate-row-lines.json);
 DQ/DF remain +10/+10 and the required counts remain 635/652.
 
 The fused txniso jobs now also depend on `production_units`: their unit
 subchecks previously depended only on release readiness and could race the
 unit build. The dependency change adds no row and the final serverless rerun
 covers the corrected coordinator source.
+
+The requested Redis 7.4 matrix passes **112/112 comparison legs**, plus both
+armed-fused read-local witnesses (seven suites, four seeds, two atomic settings,
+two geometries). The latest merged PRE original-parameter EXEC audits fail
+all **24/24** expected negative legs on data, not counters; T18 WATCH passes
+all four controls. POST passes all **28/28** corresponding audits. Stage B
+original-parameter POST audits pass 16/18; the only two failures are atomic-0
+T05 RPOPLPUSH, already failing on merged PRE. Receipts are under
+[final proof](docs/txnfix/txnfix2/final-proof/runs.json).
+
+The broad regression run exposes a design/test incompatibility: `multirace`
+and `multires` demand an undecided same-connection MSETNX/EXEC overlap, while
+Stage B deliberately adds a dispatch barrier to MSETNX. Both modes now pass
+the data checks but fail that witness. Their assertions are unchanged. A
+resumed Stage B must supply a falsifiable barrier witness before these can be
+adapted; this cost-rejected candidate does not claim passing rows.
+
+One armed-fused `execatomic` invocation also fails its expected-old MGET arm
+at atomic 0: the logged answer is eight **new** values, not a mixture. All
+its concurrent tear checks are zero. The script assumes its lead fragment ran
+during a 50 ms sleep; late dispatch is a possible explanation, not a proven
+baseline attribution. The original failing receipt is retained. WATCH
+liveness passes all 30 fresh boots in each mode. Armed-fused `atomic_torn`
+passes the preceding data-consistency checks but loses its server with
+SIGABRT (exit -6) during `atomicwindow.held_burst`. There is no diagnostic
+text in the server log. This is an unresolved correctness failure, not a
+deadline exception; PRE/Stage A controls and a debugger reproduction are
+queued. [Failing test](docs/txnfix/txnfix2/final-proof/broad-1s/atomic_torn/test.log),
+[server exit](docs/txnfix/txnfix2/final-proof/broad-1s/atomic_torn/shutdown.json).
+The main proof driver has completed 144 invocations (including deliberately
+failing PRE controls); final companion checks and a longer overall
+serverless-gate invocation are in progress.
