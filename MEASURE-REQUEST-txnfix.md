@@ -644,3 +644,49 @@ Server cold append remains 24640 bytes; no old Server field moves.
 [Final layout receipt](docs/txnfix/txnfix3/layouts-certified-receipt.json),
 [PRE comparison](docs/txnfix/txnfix3/layouts-compare.json),
 [TLS comparison](docs/txnfix/txnfix3/tls-certified.json).
+
+
+### Frozen binaries and owner measurement request
+
+- PRE: `build/txnfix2/pre/tomokv`, SHA-256
+  `5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20`.
+- POST: `build/txnfix3/post/tomokv` (a frozen copy of tested `build/tomokv`), SHA-256
+  `c879e3f1e476b5f86232e47f863565d5b967905617b1dabf3ca1a961628e4916`.
+- PAD **(A), limited PRE-behaviour aggregate-text-size control**:
+  `build/txnfix3/pad-certified/tomokv`, SHA-256
+  `83d6a51112ad42148a0adadd07eb2a6bd42c6d24e993b8d64672262d7df68e3e`.
+  It links unchanged PRE objects plus unreachable padding. PRE .text is
+  7646972 bytes; POST/PAD are 7740636. This is **not** a full internal-function
+  or Server-cold-tail layout twin. It is diagnostic only, cannot close the
+  open universal instruction bar, and is not evidence of an accepted gain.
+  [Exact build and limits](docs/txnfix/txnfix3/pad-certified/build.json).
+
+| Cell family | PRE rate / cycles / IPC / instr per op | POST | Deciding evidence |
+|---|---|---|---|
+| GET, SET, MGET, MSET; 1s/2s; atomic 0/1; standing gate size/depth/load cells | Unmeasured | Unmeasured | Matched-offered-load rate against the standing null; cycles/op, IPC and instr/op explain it |
+| Uncontended EXEC and hot two-key EXEC + four plain INCR clients | Unmeasured | Unmeasured | Matched-cell transaction rate with plain rate and retry/exclusive counters |
+| PRE versus labelled PAD (A), if the owner uses this limited diagnostic | Unmeasured | Unmeasured | Aggregate-size sensitivity only; no internal-layout conclusion |
+
+After resolving the remaining static requirement, mainline owns the quiet-box
+null. This command is a request for the maintainer; the lane did not execute
+it or run any workload on CPUs 0–111:
+
+```sh
+taskset -c 0-127 tests/gate.sh perf --subset full \
+  --server-cores 0-31 --server-smt "" --load-cores 32-127 --load-smt "" \
+  --ports 22600-22699 \
+  --reference-binary "$PWD/build/txnfix2/pre/tomokv" \
+  --candidate-binary "$PWD/build/txnfix3/post/tomokv"
+```
+
+Use PRE/POST/POST/PRE and the gate's own existing offered-load cells. No local
+instruction trace is substituted for that null. The EXEC commands and counter
+intervals in the original request remain applicable with these frozen paths.
+
+This lane adds no gate rows: **txnfix3 DQ=0, DF=0**. The full branch remains
+**DQ=10, DF=10**, all before quick exit line **3777**: fused NX **2049** (two),
+fused txniso **2056** (two), split NX loop **2215** (two), split txniso **2221**
+(two), fused groups **2232** (one), split groups **2242** (one). Group jobs are
+collected at **3671/3700**. The maintainer's full-branch counts would be
+**635/652**, from protected **625/642**. Neither EXPECT assignment changed.
+[Line-based receipt](docs/txnfix/txnfix3/gate-row-lines.json).

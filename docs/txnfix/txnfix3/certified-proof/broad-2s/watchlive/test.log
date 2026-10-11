@@ -1,0 +1,11 @@
+watchlive semantics
+  ok   foreign wide MSET acknowledged
+  ok   EXEC aborts after a foreign write to a watched key None
+  ok   the aborted transaction wrote nothing b'foreign'
+  ok   EXEC commits with no foreign write [b'OK']
+  ok   the committed transaction's write is visible b'committed'
+  ok   foreign write to unwatched keys acknowledged
+  ok   EXEC commits when the foreign write missed the watched keys [b'OK']
+  ok   foreign wide DEL acknowledged
+  ok   EXEC aborts after a foreign DEL of a watched key None
+  semantics: 0 failure(s)
