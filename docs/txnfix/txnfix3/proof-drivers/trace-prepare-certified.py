@@ -9,7 +9,7 @@ def run(case):
   if len(f)==4 and f[2] in ('t','T','W','w'):records.append([int(f[0],16),int(f[0],16)+int(f[1],16),f[3]])
  names=subprocess.check_output(['c++filt'],input='\n'.join(r[2] for r in records),text=True).splitlines()
  prefix='tomo::' if ns=='normal' else 'tomo_db0::'
- selected=[[*r,n] for r,n in zip(records,names) if prefix in n and ('xshard_' in n or 'Scatter' in n or 'free_state_' in n or 'finish_phase' in n or 'assemble_final' in n)]
+ selected=[[*r,n] for r,n in zip(records,names) if prefix in n and ('xshard_' in n or 'txn_group_' in n or 'Scatter' in n or 'free_state_' in n or 'finish_phase' in n or 'assemble_final' in n)]
  ranges=out/(label+'-ranges.json');ranges.write_text(json.dumps(selected))
  script=re.sub(r'ranges=json.load\(open\(.+?\)\)', 'ranges=json.load(open('+repr(str(ranges))+'))',template)
  anchor=next(r[0] for r in records if r[2]=='_Z19scatter_trace_beginv')

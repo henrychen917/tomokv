@@ -559,3 +559,88 @@ The initial group-unit invocation used only seven client CPUs; a corrected
 invocation exposed one remaining assertion that counted the new ownership bit
 as a live owner pin. That assertion now distinguishes the ownership bit from
 actual pins. Both failures are retained; the final unit rerun remains required.
+
+
+### Final implementation and review boundaries
+
+The final runtime source is `8d1be3901` (later commits contain receipts and
+analysis tools). PRE remains the merged `origin/cpp` image from `991d48f65`.
+No push or performance run was performed.
+
+1. **Group lifetime and ordinary scatter cost.** `276e3130e` removes the
+   unconditional attempt-pointer initialization/deletion. The pointer occupies
+   existing ScatterState padding at byte `0x310`; ownership is bit 31 of the
+   existing `watch_refs` word at `0x18`. Only the existing nonzero-reference
+   reaper arm can call the cold attempt destructor. The constructor, destructor
+   and `xshard_destroy` are canonically identical to PRE in both namespaces.
+   `5eb7d4574` places group read/completion work behind existing atomic flags;
+   `851a1ab4a` freezes the parsed kind after its address-taking parsers;
+   `8d1be3901` keeps the existing group-prepare branch out of ordinary
+   fallthrough. It adds no new predicate. The final 180 preparation pairs and
+   eight complete MGET pairs have **zero named-function instruction increases**
+   and enter no group helper. This removes the demonstrated MGET destructor
+   tax and the four DB0 preparation increases found during this lane.
+   **It is not a proof of an identical executed sequence on every ordinary
+   path. That literal, universal requirement remains open.** The full function
+   list, disassemblies, sampled counts and limits are in
+   [scatter-cost.md](docs/txnfix/txnfix3/scatter-cost.md). No zero-cost
+   performance acceptance is inferred from fewer sampled instructions.
+
+2. **Twelve selected hot drifts.** All are restored: ccfix selected hot
+   **1208/1208**, lbstall **601/601 + 603/603**. `a3a1e7a4a` restores one cleanup
+   call in place of a separate intent-release call plus free, repairing the
+   three IO-template drifts without changing their compiler budgets.
+   `97a55dd21` uses the established per-object convention (xshard large-unit-insns
+   **138200 / 136800**) and PRE outlining boundaries for the nine store helpers.
+   `d0932fbfb` uses DB0 t_server budget **31850** to retain SCAN, RANDOMKEY and
+   every unrelated handler. The rejected 31800 trial is retained separately.
+   [Every repaired function and full inventory](docs/txnfix/txnfix3/identity-certified/README.md).
+   The unchanged full ccfix command exits 1 on the intentional DEBUG handler;
+   its selected-hot check passes. The only changed handler bodies are DEBUG
+   and INFO, including INFO cold clones, in both namespaces. The full inventory
+   has **16656 bodies: 16077 equal, 579 changed**, with an attribution or an
+   explicit unresolved compiler drift for each changed body.
+
+3. **MSETNX witness.** `b1e461636`, `fd008220c` and `57afb93ac` change only the
+   authorized ordering witness in multirace/multires. With
+   `DEBUG TXN-BARRIER-WITNESS 1`, retirement counts an atomic MSETNX still owning
+   the Scatter barrier with the following MULTI unparsed in that Client's
+   input. Merely preparing a barrier or later owner parking cannot count.
+   Both aborted and committing multirace arms must witness it; bounded fresh
+   re-arming is retained. Multires still proves that entries are held,
+   pending entries exist, and no early reply escaped. All reply, lost-write,
+   stale-read and late-order assertions are unchanged. The barrier-removed
+   control deliberately suppresses only MSETNX's barrier assignment; both
+   batteries fail the new witness in both modes. The control is an isolated
+   binary under build/, never production source.
+
+4. **Atomic-0 movers.** `f7f3ce7a5` places the actual claim on the source owner
+   in `xshard_movers.inc`: it reads and removes the current edge in the same
+   owner turn, publishes that result, and lets the destination push/return
+   only the claimed element. A destination that arrives first defers; a source
+   miss cannot publish phase one's stale guess. LMPOP/ZMPOP phase two uses the
+   current owner view. EXEC children retain their parent's private overlay.
+   SMOVE publishes success only for the contender that actually removes the
+   member. The original PRE T05 conservation failures and corrected PRE G5
+   duplicate-delivery failures remain in
+   [reproduce](docs/txnfix/txnfix3/reproduce/) and
+   [cost-check](docs/txnfix/txnfix3/cost-check/). POST coverage includes all LMOVE
+   directions, BRPOPLPUSH/all BLMOVE directions after all four waiters have
+   registered, both LMPOP/ZMPOP ends with COUNT 3, and 100 four-way SMOVE races.
+   Original T05 parameters and G5 assertions were not changed.
+
+5. **Exclusive fallback.** The existing `e1609593d` fallback remains a separate
+   commit from Stage B core `21858278e` and this lane's goals 1–4. Its policy is
+   unchanged; the owner's acceptance decision remains open. The cost refactor
+   moves its existing completion work into a cold group helper but introduces
+   no new fallback policy. Stage A is not offered as a replacement selection
+   here; the maintainer is landing that separately.
+
+All locked sizes **and existing member offsets** match PRE in both namespaces:
+Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore 944, Rob<64> 192,
+AtomicEntry 144, Config 624. ScatterState remains 896, with every old offset
+unchanged. Existing TLS offsets and sizes also match. The earlier Stage A
+Server cold append remains 24640 bytes; no old Server field moves.
+[Final layout receipt](docs/txnfix/txnfix3/layouts-certified-receipt.json),
+[PRE comparison](docs/txnfix/txnfix3/layouts-compare.json),
+[TLS comparison](docs/txnfix/txnfix3/tls-certified.json).

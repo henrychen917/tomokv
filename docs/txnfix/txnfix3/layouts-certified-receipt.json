@@ -1,0 +1,16 @@
+{
+  "binary": "build/tomokv",
+  "sha256": "c879e3f1e476b5f86232e47f863565d5b967905617b1dabf3ca1a961628e4916",
+  "same_as_release": true,
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "docs/txnfix/txnfix3/proof-drivers/layouts.gdb",
+    "build/tomokv"
+  ],
+  "exit_code": 0
+}
