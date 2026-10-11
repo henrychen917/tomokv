@@ -116,3 +116,24 @@ Compare matched-load ops/s, cycles/op, instructions/op and IPC for GET/SET/MGET/
 Latest focused receipts: [eight batteries](docs/txnfix/post-watermark/txniso.json), [30 fused execfix repetitions](docs/txnfix/execfix-watermark/runs.json), [atomic_plain guards](docs/txnfix/atomic-plain-guards/runs.json), [serverless checks](docs/txnfix/serverless-watermark/runs.json). Shutdown retry-inbox/token cleanup is covered by the extended txn_intents unit and four live parked-intent exits. Newer receipts: [original audits](docs/txnfix/original-audits/runs.json), [PRE originals](docs/txnfix/pre/original-audits/runs.json), [PRE WATCH controls](docs/txnfix/pre/watch-original/runs.json), [differential](docs/txnfix/differ-stage-a/runs.json), [shutdown](docs/txnfix/shutdown-intent-after/runs.json), [WATCH liveness failure](docs/txnfix/watchlive-stage-a/runs.json).
 
 The external round-4 REGISTER.md is outside this lane's worktree and was not edited. The reviewable status addendum is [register-status.md](docs/txnfix/register-status.md).
+
+## txnfix2
+
+**WIP — not ready to merge or measure.** Merged `origin/cpp` at `a363c2c5e` in
+`ee48b465e`. Housekeeping is complete; the NX regression is the next item.
+Admission fencing, hot-body identity, Stage B, and the merged-base proof remain
+open. No benchmarks or full gate runs are authorized for this lane. No push.
+
+The six previously untracked evidence directories are preserved as historical
+receipts. Inspection of every file (including ignored files) found no ELF
+binaries, object files, or other build intermediates: the directories named
+`build-intermediate` and `nx-parent-build` contain build logs and JSON receipts.
+Compressed canonical disassembly inventories are evidence, not build products.
+These receipts describe the previous session's binaries, not this merged tree.
+
+The merge keeps the incoming blocking ACL checks ahead of transaction mutation
+checks and resets the ACL witness when a waiter parks again. Both sets of gate
+labels are retained. The merged base's protected EXPECT values are 625/642;
+the four existing txniso rows require DQ=+4, DF=+4, hence 629/646 before any
+txnfix2 rows. The arithmetic comment is updated; EXPECT assignments are the
+incoming mainline values and have not been adjusted for this lane.
