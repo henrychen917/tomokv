@@ -1469,12 +1469,22 @@ void free_state_key_anchors(ScatterState& state) {
 
 ScatterArenaPool::~ScatterArenaPool() {
     reap_deferred();
-    for (uint32_t i = 0; i < count_; i++) std::free(cached_[i]);
+    while (count_) {
+        void* memory = cached_[0];
+        cached_[0] = *static_cast<void**>(memory);
+        --count_;
+        std::free(memory);
+    }
 }
 
 void* ScatterArenaPool::acquire(size_t bytes, bool& pooled) {
     pooled = bytes <= kCommonBytes;
-    if (pooled && count_) return cached_[--count_];
+    if (pooled && count_) {
+        void* memory = cached_[0];
+        cached_[0] = *static_cast<void**>(memory);
+        --count_;
+        return memory;
+    }
     void* memory = nullptr;
     if (::posix_memalign(&memory, alignof(OwnerRecordRefs), pooled ? kCommonBytes : bytes) != 0)
         return nullptr;
@@ -1483,8 +1493,16 @@ void* ScatterArenaPool::acquire(size_t bytes, bool& pooled) {
 
 void ScatterArenaPool::release(void* ptr, bool pooled) {
     if (!ptr) return;
-    if (pooled && count_ < kCached) cached_[count_++] = ptr;
-    else std::free(ptr);
+    if (!pooled) { std::free(ptr); return; }
+    // Retain the common arenas this IO actually needed, up to its observed high-water
+    // demand across every connection/ROB it serves. A 64-block FREE-list bound is not a
+    // 64-operation live bound: deep pipelines freed and reacquired most arenas each lap.
+    // Returned ScatterStates have been destroyed and have no lifetime pins. Reuse their
+    // first word for the free link, without allocating a second container or changing the
+    // pool/IoLoop layout. The remaining legacy cached_ slots stay reserved and untouched.
+    std::construct_at(static_cast<void**>(ptr), count_ ? cached_[0] : nullptr);
+    cached_[0] = ptr;
+    ++count_;
 }
 
 ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,

@@ -231,3 +231,27 @@ Per-object `large-unit-insns +32` trials on both genthread/rl2s objects and db0
 reorder did not reduce any changed-hot count; no compiler setting is changed.
 [Trial receipts](docs/mkfix2/a-budget-trials.json.gz). **Keep for maintainer merit,
 not a hot-path-identity pass.** No throughput claim.
+
+### B — retain the observed common-arena demand
+
+The free-list bound is removed for the existing 16 KiB size class. Returned,
+fully destroyed arenas carry their free link in their own first word; the old
+pool head storage is reused without changing **any object layout** or adding an
+allocator/container. Larger arenas still free immediately. Common blocks remain
+until IO-pool teardown, so memory retention follows that IO's historical peak
+rather than shrinking when its clients become idle. This is the explicit cost.
+
+| Mode | Depth | A arenas/cmd | AB arenas/cmd | AB abandoned prepares/cmd |
+|---|---:|---:|---:|---:|
+| 1s | 8 | 0.03983 | 0.00012 | 0 |
+| 1s | 32 | 0.64009 | 0.00049 | 0 |
+| 1s | 128 | 0.73460 | 0.00200 | 0.72490 |
+| 2s | 8 | 0.15762 | 0.00053 | 0 |
+| 2s | 32 | 0.60802 | 0.00586 | 1.91881 |
+| 2s | 128 | 0.73488 | 0.00618 | 3.31993 |
+
+Atomic-0 MGET-8, one finite count cell per entry. AB has **zero common-arena
+overflow frees in every cell**; residual allocations grow a new high-water mark
+after the short warm-up. Repeated prepares persist with that churn removed,
+further separating B from C. [36 WB cells](docs/mkfix2/ab-wb.jsonl.gz),
+[36 allocation/mechanism cells](docs/mkfix2/ab-counts.jsonl.gz).
