@@ -1,0 +1,5 @@
+# exact gate.sh row loop (helpers stubbed) + the storage case command, POST worktree build
+ok	armed resize retirement: atomic-growth
+ok	armed resize retirement: flush-prepared
+PASS storage flush-prepared-capacity
+ok	storage flush-prepared-capacity regression

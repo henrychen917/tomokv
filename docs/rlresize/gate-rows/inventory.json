@@ -1,0 +1,29 @@
+{
+  "method": "tests/gate_ledger_fixture.py source_labels() on the full source and on the source cut at the quick-tier exit; serverless, no gate run",
+  "pre": {
+    "full": 642,
+    "quick": 625
+  },
+  "post": {
+    "full": 645,
+    "quick": 628
+  },
+  "DQ": 3,
+  "DF": 3,
+  "expect_in_tree": {
+    "quick": 625,
+    "full": 642
+  },
+  "owner_update": {
+    "quick": 628,
+    "full": 645
+  },
+  "post_lines": {
+    "storage case list": 1625,
+    "armed resize retirement loop": 1733,
+    "collect_job storage_units": 3577,
+    "collect_job atomic_units": 3579,
+    "quick-tier exit": 3715,
+    "EXPECT_QUICK (unchanged)": 312
+  }
+}

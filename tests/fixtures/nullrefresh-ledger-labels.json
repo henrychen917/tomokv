@@ -1,7 +1,7 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
   "source_sha256": "8c1e51707e09366c289fbbe39466844d5936e8e027843897719adea590cb3304",
-  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full); savefix adds 24 witnessed shutdown-save/capture rows (+24 quick/+24 full); aclfix adds six reproductions per thread mode before the quick exit (+12 quick/+12 full); authfix adds five config/auth/slowlog regression rows before the quick exit (+5 quick/+5 full); clientfix adds 14 focused correctness rows before the quick exit (+14 quick/+14 full); racefix adds INFO counter TSan and directed Climon refresh rows before the quick-tier exit (+2 quick/+2 full)",
+  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full); savefix adds 24 witnessed shutdown-save/capture rows (+24 quick/+24 full); aclfix adds six reproductions per thread mode before the quick exit (+12 quick/+12 full); authfix adds five config/auth/slowlog regression rows before the quick exit (+5 quick/+5 full); clientfix adds 14 focused correctness rows before the quick exit (+14 quick/+14 full); racefix adds INFO counter TSan and directed Climon refresh rows before the quick-tier exit (+2 quick/+2 full); rlresize adds the storage flush-prepared-capacity case and two armed resize retirement rows (atomic-growth, flush-prepared) before the quick exit (+3 quick/+3 full)",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
@@ -79,6 +79,7 @@
     "storage field-index-failure regression",
     "storage hash-bytes regression",
     "storage deadline-allocation-failure regression",
+    "storage flush-prepared-capacity regression",
     "flushfix flush witnesses",
     "flushfix headers witnesses",
     "multidb serverless owners",
@@ -103,6 +104,8 @@
     "atomic survivor: library_limit",
     "atomic survivor: stage_flag",
     "atomic survivor: instruction_limit",
+    "armed resize retirement: atomic-growth",
+    "armed resize retirement: flush-prepared",
     "netcmd regression build",
     "netcmd streams regression",
     "netcmd zpop regression",
