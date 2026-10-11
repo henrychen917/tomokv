@@ -1,0 +1,34 @@
+{
+  "arm": "pre",
+  "object": "db0/src/cmd/t_server.o",
+  "size": [
+    "24238"
+  ],
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=31725",
+    "--param",
+    "max-inline-insns-auto=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/t_server.cc",
+    "-o",
+    "/home/user/Projects/cx-perfex/build/perfex2/unit-sizes/pre-db0_src_cmd_t_server.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-perfex/build/perfex2/unit-sizes/pre-db0_src_cmd_t_server.o"
+  ]
+}

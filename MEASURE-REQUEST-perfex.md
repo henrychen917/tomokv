@@ -301,4 +301,76 @@ and beat-progress checks remain. No assertion or tolerance in infofix changes.
 
 Rows remain **DQ=+4 / DF=+4** relative to landed wave 1: no new ledger row.
 Required totals are **629 quick / 646 full**; only the maintainer changes EXPECT.
-Final proof, changed-body inventory, and the measurement handoff follow below.
+Collection is at `tests/gate.sh:3577` and `:3578`, above the quick-tier exit
+at `:3743`. The freshness cases extend those existing sampler rows.
+
+The final production change is `93a14e81a` (following `6e234700c` and
+`9d94fc5c4`). The two cold single-DB clear paths reset their existing owner-private
+sample cursor and atomically clear the sampled deadline. The next millisecond
+beat supplies the replacement estimate. The monitoring state definition moves
+beside these inline clears; its fields, size, allocation and pointer slot stay
+unchanged. Multi-DB census behavior stays unchanged. There is no new work in
+ordinary GET/SET, batch publication, INFO, or the sampler.
+
+| Arm | Binary | SHA-256 |
+|---|---|---|
+| Historical perfex POST, before required wave-1 merge | `build/perfex2/previous-post/tomokv` | `81b0b26dceaea4d78201fd26b84c3af9929613467549710a53c1915b8e759d54` |
+| Perfex2 PRE: merged perfex POST, production sources at `04a9a0cce` | `build/perfex2/pre/tomokv` | `081b66cc1d69ae7e6027eedb6d928540d6709828fb2d568c8a24d80c2fe8a2fd` |
+| Perfex2 POST: production sources at `93a14e81a` | `build/tomokv` | `e1d6258f0f74ffc5b2bb237bef81bb2a115070dbae1c434d400e2188010cf0c4` |
+
+The final POST passes all four perfex rows and the eight flush-freshness cases
+(four forms in each mode): zero immediately, then 59988 ms after explicit beats,
+versus historical POST's stale 3599989 ms. Redis 7.4.10 independently passes all
+four forms, reporting zero immediately and a fresh value on active expiry.
+Receipts: `docs/perfex2/final-rows/` and `docs/perfex2/post-oracle/`.
+
+The complete object-body audit compares the **merged** prior POST against
+perfex2: 16,431 / 16,439 bodies equal, 1,208 / 1,208 selected hot bodies equal,
+1,210 / 1,211 command handlers equal. Equality preserves every instruction,
+member offset, constant and relocation target; only relocation placement is
+canonicalized by the unchanged `tools/ccfix_audit.py`. Its raw exit is 1 because
+the generic cold-handler allowlist omits FLUSH. `docs/perfex2/identity.py` checks
+the complete changed inventory against the following explicit cold functions;
+that classifier passes. It neither changes nor suppresses the raw audit.
+
+| Object (all db0) | Changed body | PRE / POST bytes | Reason |
+|---|---|---:|---|
+| `src/cmd/t_server.o` | `cmd_flush` | 1802 / 1834 | Inlined snapshot-time clear reset |
+| `src/cmd/t_server.o` | `FlatStore::clear` | 840 / 856 | Ordinary clear reset |
+| `src/cmd/t_server.o` | `command_client_migration_extract` | 608 / 592 | Unedited cold role-migration metadata extraction; compiler allocation |
+| `src/cmd/xshard.o` | `FlatStore::clear` | 840 / 856 | Ordinary clear reset |
+| `src/persist/aof.o` | `FlatStore::clear` | 840 / 856 | Replay clear reset |
+| `src/persist/aof.o` | `AofManager::~AofManager` (two aliases) | 1435 / 1403 each | Unedited cold teardown; compiler inlining |
+| `src/persist/aof.o` | `manifest_name` | 1698 / 1698 | Unedited cold manifest-path construction; compiler allocation |
+
+The mandatory historical POST -> wave-1 merge is a separate comparison:
+15,286 / 16,485 bodies equal, 983 / 1,216 selected hot bodies equal. Those seven
+landed correctness lanes change hot bodies. Claiming literal identity to the
+unmerged historical binary would be false. Its full inventory is retained in
+`docs/perfex2/merge-identity/`; the perfex2-only inventory is in `identity/`.
+
+Compiler budgets are db0 `t_server.o` 31737 (was 31725) and db0 `xshard.o`
+126492 (was 126482). The initial out-of-line reset and first inline build
+perturbed unrelated helpers; both failed inventories remain in
+`initial-identity/` and `inline-identity/`. The compile-only complete-body trials
+in `budget-trials/` selected the final settings. No ordinary helper differences
+remain in the final audit.
+
+All layout locks and every inspected field offset remain equal in both
+namespaces: Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore 944,
+Rob<64> 192, AtomicEntry 144, Config 624. StoreSizeState stays 24 bytes with the
+same three fields. `.text` is exactly 7,645,932 bytes in both merged PRE and POST;
+`.rodata`, `.data` and `.bss` also remain equal. See `layouts.json` and
+`sections.json`. Perfex2 introduces no layout or total-text-size change and
+therefore requests no new PAD arm. The earlier perfex PAD B belongs only to
+the historical comparison above.
+
+`make -j16 all` passed. All 29 current `job_production_units` targets build and
+pass `make -q`; `mdbqsbr-live-arms` builds and the storesize positive/negative
+controls pass. After the last compiler-budget edit, the park control's xshard
+object was forcibly rebuilt with 126492 and the controls relinked. The final
+36 build/freshness/control commands all exit zero (`final-units/summary.json`).
+The superseded unit run's stale-build checks remain recorded in `units/`.
+
+The repeated live campaign is in progress; its final results and the quiet-box
+measurement handoff will be recorded here before completion.

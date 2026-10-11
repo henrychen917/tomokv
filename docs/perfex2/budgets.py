@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Compile-only, complete-body comparison against the merged perfex POST."""
 from concurrent.futures import ThreadPoolExecutor
+import gzip
 import json
 import hashlib
 import os
@@ -31,7 +32,9 @@ def main():
     assert os.sched_getaffinity(0) <= set(range(112, 128))
     obj, *values = sys.argv[1:]
     old = inventory(ROOT / 'build/perfex2/pre' / obj)
-    lines = (ROOT / 'docs/perfex2/post-build.log').read_text().splitlines()
+    log = ROOT / 'docs/perfex2/post-build.log'
+    lines = (log.read_text() if log.exists() else
+             gzip.decompress(log.with_suffix('.log.gz').read_bytes()).decode()).splitlines()
     commands = [shlex.split(line) for line in lines
                 if line.startswith('g++ ') and line.endswith(' -o build/' + obj)]
     assert len(commands) == 1

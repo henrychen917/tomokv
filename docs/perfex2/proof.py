@@ -14,10 +14,12 @@ import time
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tests'))
 from _gate_process import server
+from _lib import Conn, encode, wait_ready
 
 
 def run(argv, out, env=None, timeout=None):
     argv = list(map(str, argv))
+    out = out.resolve()
     start = time.monotonic()
     with out.open('w') as log:
         rc = subprocess.run(argv, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,
@@ -141,9 +143,58 @@ def smoke(a):
                 a.output / 'pfconfirm.log')]
 
 
+def oracle(a):
+    # Compare the precise flush/estimate semantics, not Tomo-specific INFO fields.
+    oracle_bin = Path('/tmp/claude-1000/redis74/src/redis-server')
+    port = 25105
+    assert not subprocess.check_output(['ss', '-H', '-ltnp', f'sport = :{port}']).strip()
+    argv = ['taskset', '-c', '120', str(oracle_bin), '--bind', '127.0.0.1',
+            '--port', str(port), '--save', '', '--appendonly', 'no', '--dir', str(a.output)]
+    (a.output / 'oracle.json').write_text(json.dumps(dict(
+        argv=argv, sha256=hashlib.file_digest(oracle_bin.open('rb'), 'sha256').hexdigest()),
+        indent=2) + '\n')
+    rows = []
+    with (a.output / 'server.log').open('w') as log:
+        child = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT)
+        c = None
+        try:
+            c = wait_ready('127.0.0.1', port, timeout=20, process=child)
+            def ttl():
+                body = c.must('INFO', 'KEYSPACE').decode()
+                return int(re.search(r'avg_ttl=(\d+)', body)[1])
+            for flush in (('FLUSHALL',), ('FLUSHALL', 'ASYNC'),
+                          ('FLUSHDB',), ('FLUSHDB', 'ASYNC')):
+                assert c.must('FLUSHALL') == b'OK'
+                c.raw(b''.join(encode('SET', f'redis:{i}', 'v', 'PX', 3600000)
+                               for i in range(4096)))
+                for _ in range(4096):
+                    assert c.read() == b'OK'
+                deadline = time.monotonic() + 2
+                while (armed := ttl()) == 0 and time.monotonic() < deadline:
+                    time.sleep(.01)
+                assert 3_500_000 < armed <= 3_600_000, armed
+                assert c.must(*flush) == b'OK'
+                assert c.must('SET', 'ifx:ttl', 'v', 'PX', 60000) == b'OK'
+                immediate = ttl()
+                assert 0 <= immediate <= 60000, immediate
+                deadline = time.monotonic() + 2
+                while (fresh := ttl()) == 0 and time.monotonic() < deadline:
+                    time.sleep(.01)
+                assert 0 < fresh <= 60000, fresh
+                rows.append(dict(flush=flush, armed=armed, immediate=immediate,
+                                 fresh=fresh, exit_code=0))
+                print(json.dumps(rows[-1]), flush=True)
+        finally:
+            if c: c.close()
+            child.terminate()
+            child.wait(timeout=10)
+    assert child.returncode == 0, child.returncode
+    return rows
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('stage', choices=('direct', 'gate', 'rows', 'units', 'differ', 'wiring', 'smoke'))
+    p.add_argument('stage', choices=('direct', 'gate', 'rows', 'units', 'differ', 'wiring', 'smoke', 'oracle'))
     p.add_argument('--binary', type=Path, default=ROOT / 'build/tomokv')
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--rounds', type=int, default=20)

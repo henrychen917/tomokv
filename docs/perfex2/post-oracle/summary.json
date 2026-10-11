@@ -1,0 +1,40 @@
+[
+  {
+    "flush": [
+      "FLUSHALL"
+    ],
+    "armed": 3599952,
+    "immediate": 0,
+    "fresh": 59912,
+    "exit_code": 0
+  },
+  {
+    "flush": [
+      "FLUSHALL",
+      "ASYNC"
+    ],
+    "armed": 3599925,
+    "immediate": 0,
+    "fresh": 59906,
+    "exit_code": 0
+  },
+  {
+    "flush": [
+      "FLUSHDB"
+    ],
+    "armed": 3599929,
+    "immediate": 0,
+    "fresh": 59918,
+    "exit_code": 0
+  },
+  {
+    "flush": [
+      "FLUSHDB",
+      "ASYNC"
+    ],
+    "armed": 3599935,
+    "immediate": 0,
+    "fresh": 59911,
+    "exit_code": 0
+  }
+]
