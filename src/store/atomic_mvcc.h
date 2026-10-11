@@ -99,7 +99,6 @@ struct UnitRef {
     std::atomic<bool>* aborted = nullptr;
     const void* unit = nullptr;
     Kind unit_kind = Kind::Txn;
-    bool exclusive = false;
     uint64_t age_ns = 0;
     uint32_t age_io = 0;
     uint32_t age_seq = 0;

@@ -75,6 +75,10 @@ validation, preserving the previous WATCH contract. A whole-shard read inside a
 write unit takes a whole-shard read hold; this can stall every writer on that
 shard until the unit decides. Claims affect writers and other write units;
 ordinary readers continue to resolve immutable predecessors without retries.
+The current implementation has a confirmed wait cycle between retained writer
+marks, placing units and WATCH validation claims; see the
+[deterministic reproduction and proposed amendment](txnorder/writer-cycle/README.md).
+Transaction liveness is not accepted until that design conflict is resolved.
 
 Read-only EXEC takes one registered cut across all participating shards,
 including separate local GET commands, and stamps its children with that cut.

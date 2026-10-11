@@ -761,27 +761,113 @@ was edited. No push was performed.
 
 ## txnorder
 
-Base: `0291abe5d` after `git fetch origin cpp && git merge --no-edit origin/cpp`
-(already up to date). Implementation follows design-txnorder, including TO-B,
-on top of txnfix3. No push. Builds and serverless checks use CPUs 48–63.
-Runtime batteries and measurement require the maintainer under the standing
-no-server/no-benchmark/no-gate rule; no runtime receipt is claimed here.
+**BLOCKED for acceptance: D10 plus retained writer marks has a confirmed wait
+cycle.** The final source follows per-blocked-key marking in design §2.6.
+[Reproduction and proposed amendment](docs/txnorder/writer-cycle/README.md)
+records the owner-turn schedule and the final-tree result. The ranking patch
+is an unapplied review artifact, not part of POST. It preserves validation-time
+writer blocking and lets already-older placing units pass a writer mark while
+newer units remain behind it. The owner decision on amending §2.4 is pending.
 
-PRE is frozen at `build/txnorder/pre/tomokv`, SHA-256
-`1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc`.
-PRE objects are retained alongside it for the identity audits.
+Base: `0291abe5d`, after the required `git fetch origin cpp && git merge --no-edit
+origin/cpp` (already up to date). The implementation covers TO-A and TO-B:
+claim modes/caps, arrival/placement, retained age and wound-wait, executing
+immunity, writer parking, script APPLY yield, blind-placement restarts,
+one-cut read-only EXEC, exclusive removal, and Stage B placement. It retains
+txnfix3's watch_refs bit-31 lifetime/padding pointer, atomic-0 mover fix and
+MSETNX barrier witness. F1/F2/F4/F5/F6/F8 have directed checks, and F7 uses
+nanosecond first-attempt age retained across retries. F3 AOF staging is unchanged.
+No ex_loop.h or io_loop.h changes. No push.
 
-Step 1 fixes F1 (park claim-blocked writers even without records), F4 (plain
-write checks and WATCH dirtying use touched keys, including SORT STORE), and
-F6 (blocking registries are dirty after abort as well as commit). Each directed
-owner-phase test fails at its intended assertion on the merged PRE and passes
-after the fix; no worker or listener is started. `make -j16 all
-build/atomic-survivors-unit` passes. Receipts: [step 1](docs/txnorder/step1/);
-current source anchors: [inventory](docs/txnorder/anchors-pre.json).
+All commands for **this section** use only CPUs 48–63: server 48–55, Redis
+oracle 56, clients 57–63, builds 48–63 (`-j16`). Ports 22600–22699 only.
+Earlier sections retain historical allocations and are not instructions for
+this lane. No server, benchmark, load generator, oracle or gate was started.
 
-The design's open expiry/eviction interaction is under review: active expiry
-skips MVCC records; eviction skips records/intents. Proposed read claims are
-in neither predicate. Claims alone would leave those maintenance writes able
-to remove a key observed by an executing write unit.
+| Arm | Artifact | SHA-256 |
+|---|---|---|
+| PRE | `build/txnorder/pre/tomokv` | `1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc` |
+| POST | `build/tomokv` | `b27bcd7085403577e46efcddb89e80d2a07fc4b1b28245b6913fb369b07138a0` |
+| PAD A, limited size control | `build/txnorder/pad-a-size/tomokv` | `80f08455cfad2a06eb0cb78b7fd22c23c28bdd9ebb187d58dc42225c6d72ccd8` |
 
-Implementation and proof work continue; this checkpoint is not merge-ready.
+PAD is explicitly **(A) PRE behavior with matched aggregate POST .text size**,
+7740572 → 7758140 bytes. It is a diagnostic size control: internal function
+addresses and the changed cold Server layout do not match POST. It is **not a
+complete layout twin**, so it cannot certify layout-independent merit. The
+isolated MSETNX barrier-removed binary is also built; its digest is in
+[the binary manifest](docs/txnorder/binaries.json).
+
+Completed source/build evidence:
+
+| Check | Result |
+|---|---|
+| `make all` + all 29 production-unit targets + `mdbqsbr-live-arms` | Exit 0; all 31 freshness checks exit 0 |
+| `python3 tests/gates_test.py` | 66/66 pass |
+| Directed serverless cases | 28/28 pass; separate wait-cycle falsifier reproduces the blocker |
+| lbstall canonical bodies | 601/601 + 603/603 equal |
+| ccfix selected hot bodies | 1208/1208 equal |
+| Scatter constructor/destructor/destroy | All 12 bodies/clones identical in both namespaces |
+| Locked layouts and TLS | Equal, including WatchReservation 88 and ScatterState 896 |
+| Label source/fixture | 656/656; protected EXPECT_FULL=642 refusal only |
+
+[PROOF.md](docs/txnorder/PROOF.md) links the raw receipts and every changed
+function. The unchanged full ccfix checker exits 1 for intentional DEBUG
+changes outside its whitelist; linked runtime sections differ. Neither is
+reported as whole-binary identity. The trace guard saw the unused top-level
+binary relink while tracing; all 200 linked object inputs stayed identical.
+[Reconciliation](docs/txnorder/paths-final/relink-reconciliation.json) binds
+those objects to the stable final identity audit and POST digest.
+
+The 264 txnfix3 fixture pairs plus four atomic-1 MSET pairs complete. The main
+samples below count named functions, including executed NOPs; they are neither
+whole-operation instructions/op nor rates. Values are PRE → POST:
+
+| Cell | Normal 2s / 1s | DB0 2s / 1s |
+|---|---|---|
+| MGET missing | 2995 → 2991 / 2995 → 2991 | 3017 → 3017 / 3017 → 3017 |
+| MGET present | 3069 → 3065 / 3069 → 3065 | 3089 → 3089 / 3089 → 3089 |
+| MSET atomic 0 | 2800 → 2800 / 2840 → 2840 | 2837 → 2837 / 2872 → 2872 |
+| MSET atomic 1 including commit flush | 4101 → 4093 / 4141 → 4133 | 4153 → 4153 / 4188 → 4188 |
+
+This is **not** a zero-increase result across every named function: normal
+DEL/UNLINK add one sampled instruction per fragment (four pairs), and normal
+KEYS/RANDOMKEY outline a scan loop into a new named helper (four pairs; aggregate
+counts fall). Raw counts are retained. Universal ordinary-path instruction
+identity remains unproved; main-body equality and sampled paths are narrower
+evidence. No throughput gain or regression verdict is claimed.
+
+The complete runtime handoff is [owner-proof-plan.json](docs/txnorder/owner-proof-plan.json):
+215 pending parameter rows, with no copied historical verdicts. It includes
+every txnfix2/txnfix3 proof family: all txniso configurations/AOF companions,
+EXEC NX 0/8192 requirements and bare controls, original EXEC audits and PRE
+controls, Stage B and atomic-0 movers, G1–G6 in both modes and databases 1/16,
+Redis 7.4's 112-leg focused matrix plus armed read-local witnesses, broad
+batteries, writer/AOF/snapshot/FLIP, fresh WATCH boots and crossed WATCH, and
+new txnorder a–d PRE/POST controls. Missing new counters are not a valid PRE
+failure; `--pre` retains the supported semantic checks. Original held-group
+audits may need asynchronous writer sequencing under D1; retain exact data
+assertions and a witnessed window, and never count a timeout as a pass.
+
+The four new gate rows use four executor owners for the requested stress:
+new split rows explicitly use 4:4, fused rows arm read-local, and fused atomic 1
+uses databases=16. Existing batteries remain 6:2. This resolves the design's
+four-owner stress versus two-executor boot conflict as a stated assumption;
+the geometry question remains pending. New row declaration: gate.sh:2268;
+collector:3735; quick exit:3816. **DQ=4, DF=4**, cumulative outstanding +14/+14.
+The maintainer counts should be **639 quick / 656 full**. EXPECT_QUICK=625 and
+EXPECT_FULL=642 are unchanged.
+
+After the liveness amendment and its final proof, request these merit cells
+with the gate's own ABBA instrument, on a quiet box and one cell at a time:
+
+| Cells | Arms and fixed shape | Deciding numbers |
+|---|---|---|
+| Main-command null: GET, SET, MGET-2, MSET-2, DEL-2, UNLINK-2 | PRE/POST, both modes, atomic 0/1, DB 1/16, 16 shards, split 6:2, depths 1/16/128; same keys/values and offered load per arm | Matched-load rate is the verdict; retain cycles/op, instructions/op and IPC for each ABBA cell. A null regression blocks acceptance. |
+| EXEC uncontended | PRE/POST; same geometry; disjoint per-client key pairs, MULTI;INCR a;INCR b;GET a;EXEC, depths 1/16 | Rate and p50/p99 at matched load; one committed execution per success, zero dooms/order violations |
+| EXEC hot key | PRE/POST; a1/a2's exact 1 or 4 EXEC clients plus 16 plain writers, two executor owners, then the b1 four-owner shape | Exact final counts and completion deadlines first; attempts/EXEC, retries/wounds/blind restarts, writer waits; then matched-load rate, latency, cycles/op and IPC |
+| Size diagnostic | PRE/PAD-A-SIZE alongside selected POST cells above | A size-only shift is diagnostic only; this limited PAD does not decide the layout claim |
+
+Append actual results as MEASURE-RESULT. Active expiry/eviction versus read
+claims remains the design §6 owner decision. The read-only implementation has
+the existing MGET retained-version contract, not a stronger history guarantee
+for unversioned plain writes. Neither issue is hidden by the liveness blocker.

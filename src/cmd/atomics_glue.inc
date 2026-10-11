@@ -24,8 +24,6 @@ void cancel_applied_scripts(FlatStore& store, uint64_t hash, Slice key,
             multi_cancel_intent(record, self);
     });
 }
-
-
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id) {
     if (__builtin_expect(snapshot != UINT64_MAX, false))
@@ -723,7 +721,7 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
     FlatStore& store = shard.store();
     // multi_plain_write_ready marks a blocked reservation on the first pass.
     // Keep its retry off xshard_retries_: that queue stops incoming waves,
-    // including the exclusive group's apply wave that releases this writer.
+    // including the unit's next wave that releases this writer.
     if ((op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
         shard.has_watches() && !multi_plain_write_ready(shard, op)) return true;
     if (!store.atomic_has_records()) return false;
@@ -938,7 +936,7 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
             if (!store.atomic_has_record(hash, key) &&
                 (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
                 if (store.atomic_has_script_pin(hash, key)) server.note_script_forced_write();
-                    }
+            }
             for (const RecordedKey& prior : recorded)
                 if (prior.hash == hash && prior.key == key) return;
             try { recorded.push_back(RecordedKey{hash, key}); }

@@ -1,0 +1,28 @@
+{
+  "arm": "post",
+  "namespace": "normal",
+  "mode": "2s",
+  "values": "KEYS",
+  "command": [
+    "taskset",
+    "-c",
+    "48-55",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnorder/paths-final/scan/post-normal-2s-KEYS.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnorder/paths-final/scan/post-normal/probe"
+  ],
+  "exit_code": 0,
+  "fixture_completed": true,
+  "binary_sha256": "ac992b4a34593a233802b3fbb732751af8c93d67c2e1998742be0b09836586f9",
+  "counts": {
+    "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)": 192,
+    "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)": 792,
+    "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 56,
+    "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]": 48,
+    "unsigned long tomo::FlatStore::scan<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(unsigned long, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&&, bool) [clone .constprop.0]": 79968,
+    "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 2,
+    "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)": 44
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "48-55",
+    "build/txnorder/writer-cycle-final",
+    "history"
+  ],
+  "exit_code": 0,
+  "output": "REPRODUCED: older -> writer mark -> younger WATCH validation -> older (64 owner turns)\n"
+}

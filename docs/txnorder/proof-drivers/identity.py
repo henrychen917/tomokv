@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unmodified historical checkers, coherent production-object views, no execution."""
 import concurrent.futures,hashlib,json,pathlib,subprocess
-root=pathlib.Path.cwd();out=root/'docs/txnorder/identity';out.mkdir(parents=True,exist_ok=True)
+root=pathlib.Path.cwd();out=root/'docs/txnorder/identity-final';out.mkdir(parents=True,exist_ok=True)
 views={}
 for arm,base in [('pre',root/'build/txnorder/pre'),('post',root/'build')]:
  view=root/'build/txnorder/object-views'/arm;views[arm]=view

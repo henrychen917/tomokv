@@ -661,7 +661,12 @@ namespace {
 
 [[gnu::noinline]] ScatterTaskResult execute_plain_element_mover(const Task&, Shard&, Op&);
 [[gnu::noinline]] ScatterTaskResult execute_live_pop(const Task&, Shard&, Op&);
-[[gnu::noinline]] bool txn_scatter_write_ready(const Task&, Shard&, Op&);
+#if TOMO_SINGLE_DATABASE
+[[gnu::noinline]]
+#else
+[[gnu::cold, gnu::noinline]]
+#endif
+bool txn_scatter_write_ready(const Task&, Shard&, Op&);
 [[gnu::noinline]] bool txn_group_prepare(ScatterState&, Server&, uint32_t,
                                         ScatterArenaPool* = nullptr);
 enum class TxnGroupRead : uint8_t { Ready, Done, Wait };
@@ -2772,6 +2777,12 @@ void xshard_visit_task_hashes(const Task& task, void* context,
 
 ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                                  uint32_t owner_thread_id) {
+    // Only atomic arms need this argument. Retain DB0's PRE stack residence:
+    // keeping it in a register after extracting the claim gate spills a
+    // notification input on every MGET fragment. The ordinary-path fixtures
+    // count this store as well as every executed NOP (docs/txnorder).
+    std::conditional_t<TOMO_SINGLE_DATABASE, const volatile uint32_t, const uint32_t>
+        execution_owner = owner_thread_id;
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     NotifyExecutionScope notify_scope(shard, op, notify, shard.notify_order_base());
     ScatterState& state = *task.scatter;
@@ -2856,15 +2867,15 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
     };
     try {
         if (state.atomic_direct)
-            return execute_atomic_direct_rename(task, shard, op, owner_thread_id);
+            return execute_atomic_direct_rename(task, shard, op, execution_owner);
         if (state.atomic_apply) {
             if (state.phase == 2) {
                 if (state.kind == Kind::Script) {
                     state.server->note_script_apply_owner();
                     ScriptApplyPins pins{state, shard, op, group};
-                    return execute_atomic_apply(task, shard, op, owner_thread_id);
+                    return execute_atomic_apply(task, shard, op, execution_owner);
                 }
-                return execute_atomic_apply(task, shard, op, owner_thread_id);
+                return execute_atomic_apply(task, shard, op, execution_owner);
             }
             const auto prepared = txn_group_read_prepare(state, shard, op);
             if (prepared != TxnGroupRead::Ready)
@@ -2879,7 +2890,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 state.aborted.store(true, std::memory_order_release);
                 return ScatterTaskResult::Complete;
             }
-            const uint32_t owner_slot = state.server->executor_slot(owner_thread_id);
+            const uint32_t owner_slot = state.server->executor_slot(execution_owner);
             if (owner_slot >= state.owner_slots) std::abort();
             auto* owner_refs = &state.owner_record_refs[owner_slot].nodes;
             const bool copy_record_keys = state.kind == Kind::Del || state.kind == Kind::Unlink;

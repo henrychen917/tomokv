@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Version-order regression rows a-d; connects only to an owner-managed boot.
 
-Every window has a required witness. --pre keeps data checks and treats missing
-new counters as -1, so an old binary cannot pass by omitting instrumentation.
+Every POST window has a required witness. --pre runs the semantic checks that
+the old binary can express; absence of new instrumentation is never evidence
+that the old mechanism failed. A PRE pass invalidates that negative control.
 """
 import argparse
 import collections
@@ -22,8 +23,6 @@ class OrderBattery(Battery):
 
     def counter(self, name):
         value = self.stats().get(name)
-        if value is None and self.args.pre:
-            return -1
         assert value is not None, "missing counter " + name
         return int(value)
 
@@ -38,6 +37,8 @@ class OrderBattery(Battery):
         assert self.delta(before, "atomic_txn_dooms") == 0, "plain writer cancelled EXEC"
         assert self.delta(before, "atomic_group_dooms") == 0, "plain writer cancelled group"
         for name in ("atomic_txn_order_violations", "atomic_exec_order_late", "atomic_gauge_underflows"):
+            if self.args.pre and name == "atomic_txn_order_violations":
+                continue  # no such falsifier on PRE; dooms above remains mandatory
             assert self.counter(name) == 0, (name, self.counter(name))
 
     def report(self, label, before, **values):
@@ -120,17 +121,20 @@ class OrderBattery(Battery):
         expected = [executions + sum(increments[:8]), executions + sum(increments[8:])]
         assert self.admin.must("MGET", a, b) == [str(v).encode() for v in expected], expected
         self.clean(before)
-        assert self.delta(before, "atomic_txn_executed") == executions
+        if not self.args.pre:
+            assert self.delta(before, "atomic_txn_executed") == executions
         if seconds is None and clients == 1:
             assert self.delta(before, "atomic_txn_attempts") == 2000, "not every EXEC used one attempt"
             assert self.delta(before, "atomic_txn_retries") == 0, "plain writers re-executed EXEC"
         elif seconds is None:
             assert executions == 8000
-            assert self.delta(before, "atomic_txn_retries") == (
-                self.delta(before, "atomic_txn_wounds") + self.delta(before, "atomic_txn_blind_restarts"))
-        if not self.atomic:
+            if not self.args.pre:
+                assert self.delta(before, "atomic_txn_retries") == (
+                    self.delta(before, "atomic_txn_wounds") + self.delta(before, "atomic_txn_blind_restarts"))
+        if not self.atomic and not self.args.pre:
             assert self.delta(before, "atomic_txn_blind_restarts") == 0
-        assert self.delta(before, "atomic_txn_writer_waits") > 0, "storm never encountered a claim"
+        if not self.args.pre:
+            assert self.delta(before, "atomic_txn_writer_waits") > 0, "storm never encountered a claim"
         for kind, src, dst in move_keys:
             values = [self.admin.must("SMEMBERS", k) if kind == "set" else
                       self.admin.must("LRANGE", k, 0, -1) for k in (src, dst)]
@@ -181,15 +185,17 @@ class OrderBattery(Battery):
         with concurrent.futures.ThreadPoolExecutor(25) as pool:
             futures = [pool.submit(worker, i) for i in range(24)] + [pool.submit(bystander)]
             try:
-                self.wait(lambda: self.delta(before, "atomic_txn_executed") >= 16,
+                progress = "atomic_txn_attempts" if self.args.pre else "atomic_txn_executed"
+                self.wait(lambda: self.delta(before, progress) >= 16,
                           "younger-unit storm did not start", timeout=5)
                 victim = self.conn(timeout=1)
                 at = time.monotonic()
                 reply = self.transaction(victim, [("INCR", key) for key in keys])
                 elapsed = time.monotonic() - at
                 assert len(reply) == len(keys) and elapsed < 1, (elapsed, reply)
-                attempts = victim.must("DEBUG", "TXN-LAST-ATTEMPTS")
-                assert isinstance(attempts, int) and attempts >= 1, attempts
+                attempts = None if self.args.pre else victim.must("DEBUG", "TXN-LAST-ATTEMPTS")
+                if not self.args.pre:
+                    assert isinstance(attempts, int) and attempts >= 1, attempts
                 with lock:
                     counts.update(keys)
             finally:
@@ -235,7 +241,8 @@ class OrderBattery(Battery):
                     f.result(timeout=6)
         assert max(latency) < .040, ("writer bound 40 ms", max(latency))
         assert self.admin.must("GET", key) == str(500 + sum(counts)).encode(), counts
-        assert self.delta(before, "atomic_txn_writer_waits") > 0, "writer-bound window never opened"
+        if not self.args.pre:
+            assert self.delta(before, "atomic_txn_writer_waits") > 0, "writer-bound window never opened"
         self.clean(before)
         self.report("b2", before, writer_max_seconds=max(latency), executions=counts)
 
@@ -250,7 +257,9 @@ class OrderBattery(Battery):
         executions = [0]
         config_count = [0]
         ping_max = [0.0]
-        watch_pairs = [self.pair(), self.pair()]
+        # WATCH and plain multi-key writers share the EXEC churn keys. Keeping
+        # these on a separate keyspace would miss validation/placement cycles.
+        watch_pairs = [churn[:2], churn[2:4]]
         for pair in watch_pairs:
             self.admin.must("MSET", pair[0], 0, pair[1], 0)
         source, destination = self.pair()
@@ -287,12 +296,14 @@ class OrderBattery(Battery):
         def watched(pair, reverse):
             c = self.conn(timeout=5)
             watched_key, written = pair[::-1] if reverse else pair
+            counted = keys[churn.index(written)]
             while time.monotonic() < end:
                 c.must("WATCH", watched_key)
-                reply = self.transaction(c, [("INCR", written)])
-                assert reply is None or (isinstance(reply, list) and len(reply) == 1 and isinstance(reply[0], int)), reply
+                reply = self.transaction(c, [("INCR", counted), ("SET", written, "watch")])
+                assert reply is None or (isinstance(reply, list) and len(reply) == 2 and
+                                         isinstance(reply[0], int) and reply[1] == b"OK"), reply
                 if reply is not None:
-                    record([written], True)
+                    record([counted], True)
 
         def plain(index):
             c = self.conn(timeout=5)
@@ -402,7 +413,8 @@ class OrderBattery(Battery):
         assert collections.Counter(remaining + destination_values) == collections.Counter(sent)
         assert len(delivered) == len(set(delivered)) and collections.Counter(destination_values) == collections.Counter(delivered)
         assert sorted(mover_results) == [0, 1] and config_count[0] > 0
-        assert self.delta(before, "atomic_txn_executed") == executions[0], (executions, config_count)
+        if not self.args.pre:
+            assert self.delta(before, "atomic_txn_executed") == executions[0], (executions, config_count)
         assert ping_max[0] < 1
         self.clean(before)
         self.report("c", before, executions=executions[0], config_executions=config_count[0],

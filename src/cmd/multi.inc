@@ -3541,6 +3541,7 @@ bool multi_plain_write_ready(Shard& shard, Op& op) {
     auto check = [&](uint64_t, Slice key) {
         if (!shard.watch_write_ready(key)) {
             ready = false;
+            shard.watch_writer_mark(key, &op);
         }
     };
     if (op.local_xshard()) for_each_touched_key(op, check);
@@ -3552,11 +3553,6 @@ bool multi_plain_write_ready(Shard& shard, Op& op) {
     // writer to atomic_deferred_, which keeps draining that inbox. Mark only
     // an actual reservation wait; ordinary commands acquire no new check.
     if (!ready) {
-        auto mark = [&](uint64_t, Slice key) { shard.watch_writer_mark(key, &op); };
-        if (op.local_xshard()) for_each_touched_key(op, mark);
-        else if (op.spec->flags & CmdFlags::ScriptRoute)
-            for_each_spec_key(op, [&](Slice key) { mark(0, key); });
-        else mark(op.hash, op_routed_key(op));
         op.mark_atomic_hazard();
         shard.server()->note_txn(shard.server()->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
     } else {
@@ -3591,22 +3587,21 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
         if (!txn_group_ready(state, shard, op))
             return state.aborted.load(std::memory_order_acquire);
     }
-    if (!group.count && !state.group_attempt()) ready = shard.watch_all_write_ready(token);
+    if (!group.count && !state.group_attempt()) {
+        ready = shard.watch_all_write_ready(token);
+        if (!ready && !state.atomic_group) shard.watch_writer_mark({}, &op, true);
+    }
     for (uint32_t i = 0; i < group.count; ++i) {
         const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
         const bool key_ready = state.atomic_group && !state.multi_child
             ? shard.watch_group_write_ready(key, token) : shard.watch_write_ready(key, token);
         if (!key_ready) {
             ready = false;
+            if (!state.atomic_group) shard.watch_writer_mark(key, &op);
         }
     }
     if (!ready) {
         if (state.kind != Kind::Script) {
-            if (!state.atomic_group) {
-                if (!group.count) shard.watch_writer_mark({}, &op, true);
-                for (uint32_t i = 0; i < group.count; ++i)
-                    shard.watch_writer_mark(op.arg(state.keys[state.key_order[group.begin + i]].arg), &op);
-            }
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
             return false;
         }

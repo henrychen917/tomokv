@@ -1,0 +1,2 @@
+-auto mark = [&](uint64_t, Slice key) { shard.watch_writer_mark(key, &op); };
++auto mark = [&](uint64_t, Slice key) { if (!shard.watch_write_ready(key)) shard.watch_writer_mark(key, &op); };

@@ -1,0 +1,33 @@
+{
+  "arm": "post",
+  "namespace": "db0",
+  "mode": "1s",
+  "values": "ZMPOP",
+  "command": [
+    "taskset",
+    "-c",
+    "48-55",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnorder/paths-final/prepare/post-db0-1s-ZMPOP.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnorder/paths-final/prepare/post-db0/probe"
+  ],
+  "exit_code": 0,
+  "fixture_completed": true,
+  "binary_sha256": "9c3faa36018ced57e1a0d180b2c5789f3d6a5f3939a3bb50e62ce231428f4eb5",
+  "counts": {
+    "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1301,
+    "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+    "tomo_db0::ScatterState::ScatterState()": 91,
+    "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)": 224,
+    "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 33,
+    "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]": 16,
+    "tomo_db0::xshard_abandon_unpublished(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 17,
+    "tomo_db0::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo_db0::ScatterState&)": 13,
+    "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 73,
+    "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]": 106,
+    "tomo_db0::(anonymous namespace)::free_state_key_anchors(tomo_db0::ScatterState&)": 35,
+    "tomo_db0::ScatterState::~ScatterState()": 42
+  }
+}

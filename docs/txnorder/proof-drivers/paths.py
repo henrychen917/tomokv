@@ -14,18 +14,51 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[3]
 OLD = ROOT / "docs/txnfix/txnfix3"
-OUT = ROOT / "docs/txnorder/paths"
-BUILD = ROOT / "build/txnorder/paths"
+OUT = ROOT / "docs/txnorder/paths-final"
+BUILD = ROOT / "build/txnorder/paths-final"
 FAMILIES = {
+    "atomic": (str(ROOT / "docs/txnorder/proof-drivers/probe-atomic.cc"), ["MSET"]),
     "mget": ("probe-matrix.cc", ["missing", "present"]),
     "prepare": ("probe-prepare.cc", "MGET MSET MSETNX DEL UNLINK EXISTS SINTER SUNION SDIFF SINTERCARD SINTERSTORE SUNIONSTORE SDIFFSTORE RENAME RENAMENX COPY SMOVE RPOPLPUSH LMOVE LMPOP ZMPOP ZUNION ZINTER ZDIFF ZINTERCARD ZUNIONSTORE ZINTERSTORE ZDIFFSTORE PFCOUNT PFMERGE BITOP ZRANGESTORE LCS TOUCH SORT SORTDEREF GEORADIUS GEORADIUSBYMEMBER GEOSEARCHSTORE XREAD KEYS RANDOMKEY FLUSHDB FLUSHALL".split()),
     "stream": ("probe-prepare-stream.cc", ["XREADGROUP"]),
     "read": ("probe-read.cc", "MGET MSET DEL UNLINK EXISTS SINTER SUNION SDIFF SINTERCARD ZUNION ZINTER ZDIFF ZINTERCARD PFCOUNT LCS TOUCH XREAD".split()),
     "scan": ("probe-scan.cc", ["KEYS", "RANDOMKEY"]),
 }
+
+
+def scan_helpers():
+    """The skipped scan loop is admissible only with exact body identity."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    from ccfix_audit import audit
+    rows = []
+    for prefix in ("src", "db0/src"):
+        old = audit.Elf(ROOT / "build/txnorder/pre" / prefix / "cmd/xshard.o")
+        new = audit.Elf(ROOT / "build" / prefix / "cmd/xshard.o")
+        before, after = old.functions(), new.functions()
+        symbols = sorted(before.keys() | after.keys())
+        names = subprocess.check_output(["c++filt"], input="\n".join(symbols), text=True).splitlines()
+        selected = [(s, n) for s, n in zip(symbols, names)
+                    if "FlatStore::scan_home<" in n and "xshard_execute" in n]
+        assert selected, prefix
+        for symbol, name in selected:
+            a, b = before.get(symbol), after.get(symbol)
+            equal = bool(a and b and old.canonical(a) == new.canonical(b))
+            rows.append(dict(object=prefix + "/cmd/xshard.o", symbol=symbol,
+                             name=name, equal=equal))
+    save(OUT / "identical-skipped-scan-helpers.json", rows)
+    assert all(row["equal"] for row in rows), "skipped scan helper changed"
+
+
+def inputs():
+    files = [ROOT / "build/tomokv", ROOT / "build/txnorder/pre/tomokv"]
+    for base in (ROOT / "build", ROOT / "build/txnorder/pre"):
+        for prefix in ("src", "db0/src"):
+            files.extend((base / prefix).rglob("*.o"))
+    return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
 
 
 def save(path, value):
@@ -125,6 +158,9 @@ def main():
     parser.add_argument("--jobs", type=int, default=4)
     args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
+    before = inputs()
+    if "scan" in args.families:
+        scan_helpers()
     with concurrent.futures.ThreadPoolExecutor(args.jobs) as pool:
         list(pool.map(build, [(f, a, n) for f in args.families for a in ("pre", "post") for n in ("normal", "db0")]))
     for family in args.families:
@@ -134,6 +170,9 @@ def main():
             rows = list(pool.map(trace, cases))
         save(OUT / family / "runs.json", rows)
         assert all(r["exit_code"] == 0 for r in rows), "fixture failure retained in runs.json"
+    after = inputs()
+    save(OUT / "inputs.json", dict(sha256=before, stable=before == after))
+    assert before == after, "production input changed while tracing"
 
 
 if __name__ == "__main__":

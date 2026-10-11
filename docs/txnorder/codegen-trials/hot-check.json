@@ -1,0 +1,22 @@
+[
+  {
+    "variant": "coldgate",
+    "namespace": "normal",
+    "drifts": []
+  },
+  {
+    "variant": "coldgate",
+    "namespace": "db0",
+    "drifts": []
+  },
+  {
+    "variant": "unlikelygate",
+    "namespace": "normal",
+    "drifts": []
+  },
+  {
+    "variant": "unlikelygate",
+    "namespace": "db0",
+    "drifts": []
+  }
+]
