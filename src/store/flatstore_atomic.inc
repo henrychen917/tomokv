@@ -819,12 +819,7 @@ private:
         if (!fresh) return false;
         // Same admission as start_rehash_read_local(): completion hands the old table to the
         // owner's QSBR FIFO with this record and cannot allocate one then (resize_retirement.h).
-        // This is prepare_resize_retirement()'s body. A second call site made GCC outline that
-        // helper in the core units and changed its other callers' code; spelling it here keeps
-        // every existing caller's inlining decision.
-        auto& record = read_local_store_state_required().resize_retirement;
-        if (!record) record.reset(new (std::nothrow) ResizeRetirement);
-        if (!record) { std::free(fresh); return false; }
+        if (!prepare_resize_retirement()) { std::free(fresh); return false; }
         ReadLocalTableGuard table_change(*this);
         read_local_topology_store(&tab_[1], tab_[0]);
         read_local_topology_store(&cap_[1], cap_[0]);
