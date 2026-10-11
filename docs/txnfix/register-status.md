@@ -7,7 +7,7 @@ finding is marked fixed before its proof is complete.
 
 | Finding | Lane status | Remaining requirement |
 |---|---|---|
-| AT4.1 | WIP: optimistic EXEC validation, transparent retries and exclusive fallback implemented; new directed/stress rows pass both modes, atomics and database counts | Complete regression/differential, shutdown and hot-body proof; approve fallback |
+| AT4.1 | Implemented: txniso, original EXEC audits, NX repetitions and Redis differential pass; Stage A selected hot bodies/TLS restored | Owner-run main-command null and fallback decision; documented baseline broad failures remain |
 | AT4.2 | Stage B core and fallback implemented, rejected by the explicit cost bar | Group lifetime redesign; full passing proof and zero ordinary-command cost |
 | AT4.3 | Directed MSETNX concurrent-SET races pass, but Stage B is rejected by its cost bar | Same lifetime/cost requirement; no fixed/landed claim |
 
@@ -31,3 +31,13 @@ owner's cost-bar exception. Its separate fallback adjustment removes a
 reproduced writer/apply-inbox cycle. Bare atomic-0 RPOPLPUSH conservation fails
 on merged PRE too; that control remains a failure. See the current txnfix2
 section in MEASURE-REQUEST-txnfix.md for final proof status and commit boundaries.
+
+Final txnfix2 proof commands have completed: build/freshness, 66 serverless
+tests, 112 Redis comparisons, eight txniso configurations, 60 fresh WATCH
+boots and persistence/FLIP companions pass. Stage B's MSETNX barrier prevents
+two existing overlap witnesses, which pass on the Stage A checkpoint. The
+armed-fused expected-old MGET assertion also fails on PRE with uniformly new
+answers. A separate armed-fused atomic-growth abort reproduces on PRE, Stage A
+and POST: the atomic resize path omits the required retirement record.
+[Resize finding](txnfix2/read-local-atomic-resize.md). The branch remains not
+merge ready; no finding is marked landed.

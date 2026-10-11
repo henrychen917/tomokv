@@ -125,10 +125,11 @@ Housekeeping, NX and admission proofs are complete. The Stage A checkpoint
 restores TLS placement and 1,208/1,208 selected ordinary hot bodies. Stage B
 adds three executed instructions to ordinary MGET destruction and therefore
 fails the zero-new-instruction rule. Its core and separately revisable fallback
-commits are retained for review. Identity attribution is complete; final proof
-is still running. Known failures include the baseline atomic-0 control, old
-MSETNX-overlap witnesses, a baseline armed-fused expected-old read assertion, and an
-armed-fused SIGABRT during the atomic-window battery (attribution pending).
+commits are retained for review. The identity inventory and per-body status
+are recorded, and all requested proof commands have completed. Failures remain:
+the baseline atomic-0 control, Stage B's incompatible MSETNX-overlap witnesses,
+a baseline armed-fused expected-old read assertion, and a baseline armed-fused
+atomic-growth SIGABRT caused by a missing resize-retirement record.
 No benchmark, full gate, or push has been run.
 
 The six previously untracked evidence directories are preserved as historical
@@ -308,9 +309,10 @@ that static result into an instruction-identity pass.
 The complete inventory is 15,941/16,639 equal, 698 changed, selected hot
 1,196/1,208 equal. The 12 unintended hot differences remain rejected; the
 individual table is part of final proof. Group fallback `e1609593d` removes the
-reproduced inbox wedge: all selected atomic-1 checks pass armed-fused, while
-split G3 reaches the unchanged 30-second deadline and the following checks
-complete. [Parking receipts](docs/txnfix/txnfix2/txngroup-park/runs.json).
+reproduced inbox wedge. The first split G3 run reached its unchanged 30-second
+deadline; final G1-G4/GX/G6 pass in both modes and database counts. The G5
+baseline atomic-0 duplicate remains a failure.
+[Initial parking receipts](docs/txnfix/txnfix2/txngroup-park/runs.json).
 The four group/admission/intent/help unit cases pass.
 
 ### Review boundaries and current artifacts
@@ -437,17 +439,17 @@ One armed-fused `execatomic` invocation also fails its expected-old MGET arm
 at atomic 0: the logged answer is eight **new** values, not a mixture. All
 its concurrent tear checks are zero. The script assumes its lead fragment ran
 during a 50 ms sleep; late dispatch is a possible explanation, not a proven
-baseline attribution. The original failing receipt is retained. WATCH
+baseline attribution at that checkpoint; the later controls below reproduce
+it on PRE. The original failing receipt is retained. WATCH
 liveness passes all 30 fresh boots in each mode. Armed-fused `atomic_torn`
 passes the preceding data-consistency checks but loses its server with
 SIGABRT (exit -6) during `atomicwindow.held_burst`. There is no diagnostic
-text in the server log. This is an unresolved correctness failure, not a
-deadline exception; PRE/Stage A controls and a debugger reproduction are
-queued. [Failing test](docs/txnfix/txnfix2/final-proof/broad-1s/atomic_torn/test.log),
+text in the server log. This is an unresolved baseline correctness failure,
+not a deadline exception; the completed controls and cause follow below.
+[Failing test](docs/txnfix/txnfix2/final-proof/broad-1s/atomic_torn/test.log),
 [server exit](docs/txnfix/txnfix2/final-proof/broad-1s/atomic_torn/shutdown.json).
-The main proof driver has completed 144 invocations (including deliberately
-failing PRE controls); final companion checks and a longer overall
-serverless-gate invocation are in progress.
+The main proof driver completed 144 invocations (including deliberately
+failing PRE controls); final companion and serverless results follow.
 
 The remaining writer/AOF/snapshot/FLIP companions now pass **15/15**:
 four original 60-second writer correctness runs, AOF prepare/reload/scan in
@@ -477,3 +479,40 @@ all six concurrent reader arms (three binaries, atomic 0/1) report zero
 mixtures. This establishes the expected-old assertion failure on the baseline
 as well, without treating it as a passing test or changing its assumptions.
 [Targeted controls](docs/txnfix/txnfix2/final-controls/runs.json).
+
+The armed-fused atomic-window crash also reproduces on PRE and Stage A
+(exit -6). Two POST debugger runs stop in `rehash_step_read_local` while
+atomic MSET grows a table. The resize callback is installed but its retirement
+record is null. `atomic_prepare_capacity_read_local` omits the retirement
+preparation used by ordinary growth; its source is unchanged from PRE.
+The full battery reproduces this; a fresh-server window-only reduction does
+not. [Cause, exact receipts and source anchors](docs/txnfix/txnfix2/read-local-atomic-resize.md).
+It remains unfixed and must not be dismissed as CPU contention.
+
+### Final handoff
+
+| Proof family | Final result |
+|---|---|
+| Build / production units | `all`, all 29 production targets, `mdbqsbr-live-arms`, all 30 freshness checks pass |
+| txniso / EXEC NX | 8/8 batteries; 4/4 AOF companions; zero failures in 8,192 NX repeats per mode/atomic cell |
+| Admission guards | Correct unit passes; both independently broken guards fail their intended assertion |
+| Redis 7.4 differential | 112/112 comparisons and both armed-fused witnesses pass |
+| Original EXEC audits | 28/28 POST pass; 24 expected PRE data failures; four PRE WATCH controls pass |
+| Stage B | All atomic-1 directed/stress checks and both AOF companions pass; all four full batteries fail G5's baseline atomic-0 duplicate |
+| Broad / persistence / FLIP | 32/38 broad invocations pass; 15/15 companions and 60/60 fresh WATCH boots pass |
+| Serverless / ledger | 66/66 coordinator tests; ledger source/fixture 652/652, protected EXPECT mismatch only |
+| Cost | Stage A selected hot bodies 1,208/1,208 equal; Stage B rejected, 12 hot drifts plus extra ordinary MGET instructions |
+
+The six nonzero broad invocations are four Stage B MSETNX overlap-witness
+failures, one baseline expected-old MGET assertion and one baseline resize
+abort. All are retained as failures. No benchmark or full gate ran; all rate,
+cycles/op, IPC and EXEC-cost cells remain unmeasured. The limited aggregate
+text-size PAD is not a full Server-layout twin.
+
+Stop is under the prompt's explicit Stage B cost-bar exception. Stage B core
+and fallback remain separate and reviewable; the fallback decision is still
+the owner's. Stage A selection requires the owner-run main-command null and
+the documented baseline failure decisions; the default branch is not merge
+ready. DQ/DF stay **+10/+10** and full-branch counts **635/652**; a Stage-A-only
+selection without group rows requires **633/650**. Neither protected EXPECT
+assignment was edited. No work was pushed.

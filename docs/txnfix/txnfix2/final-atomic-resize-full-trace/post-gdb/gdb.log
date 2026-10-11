@@ -1,0 +1,51 @@
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1
+  thread t0: role=unified cpu=112 L3=0 shards=2 send=self
+  thread t1: role=unified cpu=113 L3=0 shards=2 send=self
+  thread t2: role=unified cpu=114 L3=0 shards=2 send=self
+  thread t3: role=unified cpu=115 L3=0 shards=2 send=self
+  thread t4: role=unified cpu=116 L3=0 shards=2 send=self
+  thread t5: role=unified cpu=117 L3=0 shards=2 send=self
+  thread t6: role=unified cpu=118 L3=0 shards=2 send=self
+  thread t7: role=unified cpu=119 L3=0 shards=2 send=self
+[New Thread 0x7ffff607f6c0 (LWP 2476182)]
+[New Thread 0x7ffff587e6c0 (LWP 2476183)]
+[New Thread 0x7ffff49ff6c0 (LWP 2476185)]
+[New Thread 0x7ffff39ff6c0 (LWP 2476186)]
+[New Thread 0x7ffff31fe6c0 (LWP 2476187)]
+[New Thread 0x7ffff21ff6c0 (LWP 2476188)]
+[New Thread 0x7ffff15ff6c0 (LWP 2476189)]
+[New Thread 0x7ffff05ff6c0 (LWP 2476191)]
+listening on 127.0.0.1:22601
+
+Thread 5 "tomokv" received signal SIGABRT, Aborted.
+[Switching to Thread 0x7ffff39ff6c0 (LWP 2476186)]
+__pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+warning: 44	./nptl/pthread_kill.c: No such file or directory
+#0  __pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+#1  __pthread_kill_internal (signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:78
+#2  __GI___pthread_kill (threadid=<optimized out>, signo=signo@entry=6) at ./nptl/pthread_kill.c:89
+#3  0x00007ffff6e4527e in __GI_raise (sig=sig@entry=6) at ../sysdeps/posix/raise.c:26
+#4  0x00007ffff6e288ff in __GI_abort () at ./stdlib/abort.c:79
+#5  0x000055555594a1c0 in tomo::FlatStore::rehash_step_read_local (this=0x7ffff6ab2238) at src/core/../store/flatstore_atomic.inc:1015
+#6  0x000055555594a218 in tomo::FlatStore::atomic_prepare_capacity_read_local (this=0x7ffff6ab2238, additional=1) at src/cmd/../store/flatstore_atomic.inc:920
+#7  0x0000555555a25286 in tomo::xshard_execute (task=..., shard=..., op=..., owner_thread_id=<optimized out>) at src/cmd/xshard.cc:2896
+#8  0x0000555555bfc184 in tomo::ExLoopT<true>::execute<false, false> (this=this@entry=0x7ffff6330d60, t=...) at src/core/thread.h:366
+#9  0x000055555559abf1 in tomo::ExLoopT<true>::exec_batch_timed<false> (this=this@entry=0x7ffff6330d60, batch=batch@entry=0x7ffff39fd870, n=n@entry=32) at src/core/ex_loop.h:2199
+#5  0x000055555594a1c0 in tomo::FlatStore::rehash_step_read_local (this=0x7ffff6ab2238) at src/core/../store/flatstore_atomic.inc:1015
+1015	        if (!state) std::abort();
+$1 = true
+$2 = {_M_t = {<std::__uniq_ptr_impl<tomo::ResizeRetirement, std::default_delete<tomo::ResizeRetirement> >> = {_M_t = {<std::_Tuple_impl<0, tomo::ResizeRetirement*, std::default_delete<tomo::ResizeRetirement> >> = {<std::_Tuple_impl<1, std::default_delete<tomo::ResizeRetirement> >> = {<std::_Head_base<1, std::default_delete<tomo::ResizeRetirement>, true>> = {_M_head_impl = {<No data fields>}}, <No data fields>}, <std::_Head_base<0, tomo::ResizeRetirement*, false>> = {_M_head_impl = 0x0}, <No data fields>}, <No data fields>}}, <No data fields>}}
+$3 = {context = 0x7ffff2247038, defer = 0x555555befd70 <tomo::ReadLocalDeferredQueue::defer_thunk(void*, void*, void*, unsigned long, void (*)(void*, void*, unsigned long))>, block_cache = 0x7ffff2247050, available = 0x555555bed710 <tomo::ReadLocalDeferredQueue::init(tomo::Server*, tomo::ThreadCtx*)::{lambda(void*)#1}::_FUN(void*)>, defer_resize = 0x555555bed730 <tomo::ReadLocalDeferredQueue::init(tomo::Server*, tomo::ThreadCtx*)::{lambda(void*, tomo::ResizeRetirement*, unsigned long*)#1}::_FUN(void*, tomo::ResizeRetirement*, unsigned long*)>}
+$4 = 128
+$5 = 0

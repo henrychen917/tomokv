@@ -1,0 +1,9 @@
+{
+  "function": "FlatStore::atomic_prepare_capacity_read_local",
+  "source": "src/store/flatstore_atomic.inc",
+  "pre_commit": "991d48f65",
+  "identical": true,
+  "pre_sha256": "5db209ff8ddd061ebe35e02b9480051c170a1703896946e8e1983eb935d53117",
+  "post_sha256": "5db209ff8ddd061ebe35e02b9480051c170a1703896946e8e1983eb935d53117",
+  "contains_prepare_resize_retirement": false
+}
