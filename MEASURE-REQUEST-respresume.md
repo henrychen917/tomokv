@@ -166,7 +166,7 @@ payload, and by a partial header exactly at the limit; a frame exactly at the li
 pre-AUTH count 11 and bulk 16385 split across reads; a valid pre-AUTH 4-pair MSET of
 16384-byte bulks split mid-payload; a split AUTH; a 1 MiB pre-AUTH inline request.
 **PRE and POST are byte-identical with identical close behavior in all 36 case×boot
-pairs** (`proof/limits-*.jsonl`). The gate's `NET1 inline + query cap` rows (pre-AUTH
+pairs** (`proof/limits-*.jsonl.gz`). The gate's `NET1 inline + query cap` rows (pre-AUTH
 1 MiB inline window, live query cap with a pending 2 MiB bulk, queued MULTI argv) pass
 on both, with identical output (`proof/existing-rows/*-gate-netcap-*.txt`).
 
@@ -296,8 +296,8 @@ REDIS74_ROOT=/home/user/Projects/redis74 taskset -c 64-79 tests/gate.sh quick
 |---|---|---|
 | F1 | `--net-io epoll` never accounts received bytes (`epoll_recv` commits reads without adding to `net_input_bytes`; the io_uring completions do), so `total_net_input_bytes` / `instantaneous_input_kbps` stay 0 and the differential `infofix` suite fails 8/8 legs in both epoll geometries. | `proof/differ-pre-infofix-epoll-*.log.gz` vs `proof/differ-post-epoll-*.log.gz`; `src/core/io_loop.h:2411,2592` vs `epoll_recv` |
 | F2 | TLS on io_uring does not close a connection that must close after its reply (protocol error, QUIT) while the peer stays silent: the reply arrives, the socket stays open (>10 s). TLS on epoll and plain TCP on both engines close at once. | `proof/tls-close-after-reply.out` (+ `.py`) |
-| F3 | Pre-AUTH limit errors say `invalid multibulk length` / `invalid bulk length`; Redis 7.4.10 says `Protocol error: unauthenticated multibulk length` / `unauthenticated bulk length`. Same close behavior. | `proof/limits-*.jsonl` (count 11, bulk 16385 cases) |
-| F4 | The 1 MiB query-buffer limit counts the whole pending frame (`rlen - rpos`), so a frame whose already-complete arguments pass 1 MiB is closed; Redis counts only unparsed bytes and keeps such a connection. (With the frontier the parsed prefix is now known; changing the accounting is a separate decision.) | `proof/limits-*.jsonl` ("many completed args", "partial header crosses limit") |
+| F3 | Pre-AUTH limit errors say `invalid multibulk length` / `invalid bulk length`; Redis 7.4.10 says `Protocol error: unauthenticated multibulk length` / `unauthenticated bulk length`. Same close behavior. | `proof/limits-*.jsonl.gz` (count 11, bulk 16385 cases) |
+| F4 | The 1 MiB query-buffer limit counts the whole pending frame (`rlen - rpos`), so a frame whose already-complete arguments pass 1 MiB is closed; Redis counts only unparsed bytes and keeps such a connection. (With the frontier the parsed prefix is now known; changing the accounting is a separate decision.) | `proof/limits-*.jsonl.gz` ("many completed args", "partial header crosses limit") |
 | F5 | `SCAN 0` on an empty keyspace returns a nonzero shard cursor (valid SCAN semantics, not byte-comparable with Redis); the inherited corpus used it and could never pass. | gate row fix in `19c11de76` |
 | F6 | In 2s the parse pass re-enters an incomplete tail after every retire pass even without new bytes: 21 Incomplete events per command on SET 1 KiB p32 c512 (PRE and POST alike). POST makes each re-entry O(1) (no argument is re-parsed), but the ROB slot reset and call remain; skipping the re-entry when `rlen` is unchanged since the last Incomplete is a possible follow-up. | `repro/probe-*.json` |
 
