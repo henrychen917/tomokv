@@ -1776,10 +1776,10 @@ public:
             clear_read_local();
             return;
         }
-        // Allocate the small replacement before touching either live table. If that cold allocation
-        // fails, retain and zero table 0 after retiring its objects; FLUSH still has a valid empty
-        // table and never exposes a half-demoted state.
-        uint64_t* fresh = allocate_table(1024);
+        // Allocate the small replacement (clear_capacity()) before touching either live table. If
+        // that cold allocation fails, retain and zero table 0 after retiring its objects; FLUSH
+        // still has a valid empty table and never exposes a half-demoted state.
+        uint64_t* fresh = allocate_table(clear_capacity());
         expires_.clear();
         for (int t = 0; t < 2; t++) {
             if (!tab_[t]) continue;
@@ -1799,7 +1799,7 @@ public:
         field_ttl_gate_ = 0;
         field_ttl_index_incomplete_ = false;
         rehash_pos_ = 0;
-        if (fresh) install_empty_table(0, fresh, 1024);
+        if (fresh) install_empty_table(0, fresh, clear_capacity());
     }
 
     // FLUSH after its scatter gate has prepared every frozen pre-image.  Preserve both table
@@ -2480,6 +2480,14 @@ private:
             flatstore_table_calloc(cap, sizeof(uint64_t)));  // EMPTY == 0
     }
 
+    // FLUSH's replacement table. A prepared snapshot sized its post-cut table at twice the current
+    // capacity and suppresses every resize until the cut, refusing new keys only when the current
+    // table is full: a larger replacement would accept keys that table cannot absorb and wedge the
+    // post-capture merge. clear() changes neither input, so it may ask again before installing.
+    uint32_t clear_capacity() const {
+        return snapshot_prepared_ ? std::min<uint32_t>(snapshot_new_cap_ / 2, 1024) : 1024;
+    }
+
     void install_empty_table(int t, uint64_t* table, uint32_t cap) {
         if (__builtin_expect(read_local_enabled_, false)) {
             install_empty_table_read_local(t, table, cap);
@@ -2935,7 +2943,7 @@ private:
     }
 
     void clear_read_local() {
-        uint64_t* fresh = allocate_table(1024);
+        uint64_t* fresh = allocate_table(clear_capacity());
         // A clear rewrites every answer without naming a key. Poison the per-key filter for its
         // duration so a multi-key local read straddling it sees every cell epoch move; the poison
         // opens before the first slot store and closes after the table bracket below.
@@ -2975,7 +2983,7 @@ private:
         // prepared snapshot does: mark publishes its post-cut table and the post-capture merge
         // hands the cut table to the owner FIFO with the record snapshot_prepare() reserved.
         if (!snapshot_prepared_) read_local_store_state_armed().resize_retirement.reset();
-        if (fresh) install_empty_table_read_local(0, fresh, 1024);
+        if (fresh) install_empty_table_read_local(0, fresh, clear_capacity());
     }
 
     void clear_during_snapshot_read_local() {
