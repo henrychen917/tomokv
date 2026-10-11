@@ -1,0 +1,140 @@
+[
+  {
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+    "equal": true,
+    "pre_size": 225,
+    "post_size": 225
+  },
+  {
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()",
+    "equal": true,
+    "pre_size": 225,
+    "post_size": 225
+  },
+  {
+    "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+    "equal": false,
+    "pre_size": 1190,
+    "post_size": 1190
+  },
+  {
+    "name": "unsigned int tomo::FlatStore::scan_home<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&, bool)",
+    "equal": true,
+    "pre_size": 1345,
+    "post_size": 1345
+  },
+  {
+    "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+    "equal": true,
+    "pre_size": 1094,
+    "post_size": 1094
+  },
+  {
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(unsigned long, tomo::Slice, bool)#1}::operator()(unsigned long, tomo::Slice, bool) const",
+    "equal": true,
+    "pre_size": 228,
+    "post_size": 228
+  },
+  {
+    "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+    "equal": true,
+    "pre_size": 1078,
+    "post_size": 1078
+  },
+  {
+    "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0]",
+    "equal": true,
+    "pre_size": 2394,
+    "post_size": 2394
+  },
+  {
+    "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+    "equal": true,
+    "pre_size": 5,
+    "post_size": 5
+  },
+  {
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+    "equal": false,
+    "pre_size": 400,
+    "post_size": 400
+  },
+  {
+    "name": "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
+    "equal": true,
+    "pre_size": 630,
+    "post_size": 630
+  },
+  {
+    "name": "tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)",
+    "equal": true,
+    "pre_size": 871,
+    "post_size": 871
+  },
+  {
+    "name": "tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)",
+    "equal": true,
+    "pre_size": 1132,
+    "post_size": 1132
+  },
+  {
+    "name": "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)",
+    "equal": true,
+    "pre_size": 1014,
+    "post_size": 1014
+  },
+  {
+    "name": "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)",
+    "equal": true,
+    "pre_size": 783,
+    "post_size": 783
+  },
+  {
+    "name": "tomo::FlatStore::find(unsigned long, tomo::Slice)",
+    "equal": true,
+    "pre_size": 806,
+    "post_size": 806
+  },
+  {
+    "name": "tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)",
+    "equal": true,
+    "pre_size": 846,
+    "post_size": 846
+  },
+  {
+    "name": "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
+    "equal": true,
+    "pre_size": 1109,
+    "post_size": 1109
+  },
+  {
+    "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+    "equal": true,
+    "pre_size": 1590,
+    "post_size": 1590
+  },
+  {
+    "name": "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)",
+    "equal": true,
+    "pre_size": 1033,
+    "post_size": 1033
+  },
+  {
+    "name": "tomo::FlatStore::insert_notify(unsigned long, tomo::KvObj*, tomo::FlatNotifySink*)",
+    "equal": true,
+    "pre_size": 737,
+    "post_size": 737
+  },
+  {
+    "name": "tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent)",
+    "equal": true,
+    "pre_size": 812,
+    "post_size": 812
+  },
+  {
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+    "equal": false,
+    "pre_size": 21176,
+    "post_size": 21106
+  }
+]

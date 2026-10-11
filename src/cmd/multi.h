@@ -88,7 +88,7 @@ enum class MultiTaskResult : uint8_t {
 // Called after lookup/arity validation.  Transaction controls are handled here; while MULTI is
 // active every other accepted command is copied into connection-lived storage and answered QUEUED.
 MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t owner_io,
-                              MultiExecState*& dispatch);
+                              MultiExecState*& dispatch, uint64_t age_ns = 0);
 bool multi_queueing(const Client& client);
 void multi_mark_queue_error(Client& client);
 

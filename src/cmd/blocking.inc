@@ -373,6 +373,12 @@ void blocking_notify_sender(Server& server, ThreadCtx& self, Ring& ring, Client*
 
 thread_local ThreadCtx* blocking_tls_self = nullptr;
 thread_local Ring* blocking_tls_ring = nullptr;
+// Keep the retry signal in the existing TLS gap between the bool below and
+// these pointers. Default object/link audits verify every old TLS offset and
+// the TLS segment size. Producers touch it only for retries or cold fences.
+struct MultiRetrySignal { std::atomic<bool> pending{false}; };
+static_assert(sizeof(MultiRetrySignal) == 1);
+constinit thread_local MultiRetrySignal multi_retry_signal;
 thread_local bool blocking_tls_defer_plain = false;
 
 void blocking_count_parked(BlockingState& state) {

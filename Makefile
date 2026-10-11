@@ -142,8 +142,9 @@ $(BUILD_ROOT)/db0/src/persist/aof.o: override CXXFLAGS += --param inline-unit-gr
 # SV9 publishes save status only on cold completion/abort edges.
 # wave1b: savefix's capture cancellation grows both units by 130; scans 14584-14760 / 14457-14620:
 # FlatStore::insert stays PRE and every changed body is savefix's at 14718 (= 14720); db0 fewest at 14562.
-$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14718
-$(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14562
+# txnfix2: preserve PRE's ordinary store bodies after the cold unit-intent cleanup addition.
+$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14818
+$(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14612
 # CD6/CD13 add cold scan/replacement work. Preserve GCC 13's ordinary set/zset bodies in
 # both database namespaces; tests/cdfix_checks.py audits every emitted function against PRE.
 # These are compile-time inlining budgets, with no runtime option or request-path branch.
@@ -168,9 +169,11 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # flipfix's FLIP/fingerprint code adds 8 insns here (+24 on its own branch). wave1b: merged unit
 # +73/+73; scans 127820-127950 / 126421-126500: every changed body lane-identical or a lane
 # composite, fewest at 127880 (127878-127882) / 126482 (126480-126485).
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127880
+# txnfix2: cold OCC/retry bodies must not consume the existing store-helper budget.
+# The scatter interpreter's intended visitor/EXEC-notification changes are audited separately.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=134100
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126482
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=132900
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
@@ -210,14 +213,15 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # 148258 (148256-148261: no unattributed hot body, the ordinary TLS serve lambda back to PRE).
 $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=147428
 $(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129420
-$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162300
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162364
 # CC18/ST3 composition: smallest current hot-body delta; ccfix4 retains the search.
 $(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147449 --param max-inline-insns-auto=18
 # RL1: retain the measured ALT spelling and its fused GET placement controls.
 # docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
-$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129640 -Wa,--defsym,tomo_rlfence_text_pad=16
+# txnfix2: retain the incoming loop bodies despite the added cold retry-lane startup binding.
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129624 -Wa,--defsym,tomo_rlfence_text_pad=16
 $(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162334
-$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=148258
+$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=148418
 $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.

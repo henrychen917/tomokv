@@ -121,8 +121,9 @@ The external round-4 REGISTER.md is outside this lane's worktree and was not edi
 
 **WIP — not ready to merge or measure.** Merged `origin/cpp` at `991d48f65` in
 `ee48b465e`. Housekeeping, the repeated NX proof, and the deterministic admission
-proof are complete. Hot-body identity is next; Stage B and the merged-base proof remain
-open. No benchmarks or full gate runs are authorized for this lane. No push.
+proof are complete. TLS placement is restored and the per-object budget probes
+match every selected ordinary hot body; the default-build inventory and quiet
+txniso rerun are in progress. Stage B and the merged-base proof remain open. No benchmarks or full gate runs are authorized for this lane. No push.
 
 The six previously untracked evidence directories are preserved as historical
 receipts. Inspection of every file (including ignored files) found no ELF
@@ -185,3 +186,24 @@ row's unit subchecks, with no additional gate row.
 
 This proof-only fallback commit stays separate from cost/Stage B changes, so
 the owner's still-open fallback decision remains independently revisable.
+
+### Main-command identity repair (in progress)
+
+The retry notification byte now occupies the pre-existing TLS padding beside
+`blocking_tls_defer_plain`. The transaction age is passed directly from the IO
+dispatcher's cached time instead of adding a second TLS variable. Every prior
+named TLS offset, the TLS segment size (0x2c0), and alignment (16) match merged
+PRE; [linked audit](docs/txnfix/txnfix2/tls-linked.json). The notification is
+written remotely only when an actual retry or admission fence is queued.
+
+The Makefile's established per-object inlining budgets restore every selected
+ordinary hot body in compile-only probes; [receipts](docs/txnfix/txnfix2/budget-controls).
+The default build completed. Its full inventory is still running; no throughput
+claim follows from these static checks. `xshard_execute` retains the intended
+unit visitor and EXEC notification-field changes and needs the mainline null.
+
+An intermediate TLS build passed six of eight txniso configurations. Under
+concurrent compiler load, split atomic-0/db16 missed the D2 wait witness and
+fused atomic-0/db16 hit W3's deadline. Both failures are retained in
+[tls-batteries](docs/txnfix/txnfix2/tls-batteries/runs.json). The assertions were
+not changed. All eight configurations are being rerun after compilation.

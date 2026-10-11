@@ -232,13 +232,6 @@ struct alignas(8) MultiExecState : SnapshotCut {
 
 namespace {
 
-thread_local uint64_t multi_io_age_ns = 0;
-// Only retry producers write this dedicated cold line. The IO pass can test it
-// without loading Server, ThreadCtx or an indexed inbox address.
-struct alignas(64) MultiRetrySignal { std::atomic<bool> pending{false}; };
-static_assert(sizeof(MultiRetrySignal) == 64);
-constinit thread_local MultiRetrySignal multi_retry_signal;
-
 void multi_enqueue_node(Server& server, uint32_t io, MultiRetryNode& node) {
     auto& lane = server.multi_retry_lane(io);
     auto* prior = lane.head.load(std::memory_order_relaxed);
@@ -970,12 +963,12 @@ bool prepare_commands(Server& server, MultiExecState& state,
 }
 
 MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io,
-                               MultiStateKind kind) {
+                               MultiStateKind kind, uint64_t age_ns = 0) {
     auto* state = new (std::nothrow) MultiExecState;
     if (!state) return nullptr;
     state->decision.owner = state;
     if (kind == MultiStateKind::Execute) {
-        state->decision.age_ns = multi_io_age_ns ? multi_io_age_ns : now_ns();
+        state->decision.age_ns = age_ns ? age_ns : now_ns();
         state->decision.age_io = owner_io;
         state->decision.age_seq = ++server.multi_retry_lane(owner_io).age_seq;
     }
@@ -1850,7 +1843,7 @@ void multi_mark_queue_error(Client& client) {
 }
 
 MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t owner_io,
-                              MultiExecState*& dispatch) {
+                              MultiExecState*& dispatch, uint64_t age_ns) {
     dispatch = nullptr;
     MultiSession* session = client.multi_session();
     if (session && session->pending) {
@@ -1981,7 +1974,8 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         uint64_t generation = 0;
         if (!server.atomic_try_admit(owner_io, generation, true))
             return MultiIoAction::Backpressure;
-        MultiExecState* state = allocate_state(server, client, owner_io, MultiStateKind::Execute);
+        MultiExecState* state = allocate_state(server, client, owner_io, MultiStateKind::Execute,
+                                              age_ns);
         if (!state) {
             server.atomic_retire_group(owner_io, generation);
             reply_err(op.sink(), "ERR out of memory");
@@ -2195,9 +2189,9 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     if (was_queueing && op_id != queue_session->next_queue_op_id)
         queue_session->queue_error = true;
     MultiExecState* dispatch = nullptr;
-    multi_io_age_ns = loop.cached_now_ms_ * 1000000ull;
     const MultiIoAction action =
-        multi_handle_io(*loop.srv_, client, op, loop.self_->id(), dispatch);
+        multi_handle_io(*loop.srv_, client, op, loop.self_->id(), dispatch,
+                       loop.cached_now_ms_ * 1000000ull);
     if (action == MultiIoAction::NotHandled) return false;
     if (action == MultiIoAction::Backpressure) {
         client.set_atomic_backpressure(true);
