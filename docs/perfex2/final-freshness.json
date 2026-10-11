@@ -1,0 +1,22 @@
+{
+  "production_commit": "93a14e81a",
+  "receipt_head": "9560677e10b69d1f1dda637ce0afd09f291d2dc1",
+  "binaries": {
+    "build/perfex2/previous-post/tomokv": "81b0b26dceaea4d78201fd26b84c3af9929613467549710a53c1915b8e759d54",
+    "build/perfex2/pre/tomokv": "081b66cc1d69ae7e6027eedb6d928540d6709828fb2d568c8a24d80c2fe8a2fd",
+    "build/tomokv": "e1d6258f0f74ffc5b2bb237bef81bb2a115070dbae1c434d400e2188010cf0c4"
+  },
+  "make_q_all": 0,
+  "production_unchanged_since_build": true,
+  "infofix_gates_test_audit_pfconfirm_unchanged_since_merge": true,
+  "expect_quick": 625,
+  "expect_full": 642,
+  "required_quick": 629,
+  "required_full": 646,
+  "collect_lines": {
+    "perfex_units": 3577,
+    "perfex_live": 3578
+  },
+  "quick_exit_line": 3743,
+  "listeners_in_allocated_range": []
+}

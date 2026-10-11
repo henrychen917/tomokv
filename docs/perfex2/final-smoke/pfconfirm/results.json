@@ -1,0 +1,7 @@
+[
+  {
+    "candidate": "PFKEYSPA.1",
+    "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 3.950000s > 0.480000s per 20s",
+    "verdict": "REFUSED"
+  }
+]

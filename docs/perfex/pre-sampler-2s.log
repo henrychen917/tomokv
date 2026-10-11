@@ -1,0 +1,11 @@
+{"frozen_time_ms": 1791654352951, "unrelated_batches": 16, "sample_changes": 16, "averages": [293453324, 263210991, 310967291, 211616241, 144069491, 291210074, 243520241, 267099291, 283150991, 346834366, 257852116, 293719191, 221065081, 265204991, 245888116, 205954705, 307826741]}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 343, in <module>
+    main()
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 333, in main
+    sampler_check(a.host, a.port, a.clock_file)
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 243, in sampler_check
+    require(changes == 0, "EX4.2: unrelated batches drive the TTL sampler without a beat")
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 25, in require
+    raise AssertionError(why)
+AssertionError: EX4.2: unrelated batches drive the TTL sampler without a beat

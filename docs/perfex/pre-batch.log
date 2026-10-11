@@ -1,0 +1,16 @@
+{"body": "unsigned int tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)", "zero_fill": ["43006b: call 1c830 <memset@plt>"]}
+{"body": "unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)", "zero_fill": ["68d248: call 1c830 <memset@plt>"]}
+{"body": "unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)", "zero_fill": ["6918a6: call 1c830 <memset@plt>"]}
+{"body": "unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)", "zero_fill": ["bda5b: call 1c830 <memset@plt>"]}
+{"body": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)", "zero_fill": ["303f18: call 1c830 <memset@plt>"]}
+{"body": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)", "zero_fill": ["308616: call 1c830 <memset@plt>"]}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 291, in <module>
+    main()
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 286, in main
+    (batch_check if a.check == "batch" else clock_check)(a.binary)
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 60, in batch_check
+    require(not failed, f"EX4.13: {len(failed)} drain bodies zero their batch before receiving a Task")
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 24, in require
+    raise AssertionError(why)
+AssertionError: EX4.13: 6 drain bodies zero their batch before receiving a Task

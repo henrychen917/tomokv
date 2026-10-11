@@ -1,0 +1,10 @@
+truthful row inventory + commandstats
+  FAIL measured avg_ttl                               got=0
+monotonic object-memory high-water mark
+read-lookup keyspace hits/misses
+variadic INFO sections + Redis default set
+RESETSTAT auth baseline
+IO-owned wire bytes + sampled operation rate
+  loaded sampled rates: [0, 3125]
+INFOFIX: FAIL (1/41 checks)
+ - measured avg_ttl: got 0 want <function placeholder_and_commandstats.<locals>.<lambda> at 0x7d49309e53a0>

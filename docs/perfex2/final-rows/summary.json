@@ -1,0 +1,78 @@
+[
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/usr/bin/python3",
+      "tests/perfex_checks.py",
+      "clock",
+      "--binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.16653112322092056,
+    "log": "docs/perfex2/final-rows/clock.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/usr/bin/python3",
+      "tests/perfex_checks.py",
+      "batch",
+      "--binary",
+      "/home/user/Projects/cx-perfex/build/tomokv"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.17284921230748296,
+    "log": "docs/perfex2/final-rows/batch.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "tests/perfex_checks.py",
+      "sampler",
+      "--binary",
+      "/home/user/Projects/cx-perfex/build/tomokv",
+      "--port",
+      "25100",
+      "--cores",
+      "112-119",
+      "--mode",
+      "1s"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 16.019190920051187,
+    "log": "docs/perfex2/final-rows/sampler-1s.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "120-127",
+      "/usr/bin/python3",
+      "tests/perfex_checks.py",
+      "sampler",
+      "--binary",
+      "/home/user/Projects/cx-perfex/build/tomokv",
+      "--port",
+      "25100",
+      "--cores",
+      "112-119",
+      "--mode",
+      "2s"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 15.171358922030777,
+    "log": "docs/perfex2/final-rows/sampler-2s.log"
+  }
+]

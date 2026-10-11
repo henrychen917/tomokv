@@ -22,8 +22,8 @@ void Shard::publish_size() noexcept {
     const auto expires = store_.expire_count();
     if (published_expires_.load(std::memory_order_relaxed) != expires)
         published_expires_.store(expires, std::memory_order_relaxed);
-    if constexpr (kSingleDatabase) store_.publish_keyspace_sample();
-    if constexpr (!kSingleDatabase) store_.publish_database_counts();
+    // Single-DB: publish field-TTL attention only.
+    store_.publish_database_counts();
     const auto evicted = stats_.evicted;
     if (published_evicted_.load(std::memory_order_relaxed) != evicted)
         published_evicted_.store(evicted, std::memory_order_relaxed);
@@ -33,16 +33,16 @@ legacy:
     published_size_.store(store_.size(), std::memory_order_relaxed);
     published_obj_bytes_.store(store_.object_bytes(), std::memory_order_relaxed);
     published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
-    if constexpr (kSingleDatabase) store_.publish_keyspace_sample();
-    if constexpr (!kSingleDatabase) store_.publish_database_counts();
+    // Single-DB: publish field-TTL attention only.
+    store_.publish_database_counts();
     published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
 }
 
-struct StoreSizeState {
-    uint64_t sample_cursor = 0;
-    std::atomic<uint64_t> avg_deadline{0};
-    std::atomic<bool> field_ttl_attention{false};
-};
+// State is defined beside the two cold FlatStore clear paths so their resets
+// need no new call edge in command or AOF translation units. Keep the state
+// layout and the diagnostic line constants below unchanged.
+static_assert(sizeof(StoreSizeState) == 24);
+
 
 StoreSizeState* FlatStore::storesize_state() const {
     StoreSizeState* state;
@@ -67,7 +67,7 @@ void ExpireIndex::sample_readonly(uint64_t& cursor, uint32_t budget, Fn&& fn) co
 
 void FlatStore::publish_keyspace_sample() const noexcept {
     auto* storesize_ = storesize_state();
-    publish_field_ttl_attention();
+    // Field-TTL attention follows batch count publication.
     if (!expire_count()) return;
     unsigned __int128 sum = 0;
     uint32_t count = 0;

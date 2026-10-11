@@ -1,0 +1,25 @@
+[
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "docs/pfconfirm/run.sh",
+      "--smoke",
+      "--only",
+      "PFKEYSPA.1",
+      "--binary",
+      "/home/user/Projects/cx-perfex/build/tomokv",
+      "--sha256",
+      "e1d6258f0f74ffc5b2bb237bef81bb2a115070dbae1c434d400e2188010cf0c4",
+      "--port",
+      "25120",
+      "--output",
+      "/home/user/Projects/cx-perfex/docs/perfex2/final-smoke/pfconfirm"
+    ],
+    "environment": {},
+    "exit_code": 3,
+    "seconds": 1.094640489667654,
+    "log": "docs/perfex2/final-smoke/pfconfirm.log"
+  }
+]

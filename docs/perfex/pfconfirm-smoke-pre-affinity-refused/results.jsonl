@@ -1,0 +1,1 @@
+{"candidate": "PFKEYSPA.1", "reason": "RuntimeError: requested physical CPU geometry is unavailable in current affinity", "verdict": "FAIL"}
