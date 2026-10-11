@@ -1,0 +1,372 @@
+--- PRE
+
++++ POST
+
+@@ -10,36 +10,36 @@
+
+ push   %r12
+ push   %r10
+ push   %rbx
+-mov    %rdi,%r12
++mov    %rdi,%r15
+ sub    $0x1e0,%rsp
+ mov    (%rdx),%r8
+ mov    %rsi,-0x150(%rbp)
+-mov    %rdx,-0x168(%rbp)
++mov    %rdx,-0x158(%rbp)
+ mov    -0x150(%rbp),%rdi
++mov    %ecx,-0x190(%rbp)
+ mov    %rdx,%rsi
+-mov    %ecx,%r15d
+ mov    %fs:0x28,%rax
+ mov    %rax,-0x38(%rbp)
+ xor    %eax,%eax
+ movq   $0x0,-0xd0(%rbp)
+ movq   $0x0,-0xc8(%rbp)
+-movq   $0x0,-0xc0(%rbp)
+ testb  $0x1,0x12(%r8)
+ mov    0x554(%rdi),%edx
+ setne  -0x139(%rbp)
++movq   $0x0,-0xc0(%rbp)
+ movl   $0x0,-0xb8(%rbp)
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    0x18(%r12),%rax
+-mov    -0x150(%rbp),%rdi
++mov    0x18(%r15),%rax
++mov    -0x150(%rbp),%rbx
+ mov    %rax,-0x148(%rbp)
+-mov    0x10(%rdi),%rcx
++mov    0x10(%rbx),%rcx
+ mov    0x118(%rax),%rax
+ mov    %rcx,-0x188(%rbp)
+-mov    %rax,-0x178(%rbp)
++mov    %rax,-0x180(%rbp)
+ test   %rax,%rax
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    %rax,0x10(%rdi)
+-mov    %rax,0x1c0(%rdi)
++mov    %rax,0x10(%rbx)
++mov    %rax,0x1c0(%rbx)
+ mov    -0x148(%rbp),%rax
+ cmpb   $0x31,0x2e(%rax)
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+@@ -47,11 +47,11 @@
+
+ mov    -0x148(%rbp),%rdi
+ mov    (%rbx),%esi
+ call   <tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int32_t)>
+-mov    0x100(%rbx),%r9
++mov    0x100(%rbx),%rdx
+ mov    %r8,%rsi
+-mov    %rax,-0x160(%rbp)
++mov    %rax,-0x170(%rbp)
+ call   <tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&)>
+-test   %r9,%r9
++test   %rdx,%rdx
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ mov    -0x148(%rbp),%rdi
+ mov    %r8,%rsi
+@@ -62,36 +62,36 @@
+
+ cmpb   $0x0,0x4f(%rax)
+ mov    -0x150(%rbp),%rax
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    0x100(%rax),%r9
+-test   %r9,%r9
++mov    0x100(%rax),%rdx
++test   %rdx,%rdx
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ add    $0x38,%rax
+-mov    %rax,-0x170(%rbp)
+-mov    -0x148(%rbp),%rbx
+-cmpb   $0x0,0x51(%rbx)
+-movzbl 0x3c(%rbx),%eax
+-movzbl 0x53(%rbx),%edx
+-mov    0x70(%rbx),%rcx
+-je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-test   %dl,%dl
+-jne    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    -0x148(%rbp),%rbx
+-mov    (%rbx),%r13
+-cmp    $0xffffffffffffffff,%r13
+-setne  %dl
+-or     %al,%dl
+-je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    -0x150(%rbp),%rax
+-vmovq  %r13,%xmm6
++mov    %rax,-0x160(%rbp)
++mov    -0x148(%rbp),%rdi
++cmpb   $0x0,0x51(%rdi)
++movzbl 0x53(%rdi),%eax
++movzbl 0x3c(%rdi),%edx
++mov    0x70(%rdi),%rcx
++je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++test   %al,%al
++jne    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++mov    -0x148(%rbp),%rax
++mov    (%rax),%rbx
++cmp    $0xffffffffffffffff,%rbx
++setne  %al
++or     %dl,%al
++jne    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++mov    -0x150(%rbp),%rax
++vmovq  %rbx,%xmm6
+ vpinsrq $0x1,%rcx,%xmm6,%xmm0
+ vmovdqu %xmm0,0xa0(%rax)
+-movb   $0x1,-0x180(%rbp)
++movb   $0x1,-0x178(%rbp)
++jmp    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ mov    -0x148(%rbp),%rax
+ cmpb   $0x0,0x50(%rax)
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ mov    -0x148(%rbp),%rax
+-movzbl 0x4f(%rax),%ebx
+-test   %bl,%bl
++cmpb   $0x0,0x4f(%rax)
+ jne    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ mov    -0x150(%rbp),%rax
+ mov    0x100(%rax),%rdx
+@@ -114,13 +114,13 @@
+
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ mov    -0x148(%rbp),%rax
+ cmpb   $0x2,0x31(%rax)
+-movzbl 0x2e(%rax),%r12d
+-je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-cmp    $0x8,%r12b
++movzbl 0x2e(%rax),%ebx
++je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++cmp    $0x8,%bl
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ vmovq  -0x150(%rbp),%xmm7
+-vmovq  -0x160(%rbp),%xmm6
+-vpinsrq $0x1,-0x168(%rbp),%xmm7,%xmm1
++vmovq  -0x170(%rbp),%xmm6
++vpinsrq $0x1,-0x158(%rbp),%xmm7,%xmm1
+ lea    -0xb0(%rbp),%rdi
+ vpinsrq $0x1,-0x148(%rbp),%xmm6,%xmm0
+ cmpb   $0x0,-0x130(%rbp)
+@@ -131,27 +131,26 @@
+
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ vzeroupper
+ call   <operator()<false, false>() const>
++xor    %ebx,%ebx
+ jmp    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-xor    %r12d,%r12d
+-jmp    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-cmpb   $0x0,-0x180(%rbp)
+-je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    -0x170(%rbp),%rax
++cmpb   $0x0,-0x178(%rbp)
++je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++mov    -0x160(%rbp),%rax
+ movq   $0xffffffffffffffff,0x68(%rax)
+ movq   $0x0,0x70(%rax)
+-cmpq   $0x0,-0x178(%rbp)
+-je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    -0x150(%rbp),%rax
+-mov    -0x188(%rbp),%rbx
+-mov    %rbx,0x10(%rax)
+-mov    %rbx,0x1c0(%rax)
++cmpq   $0x0,-0x180(%rbp)
++je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++mov    -0x150(%rbp),%rax
++mov    -0x188(%rbp),%rdi
++mov    %rdi,0x10(%rax)
++mov    %rdi,0x1c0(%rax)
+ lea    -0xd0(%rbp),%rdi
+ call   <_ZN4tomo20NotifyExecutionScopeD2Ev>
+ mov    -0x38(%rbp),%rax
+ sub    %fs:0x28,%rax
+ jne    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ lea    -0x30(%rbp),%rsp
+-mov    %r12d,%eax
++mov    %ebx,%eax
+ pop    %rbx
+ pop    %r10
+ pop    %r12
+@@ -173,36 +172,36 @@
+
+ push   %r12
+ push   %r10
+ push   %rbx
+-mov    %rdi,%r12
++mov    %rdi,%r15
+ sub    $0x1e0,%rsp
+ mov    (%rdx),%r8
+ mov    %rsi,-0x150(%rbp)
+-mov    %rdx,-0x168(%rbp)
++mov    %rdx,-0x158(%rbp)
+ mov    -0x150(%rbp),%rdi
++mov    %ecx,-0x190(%rbp)
+ mov    %rdx,%rsi
+-mov    %ecx,%r15d
+ mov    %fs:0x28,%rax
+ mov    %rax,-0x38(%rbp)
+ xor    %eax,%eax
+ movq   $0x0,-0xd0(%rbp)
+ movq   $0x0,-0xc8(%rbp)
+-movq   $0x0,-0xc0(%rbp)
+ testb  $0x1,0x12(%r8)
+ mov    0x554(%rdi),%edx
+ setne  -0x139(%rbp)
++movq   $0x0,-0xc0(%rbp)
+ movl   $0x0,-0xb8(%rbp)
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    0x18(%r12),%rax
+-mov    -0x150(%rbp),%rdi
++mov    0x18(%r15),%rax
++mov    -0x150(%rbp),%rbx
+ mov    %rax,-0x148(%rbp)
+-mov    0x10(%rdi),%rcx
++mov    0x10(%rbx),%rcx
+ mov    0x118(%rax),%rax
+ mov    %rcx,-0x188(%rbp)
+-mov    %rax,-0x178(%rbp)
++mov    %rax,-0x180(%rbp)
+ test   %rax,%rax
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    %rax,0x10(%rdi)
+-mov    %rax,0x1c0(%rdi)
++mov    %rax,0x10(%rbx)
++mov    %rax,0x1c0(%rbx)
+ mov    -0x148(%rbp),%rax
+ cmpb   $0x31,0x2e(%rax)
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+@@ -210,11 +209,11 @@
+
+ mov    -0x148(%rbp),%rdi
+ mov    (%rbx),%esi
+ call   <tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int32_t)>
+-mov    0x100(%rbx),%r9
++mov    0x100(%rbx),%rdx
+ mov    %r8,%rsi
+-mov    %rax,-0x160(%rbp)
++mov    %rax,-0x170(%rbp)
+ call   <tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&)>
+-test   %r9,%r9
++test   %rdx,%rdx
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ mov    -0x148(%rbp),%rdi
+ mov    %r8,%rsi
+@@ -225,36 +224,36 @@
+
+ cmpb   $0x0,0x4f(%rax)
+ mov    -0x150(%rbp),%rax
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    0x100(%rax),%r9
+-test   %r9,%r9
++mov    0x100(%rax),%rdx
++test   %rdx,%rdx
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ add    $0x38,%rax
+-mov    %rax,-0x170(%rbp)
+-mov    -0x148(%rbp),%rbx
+-cmpb   $0x0,0x51(%rbx)
+-movzbl 0x3c(%rbx),%eax
+-movzbl 0x53(%rbx),%edx
+-mov    0x70(%rbx),%rcx
+-je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-test   %dl,%dl
+-jne    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    -0x148(%rbp),%rbx
+-mov    (%rbx),%r13
+-cmp    $0xffffffffffffffff,%r13
+-setne  %dl
+-or     %al,%dl
+-je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    -0x150(%rbp),%rax
+-vmovq  %r13,%xmm6
++mov    %rax,-0x160(%rbp)
++mov    -0x148(%rbp),%rdi
++cmpb   $0x0,0x51(%rdi)
++movzbl 0x53(%rdi),%eax
++movzbl 0x3c(%rdi),%edx
++mov    0x70(%rdi),%rcx
++je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++test   %al,%al
++jne    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++mov    -0x148(%rbp),%rax
++mov    (%rax),%rbx
++cmp    $0xffffffffffffffff,%rbx
++setne  %al
++or     %dl,%al
++jne    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++mov    -0x150(%rbp),%rax
++vmovq  %rbx,%xmm6
+ vpinsrq $0x1,%rcx,%xmm6,%xmm0
+ vmovdqu %xmm0,0xa0(%rax)
+-movb   $0x1,-0x180(%rbp)
++movb   $0x1,-0x178(%rbp)
++jmp    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ mov    -0x148(%rbp),%rax
+ cmpb   $0x0,0x50(%rax)
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ mov    -0x148(%rbp),%rax
+-movzbl 0x4f(%rax),%ebx
+-test   %bl,%bl
++cmpb   $0x0,0x4f(%rax)
+ jne    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ mov    -0x150(%rbp),%rax
+ mov    0x100(%rax),%rdx
+@@ -277,13 +276,13 @@
+
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ mov    -0x148(%rbp),%rax
+ cmpb   $0x2,0x31(%rax)
+-movzbl 0x2e(%rax),%r12d
+-je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-cmp    $0x8,%r12b
++movzbl 0x2e(%rax),%ebx
++je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++cmp    $0x8,%bl
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ vmovq  -0x150(%rbp),%xmm7
+-vmovq  -0x160(%rbp),%xmm6
+-vpinsrq $0x1,-0x168(%rbp),%xmm7,%xmm1
++vmovq  -0x170(%rbp),%xmm6
++vpinsrq $0x1,-0x158(%rbp),%xmm7,%xmm1
+ lea    -0xb0(%rbp),%rdi
+ vpinsrq $0x1,-0x148(%rbp),%xmm6,%xmm0
+ cmpb   $0x0,-0x130(%rbp)
+@@ -294,27 +293,26 @@
+
+ je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ vzeroupper
+ call   <operator()<false, false>() const>
++xor    %ebx,%ebx
+ jmp    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-xor    %r12d,%r12d
+-jmp    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-cmpb   $0x0,-0x180(%rbp)
+-je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    -0x170(%rbp),%rax
++cmpb   $0x0,-0x178(%rbp)
++je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++mov    -0x160(%rbp),%rax
+ movq   $0xffffffffffffffff,0x68(%rax)
+ movq   $0x0,0x70(%rax)
+-cmpq   $0x0,-0x178(%rbp)
+-je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+-mov    -0x150(%rbp),%rax
+-mov    -0x188(%rbp),%rbx
+-mov    %rbx,0x10(%rax)
+-mov    %rbx,0x1c0(%rax)
++cmpq   $0x0,-0x180(%rbp)
++je     <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
++mov    -0x150(%rbp),%rax
++mov    -0x188(%rbp),%rdi
++mov    %rdi,0x10(%rax)
++mov    %rdi,0x1c0(%rax)
+ lea    -0xd0(%rbp),%rdi
+ call   <_ZN4tomo20NotifyExecutionScopeD2Ev>
+ mov    -0x38(%rbp),%rax
+ sub    %fs:0x28,%rax
+ jne    <_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj+OFFSET>
+ lea    -0x30(%rbp),%rsp
+-mov    %r12d,%eax
++mov    %ebx,%eax
+ pop    %rbx
+ pop    %r10
+ pop    %r12

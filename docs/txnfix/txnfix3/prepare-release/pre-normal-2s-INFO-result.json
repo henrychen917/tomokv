@@ -1,0 +1,19 @@
+{
+  "arm": "pre",
+  "namespace": "normal",
+  "mode": "2s",
+  "values": "INFO",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-release/pre-normal-2s-INFO.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-release/pre-normal/probe"
+  ],
+  "exit_code": 1,
+  "binary_sha256": "9e4e0166e4f182413d311cef179bad0df3139f81e188cf24d8becc466818f870",
+  "counts": {}
+}

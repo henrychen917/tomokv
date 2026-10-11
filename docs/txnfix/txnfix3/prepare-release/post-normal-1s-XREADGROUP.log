@@ -1,0 +1,68 @@
+Breakpoint 1 at 0x394e00: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare.cc, line 13.
+Breakpoint 2 at 0x394e10: file /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare.cc, line 14.
+
+Breakpoint 1, scatter_trace_begin () at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare.cc:13
+13	[[gnu::noinline]] void scatter_trace_begin() { asm volatile("" ::: "memory"); }
+main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/src/core/../net/conn.h:580
+580	    uint64_t id() const { return id_; }
+0x00005555555a3f7f	580	    uint64_t id() const { return id_; }
+0x00005555555a3f85	580	    uint64_t id() const { return id_; }
+0x00005555555a3f8c	580	    uint64_t id() const { return id_; }
+0x00005555555a3f8e	580	    uint64_t id() const { return id_; }
+0x00005555555a3f91	580	    uint64_t id() const { return id_; }
+0x00005555555a3f94	580	    uint64_t id() const { return id_; }
+tomo::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc600) at src/cmd/xshard.cc:1569
+0x000055555592f134	0x000055555592f135	0x000055555592f138	0x000055555592f13a	0x000055555592f13c	0x000055555592f13e	0x000055555592f140	0x000055555592f142	0x000055555592f143	0x000055555592f146	0x000055555592f14d	0x000055555592f150	0x000055555592f157	0x000055555592f15d	0x000055555592f164	0x000055555592f16b	0x000055555592f16f	0x000055555592f172	0x000055555592f17b	0x000055555592f17f	0x000055555592f184	0x000055555592f187	0x000055555592f18b	0x000055555592f18d	0x000055555592f193	0x000055555592f195	0x000055555592f19e	0x000055555592f1a4	0x000055555592f1ab	0x000055555592f1b0	0x000055555592f1b2	0x000055555592f1b8	0x000055555592f1bb	0x000055555592f1c2	0x000055555592f1c9	0x000055555592f1d0	0x000055555592f1d7	0x000055555592f1da	0x000055555592f1dc	0x000055555592f1de	0x000055555592f265	399		return __builtin_strlen(__s);
+0x000055555592f271	0x000055555592f274	0x000055555592f277	0x000055555592f27c	0x000055555592f281	0x000055555592f283	0x000055555592f290	0x000055555592f293	0x000055555592f296	0x000055555592f2a6	0x000055555592f2b2	0x000055555592f2b8	0x000055555592f2bf	std::__atomic_base<unsigned long>::load (__m=std::memory_order::acquire, this=0x7fffffff3b48) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x000055555592f2d2	503		__glibcxx_assert(__b != memory_order_acq_rel);
+std::__atomic_base<unsigned long>::load (__m=std::memory_order::acquire, this=0x7fffffff43e0) at /usr/include/c++/13/bits/atomic_base.h:503
+503		__glibcxx_assert(__b != memory_order_acq_rel);
+0x000055555592f2e1 in tomo::Server::script_intents_active (this=<optimized out>) at src/cmd/../core/server.h:2801
+2801	        return script_intent_owners_.load(std::memory_order_acquire) != 0;
+0x000055555592f2e4 in tomo::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc600) at src/cmd/xshard.cc:1635
+0x000055555592f2e7	0x000055555592f2ef in tomo::Server::script_intents_active (this=<optimized out>) at src/cmd/../core/server.h:2801
+2801	        return script_intent_owners_.load(std::memory_order_acquire) != 0;
+0x000055555592f2f6	2801	        return script_intent_owners_.load(std::memory_order_acquire) != 0;
+tomo::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc600) at src/cmd/xshard.cc:1637
+0x000055555592f301	0x000055555592f304	0x000055555592f306	0x000055555592f30c	0x000055555592f312	0x000055555592f316	0x000055555592f31f	0x000055555592f329	0x000055555592f337	0x000055555592f346	0x000055555592f34a	0x00005555559331fb	0x00005555559331ff	0x0000555555933207	0x0000555555933210	0x0000555555933217	0x000055555592f533	0x000055555592f542	0x000055555592f544	0x000055555592f548	0x00005555559302b4	0x000055555592fba7	0x000055555592fbae	0x000055555592fbbd	0x000055555592fc34	tomo::(anonymous namespace)::is_plain_zsetop (kind=<optimized out>) at src/cmd/xshard.cc:1779
+0x000055555592fdea in tomo::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc600) at src/cmd/xshard.cc:1781
+0x000055555592fdee	0x000055555592fe00	tomo::(anonymous namespace)::is_any_zsetop (kind=tomo::(anonymous namespace)::Kind::Xreadgroup) at src/cmd/xshard.cc:284
+0x000055555592fe26	0x0000555555933199	0x000055555593319d	0x000055555593319f	0x00005555559331a5	0x00005555559331a8	0x00005555559331aa	0x00005555559331b1	0x00005555559331b7	tomo::(anonymous namespace)::is_geo_kind (kind=<optimized out>) at src/cmd/xshard.cc:1790
+0x000055555592f5c9 in tomo::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc600) at src/cmd/xshard.cc:1790
+0x000055555592f5d2	tomo::(anonymous namespace)::is_geo_kind (kind=tomo::(anonymous namespace)::Kind::Xreadgroup) at src/cmd/xshard.cc:290
+0x000055555592f5e3 in tomo::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=777, dispatch=..., force_atomic=false, origin_client=0x7ffffffdc600) at src/cmd/xshard.cc:1791
+0x000055555592f5e5	0x0000555555930334	0x0000555555930354	0x0000555555930539	0x0000555555930542	0x0000555555930549	0x0000555555930554	0x000055555593055e	0x0000555555930577	0x000055555592ff17	0x000055555592ff21	0x000055555592ff30	0x000055555592f6ac	0x000055555592f6b6	0x000055555592f6c1	0x000055555592f6cc	0x000055555592f6d7	0x00005555559321fd	0x0000555555932212	0x0000555555932216	0x0000555555932223	0x0000555555932226	0x0000555555932229	0x000055555593222e	0x0000555555932230	0x0000555555930778	tomo::(anonymous namespace)::SortOptions::~SortOptions (this=0x7ffffffdb940, __in_chrg=<optimized out>) at src/cmd/xshard.cc:199
+0x0000555555930784	0x0000555555930789	0x0000555555930790	0x0000555555930797	std::vector<double, std::allocator<double> >::~vector (this=0x7ffffffdb880, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/alloc_traits.h:945
+945	    _Destroy(_ForwardIterator __first, _ForwardIterator __last,
+0x00005555559306e4	945	    _Destroy(_ForwardIterator __first, _ForwardIterator __last,
+0x00005555559306e9	738	      }
+0x000055555592fcb5 in tomo::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=<optimized out>, origin_client=<optimized out>) at src/cmd/xshard.cc:2225
+0x000055555592fcbc	std::unique_ptr<tomo::SnapshotLoadPlan, std::default_delete<tomo::SnapshotLoadPlan> >::~unique_ptr (this=0x7ffffffdb800, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:197
+197	      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+0x000055555592fcc8	403		if (__ptr != nullptr)
+0x000055555592fccb	403		if (__ptr != nullptr)
+std::unique_ptr<tomo::SnapshotLoadPlan, std::default_delete<tomo::SnapshotLoadPlan> >::~unique_ptr (this=<synthetic pointer>, __in_chrg=<optimized out>) at /usr/include/c++/13/bits/unique_ptr.h:197
+197	      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+0x000055555592fd31	197	      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+0x000055555592fd34	197	      pointer&   _M_ptr() noexcept { return std::get<0>(_M_t); }
+RuntimeLoadingGuard::~RuntimeLoadingGuard (this=<synthetic pointer>, __in_chrg=<optimized out>) at src/cmd/xshard.cc:1610
+0x000055555592fab3	tomo::xshard_prepare (server=..., op=..., pool=..., owner_io=owner_io@entry=0, origin_conn_id=<optimized out>, dispatch=..., force_atomic=<optimized out>, origin_client=<optimized out>) at src/cmd/xshard.cc:1610
+0x000055555592f986	0x000055555592f98f	0x000055555592f995	0x000055555592f999	0x000055555592f99b	0x000055555592f99c	0x000055555592f99e	0x000055555592f9a0	0x000055555592f9a2	0x000055555592f9a4	0x000055555592f9a6	0x000055555592f9a7	0x00005555555a3f99 in require (value=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+0x00005555555a3f9b in main (argc=<optimized out>, argv=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare.cc:71
+71	    require(xshard_prepare(server, op, pool, 0, client.id(), dispatch, false, &client) == ScatterPrepare::Ready);
+0x00005555555a3f9c	71	    require(xshard_prepare(server, op, pool, 0, client.id(), dispatch, false, &client) == ScatterPrepare::Ready);
+require (value=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+require (value=<optimized out>) at /home/user/Projects/cx-txnfix/docs/txnfix/txnfix3/scatter-trace/probe-prepare.cc:15
+15	static void require(bool value) { if (!value) std::abort(); }
+
+Program received signal SIGABRT, Aborted.
+__pthread_kill_implementation (no_tid=0, signo=6, threadid=<optimized out>) at ./nptl/pthread_kill.c:44
+
+Program terminated with signal SIGABRT, Aborted.
+The program no longer exists.
+Python Exception <class 'gdb.error'>: No registers.
+/home/user/Projects/cx-txnfix/build/txnfix3/prepare-release/post-normal-1s-XREADGROUP.gdb:42: Error in sourced command file:
+Error occurred in Python: No registers.

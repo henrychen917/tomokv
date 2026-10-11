@@ -1,0 +1,140 @@
+[
+  {
+    "function": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+    "pre": 118,
+    "post": 118,
+    "delta": 0
+  },
+  {
+    "function": "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]",
+    "pre": 21,
+    "post": 6,
+    "delta": -15
+  },
+  {
+    "function": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+    "pre": 159,
+    "post": 159,
+    "delta": 0
+  },
+  {
+    "function": "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)",
+    "pre": 224,
+    "post": 224,
+    "delta": 0
+  },
+  {
+    "function": "tomo::(anonymous namespace)::first_error(tomo::ScatterState const&, tomo::(anonymous namespace)::WorkError&)",
+    "pre": 34,
+    "post": 34,
+    "delta": 0
+  },
+  {
+    "function": "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]",
+    "pre": 77,
+    "post": 77,
+    "delta": 0
+  },
+  {
+    "function": "tomo::(anonymous namespace)::free_state_key_anchors(tomo::ScatterState&)",
+    "pre": 35,
+    "post": 35,
+    "delta": 0
+  },
+  {
+    "function": "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)",
+    "pre": 66,
+    "post": 66,
+    "delta": 0
+  },
+  {
+    "function": "tomo::(anonymous namespace)::xshard_owner_mutation_phase(tomo::ScatterState const&, tomo::Op const&) [clone .isra.0]",
+    "pre": 24,
+    "post": 24,
+    "delta": 0
+  },
+  {
+    "function": "tomo::ScatterArenaPool::acquire(unsigned long, bool&)",
+    "pre": 27,
+    "post": 27,
+    "delta": 0
+  },
+  {
+    "function": "tomo::ScatterArenaPool::register_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int)",
+    "pre": 86,
+    "post": 86,
+    "delta": 0
+  },
+  {
+    "function": "tomo::ScatterArenaPool::unregister_snapshot(tomo::Server&, tomo::SnapshotCut*, unsigned int) [clone .part.0]",
+    "pre": 52,
+    "post": 52,
+    "delta": 0
+  },
+  {
+    "function": "tomo::ScatterFinish tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+    "pre": 125,
+    "post": 119,
+    "delta": -6
+  },
+  {
+    "function": "tomo::ScatterState::ScatterState()",
+    "pre": 91,
+    "post": 91,
+    "delta": 0
+  },
+  {
+    "function": "tomo::ScatterState::~ScatterState()",
+    "pre": 42,
+    "post": 42,
+    "delta": 0
+  },
+  {
+    "function": "tomo::xshard_complete(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)",
+    "pre": 4,
+    "post": 4,
+    "delta": 0
+  },
+  {
+    "function": "tomo::xshard_complete_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&)::{lambda()#1}::operator()() const",
+    "pre": 23,
+    "post": 23,
+    "delta": 0
+  },
+  {
+    "function": "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)",
+    "pre": 81,
+    "post": 81,
+    "delta": 0
+  },
+  {
+    "function": "tomo::xshard_dispatch_shard(tomo::ScatterDispatch const&, unsigned int)",
+    "pre": 22,
+    "post": 22,
+    "delta": 0
+  },
+  {
+    "function": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+    "pre": 326,
+    "post": 324,
+    "delta": -2
+  },
+  {
+    "function": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+    "pre": 1218,
+    "post": 1221,
+    "delta": 3
+  },
+  {
+    "function": "tomo::xshard_retire(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, void*, void (*)(void*, int, char const*), void (*)(void*))",
+    "pre": 76,
+    "post": 76,
+    "delta": 0
+  },
+  {
+    "function": "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)",
+    "pre": 96,
+    "post": 96,
+    "delta": 0
+  }
+]

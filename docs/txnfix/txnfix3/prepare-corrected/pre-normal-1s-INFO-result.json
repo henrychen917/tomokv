@@ -1,0 +1,21 @@
+{
+  "arm": "pre",
+  "namespace": "normal",
+  "mode": "1s",
+  "values": "INFO",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal-1s-INFO.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-corrected/pre-normal/probe"
+  ],
+  "exit_code": 0,
+  "binary_sha256": "9351c411a568d019fcdc0bbcffb6d55772c19f5cdde94d615692487b19219b8d",
+  "counts": {
+    "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 52
+  }
+}

@@ -1,0 +1,258 @@
+[
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "mode": "2s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/pre-normal-2s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/pre-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "22a227b46d08f8632a638653341161b61a5229765d52127fe2803f8cc12bc2ab",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1064,
+      "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+      "tomo::ScatterState::ScatterState()": 91,
+      "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 193,
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 14,
+      "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 31,
+      "tomo::xshard_abandon_unpublished(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 17,
+      "tomo::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo::ScatterState&)": 13,
+      "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 74,
+      "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]": 48,
+      "tomo::(anonymous namespace)::free_state_key_anchors(tomo::ScatterState&)": 27,
+      "tomo::ScatterState::~ScatterState()": 42
+    }
+  },
+  {
+    "arm": "pre",
+    "namespace": "normal",
+    "mode": "1s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/pre-normal-1s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/pre-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "22a227b46d08f8632a638653341161b61a5229765d52127fe2803f8cc12bc2ab",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1064,
+      "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+      "tomo::ScatterState::ScatterState()": 91,
+      "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 193,
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 14,
+      "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 31,
+      "tomo::xshard_abandon_unpublished(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 17,
+      "tomo::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo::ScatterState&)": 13,
+      "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 74,
+      "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]": 48,
+      "tomo::(anonymous namespace)::free_state_key_anchors(tomo::ScatterState&)": 27,
+      "tomo::ScatterState::~ScatterState()": 42
+    }
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "mode": "2s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/pre-db0-2s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/pre-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "dfae683ab5a3f66e36623bffb730929b4f4f1ed7006f5d513fb80b963b1b8951",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1112,
+      "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+      "tomo_db0::ScatterState::ScatterState()": 91,
+      "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)": 193,
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 14,
+      "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]": 31,
+      "tomo_db0::xshard_abandon_unpublished(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 17,
+      "tomo_db0::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo_db0::ScatterState&)": 13,
+      "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 73,
+      "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]": 48,
+      "tomo_db0::(anonymous namespace)::free_state_key_anchors(tomo_db0::ScatterState&)": 27,
+      "tomo_db0::ScatterState::~ScatterState()": 42
+    }
+  },
+  {
+    "arm": "pre",
+    "namespace": "db0",
+    "mode": "1s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/pre-db0-1s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/pre-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "dfae683ab5a3f66e36623bffb730929b4f4f1ed7006f5d513fb80b963b1b8951",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1112,
+      "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+      "tomo_db0::ScatterState::ScatterState()": 91,
+      "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)": 193,
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 14,
+      "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]": 31,
+      "tomo_db0::xshard_abandon_unpublished(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 17,
+      "tomo_db0::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo_db0::ScatterState&)": 13,
+      "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 73,
+      "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]": 48,
+      "tomo_db0::(anonymous namespace)::free_state_key_anchors(tomo_db0::ScatterState&)": 27,
+      "tomo_db0::ScatterState::~ScatterState()": 42
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "mode": "2s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/post-normal-2s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/post-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "d62f0d7aff539182f71e0478a7e2b95139e4922e75bd3da54bc42ce4acca1429",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1065,
+      "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+      "tomo::ScatterState::ScatterState()": 91,
+      "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 193,
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 14,
+      "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 16,
+      "tomo::xshard_abandon_unpublished(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 17,
+      "tomo::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo::ScatterState&)": 13,
+      "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 74,
+      "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]": 48,
+      "tomo::(anonymous namespace)::free_state_key_anchors(tomo::ScatterState&)": 27,
+      "tomo::ScatterState::~ScatterState()": 42
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "normal",
+    "mode": "1s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/post-normal-1s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/post-normal/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "d62f0d7aff539182f71e0478a7e2b95139e4922e75bd3da54bc42ce4acca1429",
+    "counts": {
+      "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)": 1065,
+      "tomo::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+      "tomo::ScatterState::ScatterState()": 91,
+      "tomo::(anonymous namespace)::build_initial_groups(tomo::ScatterState&)": 193,
+      "tomo::(anonymous namespace)::group_for(tomo::ScatterState&, int)": 14,
+      "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]": 16,
+      "tomo::xshard_abandon_unpublished(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 17,
+      "tomo::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo::ScatterState&)": 13,
+      "tomo::xshard_destroy(tomo::ScatterState*, tomo::ScatterArenaPool&, unsigned int)": 74,
+      "tomo::(anonymous namespace)::free_state_contents(tomo::ScatterState&) [clone .part.0]": 48,
+      "tomo::(anonymous namespace)::free_state_key_anchors(tomo::ScatterState&)": 27,
+      "tomo::ScatterState::~ScatterState()": 42
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "mode": "2s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/post-db0-2s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/post-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "41e149f5a4ab21ad666e16a1db018e1cac293615616ae7e01d42bcf7490a0d9b",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1103,
+      "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+      "tomo_db0::ScatterState::ScatterState()": 91,
+      "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)": 193,
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 14,
+      "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]": 16,
+      "tomo_db0::xshard_abandon_unpublished(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 17,
+      "tomo_db0::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo_db0::ScatterState&)": 13,
+      "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 73,
+      "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]": 48,
+      "tomo_db0::(anonymous namespace)::free_state_key_anchors(tomo_db0::ScatterState&)": 27,
+      "tomo_db0::ScatterState::~ScatterState()": 42
+    }
+  },
+  {
+    "arm": "post",
+    "namespace": "db0",
+    "mode": "1s",
+    "values": "XREADGROUP",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "gdb",
+      "-batch",
+      "-x",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/post-db0-1s-XREADGROUP.gdb",
+      "/home/user/Projects/cx-txnfix/build/txnfix3/prepare-stream/post-db0/probe"
+    ],
+    "exit_code": 0,
+    "binary_sha256": "41e149f5a4ab21ad666e16a1db018e1cac293615616ae7e01d42bcf7490a0d9b",
+    "counts": {
+      "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)": 1103,
+      "tomo_db0::ScatterArenaPool::acquire(unsigned long, bool&)": 27,
+      "tomo_db0::ScatterState::ScatterState()": 91,
+      "tomo_db0::(anonymous namespace)::build_initial_groups(tomo_db0::ScatterState&)": 193,
+      "tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)": 14,
+      "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]": 16,
+      "tomo_db0::xshard_abandon_unpublished(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 17,
+      "tomo_db0::(anonymous namespace)::clear_unpublished_owner_record_refs(tomo_db0::ScatterState&)": 13,
+      "tomo_db0::xshard_destroy(tomo_db0::ScatterState*, tomo_db0::ScatterArenaPool&, unsigned int)": 73,
+      "tomo_db0::(anonymous namespace)::free_state_contents(tomo_db0::ScatterState&) [clone .part.0]": 48,
+      "tomo_db0::(anonymous namespace)::free_state_key_anchors(tomo_db0::ScatterState&)": 27,
+      "tomo_db0::ScatterState::~ScatterState()": 42
+    }
+  }
+]
