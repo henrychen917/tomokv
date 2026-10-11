@@ -1,0 +1,159 @@
+{
+  "pre_commit": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "production_source_commit": "58f8f3188",
+  "pre_sha256": "2df27d40b773ddbfc46f9bd68518d2f3adc98eabc66422c3b7d0e2be3c695f52",
+  "post_sha256": "d8c2bb2d5488c6fa6b09618aac1fae24d716f20ed78c2b8b5c5b491e90daef35",
+  "production_build": {
+    "build_exit": 0,
+    "mdbqsbr_exit": 0,
+    "freshness": {
+      "build/at15-db0-unit": 0,
+      "build/at15-unit": 0,
+      "build/atomic-survivors-unit": 0,
+      "build/core-concurrency-unit": 0,
+      "build/encodingfix-unit": 0,
+      "build/exbatch-db0-unit": 0,
+      "build/exbatch-unit": 0,
+      "build/execabort-watch-db0-unit": 0,
+      "build/execabort-watch-unit": 0,
+      "build/flushfix-units": 0,
+      "build/ktls-keyupdate": 0,
+      "build/ktls-keyupdate-unit": 0,
+      "build/lbplanner-units": 0,
+      "build/multidb-boundary-unit": 0,
+      "build/multidb-unit": 0,
+      "build/netcap-unit": 0,
+      "build/netcmd-unit": 0,
+      "build/persistfix-units": 0,
+      "build/racefix-climon": 0,
+      "build/rehash-waits-unit": 0,
+      "build/reorder-engagement-unit": 0,
+      "build/reorder-engagement-unit-db0": 0,
+      "build/rltopo-unit": 0,
+      "build/shutdown-unit": 0,
+      "build/splitlocal-unit": 0,
+      "build/storesize-unit": 0,
+      "build/waits-unit": 0,
+      "build/wb-rule-units": 0,
+      "build/wbland-units": 0,
+      "all": 0,
+      "build/mdbqsbr2-park": 0,
+      "build/mdbqsbr2-no-wake": 0
+    }
+  },
+  "gates_test": "66/66 PASS; gates-test-complete.log",
+  "wbland_clauses": "83/83 PASS; wbland-complete.log",
+  "differential": {
+    "split": "24/24",
+    "armed_fused": "32/32 + 2/2 read-local witnesses"
+  },
+  "post_epoll_rows": {
+    "epoll-flip": {
+      "case": "epoll-flip",
+      "elapsed_s": 0.5760244140401483,
+      "result": "PASS"
+    },
+    "epoll-lb": {
+      "case": "epoll-lb",
+      "elapsed_s": 5.156921570189297,
+      "result": "PASS"
+    }
+  },
+  "post_stream_rows": {
+    "1s": [
+      {
+        "receipt": "docs/perfio/complete-post-1s.log",
+        "checkpoints": 160,
+        "max_100k_ns": 50220,
+        "elapsed_s": 0.3599518686532974
+      }
+    ],
+    "2s": [
+      {
+        "receipt": "docs/perfio/split-row-recheck-1.log",
+        "checkpoints": 160,
+        "max_100k_ns": 252452,
+        "elapsed_s": 0.5422992738895118
+      },
+      {
+        "receipt": "docs/perfio/split-row-recheck-2.log",
+        "checkpoints": 160,
+        "max_100k_ns": 47830,
+        "elapsed_s": 0.4277998353354633
+      },
+      {
+        "receipt": "docs/perfio/split-row-recheck-3.log",
+        "checkpoints": 160,
+        "max_100k_ns": 45530,
+        "elapsed_s": 0.6434306409209967
+      }
+    ]
+  },
+  "stationary": [
+    {
+      "mode": "2s",
+      "engine": "epoll",
+      "exit": 0,
+      "receipt": "driver.log"
+    },
+    {
+      "mode": "1s",
+      "engine": "epoll",
+      "exit": 0,
+      "receipt": "docs/perfio/isolated-lb/1s-epoll/driver.log"
+    },
+    {
+      "mode": "2s",
+      "engine": "uring",
+      "exit": 0,
+      "receipt": "docs/perfio/isolated-lb/2s-uring/driver.log"
+    },
+    {
+      "mode": "1s",
+      "engine": "uring",
+      "exit": 0,
+      "receipt": "docs/perfio/isolated-lb/1s-uring/driver.log"
+    }
+  ],
+  "hot_identity": {
+    "tomo": {
+      "equal": 601,
+      "total": 601
+    },
+    "tomo_db0": {
+      "equal": 603,
+      "total": 603
+    },
+    "extended": {
+      "equal": 1208,
+      "total": 1208
+    }
+  },
+  "ledger": {
+    "DQ": 4,
+    "DF": 4,
+    "EXPECT_QUICK_unchanged": 625,
+    "EXPECT_FULL_unchanged": 642,
+    "required_quick": 629,
+    "required_full": 646,
+    "CLI_exit": 1
+  },
+  "pfconfirm_smoke": {
+    "pre": {
+      "candidate": "PFDATATY.1",
+      "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 16.350000s > 0.480000s per 20s",
+      "verdict": "REFUSED"
+    },
+    "post": {
+      "candidate": "PFDATATY.1",
+      "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 16.400000s > 0.480000s per 20s",
+      "verdict": "REFUSED"
+    }
+  },
+  "remaining": [
+    "SMOKE_OK for PRE and POST on quiet box",
+    "maintainer full PFDATATY.1: NOT CONFIRMED on POST",
+    "main-command performance null",
+    "maintainer EXPECT update and full gate"
+  ]
+}

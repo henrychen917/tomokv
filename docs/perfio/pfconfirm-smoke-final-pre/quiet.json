@@ -1,0 +1,120 @@
+{
+  "complete": false,
+  "cpu_samples": 2,
+  "cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "finished_at": 1791714629.735078,
+  "generic_cpu_screening": {
+    "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload",
+    "capacity_fraction": 0.0015,
+    "cpu_budget_seconds": 0.48,
+    "peak_rolling": {
+      "cpu_seconds": 4.63,
+      "cpu_ticks": 463
+    },
+    "preflight_seconds": null,
+    "sampled_physical_cores": 16,
+    "scope": "preflight",
+    "server_physical_cores": 8,
+    "window_seconds": 20
+  },
+  "interference": {
+    "cpu_budget_seconds": 0.48,
+    "cpu_seconds": 4.63,
+    "cpus": [
+      {
+        "busy_ticks": 1,
+        "cpu": 113,
+        "total_ticks": 102
+      },
+      {
+        "busy_ticks": 1,
+        "cpu": 114,
+        "total_ticks": 103
+      },
+      {
+        "busy_ticks": 77,
+        "cpu": 118,
+        "total_ticks": 102
+      },
+      {
+        "busy_ticks": 77,
+        "cpu": 119,
+        "total_ticks": 102
+      },
+      {
+        "busy_ticks": 2,
+        "cpu": 120,
+        "total_ticks": 102
+      },
+      {
+        "busy_ticks": 101,
+        "cpu": 123,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 101,
+        "cpu": 124,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 100,
+        "cpu": 126,
+        "total_ticks": 102
+      },
+      {
+        "busy_ticks": 3,
+        "cpu": 127,
+        "total_ticks": 103
+      }
+    ],
+    "error": "selected-core CPU screening budget exceeded: 4.630000s > 0.480000s per 20s",
+    "observed_at": 1791714629.7343862
+  },
+  "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work",
+  "listener_checks": 1,
+  "policy": "selected-core-port-budget-v1",
+  "ports": [
+    25145,
+    25146
+  ],
+  "requested_cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "sample_artifact": "docs/perfio/pfconfirm-smoke-final-pre/quiet-samples.jsonl",
+  "sample_interval_seconds": 1.0,
+  "samples": 2,
+  "started_at": 1791714628.720168,
+  "tick_seconds": 0.01
+}

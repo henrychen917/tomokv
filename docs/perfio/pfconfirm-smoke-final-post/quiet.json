@@ -1,0 +1,130 @@
+{
+  "complete": false,
+  "cpu_samples": 2,
+  "cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "finished_at": 1791714630.9725099,
+  "generic_cpu_screening": {
+    "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload",
+    "capacity_fraction": 0.0015,
+    "cpu_budget_seconds": 0.48,
+    "peak_rolling": {
+      "cpu_seconds": 5.12,
+      "cpu_ticks": 512
+    },
+    "preflight_seconds": null,
+    "sampled_physical_cores": 16,
+    "scope": "preflight",
+    "server_physical_cores": 8,
+    "window_seconds": 20
+  },
+  "interference": {
+    "cpu_budget_seconds": 0.48,
+    "cpu_seconds": 5.12,
+    "cpus": [
+      {
+        "busy_ticks": 1,
+        "cpu": 113,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 1,
+        "cpu": 116,
+        "total_ticks": 102
+      },
+      {
+        "busy_ticks": 1,
+        "cpu": 117,
+        "total_ticks": 100
+      },
+      {
+        "busy_ticks": 101,
+        "cpu": 118,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 101,
+        "cpu": 119,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 1,
+        "cpu": 122,
+        "total_ticks": 100
+      },
+      {
+        "busy_ticks": 101,
+        "cpu": 123,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 100,
+        "cpu": 124,
+        "total_ticks": 100
+      },
+      {
+        "busy_ticks": 1,
+        "cpu": 125,
+        "total_ticks": 102
+      },
+      {
+        "busy_ticks": 101,
+        "cpu": 126,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 3,
+        "cpu": 127,
+        "total_ticks": 100
+      }
+    ],
+    "error": "selected-core CPU screening budget exceeded: 5.120000s > 0.480000s per 20s",
+    "observed_at": 1791714630.9717507
+  },
+  "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work",
+  "listener_checks": 1,
+  "policy": "selected-core-port-budget-v1",
+  "ports": [
+    25145,
+    25146
+  ],
+  "requested_cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "sample_artifact": "docs/perfio/pfconfirm-smoke-final-post/quiet-samples.jsonl",
+  "sample_interval_seconds": 1.0,
+  "samples": 2,
+  "started_at": 1791714629.963357,
+  "tick_seconds": 0.01
+}

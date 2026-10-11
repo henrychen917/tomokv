@@ -1,0 +1,5 @@
+{"affinity": [121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-perfio/build/tomokv", "--bind", "127.0.0.1", "--port", "25133", "--dir", "/home/user/Projects/cx-perfio/docs/perfio/isolated-lb/2s-epoll", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--thread-mode", "2s", "--shards", "16", "--net-io", "epoll", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--key-lb", "1", "--client-lb", "1", "--ratio", "6:2"], "event": "boot"}
+LB stationary owners: mode=2s clients=[0, 1, 2, 3, 4, 5] shards=16
+LB stationary window armed: attempt 1, hold 30s
+PASS stationary LB: no key/client moves; gathers reported separately
+{"event": "stop", "pid": 1022147, "rc": 0}

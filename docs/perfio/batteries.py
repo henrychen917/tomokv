@@ -17,14 +17,14 @@ for engine in ("epoll","uring"):
     for mode in ("2s","1s"):
         args=SimpleNamespace(output=out,binary=ROOT/"build/tomokv",port=25133,cores="112-119",
             mode=mode,ratio="6:2",net_io=engine,oracle=False,read_local=0)
-        with boot(args,f"{mode}-{engine}",["--key-lb","1","--client-lb","1"]) as (c,p):
-            jobs=[("netio",["tests/netio.py","127.0.0.1","25133",engine]),
-                  ("lb-stationary",["tests/lb_stationary.py","--port","25133",
-                    "--output",str(out/f"lb-{mode}-{engine}.json")])]
-            if mode=="2s":
-                jobs += [("flip",["tests/flip.py","127.0.0.1","25133"]),
-                         ("flip-load",["tests/flip_under_load.py","127.0.0.1","25133","20"])]
-            for name,argv in jobs:
+        jobs=[("netio",["tests/netio.py","127.0.0.1","25133",engine]),
+              ("lb-stationary",["tests/lb_stationary.py","--port","25133",
+                "--output",str(out/f"lb-{mode}-{engine}.json")])]
+        if mode=="2s":
+            jobs += [("flip",["tests/flip.py","127.0.0.1","25133"]),
+                     ("flip-load",["tests/flip_under_load.py","127.0.0.1","25133","20"])]
+        for name,argv in jobs:
+            with boot(args,f"{name}-{mode}-{engine}",["--key-lb","1","--client-lb","1"]) as (c,p):
                 path=out/f"{name}-{mode}-{engine}.log"
                 with path.open("w") as log:
                     r=subprocess.run(["taskset","-c","121-127","python3",*argv],cwd=ROOT,

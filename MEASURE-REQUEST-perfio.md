@@ -1,12 +1,15 @@
 ## perfio
 
-Lane `cx-perfio`, worktree `/home/user/Projects/cx-perfio`; no push. **Proof in progress.**
+Lane `cx-perfio`, worktree `/home/user/Projects/cx-perfio`; no push. **Fixes committed; quiet-box pfconfirm and the maintainer count update remain pending.**
 PRE is merged `origin/cpp` **991d48f651d3c6e1324c061bd9ea801ac085afe8**,
 built with `make -j16 BUILD_ROOT=build/perfio/pre all`. The requested pfconfirm
 branch was merged and perfex commit `d867a1073` cherry-picked; this lane has not
 edited `docs/pfconfirm`. Production changes are confined to the migration commit
 in `src/core/io_loop.h`, stream metadata/delivery in `src/cmd/t_stream_groups.cc`,
-and two existing compiler inlining budgets in `Makefile`.
+and two existing compiler inlining budgets in `Makefile`. `origin/cpp` was fetched
+and merged again after source commit `58f8f3188`; it remained at `991d48f65`
+before the final proof. Tests and receipts were committed afterward without
+further production changes.
 
 All lane commands and children use CPUs 112–127; focused tests use target 112–119, oracle 120,
 load 121–127, ports 25125–25149. The unchanged pfconfirm smoke helper assigns its load to 120–127. The task-specific PROOF authorizes these focused
@@ -14,9 +17,9 @@ live tests. No full gate or mainline merit run is being performed by this lane.
 
 | Finding | PRE | POST | Gate row |
 |---|---|---|---|
-| IO4.19 FLIP | Stale interests grow; extra events; eventual rollback-reservation refusal | 12 moving FLIPs, 201 connections: zero stale/duplicate interests; events/command 1.000 | `perfio stale epoll registration (epoll-flip)` |
+| IO4.19 FLIP | Stale interests 0 -> 145 -> 245 -> 311 -> 379 -> 479; up to 2.234 events/command; sixth FLIP refuses rollback reservation | 12 moving FLIPs, 201 connections: zero stale/duplicate interests; events/command 1.000 | `perfio stale epoll registration (epoll-flip)` |
 | IO4.19 client-lb | Witnessed natural skew-driven move leaves a stale, duplicate interest | Natural move witnessed; 97 connections, zero stale/duplicate interests; events/command 1.000 | `perfio stale epoll registration (epoll-lb)` |
-| PFDATATY.1 | Both modes fail the fixed 3 ms GET-after-XREADGROUP bound at 100k entries; metadata also differs from Redis | All 160 oracle metadata snapshots match in both modes; final latency receipts pending | `perfio XREADGROUP bounded delivery + Redis metadata (1s)` and `(2s)` |
+| PFDATATY.1 | Both modes fail the fixed 3 ms GET-after-XREADGROUP bound at 100k entries; metadata also differs from Redis | All 160 oracle checkpoints match. Fused row passes; split passes three fresh rechecks with the fixed 3 ms bound | `perfio XREADGROUP bounded delivery + Redis metadata (1s)` and `(2s)` |
 | NT4.2 | Report only | No production parser change; counter-build patch and incidence driver under `docs/perfio` | None |
 
 The same parameterized `tests/perfio.py` supplies PRE negatives and POST rows.
@@ -25,8 +28,26 @@ requires actual migration before inspecting `/proc/<pid>/fdinfo`. Socket inode
 matching catches fd reuse; exact registration totals prevent vacuous audits.
 FLIP collection retains every failed assertion while collecting event amplification,
 then fails the row. Client-lb must move within 35 seconds; no missing window is skipped.
-Raw receipts: `docs/perfio/{pre,post}-epoll-{flip,lb}-final.log` and corresponding
-server directories. `pre-stream-{1s,2s}-final.log` contains the stream negatives.
+PRE receipts: `docs/perfio/pre-epoll-{flip,lb}-final.log`. Final POST receipts:
+`docs/perfio/complete-epoll-{flip,lb}.log` (0.576 s / 5.157 s, respectively).
+The same final stream row fails on PRE in both modes:
+`docs/perfio/complete-pre-{1s,2s}.log`. Its metadata differences are logged before
+the fixed latency assertion fails. POST receipts are `complete-post-1s.log` and
+`split-row-recheck-{1,2,3}.log` (0.360 s fused; 0.428–0.643 s split).
+All four new rows have a retained PRE failure and final-POST pass.
+
+| Stream row stopwatch | 1k entries, median ms | 100k entries, median ms | 100k entries, maximum ms |
+|---|---:|---:|---:|
+| PRE fused | 0.132 | 22.928 | 33.506 |
+| POST fused | 0.033 | 0.033 | 0.050 |
+| PRE split | 0.126 | 24.905 | 36.523 |
+| POST split, three fresh runs | 0.029–0.031 | 0.029–0.031 | 0.252 worst of three |
+
+Each maximum is over 33 paired XREADGROUP/GET samples (99 across the split rechecks).
+These are reproduction receipts, not a matched-load performance campaign. A prior
+final-binary split trial **failed** at 3.245 ms; its 1k-entry control also stalled
+at 3.357 ms. The failed trial is retained in `complete-post-2s.log`; subsequent
+passes do not erase it. No assertion or threshold was relaxed.
 
 The epoll fix explicitly DELs the reserved source interest before closing its dup.
 Rollback already DELs the destination interest before closing the original fd and
@@ -51,7 +72,10 @@ forms must agree with the fixture at all 160 checkpoints. DUMP of streams with g
 is unsupported by PRE; reload proof therefore uses each server's native snapshot (DEBUG RELOAD).
 
 Gate accounting: DQ **+4**, DF **+4**. Two rows are emitted by `job_flip`,
-two by `job_perfio_stream`; both collection sites precede the quick-tier exit.
+two by `job_perfio_stream`; both collection sites precede the quick-tier exit at `tests/gate.sh:3733`.
+The stream `row_begin` is at line 1595 (two MODE values), collected at line 3590;
+the epoll `row_begin` is at line 2554 (two CASE values), collected through `flip`
+at line 3672.
 Starting values **625 / 642** require **629 / 646**. The arithmetic comment
 is above the unchanged EXPECT assignments. All **646** fixture labels match the
 source inventory. The unmodified `python3 tests/gate_ledger_fixture.py` refuses
@@ -59,9 +83,10 @@ solely because EXPECT_FULL remains 642, as the owner-only count rule requires.
 The stream timing job waits for ordinary jobs, before the existing atomic timing
 job, to preserve its fixed 3 ms bound without a dependency cycle.
 
-Initial reserved-core timing runs were contaminated by other compilers and lane
-servers: even XLEN controls had millisecond scheduling stalls. The failed receipts
-are retained; the 3 ms bound has not changed. A quiet window was requested.
+Initial reserved-core runs overlapped other compilers and lane servers; even XLEN
+controls had millisecond scheduling stalls. Later pfconfirm screens also reported
+excess selected-core CPU activity. A quiet window was requested. The strict timing
+failures are retained, and mainline quiet-box confirmation remains required.
 
 **NT4.2 static inventory** (16,384-byte initial receive buffer):
 
@@ -77,6 +102,9 @@ are retained; the 3 ms bound has not changed. A quiet window was requested.
 Sizes use the maximum generated key length and describe requests. `GET:1024`
 and TLS `GET:4096`/`GET:16384` remain two-argument GET requests. The
 `tracking-mset1024` cell has 1024 resident keys, not 1024 arguments.
+The additional requested SET:1024 probe has 3 arguments / 1,068 bytes
+(34,176 bytes at p32). The TLS GET probes have 2 arguments / at most 32 bytes
+(1,024 bytes at p32); their 4/16 KiB payloads are replies.
 REORDER's 256 KiB values and TLS 4/16 KiB population SETs exceed the initial
 receive buffer during setup, outside scored traffic. A pipeline consists of
 separate frames. Remaining buffer space can be smaller than capacity and TCP/TLS
@@ -151,14 +179,14 @@ taskset -c 112-127 taskset -c 121-127 python3 tests/perfio.py stream --mode 2s -
   --binary build/tomokv --port 25125 --cores 112-119 --output docs/perfio/recheck-stream
 
 taskset -c 112-127 docs/pfconfirm/run.sh --smoke --only PFDATATY.1 \
-  --binary build/perfio/pre/tomokv --sha256 <PRE-sha256> --port 25145 \
-  --output docs/perfio/pfconfirm-smoke-pre
+  --binary build/perfio/pre/tomokv --sha256 2df27d40b773ddbfc46f9bd68518d2f3adc98eabc66422c3b7d0e2be3c695f52 --port 25145 \
+  --output docs/perfio/pfconfirm-smoke-pre-quiet-retry
 taskset -c 112-127 docs/pfconfirm/run.sh --smoke --only PFDATATY.1 \
-  --binary build/tomokv --sha256 <POST-sha256> --port 25145 \
-  --output docs/perfio/pfconfirm-smoke-post
+  --binary build/tomokv --sha256 d8c2bb2d5488c6fa6b09618aac1fae24d716f20ed78c2b8b5c5b491e90daef35 --port 25145 \
+  --output docs/perfio/pfconfirm-smoke-post-quiet-retry
 # Maintainer's full quiet-box merit run, outside lane authorization:
 docs/pfconfirm/run.sh --only PFDATATY.1 --binary build/tomokv \
-  --sha256 <POST-sha256> --output <new-directory>
+  --sha256 d8c2bb2d5488c6fa6b09618aac1fae24d716f20ed78c2b8b5c5b491e90daef35 --output docs/perfio/pfconfirm-full-post-d8c2bb2d-quiet
 # Required full verdict: NOT CONFIRMED on POST; mainline also runs a performance null.
 ```
 
@@ -207,9 +235,67 @@ required; hot-body identity alone is not a throughput result.
 reports current for all 29, `all`, park and no-wake arms. Exact target list and
 return codes: `docs/perfio/production-targets.json` and
 `docs/perfio/production-complete-results.json`. `wbland_checks.py check clauses`
-passes 83/83 (`wbland-complete.log`). Earlier overlapping builds and deadline-only
-scheduler failures remain in historical receipts; the final serial proof below
+passes 83/83 (`wbland-complete.log`). Shell syntax, Python compilation and `git diff --check` for source/harness files
+also pass. The raw patch and captured console logs retain their original whitespace.
+Earlier overlapping builds and deadline-only scheduler failures remain in historical receipts; the final serial proof below
 supersedes them only where it actually passes.
 
-Final live/scheduler/smoke proof is still running. No full gate or full pfconfirm
-merit verdict has been claimed.
+**Focused final proof:**
+
+| Check | Result / receipt |
+|---|---|
+| `python3 tests/gates_test.py` | **66/66 PASS**, `gates-test-complete.log` |
+| `python3 tests/wbland_checks.py check clauses` | **83/83 PASS**, `wbland-complete.log` |
+| Redis differential, split 6:2 / 16 shards | **24/24 PASS**, `differ/complete-split.log` |
+| Redis differential, armed fused | **32/32 legs + 2/2 lane witnesses PASS**, `differ/complete-armed-fused.log` |
+| `tests/flip_close_controls.py` | Positive and deliberate-removal negative both expected, `flip-close-complete.log` |
+| `netio.py`, both modes × epoll/uring | **4/4 PASS**, `batteries/results.json` |
+| `flip.py` and `flip_under_load.py`, epoll/uring | **4/4 PASS**, same receipts |
+| `lb_stationary.py`, both modes × epoll/uring | **4/4 PASS on fresh boots**, `isolated-lb/all-results.json` |
+| Four added gate rows | All fail PRE and pass POST; receipts above |
+| Ledger inventory | **646 source labels = 646 fixture labels**; CLI refuses unchanged EXPECT_FULL=642 |
+
+Differential commands used seeds **7, 19, 20, 23**, atomics **0/1**, target
+**112–119**, oracle **120**, load **121–127**, ports **25130/25131**, and the
+unmodified focused interface of `tests/differ_gate.sh`. Requested suites were
+`stream`, `streamgrp`, `blocking`; armed fused also ran `string` to fire the
+mandatory read-local witness, since the three requested suites alone produce no
+lane-eligible reads. No witness was disabled. Suite/seed files are under
+`docs/perfio/differ/`. Reproduction:
+
+```sh
+taskset -c 112-127 env REDIS74_ROOT=/home/user/Projects/redis74 \
+  GATE_LOAD_CORES=121-127 GATE_DIFFER_ORACLE_CORES=120 \
+  GATE_DIFFER_GEOMETRY=split \
+  GATE_DIFFER_PROOF_SUITES="$PWD/docs/perfio/differ/suites.txt" \
+  GATE_DIFFER_PROOF_SEEDS="$PWD/docs/perfio/differ/seeds.txt" \
+  GATE_DIFFER_OUT="$PWD/build/perfio/differ-recheck-split" \
+  bash tests/differ_gate.sh "$PWD/build/tomokv" 25130 25131 112-119 6:2
+# Armed twin: GEOMETRY=armed-fused, suites=armed-suites.txt, a fresh OUT directory.
+```
+
+The first scheduler run under compiler contention failed six deadline checks;
+a later four-core run passed 65/66 and hit the one-slot fixture deadline. The final
+16-core run passed 66/66 with unchanged assertions. One earlier stationary-LB
+trial moved a bucket after the proof helper reused the server after `netio.py`.
+The helper now boots each battery separately, as the gate does. The stationary
+checks were repeated on fresh boots with their full 12-second stabilization and
+30-second assertion windows; no move was admitted or window shortened.
+
+**Pfconfirm smoke is not complete.** The unmodified quiet-box precondition refused
+all attempted runs, before any candidate workload. Initial PRE / POST screens
+reported **1.420 / 0.540 CPU seconds**, against **0.480 per 20 seconds**. The first final-binary PRE / POST attempts reported **4.630 / 5.120 CPU seconds**
+against the same budget. After this lane's other work stopped, one final bounded
+attempt still measured **16.350 / 16.400 CPU seconds** and refused both arms.
+All exits are **3 / REFUSED**, in
+`docs/perfio/pfconfirm-smoke-{pre,post}.log` and
+`docs/perfio/pfconfirm-smoke-{final,quiet}-{pre,post}.log` and their `quiet.json` /
+`campaign-error.json`. There is **no SMOKE_OK** receipt, and **no full NOT CONFIRMED
+verdict** yet. The concrete retry and mainline commands above use the final digests
+and fresh output paths. `docs/pfconfirm` is unchanged after the requested merge and
+perfex cherry-pick.
+
+Maintainer handoff: obtain SMOKE_OK on both arms on a quiet box; run full
+PFDATATY.1 and require **NOT CONFIRMED on POST**; run the main-command performance
+null; change EXPECT to **629 / 646** and run the full gate. This lane has not run
+the full gate or mainline merit campaign and has not pushed.
