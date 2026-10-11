@@ -1,0 +1,43 @@
+$ cd tests && taskset -c 89-95 python3 -m unittest -v lottery_runner_test lottery_evidence_test
+test_rate_limited_rows_name_their_pause_point (lottery_runner_test.CalibrationTests.test_rate_limited_rows_name_their_pause_point) ... ok
+test_changed_battery_anchor_refuses_to_run (lottery_runner_test.DriverTests.test_changed_battery_anchor_refuses_to_run) ... ok
+test_config_probe_follows_only_propagation_sleeps (lottery_runner_test.DriverTests.test_config_probe_follows_only_propagation_sleeps) ... LOTTERY battery sha256=2170b1b2743febf20ae3bca57600df1e7b9393347c715bc1abe99038da8f3db7 markers_only=1
+ok
+test_expiry_sections_are_marked_in_order_on_short_lived_connections (lottery_runner_test.DriverTests.test_expiry_sections_are_marked_in_order_on_short_lived_connections) ... LOTTERY battery sha256=316c9da2a2d079d702e1828727fc06435f0870089bd0279bf20d01210e71dcf7 markers_only=1
+ok
+test_all_witnesses_required (lottery_runner_test.RunnerTests.test_all_witnesses_required) ... ok
+test_cap_stops_new_attempts_but_never_cuts_one_short (lottery_runner_test.RunnerTests.test_cap_stops_new_attempts_but_never_cuts_one_short) ... ok
+test_exact_bounds (lottery_runner_test.RunnerTests.test_exact_bounds) ... ok
+test_failure_on_a_hit_stops_and_cannot_be_retried_away (lottery_runner_test.RunnerTests.test_failure_on_a_hit_stops_and_cannot_be_retried_away) ... ok
+test_failure_on_miss_also_fails (lottery_runner_test.RunnerTests.test_failure_on_miss_also_fails) ... ok
+test_inventory (lottery_runner_test.RunnerTests.test_inventory) ... ok
+test_k_hits_stop_immediately_with_rule_of_three_bound (lottery_runner_test.RunnerTests.test_k_hits_stop_immediately_with_rule_of_three_bound) ... ok
+test_known_quarter_rate_counts_attempts_not_events (lottery_runner_test.RunnerTests.test_known_quarter_rate_counts_attempts_not_events) ... ok
+test_missing_negative_bool_or_bad_counter_is_error (lottery_runner_test.RunnerTests.test_missing_negative_bool_or_bad_counter_is_error) ... ok
+test_missing_verdict_cannot_pass (lottery_runner_test.RunnerTests.test_missing_verdict_cannot_pass) ... ok
+test_never_opens_is_insufficient (lottery_runner_test.RunnerTests.test_never_opens_is_insufficient) ... ok
+test_seeded_fake_rate (lottery_runner_test.RunnerTests.test_seeded_fake_rate) ... ok
+test_timeout_cannot_hit_or_pass (lottery_runner_test.RunnerTests.test_timeout_cannot_hit_or_pass) ... ok
+test_completed_partial_frame_cannot_witness_a_later_window (lottery_evidence_test.EvidenceTests.test_completed_partial_frame_cannot_witness_a_later_window) ... ok
+test_config_requires_all_owners_and_every_checked_epoch (lottery_evidence_test.EvidenceTests.test_config_requires_all_owners_and_every_checked_epoch) ... ok
+test_empty_or_unrelated_trace_cannot_hit (lottery_evidence_test.EvidenceTests.test_empty_or_unrelated_trace_cannot_hit) ... ok
+test_exec_installed_requires_foreign_reader_in_exact_window (lottery_evidence_test.EvidenceTests.test_exec_installed_requires_foreign_reader_in_exact_window) ... ok
+test_expiry_requires_every_family_and_actual_deadline_crossing (lottery_evidence_test.EvidenceTests.test_expiry_requires_every_family_and_actual_deadline_crossing) ... ok
+test_fanout_straddle_and_wrong_order_controls (lottery_evidence_test.EvidenceTests.test_fanout_straddle_and_wrong_order_controls) ... ok
+test_flip_requires_inflight_work_at_request_and_progress_inside_window (lottery_evidence_test.EvidenceTests.test_flip_requires_inflight_work_at_request_and_progress_inside_window) ... ok
+test_move_requires_same_source_same_edge_between_selection_and_removal (lottery_evidence_test.EvidenceTests.test_move_requires_same_source_same_edge_between_selection_and_removal) ... ok
+test_pinned_flush_must_land_between_fragments (lottery_evidence_test.EvidenceTests.test_pinned_flush_must_land_between_fragments) ... ok
+test_reused_epoch_address_is_a_new_incarnation (lottery_evidence_test.EvidenceTests.test_reused_epoch_address_is_a_new_incarnation) ... ok
+test_snapshot_requires_partial_installs_not_just_pending_group (lottery_evidence_test.EvidenceTests.test_snapshot_requires_partial_installs_not_just_pending_group) ... ok
+test_stream_clock_witness_and_carry (lottery_evidence_test.EvidenceTests.test_stream_clock_witness_and_carry) ... ok
+test_tls_handshake_witness_needs_teardown_mid_handshake (lottery_evidence_test.EvidenceTests.test_tls_handshake_witness_needs_teardown_mid_handshake) ... ok
+test_tls_record_witness_needs_reassembly (lottery_evidence_test.EvidenceTests.test_tls_record_witness_needs_reassembly) ... ok
+test_trace_missing_footer_and_sequence_gap_are_errors (lottery_evidence_test.EvidenceTests.test_trace_missing_footer_and_sequence_gap_are_errors) ... ok
+test_tracking_fence_is_judged_when_the_collector_stops (lottery_evidence_test.EvidenceTests.test_tracking_fence_is_judged_when_the_collector_stops) ... ok
+test_wrong_key_or_unpinned_read_is_not_fanout_hit (lottery_evidence_test.EvidenceTests.test_wrong_key_or_unpinned_read_is_not_fanout_hit) ... ok
+
+----------------------------------------------------------------------
+Ran 34 tests in 0.131s
+
+OK
+exit=0

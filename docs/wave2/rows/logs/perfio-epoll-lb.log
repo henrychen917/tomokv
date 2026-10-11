@@ -1,0 +1,8 @@
+{"affinity": [89, 90, 91, 92, 93, 94, 95], "argv": ["taskset", "-c", "80-87", "/home/user/Projects/cx-wave2/build/tomokv", "--bind", "127.0.0.1", "--port", "22800", "--dir", "/home/user/Projects/cx-wave2/build/gate-run.dLNv6U/jobs/flip/perfio-epoll-lb/epoll-lb", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--databases", "1", "--thread-mode", "2s", "--shards", "16", "--net-io", "epoll", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--client-lb", "1", "--ratio", "6:2"], "event": "boot"}
+{"duplicates": 0, "event": "epoll", "phase": "lb-initial", "registrations": 97, "stale": 0}
+{"commands": 3841, "event": "events", "events": 3841, "per_command": 1.0, "phase": "lb-initial"}
+{"after": 1, "before": 0, "event": "lb-witness", "hot_clients": 22, "rounds": 3072}
+{"duplicates": 0, "event": "epoll", "phase": "lb-moved", "registrations": 97, "stale": 0}
+{"commands": 3841, "event": "events", "events": 3841, "per_command": 1.0, "phase": "lb-moved"}
+{"event": "stop", "pid": 758606, "rc": 0}
+{"case": "epoll-lb", "elapsed_s": 6.124103954993188, "result": "PASS"}

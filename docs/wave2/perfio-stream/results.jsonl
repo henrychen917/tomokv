@@ -1,0 +1,4 @@
+{"arm": "pre", "mode": "1s", "binary": "/home/user/Projects/cx-wave2/build/wave2/pre-src/build/tomokv", "sha256": "d4ddbcad16f7fa67fd47e47329fdf4a702c245c4d763f35bd61899de690f7a19", "exit_code": 1, "seconds": 1}
+{"arm": "pre", "mode": "2s", "binary": "/home/user/Projects/cx-wave2/build/wave2/pre-src/build/tomokv", "sha256": "d4ddbcad16f7fa67fd47e47329fdf4a702c245c4d763f35bd61899de690f7a19", "exit_code": 1, "seconds": 1}
+{"arm": "post", "mode": "1s", "binary": "/home/user/Projects/cx-wave2/build/tomokv", "sha256": "f7e597bf67e7d768ccf1f3d226f998def8bbea794b72e4a29d9529ad1991f5fa", "exit_code": 0, "seconds": 0}
+{"arm": "post", "mode": "2s", "binary": "/home/user/Projects/cx-wave2/build/tomokv", "sha256": "f7e597bf67e7d768ccf1f3d226f998def8bbea794b72e4a29d9529ad1991f5fa", "exit_code": 0, "seconds": 1}
