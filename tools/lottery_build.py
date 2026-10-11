@@ -6,9 +6,10 @@ match exactly once (explicit counts for shared bodies), or the build refuses.
 Ordinary all/ASAN/production-unit builds do not include lottery_hooks.h.
 """
 import argparse
+import hashlib
 import json
+import os
 from pathlib import Path
-import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -17,28 +18,37 @@ def prepare(output):
     output = output.resolve()
     if not output.is_relative_to(ROOT / 'build'):
         raise ValueError('witness source must stay inside this worktree/build')
-    output.mkdir(parents=True, exist_ok=True)
+    # Stage the whole copied tree in memory, then rewrite only files whose bytes
+    # changed. Unchanged files keep their mtime (no needless rebuild); changed
+    # files get a fresh one, so removing or editing an anchor can never leave a
+    # stale object behind an older copied-source timestamp.
+    staged = {}
     for name in ('src', 'third_party'):
-        shutil.copytree(ROOT / name, output / name, dirs_exist_ok=True)
-    (output / 'tests').mkdir(exist_ok=True)
-    shutil.copy2(ROOT / 'tests/lottery_hooks.h', output / 'tests/lottery_hooks.h')
-    shutil.copy2(ROOT / 'Makefile', output / 'Makefile')
+        for path in sorted((ROOT / name).rglob('*')):
+            if path.is_file():
+                staged[path.relative_to(ROOT).as_posix()] = (path.read_bytes(), path.stat().st_mode)
+    hooks = (ROOT / 'tests/lottery_hooks.h').read_bytes()
+    staged['tests/lottery_hooks.h'] = (hooks, 0o644)
+    staged['Makefile'] = ((ROOT / 'Makefile').read_bytes(), 0o644)
     changes = []
 
     def patch(path, old, new, count=1):
-        file = output / path
-        text = file.read_text()
+        data, mode = staged[path]
+        text = data.decode()
         if text.count(old) != count:
             raise ValueError(f'{path}: expected {count} anchors, found {text.count(old)}: {old[:80]}')
-        file.write_text(text.replace(old, new))
+        staged[path] = (text.replace(old, new).encode(), mode)
         changes.append(dict(path=path, anchor=old, replacement=new, count=count))
 
     def after(path, anchor, code, count=1):
         patch(path, anchor, anchor + '\n' + code, count)
 
     # Namespace-isolated trace state, compiled only in the copied tree.
+    # Objects depend on the copied Makefile, not on the forced include, so the
+    # hook digest lives in the Makefile: any hook edit rebuilds every object.
     after('Makefile', 'CXXFLAGS ?= -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread',
-          'override CXXFLAGS += -include tests/lottery_hooks.h')
+          'override CXXFLAGS += -include tests/lottery_hooks.h\n'
+          f'# lottery_hooks.h sha256={hashlib.sha256(hooks).hexdigest()}')
     after('src/cmd/t_server.cc', 'void cmd_debug_impl(Shard& shard, Op& op) {', '''
     if (op.arg(1).eq_icase("lottery")) {
         if (op.argc() == 5 && op.arg(2).eq_icase("arm")) {
@@ -76,6 +86,7 @@ def prepare(output):
                         for (const auto& key : state.write_keys)
                             lottery::event(lottery::bit(2)|lottery::bit(16), "exec_key",
                                 lottery::ptr(&state.epoch), key.hash, state.origin_conn_id, key.shard);
+                        // Its call-site stamp follows the last owner's join (lists_pending 0).
                         lottery::event(lottery::bit(2)|lottery::bit(16), "exec_installed",
                             lottery::ptr(&state.epoch), state.shards.size(), state.write_keys.size(),
                             state.origin_conn_id);
@@ -86,10 +97,16 @@ def prepare(output):
             lottery::event(lottery::bit(2)|lottery::bit(9)|lottery::bit(16), "exec_decision",
                            lottery::ptr(&epoch), ticket);
             epoch.store(ticket, std::memory_order_release);''')
+    # The reader stamps BEFORE it loads the decision word; seeing epoch 0 then
+    # proves the load preceded the decision store. Stamp > installed stamp
+    # puts the whole load inside the W16 window (all owners joined, undecided).
+    after('src/store/flatstore_atomic.inc',
+          '        auto consider = [&](AtomicEntry& owner, KvObj* candidate, bool is_physical) {',
+          '            const uint64_t lottery_seen = lottery::enabled(lottery::bit(16)) ? lottery::stamp() : 0;')
     after('src/store/flatstore_atomic.inc',
           '            if (owner.group_epoch && epoch == 0 && !own_committed) {', '''
                 lottery::event(lottery::bit(16), "foreign_undecided",
-                    lottery::ptr(owner.group_epoch), hash, snapshot, atomic_read_origin_conn_id_,
+                    lottery::ptr(owner.group_epoch), hash, lottery_seen, atomic_read_origin_conn_id_,
                     owner.origin_conn_id);''')
     after('src/cmd/scatter_engine.inc', '    dispatch.state = state;', '''
     if (!(op.spec->flags & (CmdFlags::Write|CmdFlags::SnapshotWrite)))
@@ -224,6 +241,19 @@ def prepare(output):
     after('src/cmd/multi.inc', '    op.attach_multi_state(dispatch);', '''
     lottery::event(lottery::bit(9), "apply_group", lottery::ptr(&dispatch->epoch),
                    dispatch->write_keys.size());''')
+    # W16 incarnations: a transaction publishes through state.epoch (plain
+    # installs) and each lowered child's scatter epoch; all open here, before
+    # the first task is visible. Any other scatter group re-opens its address.
+    after('src/cmd/multi.inc', '    op.attach_multi_state(dispatch);', '''
+    if (lottery::enabled(lottery::bit(16))) {
+        lottery::event(lottery::bit(16), "exec_open", lottery::ptr(&dispatch->epoch));
+        for (const auto& command : dispatch->commands)
+            if (command->scatter)
+                lottery::event(lottery::bit(16), "exec_child",
+                    lottery::ptr(&command->scatter->epoch), lottery::ptr(&dispatch->epoch));
+    }''')
+    after('src/cmd/scatter_engine.inc', '    dispatch.state = state;',
+          '    lottery::event(lottery::bit(16), "group_open", lottery::ptr(&state->epoch));')
     after('src/store/flatstore_atomic.inc', '        entry->count = index + 1;', '''
         lottery::event(lottery::bit(9), "apply_key", lottery::ptr(entry->group_epoch), hash);''')
     after('src/store/flatstore_atomic.inc', '        value = nullptr;\n        atomic_link_entry(*entry);', '''
@@ -253,16 +283,21 @@ def prepare(output):
     after('src/cmd/tracking.cc',
           'void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush) {',
           '    lottery::event(lottery::bit(13), "tracking_emit", target->id());')
-    # The reducer requires continuously overlapping admitted work intervals
-    # from request to completion. Any observed empty interval invalidates it.
-    # This is still not a throughput/stationarity proof of saturation.
-    after('src/core/ex_loop.h', '    bool execute(const Task& t) {', '''
-        lottery::Scope lottery_work(t.client ? lottery::bit(11) : 0,
-            "work_begin", "work_end", lottery::ptr(&t), self_->id());''')
-    after('src/core/server.h', '        const uint32_t live_io = role_count(Role::Ifid);',
-          '        lottery::event(lottery::bit(11), "flip_begin", flip_completed());')
-    after('src/core/server.h', '        flip_last_transfers_.store(transfers, std::memory_order_relaxed);',
-          '        lottery::event(lottery::bit(11), "flip_end", flip_completed());')
+    # W11 reads the EXISTING per-thread client-work epochs (odd = inside an
+    # executor's ClientWorkScope) at the admitted FLIP request and again at its
+    # completion. Cold FLIP bodies only; nothing is added to execute().
+    after('src/core/server.h', '        const uint32_t live_io = role_count(Role::Ifid);', '''
+        if (lottery::enabled(lottery::bit(11)))
+            for (uint32_t lottery_tid = 0; lottery_tid < nthreads(); ++lottery_tid)
+                lottery::event(lottery::bit(11), "flip_work", flip_completed(), lottery_tid,
+                    client_work_epoch(lottery_tid), uint64_t(thread(lottery_tid).role()));
+        lottery::event(lottery::bit(11), "flip_begin", flip_completed());''')
+    after('src/core/server.h', '        flip_last_transfers_.store(transfers, std::memory_order_relaxed);', '''
+        if (lottery::enabled(lottery::bit(11)))
+            for (uint32_t lottery_tid = 0; lottery_tid < nthreads(); ++lottery_tid)
+                lottery::event(lottery::bit(11), "flip_work_end", flip_completed(), lottery_tid,
+                    client_work_epoch(lottery_tid), uint64_t(thread(lottery_tid).role()));
+        lottery::event(lottery::bit(11), "flip_end", flip_completed());''')
     after('src/net/tls.cc', '    const int result = SSL_accept(ssl_);', '''
     lottery::event(lottery::bit(12), "ssl_handshake", lottery::ptr(this),
                    BIO_number_read(SSL_get_rbio(ssl_)), result == 1,
@@ -277,12 +312,33 @@ def prepare(output):
     after('src/cmd/t_server.cc', '    if (eq_icase(subcommand, "lbsignals") && op.argc() == 2) {',
           '        lottery::event(lottery::bit(10), "lbsignals");')
 
-    (output / 'lottery-patches.json').write_text(json.dumps(changes, indent=2) + '\n')
-    return changes
+    staged['lottery-patches.json'] = (
+        (json.dumps(changes, indent=2) + '\n').encode(), 0o644)
+    written = 0
+    for relative, (data, mode) in sorted(staged.items()):
+        target = output / relative
+        if target.is_file() and target.read_bytes() == data:
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        temporary = target.with_name(target.name + '.lottery-tmp')
+        temporary.write_bytes(data)
+        os.chmod(temporary, mode & 0o777)
+        temporary.replace(target)
+        written += 1
+    # A copied file whose source vanished must not keep compiling.
+    for name in ('src', 'third_party', 'tests'):
+        root = output / name
+        if root.is_dir():
+            for path in sorted(root.rglob('*')):
+                if path.is_file() and path.relative_to(output).as_posix() not in staged:
+                    path.unlink()
+                    written += 1
+    return changes, written
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output', type=Path)
     args = parser.parse_args()
-    print(f'{len(prepare(args.output))} reviewed witness anchors')
+    changes, written = prepare(args.output)
+    print(f'{len(changes)} reviewed witness anchors; {written} copied files rewritten')

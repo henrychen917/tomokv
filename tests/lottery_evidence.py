@@ -19,29 +19,42 @@ class Event:
     d: int = 0
     ns: int = 0
     ms: int = 0
+    seq: int = 0    # call-site stamp (0 in serverless controls: keep list order)
 
 
 def trace(path, pid):
+    """Parse a complete trace; records come back in call-site (stamp) order."""
+    events = []
     with Path(path).open() as stream:
         header = stream.readline().split()
-        if len(header) != 3 or header[:2] != ['LOTTERY1', str(pid)]:
+        if len(header) != 3 or header[:2] != ['LOTTERY2', str(pid)]:
             raise ValueError('missing/wrong-process lottery trace header')
         int(header[2])
-        count = 0
+        count, last_ns, stamps = 0, -1, set()
         for line in stream:
             fields = line.split()
-            if fields[0] == 'END':
+            if fields and fields[0] == 'END':
                 if fields != ['END', str(count), '1'] or stream.read():
                     raise ValueError('overflow, I/O error, or trailing trace data')
-                return
-            if len(fields) != 9 or int(fields[0]) != count + 1:
+                break
+            if len(fields) != 10 or int(fields[0]) != count + 1:
                 raise ValueError('missing/reordered/malformed trace record')
             count += 1
             numbers = list(map(int, fields[2:]))
             if any(n < 0 for n in numbers):
                 raise ValueError('negative trace word')
-            yield Event(fields[1], *numbers)
-        raise ValueError('missing trace footer')
+            event = Event(fields[1], *numbers)
+            # Records are written in mutex order: the clock is monotonic there.
+            if event.ns < last_ns:
+                raise ValueError('trace clock regressed')
+            if event.seq <= 0 or event.seq in stamps:
+                raise ValueError('missing/duplicate call-site stamp')
+            last_ns = event.ns
+            stamps.add(event.seq)
+            events.append(event)
+        else:
+            raise ValueError('missing trace footer')
+    return sorted(events, key=lambda e: e.seq)
 
 
 def reduce_events(events):
@@ -52,14 +65,11 @@ def reduce_events(events):
     timers, partial, tls_ids, ssl, tls_inputs = {}, {}, {}, {}, set()
     tracking_pending, tracking_checks = set(), []
     tracking_emitted = 0
-    work, flips = set(), {}
+    flip_work, flips = {}, {}
+    exec_records, exec_owner = {}, {}
     section = None
     sections = Counter()
-    last_ns = -1
-    for e in events:
-        if e.ns < last_ns:
-            raise ValueError('trace clock regressed')
-        last_ns = e.ns
+    for e in sorted(events, key=lambda e: e.seq):
         k = e.kind
         if k == 'config_ex':
             config_ex[e.id] = e.a
@@ -76,29 +86,55 @@ def reduce_events(events):
             installed.pop(e.id, None)
         elif k == 'exec_key':
             groups.setdefault(e.id, dict(keys=set(), conn=e.b))['keys'].add(e.a)
+            if e.id in exec_records:
+                exec_records[e.id]['keys'].add(e.a)
+        elif k == 'exec_open':
+            # A new incarnation of this transaction's epoch address.
+            exec_records[e.id] = exec_owner[e.id] = dict(keys=set(), installed=None)
+        elif k == 'exec_child':
+            exec_owner[e.id] = exec_records.get(e.a)
+        elif k == 'group_open':
+            exec_owner[e.id] = None      # a non-EXEC scatter group reuses the address
         elif k == 'exec_installed':
             if e.a > 1 and e.b > 0:
                 installed[e.id] = e.c
+                if e.id in exec_records:
+                    # (EXEC connection, call-site stamp after the last owner joined)
+                    exec_records[e.id]['installed'] = (e.c, e.seq)
         elif k == 'foreign_undecided':
-            if (e.id in installed and e.id in groups and e.a in groups[e.id]['keys']
-                    and e.c != e.d and e.d == installed[e.id]):
-                counts['W16'] += 1
+            # b = reader's stamp taken BEFORE it loaded the decision word, which
+            # it then saw undecided (0): that load lies after the last owner's
+            # join and before the decision store. The record may be written
+            # after the decision; the incarnation stays until its address re-opens.
+            group = exec_owner.get(e.id)
+            if group and e.c != e.d:
+                done = group['installed']
+                if done and e.a in group['keys'] and e.d == done[0] and e.b > done[1]:
+                    counts['W16'] += 1
+                else:
+                    counts['W16.installing'] += 1
         elif k == 'exec_decision':
             installed.pop(e.id, None)
             if e.id in groups:
-                decisions[e.a] = groups.pop(e.id)
+                group = groups.pop(e.id)
+                # Stamped BEFORE the decision store: fragments already finished
+                # here read entirely before the writer became visible.
+                group['before'] = {rid: set(r['finished_keys']) for rid, r in reads.items()
+                                   if r['done']}
+                decisions[e.a] = group
             apply.pop(e.id, None)
         elif k == 'commit':
+            # Stamped AFTER every decision store of the batch.
             for ticket in range(e.a, e.a + e.b):
                 group = decisions.pop(ticket, None)
                 if not group:
                     continue
-                for r in reads.values():
-                    # First fragment finished, some other fragment has not yet
-                    # begun, and the writer touches that reader's first keys.
-                    if (r['done'] and len(r['begun']) < r['n'] and
-                            group['conn'] != r['conn'] and
-                            group['keys'] & r['finished_keys']):
+                for rid, finished in group['before'].items():
+                    r = reads.get(rid)
+                    # A finished fragment read the writer's keys before the
+                    # store, and some fragment of the same read has not begun.
+                    if (r and len(r['begun']) < r['n'] and group['conn'] != r['conn'] and
+                            group['keys'] & finished):
                         r['commits'].append((set(r['begun']), group['keys']))
         elif k == 'read_new':
             reads[e.id] = dict(n=e.a, cut=e.b, conn=e.c, begun=set(), done=set(),
@@ -118,7 +154,9 @@ def reduce_events(events):
         elif k == 'read_drop':
             reads.pop(e.id, None)
         elif k == 'flush':
-            if any(r['done'] and len(r['done']) < r['n'] and
+            # FLUSH (stamped before it clears) between fragments of one pinned
+            # read: a fragment finished, and another has not begun reading.
+            if any(r['done'] and len(r['begun']) < r['n'] and
                    r['cut'] != (1 << 64) - 1 for r in reads.values()):
                 counts['W2.pin_flush'] += 1
         elif k == 'ryow_defer':
@@ -173,17 +211,22 @@ def reduce_events(events):
         elif k == 'snapshot_drain' and e.a > 0:
             if any(0 < len(keys) < total for total, keys in apply.values()):
                 counts['W9'] += 1
-        elif k == 'work_begin':
-            work.add(e.id)
-        elif k == 'work_end':
-            work.discard(e.id)
-            if not work:
-                for flip in flips:
-                    flips[flip] = False
+        elif k in ('flip_work', 'flip_work_end'):
+            # Existing per-thread ClientWorkScope epochs: odd = inside client work.
+            flip_work.setdefault((k, e.id), {})[e.a] = e.b
         elif k == 'flip_begin':
-            flips[e.id] = bool(work)
-        elif k == 'flip_end' and flips.pop(e.id, False):
-            counts['W11'] += 1
+            flips[e.id] = flip_work.pop(('flip_work', e.id), {})
+        elif k == 'flip_end':
+            begin = flips.pop(e.id, None)
+            end = flip_work.pop(('flip_work_end', e.id), {})
+            if begin is not None:
+                counts['W11.flips'] += 1
+                busy = any(epoch & 1 for epoch in begin.values())
+                # Client work scopes that closed inside the admitted FLIP window.
+                progressed = sum(max(0, end.get(t, epoch) - epoch) // 2
+                                 for t, epoch in begin.items())
+                if busy and progressed > 0:
+                    counts['W11.loaded'] += 1
         elif k == 'tls_identity':
             tls_ids[e.id] = e.a
         elif k == 'tls_input':
@@ -210,21 +253,31 @@ def reduce_events(events):
         elif k == 'tracking_compare_begin':
             tracking_checks.append(not tracking_pending)
         elif k in ('tracking_compare_zero', 'tracking_compare_data'):
-            tracking_checks.append(not tracking_pending)
-            if k == 'tracking_compare_zero' and tracking_emitted:
-                raise ValueError('negative tracking drain missed emitted invalidation(s)')
+            # A drain that collected nothing although the server emitted an
+            # invalidation since the previous comparison was not fenced: miss.
+            tracking_checks.append(not tracking_pending and not (
+                k == 'tracking_compare_zero' and tracking_emitted))
             tracking_emitted = 0
         elif k == 'save_admitted':
             counts['W14'] += 1
         elif k == 'stream_clock':
-            # Exact owner's cached cut, not IO TIME +/- an arbitrary tolerance.
-            if e.c == max(e.a, e.b):
-                counts['W15'] += 1
+            # Exact owner's cached cut, not IO TIME +/- an arbitrary tolerance:
+            # ms = max(owner now, last ms), or last ms + 1 when the sequence carried.
+            if e.c == max(e.a, e.b) or (e.a <= e.b and e.c == e.b + 1 and e.d == 0):
+                counts['W15.observed'] += 1
             else:
-                raise ValueError('auto stream ID disagrees with its owner clock')
+                counts['W15.mismatch'] += 1
     counts['W1'] = int(bool(checks) and all(checks))
+    # Every applied FLIP in the attempt must have met in-flight client work at
+    # its admitted request and completed client work inside its window. This is
+    # sampled occupancy, not the held-backlog W11 latch (a pause point).
+    counts['W11'] = int(counts['W11.flips'] > 0 and
+                        counts['W11.loaded'] == counts['W11.flips'])
     counts['W13'] = int(bool(tracking_checks) and all(tracking_checks) and not tracking_pending)
     counts['W4'] = int(all(sections[f'expiry_section_{s}'] for s in ('fanout', 'exec', 'script')))
+    # Any auto ID not derived from its owner's clock cut voids the witness (a miss,
+    # never a new pass/fail assertion: the differential comparison stays the oracle).
+    counts['W15'] = 0 if counts['W15.mismatch'] else counts['W15.observed']
     return counts
 
 
@@ -242,4 +295,9 @@ def observed(row, events, log, before, after):
         if delta < 0:
             raise ValueError('snapshot counter regressed')
         counts['W8'] = delta
-    return {key: counts[key] for key in row['requires']}
+    # Required counters decide the hit; same-primitive sub-counters are diagnostics.
+    primitives = {key.split('.')[0] for key in row['requires']}
+    result = {key: counts[key] for key in row['requires']}
+    result.update({key: value for key, value in counts.items()
+                   if key not in result and key.split('.')[0] in primitives})
+    return result
