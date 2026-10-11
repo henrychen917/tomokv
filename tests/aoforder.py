@@ -53,8 +53,18 @@ def single():
         roles = _lib.topology(admin).roles
         writer_tid = max(tid for tid, role in roles.items() if role in ('io', 'fused'))
         keys = keys_on_two_owners(admin, (writer_tid,) if rewrite else ())
+        operation = h.ARGS.operation
         for key in keys:
-            assert admin.cmd('SET', key, '0') == b'OK'
+            if operation != 'MSETNX':
+                assert admin.cmd('SET', key, '0') == b'OK'
+        commands = {
+            'MSET': (['MSET', keys[0], '1', keys[1], '1'], [b'1', b'1'], 0, b'OK'),
+            'MSETNX': (['MSETNX', keys[0], '1', keys[1], '1'], [b'1', b'1'], 0, 1),
+            'DEL': (['DEL', *keys], [None, None], 0, 2),
+            'UNLINK': (['UNLINK', *keys], [None, None], 0, 2),
+            'RENAME': (['RENAME', *keys], [None, b'0'], 1, b'OK'),
+        }
+        command, expected, victim, group_reply = commands[operation]
         marker = server.data / 'appendonlydir/debug-aof-rewrite-stage'
         try:
             if rewrite:
@@ -66,26 +76,30 @@ def single():
             before = stats(admin)
             assert admin.cmd('DEBUG', 'ATOMIC-COMMIT-HOLD', '1') == b'OK'
             try:
-                group.send('MSET', keys[0], '1', keys[1], '1')
+                group.send(*command)
                 armed = wait_for(lambda: (s if (s := stats(admin))['atomic_pending_entries'] >= 2
                                          else None), 'group did not install on both shards')
                 assert not select.select([group.s], [], [], 0)[0], 'held group replied'
-                writer.send('SET', keys[0], '9')
-                wait_for(lambda: admin.cmd('GET', keys[0]) == b'9',
+                writer.send('SET', keys[victim], '9')
+                wait_for(lambda: admin.cmd('GET', keys[victim]) == b'9',
                          'plain SET did not execute beneath the undecided group')
                 h.emit('armed', before=before, after=armed,
                        held_values=admin.cmd('MGET', *keys),
                        plain_reply_ready=bool(select.select([writer.s], [], [], 0)[0]))
             finally:
+                # The before-manifest hook parks the writer thread itself. Release it
+                # after witnessing both post-cut writes, before the commit-release
+                # command can acquire an AOF reply fence that needs that writer.
+                marker.unlink(missing_ok=True)
                 assert admin.cmd('DEBUG', 'ATOMIC-COMMIT-HOLD', '0') == b'OK'
         finally:
             marker.unlink(missing_ok=True)
-        assert group.read() == b'OK'
+        assert group.read() == group_reply
         assert writer.read() == b'OK'
         if rewrite:
             h.emit('rewrite_finished', info=h.wait_rewrite(admin))
         live = admin.cmd('MGET', *keys)
-        assert live == [b'1', b'1'], live
+        assert live == expected, live
         assert admin.cmd('DEBUG', 'LOADAOF') == b'OK'
         reloaded = admin.cmd('MGET', *keys)
         h.emit('loadaof', live=live, reloaded=reloaded, equal=live == reloaded)
@@ -130,12 +144,46 @@ def crossing():
     assert reloaded == live and restarted == live, 'F3: crossing groups replay a torn pair'
 
 
+def pop():
+    """LMPOP's AOF group id is drawn after its already-visible single-key mutation."""
+    options = h.aof(h.ARGS.policy) + ['--atomic', '1', '--databases', str(h.ARGS.databases)]
+    with h.Server(options) as server:
+        admin, group, writer = (server.client(timeout=10) for _ in range(3))
+        keys = keys_on_two_owners(admin)
+        assert admin.cmd('RPUSH', keys[0], 'x', 'y') == 2
+        assert admin.cmd('DEBUG', 'ATOMIC-COMMIT-HOLD', '1') == b'OK'
+        try:
+            group.send('LMPOP', 2, *keys, 'LEFT')
+            wait_for(lambda: admin.cmd('LRANGE', keys[0], 0, -1) == [b'y'],
+                     'LMPOP did not execute before its AOF decision')
+            assert not select.select([group.s], [], [], 0)[0]
+            writer.send('SET', keys[0], '9')
+            wait_for(lambda: admin.cmd('TYPE', keys[0]) == b'string' and
+                     admin.cmd('GET', keys[0]) == b'9', 'plain write did not execute')
+            h.emit('pop_armed', remaining=['y'], plain='9')
+        finally:
+            assert admin.cmd('DEBUG', 'ATOMIC-COMMIT-HOLD', '0') == b'OK'
+        assert group.read() == [keys[0].encode(), [b'x']]
+        assert writer.read() == b'OK'
+        live = [admin.cmd('TYPE', keys[0]), admin.cmd('DUMP', keys[0])]
+        assert admin.cmd('DEBUG', 'LOADAOF') == b'OK'
+        reloaded = [admin.cmd('TYPE', keys[0]), admin.cmd('DUMP', keys[0])]
+        h.emit('loadaof', live=live, reloaded=reloaded, equal=live == reloaded)
+    with h.Server(options) as server:
+        client = server.client()
+        restarted = [client.cmd('TYPE', keys[0]), client.cmd('DUMP', keys[0])]
+        h.emit('restart', live=live, restarted=restarted, equal=live == restarted)
+    assert reloaded == live and restarted == live, 'LMPOP group id is not its mutation ticket'
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--artifacts', type=Path, required=True)
     parser.add_argument('--mode', choices=('1s', '2s'), required=True)
     parser.add_argument('--case', choices=('single', 'crossing', 'rewrite'), default='single')
+    parser.add_argument('--operation', choices=('MSET', 'MSETNX', 'DEL', 'UNLINK', 'RENAME', 'LMPOP'),
+                        default='MSET')
     parser.add_argument('--policy', choices=('no', 'everysec', 'always'), default='everysec')
     parser.add_argument('--engine', choices=('uring', 'epoll'), default='uring')
     parser.add_argument('--cores', default='96-103')
@@ -151,7 +199,7 @@ def main():
     h.emit('arm', binary=str(args.binary),
            sha256=hashlib.sha256(args.binary.read_bytes()).hexdigest(),
            mode=args.mode, policy=args.policy, databases=args.databases)
-    (crossing if args.case == 'crossing' else single)()
+    (crossing if args.case == 'crossing' else pop if args.operation == 'LMPOP' else single)()
 
 
 if __name__ == '__main__':
