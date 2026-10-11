@@ -261,10 +261,12 @@ def reduce_events(events):
         elif k == 'tracking_emit':
             tracking_emitted += 1
         elif k == 'tracking_compare_begin':
-            tracking_checks.append(not tracking_pending)
+            # Diagnostic only: an in-flight event the collector then drained is fine.
+            counts['W13.pending_at_begin'] += bool(tracking_pending)
         elif k in ('tracking_compare_zero', 'tracking_compare_data'):
-            # A drain that collected nothing although the server emitted an
-            # invalidation since the previous comparison was not fenced: miss.
+            # The fence: when the collector stopped, no posted invalidation was
+            # still undelivered, and a drain that collected nothing had no
+            # emission since the previous comparison. Otherwise a miss.
             tracking_checks.append(not tracking_pending and not (
                 k == 'tracking_compare_zero' and tracking_emitted))
             tracking_emitted = 0

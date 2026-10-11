@@ -117,15 +117,25 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(reduce_events(events[1:])['W1'], 0)
         self.assertEqual(reduce_events(events + [E('config_check', 0, 6, 2)])['W1'], 0)
 
-    def test_tracking_pending_event_makes_fence_a_miss(self):
-        post, done, check = E('tracking_post', 9, 3), E('tracking_end', 9, 3), E('tracking_compare_begin')
-        self.assertEqual(reduce_events([post, done, check])['W13'], 1)
-        self.assertEqual(reduce_events([post, check, done])['W13'], 0)
-        self.assertEqual(reduce_events([post, check])['W13'], 0)
-        emitted = [post, done, E('tracking_emit', 7), check]
-        self.assertEqual(reduce_events(emitted + [E('tracking_compare_zero')])['W13'], 0)
-        self.assertEqual(reduce_events(emitted + [E('tracking_compare_data')])['W13'], 1)
-        self.assertEqual(reduce_events([post, done, check, E('tracking_compare_zero')])['W13'], 1)
+    def test_tracking_fence_is_judged_when_the_collector_stops(self):
+        post, done = E('tracking_post', 9, 3), E('tracking_end', 9, 3)
+        begin, data, zero = (E('tracking_compare_begin'), E('tracking_compare_data'),
+                             E('tracking_compare_zero'))
+        self.assertEqual(reduce_events([post, done, begin, data])['W13'], 1)
+        # In flight at the start but delivered before the collector stopped: fenced.
+        counts = reduce_events([post, begin, done, data])
+        self.assertEqual((counts['W13'], counts['W13.pending_at_begin']), (1, 1))
+        # Still undelivered when the collector stopped: the comparison was unfenced.
+        self.assertEqual(reduce_events([post, begin, data, done])['W13'], 0)
+        self.assertEqual(reduce_events([post, begin, zero])['W13'], 0)
+        # A zero drain after an emission it never collected is unfenced too.
+        emitted = [post, done, E('tracking_emit', 7), begin]
+        self.assertEqual(reduce_events(emitted + [zero])['W13'], 0)
+        self.assertEqual(reduce_events(emitted + [data])['W13'], 1)
+        self.assertEqual(reduce_events([post, done, begin, zero])['W13'], 1)
+        # No comparison at all is not a witness; a later unfenced one voids the leg.
+        self.assertEqual(reduce_events([post, done])['W13'], 0)
+        self.assertEqual(reduce_events([post, done, begin, data, post, begin, data])['W13'], 0)
 
     def flip(self, flip, begin, end, queued=0):
         events = [E('flip_work', flip, t, epoch, 2, queued) for t, epoch in begin.items()]
