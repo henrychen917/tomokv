@@ -1,0 +1,27 @@
+Json file docs/perfio/nt4-counts/2s-SET-1024-p32-c512.json created...
+Writing results to stdout
+[RUN #1] Preparing benchmark client...
+[RUN #1] Launching threads now...
+[RUN #1 100%,   0 secs]  0 threads 128 conns:     1000448 ops,       0 (avg: 1897134) ops/sec, 0.00KB/sec (avg: 1.89GB/sec),  0.00 (avg:  8.60) msec latency
+
+
+CPU Utilization Summary
+  Total CPU time:   1.561s  (user 0.732s, sys 0.829s)
+  Wall time:        0.556s
+  Cores used:       2.809   (avg 69.7% across 4 worker threads)
+  Peak utilization: 0.0%
+Saving JSON output file: docs/perfio/nt4-counts/2s-SET-1024-p32-c512.json
+Json file closed.
+4         Threads
+128       Connections per thread
+1954      Requests per client
+
+
+ALL STATS
+============================================================================================================================
+Type         Ops/sec     Hits/sec   Misses/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
+----------------------------------------------------------------------------------------------------------------------------
+Sets      1896522.77          ---          ---         8.59798         8.25500        37.88700        43.26300   1986241.34 
+Gets            0.00         0.00         0.00             ---             ---             ---             ---         0.00 
+Waits           0.00          ---          ---             ---             ---             ---             ---          --- 
+Totals    1896522.77         0.00         0.00         8.59798         8.25500        37.88700        43.26300   1986241.34 

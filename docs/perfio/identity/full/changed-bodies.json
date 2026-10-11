@@ -84,7 +84,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 3873,
-    "post_size": 3474,
+    "post_size": 3518,
     "classification": "other"
   },
   {
@@ -183,7 +183,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 4926,
-    "post_size": 5069,
+    "post_size": 5053,
     "classification": "other"
   },
   {
@@ -469,7 +469,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 1429,
-    "post_size": 1413,
+    "post_size": 1371,
     "classification": "other"
   },
   {
@@ -480,7 +480,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 3873,
-    "post_size": 3474,
+    "post_size": 3518,
     "classification": "other"
   },
   {
@@ -568,7 +568,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 4941,
-    "post_size": 5102,
+    "post_size": 5101,
     "classification": "other"
   },
   {

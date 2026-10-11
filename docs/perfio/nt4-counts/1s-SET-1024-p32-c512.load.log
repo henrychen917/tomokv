@@ -1,0 +1,31 @@
+Json file docs/perfio/nt4-counts/1s-SET-1024-p32-c512.json created...
+Writing results to stdout
+[RUN #1] Preparing benchmark client...
+[RUN #1] Launching threads now...
+[RUN #1 100%,   0 secs]  0 threads 128 conns:     1000448 ops,       0 (avg: 2290465) ops/sec, 0.00KB/sec (avg: 2.29GB/sec),  0.00 (avg:  7.10) msec latency
+
+
+CPU Utilization Summary
+  Total CPU time:   1.759s  (user 0.897s, sys 0.862s)
+  Wall time:        0.464s
+  Cores used:       3.792   (avg 94.3% across 4 worker threads)
+  Peak utilization: 0.0%
+warning: thread 0 averaged 96.3% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
+warning: thread 1 averaged 95.9% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
+warning: thread 2 averaged 95.8% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
+warning: thread 3 averaged 95.6% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
+Saving JSON output file: docs/perfio/nt4-counts/1s-SET-1024-p32-c512.json
+Json file closed.
+4         Threads
+128       Connections per thread
+1954      Requests per client
+
+
+ALL STATS
+============================================================================================================================
+Type         Ops/sec     Hits/sec   Misses/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
+----------------------------------------------------------------------------------------------------------------------------
+Sets      2307545.76          ---          ---         7.09881         6.43100        24.95900        31.61500   2416708.54 
+Gets            0.00         0.00         0.00             ---             ---             ---             ---         0.00 
+Waits           0.00          ---          ---             ---             ---             ---             ---          --- 
+Totals    2307545.76         0.00         0.00         7.09881         6.43100        24.95900        31.61500   2416708.54 

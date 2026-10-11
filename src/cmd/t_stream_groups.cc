@@ -321,8 +321,7 @@ bool tombstones_after(const StreamVal& value, const StreamID& cursor) {
 int64_t infer_entries_read(const StreamVal& value, const StreamID& delivered) {
     const StreamHeader& header = value.header;
     if (!header.entries_added) return 0;
-    if (header.entries_added > INT64_MAX) return -1;
-    const int64_t added = static_cast<int64_t>(header.entries_added);
+    const int64_t added = std::bit_cast<int64_t>(header.entries_added);
     const uint64_t length = value.entries();
     const int last = id_compare(delivered, header.last_id);
     if (!length && last <= 0) return added;
@@ -334,7 +333,7 @@ int64_t infer_entries_read(const StreamVal& value, const StreamID& delivered) {
         id_compare(header.max_deleted_entry_id, value.first_id) < 0) {
         const int first = id_compare(delivered, value.first_id);
         if (first <= 0 && length <= header.entries_added)
-            return added - static_cast<int64_t>(length) + (first == 0);
+            return std::bit_cast<int64_t>(header.entries_added - length + (first == 0));
     }
     return -1;
 }
@@ -350,7 +349,7 @@ bool group_lag(KvObj* object, const StreamHeader& header, const StreamGroup& gro
     }
     const int64_t read = group.entries_read != -1 && !tombstones_after(value, group.last_delivered)
         ? group.entries_read : infer_entries_read(value, group.last_delivered);
-    if (read == -1 || header.entries_added > INT64_MAX) return false;
+    if (read == -1) return false;
     lag = std::bit_cast<int64_t>(header.entries_added - static_cast<uint64_t>(read));
     return true;
 }

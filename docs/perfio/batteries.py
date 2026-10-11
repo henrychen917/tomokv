@@ -33,3 +33,5 @@ for engine in ("epoll","uring"):
                 rows.append(row)
                 print(json.dumps(row),flush=True)
                 (out/"results.json").write_text(json.dumps(rows,indent=2)+"\n")
+
+raise SystemExit(0 if all(row["exit"] == 0 for row in rows) else 1)

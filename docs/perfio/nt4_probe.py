@@ -44,7 +44,7 @@ def main():
                 continue
             opts = SimpleNamespace(binary=args.binary, output=args.output, port=args.port,
                 cores="112-119", mode=mode, ratio="6:2", net_io="uring", oracle=False, read_local=0)
-            extra = ["--key-lb", "1", "--client-lb", "1"]
+            extra = ["--atomic", "1", "--key-lb", "1", "--client-lb", "1"]
             # boot() defaults to armed-fused for correctness. Incidence uses the paper rl=0.
             opts.mode = mode
             tlsflags = ["--tls-port", str(args.port+1), "--tls-auth-clients", "no",
@@ -55,6 +55,7 @@ def main():
                     for start in range(1,1025,64):
                         c.raw(b"".join(encode("SET", f"memtier-{i}", b"v"*size) for i in range(start,start+64)))
                         for _ in range(64): assert c.read() == b"OK"
+                if command == "GET": assert c.must("GET", "memtier-1") == b"v"*size
                 if command == "MSET": c.must("MSET", "memtier-1", "v")
                 if command == "SET": c.must("SET", "memtier-1", "v")
                 if command == "MSET":

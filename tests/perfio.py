@@ -237,7 +237,8 @@ def metadata(c):
     def read(count=1):
         return c.must("XREADGROUP", "GROUP", "g", "c", "COUNT", count, "STREAMS", "x", ">")
     cases = ("plain", "xdel-ahead", "xdel-cursor", "xtrim", "xsetid", "xclaim",
-             "xautoclaim", "entriesread", "arbitrary", "tail", "reload", "trim-empty", "entriesread-max", "entriesread-nearmax")
+             "xautoclaim", "entriesread", "arbitrary", "tail", "reload", "trim-empty", "entriesread-max", "entriesread-nearmax",
+             "entriesadded-wrap", "entriesadded-tail")
     for case in cases:
         c.must("DEL", "x")
         populate(c, 8)
@@ -258,6 +259,11 @@ def metadata(c):
         elif case in ("entriesread", "entriesread-max", "entriesread-nearmax"):
             value = {"entriesread": 40, "entriesread-max": 2**63-1, "entriesread-nearmax": 2**63-2}[case]
             c.must("XGROUP", "SETID", "x", "g", "2-0", "ENTRIESREAD", value)
+        elif case in ("entriesadded-wrap", "entriesadded-tail"):
+            c.must("XSETID", "x", "8-0", "ENTRIESADDED", 2**63-1)
+            c.must("XADD", "x", "9-0", "f", "v")
+            c.must("XADD", "x", "10-0", "f", "v")
+            if case == "entriesadded-tail": c.must("XGROUP", "SETID", "x", "g", "8-0")
         elif case == "tail": c.must("XADD", "x", "9-0", "f", "v")
         elif case == "reload": c.must("DEBUG", "RELOAD")
         elif case == "trim-empty": c.must("XTRIM", "x", "MAXLEN", 0)

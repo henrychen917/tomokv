@@ -1,1 +1,1 @@
-netio(epoll): 37 checks, 0 failures, epoll_events=572 epoll_recvs=204 worst_wake=9.1ms -> PASS
+netio(epoll): 37 checks, 0 failures, epoll_events=556 epoll_recvs=204 worst_wake=1.0ms -> PASS

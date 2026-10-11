@@ -1,0 +1,40 @@
+Json file docs/perfio/nt4-counts/1s-GET-4096-p32-c512-tls.json created...
+Writing results to stdout
+[RUN #1] Preparing benchmark client...
+[RUN #1] Launching threads now...
+TLS connection established: protocol TLSv1.3, cipher TLS_AES_128_GCM_SHA256
+[RUN #1 37%,   0 secs]  4 threads 128 conns:      372530 ops,  398514 (avg:  398514) ops/sec, 1.54GB/sec (avg: 1.54GB/sec), 40.11 (avg: 40.11) msec latency
+warning: high CPU on thread 0: 98.0% of a core (threshold 95.0%) - results may be unreliable
+
+warning: high CPU on thread 1: 97.9% of a core (threshold 95.0%) - results may be unreliable
+
+warning: high CPU on thread 2: 98.0% of a core (threshold 95.0%) - results may be unreliable
+
+warning: high CPU on thread 3: 98.1% of a core (threshold 95.0%) - results may be unreliable
+[RUN #1 73%,   1 secs]  4 threads 128 conns:      731677 ops,  362542 (avg:  380006) ops/sec, 1.40GB/sec (avg: 1.46GB/sec), 45.23 (avg: 42.62) msec latency[RUN #1 100%,   2 secs]  0 threads 128 conns:     1000448 ops,  362542 (avg:  398087) ops/sec, 1.40GB/sec (avg: 1.53GB/sec), 45.23 (avg: 40.99) msec latency
+
+
+CPU Utilization Summary
+  Total CPU time:   11.009s  (user 4.642s, sys 6.367s)
+  Wall time:        2.824s
+  Cores used:       3.898   (avg 97.4% across 4 worker threads)
+  Peak utilization: 400.0%
+warning: thread 0 averaged 99.2% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
+warning: thread 1 averaged 99.2% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
+warning: thread 2 averaged 99.2% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
+warning: thread 3 averaged 99.3% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
+Saving JSON output file: docs/perfio/nt4-counts/1s-GET-4096-p32-c512-tls.json
+Json file closed.
+4         Threads
+128       Connections per thread
+1954      Requests per client
+
+
+ALL STATS
+============================================================================================================================
+Type         Ops/sec     Hits/sec   Misses/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
+----------------------------------------------------------------------------------------------------------------------------
+Sets            0.00          ---          ---             ---             ---             ---             ---         0.00 
+Gets       403851.34    403851.34         0.00        40.99149        39.42300        61.95100        76.79900   1631145.37 
+Waits           0.00          ---          ---             ---             ---             ---             ---          --- 
+Totals     403851.34    403851.34         0.00        40.99149        39.42300        61.95100        76.79900   1631145.37 
