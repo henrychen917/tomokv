@@ -1,0 +1,24 @@
+== src/cmd/climon.o: clientfix (old signatures) vs final
+EQUAL code=same targets=same 273->273 unsigned int tomo::Rob<64u>::drain<tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*, bool)::{lambda(tomo::Op&)#1}
+DIFF  code=diff targets=same 16->20 tomo::WbEngine::serve_suppressing(tomo::Client&, bool)
+DIFF  code=diff targets=same 17->21 tomo::WbEngine::prepare_suppressing(tomo::Client&, bool&, bool)
+DIFF  code=diff targets=same 463->471 tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*, bool)
+DIFF  code=diff targets=same 2177->2224 tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*, bool)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const
+== src/cmd/climon.o: origin/cpp (old signatures) vs final
+EQUAL code=same targets=same 273->273 unsigned int tomo::Rob<64u>::drain<tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*, bool)::{lambda(tomo::Op&)#1}
+DIFF  code=diff targets=same 16->20 tomo::WbEngine::serve_suppressing(tomo::Client&, bool)
+DIFF  code=diff targets=same 17->21 tomo::WbEngine::prepare_suppressing(tomo::Client&, bool&, bool)
+DIFF  code=diff targets=same 463->471 tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*, bool)
+DIFF  code=diff targets=same 2224->2224 tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*, bool)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const
+== db0/src/cmd/climon.o: clientfix (old signatures) vs final
+EQUAL code=same targets=same 273->273 unsigned int tomo_db0::Rob<64u>::drain<tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*, bool)::{lambda(t
+DIFF  code=diff targets=same 16->20 tomo_db0::WbEngine::serve_suppressing(tomo_db0::Client&, bool)
+DIFF  code=diff targets=same 17->21 tomo_db0::WbEngine::prepare_suppressing(tomo_db0::Client&, bool&, bool)
+DIFF  code=diff targets=same 463->471 tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*, bool)
+DIFF  code=diff targets=same 2177->2224 tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*, bool)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::
+== db0/src/cmd/climon.o: origin/cpp (old signatures) vs final
+EQUAL code=same targets=same 273->273 unsigned int tomo_db0::Rob<64u>::drain<tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*, bool)::{lambda(t
+DIFF  code=diff targets=same 16->20 tomo_db0::WbEngine::serve_suppressing(tomo_db0::Client&, bool)
+DIFF  code=diff targets=same 17->21 tomo_db0::WbEngine::prepare_suppressing(tomo_db0::Client&, bool&, bool)
+DIFF  code=diff targets=same 463->471 tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*, bool)
+DIFF  code=diff targets=same 2224->2224 tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*, bool)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::

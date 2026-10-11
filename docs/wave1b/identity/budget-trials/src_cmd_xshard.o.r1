@@ -1,0 +1,30 @@
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127820", "unit": 100288, "hot_changed": 0, "A": 17, "B": 2, "C": 1, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new code 592->525 lanes=- tomo::FlatStore::retire_detached_obj(tomo::KvObj*)
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127830", "unit": 100288, "hot_changed": 0, "A": 19, "B": 0, "C": 1, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 4, "Chot": 0, "Dhot": 0}
+    C T=new code 592->525 lanes=- tomo::FlatStore::retire_detached_obj(tomo::KvObj*)
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127844", "unit": 100288, "hot_changed": 0, "A": 18, "B": 2, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127850", "unit": 100288, "hot_changed": 0, "A": 20, "B": 0, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127855", "unit": 100288, "hot_changed": 0, "A": 20, "B": 0, "C": 1, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 3, "Chot": 0, "Dhot": 0}
+    C T=PRE code 5840->5851 lanes=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_t
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127864", "unit": 100288, "hot_changed": 0, "A": 22, "B": 0, "C": 0, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 6, "Chot": 0, "Dhot": 0}
+    D T=new code 1314->1346 lanes=clientfix tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tom
+    D T=PRE code 118->117 lanes=clientfix tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tom
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127870", "unit": 100288, "hot_changed": 0, "A": 21, "B": 0, "C": 1, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 8, "Chot": 0, "Dhot": 0}
+    C T=PRE code 5840->5851 lanes=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_t
+    D T=new code 1314->1346 lanes=clientfix tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tom
+    D T=PRE code 118->117 lanes=clientfix tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tom
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127880", "unit": 100288, "hot_changed": 0, "A": 17, "B": 2, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127900", "unit": 100288, "hot_changed": 0, "A": 19, "B": 0, "C": 5, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 8, "Chot": 0, "Dhot": 0}
+    C T=new code 7290->7358 lanes=- tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeign
+    C T=PRE code 242->246 lanes=- tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeign
+    C T=new code 812->982 lanes=- tomo::FlatStore::start_rehash(unsigned int)
+    C T=new removed 84->0 lanes=- tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0]
+    C T=new removed 6->0 lanes=- tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0] [clone .cold]
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127950", "unit": 100288, "hot_changed": 0, "A": 19, "B": 1, "C": 5, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 12, "Chot": 0, "Dhot": 0}
+    C T=new code 7290->7358 lanes=- tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeign
+    C T=PRE code 242->246 lanes=- tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeign
+    C T=new code 812->982 lanes=- tomo::FlatStore::start_rehash(unsigned int)
+    C T=new removed 84->0 lanes=- tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0]
+    C T=new removed 6->0 lanes=- tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0] [clone .cold]
+    D T=new code 1314->1346 lanes=clientfix tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tom
+    D T=PRE code 118->117 lanes=clientfix tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tom

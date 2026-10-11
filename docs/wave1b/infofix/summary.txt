@@ -1,0 +1,11 @@
+run 1 exit=0 seconds=248 ok 4.150000 infofix battery (atomic 0);ok 4.140000 infofix battery (atomic 1);
+run 2 exit=0 seconds=253 ok 4.150000 infofix battery (atomic 0);ok 4.140000 infofix battery (atomic 1);
+run 3 exit=0 seconds=260 ok 4.140000 infofix battery (atomic 0);ok 4.150000 infofix battery (atomic 1);
+run 4 exit=0 seconds=263 ok 4.150000 infofix battery (atomic 0);ok 4.140000 infofix battery (atomic 1);
+run 5 exit=0 seconds=254 ok 4.140000 infofix battery (atomic 0);ok 4.140000 infofix battery (atomic 1);
+run 6 exit=0 seconds=247 ok 4.140000 infofix battery (atomic 0);ok 4.150000 infofix battery (atomic 1);
+run 7 exit=0 seconds=253 ok 4.140000 infofix battery (atomic 0);ok 4.140000 infofix battery (atomic 1);
+run 8 exit=0 seconds=242 ok 4.150000 infofix battery (atomic 0);ok 4.150000 infofix battery (atomic 1);
+run 9 exit=0 seconds=248 ok 4.140000 infofix battery (atomic 0);ok 4.150000 infofix battery (atomic 1);
+run 10 exit=0 seconds=269 ok 4.140000 infofix battery (atomic 0);ok 4.140000 infofix battery (atomic 1);
+DONE

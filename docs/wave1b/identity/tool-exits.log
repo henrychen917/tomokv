@@ -1,0 +1,7 @@
+origin lbstall exit=1
+origin ccfix exit=1
+origin linked exit=1
+b4 lbstall exit=1
+b4 ccfix exit=1
+b4 linked exit=1
+DONE

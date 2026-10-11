@@ -1,0 +1,19 @@
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31297", "unit": 24309, "hot_changed": 0, "A": 6, "B": 1, "C": 1, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+    C T=new added 0->204 lanes=- tomo::Server::shard_owner_count() const
+    D T=new code 16848->16649 lanes=racefix tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    D T=new code 337->338 lanes=racefix tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31310", "unit": 24309, "hot_changed": 0, "A": 5, "B": 1, "C": 1, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 1, "Chot": 0, "Dhot": 0}
+    C T=new added 0->204 lanes=- tomo::Server::shard_owner_count() const
+    D T=new code 16848->16649 lanes=racefix tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    D T=new code 337->338 lanes=racefix tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31330", "unit": 24309, "hot_changed": 0, "A": 7, "B": 1, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 3, "Chot": 0, "Dhot": 0}
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31340", "unit": 24309, "hot_changed": 0, "A": 9, "B": 0, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 3, "Chot": 0, "Dhot": 0}
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31355", "unit": 24309, "hot_changed": 0, "A": 4, "B": 1, "C": 1, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 1, "Chot": 0, "Dhot": 0}
+    C T=new added 0->204 lanes=- tomo::Server::shard_owner_count() const
+    D T=new code 16848->16649 lanes=racefix tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    D T=new code 337->338 lanes=racefix tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31370", "unit": 24309, "hot_changed": 0, "A": 7, "B": 1, "C": 1, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 3, "Chot": 0, "Dhot": 0}
+    C T=new code 1027->1043 lanes=- tomo::(anonymous namespace)::snapshot_command(tomo::Op&, bool)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31400", "unit": 24309, "hot_changed": 0, "A": 6, "B": 2, "C": 2, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 6, "Chot": 0, "Dhot": 0}
+    C T=new code 381->593 lanes=- void tomo::reply_map_header<tomo::Op::Sink&>(tomo::Op::Sink&, unsigned long, bool)
+    C T=new removed 200->0 lanes=- tomo::Compact::capacity_bytes() const

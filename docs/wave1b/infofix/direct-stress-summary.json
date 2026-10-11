@@ -1,0 +1,12 @@
+{
+  "wave1b-a0": {
+    "rounds": 5,
+    "infofix_failures": 0,
+    "avg_ttl_failures": []
+  },
+  "wave1b-a1": {
+    "rounds": 5,
+    "infofix_failures": 0,
+    "avg_ttl_failures": []
+  }
+}
