@@ -448,3 +448,12 @@ queued. [Failing test](docs/txnfix/txnfix2/final-proof/broad-1s/atomic_torn/test
 The main proof driver has completed 144 invocations (including deliberately
 failing PRE controls); final companion checks and a longer overall
 serverless-gate invocation are in progress.
+
+The remaining writer/AOF/snapshot/FLIP companions now pass **15/15**:
+four original 60-second writer correctness runs, AOF prepare/reload/scan in
+each mode, four concurrent snapshot arms, and the FLIP multi-key hold test
+(183 assertions). The four merged-PRE txniso battery controls fail directed
+data assertions as required, including lost updates and read skew; their
+new-counter-dependent failures are not used as negative proof. PRE battery
+receipts carry PRE's hash, independently of the POST companion hashes.
+[Final companions](docs/txnfix/txnfix2/final-extras/runs.json).
