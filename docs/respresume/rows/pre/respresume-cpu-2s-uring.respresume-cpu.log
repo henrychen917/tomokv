@@ -1,11 +1,11 @@
-{"cpu_seconds": [0.72, 0.72, 0.71], "median": 0.72, "limit": 0.2}
+{"cpu_seconds": [0.71, 0.72, 0.7100000000000002], "median": 0.7100000000000002, "limit": 0.2}
 Traceback (most recent call last):
-  File "/home/user/Projects/cx-respresume/tests/respresume.py", line 255, in <module>
+  File "/home/user/Projects/cx-respresume/tests/respresume.py", line 262, in <module>
     if __name__ == '__main__': main()
                                ^^^^^^
-  File "/home/user/Projects/cx-respresume/tests/respresume.py", line 250, in main
+  File "/home/user/Projects/cx-respresume/tests/respresume.py", line 257, in main
     cpu_bound(args)
-  File "/home/user/Projects/cx-respresume/tests/respresume.py", line 176, in cpu_bound
+  File "/home/user/Projects/cx-respresume/tests/respresume.py", line 179, in cpu_bound
     assert value < args.cpu_limit, 'T12 median server CPU bound'
            ^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: T12 median server CPU bound
