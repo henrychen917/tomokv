@@ -407,3 +407,8 @@ Source and fixture both have **652** rows, with no missing or extra labels;
 only EXPECT_FULL=642 still disagrees. [Corrected ledger result](docs/txnfix/txnfix2/ledger-after-job-split.log).
 The earlier source-line table is superseded by [current row/collection lines](docs/txnfix/txnfix2/gate-row-lines.json);
 DQ/DF remain +10/+10 and the required counts remain 635/652.
+
+The fused txniso jobs now also depend on `production_units`: their unit
+subchecks previously depended only on release readiness and could race the
+unit build. The dependency change adds no row and the final serverless rerun
+covers the corrected coordinator source.

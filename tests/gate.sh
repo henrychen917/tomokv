@@ -3528,7 +3528,7 @@ job_dependencies(){
     racefix_climon) echo production_units;;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*|txn_group_*|aof_frame) echo 'release production_units';;
+    debug-*|fused-*|txn_group_*|aof_frame) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
