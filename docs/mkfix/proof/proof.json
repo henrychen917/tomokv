@@ -1,0 +1,280 @@
+{
+  "pre_revision": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "production_source_equal": true,
+  "cpu_allowlist": "32-47",
+  "server_cpus": "32-39",
+  "load_cpus": "40-47",
+  "differ_oracle_cpu": "40",
+  "differ_load_cpus": "41-47",
+  "ports": [
+    25500,
+    25510,
+    25511,
+    25512,
+    25513
+  ],
+  "candidate_production_commits": [],
+  "counts_rows": 544,
+  "differ": {
+    "suites": [
+      "string",
+      "xshard",
+      "multi",
+      "fanout"
+    ],
+    "seeds": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "atomics": [
+      0,
+      1
+    ],
+    "split": {
+      "pass": 32,
+      "fail": 0
+    },
+    "fused_rl0": {
+      "pass": 32,
+      "fail": 0
+    }
+  },
+  "wbland_clauses": {
+    "pass": 83,
+    "fail": 0
+  },
+  "binaries": {
+    "pre": {
+      "path": "build/mkfix/pre/tomokv",
+      "sha256": "330eb467062473b99c9913e024bbbcdc87a79108fcf2c3a783fced7f229fedef"
+    },
+    "count": {
+      "path": "build/mkfix/count/tomokv",
+      "sha256": "06fdd64ff44459ee81af4b7e9ceb35b4d4b1cefb6482237608b1b154b43c5cb9"
+    },
+    "c12": {
+      "path": "build/mkfix/c12/tomokv",
+      "sha256": "7a8e31cbb6fb6b8a6dcb9b54c7c84defb785c52d206dad81aae55252e28914b8"
+    },
+    "c3-padding": {
+      "path": "build/mkfix/c3-padding/tomokv",
+      "sha256": "00575d34ee6b71d18dc5c5b4a232cb5fde2d310d77e70ef824976ea446944e00"
+    },
+    "final": {
+      "path": "build/tomokv",
+      "sha256": "330eb467062473b99c9913e024bbbcdc87a79108fcf2c3a783fced7f229fedef"
+    },
+    "scratch/count.c": {
+      "path": "build/mkfix/scratch/count.c",
+      "sha256": "b449d1a9675002ce0cc8be5832d2f505eaa0f710e1ada5daaeabecb48c2dd043"
+    },
+    "scratch/count.so": {
+      "path": "build/mkfix/scratch/count.so",
+      "sha256": "9f422a44cf7a53d308e54669acb68481fe63956399a367a1bfa9b3aa868b7a13"
+    },
+    "scratch/source/src/cmd/atomics_glue.inc": {
+      "path": "build/mkfix/scratch/source/src/cmd/atomics_glue.inc",
+      "sha256": "ca606987fccb921b7ee757a9cdaca7c5bc14fb9c3dcf2a9714af12d4391acd30"
+    }
+  },
+  "gates_test": {
+    "initial": {
+      "tests": 66,
+      "failures": 6,
+      "all_failures_exit": 124
+    },
+    "recheck": {
+      "tests": 66,
+      "failures": 0
+    },
+    "nested_tests": 14,
+    "assertions_unchanged": true
+  },
+  "production_units": {
+    "build_argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "make",
+      "-k",
+      "-j16",
+      "build/at15-unit",
+      "build/at15-db0-unit",
+      "build/execabort-watch-unit",
+      "build/execabort-watch-db0-unit",
+      "build/core-concurrency-unit",
+      "build/atomic-survivors-unit",
+      "build/netcmd-unit",
+      "build/encodingfix-unit",
+      "build/netcap-unit",
+      "build/waits-unit",
+      "build/rehash-waits-unit",
+      "build/multidb-unit",
+      "build/multidb-boundary-unit",
+      "build/storesize-unit",
+      "build/wb-rule-units",
+      "build/wbland-units",
+      "build/rltopo-unit",
+      "build/lbplanner-units",
+      "build/shutdown-unit",
+      "build/persistfix-units",
+      "build/exbatch-unit",
+      "build/exbatch-db0-unit",
+      "build/ktls-keyupdate",
+      "build/ktls-keyupdate-unit",
+      "build/flushfix-units",
+      "build/splitlocal-unit",
+      "build/reorder-engagement-unit",
+      "build/reorder-engagement-unit-db0",
+      "build/racefix-climon"
+    ],
+    "build_exit": 0,
+    "targets": [
+      {
+        "target": "build/at15-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/at15-db0-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/execabort-watch-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/execabort-watch-db0-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/core-concurrency-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/atomic-survivors-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/netcmd-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/encodingfix-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/netcap-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/waits-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/rehash-waits-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/multidb-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/multidb-boundary-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/storesize-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/wb-rule-units",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/wbland-units",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/rltopo-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/lbplanner-units",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/shutdown-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/persistfix-units",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/exbatch-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/exbatch-db0-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/ktls-keyupdate",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/ktls-keyupdate-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/flushfix-units",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/splitlocal-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/reorder-engagement-unit",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/reorder-engagement-unit-db0",
+        "fresh_exit": 0
+      },
+      {
+        "target": "build/racefix-climon",
+        "fresh_exit": 0
+      }
+    ],
+    "mdbqsbr_argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "make",
+      "-j16",
+      "mdbqsbr-live-arms"
+    ],
+    "mdbqsbr_exit": 0
+  },
+  "final_identity": {
+    "full_bodies": 16439,
+    "changed_bodies": 0,
+    "hot_lbstall": 1204,
+    "hot_ccfix": 1208,
+    "handlers": 1211,
+    "runtime_sections_equal": true,
+    "layout_locks": [
+      336,
+      1984,
+      1408,
+      1440,
+      944,
+      192,
+      144,
+      624
+    ]
+  }
+}
