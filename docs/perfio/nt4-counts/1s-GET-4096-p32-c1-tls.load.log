@@ -1,28 +1,0 @@
-Json file docs/perfio/nt4-counts/1s-GET-4096-p32-c1-tls.json created...
-Writing results to stdout
-[RUN #1] Preparing benchmark client...
-[RUN #1] Launching threads now...
-TLS connection established: protocol TLSv1.3, cipher TLS_AES_128_GCM_SHA256
-[RUN #1 15%,   0 secs]  1 threads  1 conns:      145717 ops,  145910 (avg:  145910) ops/sec, 575.51MB/sec (avg: 575.51MB/sec),  0.22 (avg:  0.22) msec latency[RUN #1 29%,   1 secs]  1 threads  1 conns:      292312 ops,  146581 (avg:  146246) ops/sec, 578.16MB/sec (avg: 576.84MB/sec),  0.22 (avg:  0.22) msec latency[RUN #1 44%,   2 secs]  1 threads  1 conns:      439139 ops,  146812 (avg:  146435) ops/sec, 579.08MB/sec (avg: 577.59MB/sec),  0.22 (avg:  0.22) msec latency[RUN #1 59%,   3 secs]  1 threads  1 conns:      586391 ops,  147239 (avg:  146636) ops/sec, 580.76MB/sec (avg: 578.38MB/sec),  0.22 (avg:  0.22) msec latency[RUN #1 73%,   4 secs]  1 threads  1 conns:      733150 ops,  146747 (avg:  146658) ops/sec, 578.82MB/sec (avg: 578.47MB/sec),  0.22 (avg:  0.22) msec latency[RUN #1 88%,   5 secs]  1 threads  1 conns:      880003 ops,  146839 (avg:  146688) ops/sec, 579.18MB/sec (avg: 578.59MB/sec),  0.22 (avg:  0.22) msec latency[RUN #1 100%,   6 secs]  0 threads  1 conns:     1000000 ops,  146839 (avg:  145593) ops/sec, 579.18MB/sec (avg: 574.26MB/sec),  0.22 (avg:  0.22) msec latency
-
-
-CPU Utilization Summary
-  Total CPU time:   4.955s  (user 2.043s, sys 2.912s)
-  Wall time:        6.870s
-  Cores used:       0.721   (avg 72.1% across 1 worker threads)
-  Peak utilization: 73.0%
-Saving JSON output file: docs/perfio/nt4-counts/1s-GET-4096-p32-c1-tls.json
-Json file closed.
-1         Threads
-1         Connections per thread
-1000000   Requests per client
-
-
-ALL STATS
-============================================================================================================================
-Type         Ops/sec     Hits/sec   Misses/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
-----------------------------------------------------------------------------------------------------------------------------
-Sets            0.00          ---          ---             ---             ---             ---             ---         0.00 
-Gets       145593.09    145593.09         0.00         0.21822         0.22300         0.24700         0.25500    588046.79 
-Waits           0.00          ---          ---             ---             ---             ---             ---          --- 
-Totals     145593.09    145593.09         0.00         0.21822         0.22300         0.24700         0.25500    588046.79 

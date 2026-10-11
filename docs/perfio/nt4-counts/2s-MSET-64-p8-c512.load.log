@@ -1,25 +1,0 @@
-Json file docs/perfio/nt4-counts/2s-MSET-64-p8-c512.json created...
-Writing results to stdout
-[RUN #1] Preparing benchmark client...
-[RUN #1] Launching threads now...
-[RUN #1 6%,   0 secs]  4 threads 128 conns:       64573 ops,   64696 (avg:   64696) ops/sec, 46.86MB/sec (avg: 46.86MB/sec), 10.07 (avg: 10.07) msec latency[RUN #1 22%,   1 secs]  4 threads 128 conns:      218707 ops,  154109 (avg:  109449) ops/sec, 111.61MB/sec (avg: 79.27MB/sec), 46.15 (avg: 35.50) msec latency[RUN #1 55%,   2 secs]  4 threads 128 conns:      553102 ops,  334754 (avg:  184541) ops/sec, 242.50MB/sec (avg: 133.67MB/sec), 12.95 (avg: 21.87) msec latency[RUN #1 87%,   3 secs]  4 threads 128 conns:      865473 ops,  371045 (avg:  225440) ops/sec, 268.78MB/sec (avg: 163.30MB/sec), 11.20 (avg: 18.02) msec latency[RUN #1 91%,   4 secs]  4 threads 128 conns:      906077 ops,   97125 (avg:  212839) ops/sec, 70.38MB/sec (avg: 154.17MB/sec), 11.76 (avg: 17.74) msec latency[RUN #1 94%,   4 secs]  4 threads 128 conns:      938454 ops,   81571 (avg:  201644) ops/sec, 59.09MB/sec (avg: 146.07MB/sec), 85.72 (avg: 20.08) msec latency[RUN #1 97%,   4 secs]  4 threads 128 conns:      974076 ops,  187047 (avg:  201070) ops/sec, 135.48MB/sec (avg: 145.65MB/sec), 14.68 (avg: 19.88) msec latency[RUN #1 100%,   4 secs]  0 threads 128 conns:     1000448 ops,  187047 (avg:  201994) ops/sec, 135.48MB/sec (avg: 146.32MB/sec), 14.68 (avg: 20.25) msec latency
-
-
-CPU Utilization Summary
-  Total CPU time:   5.580s  (user 3.462s, sys 2.118s)
-  Wall time:        7.653s
-  Cores used:       0.729   (avg 18.1% across 4 worker threads)
-  Peak utilization: 179.2%
-Saving JSON output file: docs/perfio/nt4-counts/2s-MSET-64-p8-c512.json
-Json file closed.
-4         Threads
-128       Connections per thread
-1954      Requests per client
-
-
-ALL STATS
-============================================================================================================================
-Type         Ops/sec     Hits/sec   Misses/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
-----------------------------------------------------------------------------------------------------------------------------
-Msets      195555.37         0.00         0.00        20.25266         1.67900       303.10300      1769.47100    145054.04 
-Totals     195555.37         0.00         0.00        20.25266         1.67900       303.10300      1769.47100    290108.07 

@@ -1,0 +1,7 @@
+flip_close=0
+gates_test=0
+differ_split=0
+differ_armed-fused=0
+batteries=1
+post_epoll-flip=0
+post_epoll-lb=0

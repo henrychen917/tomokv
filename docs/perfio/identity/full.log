@@ -98,7 +98,7 @@ src/net/tls.o 38 bodies
 src/persist/aof.o 317 bodies
 src/persist/aof_frame_debug.o 6 bodies
 src/snapshot/snapshot.o 128 bodies
-{"total": 16444, "equal": 16372, "changed": 72, "handlers": 1211, "handlers_equal": 1185, "hot": 1208, "hot_equal": 1208, "hot_nonerror_equal": 1208, "handlers_nonerror_equal": 1185}
+{"total": 16444, "equal": 16376, "changed": 68, "handlers": 1211, "handlers_equal": 1187, "hot": 1208, "hot_equal": 1208, "hot_nonerror_equal": 1208, "handlers_nonerror_equal": 1187}
 Traceback (most recent call last):
   File "/home/user/Projects/cx-perfio/tools/ccfix_audit.py", line 155, in <module>
     main()

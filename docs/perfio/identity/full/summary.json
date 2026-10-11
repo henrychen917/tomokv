@@ -1,9 +1,9 @@
 {
   "total": 16444,
-  "equal": 16372,
-  "changed": 72,
+  "equal": 16376,
+  "changed": 68,
   "handlers": 1211,
-  "handlers_equal": 1185,
+  "handlers_equal": 1187,
   "hot": 1208,
   "hot_equal": 1208,
   "changed_handlers": [
@@ -163,28 +163,6 @@
     },
     {
       "object": "src/cmd/t_stream_groups.o",
-      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_xclaimILb1EEEvRNS_5ShardERNS_2OpE",
-      "name": "void tomo::(anonymous namespace)::cmd_xclaim<true>(tomo::Shard&, tomo::Op&)",
-      "equal": false,
-      "error_callee_only": false,
-      "raw_equal": false,
-      "pre_size": 5336,
-      "post_size": 5368,
-      "classification": "other"
-    },
-    {
-      "object": "src/cmd/t_stream_groups.o",
-      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_xclaimILb1EEEvRNS_5ShardERNS_2OpE.cold",
-      "name": "void tomo::(anonymous namespace)::cmd_xclaim<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
-      "equal": false,
-      "error_callee_only": false,
-      "raw_equal": false,
-      "pre_size": 339,
-      "post_size": 339,
-      "classification": "other"
-    },
-    {
-      "object": "src/cmd/t_stream_groups.o",
       "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_xpendingILb0EEEvRNS_5ShardERNS_2OpE",
       "name": "void tomo::(anonymous namespace)::cmd_xpending<false>(tomo::Shard&, tomo::Op&)",
       "equal": false,
@@ -296,7 +274,7 @@
   ],
   "changed_hot": [],
   "hot_nonerror_equal": 1208,
-  "handlers_nonerror_equal": 1185,
+  "handlers_nonerror_equal": 1187,
   "other_handlers": [
     {
       "object": "db0/src/cmd/t_stream_groups.o",
@@ -445,28 +423,6 @@
       "object": "src/cmd/t_stream_groups.o",
       "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_xclaimILb0EEEvRNS_5ShardERNS_2OpE.cold",
       "name": "void tomo::(anonymous namespace)::cmd_xclaim<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
-      "equal": false,
-      "error_callee_only": false,
-      "raw_equal": false,
-      "pre_size": 339,
-      "post_size": 339,
-      "classification": "other"
-    },
-    {
-      "object": "src/cmd/t_stream_groups.o",
-      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_xclaimILb1EEEvRNS_5ShardERNS_2OpE",
-      "name": "void tomo::(anonymous namespace)::cmd_xclaim<true>(tomo::Shard&, tomo::Op&)",
-      "equal": false,
-      "error_callee_only": false,
-      "raw_equal": false,
-      "pre_size": 5336,
-      "post_size": 5368,
-      "classification": "other"
-    },
-    {
-      "object": "src/cmd/t_stream_groups.o",
-      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_xclaimILb1EEEvRNS_5ShardERNS_2OpE.cold",
-      "name": "void tomo::(anonymous namespace)::cmd_xclaim<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
       "equal": false,
       "error_callee_only": false,
       "raw_equal": false,

@@ -1,28 +1,0 @@
-Json file docs/perfio/nt4-counts/1s-GET-16384-p32-c1-tls.json created...
-Writing results to stdout
-[RUN #1] Preparing benchmark client...
-[RUN #1] Launching threads now...
-TLS connection established: protocol TLSv1.3, cipher TLS_AES_128_GCM_SHA256
-[RUN #1 4%,   0 secs]  1 threads  1 conns:       40882 ops,   40940 (avg:   40940) ops/sec, 641.30MB/sec (avg: 641.30MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 8%,   1 secs]  1 threads  1 conns:       81998 ops,   41112 (avg:   41026) ops/sec, 643.99MB/sec (avg: 642.64MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 12%,   2 secs]  1 threads  1 conns:      123045 ops,   41043 (avg:   41032) ops/sec, 642.91MB/sec (avg: 642.73MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 16%,   3 secs]  1 threads  1 conns:      163974 ops,   40925 (avg:   41005) ops/sec, 641.06MB/sec (avg: 642.31MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 20%,   4 secs]  1 threads  1 conns:      204906 ops,   40928 (avg:   40990) ops/sec, 641.11MB/sec (avg: 642.07MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 25%,   5 secs]  1 threads  1 conns:      245855 ops,   40945 (avg:   40982) ops/sec, 641.37MB/sec (avg: 641.96MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 29%,   6 secs]  1 threads  1 conns:      286697 ops,   40838 (avg:   40962) ops/sec, 639.70MB/sec (avg: 641.63MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 33%,   7 secs]  1 threads  1 conns:      327523 ops,   40822 (avg:   40944) ops/sec, 639.45MB/sec (avg: 641.36MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 37%,   8 secs]  1 threads  1 conns:      368438 ops,   40911 (avg:   40941) ops/sec, 640.84MB/sec (avg: 641.30MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 41%,   9 secs]  1 threads  1 conns:      409337 ops,   40895 (avg:   40936) ops/sec, 640.59MB/sec (avg: 641.23MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 45%,  10 secs]  1 threads  1 conns:      450362 ops,   41021 (avg:   40944) ops/sec, 642.56MB/sec (avg: 641.35MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 49%,  11 secs]  1 threads  1 conns:      491349 ops,   40983 (avg:   40947) ops/sec, 641.97MB/sec (avg: 641.40MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 53%,  12 secs]  1 threads  1 conns:      531795 ops,   40442 (avg:   40908) ops/sec, 633.48MB/sec (avg: 640.80MB/sec),  0.79 (avg:  0.78) msec latency[RUN #1 57%,  13 secs]  1 threads  1 conns:      572643 ops,   40844 (avg:   40904) ops/sec, 639.78MB/sec (avg: 640.72MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 61%,  14 secs]  1 threads  1 conns:      613753 ops,   41106 (avg:   40917) ops/sec, 643.89MB/sec (avg: 640.93MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 65%,  15 secs]  1 threads  1 conns:      654868 ops,   41111 (avg:   40929) ops/sec, 643.96MB/sec (avg: 641.12MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 70%,  16 secs]  1 threads  1 conns:      695928 ops,   41056 (avg:   40937) ops/sec, 643.11MB/sec (avg: 641.24MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 74%,  18 secs]  1 threads  1 conns:      736921 ops,   40989 (avg:   40940) ops/sec, 642.05MB/sec (avg: 641.29MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 78%,  19 secs]  1 threads  1 conns:      777971 ops,   41046 (avg:   40945) ops/sec, 642.95MB/sec (avg: 641.37MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 82%,  20 secs]  1 threads  1 conns:      818994 ops,   41019 (avg:   40949) ops/sec, 642.53MB/sec (avg: 641.43MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 86%,  21 secs]  1 threads  1 conns:      860024 ops,   41026 (avg:   40952) ops/sec, 642.64MB/sec (avg: 641.49MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 90%,  22 secs]  1 threads  1 conns:      901012 ops,   40984 (avg:   40954) ops/sec, 641.98MB/sec (avg: 641.51MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 94%,  23 secs]  1 threads  1 conns:      942003 ops,   40987 (avg:   40955) ops/sec, 642.02MB/sec (avg: 641.53MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 98%,  24 secs]  1 threads  1 conns:      982996 ops,   40989 (avg:   40957) ops/sec, 642.06MB/sec (avg: 641.55MB/sec),  0.78 (avg:  0.78) msec latency[RUN #1 100%,  24 secs]  0 threads  1 conns:     1000000 ops,   40989 (avg:   40055) ops/sec, 642.06MB/sec (avg: 627.44MB/sec),  0.78 (avg:  0.79) msec latency
-
-
-CPU Utilization Summary
-  Total CPU time:   17.309s  (user 6.653s, sys 10.656s)
-  Wall time:        24.967s
-  Cores used:       0.693   (avg 69.3% across 1 worker threads)
-  Peak utilization: 71.2%
-Saving JSON output file: docs/perfio/nt4-counts/1s-GET-16384-p32-c1-tls.json
-Json file closed.
-1         Threads
-1         Connections per thread
-1000000   Requests per client
-
-
-ALL STATS
-============================================================================================================================
-Type         Ops/sec     Hits/sec   Misses/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
-----------------------------------------------------------------------------------------------------------------------------
-Sets            0.00          ---          ---             ---             ---             ---             ---         0.00 
-Gets        40055.84     40055.84         0.00         0.78879         0.78300         0.81500         1.01500    642493.76 
-Waits           0.00          ---          ---             ---             ---             ---             ---          --- 
-Totals      40055.84     40055.84         0.00         0.78879         0.78300         0.81500         1.01500    642493.76 

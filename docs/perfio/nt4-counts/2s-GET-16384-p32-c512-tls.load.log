@@ -1,40 +1,0 @@
-Json file docs/perfio/nt4-counts/2s-GET-16384-p32-c512-tls.json created...
-Writing results to stdout
-[RUN #1] Preparing benchmark client...
-[RUN #1] Launching threads now...
-TLS connection established: protocol TLSv1.3, cipher TLS_AES_128_GCM_SHA256
-[RUN #1 12%,   0 secs]  4 threads 128 conns:      123773 ops,  134073 (avg:  134073) ops/sec, 2.05GB/sec (avg: 2.05GB/sec), 114.54 (avg: 114.54) msec latency
-warning: high CPU on thread 0: 97.2% of a core (threshold 95.0%) - results may be unreliable
-
-warning: high CPU on thread 1: 97.1% of a core (threshold 95.0%) - results may be unreliable
-
-warning: high CPU on thread 2: 97.2% of a core (threshold 95.0%) - results may be unreliable
-
-warning: high CPU on thread 3: 97.1% of a core (threshold 95.0%) - results may be unreliable
-[RUN #1 26%,   1 secs]  4 threads 128 conns:      262662 ops,  138814 (avg:  136539) ops/sec, 2.12GB/sec (avg: 2.09GB/sec), 117.83 (avg: 116.28) msec latency[RUN #1 40%,   2 secs]  4 threads 128 conns:      395682 ops,  132996 (avg:  135327) ops/sec, 2.03GB/sec (avg: 2.07GB/sec), 122.95 (avg: 118.52) msec latency[RUN #1 53%,   3 secs]  4 threads 128 conns:      530225 ops,  134524 (avg:  135122) ops/sec, 2.06GB/sec (avg: 2.07GB/sec), 122.06 (avg: 119.42) msec latency[RUN #1 67%,   4 secs]  4 threads 128 conns:      666835 ops,  136514 (avg:  135405) ops/sec, 2.09GB/sec (avg: 2.07GB/sec), 119.84 (avg: 119.51) msec latency[RUN #1 80%,   5 secs]  4 threads 128 conns:      802426 ops,  135569 (avg:  135433) ops/sec, 2.07GB/sec (avg: 2.07GB/sec), 120.75 (avg: 119.72) msec latency[RUN #1 94%,   6 secs]  4 threads 128 conns:      935746 ops,  133207 (avg:  135111) ops/sec, 2.04GB/sec (avg: 2.07GB/sec), 123.09 (avg: 120.20) msec latency[RUN #1 100%,   7 secs]  0 threads 128 conns:     1000448 ops,  133207 (avg:  136131) ops/sec, 2.04GB/sec (avg: 2.08GB/sec), 123.09 (avg: 119.87) msec latency
-
-
-CPU Utilization Summary
-  Total CPU time:   29.687s  (user 13.910s, sys 15.778s)
-  Wall time:        7.532s
-  Cores used:       3.942   (avg 98.5% across 4 worker threads)
-  Peak utilization: 400.0%
-warning: thread 0 averaged 99.6% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
-warning: thread 1 averaged 99.6% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
-warning: thread 2 averaged 99.6% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
-warning: thread 3 averaged 99.6% of a core over the run (threshold 95.0%) - memtier may be the bottleneck; results may be unreliable
-Saving JSON output file: docs/perfio/nt4-counts/2s-GET-16384-p32-c512-tls.json
-Json file closed.
-4         Threads
-128       Connections per thread
-1954      Requests per client
-
-
-ALL STATS
-============================================================================================================================
-Type         Ops/sec     Hits/sec   Misses/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
-----------------------------------------------------------------------------------------------------------------------------
-Sets            0.00          ---          ---             ---             ---             ---             ---         0.00 
-Gets       136225.52    136225.52         0.00       119.87639       119.80700       139.26300       182.27100   2185050.75 
-Waits           0.00          ---          ---             ---             ---             ---             ---          --- 
-Totals     136225.52    136225.52         0.00       119.87639       119.80700       139.26300       182.27100   2185050.75 

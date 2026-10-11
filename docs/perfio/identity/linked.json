@@ -2,7 +2,7 @@
   "pre": "build/perfio/pre/tomokv",
   "post": "build/tomokv",
   "pre_sha256": "2df27d40b773ddbfc46f9bd68518d2f3adc98eabc66422c3b7d0e2be3c695f52",
-  "post_sha256": "b4a714f394552f4fe3694d4600efbb5a1ba3fec535971f0495273020d7c1913f",
+  "post_sha256": "d8c2bb2d5488c6fa6b09618aac1fae24d716f20ed78c2b8b5c5b491e90daef35",
   "runtime_sections_equal": false,
   "differences": [
     ".data",
@@ -58,7 +58,7 @@
         "address": 8716288,
         "size": 19008,
         "alignment": 32,
-        "sha256": "b95b9b9f4273c004c97b77b9817d1cc1289612750017905eda7dd10dac5d8b92"
+        "sha256": "ce180090577bdac40e4661382c3f974a8b596687108ff2af9688466dffb62c47"
       },
       "equal": false
     },
@@ -78,7 +78,7 @@
         "address": 8649344,
         "size": 63736,
         "alignment": 32,
-        "sha256": "584433b9df0fb137dba809f20a036e528522b7eceae52774cd99c791a0471a4c"
+        "sha256": "9fb2696e2099ff0ff31a0021dba73c3483b2922f9cd0c1e0413d75d87b8d6f40"
       },
       "equal": false
     },
@@ -98,7 +98,7 @@
         "address": 8713080,
         "size": 608,
         "alignment": 8,
-        "sha256": "75febeb08269cac7ac16fc0ba84f0117755ee08494ef6b6a0c8aa9551cdbbe7e"
+        "sha256": "4ea3452f5ba1c7868c3e43004e38b99039b5505644fa88530559d83e1ad450fd"
       },
       "equal": false
     },
@@ -138,7 +138,7 @@
         "address": 1264,
         "size": 8592,
         "alignment": 8,
-        "sha256": "9e5a0aee7fe1f887bad8a1c92bf88785bcd147caafdf3cb41751a2ac5ec3cac9"
+        "sha256": "03fa65355c9949f8e89ac9bc081182cfa58d7533374809899c2cd21a45bbf000"
       },
       "equal": false
     },
@@ -158,7 +158,7 @@
         "address": 8005256,
         "size": 515328,
         "alignment": 8,
-        "sha256": "4cdad999fec51e00e3549c1fbdbfcf7236839845d7b47212187559f194e6dd61"
+        "sha256": "3af511729c4a92e7d8d60ee27aa3ef921e1d68f445bd9774c6fb3216e232d9b7"
       },
       "equal": false
     },
@@ -178,7 +178,7 @@
         "address": 7927912,
         "size": 77340,
         "alignment": 4,
-        "sha256": "72de2d5793482ec6582a85ef8cf2fa03b9aa33b7f2695809b1d0857bc49ea631"
+        "sha256": "8bcb117a1d980b74dfd5f273132f761484c1cb25c9df3663b9846b846d4e26dc"
       },
       "equal": false
     },
@@ -195,7 +195,7 @@
       "post": {
         "type": 1,
         "flags": 6,
-        "address": 7768140,
+        "address": 7768092,
         "size": 13,
         "alignment": 4,
         "sha256": "6a4f3e5efc7c1f7ee7d6f21afd9ed040ba1d7f0b97bb12b016f5b176cc558bd8"
@@ -238,7 +238,7 @@
         "address": 8520584,
         "size": 124040,
         "alignment": 4,
-        "sha256": "809642a4cb72863d28f8b8a6da012c7843b6b15295b6fa2929cc04f78df6337e"
+        "sha256": "0cd1aea79584647ad3d6287c4a11d79a17ecd961a092b374586d8b6ff0022d26"
       },
       "equal": false
     },
@@ -318,7 +318,7 @@
         "address": 8713688,
         "size": 2600,
         "alignment": 8,
-        "sha256": "0df15e9f57995468cf7236c9accd031e541b063db78087d22b71916dd446d9c7"
+        "sha256": "870182c81934477a09e30c92159f6a9942c6a81ed3e57b596d2045ee487f4890"
       },
       "equal": false
     },
@@ -418,7 +418,7 @@
         "address": 928,
         "size": 36,
         "alignment": 4,
-        "sha256": "84df6f3363d6a816b37e2aad3e5d0d3b14c09834aa3742bb9f2385a138893c9b"
+        "sha256": "ec2ecc4802cf88b6ba0427b759770bd4785a3c76939cc83b801d6273b8cfa82c"
       },
       "equal": false
     },
@@ -518,7 +518,7 @@
         "address": 19032,
         "size": 82368,
         "alignment": 8,
-        "sha256": "f83ee5832dfe0eab4db4e7f1d7aeea82795858841585a598c97c305bf1540eae"
+        "sha256": "0cf4bf69a0d2863b41bf121b870074113cfc8ecb49e2ed9988bdc2a7db36e23a"
       },
       "equal": false
     },
@@ -555,10 +555,10 @@
       "post": {
         "type": 1,
         "flags": 6,
-        "address": 7768028,
+        "address": 7767980,
         "size": 112,
         "alignment": 1,
-        "sha256": "65137dcf98faa26d965246e96b28e3a31fac8b4e91a472a506a06184c5e6d037"
+        "sha256": "c8d462c4404385a258be72b052b217e244a6f4f7b96701afde3e89e4b884fa58"
       },
       "equal": false
     },
@@ -578,7 +578,7 @@
         "address": 7770112,
         "size": 157797,
         "alignment": 64,
-        "sha256": "4b3c346e7c662bcd20f7d44c0d994c744223d4eff1411a55181f8cc3985bde1a"
+        "sha256": "504987a392d3479077fb3d57835aeb43ae04f03cfe4d3379ddcba5df7ec1b343"
       },
       "equal": false
     },
@@ -636,9 +636,9 @@
         "type": 1,
         "flags": 6,
         "address": 120528,
-        "size": 7647500,
+        "size": 7647452,
         "alignment": 16,
-        "sha256": "ecbc7c9730e9619a46c38468f6ac7ebad97df08a00d4549d1cd22bfbf8acba7b"
+        "sha256": "453707e5f9e4c61eccc2b99961cd2acd582727e412d3bb585b32ebe24ee9249a"
       },
       "equal": false
     }

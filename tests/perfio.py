@@ -62,6 +62,15 @@ def boot(args, label, extra=()):
                     p.wait(timeout=5)
             emit(event="stop", pid=p.pid, rc=p.returncode)
     assert p.returncode == 0, (p.returncode, (directory / "server.log").read_text()[-2000:])
+    # An io_uring-held listener reference can retire just after process exit.
+    # Wait only after reaping our child; never replace or stop a foreign listener.
+    deadline = time.monotonic() + 2
+    while True:
+        with socket.socket() as probe:
+            if probe.connect_ex(("127.0.0.1", args.port)) != 0:
+                break
+        assert time.monotonic() < deadline, "owned listener did not retire after child exit"
+        time.sleep(.01)
 
 
 def epoll_snapshot(pid):

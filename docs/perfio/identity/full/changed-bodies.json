@@ -67,24 +67,13 @@
   },
   {
     "object": "db0/src/cmd/t_stream_groups.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_113reply_nogroupERNS_2OpENS_5SliceES3_b.isra.0",
-    "name": "tomo_db0::(anonymous namespace)::reply_nogroup(tomo_db0::Op&, tomo_db0::Slice, tomo_db0::Slice, bool) [clone .isra.0]",
-    "equal": false,
-    "error_callee_only": false,
-    "raw_equal": false,
-    "pre_size": 1371,
-    "post_size": 1429,
-    "classification": "other"
-  },
-  {
-    "object": "db0/src/cmd/t_stream_groups.o",
     "symbol": "_ZN8tomo_db012_GLOBAL__N_116reply_group_infoERNS_2OpEPNS_5KvObjERKNS_12StreamHeaderERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS0_11StreamGroupEbm",
     "name": "tomo_db0::(anonymous namespace)::reply_group_info(tomo_db0::Op&, tomo_db0::KvObj*, tomo_db0::StreamHeader const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo_db0::(anonymous namespace)::StreamGroup const&, bool, unsigned long)",
     "equal": false,
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 3873,
-    "post_size": 3518,
+    "post_size": 3502,
     "classification": "other"
   },
   {
@@ -397,28 +386,6 @@
   },
   {
     "object": "src/cmd/t_stream_groups.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_xclaimILb1EEEvRNS_5ShardERNS_2OpE",
-    "name": "void tomo::(anonymous namespace)::cmd_xclaim<true>(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "error_callee_only": false,
-    "raw_equal": false,
-    "pre_size": 5336,
-    "post_size": 5368,
-    "classification": "other"
-  },
-  {
-    "object": "src/cmd/t_stream_groups.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_xclaimILb1EEEvRNS_5ShardERNS_2OpE.cold",
-    "name": "void tomo::(anonymous namespace)::cmd_xclaim<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
-    "equal": false,
-    "error_callee_only": false,
-    "raw_equal": false,
-    "pre_size": 339,
-    "post_size": 339,
-    "classification": "other"
-  },
-  {
-    "object": "src/cmd/t_stream_groups.o",
     "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_xpendingILb0EEEvRNS_5ShardERNS_2OpE",
     "name": "void tomo::(anonymous namespace)::cmd_xpending<false>(tomo::Shard&, tomo::Op&)",
     "equal": false,
@@ -463,24 +430,13 @@
   },
   {
     "object": "src/cmd/t_stream_groups.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_113reply_nogroupERNS_2OpENS_5SliceES3_b.isra.0",
-    "name": "tomo::(anonymous namespace)::reply_nogroup(tomo::Op&, tomo::Slice, tomo::Slice, bool) [clone .isra.0]",
-    "equal": false,
-    "error_callee_only": false,
-    "raw_equal": false,
-    "pre_size": 1429,
-    "post_size": 1371,
-    "classification": "other"
-  },
-  {
-    "object": "src/cmd/t_stream_groups.o",
     "symbol": "_ZN4tomo12_GLOBAL__N_116reply_group_infoERNS_2OpEPNS_5KvObjERKNS_12StreamHeaderERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS0_11StreamGroupEbm",
     "name": "tomo::(anonymous namespace)::reply_group_info(tomo::Op&, tomo::KvObj*, tomo::StreamHeader const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo::(anonymous namespace)::StreamGroup const&, bool, unsigned long)",
     "equal": false,
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 3873,
-    "post_size": 3518,
+    "post_size": 3508,
     "classification": "other"
   },
   {
