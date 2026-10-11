@@ -1,0 +1,2 @@
+{"pre": "build/lottery/pre/tomokv", "post": "build/tomokv", "pre_sha256": "aa42039e352551a9688d366d35cb533623009cc73696cb0988b468388061e381", "post_sha256": "eff6d7c74bedf94459c8b999a7df083d261ef33141966e465fe0faa8c387afef", "runtime_sections_equal": true, "differences": []}
+EXIT 0

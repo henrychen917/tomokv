@@ -1,0 +1,7 @@
+$ taskset -c 112-127 python3 tests/gates_test.py SchedulerWiring.test_worker_exit_before_done_is_a_failure
+.
+----------------------------------------------------------------------
+Ran 1 test in 95.394s
+
+OK
+exit 0
