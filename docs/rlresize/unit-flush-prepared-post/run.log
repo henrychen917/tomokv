@@ -1,0 +1,12 @@
+ARMED flush between snapshot prepare and mark; merging 64 old slots
+PASS flush keeps a prepared snapshot's resize retirement
+PASS flush between snapshot prepare and mark (status=0)
+EXIT=0
+ARMED flush between snapshot prepare and mark; merging 64 old slots
+PASS flush keeps a prepared snapshot's resize retirement
+PASS flush between snapshot prepare and mark (status=0)
+EXIT=0
+ARMED flush between snapshot prepare and mark; merging 64 old slots
+PASS flush keeps a prepared snapshot's resize retirement
+PASS flush between snapshot prepare and mark (status=0)
+EXIT=0
