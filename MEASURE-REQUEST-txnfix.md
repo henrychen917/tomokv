@@ -464,3 +464,7 @@ receipt. No assertions or internal deadlines changed. The ledger self-tests
 pass 9/10: only current inventory fails, solely because the protected
 EXPECT_FULL is 642 while both source and fixture contain 652 labels, with
 no missing or extra labels. [Final serverless receipts](docs/txnfix/txnfix2/final-serverless/runs.json).
+
+The original crossed-WATCH pattern hangs merged PRE at its unchanged
+20-second deadline in **4/4** mode/atomic cells and completes on POST in
+**4/4**. [Crossed-WATCH receipts](docs/txnfix/txnfix2/final-cross-watch/runs.json).
