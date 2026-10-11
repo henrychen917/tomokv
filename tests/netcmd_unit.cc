@@ -43,6 +43,26 @@ struct NetcmdRegression {
                 &limits, nullptr, [](void*, Client&) { return false; }, &now_s, &signals);
         }
     };
+
+    // Records every special-retire call. For the enrollment it forwards exactly what the
+    // production hook (IoLoop::init) does for tracking: IoLoop::tracking_retire_read, behind the
+    // same local-tracker test. Marker state attached by a case is surrendered here, as the
+    // production hook surrenders notification state.
+    struct RetireProbe {
+        IoLoop* loop = nullptr;
+        std::vector<std::pair<uint64_t, Op*>> calls;
+        void bind(Sender& sender, WbEngine& wb) {
+            wb.bind(&sender.ring, nullptr,
+                [](void*, int32_t, const char*) { check(false, "unexpected fixture borrow release"); },
+                this, [](void* ctx, Client& client, Op& op) {
+                    auto& probe = *static_cast<RetireProbe*>(ctx);
+                    probe.calls.emplace_back(client.id(), &op);
+                    if (probe.loop->climon_local_trackers_ != 0) probe.loop->tracking_retire_read(client, op);
+                    if (op.has_notify_state()) op.attach_notify_state(nullptr);
+                },
+                &sender.limits, nullptr, [](void*, Client&) { return false; }, &sender.now_s, &sender.signals);
+        }
+    };
     static void notify_oom() {
         Server server;
         auto chain = std::make_unique<PubSubNotificationChain>();
@@ -166,6 +186,7 @@ struct NetcmdRegression {
 
     static void pubsub() {
         pubsub_timeout();
+        suppressed_retire_scope();
         for (auto kind : {IoLoop::PubSubPendingKind::Channels, IoLoop::PubSubPendingKind::Numsub,
                           IoLoop::PubSubPendingKind::Numpat, IoLoop::PubSubPendingKind::Modify}) {
             for (bool suppressed : {false, true}) {
@@ -187,7 +208,9 @@ struct NetcmdRegression {
                 loop.pubsub_finish_pending(client.id());
                 check(loop.pubsub_pending_.empty(), "pending control completed");
                 bool allowed;
-                if (suppressed) loop.wb_.prepare_suppressing(client, allowed);
+                // The suppressed drain is entered the way production enters it: the climon owner
+                // decides the retire scope per connection. This client does not track.
+                if (suppressed) loop.climon_prepare_suppressed(&client, allowed);
                 else loop.wb_.prepare(client, allowed);
                 const std::string reply(client.fill_buf().data(), client.fill_buf().size());
                 std::string push = message; push[0] = '>';
@@ -195,6 +218,74 @@ struct NetcmdRegression {
                 if (suppressed) check(reply == push, "only command reply was suppressed");
             }
         }
+    }
+
+    // clientfix routes CLIENT TRACKING connections through the cold suppressing drain so that even
+    // a small GET enrolls its read at retirement. That widening of the special-retire hook is per
+    // connection: a reply-suppressed connection WITHOUT tracking keeps the hot serve's contract
+    // (the hook runs only for an op carrying special state), even on an owner with a local tracker.
+    static void suppressed_retire_scope() {
+        Sender sender;
+        Server server; ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
+        IoLoop loop; loop.srv_ = &server; loop.self_ = &self;
+        RetireProbe probe; probe.loop = &loop; probe.bind(sender, loop.wb_);
+        const auto issue = [](Client& client, std::initializer_list<const char*> command,
+                              const char* reply, bool skip) {
+            Op* op = client.rob().acquire(); check(op, "retire-scope ROB slot");
+            args(*op, command);
+            if (skip) op->mark_reply_skip();
+            op->reply.append(reply, std::strlen(reply));
+            client.rob().publish();
+            return op;
+        };
+        bool allowed = false;
+
+        // CLIENT REPLY OFF, no tracking, while the same owner has a tracking connection: the
+        // per-connection decision itself is exercised, not the owner-wide early exit.
+        Client quiet(-1); quiet.set_id(61);
+        loop.climon_conn_get(&quiet).reply_mode = IoLoop::kClimonReplyOff;
+        loop.climon_local_reply_ = 1;
+        Client tracker(-1); tracker.set_id(62); tracker.set_resp3(true); tracker.set_ifid_thread(0);
+        auto& tracking = loop.climon_conn_get(&tracker);
+        tracking.tracking_on = true;
+        loop.climon_local_trackers_ = 1;   // what CLIENT TRACKING ON leaves on this owner
+        check(loop.climon_reply_suppressed(&quiet) && loop.climon_reply_suppressed(&tracker),
+              "both connections select the suppressing drain");
+
+        issue(quiet, {"GET", "retire:quiet"}, "$-1\r\n", true)->state.store(OpState::Done);
+        issue(quiet, {"PING"}, "+PONG\r\n", true)->state.store(OpState::Done);
+        loop.climon_prepare_suppressed(&quiet, allowed);
+        check(allowed && quiet.rob().quiesced() && quiet.fill_buf().empty(),
+              "non-tracking suppressed connection retired and dropped both plain replies");
+        check(probe.calls.empty(),
+              "a reply-suppressed connection without tracking took the special-retire hook for a plain op");
+        // Positive control on the same connection: special state still retires through the hook.
+        int marker = 0;
+        Op* special = issue(quiet, {"PING"}, "+PONG\r\n", true);
+        special->attach_notify_state(&marker);
+        special->state.store(OpState::Done);
+        loop.climon_prepare_suppressed(&quiet, allowed);
+        check(probe.calls.size() == 1 && probe.calls[0].first == 61 && probe.calls[0].second == special &&
+              quiet.rob().quiesced() && quiet.fill_buf().empty(),
+              "special state on a non-tracking suppressed connection still retires through the hook");
+
+        // A tracking connection's plain GET takes the hook and enrolls its key at retirement.
+        Op* read = issue(tracker, {"GET", "retire:tracked"}, "$-1\r\n", false);
+        loop.tracking_register_read(&tracker, tracking, *read);   // the armed dispatch gate's call
+        read->state.store(OpState::Done);
+        check(loop.climon_track_keys_.empty() && tracking.tracking_pending.count("retire:tracked") == 1,
+              "dispatch records the tracked read as pending only");
+        loop.climon_prepare_suppressed(&tracker, allowed);
+        const auto enrolled = loop.climon_track_keys_.find("retire:tracked");
+        check(probe.calls.size() == 2 && probe.calls[1].first == 62 && probe.calls[1].second == read,
+              "a tracking connection retires its plain GET through the hook");
+        check(enrolled != loop.climon_track_keys_.end() && loop.climon_track_keys_.size() == 1 &&
+              enrolled->second == std::vector<uint64_t>{62},
+              "the retired tracked GET enrolled its key");
+        check(tracking.tracking_reads.empty() && tracking.tracking_pending.empty(),
+              "retirement consumed the pending read");
+        check(std::string(tracker.fill_buf().data(), tracker.fill_buf().size()) == "$-1\r\n",
+              "the tracked GET's own reply was staged, not suppressed");
     }
 
     static void pubsub_timeout() {
@@ -761,6 +852,7 @@ int main(int argc, char** argv) {
     else if (mode == "output") R::output();
     else if (mode == "pubsub") R::pubsub();
     else if (mode == "pubsub-timeout") R::pubsub_timeout();
+    else if (mode == "suppressed-retire") R::suppressed_retire_scope();
     else if (mode == "receive") R::receive_segments();
     else if (mode == "collection-oom") R::collection_oom();
     else if (mode == "hexpire-oom") test_hexpire_oom(argc == 3 ? argv[2] : nullptr);

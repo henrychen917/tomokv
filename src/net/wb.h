@@ -265,8 +265,9 @@ public:
         return failed;
     }
 
-    // CLIENT REPLY OFF/SKIP (Lane F). Cold: reached only from the climon object when the reply
-    // armed bit is set, never from serve(), so the send engine's hot template pair is untouched.
+    // CLIENT REPLY OFF/SKIP (Lane F) and CLIENT TRACKING. Cold: reached only from the climon object
+    // when the reply or tracking armed bit is set, never from serve(), so the send engine's hot
+    // template pair is untouched.
     //
     // PER-OP, and that is the point. Suppression cannot be decided per connection: a pipelined
     // `CLIENT REPLY SKIP; PING; PING` retires all three in ONE drain, and a per-connection
@@ -281,21 +282,28 @@ public:
     // complete. A borrowed value that survives retire_fn_ is returned to its owning shard instead
     // of being sent. Direct-reply bytes live in the fill buffer's spare capacity and are simply
     // never committed.
+    //
+    // retire_fn_ is the SPECIAL retire here exactly as in the hot serve body: only an op that
+    // carries special state (zc_ptr) reaches it. CLIENT TRACKING connections also take this drain,
+    // and their PLAIN reads -- even a small GET -- enroll at in-order retirement through that hook
+    // (IoLoop::tracking_retire_read). The caller decides per connection: `retire_plain` is true for
+    // a tracking connection only, so a reply-suppressed connection without tracking never pays a
+    // hook call for a plain op.
     __attribute__((noinline, cold))
-    bool serve_suppressing(Client& c) {
-        return serve_suppressing_impl(c, true);
+    bool serve_suppressing(Client& c, bool retire_plain) {
+        return serve_suppressing_impl(c, true, nullptr, retire_plain);
     }
 
     __attribute__((noinline, cold))
-    bool prepare_suppressing(Client& c, bool& submit_allowed) {
+    bool prepare_suppressing(Client& c, bool& submit_allowed, bool retire_plain) {
         submit_allowed = true;
-        return serve_suppressing_impl(c, false, &submit_allowed);
+        return serve_suppressing_impl(c, false, &submit_allowed, retire_plain);
     }
 
 private:
     __attribute__((noinline, cold))
-    bool serve_suppressing_impl(Client& c, bool submit,
-                                bool* submit_allowed = nullptr) {
+    bool serve_suppressing_impl(Client& c, bool submit, bool* submit_allowed,
+                                bool retire_plain) {
         stats_.serves++;
         Client& conn = c;
         conn.start_obuf_tracking();
@@ -307,9 +315,10 @@ private:
             // a suppressed op can take exactly those back instead of leaking a partial array.
             const uint32_t segments_before = conn.output_list_length();
             const bool fill_was_staged = conn.has_pending_fill();
-            // This cold drain also serves tracking connections: even a small
-            // GET must enroll its read at retirement, in connection order.
-            retire_fn_(retire_ctx_, conn, op);
+            // A tracking connection retires every op through the hook, so even a small GET
+            // enrolls its read at retirement, in connection order. Every other connection
+            // keeps the special-only contract shared with the hot serve body.
+            if (op.zc_ptr || retire_plain) retire_fn_(retire_ctx_, conn, op);
             if (op.reply_skip()) {
                 if (op.zc_ptr && op.zc_shard >= 0) release(op.zc_shard, op.zc_ptr);
                 // Everything past the frontier is this op's reply -- except the seal, which moved

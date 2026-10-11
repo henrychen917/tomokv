@@ -74,6 +74,10 @@ ROWS = {
                                     target='build/netcmd-unit', arguments=['notify-oom'],
                                     gate_loop=('NETCMD_CASE', 'netcmd $NETCMD_CASE regression'),
                                     success='ok: netcmd notify-oom', timeout=60),
+    'suppressed-retire': dict(label='netcmd pubsub regression',
+                              target='build/netcmd-unit', arguments=['pubsub'],
+                              gate_loop=('NETCMD_CASE', 'netcmd $NETCMD_CASE regression'),
+                              success='ok: netcmd pubsub', timeout=60),
 }
 
 

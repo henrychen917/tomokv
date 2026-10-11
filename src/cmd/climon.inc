@@ -128,6 +128,7 @@
     ClimonStartResult tracking_client_subcommand(Client* client, Op& op);
     void tracking_register_read(Client* client, ClimonConn& state, Op& op);
     void tracking_retire_read(Client& client, Op& op);
+    bool tracking_retire_plain(Client* client);
     void tracking_register_key(uint64_t id, const std::string& key);
     void tracking_forget_client(uint64_t id, ClimonConn& state);
     void tracking_invalidate_local(Slice key, uint64_t writer_id);

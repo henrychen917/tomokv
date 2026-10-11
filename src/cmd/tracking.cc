@@ -186,6 +186,15 @@ void IoLoop::tracking_retire_read(Client& client, Op& op) {
     state->tracking_reads.erase(read);
 }
 
+// The cold suppressing drain's retire hook stays SPECIAL-only (zc_ptr state, as in the hot serve)
+// for every connection except a tracking one, whose plain reads enroll at retirement (above).
+// Decided per connection before each drain; an owner with no local tracker answers without a probe.
+bool IoLoop::tracking_retire_plain(Client* client) {
+    if (!climon_local_trackers_) return false;
+    const ClimonConn* state = climon_conn_find(client->id());
+    return state && state->tracking_on;
+}
+
 void IoLoop::tracking_forget_client(uint64_t id, ClimonConn& state) {
     state.tracking_reads.clear();
     state.tracking_pending.clear();

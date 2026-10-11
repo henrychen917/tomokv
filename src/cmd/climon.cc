@@ -584,7 +584,7 @@ uint32_t IoLoop::climon_serve_suppressed(Client* client) {
             }
             if (tls->failed()) close_client(client, tls->output_pending() || client->send_inflight());
         }
-    } else did = wb_.serve_suppressing(*client);
+    } else did = wb_.serve_suppressing(*client, tracking_retire_plain(client));
     ClimonConn* state = climon_conn_find(client->id());
     if (state && state->reply_mode == kClimonReplySkipNow && client->rob().quiesced() &&
         state->gate_op_id != client->rob().dispatch_id()) {
@@ -598,7 +598,7 @@ uint32_t IoLoop::climon_serve_suppressed(Client* client) {
 }
 
 uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed) {
-    const bool did = wb_.prepare_suppressing(*client, submit_allowed);
+    const bool did = wb_.prepare_suppressing(*client, submit_allowed, tracking_retire_plain(client));
     ClimonConn* state = climon_conn_find(client->id());
     // The drain state disarms once every marked op has actually retired -- not when it was
     // marked, and not when CLIENT REPLY ON ran -- or the suppressing variant would stop being
