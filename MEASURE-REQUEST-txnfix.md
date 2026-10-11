@@ -516,3 +516,26 @@ the documented baseline failure decisions; the default branch is not merge
 ready. DQ/DF stay **+10/+10** and full-branch counts **635/652**; a Stage-A-only
 selection without group rows requires **633/650**. Neither protected EXPECT
 assignment was edited. No work was pushed.
+
+## txnfix3
+
+Work resumes from `b452303fd`, after the required fetch/merge of `origin/cpp`
+(`991d48f65`, already current). Proofs use only CPUs 112–127 and ports
+22600–22699. No performance workload, full gate or push is authorized here.
+The group fallback stays in its existing separate `e1609593d` commit; its
+acceptance remains the owner's decision.
+
+Fresh reproduction receipts are in `docs/txnfix/txnfix3/reproduce/`.
+Original-parameter atomic-0 T05 RPOPLPUSH fails conservation in both modes.
+Both existing MSETNX witness tests fail on the starting candidate. The first
+G5 invocation omitted `--pre` and failed at a missing diagnostic; it is retained
+as a harness failure, not as duplicate-delivery evidence. A corrected G5 PRE
+invocation is required below.
+
+The first cost repair removes `delete group_attempt` from `~ScatterState` and
+removes ordinary initialization of that pointer. A group owns its cold attempt
+through a high bit in the existing `watch_refs` lifetime predicate. The IO
+reaper frees the attempt only after record and intent/reservation pins drain.
+Group setup and the barrier assignment run under the existing atomic-group
+prepare branch. Static instruction identity and the final proof are pending;
+this checkpoint does not claim the cost bar is met.

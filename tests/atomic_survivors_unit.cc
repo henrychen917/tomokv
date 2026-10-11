@@ -429,7 +429,8 @@ void txn_group(Server& server) {
             if (!state.epoch.load()) state.aborted.store(true);
             for (uint32_t i = 0; i != 2; ++i)
                 xshard_cleanup_shard_at(server.shard(i), UINT64_MAX, UINT64_MAX, 256);
-            require(state.watch_refs.load() == 0, "group intent/reservation lifetime pins drained");
+            require(txn_group_release(state), "group intent/reservation lifetime pins drained");
+            require(state.watch_refs.load() == 0, "cold attempt ownership released");
         }
     };
     require(local(server, {"SET", a, "old"}) == "+OK\r\n", "group predecessor seeded");
@@ -439,10 +440,10 @@ void txn_group(Server& server) {
         auto& state = run.state;
         require(txn_group_touch(state, server.shard(0), run.keys[0].hash, slice(a)),
                 "read-only group key protected before read");
-        require(state.watch_refs.load() == 1 && state.record_refs.load() == 0,
+        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef + 1 && state.record_refs.load() == 0,
                 "phase-one intent pins survive without owner-record sentinels");
         require(local(server, {"SET", a, "new"}) == "+OK\r\n", "plain writer never waits on group read");
-        require(state.epoch.load() == kAtomicCancelledEpoch && state.group_attempt->cause_ready.load(),
+        require(state.epoch.load() == kAtomicCancelledEpoch && state.group_attempt()->cause_ready.load(),
                 "writer veto and retry cause published");
         require(!txn_group_decide(state, server.atomic_commit()), "veto cannot be overwritten by commit");
     }
@@ -453,24 +454,24 @@ void txn_group(Server& server) {
         // Suspend the doomer immediately after its CAS. The batch must take
         // its existing abort arm even before that doomer stores the flag.
         state.epoch.store(kAtomicCancelledEpoch);
-        require(!state.aborted.load() && !state.group_attempt->cause_ready.load(),
+        require(!state.aborted.load() && !state.group_attempt()->cause_ready.load(),
                 "cancelled word precedes doomer metadata");
         require(!txn_group_decide(state, server.atomic_commit()) && state.aborted.load(),
                 "failed commit CAS publishes abort before batch completion");
-        require(!state.group_attempt->cause_ready.load(), "IO still waits for the actual doomer");
+        require(!state.group_attempt()->cause_ready.load(), "IO still waits for the actual doomer");
     }
     {
         Attempt run(server, request);
         auto& state = run.state;
-        state.group_attempt->exclusive = true;
-        require(server.txn_exclusive_claim(&state.group_attempt->retry), "group owns fallback token");
+        state.group_attempt()->exclusive = true;
+        require(server.txn_exclusive_claim(&state.group_attempt()->retry), "group owns fallback token");
         server.txn_exclusive_barrier(true);
         require(!txn_group_ready(state, server.shard(0), request.op), "first fragment waits for arrival");
         require(!server.shard(0).has_watches(), "no early reservation before final fragment arrives");
         require(txn_group_arrive(state, 1), "direct destination can arrive before source readiness");
         require(txn_group_ready(state, server.shard(0), request.op) &&
                 txn_group_ready(state, server.shard(1), request.op), "exclusive owners reserve after arrival");
-        require(state.watch_refs.load() == 4, "two reservations and two lazy cleanup anchors");
+        require(state.watch_refs.load() == ScatterState::kGroupAttemptRef + 4, "two reservations and two lazy cleanup anchors");
         require(!server.shard(0).watch_write_ready(slice(a)) &&
                 !server.shard(1).watch_write_ready(slice(b)), "fallback guards both owners' writes");
         Request writer({"SET", a, "racing"});

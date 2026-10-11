@@ -560,8 +560,9 @@ uint32_t ScatterArenaPool::reap_deferred() {
     uint32_t reaped = 0;
     for (size_t i = 0; i < deferred_destroy_.size();) {
         ScatterState* state = deferred_destroy_[i];
-        if (state->record_refs.load(std::memory_order_acquire) != 0 ||
-            state->watch_refs.load(std::memory_order_acquire) != 0) { i++; continue; }
+        if ((state->record_refs.load(std::memory_order_acquire) != 0 ||
+             state->watch_refs.load(std::memory_order_acquire) != 0) &&
+            !txn_group_release(*state)) { i++; continue; }
         const bool pooled = state->pooled;
         free_state_key_anchors(*state);
         state->~ScatterState();

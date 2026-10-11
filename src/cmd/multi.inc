@@ -298,7 +298,7 @@ void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
     }
     if (!entry.group || entry.group == self) return;
     ScatterState& script = *entry.group;
-    if (script.group_attempt) {
+    if (script.group_attempt()) {
         const uint32_t shard = script.keys[script.key_order[entry.begin]].shard;
         txn_group_cancel(script, shard);
         return;
@@ -338,7 +338,7 @@ void atomic_shutdown_unit_intent(AtomicScriptIntent& intent) {
         uint64_t zero = 0;
         if (state.epoch.compare_exchange_strong(zero, kAtomicCancelledEpoch)) {
             state.aborted.store(true, std::memory_order_relaxed);
-            state.group_attempt->cause_ready.store(true, std::memory_order_relaxed);
+            state.group_attempt()->cause_ready.store(true, std::memory_order_relaxed);
             aof_abort_scatter_group(state);
         }
         const uint32_t shard = intent.kind == 2 ? intent.hash
@@ -1248,7 +1248,7 @@ bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice k
             g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
             ready = multi_wait(state, shard);
         } else if (write && entry.group &&
-                   (entry.group->kind == Kind::Script || entry.group->group_attempt)) {
+                   (entry.group->kind == Kind::Script || entry.group->group_attempt())) {
             multi_cancel_record(entry);
             published(entry.group_epoch->load(std::memory_order_acquire), entry.origin_conn_id);
         } else {
