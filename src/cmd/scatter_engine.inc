@@ -2081,6 +2081,10 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // deep pipeline; atomic-ON MSETNX and delete keep their dispatch snapshot for existence.
     // A read that IO already stamped reuses that exact cut, so a plain read and a multi-key read
     // prepared back to back on one connection cannot disagree about which of them is older.
+    // Parsing takes kind by address. Freeze the remaining setup's value here
+    // so GCC does not keep spilling that parser local across state setup;
+    // the ordinary MGET preparation retains PRE's executed instruction count.
+    const Kind prepared_kind = kind;
     if (needs_snapshot) {
         state->snapshot = op.has_read_cut() ? op.read_cut(server.atomic_snapshot())
                                             : server.atomic_snapshot();
@@ -2094,11 +2098,11 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         if (__builtin_expect(server.atomic_snapshot() < server.atomic_commit_drawn(), false))
             server.note_atomic_commit_hold();
     }
-    if (kind == Kind::Sintercard) { state->set_first = 0; state->set_count = sinter_count; }
-    else if (is_store_setop(kind)) { state->set_first = 1; state->set_count = key_count - 1; }
-    else if (is_plain_setop(kind)) { state->set_first = 0; state->set_count = key_count; }
-    else if (is_store_zsetop(kind)) { state->set_first = 1; state->set_count = zset_count; }
-    else if (is_plain_zsetop(kind) || kind == Kind::Zintercard) {
+    if (prepared_kind == Kind::Sintercard) { state->set_first = 0; state->set_count = sinter_count; }
+    else if (is_store_setop(prepared_kind)) { state->set_first = 1; state->set_count = key_count - 1; }
+    else if (is_plain_setop(prepared_kind)) { state->set_first = 0; state->set_count = key_count; }
+    else if (is_store_zsetop(prepared_kind)) { state->set_first = 1; state->set_count = zset_count; }
+    else if (is_plain_zsetop(prepared_kind) || prepared_kind == Kind::Zintercard) {
         state->set_first = 0;
         state->set_count = zset_count;
     }
@@ -2131,9 +2135,9 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
         return ScatterPrepare::Error;
     }
 
-    if (kind == Kind::AllShards || kind == Kind::DebugReload || kind == Kind::DebugLoadAof ||
-        kind == Kind::DebugBorrowCount || kind == Kind::DbsizeExact || kind == Kind::Keys ||
-        kind == Kind::RandomKey || kind == Kind::DatabaseInfo || kind == Kind::Swapdb) {
+    if (prepared_kind == Kind::AllShards || prepared_kind == Kind::DebugReload || prepared_kind == Kind::DebugLoadAof ||
+        prepared_kind == Kind::DebugBorrowCount || prepared_kind == Kind::DbsizeExact || prepared_kind == Kind::Keys ||
+        prepared_kind == Kind::RandomKey || prepared_kind == Kind::DatabaseInfo || prepared_kind == Kind::Swapdb) {
         state->nsub = server.nshards();
         for (uint32_t sid = 0; sid < state->nsub; sid++) {
             state->groups[sid].shard = sid;
@@ -2147,8 +2151,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // Only the deliberately non-atomic conditional controls arm this window. Atomic-ON movers use
     // destination reservation/revalidation and must retain their unmodified scheduling semantics.
     if (__builtin_expect(state->nsub > 1 && !state->atomic_apply &&
-                         (kind == Kind::Renamenx ||
-                          (kind == Kind::Copy && !copy_replace)), false)) {
+                         (prepared_kind == Kind::Renamenx ||
+                          (prepared_kind == Kind::Copy && !copy_replace)), false)) {
         const uint64_t conditional_deadline = server.debug_atomic_conditional_deadline();
         if (__builtin_expect(conditional_deadline != 0, false) &&
             now_ns() < conditional_deadline)
@@ -2156,8 +2160,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
     // TEST HOOK arming, after the groups exist so a lead shard can be named. Only cross-shard READS
     // arm it: they are the commands whose fragments each answer at their own moment.
-    if (__builtin_expect(state->nsub > 1, false) && kind != Kind::DatabaseInfo &&
-        kind != Kind::DebugBorrowCount &&
+    if (__builtin_expect(state->nsub > 1, false) && prepared_kind != Kind::DatabaseInfo &&
+        prepared_kind != Kind::DebugBorrowCount &&
         !(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
         const uint32_t fanout_defer = server.debug_atomic_fanout_defer();
         if (__builtin_expect(fanout_defer != 0, false)) {
@@ -2168,7 +2172,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     }
     // TEST HOOK arming for the cross-owner script GATHER wave. A script is a Write row, so it can
     // never reach the read-only arm above; it gets its own deadline, consumed in the Read phase.
-    if (__builtin_expect(kind == Kind::Script, false)) {
+    if (__builtin_expect(prepared_kind == Kind::Script, false)) {
         const uint32_t stage_defer = server.debug_script_stage_defer();
         if (__builtin_expect(stage_defer != 0, false))
             state->debug_script_defer_us = stage_defer;
@@ -2186,7 +2190,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     dispatch.nshards = state->nsub;
     dispatch.barrier = state->barrier;
     dispatch.atomic_write = state->atomic_group;
-    if (kind == Kind::Swapdb && !server.databases().admit_swap(state)) {
+    if (prepared_kind == Kind::Swapdb && !server.databases().admit_swap(state)) {
         xshard_abandon_unpublished(state, pool, owner_io);
         dispatch = {};
         return ScatterPrepare::Backpressure;
