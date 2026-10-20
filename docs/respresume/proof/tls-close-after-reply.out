@@ -1,0 +1,16 @@
+== pre TLS 2s uring
+protocol error: reply=b'-ERR Protocol error: invalid multibulk length\r\n' -> still open after 10 s after 10.01s
+QUIT: reply=b'+OK\r\n' -> still open after 10 s after 10.01s
+PING: reply=b'+PONG\r\n' -> still open after 10 s after 10.01s
+== pre TLS 2s epoll
+protocol error: reply=b'-ERR Protocol error: invalid multibulk length\r\n' -> closed (EOF) after 0.00s
+QUIT: reply=b'+OK\r\n' -> closed (EOF) after 0.00s
+PING: reply=b'+PONG\r\n' -> still open after 10 s after 10.01s
+== post TLS 2s uring
+protocol error: reply=b'-ERR Protocol error: invalid multibulk length\r\n' -> still open after 10 s after 10.01s
+QUIT: reply=b'+OK\r\n' -> still open after 10 s after 10.01s
+PING: reply=b'+PONG\r\n' -> still open after 10 s after 10.01s
+== post TLS 2s epoll
+protocol error: reply=b'-ERR Protocol error: invalid multibulk length\r\n' -> closed (EOF) after 0.00s
+QUIT: reply=b'+OK\r\n' -> closed (EOF) after 0.00s
+PING: reply=b'+PONG\r\n' -> still open after 10 s after 10.01s

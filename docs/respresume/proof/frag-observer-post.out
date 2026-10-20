@@ -1,0 +1,6 @@
+== POST observer build (tools/respresume_observer.py --post), 2s epoll: tests/respresume.py fragment, then INFO counters
+{"fragment_trials": 4692, "seeds": [7, 19, 20, 23], "result": "PASS"}
+perfio_incomplete:14302
+perfio_reparsed_arguments:0
+rr_decoded_lines:31542080
+rr_completed_lines:31540300

@@ -1,0 +1,10 @@
+# Merit only on the maintainer's quiet box; use the gate's ABBA instrument.
+# Also run the unchanged generic headline/smoke cells. Eight keys per MSET.
+resp_mset_f0 | 1s | rl=0 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+resp_mset_f1 | 1s | rl=1 | ov=0 | ro=1 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+resp_mset_s0 | 2s | rl=0 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+resp_mset_s1 | 2s | rl=1 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+resp_set1k_f0 | 1s | rl=0 | ov=0 | ro=0 | SET:1024 | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+resp_set1k_f1 | 1s | rl=1 | ov=0 | ro=1 | SET:1024 | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+resp_set1k_s0 | 2s | rl=0 | ov=0 | ro=0 | SET:1024 | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+resp_set1k_s1 | 2s | rl=1 | ov=0 | ro=0 | SET:1024 | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1

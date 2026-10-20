@@ -1,0 +1,21 @@
+{
+  "kind": "A: behavior twin",
+  "patches": [
+    {
+      "symbol": "tomo::resp_suspend(tomo::RespFrontier&, char const*, tomo::Op&, char const**, unsigned int, unsigned int, unsigned long)",
+      "address": "0x36432",
+      "offset": 222262,
+      "before": "31c041564155",
+      "after": "b801000000c3"
+    },
+    {
+      "symbol": "tomo_db0::resp_suspend(tomo_db0::RespFrontier&, char const*, tomo_db0::Op&, char const**, unsigned int, unsigned int, unsigned long)",
+      "address": "0x1f68d",
+      "offset": 128657,
+      "before": "31c041564155",
+      "after": "b801000000c3"
+    }
+  ],
+  "post_sha256": "18d24b9db8ec7267c51a8de3b6bef663100d6e7ba152b2ed73d41b1012417c9e",
+  "pad_sha256": "860b1f69fce48d724d370ef1b8990e99d995ef17fd8ebd65d05cb0dd603293d3"
+}

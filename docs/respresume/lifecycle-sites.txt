@@ -1,0 +1,82 @@
+src/core/io_loop.h:1333:            c->set_ifid_thread(target);
+src/core/io_loop.h:1338:            c->set_ifid_thread(self_->id());
+src/core/io_loop.h:1446:            const int original = client->replace_fd(migration->source_backup_fd);
+src/core/io_loop.h:1610:        client->set_ifid_thread(destination); // THE single connection ownership edge
+src/core/io_loop.h:2366:        c->set_ifid_thread(self_->id());
+src/core/io_loop.h:3268:                conn.advance_parse(pos - conn.rpos());
+src/core/io_loop.h:3275:                    conn.advance_parse(pass_rlen - conn.rpos());
+src/core/io_loop.h:3276:                    c->mark_closing();
+src/core/io_loop.h:3288:                conn.advance_parse(pass_rlen - conn.rpos());
+src/core/io_loop.h:3289:                c->mark_closing();
+src/core/io_loop.h:3299:                conn.advance_parse(consumed);
+src/core/io_loop.h:3334:                conn.advance_parse(consumed);
+src/core/io_loop.h:3356:                conn.advance_parse(consumed);
+src/core/io_loop.h:3472:                    conn.advance_parse(consumed);
+src/core/io_loop.h:3490:                    conn.advance_parse(consumed);
+src/core/io_loop.h:3498:                    conn.advance_parse(consumed);
+src/core/io_loop.h:3508:                conn.advance_parse(consumed);
+src/core/io_loop.h:3563:                    conn.advance_parse(consumed);
+src/core/io_loop.h:3605:                            conn.advance_parse(consumed);
+src/core/io_loop.h:3626:                        conn.advance_parse(consumed);
+src/core/io_loop.h:3649:                            conn.advance_parse(consumed);
+src/core/io_loop.h:3668:                    conn.advance_parse(consumed);
+src/core/io_loop.h:3683:                conn.advance_parse(consumed);
+src/core/io_loop.h:3753:                    conn.advance_parse(consumed);
+src/core/io_loop.h:3792:                conn.advance_parse(consumed);
+src/core/io_loop.h:3831:                conn.advance_parse(consumed);
+src/core/io_loop.h:3917:                    conn.advance_parse(consumed);
+src/core/io_loop.h:3933:                conn.advance_parse(consumed);
+src/core/io_loop.h:3947:                    conn.advance_parse(consumed);
+src/core/io_loop.h:4011:                        conn.advance_parse(consumed);
+src/core/io_loop.h:4092:            conn.advance_parse(consumed);
+src/core/io_loop.h:4405:                conn.reset_rbuf_at_quiescence();
+src/core/io_loop.h:4417:                // through mark_closing() rather than close_client() (the reply has to go out
+src/core/io_loop.h:4846:            c->mark_closing();
+src/core/io_loop.h:4911:        c->mark_dead();
+src/core/reorder.cc:1104:            conn.reset_rbuf_at_quiescence();
+src/core/reorder.cc:1116:            // through mark_closing() rather than close_client() (the reply has to go out
+src/core/reorder.cc:1320:        c->set_ifid_thread(target);
+src/core/reorder.cc:1325:        c->set_ifid_thread(self_->id());
+src/core/reorder.cc:1366:    c->set_ifid_thread(self_->id());
+src/core/reorder.cc:2029:            conn.advance_parse(pos - conn.rpos());
+src/core/reorder.cc:2036:                conn.advance_parse(pass_rlen - conn.rpos());
+src/core/reorder.cc:2037:                c->mark_closing();
+src/core/reorder.cc:2049:            conn.advance_parse(pass_rlen - conn.rpos());
+src/core/reorder.cc:2050:            c->mark_closing();
+src/core/reorder.cc:2060:            conn.advance_parse(consumed);
+src/core/reorder.cc:2095:            conn.advance_parse(consumed);
+src/core/reorder.cc:2117:            conn.advance_parse(consumed);
+src/core/reorder.cc:2233:                conn.advance_parse(consumed);
+src/core/reorder.cc:2251:                conn.advance_parse(consumed);
+src/core/reorder.cc:2259:                conn.advance_parse(consumed);
+src/core/reorder.cc:2269:            conn.advance_parse(consumed);
+src/core/reorder.cc:2324:                conn.advance_parse(consumed);
+src/core/reorder.cc:2368:                        conn.advance_parse(consumed);
+src/core/reorder.cc:2390:                    conn.advance_parse(consumed);
+src/core/reorder.cc:2414:                        conn.advance_parse(consumed);
+src/core/reorder.cc:2434:                conn.advance_parse(consumed);
+src/core/reorder.cc:2450:            conn.advance_parse(consumed);
+src/core/reorder.cc:2521:                conn.advance_parse(consumed);
+src/core/reorder.cc:2561:            conn.advance_parse(consumed);
+src/core/reorder.cc:2600:            conn.advance_parse(consumed);
+src/core/reorder.cc:2687:                conn.advance_parse(consumed);
+src/core/reorder.cc:2707:            conn.advance_parse(consumed);
+src/core/reorder.cc:2721:                conn.advance_parse(consumed);
+src/core/reorder.cc:2786:                    conn.advance_parse(consumed);
+src/core/reorder.cc:2870:        conn.advance_parse(consumed);
+src/cmd/acl.inc:1227:    client.advance_parse(consumed);
+src/cmd/auth.inc:112:        client.advance_parse(consumed);
+src/cmd/auth.inc:118:    client.advance_parse(consumed);
+src/cmd/t_server.cc:1282:    if (g_client) g_client->mark_closing();
+src/net/conn.h:296:    int replace_fd(int replacement) {
+src/net/conn.h:307:    void     advance_parse(uint32_t n) { rpos_ += n; inline_scanned_ = 0; }
+src/net/conn.h:332:    // (Guarding only the memmove in reset_rbuf_at_quiescence is NOT enough; realloc moves it too.)
+src/net/conn.h:376:    // reset_rbuf_at_quiescence().
+src/net/conn.h:386:    void reset_rbuf_at_quiescence() {
+src/net/conn.h:603:    void set_ifid_thread(uint32_t t) { ifid_thread_.store(t, std::memory_order_release); }
+src/net/conn.h:610:    void mark_dead() { dead_ = true; inline_scanned_ = 0; multibulk_.finish(); }
+src/net/conn.h:612:    void mark_closing() { closing_ = true; inline_scanned_ = 0; multibulk_.finish(); }
+src/cmd/slowlog.h:38:// owning IO thread may then retire the op and call reset_rbuf_at_quiescence(), which memmoves and
+src/cmd/multi.inc:1756:        client.advance_parse(consumed);
+src/cmd/multi.inc:1877:    client.advance_parse(consumed);
+src/cmd/climon.cc:1113:                victim->mark_closing();

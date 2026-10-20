@@ -67,6 +67,12 @@ build/lottery/tomokv-asan: build/lottery/tomokv
 	$(MAKE) -C build/lottery/source BUILD_ROOT=$(abspath build/lottery/asan) JE=0 CXXFLAGS='$(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -O1' all
 	cp build/lottery/asan/tomokv $@
 
+# NT4.2: no server/listener; frozen PRE can compile the same witness with
+# -DTOMO_RESPRESUME_PRE and its source root first on the include path.
+build/respresume-unit: tests/respresume_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -I. $< -o $@
+
 # SV4.10: the DEBUG parser and pre-store hook exist only in this copied test
 # tree. Default production objects never contain a hook, branch or test state.
 build/racefix-climon: tools/racefix_build.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
@@ -372,6 +378,9 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # Deterministic core regressions: the test TU instantiates the real executor/IO methods
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
+build/respresume-migration: tests/respresume_migration.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/encodingfix-unit: build/tests/encodingfix_unit.o $(CORE_TEST_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
