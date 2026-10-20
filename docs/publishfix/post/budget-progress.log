@@ -8,3 +8,11 @@
 {"arm": "post", "unit": "src/cmd/xshard.o", "budget": 128042, "start_size": null, "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128042.o", "changed": 5, "spillover": 2, "hot": 0}
 {"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126678, "start_size": null, "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126678.o", "changed": 5, "spillover": 2, "hot": 0}
 {"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126680, "start_size": null, "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126680.o", "changed": 9, "spillover": 6, "hot": 0}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126690, "start_size": null, "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126690.o", "changed": 4, "spillover": 1, "hot": 0}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126693, "start_size": null, "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126693.o", "changed": 4, "spillover": 1, "hot": 0}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126694, "start_size": null, "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126694.o", "changed": 5, "spillover": 2, "hot": 0}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126695, "start_size": null, "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126695.o", "changed": 9, "spillover": 6, "hot": 0}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126698, "start_size": null, "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126698.o", "changed": 9, "spillover": 6, "hot": 0}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126710, "start_size": null, "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126710.o", "changed": 3, "spillover": 0, "hot": 0}
+BEST src/cmd/xshard.o 128042 hot 0 spillover 2
+BEST db0/src/cmd/xshard.o 126710 hot 0 spillover 0

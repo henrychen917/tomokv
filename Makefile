@@ -205,10 +205,14 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
 # wave2: see the re-derivation note above $(BUILD_ROOT)/src/main.o (src 127924 kept, db0 126566).
 # wave3: see the re-derivation note above $(BUILD_ROOT)/src/main.o (128012 / db0 126680).
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128012
+# publishfix: the publisher adds 14 IPA instructions per namespace. Compile-only
+# trials (docs/publishfix/identity/budgets) retain all command/hot bodies and reduce
+# unrelated changes to normalize_multi_blocking_pop plus its cold fragment at
+# 128042; db0 has no unrelated changes at 126710. Remaining spillover is reported.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128042
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126680
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126710
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
