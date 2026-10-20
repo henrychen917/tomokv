@@ -122,6 +122,27 @@ public:
             (fallback_count && intersect_command) ||
             (intersect_filter_miss && !intersect_command)) std::abort();
         Rob<kRobWindow>& rob = client->rob();
+        // RL4.4: the variadic registry routes even one-key DEL/UNLINK here,
+        // after mark_current_write() staged a conservative generation. Refine
+        // this already-taken broad-write edge before either early-out: younger
+        // reads need the point hash even when there are no pending older reads.
+        // Ordinary GET/SET never enter this classification. The executor/scatter
+        // route remains unchanged (xshard_prepare already handles argc==2).
+        if (reason == ReadLocalFallbackReason::InflightWrite &&
+            !require_hash_match && reserve_shard < 0 &&
+            !fallback_count && !intersect_command) {
+            Op& write = rob.at(rob.dispatch_id());
+            if (write.spec && (write.spec->flags & CmdFlags::MultiShard) &&
+                write.argc() == 2 &&
+                (write.cmd_name().eq_icase("del") ||
+                 write.cmd_name().eq_icase("unlink")) &&
+                loop.fused_executor_->read_local_point_writes_precise()) {
+                hash = FlatStore::hash_key(write.arg(1));
+                (void)rob.refine_current_write_hash(hash);
+                write.mark_read_local_precise_write();
+                require_hash_match = true;
+            }
+        }
         const bool reserve_current =
             reserve_current_without_reads && reserve_shard >= 0;
         // A caller that already walked a complete precise keyset may pass its authoritative
