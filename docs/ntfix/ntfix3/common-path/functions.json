@@ -1,0 +1,51 @@
+[
+  {
+    "arm": "pre",
+    "object": "build/ntfix-pre/src/core/reorder.o",
+    "symbol": "_ZN4tomo6Client10read_spaceEmRmbmmm.isra.0",
+    "size": 337,
+    "disassembly": "pre-_ZN4tomo6Client10read_spaceEmRmbmmm.isra.0.asm"
+  },
+  {
+    "arm": "post",
+    "object": "build/src/core/reorder.o",
+    "symbol": "_ZN4tomo6Client10read_spaceEmRmbmmm.isra.0",
+    "size": 371,
+    "disassembly": "post-_ZN4tomo6Client10read_spaceEmRmbmmm.isra.0.asm"
+  },
+  {
+    "arm": "post",
+    "object": "build/src/core/reorder.o",
+    "symbol": "_ZN4tomo6Client10read_spaceEmRmbmmm.isra.0.cold",
+    "size": 38,
+    "disassembly": "post-_ZN4tomo6Client10read_spaceEmRmbmmm.isra.0.cold.asm"
+  },
+  {
+    "arm": "post",
+    "object": "build/src/core/reorder.o",
+    "symbol": "_ZN4tomo6Client18read_space_refinedEmRmbmm",
+    "size": 299,
+    "disassembly": "post-_ZN4tomo6Client18read_space_refinedEmRmbmm.asm"
+  },
+  {
+    "arm": "post-main",
+    "object": "build/src/main.o",
+    "symbol": "_ZN4tomo6Client10read_spaceEmRmbmmm.isra.0",
+    "size": 371,
+    "disassembly": "post-main-_ZN4tomo6Client10read_spaceEmRmbmmm.isra.0.asm"
+  },
+  {
+    "arm": "post-main",
+    "object": "build/src/main.o",
+    "symbol": "_ZN4tomo6Client10read_spaceEmRmbmmm.isra.0.cold",
+    "size": 38,
+    "disassembly": "post-main-_ZN4tomo6Client10read_spaceEmRmbmmm.isra.0.cold.asm"
+  },
+  {
+    "arm": "post-main",
+    "object": "build/src/main.o",
+    "symbol": "_ZN4tomo6Client18read_space_refinedEmRmbmm",
+    "size": 299,
+    "disassembly": "post-main-_ZN4tomo6Client18read_space_refinedEmRmbmm.asm"
+  }
+]
