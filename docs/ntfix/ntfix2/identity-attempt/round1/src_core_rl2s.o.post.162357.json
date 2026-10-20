@@ -1,0 +1,57 @@
+{
+  "object": "src/core/rl2s.o",
+  "budget": 162357,
+  "tree": "post",
+  "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+  "unit": 110675,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=162357",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/rl2s.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.e594e582047db245.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.e594e582047db245"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.e594e582047db245.o",
+  "sha256": "f85704a4f1762c3a17b8d35de0b6e68ea1630ed5d25a14b09f632ef1adec264b",
+  "counts": {
+    "lane": 2,
+    "hot": 0,
+    "other": 1
+  },
+  "changes": [
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+      "pre": 717,
+      "post": 733
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+      "pre": 4317,
+      "post": 4373
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+      "pre": 2069,
+      "post": 2149
+    }
+  ]
+}

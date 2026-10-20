@@ -1,0 +1,72 @@
+{
+  "object": "db0/src/core/genthread.o",
+  "budget": 129740,
+  "tree": "post",
+  "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+  "unit": 101835,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=129740",
+    "-Wa,--defsym,tomo_rlfence_text_pad=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.56f754e7d1c3b3b8.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.56f754e7d1c3b3b8"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.56f754e7d1c3b3b8.o",
+  "sha256": "3b6c7933e118a54c20824c6b30b5fcea40ef915f592e29f07dfeacc50edbaee1",
+  "counts": {
+    "lane": 2,
+    "hot": 2,
+    "other": 1
+  },
+  "changes": [
+    {
+      "kind": "lane",
+      "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+      "pre": 717,
+      "post": 733
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+      "pre": 3662,
+      "post": 3715
+    },
+    {
+      "kind": "hot",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "pre": 9906,
+      "post": 9890
+    },
+    {
+      "kind": "hot",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "pre": 117,
+      "post": 117
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+      "pre": 1656,
+      "post": 1720
+    }
+  ]
+}

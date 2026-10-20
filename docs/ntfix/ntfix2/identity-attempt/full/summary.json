@@ -1,0 +1,39 @@
+{
+  "total": 16510,
+  "equal": 16431,
+  "changed": 79,
+  "handlers": 1211,
+  "handlers_equal": 1211,
+  "hot": 1214,
+  "hot_equal": 1213,
+  "changed_handlers": [],
+  "changed_hot": [
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE19r7_fused_sweep_implILj32ELb1ELb0ELb0EEEjv",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 796,
+      "post_size": 729,
+      "classification": "other"
+    }
+  ],
+  "hot_nonerror_equal": 1213,
+  "handlers_nonerror_equal": 1211,
+  "other_handlers": [],
+  "other_hot": [
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE19r7_fused_sweep_implILj32ELb1ELb0ELb0EEEjv",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 796,
+      "post_size": 729,
+      "classification": "other"
+    }
+  ]
+}
