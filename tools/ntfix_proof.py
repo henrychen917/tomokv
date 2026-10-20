@@ -176,6 +176,7 @@ def main():
     ap.add_argument("--binary", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--expect-equal", action="store_true")
+    ap.add_argument("--rows-only", action="store_true")
     args = ap.parse_args()
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -188,7 +189,18 @@ def main():
         for engine in ("uring", "epoll"):
             cell = out / f"{mode}-{engine}"
             with pair(args.binary.resolve(), mode, engine, cell, cert):
-                total += reproduce(cell)
+                if args.rows_only:
+                    for name, command in (
+                            ("N1", ["tests/infofix.py", "127.0.0.1", "25800", "--input-bytes-only"]),
+                            ("N2", ["tests/tls.py", "127.0.0.1", "25801", str(cert), "no",
+                                    "--plain-port", "25800", "--close-after-reply"])):
+                        with (cell / f"{name}.log").open("w") as log:
+                            result = subprocess.run(["taskset", "-c", "105-111", "python3", *command],
+                                                    cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+                        total += result.returncode != 0
+                        print(f"{mode}-{engine} {name}: rc={result.returncode}", flush=True)
+                else:
+                    total += reproduce(cell)
     if args.expect_equal:
         assert total == 0, f"{total} differences"
 

@@ -1072,7 +1072,7 @@ plan_jobs(){
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
-              aof_frame tls fused-0 fused-1)
+              aof_frame tls ntfix_input fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -1853,6 +1853,23 @@ for mode in 1s 2s; do for engine in uring epoll; do
   fi
   stop
 done; done
+}
+
+job_ntfix_input(){
+  local mode engine compatible=1 boot_fn
+  row_begin "INFO received bytes exact (ntfix N1)"
+  for mode in 1s 2s; do for engine in uring epoll; do
+    boot_fn=boot
+    [ "$mode" != 1s ] || boot_fn=boot_fused
+    if ! "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --save '' ||
+       ! py tests/infofix.py 127.0.0.1 "$PORT" --input-bytes-only \
+           >"$TMPDIR/ntfix-input-$mode-$engine.txt" 2>&1; then
+      compatible=0
+    fi
+    stop
+  done; done
+  [ "$compatible" = 1 ] && ok "INFO received bytes exact (ntfix N1)" \
+      || bad "INFO received bytes exact (ntfix N1)" "see $TMPDIR/ntfix-input-*.txt"
 }
 
 job_respcompat(){
@@ -3211,6 +3228,21 @@ TLS_ZC=$(shutdown_value tls.zc_suppressed)
 row_begin "TLS zc borrow gates fired (suppressed=$TLS_ZC)"
 [ -n "$TLS_ZC" ] && [ "$TLS_ZC" -gt 0 ] \
     && ok "TLS zc borrow gates fired (suppressed=$TLS_ZC)" || bad "TLS zc borrow gates fired"
+
+local mode engine compatible=1 shape
+row_begin "TLS silent-peer close after reply (ntfix N2)"
+for mode in 1s 2s; do for engine in uring epoll; do
+  shape=(--thread-mode 2s)
+  [ "$mode" != 1s ] || shape=(--thread-mode fused --read-local 1)
+  if ! tlsboot no --net-io "$engine" "${shape[@]}" ||
+     ! py tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" no --plain-port "$PORT" \
+         --close-after-reply >"$TMPDIR/ntfix-close-$mode-$engine.txt" 2>&1; then
+    compatible=0
+  fi
+  stop
+done; done
+[ "$compatible" = 1 ] && ok "TLS silent-peer close after reply (ntfix N2)" \
+    || bad "TLS silent-peer close after reply (ntfix N2)" "see $TMPDIR/ntfix-close-*.txt"
 }
 
 job_feature_cell(){
@@ -3740,6 +3772,7 @@ collect_job netcap
 # respcompat: +1 quick / +1 full, counted here before the quick-tier exit.
 # EXPECT counts and ledger fixtures are maintained by the owner.
 collect_job respcompat
+collect_job ntfix_input
 # NT4.2: DQ=+12, DF=+12. Owner changes EXPECT_QUICK/FULL to 637/654.
 # Counted by this collection site, before the quick-tier exit below.
 for RESP_CASE in fragment cpu neighbour; do for RESP_MODE in 1s 2s; do
