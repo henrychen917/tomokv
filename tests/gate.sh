@@ -319,7 +319,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # epoll/uring), collected after respcompat, before the quick-tier exit: DQ=+12, DF=+12.
 # rlfix (RL4.3/RL4.4): read-local GET miss and one-key delete batteries per mode, in the
 # read-local MGET fence job, before the quick-tier exit: DQ=+4, DF=+4.
-# wave3 running total (respresume +12, rlfix +4): DQ=+16, DF=+16 over 637/654 -> 653 / 670.
+# mkfix (count study tooling) + mkfix2 parts A/B (part C reverted): no gate row, DQ=+0, DF=+0.
+# wave3 running total (respresume +12, rlfix +4, mkfix +0): DQ=+16, DF=+16 over 637/654 -> 653 / 670.
 EXPECT_QUICK=637
 EXPECT_FULL=654                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }

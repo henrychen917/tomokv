@@ -1465,16 +1465,44 @@ void free_state_key_anchors(ScatterState& state) {
     }
 }
 
+// MGET/MSET post one task per distinct shard from the connection's IO producer.
+// Probe that producer's existing inbox credits before allocating/registering a cut.
+// The dispatch-side check remains authoritative if a shard's owner moves meanwhile.
+__attribute__((noinline)) bool multikey_task_room(Server& server, uint32_t owner_io,
+                                                  const RouteKey* routes, uint32_t count) {
+    uint64_t seen[4] = {};
+    uint16_t needed[kMaxThreads] = {};
+    for (uint32_t i = 0; i < count; ++i) {
+        const uint32_t sid = static_cast<uint32_t>(routes[i].shard);
+        const uint64_t bit = uint64_t{1} << (sid & 63);
+        if (seen[sid / 64] & bit) continue;
+        seen[sid / 64] |= bit;
+        const uint32_t owner = server.worker_of_shard(static_cast<int32_t>(sid));
+        if (server.thread(owner).task_free_slots(owner_io) < ++needed[owner]) return false;
+    }
+    return true;
+}
+
 }  // namespace
 
 ScatterArenaPool::~ScatterArenaPool() {
     reap_deferred();
-    for (uint32_t i = 0; i < count_; i++) std::free(cached_[i]);
+    while (count_) {
+        void* memory = cached_[0];
+        cached_[0] = *static_cast<void**>(memory);
+        --count_;
+        std::free(memory);
+    }
 }
 
 void* ScatterArenaPool::acquire(size_t bytes, bool& pooled) {
     pooled = bytes <= kCommonBytes;
-    if (pooled && count_) return cached_[--count_];
+    if (pooled && count_) {
+        void* memory = cached_[0];
+        cached_[0] = *static_cast<void**>(memory);
+        --count_;
+        return memory;
+    }
     void* memory = nullptr;
     if (::posix_memalign(&memory, alignof(OwnerRecordRefs), pooled ? kCommonBytes : bytes) != 0)
         return nullptr;
@@ -1483,8 +1511,16 @@ void* ScatterArenaPool::acquire(size_t bytes, bool& pooled) {
 
 void ScatterArenaPool::release(void* ptr, bool pooled) {
     if (!ptr) return;
-    if (pooled && count_ < kCached) cached_[count_++] = ptr;
-    else std::free(ptr);
+    if (!pooled) { std::free(ptr); return; }
+    // Retain the common arenas this IO actually needed, up to its observed high-water
+    // demand across every connection/ROB it serves. A 64-block FREE-list bound is not a
+    // 64-operation live bound: deep pipelines freed and reacquired most arenas each lap.
+    // Returned ScatterStates have been destroyed and have no lifetime pins. Reuse their
+    // first word for the free link, without allocating a second container or changing the
+    // pool/IoLoop layout. The remaining legacy cached_ slots stay reserved and untouched.
+    std::construct_at(static_cast<void**>(ptr), count_ ? cached_[0] : nullptr);
+    cached_[0] = ptr;
+    ++count_;
 }
 
 ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
@@ -1861,6 +1897,15 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             if (routes != route_stack) delete[] routes;
             return ScatterPrepare::NotScatter;
         }
+    }
+
+    // Only top-level MGET/MSET use this initial IO fan-out. Forced EXEC children have
+    // an outer owner/queue plan and must not consume or test these unrelated credits.
+    // Backpressure leaves the frame unconsumed under the existing parser retry path.
+    if (!force_atomic && origin_client && (kind == Kind::Mget || kind == Kind::Mset) &&
+        !multikey_task_room(server, owner_io, routes, key_count)) {
+        if (routes != route_stack) delete[] routes;
+        return ScatterPrepare::Backpressure;
     }
 
     uint32_t phase1_first = (is_store_setop(kind) || is_store_zsetop(kind) ||
@@ -4061,6 +4106,15 @@ void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
                 notify_xshard_finished(server.shard(state->commit_shard), op, *state);
             server.atomic_apply_close(self.id(), state->apply_open);
 
+            // Successful atomic MSET already has its final result. Publish that result with
+            // Done instead of advertising an opaque gather that forces WB to serve at once.
+            // Keep the arena attached: IO still owns group retirement and all lifetime pins.
+            // Errors and gathers retain their ordinary assembly/unknown-size marker.
+            if (state->kind == Kind::Mset && !state->aborted.load(std::memory_order_acquire)) {
+                reply_ok(op.sink());
+                op.zc_shard = Op::kScatterReplyMarker;
+            }
+
             // Capture `next` above: a fused self-notification may immediately retire the Op and
             // destroy this arena state. The release store remains the one reply-visibility edge.
             if (!server.aof().configured() ||
@@ -4207,7 +4261,8 @@ void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, 
     (void)ring;
     ScatterState* state = op.scatter_state();
     if (!state) return;
-    assemble_final(client, op, *state, release_ctx, release_fn, suppressed_fn);
+    if (op.zc_shard != Op::kScatterReplyMarker)
+        assemble_final(client, op, *state, release_ctx, release_fn, suppressed_fn);
     // A terminal error can bypass normal MGET assembly. Return any already-gathered borrows through
     // the same IO->owner channel used by send completion and teardown.
     if (state->kind == Kind::Mget && state->values) {
