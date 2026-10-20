@@ -59,7 +59,7 @@ def outcome(port, pieces, tls=False):
 
 
 @contextlib.contextmanager
-def pair(binary, mode, engine, out, cert):
+def pair(binary, mode, engine, out, cert, candidate_options=()):
     out.mkdir(parents=True, exist_ok=True)
     procs = []
     files = []
@@ -70,7 +70,7 @@ def pair(binary, mode, engine, out, cert):
              else ["--thread-mode", "2s", "--ratio", "6:2"])
     arms = [
         ("candidate", "96-103", binary, 25800, 25801,
-         ["--shards", "16", "--net-io", engine, *shape]),
+         ["--shards", "16", "--net-io", engine, *shape, *candidate_options]),
         ("redis", "104", "/home/user/Projects/redis74/src/redis-server",
          25802, None, []),
     ]
@@ -189,10 +189,20 @@ def main():
         subprocess.run(["taskset", "-c", "105-111", "python3", "tests/tls.py",
                         "--generate", str(cert)], cwd=ROOT, check=True)
     total = 0
+    # Match the existing batteries' declared boot contracts. NET1 requires
+    # stable client ownership and DEBUG; the full TLS gate deliberately chooses
+    # CBC for TLS 1.2 so it exercises the userspace fallback, plus TLS 1.3.
+    battery_options = [
+        "--client-lb", "0", "--enable-debug-command", "yes",
+        "--tls-protocols", "TLSv1.2 TLSv1.3",
+        "--tls-ciphers", "ECDHE-RSA-AES256-SHA384",
+        "--tls-ciphersuites", "TLS_AES_256_GCM_SHA384",
+        "--tls-prefer-server-ciphers", "yes",
+    ] if args.batteries else []
     for mode in ("1s", "2s"):
         for engine in ("uring", "epoll"):
             cell = out / f"{mode}-{engine}"
-            with pair(args.binary.resolve(), mode, engine, cell, cert):
+            with pair(args.binary.resolve(), mode, engine, cell, cert, battery_options):
                 if args.rows_only:
                     for name, command in (
                             ("N1", ["tests/infofix.py", "127.0.0.1", "25800", "--input-bytes-only"]),
@@ -223,7 +233,7 @@ def main():
                                             "--oracle", "127.0.0.1", "25802"]),
                             ("netcap", ["tests/netcap.py", "127.0.0.1", "25800"]),
                             ("tls", ["tests/tls.py", "127.0.0.1", "25801", str(cert), "no",
-                                     "--plain-port", "25800", "--full"]),
+                                     "--plain-port", "25800", "--full", "--expect-ktls", "no"]),
                         ]
                     for name, command in commands:
                         with (cell / f"{name}.log").open("w") as log:
