@@ -319,8 +319,14 @@ public:
         }
         return result;
     }
+    uint32_t query_buffer_pos() const {
+        // Redis trims qb_pos after each input pass, including decoded headers
+        // and completed arguments of an incomplete multibulk. Our argv slices
+        // pin that prefix; account as if trimmed without moving any bytes.
+        return rpos_ + (__builtin_expect(multibulk_pending(), false) ? multibulk_.next : 0);
+    }
     bool query_buffer_exceeded(uint64_t limit, uint64_t queued = 0) const {
-        return queued > limit || rlen_ - rpos_ > limit - queued;
+        return queued > limit || rlen_ - query_buffer_pos() > limit - queued;
     }
 
     // Space to recv() into. Returns nullptr to mean "do not read right now".
@@ -346,7 +352,7 @@ public:
         // Offer one byte beyond the limit to distinguish equality (legal) from overflow.
         // Parsed bytes still pinned by workers are not pending input. Queued MULTI argv is.
         const uint64_t remaining = queued < query_limit ? query_limit - queued : 0;
-        size_t hard_cap = std::min<uint64_t>(kRbufHardCap, rpos_ + remaining + 1);
+        size_t hard_cap = std::min<uint64_t>(kRbufHardCap, query_buffer_pos() + remaining + 1);
         // epoll/TLS drain reads before parsing. Stop them at the inline frontier so a
         // continuously readable peer cannot postpone the protocol error until the qbuf cap.
         if (rpos_ < rlen_ && rbuf_[rpos_] != '*')
