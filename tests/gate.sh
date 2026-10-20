@@ -326,6 +326,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # collected after atomic_batteries), before the quick-tier exit: DQ=+8, DF=+8.
 # wave3 total: respresume +12/+12, rlfix +4/+4, mkfix +0, aoforder +3/+3, hexpread +8/+8
 # = DQ=+27, DF=+27: maintainer sets EXPECT_QUICK=637+27=664 / EXPECT_FULL=654+27=681.
+# publishfix: one deterministic publication-unit row (job_atomic_units, collected before the
+# quick-tier exit): DQ=+1, DF=+1. With wave3: EXPECT_QUICK=664+1=665 / EXPECT_FULL=681+1=682.
 EXPECT_QUICK=637
 EXPECT_FULL=654                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }

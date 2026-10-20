@@ -84,6 +84,7 @@
     "storage hash-bytes regression",
     "storage deadline-allocation-failure regression",
     "storage flush-prepared-capacity regression",
+    "atomic commit publication catches up at quiescence",
     "flushfix flush witnesses",
     "flushfix headers witnesses",
     "multidb serverless owners",
@@ -978,5 +979,11 @@
       "read-local one-key delete battery (2s)"
     ],
     "purpose": "RL4.3/RL4.4 exact local miss accounting and single-key DEL/UNLINK precision, same-connection RYOW and multi-key broad controls; all before quick exit, DQ=DF=+4. Source inventory only."
+  },
+  "publishfix_supplement": {
+    "added": [
+      "atomic commit publication catches up at quiescence"
+    ],
+    "purpose": "Lost-publication repair: the deterministic serverless publication unit (build/publishfix-unit) in job_atomic_units, collected before the quick-tier exit, DQ=DF=+1. Fails on PRE with safe=1 drawn=2. Source inventory only; EXPECT stays maintainer-owned."
   }
 }
