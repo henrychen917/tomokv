@@ -1,0 +1,422 @@
+[
+  {
+    "label": "aoffix2-uring-1s-snapshot",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.42903709411621094
+  },
+  {
+    "label": "aoffix2-uring-1s-filename",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.5489091286435723
+  },
+  {
+    "label": "aoffix2-uring-1s-error",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.17614979902282357
+  },
+  {
+    "label": "aoffix2-uring-1s-tickets",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5531851858831942
+  },
+  {
+    "label": "aoffix2-uring-1s-exec_tickets",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5542052839882672
+  },
+  {
+    "label": "aoffix2-uring-1s-resurrection",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5513867270201445
+  },
+  {
+    "label": "aoffix2-uring-1s-rewrite_fail2",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.4312088843435049
+  },
+  {
+    "label": "aoffix2-uring-1s-manifest_missing",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.3074876996688545
+  },
+  {
+    "label": "aoffix2-uring-1s-large",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.3445703317411244
+  },
+  {
+    "label": "persistfix-uring-1s-kill",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.9025131417438388
+  },
+  {
+    "label": "persistfix-uring-1s-term",
+    "status": "PASS",
+    "error": null,
+    "seconds": 3.409590080846101
+  },
+  {
+    "label": "ack-uring-1s-everysec",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.28678903030231595
+  },
+  {
+    "label": "ack-uring-1s-always",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.2931269980035722
+  },
+  {
+    "label": "savefix-uring-1s-db1-a0",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.7759071560576558
+  },
+  {
+    "label": "savefix-uring-1s-db1-a1",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.8543935669586062
+  },
+  {
+    "label": "savefix-uring-1s-db16-a0",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.8466196949593723
+  },
+  {
+    "label": "savefix-uring-1s-db16-a1",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.8876747209578753
+  },
+  {
+    "label": "aoffix2-uring-2s-snapshot",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.4234657078050077
+  },
+  {
+    "label": "aoffix2-uring-2s-filename",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.4336298117414117
+  },
+  {
+    "label": "aoffix2-uring-2s-error",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.17291999189183116
+  },
+  {
+    "label": "aoffix2-uring-2s-tickets",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5446828310377896
+  },
+  {
+    "label": "aoffix2-uring-2s-exec_tickets",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5761301573365927
+  },
+  {
+    "label": "aoffix2-uring-2s-resurrection",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5458436580374837
+  },
+  {
+    "label": "aoffix2-uring-2s-rewrite_fail2",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.42831153282895684
+  },
+  {
+    "label": "aoffix2-uring-2s-manifest_missing",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.3010167800821364
+  },
+  {
+    "label": "aoffix2-uring-2s-large",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.3384871412999928
+  },
+  {
+    "label": "persistfix-uring-2s-kill",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.855124284978956
+  },
+  {
+    "label": "persistfix-uring-2s-term",
+    "status": "PASS",
+    "error": null,
+    "seconds": 3.4047432960942388
+  },
+  {
+    "label": "ack-uring-2s-everysec",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.28230959875509143
+  },
+  {
+    "label": "ack-uring-2s-always",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.2801848901435733
+  },
+  {
+    "label": "savefix-uring-2s-db1-a0",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.947287832852453
+  },
+  {
+    "label": "savefix-uring-2s-db1-a1",
+    "status": "PASS",
+    "error": null,
+    "seconds": 2.0853879540227354
+  },
+  {
+    "label": "savefix-uring-2s-db16-a0",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.9015493621118367
+  },
+  {
+    "label": "savefix-uring-2s-db16-a1",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.9450485333800316
+  },
+  {
+    "label": "large-placed-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.20224927179515362
+  },
+  {
+    "label": "aoffix2-epoll-1s-snapshot",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.42999146319925785
+  },
+  {
+    "label": "aoffix2-epoll-1s-filename",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.5836850670166314
+  },
+  {
+    "label": "aoffix2-epoll-1s-error",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.1794084319844842
+  },
+  {
+    "label": "aoffix2-epoll-1s-tickets",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5747792855836451
+  },
+  {
+    "label": "aoffix2-epoll-1s-exec_tickets",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5686936490237713
+  },
+  {
+    "label": "aoffix2-epoll-1s-resurrection",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5660207229666412
+  },
+  {
+    "label": "aoffix2-epoll-1s-rewrite_fail2",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.4384874189272523
+  },
+  {
+    "label": "aoffix2-epoll-1s-manifest_missing",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.31390055315569043
+  },
+  {
+    "label": "aoffix2-epoll-1s-large",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.35755291813984513
+  },
+  {
+    "label": "persistfix-epoll-1s-kill",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.8730767373926938
+  },
+  {
+    "label": "persistfix-epoll-1s-term",
+    "status": "PASS",
+    "error": null,
+    "seconds": 2.2633432508446276
+  },
+  {
+    "label": "ack-epoll-1s-everysec",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.29627971816807985
+  },
+  {
+    "label": "ack-epoll-1s-always",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.29575757309794426
+  },
+  {
+    "label": "savefix-epoll-1s-db1-a0",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.8247441188432276
+  },
+  {
+    "label": "savefix-epoll-1s-db1-a1",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.8501913198269904
+  },
+  {
+    "label": "savefix-epoll-1s-db16-a0",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.8122755298390985
+  },
+  {
+    "label": "savefix-epoll-1s-db16-a1",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.8316599540412426
+  },
+  {
+    "label": "aoffix2-epoll-2s-snapshot",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.44379022624343634
+  },
+  {
+    "label": "aoffix2-epoll-2s-filename",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.5422765910625458
+  },
+  {
+    "label": "aoffix2-epoll-2s-error",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.18126444285735488
+  },
+  {
+    "label": "aoffix2-epoll-2s-tickets",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5697262771427631
+  },
+  {
+    "label": "aoffix2-epoll-2s-exec_tickets",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5687049180269241
+  },
+  {
+    "label": "aoffix2-epoll-2s-resurrection",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.5688260360620916
+  },
+  {
+    "label": "aoffix2-epoll-2s-rewrite_fail2",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.44376774691045284
+  },
+  {
+    "label": "aoffix2-epoll-2s-manifest_missing",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.3155630100518465
+  },
+  {
+    "label": "aoffix2-epoll-2s-large",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.3545123478397727
+  },
+  {
+    "label": "persistfix-epoll-2s-kill",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.8785531371831894
+  },
+  {
+    "label": "persistfix-epoll-2s-term",
+    "status": "PASS",
+    "error": null,
+    "seconds": 2.9484231108799577
+  },
+  {
+    "label": "ack-epoll-2s-everysec",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.2841586619615555
+  },
+  {
+    "label": "ack-epoll-2s-always",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.2896231710910797
+  },
+  {
+    "label": "savefix-epoll-2s-db1-a0",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.976934622041881
+  },
+  {
+    "label": "savefix-epoll-2s-db1-a1",
+    "status": "PASS",
+    "error": null,
+    "seconds": 2.0846900967881083
+  },
+  {
+    "label": "savefix-epoll-2s-db16-a0",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.9549609418027103
+  },
+  {
+    "label": "savefix-epoll-2s-db16-a1",
+    "status": "PASS",
+    "error": null,
+    "seconds": 2.1588626680895686
+  },
+  {
+    "label": "large-placed-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 0.19956563925370574
+  }
+]

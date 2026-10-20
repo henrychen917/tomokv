@@ -1,0 +1,31 @@
+[
+  {
+    "label": "supplementary",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "build/aoforder/proof-harness.py",
+      "--binary",
+      "build/tomokv",
+      "--output",
+      "build/aoforder/proof-supplementary",
+      "--part",
+      "supplementary"
+    ],
+    "rc": 0,
+    "seconds": 18.59300637897104
+  },
+  {
+    "label": "shutdown-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "96-103",
+      "build/shutdown-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.01785846007987857
+  }
+]

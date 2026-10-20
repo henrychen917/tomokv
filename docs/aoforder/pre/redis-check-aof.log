@@ -1,0 +1,4 @@
+Start checking Old-Style AOF
+AOF docs/aoforder/pre/2s-everysec/appendonlydir/appendonly.aof.1.incr.tomo format error
+AOF analyzed: filename=docs/aoforder/pre/2s-everysec/appendonlydir/appendonly.aof.1.incr.tomo, size=670, ok_up_to=0, ok_up_to_line=1, diff=670
+AOF docs/aoforder/pre/2s-everysec/appendonlydir/appendonly.aof.1.incr.tomo is not valid. Use the --fix option to try fixing it.

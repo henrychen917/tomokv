@@ -1,0 +1,128 @@
+[
+  {
+    "label": "pre-1s",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "build/aoforder/probe_hash_expiry.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/hash-expiry-final/pre-1s",
+      "--mode",
+      "1s",
+      "--appendonly",
+      "yes"
+    ],
+    "rc": 1,
+    "expected_failure_witnessed": true,
+    "seconds": 1.5731755197048187
+  },
+  {
+    "label": "pre-2s",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "build/aoforder/probe_hash_expiry.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/hash-expiry-final/pre-2s",
+      "--mode",
+      "2s",
+      "--appendonly",
+      "yes"
+    ],
+    "rc": 1,
+    "expected_failure_witnessed": true,
+    "seconds": 1.6042830608785152
+  },
+  {
+    "label": "post-1s",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "build/aoforder/probe_hash_expiry.py",
+      "--binary",
+      "build/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/hash-expiry-final/post-1s",
+      "--mode",
+      "1s",
+      "--appendonly",
+      "yes"
+    ],
+    "rc": 1,
+    "expected_failure_witnessed": true,
+    "seconds": 1.5910121030174196
+  },
+  {
+    "label": "post-2s",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "build/aoforder/probe_hash_expiry.py",
+      "--binary",
+      "build/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/hash-expiry-final/post-2s",
+      "--mode",
+      "2s",
+      "--appendonly",
+      "yes"
+    ],
+    "rc": 1,
+    "expected_failure_witnessed": true,
+    "seconds": 1.5995231792330742
+  },
+  {
+    "label": "pre-off-1s",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "build/aoforder/probe_hash_expiry.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/hash-expiry-final/pre-off-1s",
+      "--mode",
+      "1s",
+      "--appendonly",
+      "no"
+    ],
+    "rc": 1,
+    "expected_failure_witnessed": true,
+    "seconds": 1.4474850073456764
+  },
+  {
+    "label": "pre-off-2s",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "build/aoforder/probe_hash_expiry.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/hash-expiry-final/pre-off-2s",
+      "--mode",
+      "2s",
+      "--appendonly",
+      "no"
+    ],
+    "rc": 1,
+    "expected_failure_witnessed": true,
+    "seconds": 1.447415660135448
+  }
+]

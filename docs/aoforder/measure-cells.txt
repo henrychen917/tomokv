@@ -1,0 +1,18 @@
+# Owner-run ordinary-command layout regression request; no measurements performed in this lane.
+# Gate instrument grammar; 512 connections, 8-key MGET/MSET. All 16 are required in this diagnostic.
+ao01 | 1s | rl=0 | ov=0 | ro=0 | GET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=1
+ao02 | 1s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+ao03 | 1s | rl=0 | ov=0 | ro=0 | SET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=1
+ao04 | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+ao05 | 1s | rl=0 | ov=0 | ro=0 | MGET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=1
+ao06 | 1s | rl=0 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+ao07 | 1s | rl=0 | ov=0 | ro=0 | MSET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=1
+ao08 | 1s | rl=0 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+ao09 | 2s | rl=0 | ov=0 | ro=0 | GET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=1
+ao10 | 2s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+ao11 | 2s | rl=0 | ov=0 | ro=0 | SET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=1
+ao12 | 2s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+ao13 | 2s | rl=0 | ov=0 | ro=0 | MGET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=1
+ao14 | 2s | rl=0 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1
+ao15 | 2s | rl=0 | ov=0 | ro=0 | MSET | p1 | 512 | - | - | - | atomic=1 | score=latency | mix=- | smoke=1
+ao16 | 2s | rl=0 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1

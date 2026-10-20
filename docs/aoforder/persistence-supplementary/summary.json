@@ -1,0 +1,98 @@
+[
+  {
+    "label": "1s-db1-a0-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.081611503381282
+  },
+  {
+    "label": "1s-db1-a0-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.010407095309347
+  },
+  {
+    "label": "1s-db1-a1-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.0415220060385764
+  },
+  {
+    "label": "1s-db1-a1-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.011321681085974
+  },
+  {
+    "label": "1s-db16-a0-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.098503922112286
+  },
+  {
+    "label": "1s-db16-a0-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.0192480720579624
+  },
+  {
+    "label": "1s-db16-a1-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.0898009720258415
+  },
+  {
+    "label": "1s-db16-a1-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.035682805813849
+  },
+  {
+    "label": "2s-db1-a0-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.248510864097625
+  },
+  {
+    "label": "2s-db1-a0-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.215633638203144
+  },
+  {
+    "label": "2s-db1-a1-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.2516720406711102
+  },
+  {
+    "label": "2s-db1-a1-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.2195139080286026
+  },
+  {
+    "label": "2s-db16-a0-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.278118944261223
+  },
+  {
+    "label": "2s-db16-a0-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.2301626992411911
+  },
+  {
+    "label": "2s-db16-a1-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.2745768302120268
+  },
+  {
+    "label": "2s-db16-a1-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.2228690381161869
+  }
+]
