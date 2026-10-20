@@ -1,0 +1,20 @@
+--- a/tests/rltopo_unit.cc	2026-10-20 19:06:14.663439185 +0800
++++ b/tests/rltopo_unit.cc	2026-10-20 21:48:20.051635706 +0800
+@@ -264,7 +264,7 @@
+         ReadLocalFallbackReason reason = ReadLocalFallbackReason::None;
+         if (state == "typed" || state == "encoding") reason = ReadLocalFallbackReason::Typed;
+         if (state == "expired") reason = ReadLocalFallbackReason::Expired;
+-        if (state == "missing" && !mget) reason = ReadLocalFallbackReason::Missing;
++        // RL4.3: a validated GET miss is served by the lane (nil, one keyspace miss).
+         if (state == "pending" || state == "tail-pending" || state == "churn-pending")
+             reason = ReadLocalFallbackReason::AtomicPending;
+         if (state == "churn") reason = ReadLocalFallbackReason::SeqChurn;
+@@ -283,7 +283,7 @@
+               "reply code and borrowed state cleared");
+         const bool success = reason == ReadLocalFallbackReason::None;
+         check(result.keyspace_hits == (success && state != "missing" ? (mget ? 2u : 1u) : 0u) &&
+-                  result.keyspace_misses == (success && state == "missing" ? 2u : 0u),
++                  result.keyspace_misses == (success && state == "missing" ? (mget ? 2u : 1u) : 0u),
+               "exact accepted hit and miss counts");
+         if (state != "missing" && state != "encoding") {
+             // MGET records each accepted value before its outer window closes. GET records

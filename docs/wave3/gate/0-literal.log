@@ -1,0 +1,3 @@
+=== 0 literal 2026-10-20T20:52:41+08:00
+gate resources: no reviewed abba io:ex ratio for 9 server threads; record the measured geometry in gate_measurements.json, never derive it from a core range
+rc=2
