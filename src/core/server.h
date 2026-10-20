@@ -2568,10 +2568,16 @@ public:
         atomic_commit_inflight_.fetch_add(1, std::memory_order_seq_cst);
         return commit_seq_.fetch_add(tickets, std::memory_order_seq_cst) + 1;
     }
+#ifdef TOMO_PUBLISHFIX_TEST
+    inline static void (*test_after_drawn)(Server&) = nullptr;
+#endif
     void atomic_commit_publish() {
         // Loaded BEFORE the decrement on purpose: it is the value whose publication the count
         // still proves. Reading it after would let a ticket drawn by a newcomer ride in.
         const uint64_t drawn = commit_seq_.load(std::memory_order_seq_cst);
+#ifdef TOMO_PUBLISHFIX_TEST
+        if (test_after_drawn) test_after_drawn(*this);
+#endif
         if (atomic_commit_inflight_.fetch_sub(1, std::memory_order_acq_rel) != 1) {
             // Another committer is still between its draw and its store, so the watermark stays
             // where it is and every reader's cut stays below that undecided ticket. Counting it is

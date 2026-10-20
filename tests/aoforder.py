@@ -10,6 +10,7 @@ import select
 import time
 
 import aoffix2 as h
+import aof_frames
 import _lib
 
 
@@ -28,11 +29,11 @@ def wait_for(predicate, reason, seconds=5):
     raise AssertionError(reason)
 
 
-def keys_on_two_owners(client, excluded=()):
+def keys_on_two_owners(client, excluded=(), prefix='aoforder:'):
     owners = _lib.topology(client).shard_owner
     keys = {}
     for i in range(4096):
-        key = f'aoforder:{i}'
+        key = f'{prefix}{i}'
         sid = client.cmd('DEBUG', 'SHARD', key)
         if owners[sid] in excluded:
             continue
@@ -116,6 +117,7 @@ def crossing():
     with h.Server(options) as server:
         admin, first, second = (server.client(timeout=10) for _ in range(3))
         keys = keys_on_two_owners(admin)
+        commits_before = stats(admin)
         assert admin.cmd('DEBUG', 'ATOMIC-COMMIT-HOLD', '1') == b'OK'
         try:
             first.send('MSET', keys[0], 'aoforder-group1', keys[1], 'aoforder-group1')
@@ -133,14 +135,40 @@ def crossing():
             release.touch()
             assert admin.cmd('DEBUG', 'ATOMIC-COMMIT-HOLD', '0') == b'OK'
         assert first.read() == second.read() == b'OK'
+        before = stats(admin)
         live = admin.cmd('MGET', *keys)
+        after = stats(admin)
         assert live in ([b'aoforder-group1'] * 2, [b'aoforder-group2'] * 2), live
+        kick = keys_on_two_owners(admin, prefix='aoforder-kick:')
+        assert admin.cmd('MSET', kick[0], 'kick', kick[1], 'kick') == b'OK'
+        live2 = admin.cmd('MGET', *keys)
+        h.emit('visibility', live=live, live2=live2,
+               commit_windows=before['atomic_commit_windows'] - commits_before['atomic_commit_windows'],
+               **{name: after[name] - before[name]
+                  for name in ('atomic_commit_windows', 'atomic_commit_holds')})
         assert admin.cmd('DEBUG', 'LOADAOF') == b'OK'
         reloaded = admin.cmd('MGET', *keys)
         h.emit('loadaof', live=live, reloaded=reloaded, equal=live == reloaded)
+    # Decode only after the writer stopped. Preserve the native stream and its
+    # ticket/payload order even when the visibility assertion below fails.
+    for path in sorted(server.data.rglob('*')):
+        if not path.is_file():
+            continue
+        with path.open('rb') as stream:
+            native = stream.read(8) == aof_frames.FILE_MAGIC
+        if native:
+            frames, size, truncated = aof_frames.read_frames(path)
+            h.emit('aof_ticket_order', path=str(path), size=size, truncated=truncated,
+                   frames=[dict(sid=f.sid, sequence=f.sequence,
+                                records=[dict(kind=kind, key=key, ticket=ticket,
+                                              payload=f.payload[pos + 40 + len(key):pos + 40 + len(key) + length])
+                                         for kind, key, length, ticket, pos in f.records()])
+                           for f in frames])
     with h.Server(options) as server:
         restarted = server.client().cmd('MGET', *keys)
         h.emit('restart', live=live, restarted=restarted, equal=live == restarted)
+    assert live2 == live, ('live read lagged an acknowledged commit '
+                          '(safe watermark; Server::atomic_commit_publish), not F3')
     assert reloaded == live and restarted == live, 'F3: crossing groups replay a torn pair'
 
 

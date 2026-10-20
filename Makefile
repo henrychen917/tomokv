@@ -590,6 +590,16 @@ build/core-concurrency-unit: build/core-concurrency-mdbqsbr-asan
 
 # Directed owner-phase tests. The test includes xshard.cc to drive the real private phases
 # without starting worker threads or opening a listener; all other code is the release objects.
+# Keep ALL COMDAT copies of the hook-bearing inline publisher identical. Never
+# link these objects into a production server or mix them with release objects.
+PUBLISHFIX_OBJ := $(patsubst %.cc,$(BUILD_ROOT)/publishfix-unit-objects/%.o,$(filter-out src/main.cc,$(SRC)))
+$(BUILD_ROOT)/publishfix-unit-objects/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_PUBLISHFIX_TEST -I. -c $< -o $@
+$(BUILD_ROOT)/publishfix-unit: tests/publishfix_unit.cc $(PUBLISHFIX_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_PUBLISHFIX_TEST -I. $< $(PUBLISHFIX_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+
 build/atomic-survivors-unit: tests/atomiccollapse_checks.inc tests/atomic_plain_checks.inc
 build/atomic-survivors-unit: tests/atomic_survivors_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
 	@mkdir -p $(dir $@)
