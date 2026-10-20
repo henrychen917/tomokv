@@ -44,6 +44,7 @@ SRC      += src/persist/aof_frame_debug.cc
 SRC      += src/cmd/aclkeys.cc
 # Keep the armed-only witness parser after ordinary objects (weak-symbol selection).
 SRC      += src/cmd/blocking_debug.cc
+SRC      += src/cmd/objectpread.cc src/cmd/hexpread.cc
 # The entry wrapper belongs only to server links using --wrap=main.
 SERVER_ONLY_SRC := src/core/version.cc
 LDLIBS   += -lssl -lcrypto
@@ -369,7 +370,7 @@ build/read-local-write-ring-unit: tests/read_local_write_ring_unit.cc $(wildcard
 build/rlfence-unit: tests/rlfence_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/rlfence_unit.cc -o $@
-STORE_REGRESSION_SRC := tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/storesize.cc
+STORE_REGRESSION_SRC := tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/hexpread.cc src/cmd/storesize.cc
 build/store-regression: $(STORE_REGRESSION_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -ffunction-sections -fdata-sections -DTOMO_STORE_REGRESSION_TEST -I. \

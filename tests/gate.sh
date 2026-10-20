@@ -322,8 +322,10 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # mkfix (count study tooling) + mkfix2 parts A/B (part C reverted): no gate row, DQ=+0, DF=+0.
 # aoforder (F3): AOF commit order single / crossing / rewrite (job_aoforder, collected after
 # aof_frame), before the quick-tier exit: DQ=+3, DF=+3.
-# wave3 running total (respresume +12, rlfix +4, mkfix +0, aoforder +3): DQ=+19, DF=+19 over
-# 637/654 -> 656 / 673.
+# hexpread (HX-1/HX-2): hexpread torn / replies / deferred and OBJECT expiry per mode (job_hexpread,
+# collected after atomic_batteries), before the quick-tier exit: DQ=+8, DF=+8.
+# wave3 total: respresume +12/+12, rlfix +4/+4, mkfix +0, aoforder +3/+3, hexpread +8/+8
+# = DQ=+27, DF=+27: maintainer sets EXPECT_QUICK=637+27=664 / EXPECT_FULL=654+27=681.
 EXPECT_QUICK=637
 EXPECT_FULL=654                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1079,7 +1081,7 @@ plan_jobs(){
               wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries bplus acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries hexpread bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
               aof_frame aoforder tls fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -1529,6 +1531,33 @@ job_clientfix(){
         bad "$label" "see $TMPDIR/clientfix-$case-$mode.log"
       fi
     done
+  done
+}
+
+job_hexpread(){
+  local mode case label
+  for mode in 1s 2s; do
+    for case in torn replies deferred; do
+      label="hexpread $case ($mode)"
+      row_begin "$label"
+      if py tests/hexpread.py --binary "$CANDIDATE_BINARY" --port "$PORT" \
+          --cores "$CORES" --ratio "$GATE_RATIO" --mode "$mode" --case "$case" \
+          --policy always --artifacts "$TMPDIR/hexpread-$case-$mode" \
+          >"$TMPDIR/hexpread-$case-$mode.log" 2>&1; then
+        ok "$label"
+      else
+        bad "$label" "see $TMPDIR/hexpread-$case-$mode.log"
+      fi
+    done
+    label="hexpread OBJECT expiry ($mode)"
+    row_begin "$label"
+    if py tests/objectpread.py --binary "$CANDIDATE_BINARY" --port "$PORT" \
+        --cores "$CORES" --ratio "$GATE_RATIO" --mode "$mode" \
+        --artifacts "$TMPDIR/hexpread-object-$mode" >"$TMPDIR/hexpread-object-$mode.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/hexpread-object-$mode.log"
+    fi
   done
 }
 
@@ -3831,6 +3860,9 @@ collect_job readonly
 collect_job release_batteries
 
 collect_job atomic_batteries
+# hexpread: eight independently scored rows before the quick exit (DQ +8 / DF +8).
+# EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
+collect_job hexpread
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done

@@ -1,0 +1,130 @@
+[
+  {
+    "limit": 512,
+    "resp": 2,
+    "field": "f",
+    "reply": null,
+    "events": [
+      [
+        "hexpired",
+        "common"
+      ]
+    ],
+    "fields_expired": 1,
+    "keys_expired": 0
+  },
+  {
+    "limit": 512,
+    "resp": 2,
+    "field": "g",
+    "reply": null,
+    "events": [
+      [
+        "hexpired",
+        "common"
+      ],
+      [
+        "del",
+        "common"
+      ]
+    ],
+    "fields_expired": 1,
+    "keys_expired": 0
+  },
+  {
+    "limit": 512,
+    "resp": 3,
+    "field": "f",
+    "reply": null,
+    "events": [
+      [
+        "hexpired",
+        "common"
+      ]
+    ],
+    "fields_expired": 1,
+    "keys_expired": 0
+  },
+  {
+    "limit": 512,
+    "resp": 3,
+    "field": "g",
+    "reply": null,
+    "events": [
+      [
+        "hexpired",
+        "common"
+      ],
+      [
+        "del",
+        "common"
+      ]
+    ],
+    "fields_expired": 1,
+    "keys_expired": 0
+  },
+  {
+    "limit": 0,
+    "resp": 2,
+    "field": "f",
+    "reply": null,
+    "events": [
+      [
+        "hexpired",
+        "common"
+      ]
+    ],
+    "fields_expired": 1,
+    "keys_expired": 0
+  },
+  {
+    "limit": 0,
+    "resp": 2,
+    "field": "g",
+    "reply": null,
+    "events": [
+      [
+        "hexpired",
+        "common"
+      ],
+      [
+        "del",
+        "common"
+      ]
+    ],
+    "fields_expired": 1,
+    "keys_expired": 0
+  },
+  {
+    "limit": 0,
+    "resp": 3,
+    "field": "f",
+    "reply": null,
+    "events": [
+      [
+        "hexpired",
+        "common"
+      ]
+    ],
+    "fields_expired": 1,
+    "keys_expired": 0
+  },
+  {
+    "limit": 0,
+    "resp": 3,
+    "field": "g",
+    "reply": null,
+    "events": [
+      [
+        "hexpired",
+        "common"
+      ],
+      [
+        "del",
+        "common"
+      ]
+    ],
+    "fields_expired": 1,
+    "keys_expired": 0
+  }
+]

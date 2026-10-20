@@ -807,7 +807,8 @@ const HashFieldTtl* hash_ttls_of(const KvObj* object) {
 // THE ZERO-COST CLAIM LIVES ON THIS LINE. field_expire_count() is a plain uint32_t in the store; a
 // shard that has never seen HEXPIRE pays one load and one predicted-false test per hash command and
 // reaches no field-TTL code at all. Reaping (rather than filtering at each read site) is also what
-// keeps every handler below unchanged: after this returns, all remaining fields are live.
+// keeps the ordinary handlers below on live fields. A parked read branches to hexpread.cc
+// before this lookup; its borrowed version must never reach this eager reaper.
 template <bool kNotify>
 inline bool hash_lookup(Shard& shard, Op& op, KvObj*& object) {
     object = (op.spec->flags & CmdFlags::Readonly)
@@ -967,6 +968,8 @@ void cmd_hsetnx(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hget(Shard& shard, Op& op) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
@@ -977,6 +980,8 @@ void cmd_hget(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hmget(Shard& shard, Op& op) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     reply_array_header(op.sink(), op.argc() - 2);
@@ -1022,6 +1027,8 @@ void cmd_hdel(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hlen(Shard& shard, Op& op) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     reply_int(op.sink(), object ? as_hash(object).entries() : 0);
@@ -1029,6 +1036,8 @@ void cmd_hlen(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hexists(Shard& shard, Op& op) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
@@ -1037,6 +1046,8 @@ void cmd_hexists(Shard& shard, Op& op) {
 
 template <bool kNotify>
 void cmd_hstrlen(Shard& shard, Op& op) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     Slice value;
@@ -1152,6 +1163,8 @@ enum class GetAllMode : uint8_t { Fields, Values, Both };
 
 template <bool kNotify>
 void generic_getall(Shard& shard, Op& op, GetAllMode mode) {
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
@@ -1247,6 +1260,8 @@ void cmd_hscan(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR invalid cursor");
         return;
     }
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
@@ -1374,6 +1389,8 @@ void cmd_hrandfield(Shard& shard, Op& op) {
         }
     }
 
+    if (__builtin_expect(shard.store().atomic_has_records(), false) &&
+        hash_parked_reply(shard, op)) return;
     KvObj* object = nullptr;
     if (!hash_lookup<kNotify>(shard, op, object)) return;
     if (!object) {
@@ -1685,6 +1702,44 @@ CommandTable hash_command_table() {
 bool hash_field_value_ro(const KvObj* object, Slice field, Slice& value) {
     if (!object || !object->is_type(Type::Hash)) return false;
     return hash_get(CollectionRef(const_cast<KvObj*>(object)), field, value);
+}
+
+// Borrow fields without touching the hash, including its random state and TTL min cache.
+// count==0 visits every field; otherwise this is HSCAN's existing physical cursor walk.
+__attribute__((cold, noinline))
+uint64_t hash_read_visit(const KvObj* object, uint64_t cursor, uint64_t count,
+                         void* context, void (*visit)(void*, Slice, Slice)) {
+    CollectionRef hash = as_hash(const_cast<KvObj*>(object));
+    if (hash.encoding() == CollectionEncoding::Compact) {
+        uint64_t position = 0, sampled = 0;
+        for (auto it = hash.begin(); it != hash.end(); ++it) {
+            PairView pair;
+            if (!decode_pair(*it, pair)) continue;
+            if (position++ < cursor) continue;
+            if (count && sampled >= count) { --position; break; }
+            ++sampled;
+            visit(context, pair.field, pair.value);
+        }
+        return position >= hash.entries() ? 0 : position;
+    }
+    if (!count) {
+        hash_fields(hash)->for_each([&](const HashFieldMap::Node& node) {
+            visit(context, Slice(node.field.data(), static_cast<uint32_t>(node.field.size())),
+                  Slice(node.value.data(), static_cast<uint32_t>(node.value.size())));
+        });
+        return 0;
+    }
+    uint64_t sampled = 0, iterations = 0;
+    const uint64_t max_iterations = count > UINT64_MAX / 10 ? UINT64_MAX : count * 10;
+    do {
+        cursor = hash_fields(hash)->scan(cursor, [&](const HashFieldMap::Node& node) {
+            ++sampled;
+            visit(context, Slice(node.field.data(), static_cast<uint32_t>(node.field.size())),
+                  Slice(node.value.data(), static_cast<uint32_t>(node.value.size())));
+        });
+        ++iterations;
+    } while (cursor && sampled < count && iterations < max_iterations);
+    return cursor;
 }
 
 }  // namespace tomo

@@ -406,6 +406,11 @@ bool hash_ttl_active_reap(FlatStore& store, KvObj* object, int64_t now_ms, uint3
 }
 
 KvObj* hash_ttl_on_access(Shard& shard, Op& op, KvObj* object, bool notify) {
+    // A read can resolve an immutable predecessor underneath an undecided group. Reaping that
+    // object changes another version; erasing by key would delete the group's physical candidate.
+    // Ordinary hash readers filter in HashReadView; HTTL-family readers already use field_live.
+    if ((op.spec->flags & CmdFlags::Readonly) &&
+        !shard.store().atomic_read_owns_value(op.hash, op.key(), object)) return object;
     // Suppressed during a snapshot capture for the same reason active_expire() is: the frozen table
     // still has to serialize the pre-cut image. Every command in this file filters logically anyway,
     // so the only visible effect is that an ordinary HGET may still see a just-lapsed field until
