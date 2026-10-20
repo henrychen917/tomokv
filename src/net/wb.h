@@ -520,7 +520,15 @@ public:
             if (conn.write_drained() && conn.has_pending_fill()) conn.swap_buffers();
             const size_t total = conn.send_buf().size();
             const size_t sent = conn.wsent();
-            if (sent >= total) return false;
+            if (sent >= total) {
+                // The last reply and all ciphertext have drained. A silent TLS peer
+                // can still own a uring recv/poll; wake its CQE so the existing
+                // safe_to_release fence can finish close-after-reply teardown.
+                if constexpr (!kEp)
+                    if (c.closing() && c.rob().quiesced() && c.recv_armed())
+                        (void)::shutdown(c.fd(), SHUT_RDWR);
+                return false;
+            }
             plain = conn.send_buf().data() + sent;
             plain_bytes = total - sent;
         }
