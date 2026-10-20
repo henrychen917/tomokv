@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lane ntfix correctness receipts. Only CPUs 96-111 and ports 25800-25803.
+"""Lane ntfix correctness receipts. Only CPUs 80-95 and ports 22800-22803.
 
 Boots an explicitly selected candidate and the pinned Redis 7.4 oracle. No gate,
 benchmark, or load generator. All children are stopped by their owned PIDs.
@@ -69,10 +69,10 @@ def pair(binary, mode, engine, out, cert, candidate_options=()):
     shape = (["--thread-mode", "fused", "--read-local", "1"] if mode == "1s"
              else ["--thread-mode", "2s", "--ratio", "6:2"])
     arms = [
-        ("candidate", "96-103", binary, 25800, 25801,
+        ("candidate", "80-87", binary, 22800, 22801,
          ["--shards", "16", "--net-io", engine, *shape, *candidate_options]),
-        ("redis", "104", "/home/user/Projects/redis74/src/redis-server",
-         25802, None, []),
+        ("redis", "88", "/home/user/Projects/redis74/src/redis-server",
+         22802, None, []),
     ]
     try:
         for label, cores, exe, port, tlsport, extra in arms:
@@ -118,7 +118,7 @@ def pair(binary, mode, engine, out, cert, candidate_options=()):
 
 def reproduce(out):
     rows = []
-    for label, port in (("candidate", 25800), ("redis", 25802)):
+    for label, port in (("candidate", 22800), ("redis", 22802)):
         c = Conn("127.0.0.1", port)
         def net_input():
             body = c.must("INFO", "STATS")
@@ -186,7 +186,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     cert = ROOT / "build/ntfix-certs"
     if not (cert / "server.crt").exists():
-        subprocess.run(["taskset", "-c", "105-111", "python3", "tests/tls.py",
+        subprocess.run(["taskset", "-c", "89-95", "python3", "tests/tls.py",
                         "--generate", str(cert)], cwd=ROOT, check=True)
     total = 0
     # Match the existing batteries' declared boot contracts. NET1 requires
@@ -205,17 +205,17 @@ def main():
             with pair(args.binary.resolve(), mode, engine, cell, cert, battery_options):
                 if args.rows_only:
                     for name, command in (
-                            ("N1", ["tests/infofix.py", "127.0.0.1", "25800", "--input-bytes-only"]),
-                            ("N2", ["tests/tls.py", "127.0.0.1", "25801", str(cert), "no",
-                                    "--plain-port", "25800", "--close-after-reply"]),
-                            ("N3", ["tests/respcompat.py", "127.0.0.1", "25800",
-                                    "--ntfix", "preauth", "--tls-port", "25801",
-                                    "--oracle", "127.0.0.1", "25802"]),
-                            ("N4", ["tests/respcompat.py", "127.0.0.1", "25800",
-                                    "--ntfix", "frontier", "--tls-port", "25801",
-                                    "--oracle", "127.0.0.1", "25802"])):
+                            ("N1", ["tests/infofix.py", "127.0.0.1", "22800", "--input-bytes-only"]),
+                            ("N2", ["tests/tls.py", "127.0.0.1", "22801", str(cert), "no",
+                                    "--plain-port", "22800", "--close-after-reply"]),
+                            ("N3", ["tests/respcompat.py", "127.0.0.1", "22800",
+                                    "--ntfix", "preauth", "--tls-port", "22801",
+                                    "--oracle", "127.0.0.1", "22802"]),
+                            ("N4", ["tests/respcompat.py", "127.0.0.1", "22800",
+                                    "--ntfix", "frontier", "--tls-port", "22801",
+                                    "--oracle", "127.0.0.1", "22802"])):
                         with (cell / f"{name}.log").open("w") as log:
-                            result = subprocess.run(["taskset", "-c", "105-111", "python3", *command],
+                            result = subprocess.run(["taskset", "-c", "89-95", "python3", *command],
                                                     cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
                         total += result.returncode != 0
                         print(f"{mode}-{engine} {name}: rc={result.returncode}", flush=True)
@@ -225,19 +225,19 @@ def main():
                         for tls in (False, True):
                             commands.append((f"fragment-{'tls' if tls else 'tcp'}",
                                 ["tests/respresume.py", "fragment", "127.0.0.1",
-                                 "25801" if tls else "25800", "--oracle-port", "25802",
+                                 "22801" if tls else "22800", "--oracle-port", "22802",
                                  *(["--tls"] if tls else [])]))
                     if args.batteries:
                         commands += [
-                            ("respcompat", ["tests/respcompat.py", "127.0.0.1", "25800",
-                                            "--oracle", "127.0.0.1", "25802"]),
-                            ("netcap", ["tests/netcap.py", "127.0.0.1", "25800"]),
-                            ("tls", ["tests/tls.py", "127.0.0.1", "25801", str(cert), "no",
-                                     "--plain-port", "25800", "--full", "--expect-ktls", "no"]),
+                            ("respcompat", ["tests/respcompat.py", "127.0.0.1", "22800",
+                                            "--oracle", "127.0.0.1", "22802"]),
+                            ("netcap", ["tests/netcap.py", "127.0.0.1", "22800"]),
+                            ("tls", ["tests/tls.py", "127.0.0.1", "22801", str(cert), "no",
+                                     "--plain-port", "22800", "--full", "--expect-ktls", "no"]),
                         ]
                     for name, command in commands:
                         with (cell / f"{name}.log").open("w") as log:
-                            result = subprocess.run(["taskset", "-c", "105-111", "python3", *command],
+                            result = subprocess.run(["taskset", "-c", "89-95", "python3", *command],
                                                     cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
                         total += result.returncode != 0
                         print(f"{mode}-{engine} {name}: rc={result.returncode}", flush=True)
