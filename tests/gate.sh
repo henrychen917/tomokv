@@ -3243,6 +3243,33 @@ for mode in 1s 2s; do for engine in uring epoll; do
 done; done
 [ "$compatible" = 1 ] && ok "TLS silent-peer close after reply (ntfix N2)" \
     || bad "TLS silent-peer close after reply (ntfix N2)" "see $TMPDIR/ntfix-close-*.txt"
+
+# N3/N4 each contribute one aggregate row, both modes/engines and TCP/TLS.
+# Collected with tls before the quick-tier exit; EXPECT remains maintainer-owned.
+local defect label
+for defect in preauth frontier; do
+  compatible=1
+  label="RESP pre-AUTH limit errors (ntfix N3)"
+  [ "$defect" != frontier ] || label="RESP query-buffer frontier (ntfix N4)"
+  row_begin "$label"
+  if [ "$defect" = frontier ]; then
+    if ! unit_ready netcap-unit ||
+       ! taskset -c "$CORES" build/netcap-unit frontier >"$TMPDIR/ntfix-frontier-unit.txt" 2>&1; then
+      compatible=0
+    fi
+  fi
+  for mode in 1s 2s; do for engine in uring epoll; do
+    shape=(--thread-mode 2s)
+    [ "$mode" != 1s ] || shape=(--thread-mode fused --read-local 1)
+    if ! tlsboot no --net-io "$engine" "${shape[@]}" ||
+       ! py tests/respcompat.py 127.0.0.1 "$PORT" --ntfix "$defect" --tls-port "$TLS_PORT" \
+           >"$TMPDIR/ntfix-$defect-$mode-$engine.txt" 2>&1; then
+      compatible=0
+    fi
+    stop
+  done; done
+  [ "$compatible" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/ntfix-$defect-*.txt"
+done
 }
 
 job_feature_cell(){

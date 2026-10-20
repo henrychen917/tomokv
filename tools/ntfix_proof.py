@@ -177,6 +177,10 @@ def main():
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--expect-equal", action="store_true")
     ap.add_argument("--rows-only", action="store_true")
+    ap.add_argument("--fragments", action="store_true",
+                    help="full TCP/TLS RESP fragment corpus, including close cases")
+    ap.add_argument("--batteries", action="store_true",
+                    help="existing RESP, netcap and TLS correctness batteries")
     args = ap.parse_args()
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -193,7 +197,35 @@ def main():
                     for name, command in (
                             ("N1", ["tests/infofix.py", "127.0.0.1", "25800", "--input-bytes-only"]),
                             ("N2", ["tests/tls.py", "127.0.0.1", "25801", str(cert), "no",
-                                    "--plain-port", "25800", "--close-after-reply"])):
+                                    "--plain-port", "25800", "--close-after-reply"]),
+                            ("N3", ["tests/respcompat.py", "127.0.0.1", "25800",
+                                    "--ntfix", "preauth", "--tls-port", "25801",
+                                    "--oracle", "127.0.0.1", "25802"]),
+                            ("N4", ["tests/respcompat.py", "127.0.0.1", "25800",
+                                    "--ntfix", "frontier", "--tls-port", "25801",
+                                    "--oracle", "127.0.0.1", "25802"])):
+                        with (cell / f"{name}.log").open("w") as log:
+                            result = subprocess.run(["taskset", "-c", "105-111", "python3", *command],
+                                                    cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+                        total += result.returncode != 0
+                        print(f"{mode}-{engine} {name}: rc={result.returncode}", flush=True)
+                elif args.fragments or args.batteries:
+                    commands = []
+                    if args.fragments:
+                        for tls in (False, True):
+                            commands.append((f"fragment-{'tls' if tls else 'tcp'}",
+                                ["tests/respresume.py", "fragment", "127.0.0.1",
+                                 "25801" if tls else "25800", "--oracle-port", "25802",
+                                 *(["--tls"] if tls else [])]))
+                    if args.batteries:
+                        commands += [
+                            ("respcompat", ["tests/respcompat.py", "127.0.0.1", "25800",
+                                            "--oracle", "127.0.0.1", "25802"]),
+                            ("netcap", ["tests/netcap.py", "127.0.0.1", "25800"]),
+                            ("tls", ["tests/tls.py", "127.0.0.1", "25801", str(cert), "no",
+                                     "--plain-port", "25800", "--full"]),
+                        ]
+                    for name, command in commands:
                         with (cell / f"{name}.log").open("w") as log:
                             result = subprocess.run(["taskset", "-c", "105-111", "python3", *command],
                                                     cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)

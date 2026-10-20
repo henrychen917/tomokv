@@ -89,6 +89,83 @@ void buffers() {
     check(inline_c.read_space(1 << 20, avail, true) && inline_c.rcap() == 65537 && avail == 65536,
           "NET1: epoll and TLS buffering stops at inline frontier");
 }
+void frontier() {
+    using namespace tomo;
+    constexpr uint64_t limit = 1 << 20;
+    Client c(-1);
+    auto append = [&](std::string_view bytes) {
+        size_t avail = 0;
+        char* dst = c.read_space(std::max<size_t>(kRbufInitial, bytes.size()), avail,
+                                 true, 512ull << 20, limit);
+        check(dst && avail >= bytes.size(), "N4: receive offer includes the saved prefix");
+        std::memcpy(dst, bytes.data(), bytes.size());
+        c.commit_read(bytes.size());
+    };
+    auto parse = [&] {
+        Op op; const char* error = nullptr; uint32_t pos = c.rpos();
+        const auto result = c.multibulk_pending()
+            ? c.resume_multibulk(pos, op, &error, 1024 * 1024, 512ull << 20)
+            : resp_parse_t<false, true>(c.rbuf(), c.rlen(), pos, op, &error,
+                                        0, 0, &c.multibulk_frontier());
+        check(result == ParseResult::Incomplete, "N4: fixture really suspends the parser");
+        c.suspend_multibulk();
+    };
+    std::string prefix = "*200000\r\n";
+    for (unsigned i = 0; i != 149795; ++i) prefix += "$1\r\na\r\n";
+    check(prefix.size() == limit - 2, "N4: exact partial-header fixture");
+    append(prefix);
+    check(!c.query_buffer_exceeded(limit), "N4: initial read below limit");
+    parse();
+    check(c.multibulk_frontier().completed == 149795 &&
+          c.multibulk_frontier().next == prefix.size(),
+          "N4: completed-prefix frontier actually opened");
+    check(!c.query_buffer_exceeded(limit, limit),
+          "N4: completed argv excluded even when queued MULTI equals the limit");
+    append("$1");
+    check(!c.query_buffer_exceeded(limit, limit - 2),
+          "N4: incomplete header counted, equality legal");
+    check(c.query_buffer_exceeded(limit, limit - 1),
+          "N4: queued MULTI plus incomplete header exceeds limit");
+    parse();
+    append("\r\n");
+    check(!c.query_buffer_exceeded(limit), "N4: partial header crosses retained-frame limit");
+    parse();
+    check(c.multibulk_frontier().bulk == 1 &&
+          c.multibulk_frontier().next == c.rlen(),
+          "N4: decoded header trimmed before its payload arrives");
+    append("a\r");
+    parse();
+    check(c.query_buffer_exceeded(1), "N4: incomplete payload and terminator still count");
+    append("\n");
+    parse();
+    check(!c.query_buffer_exceeded(0), "N4: completed payload trimmed on earlier parse pass");
+    check(!std::memcmp(c.rbuf(), prefix.data(), prefix.size()),
+          "N4: pinned argv bytes never rewritten or discarded");
+
+    Client payload(-1); size_t avail = 0;
+    const std::string header = "*2\r\n$4\r\nECHO\r\n$2097152\r\n";
+    std::memcpy(payload.rbuf(), header.data(), header.size()); payload.commit_read(header.size());
+    Op op; const char* error = nullptr; uint32_t pos = 0;
+    check(resp_parse_t<false, true>(payload.rbuf(), payload.rlen(), pos, op, &error,
+                                   0, 0, &payload.multibulk_frontier()) == ParseResult::Incomplete,
+          "N4: payload fixture suspends after decoded header");
+    payload.suspend_multibulk();
+    char* dst = payload.read_space(limit + 1, avail, true, 512ull << 20, limit);
+    check(dst && avail == limit + 1, "N4: payload cap allows exactly one overflow byte");
+    std::memset(dst, 'x', limit + 1); payload.commit_read(limit);
+    check(!payload.query_buffer_exceeded(limit), "N4: unparsed payload equality is legal");
+    payload.commit_read(1);
+    check(payload.query_buffer_exceeded(limit), "N4: unparsed payload overflow closes");
+
+    Client unread(-1);
+    dst = unread.read_space(limit + 8, avail, true);
+    check(dst && avail >= limit + 8, "N4: unparsed fixture allocation");
+    std::memcpy(dst, prefix.data(), prefix.size());
+    std::memcpy(dst + prefix.size(), "$1\r\na\r\n", 7);
+    unread.commit_read(prefix.size() + 7);
+    check(unread.query_buffer_exceeded(limit),
+          "N4: newly read prefixes count until parsing, never trim before checking");
+}
 void grammar() {
     using namespace tomo;
     Config cfg; ConfigParseState state;
@@ -254,6 +331,7 @@ int main(int argc, char** argv) {
 #ifndef TOMO_NETCAP_OLD
     if (which == "all" || which == "scan") scan();
     if (which == "all" || which == "buffers") buffers();
+    if (which == "all" || which == "frontier") frontier();
     if (which == "all" || which == "grammar") grammar();
     if (which == "all" || which == "framing") framing();
     if (which == "all" || which == "teardown") tomo::NetcmdRegression::teardown();
