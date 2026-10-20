@@ -504,3 +504,176 @@ explain it. A losing cell cannot be averaged away, and an unresolved identical
 arm comparison is not a pass. PAD A diagnoses aggregate text-size effects;
 it cannot exclude all internal placement effects. No performance measurements
 were run by this lane.
+
+## ntfix3
+
+N4 now uses PRE's conservative computation on the common path and consults the
+saved parser frontier only when the existing bound would constrain input.
+This is a candidate for merit review, with no throughput claim. The maintainer's
+ntfix2 result motivating it was `d8s_l1` at −1.77 / −0.16 / −1.96% over three
+ABBA blocks (median −1.77%, measured two-standard-deviation band 1.63%);
+the earlier PAD-A/PRE result there was −0.10%. Those are supplied results,
+not measurements made by this lane.
+
+### Source and common-path accounting
+
+The only new production source edit is `src/net/conn.h`; three compiler budgets
+change in the Makefile. N1, N2, N3, and the epoll output-accounting fix remain.
+
+- The query check first evaluates `queued > limit || rlen - rpos > limit - queued`.
+  Only the conservative overflow branch evaluates the frontier-aware suffix.
+  Equality stays legal, and queued MULTI arguments remain included.
+- The receive path first computes PRE's cap using `rpos`. Its existing growth
+  clamp and receive-offer clamp comparisons enter an unlikely, out-of-line cold
+  refinement when that cap binds. The ordinary path does not read either the
+  pending-frontier flag or `RespFrontier::next`.
+- Cap equality also refines: a saved prefix can permit growth that the
+  conservative cap suppressed, or invalidate the exact-limit exception for a
+  short receive. Two added cases in the existing frontier unit require an
+  actually armed parser frontier and check both growth and no-growth outcomes.
+- A compile-time helper shares the allocation logic between the ordinary and
+  cold bodies. There is no new runtime predicate beyond the existing bound/clamp
+  comparisons, no runtime mode, field, allocation policy, retry, or lock.
+
+[Common-path disassembly and explanation](docs/ntfix/ntfix3/common-path/README.md)
+show the production receive body and a compile-only wrapper around the actual
+query predicate. The query wrapper returns at +0x21 when the conservative bound
+passes; frontier access begins only on the branch to +0x30. The receive helper's
+frontier accesses reside in `read_space_refined`, marked `noinline,cold`.
+This proves conditional access, not byte identity or performance.
+
+The Redis 7.4 rule remains exactly the ntfix2 rule described above: check before
+parsing newly received bytes, exclude only headers/arguments consumed on an
+earlier parse pass, retain incomplete headers/payloads, and include queued MULTI
+arguments. No buffer bytes move as part of accounting.
+
+### PRE reconstruction and identity attempt
+
+The pruned PRE objects were rebuilt from `git archive 567d3b8e3` in
+`build/pre-src`, with that commit's unchanged Makefile. The only extra compiler
+option maps the archive's debug directory back to the original worktree:
+`-fdebug-prefix-map=/home/user/Projects/cx-ntfix/build/pre-src=/home/user/Projects/cx-ntfix`.
+The rebuilt complete ELF is SHA-identical to frozen PRE **5c8ca908** before any
+identity comparison or PAD link. [Rebuild receipt](docs/ntfix/ntfix3/pre/rebuild.json).
+
+Eight PRE and 31 POST compile-only trials cover all eight receive/dispatch
+translation units. All eight PRE recompiles reproduce every reference body.
+The initial IPA sizes grow by 127 instructions in main, 142 in genthread, and
+172 in rl2s/reorder. Three selected budget changes restore eight selected hot
+bodies relative to the initial ntfix3 build:
+
+| Object | ntfix2 budget | ntfix3 budget | Unedited hot differences before → after |
+|---|---:|---:|---:|
+| `src/core/genthread.o` | 129487 | 129557 | 3 → 0 |
+| `db0/src/core/genthread.o` | 129744 | 129830 | 1 → 0 |
+| `db0/src/core/reorder.o` | 148398 | 148538 | 5 → 1 |
+
+Other existing budgets remain. The attempted explicit budget for src reorder
+made identity worse and was rejected. Exact commands, hashes, all trial
+differences, and selection rationale are in
+[identity-attempt](docs/ntfix/ntfix3/identity-attempt/README.md).
+
+| Unmodified strict audit against PRE | Final POST result |
+|---|---|
+| Command handlers | **1,211/1,211 identical** |
+| `ccfix_audit.py`, all emitted bodies | 16,294/16,546 identical; **252 changed** |
+| `ccfix_audit.py`, selected hot bodies | 1,160/1,214 identical; **54 changed** |
+| `lbstall_artifacts.py compare` | 1,156/1,210 identical after resolving relocations; 1,148 raw-byte identical |
+| Linked `.text` | 7,655,116 → **7,661,036 bytes** |
+
+All three strict identity tools exit 1; those failures are retained, not called
+passes. Every remaining changed hot body, object copy, and clone has its sizes
+and reason in [changed-hot-bodies.md](docs/ntfix/ntfix3/identity/changed-hot-bodies.md).
+The [receive/parse/writeback inventory](docs/ntfix/ntfix3/identity/changed-receive-parse-bodies.md)
+also covers receive bodies outside the strict tool's hot-name filter;
+[the complete table](docs/ntfix/ntfix3/identity/changed-bodies.md) lists all 252.
+Reasons distinguish N1 epoll accounting, N2 TLS wakeup/output accounting, N3's
+error-exit classifier, N4's cold refinement, and compiler inlining/codegen.
+
+Full receive/parse identity is **not restored**. In particular, the common
+receive helper is newly outlined in main and grows from PRE's 337-byte reorder
+copy to 371 bytes plus a 38-byte cold clone. Src reorder retains three unedited
+flush/sweep differences; db0 reorder retains the 796 → 729-byte fused sweep
+difference. These are explicit merit-review limitations, not reasons to stop.
+
+### Correctness and builds
+
+All builds use CPUs 80–95 and `-j16`; correctness servers use 80–87, the pinned
+Redis 7.4 oracle uses 88, and clients use 89–95. Candidate boots use 16 shards,
+one database, fused/read-local 1 or split/ratio 6:2. Ports are 22800–22802;
+the gate self-test's socket fixture reserves 22899. The in-process migration
+unit requires eight allowed CPUs and runs within 80–95.
+
+The oracle has no TLS listener: decrypted candidate TLS replies are compared
+with the pinned oracle over TCP, as in ntfix2. The driver records boot commands
+and stops only its owned children. `runtime.json` locks the final POST hash
+before each job.
+
+| Required proof | ntfix3 result |
+|---|---|
+| N3/N4 directed rows, PRE fail / POST pass | **PASS**: PRE fails all 8 defect/mode/engine legs; POST passes all 8, with TCP and TLS in each. [PRE](docs/ntfix/ntfix3/pre/rows.log), [POST](docs/ntfix/ntfix3/post/rows.log) |
+| Retained N1/N2 rows on POST | **PASS**, all 8 legs; all 16 N1–N4 POST rows pass. [Ledger](docs/ntfix/ntfix3/post/rows.log) |
+| `netcap-unit frontier` | PRE **FAIL as required** at the queued-MULTI assertion; POST **PASS**, including both added cap-equality cases. Full netcap unit also passes. [PRE](docs/ntfix/ntfix3/pre/frontier-unit.log), [POST](docs/ntfix/ntfix3/post/frontier-unit.log), [full unit](docs/ntfix/ntfix3/post/netcap-unit.log) |
+| Unchanged limits corpus: 2 modes × 2 engines × TCP/TLS | **PASS, 0 differences** in every geometry. [Ledger](docs/ntfix/ntfix3/post/limits.log), exact compressed streams and differences in the adjacent `limits/` tree |
+| Fragment corpus, including close cases | **PASS**, 4,692 trials × 8 combinations = **37,536 trials**, zero differences; RESP2/RESP3, seeds 7/19/20/23, all close-case families enabled. [Ledger](docs/ntfix/ntfix3/post/fragments.log) |
+| RESP/netcap/TLS batteries with their gate boot contracts | **PASS**, 12/12 mode/engine/battery legs. [Ledger](docs/ntfix/ntfix3/post/batteries.log) |
+| Respresume unit and migration witnesses | **PASS**, all three parser groups and all six ordinary/R7 migration witnesses. [Unit](docs/ntfix/ntfix3/post/respresume-unit.log), [migration](docs/ntfix/ntfix3/post/respresume-migration.log) |
+| `python3 tests/gates_test.py` | **PASS**, 66 tests in 315.429 seconds, plus the nested 14-test persistence self-test. [Log](docs/ntfix/ntfix3/post/gates-test.log) |
+| `make all`, all `job_production_units` targets, freshness | **PASS**: 31 named targets plus both live-control binaries; all 36 build/freshness commands succeed. [Results](docs/ntfix/ntfix3/production/results.json) |
+| Full gate / ABBA / performance benchmarks / measurement load generators | **NOT RUN** — maintainer-owned and excluded from runtime authorization |
+
+The final netcap unit reports the unchanged locked layouts: `Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624`.
+
+The completed `make -W Makefile -j16 all` and production-target builds supersede
+the retained interrupted preliminary build logs. All 34 final concrete freshness checks also pass ([receipt](docs/ntfix/ntfix3/production/final-freshness.json)). The production server build has no warnings; the unit build repeats the same 13 custom-allocator mismatch warnings present in ntfix2, in unchanged `atomic_survivors_unit.cc` and `lbplanner_unit.cc`. The unit additions add no gate
+row: **ntfix3 DQ = 0, DF = 0**. The lane's existing total remains +4/+4 relative
+to PRE; its collection sites and quick-tier position are unchanged from ntfix2.
+`EXPECT_QUICK` and `EXPECT_FULL` are untouched.
+
+The broad standard `differ_gate.sh`/INFO matrices are **NOT RUN in ntfix3**:
+they are outside this refinement's requested matrix. The earlier one-millisecond
+HPTTL finding, default-cipher kTLS gauge finding, and AUTH-versus-arity difference
+remain documented in ntfix2; this work does not claim to resolve them.
+
+### Artifacts and maintainer merit request
+
+| Arm | Path | SHA-256 |
+|---|---|---|
+| PRE `567d3b8e3` | `/home/user/Projects/bins/ntfix-pre-5c8ca908` (identical rebuild at `build/ntfix-pre/tomokv`) | `5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5` |
+| ntfix3 POST | `/home/user/Projects/cx-ntfix/build/tomokv` | `2a102311d91b99bcff78af38742c1176bec5634ae9f1875af8cb74e645d9075b` |
+| **PAD A — behaviour twin** | `/home/user/Projects/cx-ntfix/build/tomokv-ntfix-pad-a` | `65c81751a6c56e6c96f19102d788cffec0e71a86ce5799b19de58404fa2c6ddd` |
+| Previous ntfix2 POST, diagnostic reference | `/home/user/Projects/bins/ntfix-post-d6876ec3` | `d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01` |
+
+**PAD A is PRE behaviour with POST's aggregate `.text` size/layout control.**
+It relinks the verified PRE objects in their original order and appends 5,920
+unreachable NOP bytes, matching POST's 7,661,036-byte `.text`. All 10,144 PRE text
+function addresses and sizes, GNU IBT/SHSTK properties, and PLT layout remain
+unchanged. It controls total text size; it does **not** reproduce POST's internal
+function placement. [Build/validation receipt](docs/ntfix/ntfix3/pad/receipt.json).
+All 16 directed PAD row outcomes match frozen PRE exactly. [Behaviour receipt](docs/ntfix/ntfix3/pad/behaviour.json).
+
+Use the maintainer's scheduled quiet box and the gate's unchanged ABBA instrument,
+qualified pins/load plans, these exact hashes, and contemporary same-binary nulls:
+
+| Cells | Arms and blocks | Deciding result |
+|---|---|---|
+| First, **`d8s_l1`**, then **`p8g` and `p8s`**; unchanged [p8 focus file](docs/ntfix/ntfix3/merit/p8-focus.cells.txt) | PRE/PRE null, PRE/POST, PRE/PAD A; at least the same three ABBA blocks used for ntfix2 | Per-cell matched-load rate and its qualified band; determine whether the d8s_l1 regression is removed without a p8 control regression |
+| All existing **14 generic cells**, unchanged [cell file](docs/ntfix/ntfix3/merit/generic14.cells.txt) | Same arms and instrument | Every cell retains its existing rate or p1 latency score at matched offered load; no averaging away a losing cell |
+
+The three priority cells are already members of the generic 14; there are 14
+distinct required definitions, not 17. `d8s_l1` is 1s, read-local 1, SET, p8,
+512 connections, eight memtier instances; `p8g/p8s` retain their existing
+read-local-0 GET/SET definitions. Depth-1 cells cannot clear a receive-cost
+regression in the server-bound p8 cell.
+
+Report per-cell rate/latency, cycles/op, IPC, and instructions/op. Matched-load
+rate/latency decides; instructions and IPC explain it. Keep the existing
+per-cell qualification rules and contemporaneous nulls; the historical 1.63%
+band is context, not a newly invented tolerance. PAD A should remain flat if
+POST's movement is behavioural; this aggregate-size control cannot exclude all
+internal placement effects. An optional old-POST/new-POST p8 comparison can
+isolate recovery from ntfix2, but cannot replace PRE/POST acceptance.
+
+No performance measurement, gate coordinator, or push is run by this lane.
+
+All requested ntfix3 correctness jobs passed on the recorded POST. [Runtime manifest](docs/ntfix/ntfix3/runtime.json) and [final artifacts](docs/ntfix/ntfix3/artifacts.json) record commands, hashes, CPU/port allocation, unchanged gate constants, and completed listener cleanup. Python compilation, shell syntax, and `git diff --check` also pass. Work is committed on `cx-ntfix`; no push.
