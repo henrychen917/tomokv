@@ -1,0 +1,2 @@
+{"arm": "pre", "mode": "1s", "databases": 16, "policy": "always", "runs": 300, "failures": 21, "windows_witnessed": 180, "holds_witnessed": 21, "visibility_failures": 21}
+{"arm": "pre", "mode": "2s", "databases": 1, "policy": "everysec", "runs": 100, "failures": 4, "windows_witnessed": 78, "holds_witnessed": 4, "visibility_failures": 4}
