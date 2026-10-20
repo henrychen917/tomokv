@@ -2574,7 +2574,7 @@ public:
     void atomic_commit_publish() {
         // Loaded BEFORE the decrement on purpose: it is the value whose publication the count
         // still proves. Reading it after would let a ticket drawn by a newcomer ride in.
-        const uint64_t drawn = commit_seq_.load(std::memory_order_seq_cst);
+        uint64_t drawn = commit_seq_.load(std::memory_order_seq_cst);
 #ifdef TOMO_PUBLISHFIX_TEST
         if (test_after_drawn) test_after_drawn(*this);
 #endif
@@ -2585,10 +2585,20 @@ public:
             atomic_commit_windows_.fetch_add(1, std::memory_order_relaxed);
             return;
         }
-        uint64_t safe = atomic_commit_safe_.load(std::memory_order_relaxed);
-        while (safe < drawn &&
-               !atomic_commit_safe_.compare_exchange_weak(
-                   safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
+        for (;;) {
+            uint64_t safe = atomic_commit_safe_.load(std::memory_order_relaxed);
+            while (safe < drawn &&
+                   !atomic_commit_safe_.compare_exchange_weak(
+                       safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
+            // A peer may have drawn after our load and left without publishing while we
+            // still held the count. Re-read the sequence BEFORE checking for zero: every
+            // ticket through that read has then stored its epoch. A nonzero count hands
+            // publication to that holder, whose last decrement runs this same loop.
+            const uint64_t newer = commit_seq_.load(std::memory_order_seq_cst);
+            if (newer <= drawn ||
+                atomic_commit_inflight_.load(std::memory_order_seq_cst) != 0) return;
+            drawn = newer;
+        }
     }
     // Reserve a consecutive run under ONE commit bracket, then let the caller release-store every
     // decision word in its completion order before the safe watermark moves. The stall before the
