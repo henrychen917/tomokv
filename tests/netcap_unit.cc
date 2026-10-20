@@ -165,6 +165,38 @@ void frontier() {
     unread.commit_read(prefix.size() + 7);
     check(unread.query_buffer_exceeded(limit),
           "N4: newly read prefixes count until parsing, never trim before checking");
+
+    // A conservative cap equal to the existing allocation is still a cold
+    // refinement case: the saved header can permit growth, but cannot turn an
+    // ordinary short tail into the exact-limit short-receive exception.
+    for (bool may_grow : {false, true}) {
+        Client edge(-1);
+        const size_t initial = edge.rcap();
+        std::memcpy(edge.rbuf(), header.data(), header.size());
+        edge.commit_read(header.size());
+        pos = 0;
+        check(resp_parse_t<false, true>(edge.rbuf(), edge.rlen(), pos, op, &error,
+                                       0, 0, &edge.multibulk_frontier()) == ParseResult::Incomplete,
+              "N4: cap-equality fixture suspends after decoded header");
+        edge.suspend_multibulk();
+        check(edge.multibulk_frontier().next == header.size(),
+              "N4: cap-equality fixture has a real saved prefix");
+        const size_t tail = Client::kMinRecv / 2;
+        const size_t fill = initial - tail - edge.rlen();
+        std::memset(edge.rbuf() + edge.rlen(), 'x', fill);
+        edge.commit_read(fill);
+        dst = edge.read_space(initial, avail, may_grow, 512ull << 20, initial - 1);
+        if (may_grow) {
+            check(dst && edge.rcap() == initial + header.size() &&
+                  avail == tail + header.size(),
+                  "N4: cap equality restores frontier growth and exact-limit short receive");
+        } else {
+            check(!dst && !avail && edge.rcap() == initial,
+                  "N4: conservative cap equality cannot allow a non-limit short receive");
+        }
+        check(!std::memcmp(edge.rbuf(), header.data(), header.size()),
+              "N4: cap-equality refinement preserves the pinned prefix");
+    }
 }
 void grammar() {
     using namespace tomo;

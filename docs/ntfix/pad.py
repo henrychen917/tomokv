@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """PAD A: relink frozen PRE objects with unreachable text padding only."""
 import hashlib
+import argparse
 import json
 from pathlib import Path
 import shlex
@@ -26,11 +27,16 @@ def functions(path):
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--phase", default="ntfix2")
+    ap.add_argument("--cores", default="80-95")
+    args = ap.parse_args()
     pre = ROOT / "build/ntfix-pre/tomokv"
     post = ROOT / "build/tomokv"
     output = ROOT / "build/tomokv-ntfix-pad-a"
-    out = ROOT / "docs/ntfix/ntfix2/pad"
-    scratch = ROOT / "build/ntfix2/pad-a"
+    out = ROOT / "docs/ntfix" / args.phase / "pad"
+    out.mkdir(parents=True, exist_ok=True)
+    scratch = ROOT / "build" / args.phase / "pad-a"
     scratch.mkdir(parents=True, exist_ok=True)
     command = shlex.split((out / "pre-link.log").read_text())
     command[command.index("-o") + 1] = str(output)
@@ -49,9 +55,9 @@ def main():
                             '.section .note.GNU-stack,"",@progbits\n'
                             '.section .note.gnu.property,"a",@note\n.p2align 3\n.byte ' +
                             ",".join(map(str, note)) + "\n")
-        subprocess.run(["taskset", "-c", "96-111", "g++", "-c", str(assembly),
+        subprocess.run(["taskset", "-c", args.cores, "g++", "-c", str(assembly),
                         "-o", str(obj)], cwd=ROOT, check=True)
-        subprocess.run(["taskset", "-c", "96-111", *command], cwd=ROOT, check=True)
+        subprocess.run(["taskset", "-c", args.cores, *command], cwd=ROOT, check=True)
         difference = target - text_size(output)
         if not difference:
             break

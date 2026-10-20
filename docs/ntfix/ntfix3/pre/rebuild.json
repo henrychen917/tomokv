@@ -1,0 +1,9 @@
+{
+  "commit": "567d3b8e3",
+  "source": "build/pre-src",
+  "makefile_sha256": "31b1cc7b1ec557ada3803e1360fe62a5b6da2942977765ca721788cb19b60724",
+  "command": "taskset -c 80-95 make -C build/pre-src -j16 all CXX=\"g++ -fdebug-prefix-map=/home/user/Projects/cx-ntfix/build/pre-src=/home/user/Projects/cx-ntfix\"",
+  "sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+  "frozen_binary_sha256_equal": true,
+  "identity_objects": "build/ntfix-pre -> pre-src/build"
+}

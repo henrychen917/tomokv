@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile-only ntfix inlining trials; fixed CPUs 96-111, up to 16 compiles.
+"""Compile-only ntfix3 inlining trials; fixed CPUs 80-95, up to 16 compiles.
 
 Input is a JSON list of {object, budget?, tree?: "pre"|"post"}.
 The compiler command is the production Makefile command captured by ntfix PRE.
@@ -19,7 +19,9 @@ sys.path.insert(0, str(ROOT / "tools"))
 import ccfix_audit
 
 audit = ccfix_audit.audit
-LANE = re.compile(r"IoLoop::epoll_recv|WbEngine::pump_tls")
+LANE = re.compile(r"IoLoop::epoll_recv|WbEngine::pump_tls|parse_and_dispatch<|"
+                  r"IoLoop::drive_tls<|IoLoop::arm_recv<|IoLoop::on_cqe|"
+                  r"Client::read_space|Client::query_buffer")
 
 
 def compare(path, obj):
@@ -27,7 +29,7 @@ def compare(path, obj):
     old, new = a.functions(), b.functions()
     symbols = sorted(old.keys() | new.keys())
     names = subprocess.check_output(
-        ["taskset", "-c", "96-111", "c++filt"],
+        ["taskset", "-c", "80-95", "c++filt"],
         input="\n".join(symbols) + "\n", text=True).splitlines()
     changes = []
     for symbol, name in zip(symbols, names):
@@ -44,7 +46,7 @@ def compare(path, obj):
 
 def trial(job, source_keys, outdir):
     obj, tree = job["object"], job.get("tree", "post")
-    root = ROOT if tree == "post" else ROOT / "build/ntfix2/pre-source"
+    root = ROOT if tree == "post" else ROOT / "build/pre-src"
     lines = (ROOT / "docs/ntfix/pre/build.log").read_text().splitlines()
     command = next(shlex.split(line) for line in lines
                    if line.startswith("g++ ") and line.endswith(" -o build/" + obj))
@@ -58,7 +60,7 @@ def trial(job, source_keys, outdir):
                         "--param", "large-unit-insns=" + str(job["budget"])]
     key = hashlib.sha256((str(root) + source_keys[tree] +
                           " ".join(command)).encode()).hexdigest()[:16]
-    base = ROOT / "build/ntfix2/trials" / (obj.replace("/", "_") + "." + key)
+    base = ROOT / "build/ntfix3/trials" / (obj.replace("/", "_") + "." + key)
     base.parent.mkdir(parents=True, exist_ok=True)
     output = base.with_suffix(base.suffix + ".o")
     receipt = base.with_suffix(base.suffix + ".json")
@@ -68,7 +70,7 @@ def trial(job, source_keys, outdir):
         row = json.loads(receipt.read_text())
     else:
         with base.with_suffix(base.suffix + ".log").open("w") as log:
-            subprocess.run(["taskset", "-c", "96-111", *command], cwd=root,
+            subprocess.run(["taskset", "-c", "80-95", *command], cwd=root,
                            stdout=log, stderr=subprocess.STDOUT, check=True)
         dump = next(base.parent.glob(base.name + "*.inline"))
         with dump.open(errors="replace") as stream:
@@ -95,7 +97,7 @@ def main():
     outdir.mkdir(parents=True, exist_ok=True)
     keys = {}
     for tree in {j.get("tree", "post") for j in jobs}:
-        root = ROOT if tree == "post" else ROOT / "build/ntfix2/pre-source"
+        root = ROOT if tree == "post" else ROOT / "build/pre-src"
         digest = hashlib.sha256()
         for path in sorted((root / "src").rglob("*")):
             if path.is_file():

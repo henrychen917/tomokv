@@ -6,12 +6,12 @@ import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "docs/ntfix/ntfix2/production"
+OUT = ROOT / "docs/ntfix/ntfix3/production"
 
 
 def run(command, name):
     with (OUT / f"{name}.log").open("w") as log:
-        result = subprocess.run(["taskset", "-c", "96-111", *command], cwd=ROOT,
+        result = subprocess.run(["taskset", "-c", "80-95", *command], cwd=ROOT,
                                 stdout=log, stderr=subprocess.STDOUT)
     row = dict(command=command, returncode=result.returncode)
     print(json.dumps(row), flush=True)
