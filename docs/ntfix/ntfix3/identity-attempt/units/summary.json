@@ -1,0 +1,1801 @@
+[
+  {
+    "object": "src/main.o",
+    "tree": "pre",
+    "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+    "unit": 97557,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_DUAL_DATABASE",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=147428",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/main.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_main.o.b599db41e13754f0.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_main.o.b599db41e13754f0"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_main.o.b599db41e13754f0.o",
+    "sha256": "f52f65d832b9cacd3d6db210b3fd66fc56f5a2d56faa7d7cf328fab52cf0172f",
+    "counts": {
+      "lane": 0,
+      "hot": 0,
+      "other": 0
+    },
+    "changes": []
+  },
+  {
+    "object": "src/main.o",
+    "tree": "post",
+    "budget": 147428,
+    "source_sha256": "8fd4775241cff31cae5d77574b694fea292ed4be9e78290aa37ce43a4edd2c26",
+    "unit": 97684,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_DUAL_DATABASE",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=147428",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/main.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_main.o.80ecb6b2c78a86dc.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_main.o.80ecb6b2c78a86dc"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_main.o.80ecb6b2c78a86dc.o",
+    "sha256": "45794d883d059b711a9a9a1449f7050272043f80c2e24401348b9ea74f53012c",
+    "counts": {
+      "lane": 11,
+      "hot": 0,
+      "other": 7
+    },
+    "changes": [
+      {
+        "kind": "other",
+        "name": "tomo::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)",
+        "pre": 0,
+        "post": 375
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]",
+        "pre": 0,
+        "post": 371
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+        "pre": 0,
+        "post": 38
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space_refined(unsigned long, unsigned long&, bool, unsigned long, unsigned long)",
+        "pre": 0,
+        "post": 299
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 1098,
+        "post": 975
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 4717,
+        "post": 4777
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+        "pre": 12606,
+        "post": 12698
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)",
+        "pre": 12750,
+        "post": 12816
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<false, false, false>(tomo::Client*, int)",
+        "pre": 1040,
+        "post": 1118
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<false, true, false>(tomo::Client*, int)",
+        "pre": 560,
+        "post": 638
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<true, false, false>(tomo::Client*, int)",
+        "pre": 1040,
+        "post": 1150
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<true, true, false>(tomo::Client*, int)",
+        "pre": 560,
+        "post": 635
+      },
+      {
+        "kind": "lane",
+        "name": "void tomo::IoLoop::arm_recv<false>(tomo::Client*)",
+        "pre": 853,
+        "post": 645
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::IoLoop::drive_tls<false, false>(tomo::Client*) [clone .isra.0]",
+        "pre": 1919,
+        "post": 1841
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]",
+        "pre": 2126,
+        "post": 2023
+      },
+      {
+        "kind": "other",
+        "name": "tomo::WbEngine::pump_epoll(tomo::Client&)",
+        "pre": 1424,
+        "post": 1488
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 2069,
+        "post": 2149
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<true, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 2067,
+        "post": 2099
+      }
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "tree": "pre",
+    "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+    "unit": 102573,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129447",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_genthread.o.84f81e5b1b699b3e.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_genthread.o.84f81e5b1b699b3e"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_genthread.o.84f81e5b1b699b3e.o",
+    "sha256": "a4accffedee90a19d8abc0e22f3da14ad7a28b1037b105f234070acdad318884",
+    "counts": {
+      "lane": 0,
+      "hot": 0,
+      "other": 0
+    },
+    "changes": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "tree": "post",
+    "budget": 129487,
+    "source_sha256": "8fd4775241cff31cae5d77574b694fea292ed4be9e78290aa37ce43a4edd2c26",
+    "unit": 102715,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129487",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_genthread.o.b8c696a6936e9ab3.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_genthread.o.b8c696a6936e9ab3"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_genthread.o.b8c696a6936e9ab3.o",
+    "sha256": "e2f3c8f76d4f9c84c074c2d6e9a19bb69cb03f3817b31240e6411fe5048b91e3",
+    "counts": {
+      "lane": 10,
+      "hot": 3,
+      "other": 13
+    },
+    "changes": [
+      {
+        "kind": "other",
+        "name": "tomo::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)",
+        "pre": 0,
+        "post": 375
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]",
+        "pre": 337,
+        "post": 371
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+        "pre": 0,
+        "post": 38
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space_refined(unsigned long, unsigned long&, bool, unsigned long, unsigned long)",
+        "pre": 0,
+        "post": 299
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 717,
+        "post": 574
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()",
+        "pre": 2881,
+        "post": 2572
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()",
+        "pre": 2881,
+        "post": 2572
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 3010,
+        "post": 3065
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+        "pre": 18610,
+        "post": 18665
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+        "pre": 9870,
+        "post": 9906
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 117,
+        "post": 166
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+        "pre": 18530,
+        "post": 18584
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]",
+        "pre": 1957,
+        "post": 2035
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<false, false, true>(tomo::Client*, int)",
+        "pre": 428,
+        "post": 476
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<false, true, true>(tomo::Client*, int)",
+        "pre": 428,
+        "post": 476
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<true, false, true>(tomo::Client*, int)",
+        "pre": 451,
+        "post": 499
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<true, true, true>(tomo::Client*, int)",
+        "pre": 451,
+        "post": 499
+      },
+      {
+        "kind": "hot",
+        "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+        "pre": 5149,
+        "post": 5177
+      },
+      {
+        "kind": "other",
+        "name": "tomo::WbEngine::pump_epoll(tomo::Client&)",
+        "pre": 1424,
+        "post": 1488
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 1401,
+        "post": 1481
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<true, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 1608,
+        "post": 1640
+      },
+      {
+        "kind": "other",
+        "name": "tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+        "pre": 1185,
+        "post": 1185
+      },
+      {
+        "kind": "other",
+        "name": "tomo::ThreadCtx::publish_read_local_parked(unsigned long)",
+        "pre": 36,
+        "post": 0
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::query_buffer_exceeded(tomo::Client const&) const",
+        "pre": 158,
+        "post": 165
+      },
+      {
+        "kind": "other",
+        "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+        "pre": 4551,
+        "post": 4573
+      },
+      {
+        "kind": "other",
+        "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+        "pre": 332,
+        "post": 332
+      }
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "tree": "pre",
+    "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+    "unit": 110635,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162305",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_rl2s.o.fb81c59233079b81.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_rl2s.o.fb81c59233079b81"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_rl2s.o.fb81c59233079b81.o",
+    "sha256": "9811089a68580396b9b2a66352e5ace736436ea48117a8931fa3c731691c186d",
+    "counts": {
+      "lane": 0,
+      "hot": 0,
+      "other": 0
+    },
+    "changes": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "tree": "post",
+    "budget": 162357,
+    "source_sha256": "8fd4775241cff31cae5d77574b694fea292ed4be9e78290aa37ce43a4edd2c26",
+    "unit": 110807,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162357",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_rl2s.o.be46226207134170.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_rl2s.o.be46226207134170"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_rl2s.o.be46226207134170.o",
+    "sha256": "fe3de785e3bbd971534cdb12b4108468f8a631e5e8d078ff5dd3eaa7d07c1c4e",
+    "counts": {
+      "lane": 18,
+      "hot": 0,
+      "other": 8
+    },
+    "changes": [
+      {
+        "kind": "other",
+        "name": "tomo::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)",
+        "pre": 0,
+        "post": 375
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]",
+        "pre": 0,
+        "post": 371
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+        "pre": 0,
+        "post": 38
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space_refined(unsigned long, unsigned long&, bool, unsigned long, unsigned long)",
+        "pre": 0,
+        "post": 299
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 717,
+        "post": 574
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::adopt_client<false, false>(tomo::Client*, bool, bool)",
+        "pre": 3098,
+        "post": 2879
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 4317,
+        "post": 4373
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+        "pre": 20883,
+        "post": 20994
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 143,
+        "post": 190
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "pre": 21207,
+        "post": 21324
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+        "pre": 12148,
+        "post": 12216
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 117,
+        "post": 166
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+        "pre": 21086,
+        "post": 21190
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 136,
+        "post": 197
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "pre": 21112,
+        "post": 21244
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<false, false, true>(tomo::Client*, int)",
+        "pre": 1040,
+        "post": 1118
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<false, true, true>(tomo::Client*, int)",
+        "pre": 560,
+        "post": 638
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<true, false, true>(tomo::Client*, int)",
+        "pre": 1040,
+        "post": 1150
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::on_recv<true, true, true>(tomo::Client*, int)",
+        "pre": 560,
+        "post": 635
+      },
+      {
+        "kind": "lane",
+        "name": "void tomo::IoLoop::arm_recv<false>(tomo::Client*)",
+        "pre": 853,
+        "post": 645
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::IoLoop::drive_tls<false, true>(tomo::Client*) [clone .isra.0]",
+        "pre": 1919,
+        "post": 1841
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]",
+        "pre": 2126,
+        "post": 2023
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::IoLoop::drive_tls<true, true>(tomo::Client*) [clone .isra.0]",
+        "pre": 2126,
+        "post": 2023
+      },
+      {
+        "kind": "other",
+        "name": "tomo::WbEngine::pump_epoll(tomo::Client&)",
+        "pre": 1424,
+        "post": 1488
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 2069,
+        "post": 2149
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<true, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 2067,
+        "post": 2099
+      }
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "tree": "pre",
+    "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+    "unit": 114324,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_reorder.o.3a37ab1df0bcdeef.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_reorder.o.3a37ab1df0bcdeef"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_reorder.o.3a37ab1df0bcdeef.o",
+    "sha256": "0e054dcf5624700c5b0843d2f1220e94fcb1b4a3ec151253a197f98d9e144074",
+    "counts": {
+      "lane": 0,
+      "hot": 0,
+      "other": 0
+    },
+    "changes": []
+  },
+  {
+    "object": "src/core/reorder.o",
+    "tree": "post",
+    "source_sha256": "8fd4775241cff31cae5d77574b694fea292ed4be9e78290aa37ce43a4edd2c26",
+    "unit": 114496,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_reorder.o.a17faf3b62a82291.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_reorder.o.a17faf3b62a82291"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_reorder.o.a17faf3b62a82291.o",
+    "sha256": "99b8d33ac490165d00775b49b7e53aa1b2e1b4a2e58a7549f82f4e110c02a391",
+    "counts": {
+      "lane": 12,
+      "hot": 3,
+      "other": 12
+    },
+    "changes": [
+      {
+        "kind": "other",
+        "name": "tomo::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)",
+        "pre": 0,
+        "post": 375
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]",
+        "pre": 337,
+        "post": 371
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+        "pre": 0,
+        "post": 38
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::Client::read_space_refined(unsigned long, unsigned long&, bool, unsigned long, unsigned long)",
+        "pre": 0,
+        "post": 299
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 717,
+        "post": 574
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::r7_on_recv<false, false, true>(tomo::Client*, int)",
+        "pre": 560,
+        "post": 476
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::r7_on_recv<false, true, true>(tomo::Client*, int)",
+        "pre": 560,
+        "post": 476
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::r7_on_recv<true, false, true>(tomo::Client*, int)",
+        "pre": 451,
+        "post": 499
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::r7_on_recv<true, true, true>(tomo::Client*, int)",
+        "pre": 451,
+        "post": 499
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::adopt_client<true, false>(tomo::Client*, bool, bool)",
+        "pre": 2079,
+        "post": 2047
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 3742,
+        "post": 3795
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+        "pre": 2372,
+        "post": 2628
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+        "pre": 2388,
+        "post": 2628
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::lb_control_pass()",
+        "pre": 3557,
+        "post": 3621
+      },
+      {
+        "kind": "other",
+        "name": "void tomo::IoLoop::r7_adopt_client<true, true>(tomo::Client*, bool, bool)",
+        "pre": 2112,
+        "post": 2047
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+        "pre": 18373,
+        "post": 18444
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+        "pre": 9925,
+        "post": 9957
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 117,
+        "post": 166
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+        "pre": 18370,
+        "post": 18486
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+        "pre": 18373,
+        "post": 18521
+      },
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+        "pre": 18465,
+        "post": 18527
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+        "pre": 1412,
+        "post": 1614
+      },
+      {
+        "kind": "other",
+        "name": "tomo::WbEngine::pump_epoll(tomo::Client&)",
+        "pre": 1424,
+        "post": 1488
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 1656,
+        "post": 1720
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<true, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 2067,
+        "post": 2099
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::query_buffer_exceeded(tomo::Client const&) const",
+        "pre": 158,
+        "post": 165
+      },
+      {
+        "kind": "other",
+        "name": "void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**> >(std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, unsigned long)",
+        "pre": 2692,
+        "post": 2583
+      }
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "tree": "pre",
+    "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+    "unit": 96795,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=147449",
+      "--param",
+      "max-inline-insns-auto=18",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/main.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_main.o.405d7e7fc93e1a59.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_main.o.405d7e7fc93e1a59"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_main.o.405d7e7fc93e1a59.o",
+    "sha256": "27201539cbb713126db84297d00584a4d53e792a99bf53ddbb6f9c41d1f744de",
+    "counts": {
+      "lane": 0,
+      "hot": 0,
+      "other": 0
+    },
+    "changes": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "tree": "post",
+    "budget": 147449,
+    "source_sha256": "8fd4775241cff31cae5d77574b694fea292ed4be9e78290aa37ce43a4edd2c26",
+    "unit": 96922,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=147449",
+      "--param",
+      "max-inline-insns-auto=18",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/main.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_main.o.4e8bece07659eb47.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_main.o.4e8bece07659eb47"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_main.o.4e8bece07659eb47.o",
+    "sha256": "c4234be972dac7eaee79d3307f780c2a8d9f0295fa67129466df8795aeed98dd",
+    "counts": {
+      "lane": 11,
+      "hot": 0,
+      "other": 7
+    },
+    "changes": [
+      {
+        "kind": "other",
+        "name": "tomo_db0::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)",
+        "pre": 0,
+        "post": 375
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]",
+        "pre": 0,
+        "post": 371
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+        "pre": 0,
+        "post": 38
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space_refined(unsigned long, unsigned long&, bool, unsigned long, unsigned long)",
+        "pre": 0,
+        "post": 299
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 1098,
+        "post": 975
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 4717,
+        "post": 4777
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)",
+        "pre": 12381,
+        "post": 12527
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)",
+        "pre": 12526,
+        "post": 12653
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<false, false, false>(tomo_db0::Client*, int)",
+        "pre": 1040,
+        "post": 1118
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<false, true, false>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 638
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<true, false, false>(tomo_db0::Client*, int)",
+        "pre": 1040,
+        "post": 1150
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<true, true, false>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 635
+      },
+      {
+        "kind": "lane",
+        "name": "void tomo_db0::IoLoop::arm_recv<false>(tomo_db0::Client*)",
+        "pre": 853,
+        "post": 645
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::IoLoop::drive_tls<false, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 1919,
+        "post": 1841
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 2126,
+        "post": 2023
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::WbEngine::pump_epoll(tomo_db0::Client&)",
+        "pre": 1394,
+        "post": 1426
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 2069,
+        "post": 2149
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<true, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 2067,
+        "post": 2099
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "tree": "pre",
+    "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+    "unit": 101795,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129704",
+      "-Wa,--defsym,tomo_rlfence_text_pad=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_genthread.o.cb0a01c952d3740d.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_genthread.o.cb0a01c952d3740d"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_genthread.o.cb0a01c952d3740d.o",
+    "sha256": "06ef5e173a29e42afa385ff8bd5d008cab2600bc3837bc21f51f5e2a1a285dcf",
+    "counts": {
+      "lane": 0,
+      "hot": 0,
+      "other": 0
+    },
+    "changes": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "tree": "post",
+    "budget": 129744,
+    "source_sha256": "8fd4775241cff31cae5d77574b694fea292ed4be9e78290aa37ce43a4edd2c26",
+    "unit": 101937,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129744",
+      "-Wa,--defsym,tomo_rlfence_text_pad=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_genthread.o.2e0df60c8b8e3780.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_genthread.o.2e0df60c8b8e3780"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_genthread.o.2e0df60c8b8e3780.o",
+    "sha256": "978a9c045ae3d4fceb96e3dc7e7a046f0edac54ad8bb50a94bde5c9a328dce63",
+    "counts": {
+      "lane": 10,
+      "hot": 1,
+      "other": 12
+    },
+    "changes": [
+      {
+        "kind": "other",
+        "name": "tomo_db0::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)",
+        "pre": 0,
+        "post": 375
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]",
+        "pre": 337,
+        "post": 371
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+        "pre": 0,
+        "post": 38
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space_refined(unsigned long, unsigned long&, bool, unsigned long, unsigned long)",
+        "pre": 0,
+        "post": 299
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 717,
+        "post": 574
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, false>()",
+        "pre": 3712,
+        "post": 3450
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 3662,
+        "post": 3715
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+        "pre": 18655,
+        "post": 18747
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 9906,
+        "post": 9938
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 117,
+        "post": 166
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+        "pre": 18401,
+        "post": 18561
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::pubsub_start_numpat(tomo_db0::Client*, tomo_db0::Op&)",
+        "pre": 1117,
+        "post": 1282
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::pubsub_handle_home_request(tomo_db0::PubSubEvent&)",
+        "pre": 4491,
+        "post": 4475
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<false, false, true>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 638
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<false, true, true>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 638
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<true, false, true>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 635
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<true, true, true>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 635
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::WbEngine::pump_epoll(tomo_db0::Client&)",
+        "pre": 1424,
+        "post": 1488
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 1656,
+        "post": 1720
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<true, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 1608,
+        "post": 1640
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+        "pre": 797,
+        "post": 781
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::query_buffer_exceeded(tomo_db0::Client const&) const",
+        "pre": 158,
+        "post": 165
+      },
+      {
+        "kind": "other",
+        "name": "bool std::operator==<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre": 0,
+        "post": 67
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "tree": "pre",
+    "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+    "unit": 109724,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162334",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_rl2s.o.26c2e5a3f6d3497e.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_rl2s.o.26c2e5a3f6d3497e"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_rl2s.o.26c2e5a3f6d3497e.o",
+    "sha256": "722dcae087a3970104fac6a868e313978736a4f5e64ce0e9ef2c5d01b549a6aa",
+    "counts": {
+      "lane": 0,
+      "hot": 0,
+      "other": 0
+    },
+    "changes": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "tree": "post",
+    "budget": 162334,
+    "source_sha256": "8fd4775241cff31cae5d77574b694fea292ed4be9e78290aa37ce43a4edd2c26",
+    "unit": 109896,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162334",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_rl2s.o.4e6ee0df3771137c.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_rl2s.o.4e6ee0df3771137c"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_rl2s.o.4e6ee0df3771137c.o",
+    "sha256": "264890820a12ab6d5f047d66211ed082f9df102293cf05c7393a89473dc3d1c6",
+    "counts": {
+      "lane": 18,
+      "hot": 0,
+      "other": 8
+    },
+    "changes": [
+      {
+        "kind": "other",
+        "name": "tomo_db0::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)",
+        "pre": 0,
+        "post": 375
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]",
+        "pre": 0,
+        "post": 371
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+        "pre": 0,
+        "post": 38
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space_refined(unsigned long, unsigned long&, bool, unsigned long, unsigned long)",
+        "pre": 0,
+        "post": 299
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 717,
+        "post": 574
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::adopt_client<false, false>(tomo_db0::Client*, bool, bool)",
+        "pre": 3098,
+        "post": 2879
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 4317,
+        "post": 4373
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 21243,
+        "post": 21256
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 143,
+        "post": 190
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+        "pre": 21346,
+        "post": 21481
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 12326,
+        "post": 12418
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 121,
+        "post": 170
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 21304,
+        "post": 21369
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 143,
+        "post": 204
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+        "pre": 21344,
+        "post": 21364
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<false, false, true>(tomo_db0::Client*, int)",
+        "pre": 1040,
+        "post": 1118
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<false, true, true>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 638
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<true, false, true>(tomo_db0::Client*, int)",
+        "pre": 1040,
+        "post": 1150
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::on_recv<true, true, true>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 635
+      },
+      {
+        "kind": "lane",
+        "name": "void tomo_db0::IoLoop::arm_recv<false>(tomo_db0::Client*)",
+        "pre": 853,
+        "post": 645
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::IoLoop::drive_tls<false, true>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 1919,
+        "post": 1841
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 2126,
+        "post": 2023
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::IoLoop::drive_tls<true, true>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 2126,
+        "post": 2023
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::WbEngine::pump_epoll(tomo_db0::Client&)",
+        "pre": 1424,
+        "post": 1488
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 2069,
+        "post": 2149
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<true, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 2067,
+        "post": 2099
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "tree": "pre",
+    "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+    "unit": 113431,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=148358",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_reorder.o.907e957bbf47116f.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_reorder.o.907e957bbf47116f"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_reorder.o.907e957bbf47116f.o",
+    "sha256": "c31f22c2e1cbf0918076e6daa77030563b485a9952eacf08209ff8b4d812cd36",
+    "counts": {
+      "lane": 0,
+      "hot": 0,
+      "other": 0
+    },
+    "changes": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "tree": "post",
+    "budget": 148398,
+    "source_sha256": "8fd4775241cff31cae5d77574b694fea292ed4be9e78290aa37ce43a4edd2c26",
+    "unit": 113603,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=148398",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_reorder.o.91a5aa4a0c43d9d5.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_reorder.o.91a5aa4a0c43d9d5"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_reorder.o.91a5aa4a0c43d9d5.o",
+    "sha256": "2502e08f7a4a612d9a9b5de420fee84e6f1fc4898e64c22a6258bcb5d618237f",
+    "counts": {
+      "lane": 12,
+      "hot": 5,
+      "other": 15
+    },
+    "changes": [
+      {
+        "kind": "other",
+        "name": "tomo_db0::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)",
+        "pre": 0,
+        "post": 375
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]",
+        "pre": 337,
+        "post": 371
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+        "pre": 0,
+        "post": 38
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::Client::read_space_refined(unsigned long, unsigned long&, bool, unsigned long, unsigned long)",
+        "pre": 0,
+        "post": 299
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 717,
+        "post": 574
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::r7_on_recv<false, false, true>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 638
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::r7_on_recv<false, true, true>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 638
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::r7_on_recv<true, false, true>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 635
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::r7_on_recv<true, true, true>(tomo_db0::Client*, int)",
+        "pre": 560,
+        "post": 635
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, false, true, false>()",
+        "pre": 4787,
+        "post": 4752
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 3911,
+        "post": 3972
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::lb_control_pass()",
+        "pre": 3645,
+        "post": 3621
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+        "pre": 18553,
+        "post": 18630
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 9698,
+        "post": 9778
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 117,
+        "post": 166
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+        "pre": 18443,
+        "post": 18502
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+        "pre": 18345,
+        "post": 18448
+      },
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+        "pre": 18258,
+        "post": 18385
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+        "pre": 4180,
+        "post": 4033
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+        "pre": 4180,
+        "post": 4033
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+        "pre": 796,
+        "post": 729
+      },
+      {
+        "kind": "hot",
+        "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 3631,
+        "post": 3565
+      },
+      {
+        "kind": "hot",
+        "name": "bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)",
+        "pre": 3480,
+        "post": 3416
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::WbEngine::pump_epoll(tomo_db0::Client&)",
+        "pre": 1424,
+        "post": 1488
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 1848,
+        "post": 1944
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<true, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 2067,
+        "post": 2099
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)",
+        "pre": 1011,
+        "post": 963
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::FlatStore::choose_victim(tomo_db0::Slice)",
+        "pre": 2588,
+        "post": 2623
+      },
+      {
+        "kind": "other",
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "pre": 820,
+        "post": 964
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::Rob<64u>::quiesced() const",
+        "pre": 0,
+        "post": 22
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::flip_io_drained() const",
+        "pre": 708,
+        "post": 704
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::query_buffer_exceeded(tomo_db0::Client const&) const",
+        "pre": 158,
+        "post": 165
+      }
+    ]
+  }
+]

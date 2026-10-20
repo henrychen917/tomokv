@@ -1,0 +1,37 @@
+{
+  "object": "src/core/rl2s.o",
+  "tree": "pre",
+  "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+  "unit": 110635,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=162305",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/rl2s.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_rl2s.o.fb81c59233079b81.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_rl2s.o.fb81c59233079b81"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_rl2s.o.fb81c59233079b81.o",
+  "sha256": "9811089a68580396b9b2a66352e5ace736436ea48117a8931fa3c731691c186d",
+  "counts": {
+    "lane": 0,
+    "hot": 0,
+    "other": 0
+  },
+  "changes": []
+}
