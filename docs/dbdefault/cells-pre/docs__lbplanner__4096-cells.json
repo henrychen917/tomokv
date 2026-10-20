@@ -1,0 +1,45 @@
+{
+  "subset": "full",
+  "count": 8,
+  "ids": [
+    "c4kg",
+    "c4ks",
+    "w2c4kg1",
+    "w2c4ks1",
+    "w2c4kg8",
+    "w2c4ks8",
+    "w2c4kg32",
+    "w2c4ks32"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "SET"
+  ],
+  "depths": [
+    1,
+    8,
+    32
+  ],
+  "connections": [
+    4096
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "latency_ms",
+    "rate"
+  ],
+  "pending_pins": []
+}

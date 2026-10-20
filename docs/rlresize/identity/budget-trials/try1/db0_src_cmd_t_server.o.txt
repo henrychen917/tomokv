@@ -1,0 +1,7 @@
+{"object": "db0/src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31762 --param max-inline-insns-auto=16", "lane": 2, "hot": 0, "other": 6}
+    OTHER 7347 -> 7393 tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)
+    OTHER 16644 -> 16383 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+    OTHER 340 -> 346 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+    OTHER 1482 -> 1463 tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)
+    OTHER 608 -> 640 tomo_db0::command_client_migration_extract(tomo_db0::Client*)
+    OTHER 0 -> 204 tomo_db0::Server::shard_owner_count() const

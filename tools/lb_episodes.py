@@ -826,7 +826,7 @@ def server_command(args, arm, mode, directory):
     # --ratio specifies whole-server counts, not a ratio scaled to CPU affinity.
     argv = ["taskset", "-c", getattr(args, "server_cores", SERVER_CORES), str(ROOT / arm_table(args)[arm][0]),
             "--bind", "127.0.0.1", "--port", str(args.port), "--thread-mode", mode,
-            "--key-lb", "1", "--client-lb", "1", "--flip-auto", "0",
+            "--databases", "1", "--key-lb", "1", "--client-lb", "1", "--flip-auto", "0",
             "--enable-debug-command", "yes", "--save", "", "--appendonly", "no",
             "--dir", str(directory), "--dbfilename", "seed.tomo"]
     if args.shards is not None:

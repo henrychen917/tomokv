@@ -1,0 +1,10 @@
+[
+  "src/persist/aof.o",
+  "src/cmd/xshard.o",
+  "src/cmd/storesize.o",
+  "src/cmd/t_server.o",
+  "db0/src/persist/aof.o",
+  "db0/src/cmd/xshard.o",
+  "db0/src/cmd/storesize.o",
+  "db0/src/cmd/t_server.o"
+]

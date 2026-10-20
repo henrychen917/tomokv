@@ -1,0 +1,4 @@
+Hot bodies: 1204; raw byte equal: 1192; bytes + resolved relocation targets equal: 1201
+DIFF db0/src/core/genthread.o 9714 9794 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 12093 11939 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 21058 21072 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)

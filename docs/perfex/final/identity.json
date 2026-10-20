@@ -1,0 +1,23 @@
+{
+  "stock_hot": {
+    "tomo": {
+      "total": 601,
+      "identical": 594,
+      "changed": 7
+    },
+    "tomo_db0": {
+      "total": 603,
+      "identical": 593,
+      "changed": 10
+    }
+  },
+  "full_bodies": 16297,
+  "full_identical": 16221,
+  "full_hot": 1208,
+  "full_hot_identical": 1187,
+  "handlers": 1210,
+  "handlers_identical": 1210,
+  "unrelated_requested_hot": [],
+  "outside_hot_selection_changes": 25,
+  "scope": "Canonical opcodes and resolved relocation targets; nonselected changes remain listed"
+}

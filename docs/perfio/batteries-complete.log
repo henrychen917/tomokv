@@ -1,0 +1,20 @@
+{"affinity": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-perfio/build/tomokv", "--bind", "127.0.0.1", "--port", "25133", "--dir", "/home/user/Projects/cx-perfio/docs/perfio/batteries/2s-epoll", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--thread-mode", "2s", "--shards", "16", "--net-io", "epoll", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--key-lb", "1", "--client-lb", "1", "--ratio", "6:2"], "event": "boot"}
+{"name": "netio", "mode": "2s", "engine": "epoll", "exit": 0, "log": "docs/perfio/batteries/netio-2s-epoll.log"}
+{"name": "lb-stationary", "mode": "2s", "engine": "epoll", "exit": 1, "log": "docs/perfio/batteries/lb-stationary-2s-epoll.log"}
+{"name": "flip", "mode": "2s", "engine": "epoll", "exit": 0, "log": "docs/perfio/batteries/flip-2s-epoll.log"}
+{"name": "flip-load", "mode": "2s", "engine": "epoll", "exit": 0, "log": "docs/perfio/batteries/flip-load-2s-epoll.log"}
+{"event": "stop", "pid": 994581, "rc": 0}
+{"affinity": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-perfio/build/tomokv", "--bind", "127.0.0.1", "--port", "25133", "--dir", "/home/user/Projects/cx-perfio/docs/perfio/batteries/1s-epoll", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--thread-mode", "1s", "--shards", "16", "--net-io", "epoll", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--key-lb", "1", "--client-lb", "1", "--read-local", "0"], "event": "boot"}
+{"name": "netio", "mode": "1s", "engine": "epoll", "exit": 0, "log": "docs/perfio/batteries/netio-1s-epoll.log"}
+{"name": "lb-stationary", "mode": "1s", "engine": "epoll", "exit": 0, "log": "docs/perfio/batteries/lb-stationary-1s-epoll.log"}
+{"event": "stop", "pid": 998671, "rc": 0}
+{"affinity": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-perfio/build/tomokv", "--bind", "127.0.0.1", "--port", "25133", "--dir", "/home/user/Projects/cx-perfio/docs/perfio/batteries/2s-uring", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--thread-mode", "2s", "--shards", "16", "--net-io", "uring", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--key-lb", "1", "--client-lb", "1", "--ratio", "6:2"], "event": "boot"}
+{"name": "netio", "mode": "2s", "engine": "uring", "exit": 0, "log": "docs/perfio/batteries/netio-2s-uring.log"}
+{"name": "lb-stationary", "mode": "2s", "engine": "uring", "exit": 0, "log": "docs/perfio/batteries/lb-stationary-2s-uring.log"}
+{"name": "flip", "mode": "2s", "engine": "uring", "exit": 0, "log": "docs/perfio/batteries/flip-2s-uring.log"}
+{"name": "flip-load", "mode": "2s", "engine": "uring", "exit": 0, "log": "docs/perfio/batteries/flip-load-2s-uring.log"}
+{"event": "stop", "pid": 1002812, "rc": 0}
+{"affinity": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-perfio/build/tomokv", "--bind", "127.0.0.1", "--port", "25133", "--dir", "/home/user/Projects/cx-perfio/docs/perfio/batteries/1s-uring", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--thread-mode", "1s", "--shards", "16", "--net-io", "uring", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--key-lb", "1", "--client-lb", "1", "--read-local", "0"], "event": "boot"}
+{"name": "netio", "mode": "1s", "engine": "uring", "exit": 0, "log": "docs/perfio/batteries/netio-1s-uring.log"}
+{"name": "lb-stationary", "mode": "1s", "engine": "uring", "exit": 0, "log": "docs/perfio/batteries/lb-stationary-1s-uring.log"}
+{"event": "stop", "pid": 1006714, "rc": 0}

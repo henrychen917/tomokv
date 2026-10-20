@@ -1,0 +1,3 @@
+{"frozen_time_ms": 1791655563275, "unrelated_batches": 16, "sample_changes": 0, "averages": [216921705, 216921705, 216921705, 216921705, 216921705, 216921705, 216921705, 216921705, 216921705, 216921705, 216921705, 216921705, 216921705, 216921705, 216921705, 216921705, 216921705]}
+{"estimated_ttl_ms": 250149354.875, "exact_ttl_ms": 255733500.0, "relative_error": 0.021835798301747717, "tolerance": 0.1}
+PASS EX4.2: bounded beat sampling, avg_ttl, exact counts and DBSIZE

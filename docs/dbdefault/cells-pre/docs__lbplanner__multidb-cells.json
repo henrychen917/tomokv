@@ -1,0 +1,66 @@
+{
+  "subset": "full",
+  "count": 8,
+  "ids": [
+    "h05m",
+    "h06m",
+    "p8gm",
+    "p8sm",
+    "d32gm_l1",
+    "d32sm_l1",
+    "x9m_32_l0",
+    "m8gm_l0"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "MGET",
+    "MIX",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "MGET",
+    "SET"
+  ],
+  "depths": [
+    8,
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "rate"
+  ],
+  "pending_pins": [],
+  "server_flags": {
+    "h05m": "--databases 16",
+    "h06m": "--databases 16",
+    "p8gm": "--databases 16",
+    "p8sm": "--databases 16",
+    "d32gm_l1": "--databases 16",
+    "d32sm_l1": "--databases 16",
+    "x9m_32_l0": "--databases 16",
+    "m8gm_l0": "--databases 16"
+  },
+  "dbs": {
+    "h05m": 16,
+    "h06m": 16,
+    "p8gm": 16,
+    "p8sm": 16,
+    "d32gm_l1": 16,
+    "d32sm_l1": 16,
+    "x9m_32_l0": 16,
+    "m8gm_l0": 16
+  }
+}

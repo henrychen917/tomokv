@@ -274,7 +274,7 @@ def command(args, variant, directory):
     client_lb, key_lb, _, _ = PROFILES[profile]
     argv = ["taskset", "-c", "112-127", str(args.binary.resolve()), "--bind", "127.0.0.1",
             "--port", str(args.port), "--thread-mode", mode, "--client-lb", str(client_lb),
-            "--key-lb", str(key_lb), "--flip-auto", "0", "--enable-debug-command", "yes",
+            "--databases", "1", "--key-lb", str(key_lb), "--flip-auto", "0", "--enable-debug-command", "yes",
             "--save", "", "--appendonly", "no", "--dir", str(directory.resolve())]
     if args.shards is not None:
         argv += ["--shards", str(args.shards)]

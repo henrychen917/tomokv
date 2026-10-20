@@ -8,6 +8,7 @@ namespace tomo {
 struct NetcmdRegression {
     Server server;
     explicit NetcmdRegression(unsigned atomic) {
+        server.cfg_.databases = 1;
         server.cfg_.atomic = atomic;
         server.set_atomic_enabled(atomic != 0);
         server.live_config_version_.store(2);

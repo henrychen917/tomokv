@@ -1,0 +1,24 @@
+rlresize compile-only inlining-budget trials (docs/rlresize/tools/budget.py try; scan.sh drives it).
+Each line: object, --param set, then counts of changed bodies vs PRE 991d48f65 in three classes:
+lane (atomic_prepare_capacity_read_local, clear, clear_read_local, clear_capacity,
+prepare_resize_retirement), hot (tools/lbstall_artifacts.py HOT or ExLoopT run), other.
+
+try1/    in-place spelling of the reservation (commit 6728441c3, later reverted), every affected
+         object at its same-headroom budget (PRE budget + IPA unit growth).
+scan1/   in-place spelling, +-64 around same headroom. src rl2s, db0 genthread, db0 reorder
+         complete; src genthread partial (scan stopped once the persistent diffs were clear).
+scan2/   out-of-line helper variant (definition in src/cmd/storesize.cc), +-8. db0 reorder complete,
+         db0 genthread partial. Worse than in place; abandoned.
+bisect/  PRE + only the FLUSH changes (flatstore.h) vs PRE + only the in-place atomic change, at
+         PRE's budgets: the FLUSH changes leave db0 reorder, db0 genthread and src rl2s
+         byte-identical; every core-object difference comes from the atomic change.
+scan3/   fix-form comparison on the three sensitive objects: v-f2 = in-place with the armed
+         accessor (r7_fused_sweep_impl still changes at every value in db0 reorder), v-f4 = call
+         prepare_resize_retirement() (no hot change reachable; chosen, = the shipped code).
+scan4/   v-f4 (final code), +-24 step 4 for every affected object; src reorder at GCC's defaults.
+scan5/   v-f4 refinements: src genthread and src xshard step 2; src reorder with an explicit
+         inline-unit-growth=0 budget (57 hot + 141 other changes at every value: rejected, the
+         object keeps GCC's defaults).
+Chosen (Makefile, commit 986bd6f10): src t_server 31379, db0 t_server 31766, src aof 34437,
+db0 aof 34813, src xshard 127924, db0 xshard 126542, src genthread 129453, db0 genthread 129655,
+src rl2s 162311, db0 reorder 148269; main.o x2 and db0 rl2s.o unchanged (one object at every value).

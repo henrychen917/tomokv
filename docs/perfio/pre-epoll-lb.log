@@ -1,0 +1,17 @@
+{"affinity": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-perfio/build/perfio/pre/tomokv", "--bind", "127.0.0.1", "--port", "25125", "--dir", "/home/user/Projects/cx-perfio/docs/perfio/pre-epoll-lb/epoll-lb", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "epoll", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--client-lb", "1"], "event": "boot"}
+{"duplicates": {}, "event": "epoll", "phase": "lb-initial", "registrations": 97, "stale": []}
+{"after": 1, "before": 0, "event": "lb-witness", "hot_clients": 19, "rounds": 5536}
+{"duplicates": {"264293020": [12, 24]}, "event": "epoll", "phase": "lb-moved", "registrations": 98, "stale": [[24, 131, 264293020]]}
+{"event": "stop", "pid": 3627854, "rc": 0}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-perfio/tests/perfio.py", line 284, in <module>
+    main()
+  File "/home/user/Projects/cx-perfio/tests/perfio.py", line 266, in main
+    elif args.case == "epoll-lb": epoll_lb(args)
+                                  ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-perfio/tests/perfio.py", line 173, in epoll_lb
+    audit(p.pid, "lb-moved")
+  File "/home/user/Projects/cx-perfio/tests/perfio.py", line 96, in audit
+    assert not row["stale"] and not row["duplicates"], (phase, row)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('lb-moved', {'stale': [[24, 131, 264293020]], 'duplicates': {'264293020': [12, 24]}, 'registrations': 98})

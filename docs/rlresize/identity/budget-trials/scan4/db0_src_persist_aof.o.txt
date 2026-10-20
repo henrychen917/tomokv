@@ -1,0 +1,53 @@
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34813", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1403 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1403 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1698 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34817", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1435 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1435 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1698 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34821", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1435 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1435 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1698 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34825", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1451 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1451 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1698 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34829", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1451 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1451 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1698 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34833", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1483 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1483 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1698 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34837", "lane": 2, "hot": 0, "other": 4}
+    OTHER 1435 -> 1483 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1483 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1698 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 698 tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34841", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1435 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1435 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1698 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34845", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1403 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1403 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1869 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34849", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1403 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1403 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1869 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34853", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1435 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1435 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1869 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34857", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1435 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1435 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1869 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34861", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1435 -> 1451 tomo_db0::AofManager::~AofManager()
+    OTHER 1435 -> 1451 tomo_db0::AofManager::~AofManager()
+    OTHER 1698 -> 1869 tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)

@@ -71,7 +71,7 @@ def main():
     argv = ['taskset', '-c', args.cores, 'gdb', '-nx', '-q', '-x', str(script), '--args',
             str(args.binary.resolve()), '--bind', '127.0.0.1', '--port', str(args.port),
             '--dir', str(directory), '--save', '', '--appendonly', 'no', '--thread-mode', '2s',
-            '--ratio', '6:2', '--shards', '16', '--net-io', args.net_io]
+            '--databases', '1', '--ratio', '6:2', '--shards', '16', '--net-io', args.net_io]
     emit(event='boot', argv=argv, loadavg=os.getloadavg())
     gdb = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=log, stderr=subprocess.STDOUT)
     result = {}

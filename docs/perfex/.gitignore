@@ -1,0 +1,4 @@
+# pfconfirm retains a verified binary and a temporary local TLS identity.
+pfconfirm-*/headline
+pfconfirm-*/key.pem
+pfconfirm-*/cert.pem

@@ -1,0 +1,60 @@
+{
+  "subset": "full",
+  "count": 16,
+  "ids": [
+    "h53",
+    "h54",
+    "w2g8",
+    "w2s8",
+    "h21",
+    "h22",
+    "w2c4kg1",
+    "w2c4ks1",
+    "w2c4kg8",
+    "w2c4ks8",
+    "w2c4kg32",
+    "w2c4ks32",
+    "m62",
+    "m65",
+    "t03",
+    "t04"
+  ],
+  "modes": [
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "MGET",
+    "MSET",
+    "REORDER",
+    "SET"
+  ],
+  "commands": [
+    "BITCOUNT",
+    "GET",
+    "MGET",
+    "MSET",
+    "SET"
+  ],
+  "depths": [
+    1,
+    8,
+    32
+  ],
+  "connections": [
+    512,
+    4096
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "latency_ms",
+    "p999_ms",
+    "rate"
+  ],
+  "pending_pins": []
+}

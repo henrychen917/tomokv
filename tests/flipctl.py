@@ -2,7 +2,7 @@
 """Small functional acceptance for the automatic FLIP controller.
 
 Boot separately on the requested lane:
-  taskset -c 48-55 ./build/tomokv --port 7845 --save '' --flip-auto 1 \
+  taskset -c 48-55 ./build/tomokv --databases 1 --port 7845 --save '' --flip-auto 1 \
       --enable-debug-command yes
 
 The driver ramps to a low-load anchor, raises the issue rate on those same connections, and then

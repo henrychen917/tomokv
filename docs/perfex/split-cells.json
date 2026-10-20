@@ -1,0 +1,44 @@
+{
+  "subset": "full",
+  "count": 4,
+  "ids": [
+    "split-get8",
+    "split-set8",
+    "split-get32",
+    "split-set32"
+  ],
+  "modes": [
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "SET"
+  ],
+  "depths": [
+    8,
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "rate"
+  ],
+  "pending_pins": [],
+  "server_flags": {
+    "split-get8": "--databases 1",
+    "split-set8": "--databases 1",
+    "split-get32": "--databases 1",
+    "split-set32": "--databases 1"
+  }
+}

@@ -12,6 +12,7 @@
 #include "../store/kvobj.h"
 
 #include <algorithm>
+#include <bit>
 #include <charconv>
 #include <cstdint>
 #include <cstring>
@@ -308,37 +309,48 @@ uint64_t pending_for(const StreamGroup& group, const std::string& consumer) {
     return count;
 }
 
-int64_t infer_entries_read(KvObj* object, const StreamID& delivered) {
-    StreamHeader header;
-    if (!stream_object_header(object, header)) return -1;
-    std::vector<StreamOwnedEntry> entries;
-    if (!stream_object_collect(object, {}, false, 0, true, entries)) return -1;
-    bool exact = delivered.ms == 0 && delivered.seq == 0;
-    uint64_t after = 0;
-    for (const StreamOwnedEntry& entry : entries) {
-        if (id_compare(entry.id, delivered) == 0) exact = true;
-        if (id_compare(entry.id, delivered) > 0) after++;
+// A logical progress counter is knowable only at the stream boundaries. Interior
+// cursors after a deletion stay unknown until delivery reaches a known boundary.
+// Use the existing persistent metadata, including the cached first live ID; never
+// materialize the stream to compute a group's progress or lag.
+bool tombstones_after(const StreamVal& value, const StreamID& cursor) {
+    const StreamID deleted = value.header.max_deleted_entry_id;
+    return value.entries() && (deleted.ms || deleted.seq) && id_compare(cursor, deleted) <= 0;
+}
+
+int64_t infer_entries_read(const StreamVal& value, const StreamID& delivered) {
+    const StreamHeader& header = value.header;
+    if (!header.entries_added) return 0;
+    const int64_t added = std::bit_cast<int64_t>(header.entries_added);
+    const uint64_t length = value.entries();
+    const int last = id_compare(delivered, header.last_id);
+    if (!length && last <= 0) return added;
+    if ((delivered.ms || delivered.seq) &&
+        id_compare(delivered, header.max_deleted_entry_id) < 0) return -1;
+    if (!last) return added;
+    if (last > 0) return -1;
+    if ((!header.max_deleted_entry_id.ms && !header.max_deleted_entry_id.seq) ||
+        id_compare(header.max_deleted_entry_id, value.first_id) < 0) {
+        const int first = id_compare(delivered, value.first_id);
+        if (first <= 0 && length <= header.entries_added)
+            return std::bit_cast<int64_t>(header.entries_added - length + (first == 0));
     }
-    if (!exact || after > header.entries_added || header.entries_added - after > INT64_MAX)
-        return -1;
-    return static_cast<int64_t>(header.entries_added - after);
+    return -1;
 }
 
 bool group_lag(KvObj* object, const StreamHeader& header, const StreamGroup& group,
                int64_t& lag) {
-    StreamOwnedEntry cursor; bool cursor_found = false;
-    if (!stream_object_find(object, group.last_delivered, cursor, cursor_found)) return false;
-    if (cursor_found && cursor.deleted) return false;
-    const int64_t inferred = infer_entries_read(object, group.last_delivered);
-    if (group.entries_read >= 0 && inferred >= 0 && inferred != group.entries_read) {
-        if (header.entries_added > static_cast<uint64_t>(INT64_MAX)) return false;
-        lag = static_cast<int64_t>(header.entries_added) - group.entries_read;
+    const StreamVal& value = *stream_value(object); // groups always use external streams
+    if (!header.entries_added || !value.entries()) { lag = 0; return true; }
+    if (id_compare(group.last_delivered, value.first_id) < 0 &&
+        id_compare(header.max_deleted_entry_id, value.first_id) < 0) {
+        lag = static_cast<int64_t>(value.entries());
         return true;
     }
-    std::vector<StreamOwnedEntry> remaining;
-    if (!stream_object_collect(object, group.last_delivered, true, 0, false, remaining) ||
-        remaining.size() > static_cast<size_t>(INT64_MAX)) return false;
-    lag = static_cast<int64_t>(remaining.size());
+    const int64_t read = group.entries_read != -1 && !tombstones_after(value, group.last_delivered)
+        ? group.entries_read : infer_entries_read(value, group.last_delivered);
+    if (read == -1) return false;
+    lag = std::bit_cast<int64_t>(header.entries_added - static_cast<uint64_t>(read));
     return true;
 }
 
@@ -988,7 +1000,7 @@ void reply_name(Op& op, const char* name) {
 }
 
 void reply_nullable_i64(Op& op, int64_t value) {
-    if (value < 0) reply_null(op.sink(), op.resp3());
+    if (value == -1) reply_null(op.sink(), op.resp3());
     else reply_int(op.sink(), value);
 }
 
@@ -1321,8 +1333,23 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op) {
             }
             consumer->active_time = now;
         }
-        group->last_delivered = entries.back().id;
-        group->entries_read = infer_entries_read(object, group->last_delivered);
+        const StreamVal& value = *stream_value(object);
+        for (const StreamOwnedEntry& entry : entries) {
+            // Preserve an explicit ENTRIESREAD counter when it is usable. XDEL,
+            // XTRIM, XSETID and XCLAIM LASTID are all reflected in these guards;
+            // reloaded groups use the same metadata, with no new derived state.
+            if (group->entries_read != -1 &&
+                id_compare(group->last_delivered, value.first_id) >= 0 &&
+                !tombstones_after(value, group->last_delivered)) {
+                // Redis exposes the wrapped counter after ENTRIESREAD INT64_MAX.
+                // Use modulo arithmetic without signed overflow; only -1 is unknown.
+                group->entries_read = std::bit_cast<int64_t>(
+                    static_cast<uint64_t>(group->entries_read) + 1);
+            } else if (value.header.entries_added) {
+                group->entries_read = infer_entries_read(value, entry.id);
+            }
+            group->last_delivered = entry.id;
+        }
         reply_stream_entries(op, key, entries, false);
         return true;
     }

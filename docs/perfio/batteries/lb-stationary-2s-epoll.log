@@ -1,0 +1,14 @@
+LB stationary owners: mode=2s clients=[0, 1, 2, 3, 4, 5] shards=16
+LB stationary window armed: attempt 1, hold 30s
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-perfio/tests/lb_stationary.py", line 307, in <module>
+    result = run(args.host, args.port, args.seconds)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-perfio/tests/lb_stationary.py", line 205, in run
+    result, error = attempt(host, port, seconds, number)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-perfio/tests/lb_stationary.py", line 195, in attempt
+    unmoved(baseline, after)
+  File "/home/user/Projects/cx-perfio/tests/lb_stationary.py", line 35, in unmoved
+    raise AssertionError(f'stationary LB moved after stabilization: {key} {before[key]} -> {after[key]}')
+AssertionError: stationary LB moved after stabilization: tomokv_keylb_bucket_moves 0 -> 1

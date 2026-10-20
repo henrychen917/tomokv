@@ -1,0 +1,369 @@
+{
+  "pre_commit": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "production_change_commit": "068ff74a9",
+  "origin_checked": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "checked_utc": "2026-10-11T09:51:03.855079+00:00",
+  "cpus": "112-127",
+  "live_ports": [
+    25150,
+    25151,
+    25152,
+    25154,
+    25155
+  ],
+  "builds": [
+    {
+      "name": "production-units",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-k",
+        "-j16",
+        "build/at15-unit",
+        "build/at15-db0-unit",
+        "build/execabort-watch-unit",
+        "build/execabort-watch-db0-unit",
+        "build/core-concurrency-unit",
+        "build/atomic-survivors-unit",
+        "build/netcmd-unit",
+        "build/encodingfix-unit",
+        "build/netcap-unit",
+        "build/waits-unit",
+        "build/rehash-waits-unit",
+        "build/multidb-unit",
+        "build/multidb-boundary-unit",
+        "build/storesize-unit",
+        "build/wb-rule-units",
+        "build/wbland-units",
+        "build/rltopo-unit",
+        "build/lbplanner-units",
+        "build/shutdown-unit",
+        "build/persistfix-units",
+        "build/exbatch-unit",
+        "build/exbatch-db0-unit",
+        "build/ktls-keyupdate",
+        "build/ktls-keyupdate-unit",
+        "build/flushfix-units",
+        "build/splitlocal-unit",
+        "build/reorder-engagement-unit",
+        "build/reorder-engagement-unit-db0",
+        "build/racefix-climon"
+      ],
+      "exit_code": 0,
+      "seconds": 763.3204640531912
+    },
+    {
+      "name": "mdbqsbr-live-arms",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-j16",
+        "mdbqsbr-live-arms"
+      ],
+      "exit_code": 0,
+      "seconds": 485.121734786313
+    },
+    {
+      "name": "final-production-and-touched-units",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-j16",
+        "all",
+        "build/at15-unit",
+        "build/at15-db0-unit",
+        "build/execabort-watch-unit",
+        "build/execabort-watch-db0-unit",
+        "build/core-concurrency-unit",
+        "build/atomic-survivors-unit",
+        "build/netcmd-unit",
+        "build/encodingfix-unit",
+        "build/netcap-unit",
+        "build/waits-unit",
+        "build/rehash-waits-unit",
+        "build/multidb-unit",
+        "build/multidb-boundary-unit",
+        "build/storesize-unit",
+        "build/wb-rule-units",
+        "build/wbland-units",
+        "build/rltopo-unit",
+        "build/lbplanner-units",
+        "build/shutdown-unit",
+        "build/persistfix-units",
+        "build/exbatch-unit",
+        "build/exbatch-db0-unit",
+        "build/ktls-keyupdate",
+        "build/ktls-keyupdate-unit",
+        "build/flushfix-units",
+        "build/splitlocal-unit",
+        "build/reorder-engagement-unit",
+        "build/reorder-engagement-unit-db0",
+        "build/racefix-climon",
+        "build/multidb-db0-unit",
+        "build/mdbqsbr-unit",
+        "build/ccfix2-atomic-unit",
+        "build/execfix-unit",
+        "build/owner-arena-unit",
+        "build/owner-prefetch-unit"
+      ],
+      "exit_code": 2,
+      "seconds": 88.25408936897293
+    },
+    {
+      "name": "final-production-and-existing-touched-unit-targets",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-j16",
+        "all",
+        "build/at15-unit",
+        "build/at15-db0-unit",
+        "build/execabort-watch-unit",
+        "build/execabort-watch-db0-unit",
+        "build/core-concurrency-unit",
+        "build/atomic-survivors-unit",
+        "build/netcmd-unit",
+        "build/encodingfix-unit",
+        "build/netcap-unit",
+        "build/waits-unit",
+        "build/rehash-waits-unit",
+        "build/multidb-unit",
+        "build/multidb-boundary-unit",
+        "build/storesize-unit",
+        "build/wb-rule-units",
+        "build/wbland-units",
+        "build/rltopo-unit",
+        "build/lbplanner-units",
+        "build/shutdown-unit",
+        "build/persistfix-units",
+        "build/exbatch-unit",
+        "build/exbatch-db0-unit",
+        "build/ktls-keyupdate",
+        "build/ktls-keyupdate-unit",
+        "build/flushfix-units",
+        "build/splitlocal-unit",
+        "build/reorder-engagement-unit",
+        "build/reorder-engagement-unit-db0",
+        "build/racefix-climon",
+        "build/owner-arena-unit",
+        "build/owner-prefetch-unit"
+      ],
+      "exit_code": 0,
+      "seconds": 38.926904825959355
+    }
+  ],
+  "freshness": {
+    "all": 0,
+    "build/at15-unit": 0,
+    "build/at15-db0-unit": 0,
+    "build/execabort-watch-unit": 0,
+    "build/execabort-watch-db0-unit": 0,
+    "build/core-concurrency-unit": 0,
+    "build/atomic-survivors-unit": 0,
+    "build/netcmd-unit": 0,
+    "build/encodingfix-unit": 0,
+    "build/netcap-unit": 0,
+    "build/waits-unit": 0,
+    "build/rehash-waits-unit": 0,
+    "build/multidb-unit": 0,
+    "build/multidb-boundary-unit": 0,
+    "build/storesize-unit": 0,
+    "build/wb-rule-units": 0,
+    "build/wbland-units": 0,
+    "build/rltopo-unit": 0,
+    "build/lbplanner-units": 0,
+    "build/shutdown-unit": 0,
+    "build/persistfix-units": 0,
+    "build/exbatch-unit": 0,
+    "build/exbatch-db0-unit": 0,
+    "build/ktls-keyupdate": 0,
+    "build/ktls-keyupdate-unit": 0,
+    "build/flushfix-units": 0,
+    "build/splitlocal-unit": 0,
+    "build/reorder-engagement-unit": 0,
+    "build/reorder-engagement-unit-db0": 0,
+    "build/racefix-climon": 0,
+    "build/owner-arena-unit": 0,
+    "build/owner-prefetch-unit": 0,
+    "mdbqsbr-live-arms": 0
+  },
+  "serverless": [
+    {
+      "name": "docs-drift",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/docs_drift.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.052511527203023434
+    },
+    {
+      "name": "gate-shell",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "bash",
+        "-n",
+        "tests/gate.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.017888145055621862
+    },
+    {
+      "name": "ledger",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gate_ledger_fixture.py"
+      ],
+      "exit_code": 1,
+      "seconds": 0.196677319239825
+    },
+    {
+      "name": "row-audit",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "docs/dbdefault/row_audit.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.30722041986882687
+    },
+    {
+      "name": "receipt-diff",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "docs/dbdefault/receipt_diff.py"
+      ],
+      "exit_code": 0,
+      "seconds": 1.1178513881750405
+    }
+  ],
+  "gates_test": {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "exit_code": 0,
+    "seconds": 80.27904187189415
+  },
+  "abba": {
+    "exit_code": 0,
+    "tests": [
+      120,
+      10,
+      9,
+      16
+    ]
+  },
+  "differential": [
+    {
+      "mode": "split",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "tests/differ_gate.sh",
+        "/home/user/Projects/cx-dbdefault/build/tomokv",
+        "25151",
+        "25152",
+        "112-119",
+        "6:2"
+      ],
+      "environment": {
+        "REDIS74_ROOT": "/home/user/Projects/redis74",
+        "GATE_LOAD_CORES": "121-127",
+        "GATE_DIFFER_ORACLE_CORES": "120",
+        "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-dbdefault/docs/dbdefault/differ-suites.txt",
+        "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-dbdefault/docs/dbdefault/differ-seeds.txt",
+        "GATE_DIFFER_GEOMETRY": "split",
+        "GATE_DIFFER_OUT": "/home/user/Projects/cx-dbdefault/build/dbdefault/differ-split"
+      },
+      "exit_code": 0,
+      "seconds": 442.15921374224126
+    },
+    {
+      "mode": "armed-fused",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "tests/differ_gate.sh",
+        "/home/user/Projects/cx-dbdefault/build/tomokv",
+        "25151",
+        "25152",
+        "112-119",
+        "6:2"
+      ],
+      "environment": {
+        "REDIS74_ROOT": "/home/user/Projects/redis74",
+        "GATE_LOAD_CORES": "121-127",
+        "GATE_DIFFER_ORACLE_CORES": "120",
+        "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-dbdefault/docs/dbdefault/differ-suites.txt",
+        "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-dbdefault/docs/dbdefault/differ-seeds.txt",
+        "GATE_DIFFER_GEOMETRY": "armed-fused",
+        "GATE_DIFFER_OUT": "/home/user/Projects/cx-dbdefault/build/dbdefault/differ-armed-fused"
+      },
+      "exit_code": 0,
+      "seconds": 344.87586831487715
+    }
+  ],
+  "multidb": {
+    "commands": 28,
+    "exit_code": 0
+  },
+  "counts": {
+    "audited_origin": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+    "base_quick": 625,
+    "base_full": 642,
+    "quick": 626,
+    "full": 643,
+    "DQ": 1,
+    "DF": 1,
+    "quick_exit_line": 3716,
+    "default_row_collection_line": 3596,
+    "fixture_labels_match": true,
+    "proposed_count_check_passes_in_memory": true
+  },
+  "hashes": {
+    "build/dbdefault/pre/tomokv": "740f8adc21a16c38e42321cc94ee4201e923e1a8ae758366f857678a2cfe1c1b",
+    "build/tomokv": "b9cbfc25d1a2d106e6c5f7f65e0e41633d25b770fd195b12d250774eddc0ca07"
+  },
+  "final_origin_check_utc": "2026-10-11T09:51:40.651446+00:00",
+  "final_origin_commit": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "final_row_audit": {
+    "audited_origin": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+    "base_quick": 625,
+    "base_full": 642,
+    "quick": 626,
+    "full": 643,
+    "DQ": 1,
+    "DF": 1,
+    "quick_exit_line": 3716,
+    "default_row_collection_line": 3596,
+    "fixture_labels_match": true,
+    "proposed_count_check_passes_in_memory": true
+  }
+}

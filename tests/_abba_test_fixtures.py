@@ -42,7 +42,7 @@ def workload_record(cell):
     counts = {name: 100 for name in names}
     totals = [dict(connections=cell.conns, outstanding_bound=cell.conns * cell.depth,
                    reported_counts=counts, completed_hdr_counts=counts)]
-    return dict(data_bytes=cell.data_bytes,
+    return dict(configured_databases=1, data_bytes=cell.data_bytes,
         workload_raw=dict(before=before, after=after, mode_before=mode, mode_after=mode),
         workload_witness=require_workload_witness(cell, before, after, mode, mode),
         whole_run_commandstats_before=before, whole_run_commandstats_after=after, memtier=totals,

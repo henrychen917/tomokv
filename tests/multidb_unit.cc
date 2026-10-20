@@ -689,7 +689,7 @@ int main(int argc, char** argv) {
     mdbstamp_checks("all");
     multidb_db0_unit();
     require(command_registry_init(false), "registry initialization");
-    require(Config{}.databases == 1, "single-database boot default");
+    require(Config{}.databases == 16, "Redis-compatible boot default");
     for (const char* count : {"1", "16", "256"}) {
         Config cfg; ConfigParseState state;
         require(parse_config_args({"--databases", count}, cfg, state, 8, "unit") == kConfigParsed &&

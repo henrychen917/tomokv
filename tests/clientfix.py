@@ -104,7 +104,7 @@ def server(args, atomic=0, read_local=0):
                    '--bind', '127.0.0.1', '--port', str(args.port), '--save', '',
                    '--appendonly', 'no', '--dir', directory]
         if not args.oracle:
-            command += ['--shards', '16', '--thread-mode', args.mode,
+            command += ['--databases', '1', '--shards', '16', '--thread-mode', args.mode,
                         '--read-local', str(read_local), '--atomic', str(atomic),
                         '--flip-auto', '0', '--enable-debug-command', 'yes']
             if args.mode == '2s':

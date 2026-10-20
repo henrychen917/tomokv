@@ -1,0 +1,90 @@
+PARTIAL	0	GATE_ONLY_JOBS=perfex_units perfex_live perfio_stream flip storage_units atomic_units dbdefault debug-0 debug-1 reorder_sync reorder_engagement reorder_identity netio-1s netio-2s; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.000000	storage unlinked regression
+ok	0.000000	storage randomkey regression
+ok	0.010000	storage rehash regression
+ok	0.010000	storage rollback regression
+ok	0.010000	storage snapshot-eviction regression
+ok	0.080000	storage flags regression
+ok	0.000000	storage aof-eviction regression
+ok	0.000000	storage intents regression
+ok	0.000000	storage imported-hash regression
+ok	0.000000	storage field-index-failure regression
+ok	0.000000	storage hash-bytes regression
+ok	0.000000	storage deadline-allocation-failure regression
+ok	0.000000	storage flush-prepared-capacity regression
+ok	9.160000	plain-write lost updates (atomic 0)
+ok	0.170000	lbsignals battery (atomic 0)
+ok	1.480000	slowlog battery (atomic 0)
+ok	0.040000	atomfix battery (atomic 0)
+ok	0.040000	scriptatomic battery (atomic 0)
+ok	14.460000	execatomic battery (atomic 0)
+ok	11.860000	execiso battery (atomic 0)
+ok	0.420000	execfix battery (atomic 0)
+ok	0.110000	multires battery (atomic 0)
+ok	0.640000	multirace battery (atomic 0)
+ok	30.470000	session_monotonic battery (atomic 0)
+ok	0.300000	xacct battery (atomic 0)
+ok	0.270000	xmove battery (atomic 0)
+ok	1.860000	xscript battery (atomic 0)
+ok	6.160000	plain-write lost updates (atomic 1)
+ok	0.170000	lbsignals battery (atomic 1)
+ok	1.480000	slowlog battery (atomic 1)
+ok	0.040000	atomfix battery (atomic 1)
+ok	0.040000	scriptatomic battery (atomic 1)
+ok	14.460000	execatomic battery (atomic 1)
+ok	11.850000	execiso battery (atomic 1)
+ok	0.430000	execfix battery (atomic 1)
+ok	0.090000	multires battery (atomic 1)
+ok	0.630000	multirace battery (atomic 1)
+ok	30.470000	session_monotonic battery (atomic 1)
+ok	0.300000	xacct battery (atomic 1)
+ok	0.270000	xmove battery (atomic 1)
+ok	1.870000	xscript battery (atomic 1)
+ok	2.930000	epoll directed correctness (1s)
+ok	2.930000	epoll directed correctness (2s)
+ok	0.400000	perfio XREADGROUP bounded delivery + Redis metadata (1s)
+ok	0.400000	perfio XREADGROUP bounded delivery + Redis metadata (2s)
+ok	0.850000	R7 generated envelope parity
+ok	12.080000	R7 production engagement (both database runtimes)
+FAIL	63.120000	R7 FIFO twin off-path identity + negative controls
+ok	0.150000	perfex clock binary regression
+ok	0.150000	perfex batch binary regression
+ok	15.240000	perfex TTL sampler beat (1s)
+ok	15.250000	perfex TTL sampler beat (2s)
+ok	2.280000	flushfix flush witnesses
+ok	0.050000	flushfix headers witnesses
+ok	3.290000	multidb serverless owners
+ok	0.040000	multidb global namespace boundary
+ok	10.340000	storesize published monitoring
+ok	0.210000	MULTI admin command replies
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.000000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.000000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.000000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.000000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.010000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.000000	armed resize retirement: atomic-growth
+ok	0.000000	armed resize retirement: flush-prepared
+ok	0.170000	Redis default databases 16 (both modes)
+ok	0.130000	FLIP state battery
+ok	1.030000	FLIP under verified load
+ok	1.490000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	1.010000	FLIP close during FLIP (uring)
+ok	1.040000	FLIP close during FLIP (epoll)
+ok	1.460000	FLIP signal stop during FLIP + second SIGINT
+ok	0.520000	perfio stale epoll registration (epoll-flip)
+ok	6.170000	perfio stale epoll registration (epoll-lb)

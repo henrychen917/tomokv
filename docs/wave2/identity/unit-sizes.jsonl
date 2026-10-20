@@ -1,0 +1,14 @@
+{"src/cmd/t_server.o": {"perfio": 24309, "pre": 24309, "rlresize": 24346, "post": 24346, "perfex": 24309, "dbdefault": 24309, "delta": 37}}
+{"db0/src/cmd/t_server.o": {"dbdefault": 24238, "perfio": 24238, "rlresize": 24275, "perfex": 24252, "pre": 24238, "post": 24289, "delta": 51}}
+{"src/persist/aof.o": {"pre": 26419, "post": 26456, "perfio": 26419, "perfex": 26419, "dbdefault": 26419, "rlresize": 26456, "delta": 37}}
+{"db0/src/persist/aof.o": {"post": 26389, "dbdefault": 26345, "perfio": 26345, "perfex": 26352, "pre": 26345, "rlresize": 26382, "delta": 44}}
+{"src/cmd/xshard.o": {"perfex": 100288, "post": 100332, "perfio": 100288, "pre": 100288, "rlresize": 100332, "dbdefault": 100288, "delta": 44}}
+{"db0/src/cmd/xshard.o": {"pre": 98974, "post": 99025, "perfio": 98974, "rlresize": 99018, "dbdefault": 98974, "perfex": 98981, "delta": 51}}
+{"src/main.o": {"post": 97356, "pre": 97350, "perfio": 97358, "perfex": 97341, "dbdefault": 97350, "rlresize": 97357, "delta": 6}}
+{"db0/src/main.o": {"post": 96594, "pre": 96543, "perfio": 96551, "perfex": 96579, "dbdefault": 96543, "rlresize": 96550, "delta": 51}}
+{"src/core/genthread.o": {"perfex": 102327, "pre": 102344, "post": 102342, "perfio": 102352, "dbdefault": 102344, "rlresize": 102351, "delta": -2}}
+{"db0/src/core/genthread.o": {"pre": 101521, "post": 101564, "perfex": 101549, "perfio": 101529, "rlresize": 101528, "dbdefault": 101521, "delta": 43}}
+{"src/core/rl2s.o": {"pre": 110347, "post": 110344, "perfio": 110355, "perfex": 110329, "rlresize": 110354, "dbdefault": 110347, "delta": -3}}
+{"db0/src/core/rl2s.o": {"pre": 109391, "post": 109433, "perfio": 109399, "perfex": 109418, "dbdefault": 109391, "rlresize": 109398, "delta": 42}}
+{"src/core/reorder.o": {"pre": 114035, "perfio": 114043, "post": 114033, "perfex": 114018, "rlresize": 114042, "dbdefault": 114035, "delta": -2}}
+{"db0/src/core/reorder.o": {"pre": 113097, "post": 113140, "perfio": 113105, "perfex": 113125, "rlresize": 113104, "dbdefault": 113097, "delta": 43}}

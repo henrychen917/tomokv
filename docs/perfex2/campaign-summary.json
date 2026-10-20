@@ -1,0 +1,38 @@
+[
+  {
+    "stage": "rows",
+    "exit_code": 0,
+    "seconds": 31.83149624010548,
+    "output": "docs/perfex2/final-rows"
+  },
+  {
+    "stage": "gate",
+    "exit_code": 0,
+    "seconds": 5535.003717579413,
+    "output": "docs/perfex2/final-gate"
+  },
+  {
+    "stage": "direct",
+    "exit_code": 0,
+    "seconds": 2437.7972161429934,
+    "output": "docs/perfex2/final-direct"
+  },
+  {
+    "stage": "differ",
+    "exit_code": 0,
+    "seconds": 11.163700953125954,
+    "output": "docs/perfex2/final-differ"
+  },
+  {
+    "stage": "wiring",
+    "exit_code": 1,
+    "seconds": 139.24168903566897,
+    "output": "docs/perfex2/final-wiring"
+  },
+  {
+    "stage": "smoke",
+    "exit_code": 1,
+    "seconds": 1.4245594567619264,
+    "output": "docs/perfex2/final-smoke"
+  }
+]

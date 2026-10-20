@@ -1,0 +1,7 @@
+{"frozen_time_ms": 1791735117848, "unrelated_batches": 16, "sample_changes": 0, "averages": [297233616, 297233616, 297233616, 297233616, 297233616, 297233616, 297233616, 297233616, 297233616, 297233616, 297233616, 297233616, 297233616, 297233616, 297233616, 297233616, 297233616]}
+{"estimated_ttl_ms": 258414896.46875, "exact_ttl_ms": 255733500.0, "relative_error": 0.010485120129939957, "tolerance": 0.1}
+{"flush": ["FLUSHALL"], "armed": {"keys": 4096, "expires": 4096, "avg_ttl": 3599989, "subexpiry": 0}, "immediate": {"keys": 1, "expires": 1, "avg_ttl": 0, "subexpiry": 0}, "fresh": {"keys": 1, "expires": 1, "avg_ttl": 59988, "subexpiry": 0}}
+{"flush": ["FLUSHALL", "ASYNC"], "armed": {"keys": 4096, "expires": 4096, "avg_ttl": 3599989, "subexpiry": 0}, "immediate": {"keys": 1, "expires": 1, "avg_ttl": 0, "subexpiry": 0}, "fresh": {"keys": 1, "expires": 1, "avg_ttl": 59988, "subexpiry": 0}}
+{"flush": ["FLUSHDB"], "armed": {"keys": 4096, "expires": 4096, "avg_ttl": 3599989, "subexpiry": 0}, "immediate": {"keys": 1, "expires": 1, "avg_ttl": 0, "subexpiry": 0}, "fresh": {"keys": 1, "expires": 1, "avg_ttl": 59988, "subexpiry": 0}}
+{"flush": ["FLUSHDB", "ASYNC"], "armed": {"keys": 4096, "expires": 4096, "avg_ttl": 3599989, "subexpiry": 0}, "immediate": {"keys": 1, "expires": 1, "avg_ttl": 0, "subexpiry": 0}, "fresh": {"keys": 1, "expires": 1, "avg_ttl": 59988, "subexpiry": 0}}
+PASS EX4.2: bounded beat sampling, avg_ttl, exact counts and DBSIZE

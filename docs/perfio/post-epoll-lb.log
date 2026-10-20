@@ -1,0 +1,7 @@
+{"affinity": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-perfio/build/tomokv", "--bind", "127.0.0.1", "--port", "25125", "--dir", "/home/user/Projects/cx-perfio/docs/perfio/post-epoll-lb/epoll-lb", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "epoll", "--flip-auto", "0", "--key-lb", "0", "--client-lb", "0", "--enable-debug-command", "yes", "--client-lb", "1"], "event": "boot"}
+{"duplicates": {}, "event": "epoll", "phase": "lb-initial", "registrations": 97, "stale": []}
+{"after": 1, "before": 0, "event": "lb-witness", "hot_clients": 26, "rounds": 832}
+{"duplicates": {}, "event": "epoll", "phase": "lb-moved", "registrations": 97, "stale": []}
+{"commands": 3841, "event": "events", "events": 3841, "per_command": 1.0, "phase": "lb-moved"}
+{"event": "stop", "pid": 3760627, "rc": 0}
+{"case": "epoll-lb", "result": "PASS"}

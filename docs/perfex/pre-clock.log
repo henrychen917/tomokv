@@ -1,0 +1,14 @@
+{"body": "tomo::ExLoopT<false>::run()", "cpu_clock_sites": 2, "clocks_reachable_without_beat": 2}
+{"body": "tomo::ExLoopT<true>::run()", "cpu_clock_sites": 2, "clocks_reachable_without_beat": 2}
+{"body": "tomo_db0::ExLoopT<false>::run()", "cpu_clock_sites": 2, "clocks_reachable_without_beat": 2}
+{"body": "tomo_db0::ExLoopT<true>::run()", "cpu_clock_sites": 2, "clocks_reachable_without_beat": 2}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 291, in <module>
+    main()
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 286, in main
+    (batch_check if a.check == "batch" else clock_check)(a.binary)
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 128, in clock_check
+    require(not failed, f"EX4.12: CPU clock reachable without signal beat in {len(failed)} bodies")
+  File "/home/user/Projects/cx-perfex/tests/perfex_checks.py", line 24, in require
+    raise AssertionError(why)
+AssertionError: EX4.12: CPU clock reachable without signal beat in 4 bodies

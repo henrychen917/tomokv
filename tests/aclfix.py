@@ -354,7 +354,7 @@ def listener(args):
                "--port", str(args.port), "--save", "", "--appendonly", "no",
                "--dir", str(args.output.resolve()), "--aclfile", str(args.aclfile)]
     if not args.oracle:
-        command += ["--shards", "16", "--thread-mode", args.mode,
+        command += ["--databases", "1", "--shards", "16", "--thread-mode", args.mode,
                     "--read-local", "1" if args.mode == "1s" else "0"]
         if args.mode == "2s":
             command += ["--ratio", args.ratio]

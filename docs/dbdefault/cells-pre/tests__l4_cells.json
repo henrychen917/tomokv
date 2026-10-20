@@ -1,0 +1,72 @@
+{
+  "subset": "full",
+  "count": 16,
+  "ids": [
+    "l4_mset_1s_256",
+    "l4_msetnx_1s_256",
+    "l4_get_1s_256",
+    "l4_mget_1s_256",
+    "l4_mset_2s_256",
+    "l4_msetnx_2s_256",
+    "l4_get_2s_256",
+    "l4_mget_2s_256",
+    "l4_mset_1s_1024",
+    "l4_msetnx_1s_1024",
+    "l4_get_1s_1024",
+    "l4_mget_1s_1024",
+    "l4_mset_2s_1024",
+    "l4_msetnx_2s_1024",
+    "l4_get_2s_1024",
+    "l4_mget_2s_1024"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "MGET",
+    "MSET",
+    "MSETNX"
+  ],
+  "commands": [
+    "GET",
+    "MGET",
+    "MSET",
+    "MSETNX"
+  ],
+  "depths": [
+    8
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    256,
+    1024
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "rate"
+  ],
+  "pending_pins": [
+    "l4_mset_1s_256",
+    "l4_msetnx_1s_256",
+    "l4_get_1s_256",
+    "l4_mget_1s_256",
+    "l4_mset_2s_256",
+    "l4_msetnx_2s_256",
+    "l4_get_2s_256",
+    "l4_mget_2s_256",
+    "l4_mset_1s_1024",
+    "l4_msetnx_1s_1024",
+    "l4_get_1s_1024",
+    "l4_mget_1s_1024",
+    "l4_mset_2s_1024",
+    "l4_msetnx_2s_1024",
+    "l4_get_2s_1024",
+    "l4_mget_2s_1024"
+  ]
+}

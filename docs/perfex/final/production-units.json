@@ -1,0 +1,172 @@
+{
+  "build": {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-k",
+      "-j16",
+      "build/at15-unit",
+      "build/at15-db0-unit",
+      "build/execabort-watch-unit",
+      "build/execabort-watch-db0-unit",
+      "build/core-concurrency-unit",
+      "build/atomic-survivors-unit",
+      "build/netcmd-unit",
+      "build/encodingfix-unit",
+      "build/netcap-unit",
+      "build/waits-unit",
+      "build/rehash-waits-unit",
+      "build/multidb-unit",
+      "build/multidb-boundary-unit",
+      "build/storesize-unit",
+      "build/exbatch-unit",
+      "build/exbatch-db0-unit",
+      "build/wb-rule-units",
+      "build/wbland-units",
+      "build/rltopo-unit",
+      "build/lbplanner-units",
+      "build/shutdown-unit",
+      "build/persistfix-units",
+      "build/ktls-keyupdate",
+      "build/ktls-keyupdate-unit",
+      "build/flushfix-units",
+      "build/splitlocal-unit",
+      "build/reorder-engagement-unit",
+      "build/reorder-engagement-unit-db0"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 492.5652690771967,
+    "log": "docs/perfex/final/production-units-build.log"
+  },
+  "freshness": [
+    {
+      "target": "build/at15-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/netcmd-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/netcap-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/waits-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/multidb-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/storesize-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/exbatch-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/wb-rule-units",
+      "exit_code": 0
+    },
+    {
+      "target": "build/wbland-units",
+      "exit_code": 0
+    },
+    {
+      "target": "build/rltopo-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/lbplanner-units",
+      "exit_code": 0
+    },
+    {
+      "target": "build/shutdown-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/persistfix-units",
+      "exit_code": 0
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "exit_code": 0
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/flushfix-units",
+      "exit_code": 0
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "exit_code": 0
+    }
+  ],
+  "live_arms": {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-j16",
+      "mdbqsbr-live-arms"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 307.2478813850321,
+    "log": "docs/perfex/final/mdbqsbr-live-arms-build.log"
+  }
+}

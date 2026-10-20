@@ -1,0 +1,47 @@
+{
+  "hot": {
+    "tomo": {
+      "total": 601,
+      "equal": 601
+    },
+    "tomo_db0": {
+      "total": 603,
+      "equal": 603
+    }
+  },
+  "full": {
+    "total": 16439,
+    "equal": 16435,
+    "changed": 4,
+    "handlers": 1211,
+    "handlers_equal": 1211,
+    "hot": 1208,
+    "hot_equal": 1208,
+    "changed_handlers": [],
+    "changed_hot": [],
+    "hot_nonerror_equal": 1208,
+    "handlers_nonerror_equal": 1211,
+    "other_handlers": [],
+    "other_hot": []
+  },
+  "text": {
+    "text_size_pre": 7646972,
+    "text_size_post": 7646972,
+    "address_pre": 120528,
+    "address_post": 120528,
+    "differences": [
+      {
+        "offset": 421032,
+        "virtual_address": "0x84378",
+        "pre": 1,
+        "post": 16
+      },
+      {
+        "offset": 4103832,
+        "virtual_address": "0x407568",
+        "pre": 1,
+        "post": 16
+      }
+    ]
+  }
+}

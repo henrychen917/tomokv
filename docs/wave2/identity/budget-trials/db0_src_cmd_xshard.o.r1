@@ -1,0 +1,57 @@
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126482", "unit": 99025, "changed": 14, "hot_changed": 0, "A": 3, "B": 1, "C": 10, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_xshard.o.e661f6893928.o"}
+    C T=PRE code 383->351 lanes=- eq=- tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]
+    C T=new code 947->945 lanes=- eq=- tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tom
+    C T=new reloc-only 1072->1072 lanes=- eq=- tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)
+    C T=new code 1297->1230 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=PRE code 90->86 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=new code 7646->7454 lanes=- eq=- tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::Pl
+    C T=new code 236->242 lanes=- eq=- tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::Pl
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    C T=PRE code 371->352 lanes=- eq=- unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned in
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126492", "unit": 99025, "changed": 7, "hot_changed": 0, "A": 3, "B": 1, "C": 3, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_xshard.o.546f1e3bb37b.o"}
+    C T=new code 7646->7454 lanes=- eq=- tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::Pl
+    C T=new code 236->242 lanes=- eq=- tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::Pl
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126510", "unit": 99025, "changed": 7, "hot_changed": 0, "A": 3, "B": 1, "C": 3, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_xshard.o.3ca93f5b6180.o"}
+    C T=new code 7646->7454 lanes=- eq=- tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::Pl
+    C T=new code 236->242 lanes=- eq=- tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::Pl
+    C T=new code 6796->6828 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126520", "unit": 99025, "changed": 8, "hot_changed": 0, "A": 3, "B": 1, "C": 4, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_xshard.o.5b36cc271839.o"}
+    C T=new code 1297->1230 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=PRE code 90->86 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126533", "unit": 99025, "changed": 9, "hot_changed": 0, "A": 3, "B": 1, "C": 5, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_xshard.o.d5aae467465a.o"}
+    C T=PRE code 383->351 lanes=- eq=- tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]
+    C T=new code 947->945 lanes=- eq=- tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tom
+    C T=new reloc-only 1072->1072 lanes=- eq=- tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)
+    C T=PRE code 371->352 lanes=- eq=- unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned in
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126542", "unit": 99025, "changed": 9, "hot_changed": 0, "A": 3, "B": 1, "C": 5, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_xshard.o.1505b7fffb6d.o"}
+    C T=PRE code 383->351 lanes=- eq=- tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]
+    C T=new code 947->945 lanes=- eq=- tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tom
+    C T=new reloc-only 1072->1072 lanes=- eq=- tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    C T=PRE code 371->352 lanes=- eq=- unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned in
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126552", "unit": 99025, "changed": 5, "hot_changed": 0, "A": 3, "B": 1, "C": 1, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_xshard.o.f10bb5545089.o"}
+    C T=new code 6796->6828 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126560", "unit": 99025, "changed": 4, "hot_changed": 0, "A": 2, "B": 1, "C": 1, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_xshard.o.807178e36702.o"}
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126580", "unit": 99025, "changed": 13, "hot_changed": 0, "A": 3, "B": 1, "C": 9, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_xshard.o.2b74b6b3171a.o"}
+    C T=PRE code 383->351 lanes=- eq=- tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]
+    C T=new code 947->945 lanes=- eq=- tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tom
+    C T=new reloc-only 1072->1072 lanes=- eq=- tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)
+    C T=new code 1297->1230 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=PRE code 90->86 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=new code 1304->1404 lanes=- eq=- tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    C T=PRE code 371->352 lanes=- eq=- unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned in
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126600", "unit": 99025, "changed": 10, "hot_changed": 0, "A": 3, "B": 1, "C": 6, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_cmd_xshard.o.2d5270701574.o"}
+    C T=PRE code 383->351 lanes=- eq=- tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]
+    C T=new code 947->945 lanes=- eq=- tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tom
+    C T=new reloc-only 1072->1072 lanes=- eq=- tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)
+    C T=new code 1304->1404 lanes=- eq=- tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    C T=PRE code 371->352 lanes=- eq=- unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned in

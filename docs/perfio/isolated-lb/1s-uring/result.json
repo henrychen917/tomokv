@@ -1,0 +1,429 @@
+{
+  "before": {
+    "tomokv_keylb_bucket_moves": 0,
+    "tomokv_clientlb_moves": 0,
+    "tomokv_keylb_ticks": 13,
+    "tomokv_keylb_bucket_gathers": 0
+  },
+  "after": {
+    "tomokv_keylb_bucket_moves": 0,
+    "tomokv_clientlb_moves": 0,
+    "tomokv_keylb_ticks": 43,
+    "tomokv_keylb_bucket_gathers": 0
+  },
+  "rounds": 2976,
+  "seconds": 30,
+  "samples": [
+    {
+      "elapsed": 0.0006862818263471127,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 2,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 99
+    },
+    {
+      "elapsed": 0.0007670330815017223,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 3,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 99
+    },
+    {
+      "elapsed": 0.0062196701765060425,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 4,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.0005519911646842957,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 5,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.0016618547961115837,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 6,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.0008504930883646011,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 7,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 99
+    },
+    {
+      "elapsed": 0.0007466520182788372,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 8,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 99
+    },
+    {
+      "elapsed": 0.0003594006411731243,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 9,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 99
+    },
+    {
+      "elapsed": 0.001071683131158352,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 10,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.006504559889435768,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 11,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.0003523118793964386,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 12,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.0008576521649956703,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 13,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 98
+    },
+    {
+      "elapsed": 0.0008508930914103985,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 14,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 98
+    },
+    {
+      "elapsed": 0.007054070942103863,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 15,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 98
+    },
+    {
+      "elapsed": 0.00023507094010710716,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 16,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.0011066831648349762,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 17,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.005920588970184326,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 18,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 99
+    },
+    {
+      "elapsed": 0.005792837589979172,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 19,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.0002370709553360939,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 20,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00022230111062526703,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 21,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.000228020828217268,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 22,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00022483104839920998,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 23,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00023404089733958244,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 24,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00022702105343341827,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 25,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00023215124383568764,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 26,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.0005491920746862888,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 27,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00023555103689432144,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 28,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.0011005830019712448,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 29,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.000680041965097189,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 30,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00020641041919589043,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 31,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00021548103541135788,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 32,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00021154014393687248,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 33,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00021248124539852142,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 34,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.0011510327458381653,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 35,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00022118119522929192,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 36,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.0007077320478856564,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 37,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00022415118291974068,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 38,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.000215121079236269,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 39,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00022892095148563385,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 40,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00023795990273356438,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 41,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    },
+    {
+      "elapsed": 0.00023220013827085495,
+      "counters": {
+        "tomokv_keylb_bucket_moves": 0,
+        "tomokv_clientlb_moves": 0,
+        "tomokv_keylb_ticks": 42,
+        "tomokv_keylb_bucket_gathers": 0
+      },
+      "rounds": 100
+    }
+  ],
+  "gather_delta": 0
+}

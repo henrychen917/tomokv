@@ -62,6 +62,17 @@ build/respresume-unit: tests/respresume_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
 
+# Opt-in lottery observation arm. Production sources and default objects remain
+# untouched; the copied tree adds only DEBUG-armed counters, never pause points.
+build/lottery/tomokv: tools/lottery_build.py tests/lottery_hooks.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	python3 tools/lottery_build.py build/lottery/source
+	$(MAKE) -C build/lottery/source BUILD_ROOT=$(abspath build/lottery/objects) all
+	cp build/lottery/objects/tomokv $@
+
+build/lottery/tomokv-asan: build/lottery/tomokv
+	$(MAKE) -C build/lottery/source BUILD_ROOT=$(abspath build/lottery/asan) JE=0 CXXFLAGS='$(CXXFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer -O1' all
+	cp build/lottery/asan/tomokv $@
+
 # SV4.10: the DEBUG parser and pre-store hook exist only in this copied test
 # tree. Default production objects never contain a hook, branch or test state.
 build/racefix-climon: tools/racefix_build.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
@@ -137,14 +148,21 @@ $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=
 # for every ordinary command and storage body; tools/psfix_artifacts.py audits both variants.
 # wave1b: IPA unit +58 in both namespaces (racefix/authfix); scans 31297-31400 / 31629-31760: no
 # unattributed body and fewest changed bodies at 31330 / 31725.
-$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31330
+# rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
+# wave2: see the re-derivation note above $(BUILD_ROOT)/src/main.o (31379 kept, db0 31776).
+$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31379
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31725 --param max-inline-insns-auto=16
+# perfex2: the two cold inline sample resets need 31737 to retain every ordinary
+# body from the merged perfex POST. Complete-body trials: docs/perfex2/budgets.py.
+# rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31776 --param max-inline-insns-auto=16
 # PS4 AOF recovery adds cold code. Preserve 5146b78ee storage helper bodies
 # in both namespaces; the aoffix2 hot-body audit checks these compiler budgets.
-$(BUILD_ROOT)/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34400
-$(BUILD_ROOT)/db0/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34800
+# rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
+# wave2: see the re-derivation note above $(BUILD_ROOT)/src/main.o (src 34437 kept, db0 34840).
+$(BUILD_ROOT)/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34437
+$(BUILD_ROOT)/db0/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34840
 # SV9 publishes save status only on cold completion/abort edges.
 # wave1b: savefix's capture cancellation grows both units by 130; scans 14584-14760 / 14457-14620:
 # FlatStore::insert stays PRE and every changed body is savefix's at 14718 (= 14720); db0 fewest at 14562.
@@ -174,9 +192,12 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # flipfix's FLIP/fingerprint code adds 8 insns here (+24 on its own branch). wave1b: merged unit
 # +73/+73; scans 127820-127950 / 126421-126500: every changed body lane-identical or a lane
 # composite, fewest at 127880 (127878-127882) / 126482 (126480-126485).
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127880
+# rlresize: see the budget note above $(BUILD_ROOT)/src/main.o.
+# wave2: see the re-derivation note above $(BUILD_ROOT)/src/main.o (src 127924 kept, db0 126566).
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127924
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126482
+# perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126566
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
@@ -214,16 +235,40 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # 162265, fewest non-additive dispatch call counts); genthread 129420 / 129640 (flipfix's own
 # values left unattributed hot bodies once savefix/clientfix/racefix share these TUs); db0 reorder
 # 148258 (148256-148261: no unattributed hot body, the ordinary TLS serve lambda back to PRE).
+# perfio IO4.19: the cold epoll DEL adds 8 IPA instructions. +12 at rl2s (src) and
+# genthread (db0) preserves every ordinary hot body; docs/perfio/inline-probe.json.
+# rlresize (armed atomic growth reserves its resize record; FLUSH's replacement table is bounded by
+# a prepared snapshot): IPA units +7 where the atomic preflight is emitted (main, genthread, rl2s,
+# reorder), +37 where clear() is (t_server, aof), +44 in xshard. Compile-only scans against
+# 991d48f65 (docs/rlresize/identity/budget-trials): main.o and db0 rl2s.o emit one object across
+# every scanned value and keep their budgets; each changed value is the scanned one with no changed
+# hot body and the fewest other changes. Remaining bodies are cold/growth paths, listed in
+# MEASURE-REQUEST-rlresize.md: GCC now outlines prepare_resize_retirement in genthread/reorder, so
+# maybe_start_shrink and snapshot_control_pass call it instead of inlining it.
+# wave2 (perfio + perfex/perfex2 + rlresize + dbdefault on 991d48f65; lottery has no production
+# change): merged IPA units vs 991d48f65 t_server +37/+51, aof +37/+44, xshard +44/+51, main +6/+51,
+# genthread -2/+43, rl2s -3/+42, reorder -2/+43 (src/db0). Compile-only scans with per-body
+# attribution against 991d48f65 and each lane tip's own default build (docs/wave2/identity/
+# budget-trials, 3 rounds): no selected hot body may differ from 991d48f65 except perfex's own
+# executor bodies (drain_tasks*, ExLoopT run), which must equal perfex's; then fewest unattributed
+# and lane-differing bodies, fewest changed bodies, nearest the headroom-preserving value. main.o x2
+# and db0 rl2s.o emit one object at every scanned value and keep their budgets; src rl2s 162305
+# (162305-162306; perfio/rlresize/provisional values left 1-2 dispatch bodies changed); genthread
+# 129447 (129447-129448) / 129704 (129704-129706; every other db0 value kept perfex's own dispatch
+# drift or an unattributed body); db0 reorder 148358 (148357-148360: perfex's serve-lambda drift
+# gone); t_server 31379 / 31776; aof 34437 / 34840 (db0 make_room_for differs from 991d48f65 only
+# in register allocation at every clean value); xshard 127924 / 126566 (fewest bodies: rlresize's
+# cold prepare_commands drift back to 991d48f65).
 $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=147428
-$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129420
-$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162300
+$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129447
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162305
 # CC18/ST3 composition: smallest current hot-body delta; ccfix4 retains the search.
 $(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147449 --param max-inline-insns-auto=18
 # RL1: retain the measured ALT spelling and its fused GET placement controls.
 # docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
-$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129640 -Wa,--defsym,tomo_rlfence_text_pad=16
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129704 -Wa,--defsym,tomo_rlfence_text_pad=16
 $(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162334
-$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=148258
+$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=148358
 $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.

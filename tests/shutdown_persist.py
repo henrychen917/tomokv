@@ -17,7 +17,7 @@ from _gate_process import info, require
 def boot_argv(args, directory, save=None):
     argv = ['taskset', '-c', args.cores, str(args.binary.resolve()), '--bind', '127.0.0.1',
             '--port', str(args.port), '--dir', str(directory), '--shards', '16',
-            '--thread-mode', args.mode, '--net-io', args.net_io,
+            '--databases', '1', '--thread-mode', args.mode, '--net-io', args.net_io,
             '--appendonly', 'no']
     if args.mode == '2s':
         argv += ['--ratio', args.ratio]

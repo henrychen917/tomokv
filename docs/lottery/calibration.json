@@ -1,0 +1,1700 @@
+{
+  "budget_seconds": 600,
+  "goal": 20,
+  "rows": [
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "spinprobe",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "122",
+      "incomplete": 0,
+      "job": "release_batteries",
+      "limiting_witness": "W10.idle",
+      "measured": true,
+      "name": "idle loop ceiling (LBSIGNALS, 1s)",
+      "observable": "existing",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W10.idle"
+      ],
+      "seconds": 23.42171250283718,
+      "seconds_for_k": 23.42171250283718,
+      "seconds_per_attempt": 1.171085625141859,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W10.idle": 20
+      }
+    },
+    {
+      "attempts": 4,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "atomic_torn",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 4,
+      "id": "126",
+      "incomplete": 0,
+      "job": "atomic_batteries",
+      "limited_by": "attempt length",
+      "limiting_witness": "W2.fanout",
+      "measured": true,
+      "name": "atomic torn/window battery",
+      "observable": "witness",
+      "pause_point": "W2 held read cut / lead fragment",
+      "reaches_k_in_budget": false,
+      "requires": [
+        "W2.fanout"
+      ],
+      "seconds": 150.76537703396752,
+      "seconds_for_k": 753.8268851698376,
+      "seconds_per_attempt": 37.69134425849188,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W2.fanout": 4
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "atomic_hazards",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "128",
+      "incomplete": 0,
+      "job": "atomic_batteries",
+      "limiting_witness": "W2.pin_flush",
+      "measured": true,
+      "name": "atomic owner-local hazard battery",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W2.pin_flush",
+        "W2.ryow"
+      ],
+      "seconds": 111.6915054009296,
+      "seconds_for_k": 111.6915054009296,
+      "seconds_per_attempt": 5.58457527004648,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W2.pin_flush": 20,
+        "W2.ryow": 20
+      }
+    },
+    {
+      "attempts": 15,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "s6",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 15,
+      "id": "130",
+      "incomplete": 0,
+      "job": "feature-split-0",
+      "limiting_witness": "W3",
+      "measured": true,
+      "name": "s6 battery (atomic 0)",
+      "observable": "existing",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W3"
+      ],
+      "seconds": 123.26068304479122,
+      "seconds_for_k": 164.34757739305496,
+      "seconds_per_attempt": 8.217378869652748,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W3": 15
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "multi_exec",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "131",
+      "incomplete": 0,
+      "job": "feature-split-0",
+      "limiting_witness": "W16",
+      "measured": true,
+      "name": "multi_exec battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W16"
+      ],
+      "seconds": 50.51225162483752,
+      "seconds_for_k": 50.51225162483752,
+      "seconds_per_attempt": 2.5256125812418757,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W16": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "blocking",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "132",
+      "incomplete": 0,
+      "job": "feature-split-0",
+      "limiting_witness": "W1",
+      "measured": true,
+      "name": "blocking battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W1",
+        "W5.timeout"
+      ],
+      "seconds": 34.538822712376714,
+      "seconds_for_k": 34.538822712376714,
+      "seconds_per_attempt": 1.7269411356188358,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W1": 20,
+        "W5.timeout": 20
+      }
+    },
+    {
+      "attempts": 8,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "limits",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 8,
+      "id": "139",
+      "incomplete": 0,
+      "job": "feature-split-0",
+      "limiting_witness": "W5.idle",
+      "measured": true,
+      "name": "limits battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W5.idle",
+        "W5.soft",
+        "W5.exempt"
+      ],
+      "seconds": 121.23142319871113,
+      "seconds_for_k": 303.0785579967778,
+      "seconds_per_attempt": 15.15392789983889,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W5.exempt": 8,
+        "W5.idle": 8,
+        "W5.soft": 8
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "servertail",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "149",
+      "incomplete": 0,
+      "job": "feature-split-0",
+      "limiting_witness": "W1",
+      "measured": true,
+      "name": "servertail battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W1"
+      ],
+      "seconds": 56.988106198143214,
+      "seconds_for_k": 56.988106198143214,
+      "seconds_per_attempt": 2.849405309907161,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W1": 20
+      }
+    },
+    {
+      "attempts": 2,
+      "attempts_for_k": null,
+      "errors": 0,
+      "failures": 0,
+      "family": "expwide",
+      "hit_rate": 0.0,
+      "hit_rate_upper95": 0.776393202250021,
+      "hits": 0,
+      "id": "159",
+      "incomplete": 0,
+      "job": "feature-split-0",
+      "limited_by": "hit rate",
+      "limiting_witness": "W4",
+      "measured": true,
+      "name": "expwide battery (atomic 0)",
+      "observable": "witness",
+      "pause_point": "W4 held command expiry cut",
+      "reaches_k_in_budget": false,
+      "requires": [
+        "W4"
+      ],
+      "seconds": 135.66406327905133,
+      "seconds_for_k": null,
+      "seconds_per_attempt": 67.83203163952567,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W4": 0
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "s6",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "164",
+      "incomplete": 0,
+      "job": "feature-split-1",
+      "limiting_witness": "W3",
+      "measured": true,
+      "name": "s6 battery (atomic 1)",
+      "observable": "existing",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W3"
+      ],
+      "seconds": 110.24546953197569,
+      "seconds_for_k": 110.24546953197569,
+      "seconds_per_attempt": 5.512273476598784,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W3": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "multi_exec",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "165",
+      "incomplete": 0,
+      "job": "feature-split-1",
+      "limiting_witness": "W16",
+      "measured": true,
+      "name": "multi_exec battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W16"
+      ],
+      "seconds": 52.31107096699998,
+      "seconds_for_k": 52.31107096699998,
+      "seconds_per_attempt": 2.615553548349999,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W16": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "blocking",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "166",
+      "incomplete": 0,
+      "job": "feature-split-1",
+      "limiting_witness": "W1",
+      "measured": true,
+      "name": "blocking battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W1",
+        "W5.timeout"
+      ],
+      "seconds": 34.33547348110005,
+      "seconds_for_k": 34.33547348110005,
+      "seconds_per_attempt": 1.7167736740550026,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W1": 20,
+        "W5.timeout": 20
+      }
+    },
+    {
+      "attempts": 8,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "limits",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 8,
+      "id": "173",
+      "incomplete": 0,
+      "job": "feature-split-1",
+      "limiting_witness": "W5.idle",
+      "measured": true,
+      "name": "limits battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W5.idle",
+        "W5.soft",
+        "W5.exempt"
+      ],
+      "seconds": 120.74727361183614,
+      "seconds_for_k": 301.86818402959034,
+      "seconds_per_attempt": 15.093409201479517,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W5.exempt": 8,
+        "W5.idle": 8,
+        "W5.soft": 8
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "servertail",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "183",
+      "incomplete": 0,
+      "job": "feature-split-1",
+      "limiting_witness": "W1",
+      "measured": true,
+      "name": "servertail battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W1"
+      ],
+      "seconds": 63.44430372258648,
+      "seconds_for_k": 63.44430372258648,
+      "seconds_per_attempt": 3.172215186129324,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W1": 20
+      }
+    },
+    {
+      "attempts": 3,
+      "attempts_for_k": null,
+      "errors": 0,
+      "failures": 0,
+      "family": "expwide",
+      "hit_rate": 0.0,
+      "hit_rate_upper95": 0.6315968501359612,
+      "hits": 0,
+      "id": "193",
+      "incomplete": 0,
+      "job": "feature-split-1",
+      "limited_by": "hit rate",
+      "limiting_witness": "W4",
+      "measured": true,
+      "name": "expwide battery (atomic 1)",
+      "observable": "witness",
+      "pause_point": "W4 held command expiry cut",
+      "reaches_k_in_budget": false,
+      "requires": [
+        "W4"
+      ],
+      "seconds": 161.11508323205635,
+      "seconds_for_k": null,
+      "seconds_per_attempt": 53.705027744018786,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W4": 0
+      }
+    },
+    {
+      "attempts": 17,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "s6",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 17,
+      "id": "199",
+      "incomplete": 0,
+      "job": "fused-0",
+      "limiting_witness": "W3",
+      "measured": true,
+      "name": "fused s6 battery (atomic 0)",
+      "observable": "existing",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W3"
+      ],
+      "seconds": 122.84890431305394,
+      "seconds_for_k": 144.52812272123992,
+      "seconds_per_attempt": 7.226406136061996,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W3": 17
+      }
+    },
+    {
+      "attempts": 21,
+      "attempts_for_k": 21,
+      "errors": 0,
+      "failures": 0,
+      "family": "multi_exec",
+      "hit_rate": 0.9523809523809523,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "200",
+      "incomplete": 0,
+      "job": "fused-0",
+      "limiting_witness": "W16",
+      "measured": true,
+      "name": "fused multi_exec battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W16"
+      ],
+      "seconds": 61.1291738585569,
+      "seconds_for_k": 61.1291738585569,
+      "seconds_per_attempt": 2.9109130408836617,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W16": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "spinprobe",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "203",
+      "incomplete": 0,
+      "job": "fused-0",
+      "limiting_witness": "W10",
+      "measured": true,
+      "name": "fused spinprobe battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W10"
+      ],
+      "seconds": 50.18010652810335,
+      "seconds_for_k": 50.18010652810335,
+      "seconds_per_attempt": 2.5090053264051675,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W10": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "s6",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "206",
+      "incomplete": 0,
+      "job": "fused-1",
+      "limiting_witness": "W3",
+      "measured": true,
+      "name": "fused s6 battery (atomic 1)",
+      "observable": "existing",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W3"
+      ],
+      "seconds": 120.91775215696543,
+      "seconds_for_k": 120.91775215696543,
+      "seconds_per_attempt": 6.045887607848272,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W3": 20
+      }
+    },
+    {
+      "attempts": 21,
+      "attempts_for_k": 21,
+      "errors": 0,
+      "failures": 0,
+      "family": "multi_exec",
+      "hit_rate": 0.9523809523809523,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "207",
+      "incomplete": 0,
+      "job": "fused-1",
+      "limiting_witness": "W16",
+      "measured": true,
+      "name": "fused multi_exec battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W16"
+      ],
+      "seconds": 55.14244253002107,
+      "seconds_for_k": 55.14244253002107,
+      "seconds_per_attempt": 2.62583059666767,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W16": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "spinprobe",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "210",
+      "incomplete": 0,
+      "job": "fused-1",
+      "limiting_witness": "W10",
+      "measured": true,
+      "name": "fused spinprobe battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W10"
+      ],
+      "seconds": 48.864937285892665,
+      "seconds_for_k": 48.864937285892665,
+      "seconds_per_attempt": 2.4432468642946334,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W10": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "s6",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "213",
+      "incomplete": 0,
+      "job": "feature-armed-0",
+      "limiting_witness": "W3",
+      "measured": true,
+      "name": "fused+armed s6 battery (atomic 0)",
+      "observable": "existing",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W3"
+      ],
+      "seconds": 42.25565587589517,
+      "seconds_for_k": 42.25565587589517,
+      "seconds_per_attempt": 2.1127827937947585,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W3": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "multi_exec",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "214",
+      "incomplete": 0,
+      "job": "feature-armed-0",
+      "limiting_witness": "W16",
+      "measured": true,
+      "name": "fused+armed multi_exec battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W16"
+      ],
+      "seconds": 48.210888223256916,
+      "seconds_for_k": 48.210888223256916,
+      "seconds_per_attempt": 2.410544411162846,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W16": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "blocking",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "215",
+      "incomplete": 0,
+      "job": "feature-armed-0",
+      "limiting_witness": "W1",
+      "measured": true,
+      "name": "fused+armed blocking battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W1",
+        "W5.timeout"
+      ],
+      "seconds": 32.43689540727064,
+      "seconds_for_k": 32.43689540727064,
+      "seconds_per_attempt": 1.621844770363532,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W1": 20,
+        "W5.timeout": 20
+      }
+    },
+    {
+      "attempts": 8,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "limits",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 8,
+      "id": "222",
+      "incomplete": 0,
+      "job": "feature-armed-0",
+      "limiting_witness": "W5.idle",
+      "measured": true,
+      "name": "fused+armed limits battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W5.idle",
+        "W5.soft",
+        "W5.exempt"
+      ],
+      "seconds": 120.33988851308823,
+      "seconds_for_k": 300.84972128272057,
+      "seconds_per_attempt": 15.042486064136028,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W5.exempt": 8,
+        "W5.idle": 8,
+        "W5.soft": 8
+      }
+    },
+    {
+      "attempts": 21,
+      "attempts_for_k": 21,
+      "errors": 0,
+      "failures": 0,
+      "family": "servertail",
+      "hit_rate": 0.9523809523809523,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "232",
+      "incomplete": 0,
+      "job": "feature-armed-0",
+      "limiting_witness": "W1",
+      "measured": true,
+      "name": "fused+armed servertail battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W1"
+      ],
+      "seconds": 57.741547961719334,
+      "seconds_for_k": 57.741547961719334,
+      "seconds_per_attempt": 2.749597521986635,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W1": 20
+      }
+    },
+    {
+      "attempts": 3,
+      "attempts_for_k": null,
+      "errors": 0,
+      "failures": 0,
+      "family": "expwide",
+      "hit_rate": 0.0,
+      "hit_rate_upper95": 0.6315968501359612,
+      "hits": 0,
+      "id": "242",
+      "incomplete": 0,
+      "job": "feature-armed-0",
+      "limited_by": "hit rate",
+      "limiting_witness": "W4",
+      "measured": true,
+      "name": "fused+armed expwide battery (atomic 0)",
+      "observable": "witness",
+      "pause_point": "W4 held command expiry cut",
+      "reaches_k_in_budget": false,
+      "requires": [
+        "W4"
+      ],
+      "seconds": 129.53305836580694,
+      "seconds_for_k": null,
+      "seconds_per_attempt": 43.17768612193564,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W4": 0
+      }
+    },
+    {
+      "attempts": 10,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "s6",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 10,
+      "id": "248",
+      "incomplete": 0,
+      "job": "feature-armed-1",
+      "limiting_witness": "W3",
+      "measured": true,
+      "name": "fused+armed s6 battery (atomic 1)",
+      "observable": "existing",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W3"
+      ],
+      "seconds": 120.15562307089567,
+      "seconds_for_k": 240.31124614179134,
+      "seconds_per_attempt": 12.015562307089567,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W3": 10
+      }
+    },
+    {
+      "attempts": 21,
+      "attempts_for_k": 21,
+      "errors": 0,
+      "failures": 0,
+      "family": "multi_exec",
+      "hit_rate": 0.9523809523809523,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "249",
+      "incomplete": 0,
+      "job": "feature-armed-1",
+      "limiting_witness": "W16",
+      "measured": true,
+      "name": "fused+armed multi_exec battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W16"
+      ],
+      "seconds": 58.04634157195687,
+      "seconds_for_k": 58.046341571956866,
+      "seconds_per_attempt": 2.7641115034265176,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W16": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "blocking",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "250",
+      "incomplete": 0,
+      "job": "feature-armed-1",
+      "limiting_witness": "W1",
+      "measured": true,
+      "name": "fused+armed blocking battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W1",
+        "W5.timeout"
+      ],
+      "seconds": 36.631660086568445,
+      "seconds_for_k": 36.631660086568445,
+      "seconds_per_attempt": 1.8315830043284222,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W1": 20,
+        "W5.timeout": 20
+      }
+    },
+    {
+      "attempts": 8,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "limits",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 8,
+      "id": "257",
+      "incomplete": 0,
+      "job": "feature-armed-1",
+      "limiting_witness": "W5.idle",
+      "measured": true,
+      "name": "fused+armed limits battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W5.idle",
+        "W5.soft",
+        "W5.exempt"
+      ],
+      "seconds": 120.00336033804342,
+      "seconds_for_k": 300.00840084510855,
+      "seconds_per_attempt": 15.000420042255428,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W5.exempt": 8,
+        "W5.idle": 8,
+        "W5.soft": 8
+      }
+    },
+    {
+      "attempts": 21,
+      "attempts_for_k": 21,
+      "errors": 0,
+      "failures": 0,
+      "family": "servertail",
+      "hit_rate": 0.9523809523809523,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "267",
+      "incomplete": 0,
+      "job": "feature-armed-1",
+      "limiting_witness": "W1",
+      "measured": true,
+      "name": "fused+armed servertail battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W1"
+      ],
+      "seconds": 64.25738636311144,
+      "seconds_for_k": 64.25738636311144,
+      "seconds_per_attempt": 3.0598755411005447,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W1": 20
+      }
+    },
+    {
+      "attempts": 3,
+      "attempts_for_k": null,
+      "errors": 0,
+      "failures": 0,
+      "family": "expwide",
+      "hit_rate": 0.0,
+      "hit_rate_upper95": 0.6315968501359612,
+      "hits": 0,
+      "id": "277",
+      "incomplete": 0,
+      "job": "feature-armed-1",
+      "limited_by": "hit rate",
+      "limiting_witness": "W4",
+      "measured": true,
+      "name": "fused+armed expwide battery (atomic 1)",
+      "observable": "witness",
+      "pause_point": "W4 held command expiry cut",
+      "reaches_k_in_budget": false,
+      "requires": [
+        "W4"
+      ],
+      "seconds": 133.17413784423843,
+      "seconds_for_k": null,
+      "seconds_per_attempt": 44.39137928141281,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W4": 0
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "slowlog",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "300",
+      "incomplete": 0,
+      "job": "debug-0",
+      "limiting_witness": "W1",
+      "measured": true,
+      "name": "slowlog battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W1"
+      ],
+      "seconds": 35.48559892503545,
+      "seconds_for_k": 35.48559892503545,
+      "seconds_per_attempt": 1.7742799462517724,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W1": 20
+      }
+    },
+    {
+      "attempts": 6,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "execatomic",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 6,
+      "id": "303",
+      "incomplete": 0,
+      "job": "debug-0",
+      "limiting_witness": "W2.fanout",
+      "measured": true,
+      "name": "execatomic battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W2.fanout"
+      ],
+      "seconds": 133.79046464385465,
+      "seconds_for_k": 445.9682154795155,
+      "seconds_per_attempt": 22.298410773975775,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W2.fanout": 6
+      }
+    },
+    {
+      "attempts": 8,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "execiso",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 8,
+      "id": "304",
+      "incomplete": 0,
+      "job": "debug-0",
+      "limiting_witness": "W2.fanout",
+      "measured": true,
+      "name": "execiso battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W2.fanout"
+      ],
+      "seconds": 132.34949485305697,
+      "seconds_for_k": 330.8737371326424,
+      "seconds_per_attempt": 16.54368685663212,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W2.fanout": 8
+      }
+    },
+    {
+      "attempts": 6,
+      "attempts_for_k": 24,
+      "errors": 0,
+      "failures": 1,
+      "family": "xmove",
+      "hit_rate": 0.8333333333333334,
+      "hit_rate_upper95": null,
+      "hits": 5,
+      "id": "310",
+      "incomplete": 0,
+      "job": "debug-0",
+      "limiting_witness": "W6.left",
+      "measured": true,
+      "name": "xmove battery (atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W6.left",
+        "W6.right"
+      ],
+      "seconds": 10.13959301263094,
+      "seconds_for_k": 40.55837205052376,
+      "seconds_per_attempt": 1.6899321687718232,
+      "verdict": "FAIL",
+      "witness_attempts": {
+        "W6.left": 5,
+        "W6.right": 6
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "slowlog",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "314",
+      "incomplete": 0,
+      "job": "debug-1",
+      "limiting_witness": "W1",
+      "measured": true,
+      "name": "slowlog battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W1"
+      ],
+      "seconds": 41.19544683909044,
+      "seconds_for_k": 41.19544683909044,
+      "seconds_per_attempt": 2.0597723419545217,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W1": 20
+      }
+    },
+    {
+      "attempts": 6,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "execatomic",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 6,
+      "id": "317",
+      "incomplete": 0,
+      "job": "debug-1",
+      "limiting_witness": "W2.fanout",
+      "measured": true,
+      "name": "execatomic battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W2.fanout"
+      ],
+      "seconds": 122.17922698892653,
+      "seconds_for_k": 407.2640899630884,
+      "seconds_per_attempt": 20.36320449815442,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W2.fanout": 6
+      }
+    },
+    {
+      "attempts": 9,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "execiso",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 9,
+      "id": "318",
+      "incomplete": 0,
+      "job": "debug-1",
+      "limiting_witness": "W2.fanout",
+      "measured": true,
+      "name": "execiso battery (atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W2.fanout"
+      ],
+      "seconds": 126.33120709983632,
+      "seconds_for_k": 280.736015777414,
+      "seconds_per_attempt": 14.036800788870702,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W2.fanout": 9
+      }
+    },
+    {
+      "attempts": 102,
+      "attempts_for_k": null,
+      "errors": 0,
+      "failures": 0,
+      "family": "xmove",
+      "hit_rate": 0.0,
+      "hit_rate_upper95": 0.028942819582926292,
+      "hits": 0,
+      "id": "324",
+      "incomplete": 0,
+      "job": "debug-1",
+      "limited_by": "hit rate",
+      "limiting_witness": "W6.left",
+      "measured": true,
+      "name": "xmove battery (atomic 1)",
+      "observable": "witness",
+      "pause_point": "W6 LMOVE phase-one hold",
+      "reaches_k_in_budget": false,
+      "requires": [
+        "W6.left",
+        "W6.right"
+      ],
+      "seconds": 120.29612462921068,
+      "seconds_for_k": null,
+      "seconds_per_attempt": 1.1793737708746146,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W6.left": 0,
+        "W6.right": 0
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "debug",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "339",
+      "incomplete": 0,
+      "job": "auth",
+      "limiting_witness": "W7.progress",
+      "measured": true,
+      "name": "DEBUG toggle/reload battery",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W7.progress",
+        "W7.cancel"
+      ],
+      "seconds": 34.159046329092234,
+      "seconds_for_k": 34.159046329092234,
+      "seconds_per_attempt": 1.7079523164546118,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W7.cancel": 20,
+        "W7.progress": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "snapshot capture/reload",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "341",
+      "incomplete": 0,
+      "job": "snapshot-epoll",
+      "limiting_witness": "W8",
+      "measured": true,
+      "name": "snapshot concurrent cut (epoll)",
+      "observable": "existing",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W8"
+      ],
+      "seconds": 72.85325389308855,
+      "seconds_for_k": 72.85325389308855,
+      "seconds_per_attempt": 3.6426626946544274,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W8": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "snapshot capture/reload",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "342",
+      "incomplete": 0,
+      "job": "snapshot-epoll",
+      "limiting_witness": "W8",
+      "measured": true,
+      "name": "snapshot cut reload (epoll)",
+      "observable": "existing",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W8"
+      ],
+      "seconds": 47.06240544980392,
+      "seconds_for_k": 47.06240544980392,
+      "seconds_per_attempt": 2.353120272490196,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W8": 20
+      }
+    },
+    {
+      "attempts": 18,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "snapshot groups",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 18,
+      "id": "343",
+      "incomplete": 0,
+      "job": "snapshot-epoll",
+      "limiting_witness": "W9",
+      "measured": true,
+      "name": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W9"
+      ],
+      "seconds": 126.63669002288952,
+      "seconds_for_k": 140.70743335876614,
+      "seconds_per_attempt": 7.035371667938307,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W9": 18
+      }
+    },
+    {
+      "attempts": 13,
+      "attempts_for_k": 24,
+      "errors": 0,
+      "failures": 0,
+      "family": "snapshot groups",
+      "hit_rate": 0.8461538461538461,
+      "hit_rate_upper95": null,
+      "hits": 11,
+      "id": "344",
+      "incomplete": 0,
+      "job": "snapshot-epoll",
+      "limiting_witness": "W9",
+      "measured": true,
+      "name": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W9"
+      ],
+      "seconds": 121.69990345323458,
+      "seconds_for_k": 224.67674483674074,
+      "seconds_per_attempt": 9.361531034864198,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W9": 11
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "snapshot capture/reload",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "349",
+      "incomplete": 0,
+      "job": "snapshot-uring",
+      "limiting_witness": "W8",
+      "measured": true,
+      "name": "snapshot concurrent cut (uring)",
+      "observable": "existing",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W8"
+      ],
+      "seconds": 45.80306635890156,
+      "seconds_for_k": 45.80306635890156,
+      "seconds_per_attempt": 2.290153317945078,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W8": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "snapshot capture/reload",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "350",
+      "incomplete": 0,
+      "job": "snapshot-uring",
+      "limiting_witness": "W8",
+      "measured": true,
+      "name": "snapshot cut reload (uring)",
+      "observable": "existing",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W8"
+      ],
+      "seconds": 29.478504838887602,
+      "seconds_for_k": 29.478504838887602,
+      "seconds_per_attempt": 1.47392524194438,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W8": 20
+      }
+    },
+    {
+      "attempts": 17,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "snapshot groups",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 17,
+      "id": "351",
+      "incomplete": 0,
+      "job": "snapshot-uring",
+      "limiting_witness": "W9",
+      "measured": true,
+      "name": "snapshot never tears a cross-shard MSET group (uring, atomic 1)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W9"
+      ],
+      "seconds": 121.42294384818524,
+      "seconds_for_k": 142.85052217433557,
+      "seconds_per_attempt": 7.142526108716779,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W9": 17
+      }
+    },
+    {
+      "attempts": 13,
+      "attempts_for_k": 26,
+      "errors": 0,
+      "failures": 0,
+      "family": "snapshot groups",
+      "hit_rate": 0.7692307692307693,
+      "hit_rate_upper95": null,
+      "hits": 10,
+      "id": "352",
+      "incomplete": 0,
+      "job": "snapshot-uring",
+      "limiting_witness": "W9",
+      "measured": true,
+      "name": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W9"
+      ],
+      "seconds": 121.3917832178995,
+      "seconds_for_k": 242.78356643579903,
+      "seconds_per_attempt": 9.337829478299962,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W9": 10
+      }
+    },
+    {
+      "attempts": 21,
+      "attempts_for_k": 21,
+      "errors": 0,
+      "failures": 0,
+      "family": "multi_exec",
+      "hit_rate": 0.9523809523809523,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "357",
+      "incomplete": 0,
+      "job": "notify",
+      "limiting_witness": "W16",
+      "measured": true,
+      "name": "MULTI feature battery",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W16"
+      ],
+      "seconds": 56.28740213625133,
+      "seconds_for_k": 56.28740213625133,
+      "seconds_per_attempt": 2.680352482678635,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W16": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "blocking",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "358",
+      "incomplete": 0,
+      "job": "notify",
+      "limiting_witness": "W1",
+      "measured": true,
+      "name": "blocking feature battery",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W1",
+        "W5.timeout"
+      ],
+      "seconds": 35.30218612914905,
+      "seconds_for_k": 35.30218612914905,
+      "seconds_per_attempt": 1.7651093064574526,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W1": 20,
+        "W5.timeout": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "spinprobe",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 20,
+      "id": "366",
+      "incomplete": 0,
+      "job": "flip",
+      "limiting_witness": "W10",
+      "measured": true,
+      "name": "partial-frame conn parks (no io spin)",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W10"
+      ],
+      "seconds": 48.408526798244566,
+      "seconds_for_k": 48.408526798244566,
+      "seconds_per_attempt": 2.420426339912228,
+      "verdict": "PASS",
+      "witness_attempts": {
+        "W10": 20
+      }
+    },
+    {
+      "attempts": 20,
+      "attempts_for_k": 23,
+      "errors": 0,
+      "failures": 0,
+      "family": "flip saturated",
+      "hit_rate": 0.9,
+      "hit_rate_upper95": null,
+      "hits": 18,
+      "id": "368",
+      "incomplete": 0,
+      "job": "flip_saturated",
+      "limiting_witness": "W11",
+      "measured": true,
+      "name": "FLIP applies under saturated load",
+      "observable": "witness",
+      "reaches_k_in_budget": true,
+      "requires": [
+        "W11"
+      ],
+      "seconds": 125.27481701504439,
+      "seconds_for_k": 144.06603956730103,
+      "seconds_per_attempt": 6.263740850752219,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W11": 18
+      }
+    },
+    {
+      "attempts": 8,
+      "attempts_for_k": null,
+      "errors": 0,
+      "failures": 0,
+      "family": "TLS partial handshake/teardown",
+      "hit_rate": 0.0,
+      "hit_rate_upper95": 0.3123439780663678,
+      "hits": 0,
+      "id": "443",
+      "incomplete": 0,
+      "job": "tls",
+      "limited_by": "hit rate",
+      "limiting_witness": "W12.handshake",
+      "measured": true,
+      "name": "TLS pipeline/torn-record/coexistence battery",
+      "observable": "witness",
+      "pause_point": "W12 per-connection TLS stage hold",
+      "reaches_k_in_budget": false,
+      "requires": [
+        "W12.handshake",
+        "W12.record",
+        "W12.parser"
+      ],
+      "seconds": 129.81407177401707,
+      "seconds_for_k": null,
+      "seconds_per_attempt": 16.226758971752133,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W12.handshake": 0,
+        "W12.parser": 2,
+        "W12.record": 8
+      }
+    },
+    {
+      "attempts": 4,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "atomic_torn",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 4,
+      "id": "503",
+      "incomplete": 0,
+      "job": "asan_batteries",
+      "limited_by": "attempt length",
+      "limiting_witness": "W2.fanout",
+      "measured": true,
+      "name": "atomic torn/window under ASAN",
+      "observable": "witness",
+      "pause_point": "W2 held read cut / lead fragment",
+      "reaches_k_in_budget": false,
+      "requires": [
+        "W2.fanout"
+      ],
+      "seconds": 139.50073380302638,
+      "seconds_for_k": 697.5036690151319,
+      "seconds_per_attempt": 34.875183450756595,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W2.fanout": 4
+      }
+    },
+    {
+      "attempts": 1,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "differential matrix",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 1,
+      "id": "515",
+      "incomplete": 0,
+      "job": "differ-split",
+      "limited_by": "attempt length",
+      "limiting_witness": "W3",
+      "measured": true,
+      "name": "Redis 7.4 differential matrix",
+      "observable": "witness",
+      "pause_point": "W3/W13/W14/W15 (per missing leg)",
+      "reaches_k_in_budget": false,
+      "requires": [
+        "W3",
+        "W13",
+        "W14",
+        "W15"
+      ],
+      "seconds": 846.2266490426846,
+      "seconds_for_k": 16924.53298085369,
+      "seconds_per_attempt": 846.2266490426846,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W13": 1,
+        "W14": 1,
+        "W15": 1,
+        "W3": 1
+      }
+    },
+    {
+      "attempts": 1,
+      "attempts_for_k": 20,
+      "errors": 0,
+      "failures": 0,
+      "family": "differential matrix",
+      "hit_rate": 1.0,
+      "hit_rate_upper95": null,
+      "hits": 1,
+      "id": "516",
+      "incomplete": 0,
+      "job": "differ-armed",
+      "limited_by": "attempt length",
+      "limiting_witness": "W3",
+      "measured": true,
+      "name": "Redis 7.4 differential matrix (armed fused + read-local)",
+      "observable": "witness",
+      "pause_point": "W3/W13/W14/W15 (per missing leg)",
+      "reaches_k_in_budget": false,
+      "requires": [
+        "W3",
+        "W13",
+        "W14",
+        "W15"
+      ],
+      "seconds": 786.2485487991944,
+      "seconds_for_k": 15724.970975983888,
+      "seconds_per_attempt": 786.2485487991944,
+      "verdict": "INSUFFICIENT",
+      "witness_attempts": {
+        "W13": 1,
+        "W14": 1,
+        "W15": 1,
+        "W3": 1
+      }
+    }
+  ]
+}

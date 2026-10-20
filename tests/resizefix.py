@@ -198,7 +198,7 @@ def main():
             data.mkdir()
             log = output / ('server-' + tag + '.log')
             cmd = ['taskset', '-c', '8-15', str(binary), '--bind', '127.0.0.1',
-                   '--port', str(port), '--shards', '16', '--dir', str(data),
+                   '--databases', '1', '--port', str(port), '--shards', '16', '--dir', str(data),
                    '--atomic', '1', '--read-local', str(local),
                    '--flip-auto', '0', '--enable-debug-command', 'yes']
             cmd += ['--ratio', '6:2'] if mode == 'split' else ['--thread-mode', 'fused']

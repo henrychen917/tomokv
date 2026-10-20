@@ -1,0 +1,33 @@
+test_all_cell_files_parse_and_no_trigger_can_run_as_stock_cell (__main__.DriverControls.test_all_cell_files_parse_and_no_trigger_can_run_as_stock_cell) ... ok
+test_candidate_null_and_dry_guards_use_classified_rate_caps (__main__.DriverControls.test_candidate_null_and_dry_guards_use_classified_rate_caps) ... ok
+test_flush_no_fired_calls_or_outside_load_fails (__main__.DriverControls.test_flush_no_fired_calls_or_outside_load_fails) ... ok
+test_population_or_missing_field_ttl_cannot_pass (__main__.DriverControls.test_population_or_missing_field_ttl_cannot_pass) ... ok
+test_scoring_and_all_dependent_guards_use_read_local_zero (__main__.DriverControls.test_scoring_and_all_dependent_guards_use_read_local_zero) ... ok
+test_stream_empty_delivery_fails_even_when_command_counter_advanced (__main__.DriverControls.test_stream_empty_delivery_fails_even_when_command_counter_advanced) ... ok
+test_stream_feature_precedes_get_on_same_memtier_connection (__main__.DriverControls.test_stream_feature_precedes_get_on_same_memtier_connection) ... ok
+test_tls_arms_hold_work_constant_and_restrict_protocol (__main__.DriverControls.test_tls_arms_hold_work_constant_and_restrict_protocol) ... ok
+test_tls_no_load_handshakes_fails (__main__.DriverControls.test_tls_no_load_handshakes_fails) ... ok
+test_tracking_no_invalidations_fails (__main__.DriverControls.test_tracking_no_invalidations_fails) ... ok
+test_ttl_no_volatile_keys_fails (__main__.DriverControls.test_ttl_no_volatile_keys_fails) ... ok
+test_wide_mset_has_exactly_1024_distinct_nonmatching_keys (__main__.DriverControls.test_wide_mset_has_exactly_1024_distinct_nonmatching_keys) ... ok
+test_merge_counts_instead_of_percentiles_and_score_get_only (__main__.HistogramControls.test_merge_counts_instead_of_percentiles_and_score_get_only) ... ok
+test_server_rejection_or_incomplete_work_cannot_be_fast_confirmation (__main__.HistogramControls.test_server_rejection_or_incomplete_work_cannot_be_fast_confirmation) ... ok
+test_missing_or_nonfinite_maximum_fails (__main__.VerdictControls.test_missing_or_nonfinite_maximum_fails) ... ok
+test_missing_trigger_incomplete_or_mislabelled_arm_fails (__main__.VerdictControls.test_missing_trigger_incomplete_or_mislabelled_arm_fails) ... ok
+test_no_best_block_selection_or_p999_only_confirmation (__main__.VerdictControls.test_no_best_block_selection_or_p999_only_confirmation) ... ok
+test_null_never_confirms_and_both_thresholds_work (__main__.VerdictControls.test_null_never_confirms_and_both_thresholds_work) ... ok
+test_null_tail_spread_cannot_be_ignored (__main__.VerdictControls.test_null_tail_spread_cannot_be_ignored) ... ok
+test_p999_needs_action_bar_and_all_three_blocks_beyond_its_null (__main__.VerdictControls.test_p999_needs_action_bar_and_all_three_blocks_beyond_its_null) ... ok
+test_quiet_and_noisy_caps_apply_to_nulls_and_both_abba_arms (__main__.VerdictControls.test_quiet_and_noisy_caps_apply_to_nulls_and_both_abba_arms) ... ok
+test_quiet_five_percent_null_passes_but_seven_percent_fails (__main__.VerdictControls.test_quiet_five_percent_null_passes_but_seven_percent_fails) ... ok
+test_rate_effect_must_exceed_measured_null_in_every_block (__main__.VerdictControls.test_rate_effect_must_exceed_measured_null_in_every_block) ... ok
+test_sparse_one_hz_stall_visible_only_at_p999_confirms_stall_candidates (__main__.VerdictControls.test_sparse_one_hz_stall_visible_only_at_p999_confirms_stall_candidates) ... ok
+test_tls_encryption_cost_without_stall_never_confirms (__main__.VerdictControls.test_tls_encryption_cost_without_stall_never_confirms) ... ok
+test_tls_pools_maxima_without_averaging_or_null_tail_caps (__main__.VerdictControls.test_tls_pools_maxima_without_averaging_or_null_tail_caps) ... ok
+test_tls_stall_requires_each_block_and_strict_plain_maximum (__main__.VerdictControls.test_tls_stall_requires_each_block_and_strict_plain_maximum) ... ok
+test_unstable_null_or_arm_fails_instead_of_widening_threshold (__main__.VerdictControls.test_unstable_null_or_arm_fails_instead_of_widening_threshold) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 2.323s
+
+OK

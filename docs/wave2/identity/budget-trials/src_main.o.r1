@@ -1,0 +1,12 @@
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147428", "unit": 97356, "changed": 9, "hot_changed": 2, "A": 9, "B": 0, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_main.o.c49db7fc35df.o"}
+    HOT A T=perfex code 289->1467 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 9346->8948 lanes=perfex eq=perfex tomo::ExLoopT<false>::run()
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147434", "unit": 97356, "changed": 9, "hot_changed": 2, "A": 9, "B": 0, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_main.o.96973d3d2baf.o"}
+    HOT A T=perfex code 289->1467 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 9346->8948 lanes=perfex eq=perfex tomo::ExLoopT<false>::run()
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147450", "unit": 97356, "changed": 9, "hot_changed": 2, "A": 9, "B": 0, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_main.o.dae1453f917f.o"}
+    HOT A T=perfex code 289->1467 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 9346->8948 lanes=perfex eq=perfex tomo::ExLoopT<false>::run()
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147480", "unit": 97356, "changed": 9, "hot_changed": 2, "A": 9, "B": 0, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_main.o.9728a0791f44.o"}
+    HOT A T=perfex code 289->1467 lanes=perfex eq=perfex unsigned int tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 9346->8948 lanes=perfex eq=perfex tomo::ExLoopT<false>::run()

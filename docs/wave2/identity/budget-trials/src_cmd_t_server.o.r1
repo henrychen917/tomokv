@@ -1,0 +1,52 @@
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31330", "unit": 24346, "changed": 6, "hot_changed": 0, "A": 3, "B": 0, "C": 2, "D": 1, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.d3e7d0007f18.o"}
+    C T=new code 7393->7347 lanes=- eq=- tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    D T=PRE code 608->624 lanes=rlresize eq=- tomo::command_client_migration_extract(tomo::Client*)
+    C T=new code 813->614 lanes=- eq=- void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31340", "unit": 24346, "changed": 8, "hot_changed": 0, "A": 3, "B": 0, "C": 4, "D": 1, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.b5f5d97b5aa0.o"}
+    C T=new code 7393->7347 lanes=- eq=- tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    C T=new code 16917->16649 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    C T=new code 346->338 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    D T=new code 608->608 lanes=rlresize eq=- tomo::command_client_migration_extract(tomo::Client*)
+    C T=new added 0->204 lanes=- eq=- tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31350", "unit": 24346, "changed": 8, "hot_changed": 0, "A": 3, "B": 0, "C": 4, "D": 1, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.de36124d1ff3.o"}
+    C T=new code 7393->7347 lanes=- eq=- tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    C T=new code 16917->16649 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    C T=new code 346->338 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    D T=PRE code 608->608 lanes=rlresize eq=- tomo::command_client_migration_extract(tomo::Client*)
+    C T=new added 0->204 lanes=- eq=- tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31360", "unit": 24346, "changed": 5, "hot_changed": 0, "A": 3, "B": 0, "C": 1, "D": 1, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.853f2d702047.o"}
+    C T=new code 7393->7347 lanes=- eq=- tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    D T=new code 608->608 lanes=rlresize eq=- tomo::command_client_migration_extract(tomo::Client*)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31367", "unit": 24346, "changed": 5, "hot_changed": 0, "A": 3, "B": 0, "C": 1, "D": 1, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.41effe37a99b.o"}
+    C T=new code 7393->7347 lanes=- eq=- tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    D T=PRE code 608->608 lanes=rlresize eq=- tomo::command_client_migration_extract(tomo::Client*)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31370", "unit": 24346, "changed": 5, "hot_changed": 0, "A": 3, "B": 0, "C": 1, "D": 1, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.5f44398bd8fc.o"}
+    C T=new code 7393->7347 lanes=- eq=- tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    D T=PRE code 608->608 lanes=rlresize eq=- tomo::command_client_migration_extract(tomo::Client*)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31375", "unit": 24346, "changed": 5, "hot_changed": 0, "A": 4, "B": 0, "C": 1, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.202274c16af1.o"}
+    C T=new code 7393->7347 lanes=- eq=- tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31379", "unit": 24346, "changed": 4, "hot_changed": 0, "A": 4, "B": 0, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.e0b87c24258c.o"}
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31385", "unit": 24346, "changed": 9, "hot_changed": 0, "A": 3, "B": 0, "C": 5, "D": 1, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.82434437ac3a.o"}
+    C T=new code 7393->7347 lanes=- eq=- tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    C T=new code 16917->16649 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    C T=new code 346->338 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    D T=new code 608->608 lanes=rlresize eq=- tomo::command_client_migration_extract(tomo::Client*)
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+    C T=new added 0->204 lanes=- eq=- tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31390", "unit": 24346, "changed": 8, "hot_changed": 0, "A": 3, "B": 0, "C": 4, "D": 1, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.dee43daab5c3.o"}
+    C T=new code 16917->16649 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    C T=new code 346->338 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    D T=new code 608->608 lanes=rlresize eq=- tomo::command_client_migration_extract(tomo::Client*)
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+    C T=new added 0->204 lanes=- eq=- tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31400", "unit": 24346, "changed": 9, "hot_changed": 0, "A": 4, "B": 0, "C": 5, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.ff2fed14e0d0.o"}
+    C T=new code 7393->7347 lanes=- eq=- tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    C T=new code 16917->16649 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    C T=new code 346->338 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+    C T=new added 0->204 lanes=- eq=- tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31420", "unit": 24346, "changed": 7, "hot_changed": 0, "A": 3, "B": 0, "C": 3, "D": 1, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/src_cmd_t_server.o.ed301d4a9ae3.o"}
+    C T=new code 7393->7347 lanes=- eq=- tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+    C T=new code 1027->1043 lanes=- eq=- tomo::(anonymous namespace)::snapshot_command(tomo::Op&, bool)
+    D T=PRE code 608->608 lanes=rlresize eq=- tomo::command_client_migration_extract(tomo::Client*)
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()

@@ -1,0 +1,73 @@
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34413", "lane": 2, "hot": 0, "other": 4}
+    OTHER 794 -> 522 tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+    OTHER 633 -> 681 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34417", "lane": 2, "hot": 0, "other": 3}
+    OTHER 794 -> 522 tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 633 -> 681 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34421", "lane": 2, "hot": 0, "other": 5}
+    OTHER 794 -> 522 tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+    OTHER 235 -> 267 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_assign(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocat
+    OTHER 633 -> 681 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34425", "lane": 2, "hot": 0, "other": 7}
+    OTHER 1665 -> 1651 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)
+    OTHER 53 -> 32 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int) [clone .cold]
+    OTHER 794 -> 522 tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+    OTHER 633 -> 681 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11
+    OTHER 77 -> 0 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)::{lambda()#1}::operator()() const
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34429", "lane": 2, "hot": 0, "other": 7}
+    OTHER 1665 -> 1651 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)
+    OTHER 53 -> 32 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int) [clone .cold]
+    OTHER 794 -> 522 tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 698 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+    OTHER 633 -> 681 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11
+    OTHER 77 -> 0 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)::{lambda()#1}::operator()() const
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34433", "lane": 2, "hot": 0, "other": 8}
+    OTHER 1665 -> 1651 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)
+    OTHER 53 -> 32 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int) [clone .cold]
+    OTHER 794 -> 522 tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+    OTHER 235 -> 267 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_assign(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocat
+    OTHER 633 -> 681 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11
+    OTHER 77 -> 0 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)::{lambda()#1}::operator()() const
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34437", "lane": 2, "hot": 0, "other": 2}
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34441", "lane": 2, "hot": 0, "other": 2}
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34445", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+    OTHER 633 -> 681 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34449", "lane": 2, "hot": 0, "other": 3}
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+    OTHER 633 -> 681 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34453", "lane": 2, "hot": 0, "other": 4}
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+    OTHER 235 -> 267 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_assign(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocat
+    OTHER 633 -> 681 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34457", "lane": 2, "hot": 0, "other": 6}
+    OTHER 1665 -> 1651 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)
+    OTHER 53 -> 32 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int) [clone .cold]
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+    OTHER 633 -> 681 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11
+    OTHER 77 -> 0 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)::{lambda()#1}::operator()() const
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34461", "lane": 2, "hot": 0, "other": 6}
+    OTHER 1665 -> 1651 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)
+    OTHER 53 -> 32 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int) [clone .cold]
+    OTHER 1564 -> 1584 tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+    OTHER 682 -> 682 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+    OTHER 633 -> 681 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11
+    OTHER 77 -> 0 tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)::{lambda()#1}::operator()() const

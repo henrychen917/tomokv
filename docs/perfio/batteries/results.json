@@ -1,0 +1,86 @@
+[
+  {
+    "name": "netio",
+    "mode": "2s",
+    "engine": "epoll",
+    "exit": 0,
+    "log": "docs/perfio/batteries/netio-2s-epoll.log"
+  },
+  {
+    "name": "lb-stationary",
+    "mode": "2s",
+    "engine": "epoll",
+    "exit": 1,
+    "log": "docs/perfio/batteries/lb-stationary-2s-epoll.log"
+  },
+  {
+    "name": "flip",
+    "mode": "2s",
+    "engine": "epoll",
+    "exit": 0,
+    "log": "docs/perfio/batteries/flip-2s-epoll.log"
+  },
+  {
+    "name": "flip-load",
+    "mode": "2s",
+    "engine": "epoll",
+    "exit": 0,
+    "log": "docs/perfio/batteries/flip-load-2s-epoll.log"
+  },
+  {
+    "name": "netio",
+    "mode": "1s",
+    "engine": "epoll",
+    "exit": 0,
+    "log": "docs/perfio/batteries/netio-1s-epoll.log"
+  },
+  {
+    "name": "lb-stationary",
+    "mode": "1s",
+    "engine": "epoll",
+    "exit": 0,
+    "log": "docs/perfio/batteries/lb-stationary-1s-epoll.log"
+  },
+  {
+    "name": "netio",
+    "mode": "2s",
+    "engine": "uring",
+    "exit": 0,
+    "log": "docs/perfio/batteries/netio-2s-uring.log"
+  },
+  {
+    "name": "lb-stationary",
+    "mode": "2s",
+    "engine": "uring",
+    "exit": 0,
+    "log": "docs/perfio/batteries/lb-stationary-2s-uring.log"
+  },
+  {
+    "name": "flip",
+    "mode": "2s",
+    "engine": "uring",
+    "exit": 0,
+    "log": "docs/perfio/batteries/flip-2s-uring.log"
+  },
+  {
+    "name": "flip-load",
+    "mode": "2s",
+    "engine": "uring",
+    "exit": 0,
+    "log": "docs/perfio/batteries/flip-load-2s-uring.log"
+  },
+  {
+    "name": "netio",
+    "mode": "1s",
+    "engine": "uring",
+    "exit": 0,
+    "log": "docs/perfio/batteries/netio-1s-uring.log"
+  },
+  {
+    "name": "lb-stationary",
+    "mode": "1s",
+    "engine": "uring",
+    "exit": 0,
+    "log": "docs/perfio/batteries/lb-stationary-1s-uring.log"
+  }
+]

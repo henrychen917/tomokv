@@ -1,0 +1,49 @@
+{
+  "subset": "full",
+  "count": 12,
+  "ids": [
+    "wbland_1s_get_1_4k",
+    "wbland_1s_set_1_4k",
+    "wbland_1s_get_8_4k",
+    "wbland_1s_set_8_4k",
+    "wbland_1s_get_32_4k",
+    "wbland_1s_set_32_4k",
+    "wbland_2s_get_1_4k",
+    "wbland_2s_set_1_4k",
+    "wbland_2s_get_8_4k",
+    "wbland_2s_set_8_4k",
+    "wbland_2s_get_32_4k",
+    "wbland_2s_set_32_4k"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "SET"
+  ],
+  "depths": [
+    1,
+    8,
+    32
+  ],
+  "connections": [
+    4096
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "latency_ms",
+    "rate"
+  ],
+  "pending_pins": []
+}

@@ -1,0 +1,21 @@
+run 1 exit=0 seconds=245 rows_ok=69 rows_fail=0 ok 4.190000 infofix battery (atomic 0);ok 4.200000 infofix battery (atomic 1);
+run 2 exit=0 seconds=241 rows_ok=69 rows_fail=0 ok 4.150000 infofix battery (atomic 0);ok 4.150000 infofix battery (atomic 1);
+run 3 exit=0 seconds=248 rows_ok=69 rows_fail=0 ok 4.080000 infofix battery (atomic 0);ok 4.250000 infofix battery (atomic 1);
+run 4 exit=0 seconds=256 rows_ok=69 rows_fail=0 ok 4.190000 infofix battery (atomic 0);ok 4.200000 infofix battery (atomic 1);
+run 5 exit=0 seconds=268 rows_ok=69 rows_fail=0 ok 4.200000 infofix battery (atomic 0);ok 4.190000 infofix battery (atomic 1);
+run 6 exit=0 seconds=250 rows_ok=69 rows_fail=0 ok 4.200000 infofix battery (atomic 0);ok 4.150000 infofix battery (atomic 1);
+run 7 exit=0 seconds=262 rows_ok=69 rows_fail=0 ok 4.240000 infofix battery (atomic 0);ok 4.190000 infofix battery (atomic 1);
+run 8 exit=0 seconds=255 rows_ok=69 rows_fail=0 ok 4.200000 infofix battery (atomic 0);ok 4.150000 infofix battery (atomic 1);
+run 9 exit=0 seconds=259 rows_ok=69 rows_fail=0 ok 4.190000 infofix battery (atomic 0);ok 4.190000 infofix battery (atomic 1);
+run 10 exit=0 seconds=259 rows_ok=69 rows_fail=0 ok 4.160000 infofix battery (atomic 0);ok 4.160000 infofix battery (atomic 1);
+run 11 exit=0 seconds=242 rows_ok=69 rows_fail=0 ok 4.200000 infofix battery (atomic 0);ok 4.190000 infofix battery (atomic 1);
+run 12 exit=0 seconds=251 rows_ok=69 rows_fail=0 ok 4.160000 infofix battery (atomic 0);ok 4.190000 infofix battery (atomic 1);
+run 13 exit=0 seconds=245 rows_ok=69 rows_fail=0 ok 4.200000 infofix battery (atomic 0);ok 4.150000 infofix battery (atomic 1);
+run 14 exit=0 seconds=268 rows_ok=69 rows_fail=0 ok 4.140000 infofix battery (atomic 0);ok 4.200000 infofix battery (atomic 1);
+run 15 exit=0 seconds=264 rows_ok=69 rows_fail=0 ok 4.160000 infofix battery (atomic 0);ok 4.150000 infofix battery (atomic 1);
+run 16 exit=0 seconds=244 rows_ok=69 rows_fail=0 ok 4.200000 infofix battery (atomic 0);ok 4.160000 infofix battery (atomic 1);
+run 17 exit=0 seconds=252 rows_ok=69 rows_fail=0 ok 4.190000 infofix battery (atomic 0);ok 4.190000 infofix battery (atomic 1);
+run 18 exit=0 seconds=251 rows_ok=69 rows_fail=0 ok 4.200000 infofix battery (atomic 0);ok 4.190000 infofix battery (atomic 1);
+run 19 exit=0 seconds=252 rows_ok=69 rows_fail=0 ok 4.250000 infofix battery (atomic 0);ok 4.140000 infofix battery (atomic 1);
+run 20 exit=0 seconds=249 rows_ok=69 rows_fail=0 ok 4.200000 infofix battery (atomic 0);ok 4.200000 infofix battery (atomic 1);
+DONE

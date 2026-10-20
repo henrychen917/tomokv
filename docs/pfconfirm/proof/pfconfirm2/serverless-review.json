@@ -1,0 +1,44 @@
+{
+  "base_commit": "c03cdadc4",
+  "cell_files": {
+    "cells.txt": {
+      "count": 12,
+      "read_local": 0,
+      "other_fields_unchanged": true
+    },
+    "guards.txt": {
+      "count": 16,
+      "read_local": 0,
+      "other_fields_unchanged": true
+    }
+  },
+  "unchanged_collection_methods": [
+    "__init__",
+    "place_observer",
+    "prepare",
+    "population",
+    "boot",
+    "setup",
+    "witness_state",
+    "trigger",
+    "load_argv",
+    "finish_witness",
+    "sample"
+  ],
+  "production_diff_bytes": 0,
+  "production_and_gate_unchanged": true,
+  "unit_command": "python3 docs/pfconfirm/test_confirm.py",
+  "unit_tests_passed": 28,
+  "list_commands": [
+    {
+      "command": "python3 tests/abbagate.py --cells docs/pfconfirm/cells.txt --list-cells",
+      "exit_code": 0,
+      "count": 12
+    },
+    {
+      "command": "python3 tests/abbagate.py --cells docs/pfconfirm/guards.txt --list-cells",
+      "exit_code": 0,
+      "count": 16
+    }
+  ]
+}

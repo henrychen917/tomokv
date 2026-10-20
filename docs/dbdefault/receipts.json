@@ -1,0 +1,1305 @@
+{
+  "comparisons": [
+    {
+      "cell": "implicit",
+      "arm": "A",
+      "before": {
+        "arm": "A",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-A",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/t00/n1-1-A",
+          "--shards",
+          "64"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121,
+              122,
+              123,
+              124,
+              125,
+              126,
+              127
+            ],
+            "threads": 4,
+            "clients": 128
+          }
+        ],
+        "artifacts": "t00/n1-1-A",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      },
+      "after": {
+        "arm": "A",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-A",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/t00/n1-1-A",
+          "--shards",
+          "64",
+          "--databases",
+          "1"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121,
+              122,
+              123,
+              124,
+              125,
+              126,
+              127
+            ],
+            "threads": 4,
+            "clients": 128
+          }
+        ],
+        "artifacts": "t00/n1-1-A",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "configured_databases": 1,
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      }
+    },
+    {
+      "cell": "implicit",
+      "arm": "B",
+      "before": {
+        "arm": "B",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-B",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/t00/n1-1-B",
+          "--shards",
+          "64"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121,
+              122,
+              123,
+              124,
+              125,
+              126,
+              127
+            ],
+            "threads": 4,
+            "clients": 128
+          }
+        ],
+        "artifacts": "t00/n1-1-B",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      },
+      "after": {
+        "arm": "B",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-B",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/t00/n1-1-B",
+          "--shards",
+          "64",
+          "--databases",
+          "1"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121,
+              122,
+              123,
+              124,
+              125,
+              126,
+              127
+            ],
+            "threads": 4,
+            "clients": 128
+          }
+        ],
+        "artifacts": "t00/n1-1-B",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "configured_databases": 1,
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      }
+    },
+    {
+      "cell": "ttl",
+      "arm": "A",
+      "before": {
+        "arm": "A",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-A",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/ttls/n1-1-A",
+          "--shards",
+          "64"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121,
+              122,
+              123,
+              124,
+              125,
+              126,
+              127
+            ],
+            "threads": 4,
+            "clients": 128
+          }
+        ],
+        "artifacts": "ttls/n1-1-A",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      },
+      "after": {
+        "arm": "A",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-A",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/ttls/n1-1-A",
+          "--shards",
+          "64",
+          "--databases",
+          "1"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121,
+              122,
+              123,
+              124,
+              125,
+              126,
+              127
+            ],
+            "threads": 4,
+            "clients": 128
+          }
+        ],
+        "artifacts": "ttls/n1-1-A",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "configured_databases": 1,
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      }
+    },
+    {
+      "cell": "ttl",
+      "arm": "B",
+      "before": {
+        "arm": "B",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-B",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/ttls/n1-1-B",
+          "--shards",
+          "64"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121,
+              122,
+              123,
+              124,
+              125,
+              126,
+              127
+            ],
+            "threads": 4,
+            "clients": 128
+          }
+        ],
+        "artifacts": "ttls/n1-1-B",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      },
+      "after": {
+        "arm": "B",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-B",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/ttls/n1-1-B",
+          "--shards",
+          "64",
+          "--databases",
+          "1"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121,
+              122,
+              123,
+              124,
+              125,
+              126,
+              127
+            ],
+            "threads": 4,
+            "clients": 128
+          }
+        ],
+        "artifacts": "ttls/n1-1-B",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "configured_databases": 1,
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      }
+    },
+    {
+      "cell": "explicit16",
+      "arm": "A",
+      "before": {
+        "arm": "A",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-A",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/h06m/n1-1-A",
+          "--shards",
+          "64",
+          "--databases",
+          "16"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 0,
+            "connection_start": 0,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 1,
+            "connection_start": 1,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 2,
+            "connection_start": 2,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 3,
+            "connection_start": 3,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 4,
+            "connection_start": 4,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 5,
+            "connection_start": 5,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              123
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 6,
+            "connection_start": 6,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 7,
+            "connection_start": 7,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 8,
+            "connection_start": 8,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 9,
+            "connection_start": 9,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 10,
+            "connection_start": 10,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              125
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 11,
+            "connection_start": 11,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 12,
+            "connection_start": 12,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 13,
+            "connection_start": 13,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 14,
+            "connection_start": 14,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              127
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 15,
+            "connection_start": 15,
+            "connection_stride": 16
+          }
+        ],
+        "artifacts": "h06m/n1-1-A",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "configured_databases": 16,
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      },
+      "after": {
+        "arm": "A",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-A",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/h06m/n1-1-A",
+          "--shards",
+          "64",
+          "--databases",
+          "16"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 0,
+            "connection_start": 0,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 1,
+            "connection_start": 1,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 2,
+            "connection_start": 2,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 3,
+            "connection_start": 3,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 4,
+            "connection_start": 4,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 5,
+            "connection_start": 5,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              123
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 6,
+            "connection_start": 6,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 7,
+            "connection_start": 7,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 8,
+            "connection_start": 8,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 9,
+            "connection_start": 9,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 10,
+            "connection_start": 10,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              125
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 11,
+            "connection_start": 11,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 12,
+            "connection_start": 12,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 13,
+            "connection_start": 13,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 14,
+            "connection_start": 14,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              127
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 15,
+            "connection_start": 15,
+            "connection_stride": 16
+          }
+        ],
+        "artifacts": "h06m/n1-1-A",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "configured_databases": 16,
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      }
+    },
+    {
+      "cell": "explicit16",
+      "arm": "B",
+      "before": {
+        "arm": "B",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-B",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/h06m/n1-1-B",
+          "--shards",
+          "64",
+          "--databases",
+          "16"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 0,
+            "connection_start": 0,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 1,
+            "connection_start": 1,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 2,
+            "connection_start": 2,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 3,
+            "connection_start": 3,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 4,
+            "connection_start": 4,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 5,
+            "connection_start": 5,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              123
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 6,
+            "connection_start": 6,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 7,
+            "connection_start": 7,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 8,
+            "connection_start": 8,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 9,
+            "connection_start": 9,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 10,
+            "connection_start": 10,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              125
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 11,
+            "connection_start": 11,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 12,
+            "connection_start": 12,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 13,
+            "connection_start": 13,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 14,
+            "connection_start": 14,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              127
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 15,
+            "connection_start": 15,
+            "connection_stride": 16
+          }
+        ],
+        "artifacts": "h06m/n1-1-B",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "configured_databases": 16,
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      },
+      "after": {
+        "arm": "B",
+        "instances": 1,
+        "complete": false,
+        "data_bytes": 64,
+        "server_argv": [
+          "taskset",
+          "-c",
+          "112,113,114,115,116,117,118,119",
+          "binary-B",
+          "--port",
+          "25150",
+          "--bind",
+          "127.0.0.1",
+          "--atomic",
+          "1",
+          "--enable-debug-command",
+          "yes",
+          "--save",
+          "",
+          "--appendonly",
+          "no",
+          "--dir",
+          "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/h06m/n1-1-B",
+          "--shards",
+          "64",
+          "--databases",
+          "16"
+        ],
+        "load_layout": [
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 0,
+            "connection_start": 0,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 1,
+            "connection_start": 1,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 2,
+            "connection_start": 2,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 3,
+            "connection_start": 3,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 4,
+            "connection_start": 4,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 5,
+            "connection_start": 5,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              123
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 6,
+            "connection_start": 6,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 7,
+            "connection_start": 7,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              122
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 8,
+            "connection_start": 8,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 9,
+            "connection_start": 9,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              124
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 10,
+            "connection_start": 10,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              125
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 11,
+            "connection_start": 11,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 12,
+            "connection_start": 12,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              126
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 13,
+            "connection_start": 13,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              121
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 14,
+            "connection_start": 14,
+            "connection_stride": 16
+          },
+          {
+            "cpus": [
+              127
+            ],
+            "threads": 1,
+            "clients": 32,
+            "database": 15,
+            "connection_start": 15,
+            "connection_stride": 16
+          }
+        ],
+        "artifacts": "h06m/n1-1-B",
+        "pid": 123,
+        "boot_info": {
+          "process_id": "123",
+          "read_local": "0"
+        },
+        "configured_databases": 16,
+        "error": "RuntimeError: serverless population boundary",
+        "wall_seconds": 0.0
+      }
+    }
+  ],
+  "legacy": {
+    "arm": "A",
+    "instances": 1,
+    "complete": false,
+    "data_bytes": 64,
+    "server_argv": [
+      "taskset",
+      "-c",
+      "112,113,114,115,116,117,118,119",
+      "binary-A",
+      "--port",
+      "25150",
+      "--bind",
+      "127.0.0.1",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-dbdefault/build/dbdefault/dry-receipt/t00/n1-1-A",
+      "--shards",
+      "64"
+    ],
+    "load_layout": [
+      {
+        "cpus": [
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127
+        ],
+        "threads": 4,
+        "clients": 128
+      }
+    ],
+    "artifacts": "t00/n1-1-A",
+    "legacy_databases": "unsupported flag omitted; CONFIG GET absent/1; SELECT 0 OK, SELECT 1 error",
+    "pid": 123,
+    "boot_info": {
+      "process_id": "123",
+      "read_local": "0"
+    },
+    "configured_databases": 1,
+    "error": "RuntimeError: serverless population boundary",
+    "wall_seconds": 0.0
+  }
+}

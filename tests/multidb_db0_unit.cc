@@ -18,7 +18,7 @@ void multidb_db0_unit() {
     static_assert(sizeof(Slice) == 16 && sizeof(Op) == 336 && sizeof(Client) == 1984);
     static_assert(sizeof(ThreadCtx) == 1408 && sizeof(Shard) == 1440 && sizeof(FlatStore) == 944);
     static_assert(sizeof(Rob<64>) == 192 && sizeof(AtomicEntry) == 144 && sizeof(Config) == 624);
-    require(Config{}.databases == 1, "default boot choice");
+    require(Config{}.databases == 16, "shared Redis-compatible boot default; DB0 requires explicit 1");
     {
         Server server;
         require(server.databases().bind_workers(8), "DB0 bind is a no-op");

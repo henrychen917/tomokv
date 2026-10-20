@@ -1,0 +1,52 @@
+[
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-perfex/build/tomokv",
+      "25103",
+      "25104",
+      "112-119",
+      "6:2"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74",
+      "GATE_LOAD_CORES": "121-127",
+      "GATE_DIFFER_ORACLE_CORES": "120",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-perfex/docs/perfex2/final-differ/split",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-perfex/docs/perfex2/final-differ/suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-perfex/docs/perfex2/final-differ/seeds.txt"
+    },
+    "exit_code": 0,
+    "seconds": 5.48109817225486,
+    "log": "docs/perfex2/final-differ/split.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-perfex/build/tomokv",
+      "25103",
+      "25104",
+      "112-119",
+      "6:2"
+    ],
+    "environment": {
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74",
+      "GATE_LOAD_CORES": "121-127",
+      "GATE_DIFFER_ORACLE_CORES": "120",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-perfex/docs/perfex2/final-differ/armed-fused",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-perfex/docs/perfex2/final-differ/suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-perfex/docs/perfex2/final-differ/seeds.txt"
+    },
+    "exit_code": 0,
+    "seconds": 5.485816464759409,
+    "log": "docs/perfex2/final-differ/armed-fused.log"
+  }
+]

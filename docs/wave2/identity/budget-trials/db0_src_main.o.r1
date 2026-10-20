@@ -1,0 +1,12 @@
+{"object": "db0/src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147449 --param max-inline-insns-auto=18", "unit": 96594, "changed": 12, "hot_changed": 2, "A": 12, "B": 0, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_main.o.4994fe7042bf.o"}
+    HOT A T=perfex code 289->1467 lanes=perfex eq=perfex unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 8704->8704 lanes=perfex eq=perfex tomo_db0::ExLoopT<false>::run()
+{"object": "db0/src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147480 --param max-inline-insns-auto=18", "unit": 96594, "changed": 12, "hot_changed": 2, "A": 12, "B": 0, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_main.o.e491eed94765.o"}
+    HOT A T=perfex code 289->1467 lanes=perfex eq=perfex unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 8704->8704 lanes=perfex eq=perfex tomo_db0::ExLoopT<false>::run()
+{"object": "db0/src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147500 --param max-inline-insns-auto=18", "unit": 96594, "changed": 12, "hot_changed": 2, "A": 12, "B": 0, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_main.o.546d9a0e3aba.o"}
+    HOT A T=perfex code 289->1467 lanes=perfex eq=perfex unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 8704->8704 lanes=perfex eq=perfex tomo_db0::ExLoopT<false>::run()
+{"object": "db0/src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147520 --param max-inline-insns-auto=18", "unit": 96594, "changed": 12, "hot_changed": 2, "A": 12, "B": 0, "C": 0, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_main.o.7ce83d2bf5cb.o"}
+    HOT A T=perfex code 289->1467 lanes=perfex eq=perfex unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)
+    HOT A T=perfex code 8704->8704 lanes=perfex eq=perfex tomo_db0::ExLoopT<false>::run()

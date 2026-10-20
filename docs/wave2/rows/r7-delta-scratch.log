@@ -1,0 +1,34 @@
+# Scratch copies tests/{reorder_receipt.py,r7shadow_noop.py} in build/wave2/r7delta/tests, the latter with 28f6289eb applied
+# (git apply --check: clean on cx-wave2). Tracked files unchanged. Binary build/tomokv f7e597bf67e7d768ccf1f3d226f998def8bbea794b72e4a29d9529ad1991f5fa.
+$ PYTHONPATH=tests:tools taskset -c 80-95 python3 build/wave2/r7delta/tests/reorder_receipt.py build/tomokv build/wave2/r7delta/receipt
+normalizer self-checks PASS
+strict_noop=True: 292/292 identical bodies
+PASS missing policy symbol, missing split-local parser and changed opcode fail strict identity
+
+real	1m33.210s
+user	1m29.907s
+sys	0m3.565s
+
+# Without the delta (gate row in build/wave2/rows-gate, tracked tests/r7shadow_noop.py):
+normalizer self-checks PASS
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave2/tests/r7shadow_noop.py", line 151, in <module>
+    assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: off-path inventory changed: Counter({'tomo': 146, 'tomo_db0': 146}), expected {'tomo': 147, 'tomo_db0': 147}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave2/tests/reorder_receipt.py", line 83, in <module>
+    subprocess.run([sys.executable, str(Path(__file__).with_name('r7shadow_noop.py')),
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/usr/bin/python3', '/home/user/Projects/cx-wave2/tests/r7shadow_noop.py', '/home/user/Projects/cx-wave2/build/gate-run.dLNv6U/jobs/reorder_identity/receipt/fifo-twin', '/home/user/Projects/cx-wave2/build/tomokv', '/home/user/Projects/cx-wave2/build/gate-run.dLNv6U/jobs/reorder_identity/receipt/identity', '--inventory', 'overlapaxe']' returned non-zero exit status 1.
+
+# 991d48f65 default build with the tracked script (147 per runtime):
+$ taskset -c 88 python3 tests/reorder_receipt.py build/wave2/pre-src/build/tomokv build/wave2/r7delta/pre-receipt
+normalizer self-checks PASS
+strict_noop=True: 294/294 identical bodies
+PASS missing policy symbol, missing split-local parser and changed opcode fail strict identity
+
+real	1m33.837s
+user	1m29.825s
+sys	0m3.988s

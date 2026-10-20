@@ -1,0 +1,10 @@
+{
+  "source_commit": "ced4ebe6b",
+  "post_sha256": "53bb6f7553f7453d49a323ae0620d8a518ec3e7c68af5e31ba18189441beb1e7",
+  "status": "Superseded diagnostic attempt; not final candidate proof",
+  "new_rows": "4 POST passes; PRE failures retained separately",
+  "split_differential": "16 pass, 8 hexpire failures; isolated repeat 0/8; PRE hexpire control 8/8",
+  "armed_fused_differential": "26 pass, 0 fail (24 suite legs plus two arming witnesses)",
+  "identity": "Unrelated compiler inlining changes found; budget correction pending",
+  "followup": "8880c47c7 moves cached wall clock after sampled CPU syscall; new binary proof required"
+}

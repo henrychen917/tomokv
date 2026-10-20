@@ -1,0 +1,1 @@
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129640", "lane": 0, "hot": 0, "other": 0}

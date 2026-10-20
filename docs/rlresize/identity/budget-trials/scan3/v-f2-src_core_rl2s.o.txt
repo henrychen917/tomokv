@@ -1,0 +1,21 @@
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162316", "lane": 1, "hot": 2, "other": 1}
+    OTHER 5579 -> 5555 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21072 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11939 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162320", "lane": 1, "hot": 1, "other": 1}
+    OTHER 5579 -> 5555 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162324", "lane": 1, "hot": 2, "other": 1}
+    OTHER 5579 -> 5555 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21072 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162328", "lane": 1, "hot": 0, "other": 1}
+    OTHER 5579 -> 5555 unsigned int tomo::IoLoop::flip_control_pass<true>()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162332", "lane": 1, "hot": 2, "other": 1}
+    OTHER 5579 -> 5555 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21049 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11939 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162340", "lane": 1, "hot": 2, "other": 1}
+    OTHER 5579 -> 5555 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21049 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]

@@ -1,0 +1,3 @@
+{"object": "src/core/reorder.o", "params": "", "lane": 1, "hot": 0, "other": 2}
+    OTHER 7039 -> 7093 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    OTHER 7820 -> 7872 tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)

@@ -1,0 +1,34 @@
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129382", "lane": 1, "hot": 0, "other": 2}
+    OTHER 6102 -> 6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned i
+    OTHER 935 -> 764 tomo::FlatStore::atomic_find_physical(unsigned long, tomo::Slice) const
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129398", "lane": 1, "hot": 0, "other": 4}
+    OTHER 1980 -> 1958 tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    OTHER 1381 -> 1744 tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    OTHER 2035 -> 1957 tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    OTHER 935 -> 764 tomo::FlatStore::atomic_find_physical(unsigned long, tomo::Slice) const
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129414", "lane": 1, "hot": 0, "other": 3}
+    OTHER 6102 -> 6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned i
+    OTHER 1381 -> 1744 tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    OTHER 935 -> 764 tomo::FlatStore::atomic_find_physical(unsigned long, tomo::Slice) const
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129422", "lane": 1, "hot": 0, "other": 3}
+    OTHER 6102 -> 6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned i
+    OTHER 1980 -> 1958 tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    OTHER 2035 -> 1957 tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129430", "lane": 1, "hot": 0, "other": 2}
+    OTHER 1980 -> 1958 tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    OTHER 2035 -> 1957 tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129434", "lane": 1, "hot": 0, "other": 2}
+    OTHER 6102 -> 6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned i
+    OTHER 1980 -> 1958 tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129438", "lane": 1, "hot": 0, "other": 2}
+    OTHER 6102 -> 6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned i
+    OTHER 1980 -> 1958 tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129442", "lane": 1, "hot": 0, "other": 1}
+    OTHER 1980 -> 1958 tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129444", "lane": 1, "hot": 0, "other": 1}
+    OTHER 6102 -> 6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned i
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129446", "lane": 1, "hot": 0, "other": 1}
+    OTHER 6102 -> 6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned i
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129448", "lane": 1, "hot": 0, "other": 1}
+    OTHER 6102 -> 6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned i
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129450", "lane": 1, "hot": 0, "other": 1}

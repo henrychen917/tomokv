@@ -1,0 +1,42 @@
+  ok   DEBUG SHARD/LBSIGNALS geometry resolved same_shard=4 source_owner=4 destination_owner=6
+  ok   OFF control exposes torn MSET-8 torn=43032 reads=43062 errors=[] threads_still_alive=False
+  ok   ON MSET-8/MGET-8 torn-free torn=0 reads=2962 errors=[] threads_still_alive=False
+  ok   ON commit-delay window held a read cut delta=2960
+  ok   ON exercised predecessor resolution delta=23688
+  ok   ON exercised promotion delta=9984
+  SKIP ON promotion drains within release budget requires --release-build; promotion-drain=0.000s holds=2960 predecessors=23688 promotions=9984
+  ok   atomic_inflight returns to idle value=0
+  ok   same-owner atomic MSET-2 localfast is torn-free keys=('at:geometry:0000', 'at:geometry:0009') torn=0 reads=92178 localfast=45754 errors=[] threads_still_alive=False
+  ok   overlapping atomic writers never mix torn=0 reads=92718 errors=[] threads_still_alive=False
+  ok   promotion leaves one exact final group final=b'at:overlap:w1:18342' completed=36804 threads_still_alive=False
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001313 witness_s=0.0012627961114048958 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=137109 final=True errors=[] threads_still_alive=False hold_s=0.001297 witness_s=0.0012454059906303883 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes impossible SINTERSTORE image invalid=64 reads=35404 errors=[] threads_still_alive=False
+  ok   ON SINTERSTORE image matches one source cut invalid=0 reads=28232 final=True errors=[] threads_still_alive=False
+  ok   OFF LMPOP racers preserve element accounting popped=2048 remaining=0 errors=[] threads_still_alive=False
+  ok   ON LMPOP racers pop every element exactly once popped=2048 remaining=0 errors=[] threads_still_alive=False
+  ok   OFF control exposes RENAMENX losing race anomalies=16 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+  ok   OFF control exposes COPY losing race anomalies=3 errors=[] threads_still_alive=False
+  ok   ON COPY loser is invisible anomalies=0 errors=[] threads_still_alive=False
+  note atomic-window window attempt=1/4 outcome=armed limit=256 groups=640 peak=256 held_stalls=6 stalls=7 carried=0 held_replies=0 arm_s=0.006 held_replies/s=0.0 released=True replies=640/640 resume_s=0.005 resume_replies/s=116766.3
+  ok   derived atomic window stalls and resumes window attempt=1/4 outcome=armed limit=256 groups=640 peak=256 held_stalls=6 stalls=7 carried=0 held_replies=0 arm_s=0.006 held_replies/s=0.0 released=True replies=640/640 resume_s=0.005 resume_replies/s=116766.3 credits=256 observed_attempts=1/1
+  note atomic-window reconfigure attempt=1/4 outcome=failed limit=256 groups=641 peak=1 held_stalls=0 stalls=0 carried=0 held_replies=0 arm_s=1.100 held_replies/s=0.0 released=False replies=0/641 resume_s=0.000 resume_replies/s=n/a lease_pool=None lease_reclaims=0
+  FAIL atomic reconfiguration preserves derived bound and reclaims leases server closed the connection
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-rlresize/build/rlresize/pre-src/tests/atomic_torn.py", line 1021, in <module>
+    if not config("atomic", i & 1):
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-rlresize/build/rlresize/pre-src/tests/atomic_torn.py", line 105, in config
+    return c.cmd("CONFIG", "SET", name, str(value)) == b"OK"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-rlresize/build/rlresize/pre-src/tests/atomic_torn.py", line 99, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-rlresize/build/rlresize/pre-src/tests/atomic_torn.py", line 72, in read
+    line = self.file.readline()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
