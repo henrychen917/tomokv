@@ -1,0 +1,122 @@
+[
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+    "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1494,
+    "post_size": 1530,
+    "classification": "other",
+    "reason": "Inlines the repaired publisher for the detached commit batch, before AOF completion and reply publication."
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+    "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": true,
+    "pre_size": 15,
+    "post_size": 15,
+    "classification": "other",
+    "reason": "Exception/cleanup target offsets follow the changed xshard_flush_commits body; size stays 15 bytes."
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db06Server21atomic_commit_publishEv",
+    "name": "tomo_db0::Server::atomic_commit_publish()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 57,
+    "post_size": 86,
+    "classification": "other",
+    "reason": "The requested last-decrementer sequence recheck and zero-count catch-up loop."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZZN8tomo_db06Server4initERKNS_6ConfigEPKNS_13AofReplayPlanEENUlPvE_4_FUNES7_",
+    "name": "tomo_db0::Server::init(tomo_db0::Config const&, tomo_db0::AofReplayPlan const*)::{lambda(void*)#1}::_FUN(void*)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 106,
+    "post_size": 121,
+    "classification": "other",
+    "reason": "The shard clear callback calls atomic_commit(), inlining the repaired publisher (server.h:340)."
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+    "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 3308,
+    "post_size": 3454,
+    "classification": "other",
+    "reason": "Unedited helper: GCC inlining/partition spillover from the enlarged shared publisher; retained after 16 compile-only budget trials for merit review."
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+    "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 45,
+    "post_size": 45,
+    "classification": "other",
+    "reason": "Cold exception/cleanup companion of the unedited normalize_multi_blocking_pop body; follows its changed inlining/partition layout."
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+    "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1494,
+    "post_size": 1530,
+    "classification": "other",
+    "reason": "Inlines the repaired publisher for the detached commit batch, before AOF completion and reply publication."
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+    "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": true,
+    "pre_size": 15,
+    "post_size": 15,
+    "classification": "other",
+    "reason": "Exception/cleanup target offsets follow the changed xshard_flush_commits body; size stays 15 bytes."
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo6Server21atomic_commit_publishEv",
+    "name": "tomo::Server::atomic_commit_publish()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 57,
+    "post_size": 86,
+    "classification": "other",
+    "reason": "The requested last-decrementer sequence recheck and zero-count catch-up loop."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZZN4tomo6Server4initERKNS_6ConfigEPKNS_13AofReplayPlanEENUlPvE_4_FUNES7_",
+    "name": "tomo::Server::init(tomo::Config const&, tomo::AofReplayPlan const*)::{lambda(void*)#1}::_FUN(void*)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 106,
+    "post_size": 121,
+    "classification": "other",
+    "reason": "The shard clear callback calls atomic_commit(), inlining the repaired publisher (server.h:340)."
+  }
+]

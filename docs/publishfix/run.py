@@ -70,7 +70,7 @@ def repro(a):
             f.write(json.dumps(row) + '\n')
         print(json.dumps(row), flush=True)
         if a.arm != 'pre':
-            ok &= failures == 0
+            ok &= failures == 0 and windows > 0
     return ok
 
 
@@ -98,28 +98,35 @@ def aoforder(a):
 
 def batteries(a):
     ok = True
+    groups = {
+        'atomic': (1, ('atomic_torn', 'atomic_ryow', 'atomic_hazards')),
+        'txniso': (0, ('execatomic', 'execiso', 'execfix', 'multires', 'multirace',
+                       'session_monotonic')),
+    }
     for mode in ('1s', '2s'):
         for atomic in (0, 1):
-            out = a.output / f'{mode}-a{atomic}'
-            out.mkdir()
-            h.ARGS = SimpleNamespace(artifacts=out, binary=a.binary.resolve(),
-                                    cores='96-103', port=25850, oracle=False, mode=mode,
-                                    ratio='6:2', engine='uring')
-            with h.Server(['--atomic', str(atomic)]) as server:
-                assert server.ready
-                for test in ('atomic_torn', 'atomic_ryow', 'atomic_hazards',
-                             'execatomic', 'execiso', 'execfix', 'multires', 'multirace',
-                             'session_monotonic'):
-                    # Each battery may CONFIG SET atomic internally. Restore the requested
-                    # initial state for every invocation, and record that state explicitly.
-                    c = server.client()
-                    assert c.cmd('CONFIG', 'SET', 'atomic', str(atomic)) == b'OK'
-                    h.emit('battery', name=test, initial_atomic=atomic, mode=mode)
-                    argv = ['python3', f'tests/{test}.py', '127.0.0.1', '25850']
-                    if test == 'atomic_torn':
-                        argv.append('--release-build')
-                    ok &= run(test, argv, out)
-            ok &= run('shutdown', ['python3', 'tests/shutdown_report.py', server.logpath, 'clean'], out)
+            for group, (balancing, tests) in groups.items():
+                out = a.output / f'{group}-{mode}-a{atomic}'
+                out.mkdir()
+                h.ARGS = SimpleNamespace(artifacts=out, binary=a.binary.resolve(),
+                                        cores='96-103', port=25850, oracle=False, mode=mode,
+                                        ratio='6:2', engine='uring')
+                # Match job_atomic_batteries' default balancers and job_debug's
+                # explicitly disabled balancers, with the gate's 16-shard geometry.
+                with h.Server(['--atomic', str(atomic), '--key-lb', str(balancing),
+                               '--client-lb', str(balancing)]) as server:
+                    assert server.ready
+                    for test in tests:
+                        # Suites may CONFIG SET atomic internally. Restore the requested
+                        # initial state for every invocation and record it explicitly.
+                        c = server.client()
+                        assert c.cmd('CONFIG', 'SET', 'atomic', str(atomic)) == b'OK'
+                        h.emit('battery', name=test, initial_atomic=atomic, mode=mode)
+                        argv = ['python3', f'tests/{test}.py', '127.0.0.1', '25850']
+                        if test == 'atomic_torn':
+                            argv.append('--release-build')
+                        ok &= run(test, argv, out)
+                ok &= run('shutdown', ['python3', 'tests/shutdown_report.py', server.logpath, 'clean'], out)
     return ok
 
 
