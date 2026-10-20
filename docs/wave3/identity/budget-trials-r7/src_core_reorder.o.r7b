@@ -1,0 +1,208 @@
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147770", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.2e9caa18f201.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 7872->7820 tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147771", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.ad5f941ceecf.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 7872->7820 tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147772", "unit": 114569, "changed": 5, "edited": 1, "hot_unedited": 0, "unedited": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.0ff6044d6f59.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147773", "unit": 114569, "changed": 5, "edited": 1, "hot_unedited": 0, "unedited": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.1edb92dc2362.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147774", "unit": 114569, "changed": 5, "edited": 1, "hot_unedited": 0, "unedited": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.b8123bc278ed.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147775", "unit": 114569, "changed": 5, "edited": 1, "hot_unedited": 0, "unedited": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.b364ffb621b5.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147776", "unit": 114569, "changed": 4, "edited": 1, "hot_unedited": 0, "unedited": 3, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.d607b819fbf4.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147777", "unit": 114569, "changed": 4, "edited": 1, "hot_unedited": 0, "unedited": 3, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.ea9fb468df41.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147778", "unit": 114569, "changed": 4, "edited": 1, "hot_unedited": 0, "unedited": 3, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.c8e75bf50682.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147779", "unit": 114569, "changed": 4, "edited": 1, "hot_unedited": 0, "unedited": 3, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.eea17c0a3d03.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147780", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.c0e9c45ddb57.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2674->2674 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147781", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.b1fa6e048eba.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2674->2674 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147782", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.1feeffd9da66.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 2047->2079 void tomo::IoLoop::adopt_client<true, false>(tomo::Client*, bool, bool)
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2674->2674 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147783", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.be3c7d367061.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 2047->2079 void tomo::IoLoop::adopt_client<true, false>(tomo::Client*, bool, bool)
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2674->2674 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147784", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.7e57e6595b81.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 2047->2079 void tomo::IoLoop::adopt_client<true, false>(tomo::Client*, bool, bool)
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2674->2674 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147785", "unit": 114569, "changed": 7, "edited": 1, "hot_unedited": 0, "unedited": 6, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.5fc6eaa3a9cb.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 7872->7820 tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147786", "unit": 114569, "changed": 7, "edited": 1, "hot_unedited": 0, "unedited": 6, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.e5130ff57b19.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 7872->7820 tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147787", "unit": 114569, "changed": 7, "edited": 1, "hot_unedited": 0, "unedited": 6, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.4be666f43b0a.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 7872->7820 tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147788", "unit": 114569, "changed": 7, "edited": 1, "hot_unedited": 0, "unedited": 6, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.7c60d0876ab0.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 7872->7820 tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147789", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.95139c9203b6.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147790", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.6fbff38235d3.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147791", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.da9c5407baa8.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147792", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.f53a0c189ee6.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147793", "unit": 114569, "changed": 5, "edited": 1, "hot_unedited": 0, "unedited": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.e86830ed5710.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147794", "unit": 114569, "changed": 5, "edited": 1, "hot_unedited": 0, "unedited": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.fb0bc74a57fa.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147795", "unit": 114569, "changed": 5, "edited": 1, "hot_unedited": 0, "unedited": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.c40cbde9487b.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147796", "unit": 114569, "changed": 5, "edited": 1, "hot_unedited": 0, "unedited": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.8d99ff252843.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147797", "unit": 114569, "changed": 7, "edited": 1, "hot_unedited": 0, "unedited": 6, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.43879035761e.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+    other  code 2674->2674 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147798", "unit": 114569, "changed": 7, "edited": 1, "hot_unedited": 0, "unedited": 6, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.fca0c0af43e2.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+    other  code 2674->2674 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147799", "unit": 114569, "changed": 7, "edited": 1, "hot_unedited": 0, "unedited": 6, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.8399341c2a09.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 7093->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+    other  code 2674->2674 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147800", "unit": 114569, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/src_core_reorder.o.3732832e4a4e.o"}
+    other  added 0->399 tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]
+    other  code 6599->6067 tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFall
+    EDITED code 6295->6067 tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalF
+    other  code 1158->1190 tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    other  code 2519->2727 void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSu
+    other  code 2674->2674 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::al

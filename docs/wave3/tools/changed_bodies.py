@@ -31,8 +31,24 @@ REASONS = [  # (lane, name pattern, reason) -- first match wins for class A
 ]
 
 
+R7_ROUND = [  # mainline decision 1 (7fa5cb0e0 + reorder.o budgets 147778 / 148779), by name
+    (r'IoLoop::r7_ReadLocalDemotionPlan::prepare', 'rlfix RL4.4 regenerated into the R7 envelope (7fa5cb0e0, '
+     'mainline decision 1): one-key DEL/UNLINK refinement on the R7 broad-write edge; linked'),
+    (r'read_local_commands_overlap.*\.part\.0', 'GCC split of read_local_commands_overlap, now called by both '
+     'demotion-plan copies once both carry RL4.4; linked (the R7 copy calls it)'),
+    (r'IoLoop::ReadLocalDemotionPlan::prepare', 'rlfix body compiled like its regenerated R7 twin (calls the '
+     '.part.0 split) in reorder.o; discarded COMDAT copy (genthread.o\'s, unchanged, is linked)'),
+    (r'FlatStore::(?:snapshot_prepare_write|snapshot_progress|budget_admit|scan_home)', 'reorder.o code generation '
+     'after the R7 regeneration; discarded COMDAT copy'),
+]
+
+
 def reason(row, composite):
     lanes = row['lanes_changed']
+    if row['object'].endswith('core/reorder.o') and row['cls'] in 'BCD':
+        for pattern, text in R7_ROUND:
+            if re.search(pattern, row['name']):
+                return text
     if row['cls'] == 'A':
         for lane, pattern, text in REASONS:
             if lane == lanes[0] and re.search(pattern, row['name']):

@@ -1,13 +1,13 @@
 {
  "summary": {
-  "changed_object_bodies": 629,
-  "reaching_binary": 383,
-  "discarded_copies": 181,
+  "changed_object_bodies": 636,
+  "reaching_binary": 387,
+  "discarded_copies": 184,
   "removed": 65,
   "reaching_by_class": {
    "A": 353,
    "B": 29,
-   "C": 0,
+   "C": 4,
    "D": 1
   },
   "hot_reaching": 53,
@@ -2074,6 +2074,15 @@
   },
   {
    "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]",
+   "cls": "C",
+   "lanes": [],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
    "name": "tomo_db0::Client::resume_multibulk(unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)",
    "cls": "A",
    "lanes": [
@@ -2200,7 +2209,7 @@
   {
    "object": "db0/src/core/reorder.o",
    "name": "tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db0::ReadLocalFallbackReason, bool, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, tomo_db0::Op const*, bool)",
-   "cls": "A",
+   "cls": "D",
    "lanes": [
     "rlfix"
    ],
@@ -2229,6 +2238,15 @@
     "mkfix"
    ],
    "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db0::ReadLocalFallbackReason, bool, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, tomo_db0::Op const*, bool)",
+   "cls": "C",
+   "lanes": [],
+   "hot": false,
    "pre": "linked",
    "post": "linked"
   },
@@ -2273,6 +2291,27 @@
     "rlfix"
    ],
    "hot": true,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)",
+   "cls": "B",
+   "lanes": [
+    "mkfix",
+    "wave2"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)",
+   "cls": "C",
+   "lanes": [],
+   "hot": false,
    "pre": "discarded (another object's COMDAT copy is linked)",
    "post": "discarded (another object's COMDAT copy is linked)"
   },
@@ -5657,6 +5696,15 @@
   },
   {
    "object": "src/core/reorder.o",
+   "name": "tomo::read_local_commands_overlap(tomo::Op const&, tomo::Op const&) [clone .part.0]",
+   "cls": "C",
+   "lanes": [],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/reorder.o",
    "name": "tomo::Client::resume_multibulk(unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)",
    "cls": "A",
    "lanes": [
@@ -5770,7 +5818,7 @@
   {
    "object": "src/core/reorder.o",
    "name": "tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFallbackReason, bool, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, tomo::Op const*, bool)",
-   "cls": "A",
+   "cls": "D",
    "lanes": [
     "rlfix"
    ],
@@ -5799,6 +5847,15 @@
     "mkfix"
    ],
    "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFallbackReason, bool, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, tomo::Op const*, bool)",
+   "cls": "C",
+   "lanes": [],
+   "hot": false,
    "pre": "linked",
    "post": "linked"
   },
@@ -5843,6 +5900,17 @@
     "rlfix"
    ],
    "hot": true,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
+   "cls": "D",
+   "lanes": [
+    "wave2"
+   ],
+   "hot": false,
    "pre": "discarded (another object's COMDAT copy is linked)",
    "post": "discarded (another object's COMDAT copy is linked)"
   },
