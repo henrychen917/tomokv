@@ -1,0 +1,19 @@
+{
+  "kind": "A: PRE behaviour with POST aggregate .text size",
+  "limitation": "PRE internal text placement is preserved; POST internal placement is not reproduced.",
+  "pre": "/home/user/Projects/cx-ntfix/build/ntfix-pre/tomokv",
+  "post": "/home/user/Projects/cx-ntfix/build/tomokv",
+  "pad": "/home/user/Projects/cx-ntfix/build/tomokv-ntfix-pad-a",
+  "pre_text": 7655116,
+  "post_text": 7657788,
+  "pad_text": 7657788,
+  "nop_bytes": 2672,
+  "pre_text_functions": 10144,
+  "pre_function_addresses_and_sizes_equal": true,
+  "pre_gnu_property_bytes_and_plt_layout_equal": true,
+  "sha256": {
+    "pre": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "post": "d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01",
+    "pad": "fa5564d4e9f6b65eddb17016168a8b8ee520609a19a4820f68cbb02e8ab89a3f"
+  }
+}

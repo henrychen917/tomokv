@@ -1,0 +1,16 @@
+{
+  "kind": "A: PRE behaviour with POST aggregate .text size",
+  "limitation": "Internal R7 addresses are not matched; this is a size control.",
+  "pre": "build/ntfix-pre/tomokv",
+  "post": "build/tomokv",
+  "pad": "build/ntfix2/pad-a/tomokv",
+  "pre_text": 7655116,
+  "post_text": 7657788,
+  "pad_text": 7657788,
+  "nop_bytes": 2672,
+  "sha256": {
+    "pre": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "post": "d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01",
+    "pad": "bbbe43fe3d8249735c1b0c9156b8f8a6cf36b6572e68096856adbaa6c38e1f73"
+  }
+}

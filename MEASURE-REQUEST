@@ -1,30 +1,27 @@
-aclkeys3: missed XREAD notification fixed; live acceptance pending.
+Lane ntfix2: correctness candidate ready for maintainer merit review.
 
-Lane lbosc3 (decision group 10): see MEASURE-REQUEST-lbosc3.md.
-Status UNTUNED: serverless proof and frozen arms only; no live measurements run.
-Run >=6 key-skew rounds per arm per mode, PRE/PAD-A(type A)/POST, then pooled judge.
-Maintainer owns measurements, 14-cell null, live LB/stationary-hold rows and gate.
-Rows +0/+0. Do not land without the measured pooled-move/accuracy/rate/p99 bars.
+The full request, correctness results, changed-body inventory, gate row accounting,
+and reproducible build receipts are in MEASURE-REQUEST-ntfix.md, section "ntfix2".
+Read that section's outstanding/failing proof disclosures before gating or merging.
 
-encodingfix: mainline measurements pending.
+PRE:   build/ntfix-pre/tomokv
+       5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5
+POST:  build/tomokv
+       d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01
+PAD A: build/tomokv-ntfix-pad-a
+       fa5564d4e9f6b65eddb17016168a8b8ee520609a19a4820f68cbb02e8ab89a3f
 
-See MEASURE-REQUEST-aclkeys3.md for the original-protocol failure, 528/528 directed serverless cases, negative controls, PRE/POST SHA-256, body/layout audit, quiet refusals, gate recipe blockers, and the requested mainline 14-cell null.
+PAD A is a behaviour twin: frozen PRE behavior plus 2672 unreachable NOP bytes,
+matching POST's aggregate .text size. PRE function addresses/sizes, GNU properties,
+and PLT layout are preserved. It does not reproduce POST internal placement.
 
-Six loaded gate runs and idle/loaded loss rates remain unrun. The strict emitted-body audit retains one discarded weak-copy difference; its selected executable copy is identical. No server or load generator was started.
+Use the gate's unchanged ABBA instrument and qualified quiet-box load plans:
+  docs/ntfix/ntfix2/merit/generic14.cells.txt (14 existing generic cells)
+  docs/ntfix/ntfix2/merit/epoll32.cells.txt   (32 existing epoll twin cells)
+Run PRE/PRE null, PRE/POST, and PRE/PAD A with contemporary same-binary nulls.
+Judge every cell by its existing matched-load rate or p1-latency score; report
+cycles/op, IPC, and instructions/op for explanation. No averaging away regressions.
+Use epoll's own qualified floors/null. Unresolved nulls do not establish a pass.
 
-wbknobs — 2026-10-09
-
-See MEASURE-REQUEST-wbknobs.md for the complete owner handoff, binary hashes,
-knob grammar/defaults, instruction and body receipts, and exact commands.
-
-Mainline acceptance, still pending:
-1. The 14 cells in tests/wbland_merit_cells.txt: newest headline defaults versus
-   build/wbknobs/POST/tomokv defaults, every cell within the class band.
-2. p8g and p8s in tests/wbknobs_sweep_cells.txt: identical POST bytes in both arms,
-   policy=1/S=0/D=3 versus policy=1/S=16/D=3, GET and SET each +6..+10%.
-
-Use tools/wbknobs_measure.py on the scheduled quiet box. The report specifies
-32 physical server cores 0-31, load 32-111, no SMT, and eight deep-cell loaders.
-PMU diagnostics are separate --profile 1 runs, not acceptance evidence.
-No server, benchmark or gate was run by the lane. Gate inventory is +2/+2,
-504 quick / 521 full. Append measurements as MEASURE-RESULT.
+This lane ran correctness only. Full gate, ABBA, and throughput measurements
+remain NOT RUN and maintainer-owned. No push.

@@ -211,3 +211,221 @@ candidate, not a claim of four-defect completion or performance merit.
 
 Reproduction driver: `tools/ntfix_proof.py` (fixed lane cores and ports).
 The final worktree is committed on `cx-ntfix`; nothing was pushed.
+
+## ntfix2
+
+This section supersedes the identity stop above. N1 (`8b415754f`) and N2
+(`a3828024c`) are retained. N3 and N4 are implemented, and the required epoll
+INFO differential exposed an additional missing output-byte counter update,
+fixed in the existing epoll send paths. No command handler was edited.
+Performance and the full gate remain maintainer-owned; there is no throughput
+claim.
+
+### Identity attempt and final source
+
+`09addf4cc` changes only four Makefile inlining budgets and retains the
+compile-only trial receipts under
+[identity-attempt](docs/ntfix/ntfix2/identity-attempt/README.md).
+Eight PRE/POST unit-size builds and 28 candidate budget trials used CPUs 96–111.
+All four initial IPA units grew by 40 instructions. Recompiled PRE reproduced
+its frozen object bodies exactly.
+
+| Object | Old budget | Selected budget | N1/N2 hot differences before → after |
+|---|---:|---:|---:|
+| `src/core/genthread.o` | 129447 | 129487 | 2 → 0 |
+| `db0/src/core/genthread.o` | 129704 | 129744 | 2 → 0 |
+| `src/core/rl2s.o` | 162305 | 162357 | 2 → 0 |
+| `db0/src/core/reorder.o` | 148358 | 148398 | 5 → 1 |
+
+The residual N1/N2 body is
+`tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u,true,false,false>()`,
+796 → 729 bytes. Its named calls are unchanged; GCC changes instruction and
+control-flow placement. Its source was not edited. The revised identity rule
+admits that difference for merit review.
+
+Subsequent source commits:
+
+- `1e4861741`: N3 classifies only the pre-AUTH error exit with the existing
+  strict length decoder. It checks at most ten argument headers and steps over
+  completed payloads. Invalid syntax, signed overflow, counts above `INT_MAX`, and the
+  configured bulk ceiling retain Redis's precedence over the authentication
+  bounds. The ordinary parser and frontier calling conventions are unchanged.
+  Both ordinary and R7 dispatchers use the classifier before their existing
+  ordered error-reply/close path. The exact limit replies are
+  `-ERR Protocol error: unauthenticated multibulk length\r\n` and
+  `-ERR Protocol error: unauthenticated bulk length\r\n`, each followed by close.
+- `70572c702`: N4 uses `rpos + RespFrontier::next` when a multibulk is pending,
+  in both the query-limit check and receive-space cap. No bytes move, no saved
+  argv slices are invalidated, and no fields, allocations, knobs or waits are
+  introduced.
+- `7aa2b2aba`: the required epoll INFO differential got past its input-rate
+  assertion and failed `instantaneous_output_kbps > 0`: the corresponding
+  total was also zero although replies had been sent. The legacy-buffer,
+  segmented-send and userspace TLS-ciphertext epoll paths now update the same
+  existing IO-owned `net_output_bytes` field as their io_uring counterparts,
+  after a successful send. These are relaxed load/add/stores, not atomic RMWs.
+  The existing N1 row now checks exact output deltas too; no extra row is added.
+  The interrupted build/matrix and superseded receipts are preserved under
+  [before-output-fix](docs/ntfix/ntfix2/before-output-fix/README.md).
+
+The three requested identity tools were run unmodified against PRE
+`567d3b8e3` after the final production edit:
+
+| Audit | Final result |
+|---|---|
+| Command handlers | **1211/1211 identical**, bytes plus resolved relocation targets |
+| `ccfix_audit.py`, all emitted bodies | 16,294/16,525 identical; **231 changed** |
+| `ccfix_audit.py`, selected hot bodies | 1,159/1,214 identical; **55 changed** |
+| `lbstall_artifacts.py compare` | See [unmodified hot log](docs/ntfix/ntfix2/identity/hot.log); its strict identity assertion fails |
+| `linked_bytes.py` | Runtime sections differ; `.text` **7,655,116 → 7,657,788 bytes** |
+
+The strict tools' nonzero exits are reported, not converted into passes.
+Every changed emitted body, including each object copy and clone, has both
+sizes and a reason in the
+[full table](docs/ntfix/ntfix2/identity/changed-bodies.md),
+[hot table](docs/ntfix/ntfix2/identity/changed-hot-bodies.md), and
+[annotated JSON](docs/ntfix/ntfix2/identity/changed-bodies-with-reasons.json).
+The final inventory includes intentional N3 error-path and N4 accounting
+changes, epoll accounting, N2, and compiler inlining/codegen in unedited
+functions. No unrelated function was hand-edited to force identity.
+
+The final `netcap-unit` reports the locked layouts:
+`Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192
+AtomicEntry=144 Config=624`.
+
+### Exact Redis rule implemented for N4
+
+The source of truth remains
+`/home/user/Projects/redis/src/networking.c`, SHA-256
+`0ed207f003c35589f97e6375bcf589c5fb22a1f905b3c2e9ec6a08d67984893c`.
+The Redis 7.4.10 server is SHA-identical to the pinned
+`/home/user/Projects/redis74/src/redis-server`.
+
+At lines **2759–2764**, after appending a successful read and **before parsing
+that read**, Redis checks
+`c->mstate.argv_len_sums + sdslen(c->querybuf)` against the configured
+query-buffer limit, and also against 1 MiB when authentication is required.
+The comparison is strictly `>`: equality is legal. Queued MULTI arguments
+count; the current incomplete command's completed argv payloads are not added
+back through `c->argv_len_sum`.
+
+`processMultibulkBuffer` advances `qb_pos` over decoded array/bulk headers and
+completed payloads plus terminators. At **2659–2662**, `processInputBuffer`
+trims through `qb_pos` even if the current command remains incomplete.
+An incomplete header and an incomplete payload remain in the next read's
+query buffer. Newly received prefixes still count until that input pass is
+parsed; the implementation does not parse away new bytes before checking.
+
+TomoKV's saved frontier provides that already-consumed boundary while keeping
+the receive allocation pinned for zero-copy argv. The receive cap uses the
+same boundary and still offers exactly one byte beyond the remaining limit.
+The two named corpus cases, “many completed args then over limit” and “partial
+header crosses limit”, configure a 1 MiB query limit on authenticated clients;
+they exercise the same accounting as the implicit pre-AUTH 1 MiB cap. Both
+connections now survive, as on Redis.
+
+The deterministic `netcap-unit frontier` witness exercises the actual parser
+and receive-space implementation, requires the completed-argument frontier
+to exist, checks queued MULTI accounting, incomplete-header and payload
+equality/overflow, and verifies that pinned bytes stay intact. It fails on
+PRE's headers/objects at “completed argv excluded even when queued MULTI
+equals the limit” and passes on POST. The wire row additionally requires an
+exact final reply after each surviving prefix; silence alone cannot pass it.
+
+### Correctness receipts
+
+All builds use `taskset -c 96-111`, `make -j16`; candidate servers use 96–103,
+the oracle uses 104, and clients use 105–111. All listening ports are within
+25800–25899. The new drivers use 16 shards and `--databases 1`, with fused
+read-local 1 or split ratio 6:2. The unchanged standard differential coordinator
+retains its explicit 16-database compatibility matrix. It is not a default
+server geometry.
+
+The oracle has no TLS listener. TCP oracle bytes are compared with decrypted
+candidate TLS streams; no receipt claims that Redis was booted with TLS.
+
+| Required proof | Result / receipt |
+|---|---|
+| N1–N4 directed rows, both modes and engines, TCP/TLS where applicable | **PASS**, 16/16 mode/engine defect legs; [POST ledger](docs/ntfix/ntfix2/post/rows.log) |
+| N3/N4 rows on PRE `567d3b8e3` | **FAIL as required**, both modes and engines; [PRE ledger](docs/ntfix/ntfix2/pre-final/rows.log) |
+| N4 deterministic production-parser unit | PRE **FAIL**, POST **PASS**; [PRE](docs/ntfix/ntfix2/pre-final/frontier-unit.log), [POST full netcap unit](docs/ntfix/ntfix2/post/netcap-unit.log) |
+| Unchanged respresume limits corpus, 2 modes × 2 engines × TCP/TLS | **0 differences** in every geometry; [ledger](docs/ntfix/ntfix2/post/limits.log), exact compressed streams in its adjacent `limits/` tree |
+| TLS/RESP fragment corpus including close cases | PENDING FINAL RECEIPT |
+| Existing RESP/netcap/TLS batteries | PENDING FINAL RECEIPT |
+| Epoll infofix, both geometries, atomics 0/1, seeds 7/19/20/23 | PENDING FINAL RECEIPT |
+| `tests/differ_gate.sh` standard seeds, both engines | PENDING FINAL RECEIPT |
+| `python3 tests/gates_test.py` | **PASS**, 66 tests in 317.224 seconds, plus the nested 14-test persistence identity self-test; [log](docs/ntfix/ntfix2/post/gates-test.log). Command: `taskset -c 105-111 env GATE_TEST_PORT=25899 python3 tests/gates_test.py`. |
+| `make all`, every `job_production_units` target, freshness | **PASS**: all 31 named unit/control targets plus both `mdbqsbr-live-arms` binaries, 36 successful build/freshness commands; [results](docs/ntfix/ntfix2/production/results.json), [inventory](docs/ntfix/ntfix2/production/targets.txt). The aggregate is phony; `make -q` checked each concrete arm with its original flags. |
+| Full gate / ABBA / throughput measurements | **NOT RUN** — explicitly maintainer-owned |
+
+The only harness portability change is `GATE_TEST_PORT` for the existing
+socket/TIME_WAIT fixture in `gates_test.py`; this lane reserves port 25899.
+No assertion or deadline was changed. The N3 count-boundary control uses a
+valid ten-argument DEL. An initially used ten-argument PING exposed a separate
+AUTH-versus-arity error-precedence difference; that is not a length-limit
+failure and is not silently presented as fixed here.
+
+The existing `respresume-unit` also passes all three groups. The migration
+unit initially refused the seven-CPU client mask because its fixture requires
+eight allowed CPUs; rerunning this in-process unit on 96–111 passes all six
+ordinary/R7, 1s/2s, client-LB/FLIP migration witnesses. Both execution receipts
+are retained under `docs/ntfix/ntfix2/post/`.
+
+### Gate accounting
+
+N3 and N4 add **DQ = +2, DF = +2** in ntfix2. Including retained N1/N2, the
+complete lane adds **DQ = +4, DF = +4** relative to PRE `567d3b8e3`.
+
+| Row | Row definition in `tests/gate.sh` | Collection line |
+|---|---:|---:|
+| N1 INFO received bytes exact (also exact sent bytes) | 1860 | 3802 |
+| N2 TLS silent-peer close after reply | 3233 | 3884 (`tls`) |
+| N3 RESP pre-AUTH limit errors | label 3252; `row_begin` 3254 | 3884 (`tls`) |
+| N4 RESP query-buffer frontier | label 3253; `row_begin` 3254 | 3884 (`tls`) |
+
+All collection sites precede the quick-tier exit at **3934**. Thus the
+maintainer-owned counts should become **EXPECT_QUICK 637 → 641** and
+**EXPECT_FULL 654 → 658**. Neither constant was edited.
+
+### Arms and maintainer merit request
+
+| Arm | Path | SHA-256 |
+|---|---|---|
+| PRE `567d3b8e3` | `build/ntfix-pre/tomokv` | `5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5` |
+| POST (production source through `7aa2b2aba`) | `build/tomokv` | `d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01` |
+| **PAD A: behaviour twin** | `build/tomokv-ntfix-pad-a` | `fa5564d4e9f6b65eddb17016168a8b8ee520609a19a4820f68cbb02e8ab89a3f` |
+
+PAD A relinks the frozen PRE objects in their original order, adding 2,672
+unreachable NOP bytes to match POST's aggregate `.text` size of 7,657,788.
+It retains all 10,144 PRE text-function symbol addresses and sizes, including
+duplicate local names, the GNU IBT/SHSTK property, and the PLT layout.
+This is a **total-text-size control**, not a
+claim that every POST function has PRE placement.
+[Build/validation receipt](docs/ntfix/ntfix2/pad/receipt.json);
+reproducible builder: `docs/ntfix/pad.py`.
+
+The first generic padding attempt was rejected because an assembly object
+without `.note.gnu.property` dropped IBT/SHSTK and changed the PLT. Its receipt
+is explicitly named `rejected-first-control-*`; it is not a measurement arm.
+
+Use the gate's own unchanged ABBA instrument, the maintainer's scheduled quiet
+box and qualified pins/load plans, these exact arm hashes, and contemporary
+same-binary nulls:
+
+| Required cells | Arms | Verdict |
+|---|---|---|
+| Existing **14 generic cells**, unchanged copy in [generic14.cells.txt](docs/ntfix/ntfix2/merit/generic14.cells.txt) | PRE/PRE null, PRE/POST, PRE/PAD A | Every cell must retain its existing per-cell rate or p1 latency score at matched offered load |
+| Existing **32 epoll twins**, `h01-epoll` through `h32-epoll`, unchanged copy in [epoll32.cells.txt](docs/ntfix/ntfix2/merit/epoll32.cells.txt) | Same arms; the cell's existing `--net-io epoll` | Same per-cell no-regression verdict; use epoll's own qualified load floors/null |
+
+The generic IDs are `h05,h06,p8g,p8s,d1g_l0,d1s_l0,m8g_l0,v1g_l0,d128g_l0,
+d32g_l1,d8s_l1,d32s_l1,x9_32_l1,x9_32_l0`, from the existing
+`docs/lbplanner/generic-cells.txt`. Cell-file hashes and offline parser counts
+are in [cells.json](docs/ntfix/ntfix2/merit/cells.json). No cell definition,
+instrument assertion, load plan or acceptance tolerance was changed.
+
+Report per-cell matched-load rate/latency, cycles/op, IPC and instructions/op
+for every arm. The matched-load score decides merit; instructions and IPC
+explain it. A losing cell cannot be averaged away, and an unresolved identical
+arm comparison is not a pass. PAD A diagnoses aggregate text-size effects;
+it cannot exclude all internal placement effects. No performance measurements
+were run by this lane.

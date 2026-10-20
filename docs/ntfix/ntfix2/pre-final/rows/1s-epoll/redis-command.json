@@ -1,0 +1,1 @@
+["taskset", "-c", "104", "/home/user/Projects/redis74/src/redis-server", "--databases", "1", "--bind", "127.0.0.1", "--port", "25802", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/pre-final/rows/1s-epoll/redis-data"]
