@@ -1,5 +1,7 @@
 ## wave3 integration
 
+**Update 2026-10-21:** the mainline approved decisions 1 and 2. Both patches are applied and the reorder.o budgets re-derived. The final HEAD, binary and FAIL rows are in the addendum at the bottom, which supersedes the binary, gate and decision rows below.
+
 Worktree `/home/user/Projects/cx-wave3`, branch `cx-wave3`, created at origin/cpp **f821104a9** (wave 2).
 The five wave-3 lanes are merged with `--no-ff` in the requested order, and mkfix2 part C is reverted
 after them. Every lane commit is kept: the five lane tips are ancestors of HEAD. The lane worktrees
@@ -253,3 +255,42 @@ None of these is a regression in this integration; each stands as its lane repor
 | aoforder | The AOF is native TOMOAOF, not Redis RESP AOF. AOF-on cost cells need instrument support |
 | mkfix2 B | Retains common arenas at each IO's peak; needs a long-run RSS plateau check |
 | mkfix2 C | Reverted; with it, abandoned scatter prepares are back to AB's level |
+
+### Addendum 2026-10-21: mainline decisions 1-2 applied
+
+The mainline approved decisions 1 and 2 and left EXPECT and tailgen to the landing gate. Commits:
+`7fa5cb0e0` (R7 envelope regenerated, the generator's output only), `5265b8968` (rltopo expects
+RL4.3's local GET miss), `e454a79a6` (reorder.o budgets) and this report commit.
+
+| Check on the final binary `build/tomokv` (SHA-256 `c3721065fc68d1777e63843583c5e509a673c4091c3c355e35e70718732e447a`) | Result |
+|---|---|
+| reorder.o budgets (the patch grows the units +82 / +80) | 133 compile-only trials vs the pre-regeneration cx-wave3 objects ([trials](docs/wave3/identity/budget-trials-r7), [tool](docs/wave3/tools/trial_r7.py)). Rule: no selected hot body may change, then fewest changed bodies. **src 147778** (147776-147779), **db0 148779** (148777-148780, `max-inline-insns-auto=14` kept) |
+| Objects vs the pre-regeneration build | **109 of 111 identical**; only src/db0 reorder.o differ (4 / 6 bodies, [list](docs/wave3/identity/r7-round/objects-vs-pre-regeneration.txt)). **0 selected hot bodies changed.** Linked changes: `IoLoop::r7_ReadLocalDemotionPlan::prepare` in both namespaces (RL4.4's one-key DEL/UNLINK refinement on the R7 broad-write edge; src 6295 -> 6067 bytes, db0 6128 -> 6146), and GCC's new `read_local_commands_overlap(...) [clone .part.0]` that it calls (399 / 435 bytes). The other changed bodies are discarded COMDAT copies: reorder.o's non-R7 `ReadLocalDemotionPlan::prepare` (genthread.o's unchanged copy is linked), src `FlatStore::snapshot_prepare_write`, and db0 `snapshot_progress` / `budget_admit` / the `lb_scan_bucket_bytes` `scan_home` lambda (map check) |
+| Gate jobs the patches touch, through `tests/gate.sh` (source build) | **52 ok, 0 FAIL** ([ledger](docs/wave3/r7-round/touched-jobs.ledger)). This covers the three R7 rows (`R7 generated envelope parity`, `writeback policy clauses ...`, `splitlocal template forwarding ...`), both `read-local topology demotion` rows, `R7 production engagement`, `R7 FIFO twin` (292/292), writeback paths, all 7 core_units rows, the bplus job's 8 rows (rlfix's 4 included), all 12 `RESP resumable` rows (the 1s ones boot R7) and the 16 reorder=1 feature cells |
+| `tests/gates_test.py` | **66/66 OK** (+ nested 14/14) |
+| Production-unit freshness | `make all` + 32 `job_production_units` targets + `mdbqsbr-live-arms`: **all `make -q` fresh**, 0 warnings ([status](docs/wave3/r7-round/production-units.status)) |
+| Redis 7.4.10 differential: string hash list set zset stream multi, atomic 0/1 | split **56/56**; armed fused **58/58** (56 legs + both read-local witnesses); **0 differences**. Seeds were 7 19 20 23, because the unmodified `differ_gate.sh` refuses a proof without every permanent seed ([logs](docs/wave3/differ-r7)) |
+| rlfix's witnesses on R7 (`--reorder 1`, atomic 0/1) | GET miss and one-key DEL **both pass**; before the regeneration the DEL witness failed ([receipts](docs/wave3/r7-round/rlfix-r7)) |
+| rltopo PRE control | The updated unit **fails on f821104a9 and 991d48f65** (`exact final fallback reason`) and passes on this tree ([check](docs/wave3/r7-round/rltopo-pre-control.txt)) |
+
+**Remaining FAIL rows.**
+- Rows that depend on EXPECT, which the landing item sets to 664/681: the abba_selftest row
+  (`ABBA comparison + saturation negative controls`) and the `PROGRAM-STATE` tally.
+- `tailgen client-lb outstanding bound`: left to the full-box landing gate.
+- Every other row: ok in the earlier full gate (07cda1d9), in the storage re-run, or in the 52-row
+  re-run above on this binary. Rows unaffected by the patches were not re-run on c3721065, as scoped.
+
+**Changed bodies vs f821104a9 (final binary).** 16,706 bodies; **636 changed**: A 585, B 41, C 5,
+D 5 ([changed-bodies.tsv](docs/wave3/identity/changed-bodies.tsv)).
+
+| Class | Count | Contents |
+|---|---:|---|
+| A | 585 | respresume 240, hexpread 219, aoforder 67, mkfix 44, rlfix 15 |
+| B | 41 | the earlier 40, plus db0 `budget_admit` (a discarded copy) |
+| C | 5 | all from the R7 regeneration: the two R7 demotion plans and the two `.part.0` clones (linked), and db0 `snapshot_progress` (discarded) |
+| D | 5 | the two cold ones from before; reorder.o's two non-R7 demotion-plan copies and src `snapshot_prepare_write` (all discarded) |
+
+- Bodies reaching the binary: 387 (A 353, B 29, C 4, D 1).
+- **Selected hot bodies are unchanged from the report above:** 1,219 selected, 1,142 equal, 54
+  lane-identical, 23 respresume+mkfix2 composites.
+- `.text` 7,647,932 -> 7,730,145 bytes. Layout locks unchanged; R7 envelope parity current.
