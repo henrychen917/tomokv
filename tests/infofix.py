@@ -314,6 +314,22 @@ def wire_bytes_and_rate():
     c.close()
 
 
+if "--input-bytes-only" in sys.argv[3:]:
+    # N1: use deltas so the observer's INFO requests are counted exactly, without
+    # RESETSTAT, a sampled-rate deadline, or any load generator.
+    c = Conn()
+    try:
+        before = as_int(info(c, "stats"), "total_net_input_bytes")
+        ping, _, pong = c.send("PING")
+        check("input-byte PING control", pong, "PONG")
+        after = as_int(info(c, "stats"), "total_net_input_bytes")
+        expected = len(ping) + len(encode("INFO", "stats"))
+        check("received bytes counted exactly once", after - before, expected)
+        print("input bytes: delta=%d expected=%d" % (after - before, expected))
+    finally:
+        c.close()
+    raise SystemExit(bool(failures))
+
 main = Conn()
 try:
     # Recover from an interrupted earlier run before beginning the authenticated portion.
