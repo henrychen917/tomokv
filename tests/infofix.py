@@ -319,13 +319,20 @@ if "--input-bytes-only" in sys.argv[3:]:
     # RESETSTAT, a sampled-rate deadline, or any load generator.
     c = Conn()
     try:
-        before = as_int(info(c, "stats"), "total_net_input_bytes")
-        ping, _, pong = c.send("PING")
+        _, first_raw, first_body = c.send("INFO", "stats")
+        first = {line.split(":", 1)[0]: line.split(":", 1)[1]
+                 for line in first_body.split("\r\n") if ":" in line}
+        ping, pong_raw, pong = c.send("PING")
         check("input-byte PING control", pong, "PONG")
-        after = as_int(info(c, "stats"), "total_net_input_bytes")
+        second = info(c, "stats")
+        before = as_int(first, "total_net_input_bytes")
+        after = as_int(second, "total_net_input_bytes")
         expected = len(ping) + len(encode("INFO", "stats"))
         check("received bytes counted exactly once", after - before, expected)
+        output = as_int(second, "total_net_output_bytes") - as_int(first, "total_net_output_bytes")
+        check("sent bytes counted exactly once", output, len(first_raw) + len(pong_raw))
         print("input bytes: delta=%d expected=%d" % (after - before, expected))
+        print("output bytes: delta=%d expected=%d" % (output, len(first_raw) + len(pong_raw)))
     finally:
         c.close()
     raise SystemExit(bool(failures))
