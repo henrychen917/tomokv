@@ -1,0 +1,25 @@
+{"object": "db0/src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147449 --param max-inline-insns-auto=18", "unit": 96798, "changed": 27, "hot_changed": 4, "A": 27, "B": 0, "C": 0, "D": 0, "hotA": 4, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_main.o.4b154f791cc0.o"}
+    HOT A T=respresume code 12113->12381 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)
+    HOT A T=respresume code 12258->12526 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147520 --param max-inline-insns-auto=18", "unit": 96798, "changed": 27, "hot_changed": 4, "A": 27, "B": 0, "C": 0, "D": 0, "hotA": 4, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_main.o.6a0f7dd1d9e8.o"}
+    HOT A T=respresume code 12113->12381 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)
+    HOT A T=respresume code 12258->12526 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147580 --param max-inline-insns-auto=18", "unit": 96798, "changed": 27, "hot_changed": 4, "A": 27, "B": 0, "C": 0, "D": 0, "hotA": 4, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_main.o.d1eeca9e4f66.o"}
+    HOT A T=respresume code 12113->12381 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)
+    HOT A T=respresume code 12258->12526 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147653 --param max-inline-insns-auto=18", "unit": 96798, "changed": 27, "hot_changed": 4, "A": 27, "B": 0, "C": 0, "D": 0, "hotA": 4, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_main.o.00e8ce4b71c0.o"}
+    HOT A T=respresume code 12113->12381 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)
+    HOT A T=respresume code 12258->12526 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147720 --param max-inline-insns-auto=18", "unit": 96798, "changed": 27, "hot_changed": 4, "A": 27, "B": 0, "C": 0, "D": 0, "hotA": 4, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_main.o.4da28c45d066.o"}
+    HOT A T=respresume code 12113->12381 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)
+    HOT A T=respresume code 12258->12526 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl

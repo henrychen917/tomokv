@@ -1,0 +1,1522 @@
+[
+ {
+  "object": "db0/src/core/genthread.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3529,
+   "merged": 3600,
+   "respresume": 3599,
+   "mkfix": 3530
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": false
+  },
+  "lane_edit_runs": {
+   "respresume": 163,
+   "mkfix": 10
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     4
+    ],
+    "merged": [
+     3,
+     4
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "db0/src/core/genthread.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "unexplained",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 1970,
+   "merged": 2005,
+   "respresume": 2005,
+   "mkfix": 1976
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": true,
+   "mkfix": false
+  },
+  "lane_edit_runs": {
+   "respresume": 69,
+   "mkfix": 50
+  },
+  "calls_additive": false,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     4
+    ],
+    "merged": [
+     3,
+     4
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     0,
+     0
+    ],
+    "merged": [
+     0,
+     0
+    ]
+   }
+  },
+  "markers_present": false
+ },
+ {
+  "object": "db0/src/core/genthread.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3513,
+   "merged": 3567,
+   "respresume": 3566,
+   "mkfix": 3516
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 173,
+   "mkfix": 47
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     4
+    ],
+    "merged": [
+     3,
+     4
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "db0/src/core/reorder.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3516,
+   "merged": 3578,
+   "respresume": 3576,
+   "mkfix": 3518
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 151,
+   "mkfix": 13
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     4
+    ],
+    "merged": [
+     3,
+     4
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "db0/src/core/reorder.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "unexplained",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 1927,
+   "merged": 1954,
+   "respresume": 1954,
+   "mkfix": 1936
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": true,
+   "mkfix": false
+  },
+  "lane_edit_runs": {
+   "respresume": 42,
+   "mkfix": 34
+  },
+  "calls_additive": false,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     4
+    ],
+    "merged": [
+     3,
+     4
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     0,
+     0
+    ],
+    "merged": [
+     0,
+     0
+    ]
+   }
+  },
+  "markers_present": false
+ },
+ {
+  "object": "db0/src/core/reorder.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3501,
+   "merged": 3566,
+   "respresume": 3564,
+   "mkfix": 3504
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 166,
+   "mkfix": 2
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     4
+    ],
+    "merged": [
+     3,
+     4
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "db0/src/core/reorder.o",
+  "name": "tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "contains-every-lane-change",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 532,
+   "merged": 537,
+   "respresume": 537,
+   "mkfix": 537
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": true,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 11,
+   "mkfix": 11
+  },
+  "calls_additive": false,
+  "markers": {
+   "respresume": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     0,
+     0
+    ],
+    "merged": [
+     0,
+     0
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     0,
+     0
+    ],
+    "merged": [
+     0,
+     0
+    ]
+   }
+  },
+  "markers_present": false
+ },
+ {
+  "object": "db0/src/core/reorder.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "unexplained",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3515,
+   "merged": 3581,
+   "respresume": 3564,
+   "mkfix": 3516
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 155,
+   "mkfix": 2
+  },
+  "calls_additive": false,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     5
+    ],
+    "merged": [
+     3,
+     4
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": false
+ },
+ {
+  "object": "db0/src/core/reorder.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "contains-every-lane-change",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3502,
+   "merged": 3561,
+   "respresume": 3558,
+   "mkfix": 3503
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": true,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 192,
+   "mkfix": 2
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     5
+    ],
+    "merged": [
+     3,
+     5
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "db0/src/core/rl2s.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "additive",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 4164,
+   "merged": 4208,
+   "respresume": 4205,
+   "mkfix": 4167
+  },
+  "additive": true,
+  "projection": [
+   "respresume",
+   "mkfix"
+  ],
+  "projection_reg": [
+   "respresume",
+   "mkfix"
+  ],
+  "contains": {
+   "respresume": true,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 161,
+   "mkfix": 2
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     3
+    ],
+    "merged": [
+     3,
+     3
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "db0/src/core/rl2s.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 4189,
+   "merged": 4230,
+   "respresume": 4228,
+   "mkfix": 4190
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": false
+  },
+  "lane_edit_runs": {
+   "respresume": 181,
+   "mkfix": 11
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     3
+    ],
+    "merged": [
+     3,
+     3
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "db0/src/core/rl2s.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "additive",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 4174,
+   "merged": 4201,
+   "respresume": 4200,
+   "mkfix": 4175
+  },
+  "additive": true,
+  "projection": [
+   "respresume",
+   "mkfix"
+  ],
+  "projection_reg": [
+   "respresume",
+   "mkfix"
+  ],
+  "contains": {
+   "respresume": true,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 157,
+   "mkfix": 2
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     3
+    ],
+    "merged": [
+     3,
+     3
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "db0/src/core/rl2s.o",
+  "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 4173,
+   "merged": 4233,
+   "respresume": 4232,
+   "mkfix": 4174
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": true,
+   "mkfix": false
+  },
+  "lane_edit_runs": {
+   "respresume": 154,
+   "mkfix": 11
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     3
+    ],
+    "merged": [
+     3,
+     3
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "src/core/genthread.o",
+  "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "projection-modulo-registers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3516,
+   "merged": 3591,
+   "respresume": 3590,
+   "mkfix": 3517
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [
+   "respresume"
+  ],
+  "contains": {
+   "respresume": false,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 162,
+   "mkfix": 3
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     4
+    ],
+    "merged": [
+     3,
+     4
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "src/core/genthread.o",
+  "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3524,
+   "merged": 3583,
+   "respresume": 3582,
+   "mkfix": 3527
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 169,
+   "mkfix": 3
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     4
+    ],
+    "merged": [
+     3,
+     4
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "src/core/reorder.o",
+  "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3486,
+   "merged": 3553,
+   "respresume": 3552,
+   "mkfix": 3488
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 180,
+   "mkfix": 3
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     4
+    ],
+    "merged": [
+     3,
+     4
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "src/core/reorder.o",
+  "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3495,
+   "merged": 3554,
+   "respresume": 3551,
+   "mkfix": 3496
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": false
+  },
+  "lane_edit_runs": {
+   "respresume": 187,
+   "mkfix": 4
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     4
+    ],
+    "merged": [
+     3,
+     4
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "src/core/reorder.o",
+  "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3515,
+   "merged": 3577,
+   "respresume": 3574,
+   "mkfix": 3516
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": false
+  },
+  "lane_edit_runs": {
+   "respresume": 176,
+   "mkfix": 8
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     5
+    ],
+    "merged": [
+     3,
+     5
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "src/core/reorder.o",
+  "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 3552,
+   "merged": 3602,
+   "respresume": 3600,
+   "mkfix": 3554
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": false
+  },
+  "lane_edit_runs": {
+   "respresume": 169,
+   "mkfix": 16
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     5
+    ],
+    "merged": [
+     3,
+     5
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "src/core/rl2s.o",
+  "name": "unsigned int tomo::IoLoop::flip_control_pass<false>()",
+  "lanes": [
+   "respresume",
+   "rlfix"
+  ],
+  "level": "contains-every-lane-change",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 1228,
+   "merged": 1147,
+   "respresume": 1147,
+   "rlfix": 1147
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": true,
+   "rlfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 224,
+   "rlfix": 224
+  },
+  "calls_additive": false,
+  "markers": {
+   "respresume": {
+    "pre": [
+     0,
+     16
+    ],
+    "lane": [
+     0,
+     16
+    ],
+    "merged": [
+     0,
+     16
+    ]
+   }
+  },
+  "markers_present": false
+ },
+ {
+  "object": "src/core/rl2s.o",
+  "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 4126,
+   "merged": 4136,
+   "respresume": 4133,
+   "mkfix": 4127
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 212,
+   "mkfix": 2
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     3
+    ],
+    "merged": [
+     3,
+     3
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "src/core/rl2s.o",
+  "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "calls-additive+markers",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 4136,
+   "merged": 4166,
+   "respresume": 4163,
+   "mkfix": 4138
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 188,
+   "mkfix": 2
+  },
+  "calls_additive": true,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     3
+    ],
+    "merged": [
+     3,
+     3
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "src/core/rl2s.o",
+  "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "unexplained",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 2435,
+   "merged": 2439,
+   "respresume": 2439,
+   "mkfix": 2407
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": true,
+   "mkfix": false
+  },
+  "lane_edit_runs": {
+   "respresume": 147,
+   "mkfix": 124
+  },
+  "calls_additive": false,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     3
+    ],
+    "merged": [
+     3,
+     3
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     0,
+     0
+    ],
+    "merged": [
+     0,
+     0
+    ]
+   }
+  },
+  "markers_present": false
+ },
+ {
+  "object": "src/core/rl2s.o",
+  "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "unexplained",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 4140,
+   "merged": 4152,
+   "respresume": 4138,
+   "mkfix": 4142
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 302,
+   "mkfix": 2
+  },
+  "calls_additive": false,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     3
+    ],
+    "merged": [
+     3,
+     3
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "src/core/rl2s.o",
+  "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+  "lanes": [
+   "respresume",
+   "mkfix"
+  ],
+  "level": "unexplained",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 4130,
+   "merged": 4158,
+   "respresume": 4160,
+   "mkfix": 4131
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": false,
+   "mkfix": false
+  },
+  "lane_edit_runs": {
+   "respresume": 291,
+   "mkfix": 10
+  },
+  "calls_additive": false,
+  "markers": {
+   "respresume": {
+    "pre": [
+     1,
+     0
+    ],
+    "lane": [
+     3,
+     3
+    ],
+    "merged": [
+     3,
+     3
+    ]
+   },
+   "mkfix": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     1,
+     1
+    ],
+    "merged": [
+     1,
+     1
+    ]
+   }
+  },
+  "markers_present": true
+ },
+ {
+  "object": "src/core/rl2s.o",
+  "name": "void tomo::IoLoop::cancel_client_transfer<false>(tomo::Client*)",
+  "lanes": [
+   "respresume",
+   "rlfix"
+  ],
+  "level": "contains-every-lane-change",
+  "pre_equals_991d48f65": true,
+  "instructions": {
+   "pre": 0,
+   "merged": 77,
+   "respresume": 77,
+   "rlfix": 77
+  },
+  "additive": false,
+  "projection": [],
+  "projection_reg": [],
+  "contains": {
+   "respresume": true,
+   "rlfix": true
+  },
+  "lane_edit_runs": {
+   "respresume": 1,
+   "rlfix": 1
+  },
+  "calls_additive": false,
+  "markers": {
+   "respresume": {
+    "pre": [
+     0,
+     0
+    ],
+    "lane": [
+     0,
+     0
+    ],
+    "merged": [
+     0,
+     0
+    ]
+   }
+  },
+  "markers_present": false
+ }
+]

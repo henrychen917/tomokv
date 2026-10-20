@@ -1,0 +1,333 @@
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34437", "unit": 28118, "changed": 94, "hot_changed": 6, "A": 29, "B": 2, "C": 53, "D": 10, "hotA": 0, "hotB": 0, "hotCD": 6, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.ab87199bd73d.o"}
+    HOT C T=new code 1243->1165 lanes=- eq=- tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1511->1222 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1405->1124 lanes=- eq=- tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1005->553 lanes=- eq=- tomo::FlatStore::find(unsigned long, tomo::Slice)
+    HOT C T=new code 819->479 lanes=- eq=- tomo::FlatStore::erase(unsigned long, tomo::Slice)
+    HOT C T=new code 1589->976 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    C T=new code 3556->3370 lanes=- eq=- tomo::AofManager::maybe_sync(tomo::ThreadCtx&, tomo::Ring&, io_uring_sqe*)
+    C T=new code 249->225 lanes=- eq=- tomo::AofManager::maybe_sync(tomo::ThreadCtx&, tomo::Ring&, io_uring_sqe*) [clone .cold]
+    C T=new code 3123->2698 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=PRE code 278->264 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=new code 4995->4566 lanes=- eq=- tomo::AofManager::seed_snapshot(tomo::Config const&, std::__cxx11::basic_string<char, std::char_traits<char>, 
+    C T=PRE code 205->208 lanes=- eq=- tomo::AofManager::seed_snapshot(tomo::Config const&, std::__cxx11::basic_string<char, std::char_traits<char>, 
+    D T=new code 780->634 lanes=aoforder eq=- tomo::AofManager::debug_ack_window(unsigned int, tomo::Ring&)
+    C T=PRE code 50->50 lanes=- eq=- tomo::AofManager::debug_ack_window(unsigned int, tomo::Ring&) [clone .cold]
+    C T=new code 5888->5302 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 420->416 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 2712->2183 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 251->260 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 458->442 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage)
+    C T=PRE code 42->41 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage) [clone .cold]
+    C T=new code 1237->1014 lanes=- eq=- tomo::AofManager::drain_pending_commits(tomo::AofStreamOwner::OpenToken const&, unsigned int&, tomo::Ring&, io
+    C T=new code 2045->1997 lanes=- eq=- tomo::AofManager::cleanup_unreferenced_files()
+    D T=new code 5972->5413 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->588 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    C T=new code 738->517 lanes=- eq=- tomo::AofProducer::group_emit(tomo::AofProducer::PendingGroup&, unsigned char const*, unsigned long, bool)
+    D T=new code 794->1291 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    D T=new added 0->482 lanes=aoforder eq=- tomo::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo::AofOwnerContext*, unsigned long)
+    C T=new added 0->49 lanes=- eq=- tomo::(anonymous namespace)::plain_name(char const*)
+    C T=new code 5688->4755 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->235 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 894->796 lanes=- eq=- tomo::aof_file_path[abi:cxx11](tomo::Config const&)
+    C T=PRE code 70->70 lanes=- eq=- tomo::aof_file_path[abi:cxx11](tomo::Config const&) [clone .cold]
+    C T=new code 2430->2134 lanes=- eq=- tomo::cfg_split_args(char const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+    C T=new code 7180->5104 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=PRE code 317->298 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=new code 1221->1180 lanes=- eq=- tomo::aof_directory_path[abi:cxx11](tomo::Config const&)
+    C T=PRE code 55->51 lanes=- eq=- tomo::aof_directory_path[abi:cxx11](tomo::Config const&) [clone .cold]
+    C T=new code 826->554 lanes=- eq=- tomo::kvobj_external_bytes(tomo::KvObj const*)
+    C T=new code 519->454 lanes=- eq=- tomo::FlatStore::retire_obj(tomo::KvObj*)
+    C T=new added 0->390 lanes=- eq=- tomo::FlatStore::rehash_step()
+    C T=new code 2110->1992 lanes=- eq=- tomo::FlatStore::choose_victim(tomo::Slice)
+    C T=new added 0->300 lanes=- eq=- tomo::FlatStore::live_or_expire(int, unsigned long, tomo::Slice, tomo::KvObj*)
+    C T=new code 1229->1178 lanes=- eq=- tomo::FlatStore::rehash_step_read_local()
+    C T=new code 2209->1814 lanes=- eq=- tomo::FlatStore::atomic_resolve_internal(unsigned long, tomo::Slice, unsigned long, bool)
+    D T=new code 2073->2024 lanes=aoforder eq=- tomo::FlatStore::choose_victim_read_local(tomo::Slice)
+    C T=new code 653->530 lanes=- eq=- tomo::FlatStore::read_local_reclaim_object(void*, void*, unsigned long)
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=37300", "unit": 28118, "changed": 46, "hot_changed": 0, "A": 43, "B": 1, "C": 0, "D": 2, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.0c9895d58aa0.o"}
+    D T=aoforder code 1403->1435 lanes=aoforder eq=- tomo::AofManager::~AofManager()
+    D T=aoforder code 1403->1435 lanes=aoforder eq=- tomo::AofManager::~AofManager()
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=37337", "unit": 28118, "changed": 45, "hot_changed": 0, "A": 44, "B": 1, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.e3313bc9dcb1.o"}
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=36099", "unit": 28118, "changed": 63, "hot_changed": 4, "A": 33, "B": 2, "C": 23, "D": 5, "hotA": 0, "hotB": 0, "hotCD": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.086bd6e3f34a.o"}
+    HOT C T=new code 1511->1274 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1405->1200 lanes=- eq=- tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1005->806 lanes=- eq=- tomo::FlatStore::find(unsigned long, tomo::Slice)
+    HOT C T=new code 1589->1376 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    C T=new code 3123->2911 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=PRE code 278->267 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=new code 5888->5692 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 420->417 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 2712->2632 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=PRE code 251->251 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 458->442 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage)
+    C T=PRE code 42->41 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage) [clone .cold]
+    C T=new code 2045->1997 lanes=- eq=- tomo::AofManager::cleanup_unreferenced_files()
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    C T=new code 738->517 lanes=- eq=- tomo::AofProducer::group_emit(tomo::AofProducer::PendingGroup&, unsigned char const*, unsigned long, bool)
+    D T=new code 794->1412 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    D T=PRE code 40->40 lanes=aoforder eq=- tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 5688->4799 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->228 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 7180->6363 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=PRE code 317->320 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=new added 0->300 lanes=- eq=- tomo::FlatStore::live_or_expire(int, unsigned long, tomo::Slice, tomo::KvObj*)
+    C T=new code 2209->1811 lanes=- eq=- tomo::FlatStore::atomic_resolve_internal(unsigned long, tomo::Slice, unsigned long, bool)
+    C T=new added 0->192 lanes=- eq=- tomo::FlatStore::atomic_entry_key(tomo::AtomicEntry const&, unsigned int) const [clone .isra.0]
+    D T=new added 0->2644 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+    C T=new added 0->209 lanes=- eq=- std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<st
+    C T=new code 1118->849 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35900", "unit": 28118, "changed": 65, "hot_changed": 4, "A": 33, "B": 2, "C": 26, "D": 4, "hotA": 0, "hotB": 0, "hotCD": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.6d1682cb5446.o"}
+    HOT C T=new code 1511->1222 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1405->1200 lanes=- eq=- tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1005->806 lanes=- eq=- tomo::FlatStore::find(unsigned long, tomo::Slice)
+    HOT C T=new code 1589->1319 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    C T=new code 3123->2911 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=PRE code 278->267 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=new code 5888->5490 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 420->410 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 2712->2632 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=PRE code 251->251 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 458->442 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage)
+    C T=PRE code 42->41 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage) [clone .cold]
+    C T=new code 2045->1997 lanes=- eq=- tomo::AofManager::cleanup_unreferenced_files()
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    C T=new code 738->517 lanes=- eq=- tomo::AofProducer::group_emit(tomo::AofProducer::PendingGroup&, unsigned char const*, unsigned long, bool)
+    D T=new code 794->1412 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    C T=new code 5688->4787 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->235 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 2430->2398 lanes=- eq=- tomo::cfg_split_args(char const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+    C T=new code 7180->6144 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=PRE code 317->305 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=new code 2110->2057 lanes=- eq=- tomo::FlatStore::choose_victim(tomo::Slice)
+    C T=new added 0->300 lanes=- eq=- tomo::FlatStore::live_or_expire(int, unsigned long, tomo::Slice, tomo::KvObj*)
+    C T=new code 2209->1811 lanes=- eq=- tomo::FlatStore::atomic_resolve_internal(unsigned long, tomo::Slice, unsigned long, bool)
+    C T=new added 0->64 lanes=- eq=- tomo::FlatStore::initialize_meta_read_local(tomo::KvObj*) [clone .isra.0]
+    C T=new added 0->192 lanes=- eq=- tomo::FlatStore::atomic_entry_key(tomo::AtomicEntry const&, unsigned int) const [clone .isra.0]
+    D T=new added 0->2644 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+    C T=new added 0->209 lanes=- eq=- std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<st
+    C T=new code 1118->849 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=36000", "unit": 28118, "changed": 63, "hot_changed": 4, "A": 33, "B": 2, "C": 24, "D": 4, "hotA": 0, "hotB": 0, "hotCD": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.54846ec75348.o"}
+    HOT C T=new code 1511->1274 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1405->1200 lanes=- eq=- tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1005->806 lanes=- eq=- tomo::FlatStore::find(unsigned long, tomo::Slice)
+    HOT C T=new code 1589->1376 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    C T=new code 3123->2911 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=PRE code 278->267 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=new code 5888->5607 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 420->418 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 2712->2632 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=PRE code 251->251 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 458->442 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage)
+    C T=PRE code 42->41 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage) [clone .cold]
+    C T=new code 2045->1997 lanes=- eq=- tomo::AofManager::cleanup_unreferenced_files()
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    C T=new code 738->517 lanes=- eq=- tomo::AofProducer::group_emit(tomo::AofProducer::PendingGroup&, unsigned char const*, unsigned long, bool)
+    D T=new code 794->1412 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    C T=new code 5688->4787 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->235 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 2430->2398 lanes=- eq=- tomo::cfg_split_args(char const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+    C T=new code 7180->6144 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=PRE code 317->305 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=new added 0->300 lanes=- eq=- tomo::FlatStore::live_or_expire(int, unsigned long, tomo::Slice, tomo::KvObj*)
+    C T=new code 2209->1811 lanes=- eq=- tomo::FlatStore::atomic_resolve_internal(unsigned long, tomo::Slice, unsigned long, bool)
+    C T=new added 0->192 lanes=- eq=- tomo::FlatStore::atomic_entry_key(tomo::AtomicEntry const&, unsigned int) const [clone .isra.0]
+    D T=new added 0->2644 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+    C T=new added 0->209 lanes=- eq=- std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<st
+    C T=new code 1118->849 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=36100", "unit": 28118, "changed": 63, "hot_changed": 4, "A": 33, "B": 2, "C": 23, "D": 5, "hotA": 0, "hotB": 0, "hotCD": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.34de7b2af72a.o"}
+    HOT C T=new code 1511->1274 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1405->1200 lanes=- eq=- tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1005->806 lanes=- eq=- tomo::FlatStore::find(unsigned long, tomo::Slice)
+    HOT C T=new code 1589->1376 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    C T=new code 3123->2911 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=PRE code 278->267 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=new code 5888->5692 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 420->417 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 2712->2632 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=PRE code 251->251 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 458->442 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage)
+    C T=PRE code 42->41 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage) [clone .cold]
+    C T=new code 2045->1997 lanes=- eq=- tomo::AofManager::cleanup_unreferenced_files()
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    C T=new code 738->517 lanes=- eq=- tomo::AofProducer::group_emit(tomo::AofProducer::PendingGroup&, unsigned char const*, unsigned long, bool)
+    D T=new code 794->1412 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    D T=PRE code 40->40 lanes=aoforder eq=- tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 5688->4799 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->228 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 7180->6363 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=PRE code 317->320 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=new added 0->300 lanes=- eq=- tomo::FlatStore::live_or_expire(int, unsigned long, tomo::Slice, tomo::KvObj*)
+    C T=new code 2209->1811 lanes=- eq=- tomo::FlatStore::atomic_resolve_internal(unsigned long, tomo::Slice, unsigned long, bool)
+    C T=new added 0->192 lanes=- eq=- tomo::FlatStore::atomic_entry_key(tomo::AtomicEntry const&, unsigned int) const [clone .isra.0]
+    D T=new added 0->2644 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+    C T=new added 0->209 lanes=- eq=- std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<st
+    C T=new code 1118->849 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=36200", "unit": 28118, "changed": 63, "hot_changed": 4, "A": 33, "B": 2, "C": 23, "D": 5, "hotA": 0, "hotB": 0, "hotCD": 4, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.9141734c058e.o"}
+    HOT C T=new code 1511->1274 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1405->1200 lanes=- eq=- tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1005->806 lanes=- eq=- tomo::FlatStore::find(unsigned long, tomo::Slice)
+    HOT C T=new code 1589->1376 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    C T=new code 3123->2911 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=PRE code 278->267 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=new code 5888->5692 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 420->417 lanes=- eq=- tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 2712->2632 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=PRE code 251->251 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 458->442 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage)
+    C T=PRE code 42->41 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage) [clone .cold]
+    C T=new code 2045->1997 lanes=- eq=- tomo::AofManager::cleanup_unreferenced_files()
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=new code 794->1412 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    D T=PRE code 40->40 lanes=aoforder eq=- tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 5688->4787 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->235 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 2430->2398 lanes=- eq=- tomo::cfg_split_args(char const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+    C T=new code 7180->6363 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=PRE code 317->320 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=new added 0->300 lanes=- eq=- tomo::FlatStore::live_or_expire(int, unsigned long, tomo::Slice, tomo::KvObj*)
+    C T=new code 2209->1811 lanes=- eq=- tomo::FlatStore::atomic_resolve_internal(unsigned long, tomo::Slice, unsigned long, bool)
+    C T=new added 0->192 lanes=- eq=- tomo::FlatStore::atomic_entry_key(tomo::AtomicEntry const&, unsigned int) const [clone .isra.0]
+    D T=new added 0->2644 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+    C T=new added 0->209 lanes=- eq=- std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<st
+    C T=new code 1118->849 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=36300", "unit": 28118, "changed": 57, "hot_changed": 3, "A": 33, "B": 2, "C": 17, "D": 5, "hotA": 0, "hotB": 0, "hotCD": 3, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.b1c9f195b227.o"}
+    HOT C T=new code 1511->1274 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1405->1200 lanes=- eq=- tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1589->1376 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    C T=new code 3123->2911 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=PRE code 278->267 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=new code 2712->2632 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=PRE code 251->251 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 458->442 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage)
+    C T=PRE code 42->41 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage) [clone .cold]
+    C T=new code 2045->1997 lanes=- eq=- tomo::AofManager::cleanup_unreferenced_files()
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=new code 794->1412 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    D T=PRE code 40->40 lanes=aoforder eq=- tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 5688->4787 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->235 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 2430->2398 lanes=- eq=- tomo::cfg_split_args(char const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+    C T=new code 7180->6808 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=PRE code 317->330 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    D T=new added 0->2644 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+    C T=new added 0->209 lanes=- eq=- std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<st
+    C T=new code 1118->849 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=36400", "unit": 28118, "changed": 56, "hot_changed": 2, "A": 33, "B": 2, "C": 16, "D": 5, "hotA": 0, "hotB": 0, "hotCD": 2, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.acae7bb79d6b.o"}
+    HOT C T=new code 1511->1274 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1589->1376 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    C T=new code 3123->2911 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=PRE code 278->267 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=new code 2712->2632 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=PRE code 251->251 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 458->442 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage)
+    C T=PRE code 42->41 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage) [clone .cold]
+    C T=new code 2045->1997 lanes=- eq=- tomo::AofManager::cleanup_unreferenced_files()
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=new code 794->1412 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    D T=PRE code 40->40 lanes=aoforder eq=- tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 5688->4799 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->228 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 2430->2398 lanes=- eq=- tomo::cfg_split_args(char const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+    C T=new code 7180->6808 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=PRE code 317->330 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    D T=new added 0->2836 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+    C T=new added 0->209 lanes=- eq=- std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<st
+    C T=new code 1118->849 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=36500", "unit": 28118, "changed": 54, "hot_changed": 2, "A": 33, "B": 2, "C": 15, "D": 4, "hotA": 0, "hotB": 0, "hotCD": 2, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.3d4aa79ac0d8.o"}
+    HOT C T=new code 1511->1274 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1589->1376 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    C T=new code 3123->2911 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=PRE code 278->267 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=new code 2712->2632 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=PRE code 251->251 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=new code 458->442 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage)
+    C T=PRE code 42->41 lanes=- eq=- tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage) [clone .cold]
+    C T=new code 2045->1997 lanes=- eq=- tomo::AofManager::cleanup_unreferenced_files()
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=new code 794->1412 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    C T=new code 5688->4799 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->228 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 2430->2398 lanes=- eq=- tomo::cfg_split_args(char const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::al
+    C T=new code 7180->6808 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    C T=PRE code 317->330 lanes=- eq=- tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::defaul
+    D T=new added 0->2836 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+    C T=new added 0->209 lanes=- eq=- std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<st
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=36600", "unit": 28118, "changed": 49, "hot_changed": 2, "A": 34, "B": 2, "C": 9, "D": 4, "hotA": 0, "hotB": 0, "hotCD": 2, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.0fd4235042df.o"}
+    HOT C T=new code 1511->1274 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1589->1376 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    C T=new code 3123->2911 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=PRE code 278->267 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=new code 2712->2632 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=PRE code 251->251 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=new code 794->1412 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    C T=new code 5688->4982 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->245 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    D T=new added 0->2836 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+    C T=new added 0->209 lanes=- eq=- std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<st
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=36700", "unit": 28118, "changed": 47, "hot_changed": 2, "A": 33, "B": 1, "C": 9, "D": 4, "hotA": 0, "hotB": 0, "hotCD": 2, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.9bf27ed25bf9.o"}
+    HOT C T=new code 1511->1274 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1589->1376 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    C T=new code 3123->2911 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=PRE code 278->267 lanes=- eq=- tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<
+    C T=new code 2712->2664 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    C T=PRE code 251->251 lanes=- eq=- tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<cha
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=new code 794->1412 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    C T=new code 5688->4982 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->245 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    D T=new added 0->3012 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+    C T=new added 0->209 lanes=- eq=- std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<st
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=36800", "unit": 28118, "changed": 43, "hot_changed": 2, "A": 34, "B": 1, "C": 4, "D": 4, "hotA": 0, "hotB": 0, "hotCD": 2, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.213f456cd064.o"}
+    HOT C T=new code 1511->1274 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1589->1376 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=new code 794->1412 lanes=aoforder eq=- tomo::AofProducer::record_group_post_image_impl(tomo::FlatStore&, unsigned long, tomo::Slice, bool)
+    C T=new code 5688->5283 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->429 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    D T=new added 0->3012 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=36900", "unit": 28118, "changed": 46, "hot_changed": 2, "A": 38, "B": 1, "C": 4, "D": 3, "hotA": 0, "hotB": 0, "hotCD": 2, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.80e67c418d17.o"}
+    HOT C T=new code 1511->1274 lanes=- eq=- tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+    HOT C T=new code 1589->1376 lanes=- eq=- tomo::FlatStore::insert(unsigned long, tomo::KvObj*)
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    C T=new code 5688->4982 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->245 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    D T=new added 0->3188 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=37000", "unit": 28118, "changed": 44, "hot_changed": 0, "A": 38, "B": 1, "C": 2, "D": 3, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.7a359b3f6acc.o"}
+    D T=new code 5972->5477 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    D T=PRE code 587->604 lanes=aoforder eq=- tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::Aof
+    C T=new code 5688->4982 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 422->245 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    D T=new added 0->3188 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=37100", "unit": 28118, "changed": 42, "hot_changed": 0, "A": 36, "B": 1, "C": 4, "D": 1, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.dffe8d626228.o"}
+    C T=new code 5688->5350 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=PRE code 422->424 lanes=- eq=- tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    D T=new added 0->3188 lanes=aoforder eq=- std::deque<tomo::AofProducer::StagedItem, std::allocator<tomo::AofProducer::StagedItem> >::clear()
+    C T=new added 0->209 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, uns
+    C T=new added 0->209 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, uns
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=37200", "unit": 28118, "changed": 40, "hot_changed": 0, "A": 39, "B": 1, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.d467f80647fa.o"}
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=37400", "unit": 28118, "changed": 49, "hot_changed": 0, "A": 43, "B": 2, "C": 0, "D": 4, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.ad5665111e08.o"}
+    D T=new code 1403->1467 lanes=aoforder eq=- tomo::AofManager::~AofManager()
+    D T=new code 1403->1467 lanes=aoforder eq=- tomo::AofManager::~AofManager()
+    D T=new added 0->848 lanes=aoforder eq=- tomo::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo::AofOwnerContext*, unsigned long)
+    D T=new added 0->120 lanes=aoforder eq=- tomo::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo::AofOwnerContext*, unsigned long) [clo
+{"object": "src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=37500", "unit": 28118, "changed": 51, "hot_changed": 0, "A": 43, "B": 2, "C": 2, "D": 4, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_persist_aof.o.15149973c95b.o"}
+    D T=aoforder code 1403->1435 lanes=aoforder eq=- tomo::AofManager::~AofManager()
+    D T=aoforder code 1403->1435 lanes=aoforder eq=- tomo::AofManager::~AofManager()
+    D T=new added 0->848 lanes=aoforder eq=- tomo::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo::AofOwnerContext*, unsigned long)
+    D T=new added 0->120 lanes=aoforder eq=- tomo::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo::AofOwnerContext*, unsigned long) [clo
+    C T=new code 199->353 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::assign(char const*) [clone .i
+    C T=new code 28->28 lanes=- eq=- std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::assign(char const*) [clone .i

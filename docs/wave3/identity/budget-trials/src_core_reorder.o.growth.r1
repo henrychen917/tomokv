@@ -1,0 +1,220 @@
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=39", "unit": 114487, "changed": 61, "hot_changed": 16, "A": 29, "B": 6, "C": 22, "D": 4, "hotA": 5, "hotB": 4, "hotCD": 7, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_reorder.o.74a357f63a3b.o"}
+    HOT C T=new code 2944->2881 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+    HOT C T=new code 2960->2897 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+    HOT C T=new code 2944->2881 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+    HOT C T=new code 2960->2897 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+    HOT B T=new code 18137->18405 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9784->9925 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=new code 18173->18375 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT B T=new code 18152->18231 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT B T=new code 18281->18098 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT D T=new code 3085->2415 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT C T=new code 1213->1018 lanes=- eq=- tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1166->1044 lanes=- eq=- tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new added 0->483 lanes=- eq=- tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)
+    C T=new added 0->311 lanes=- eq=- tomo::Client::build_segment_iov(bool&, unsigned int&)
+    C T=new code 2733->2733 lanes=- eq=- void tomo::IoLoop::adopt_client<false, false>(tomo::Client*, bool, bool)
+    D T=new code 3581->3678 lanes=respresume eq=- tomo::IoLoop::close_client(tomo::Client*, bool)
+    C T=new code 1668->1684 lanes=- eq=- bool tomo::IoLoop::r7_drive_tls<false, true>(tomo::Client*) [clone .isra.0]
+    C T=new added 0->47 lanes=- eq=- tomo::IoLoop::touch_worker(unsigned int)
+    D T=new code 3557->3525 lanes=respresume eq=- tomo::IoLoop::lb_control_pass()
+    C T=new code 1324->1068 lanes=- eq=- tomo::IoLoop::pubsub_append_ack(tomo::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_
+    C T=new code 2094->1886 lanes=- eq=- tomo::IoLoop::deferred_timer_pass(unsigned long)
+    C T=new code 2000->1959 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=rlfix code 6295->6583 lanes=rlfix eq=- tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::Rea
+    C T=new code 2094->2110 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    C T=PRE code 6295->6279 lanes=- eq=- tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::
+    C T=new code 903->664 lanes=- eq=- tomo::IoLoop::quiesce_accepts_for_conversion()
+    C T=new code 4301->4055 lanes=- eq=- tomo::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_
+    C T=new code 661->629 lanes=- eq=- tomo::Server::save_cron_pass(tomo::ThreadCtx&, tomo::Ring&)
+    C T=new code 2067->1608 lanes=- eq=- bool tomo::WbEngine::pump_tls<true, false>(tomo::Client&, tomo::TlsConn&)
+    C T=new code 1394->1197 lanes=- eq=- tomo::FlatStore::active_expire_fields(unsigned int)::{lambda(unsigned long)#1}::operator()(unsigned long) cons
+    C T=new code 2942->2797 lanes=- eq=- tomo::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsi
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=39 --param ipa-cp-unit-growth=9", "unit": 114487, "changed": 61, "hot_changed": 16, "A": 29, "B": 6, "C": 22, "D": 4, "hotA": 5, "hotB": 4, "hotCD": 7, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_reorder.o.ae55f1219abd.o"}
+    HOT C T=new code 2944->2881 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+    HOT C T=new code 2960->2897 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+    HOT C T=new code 2944->2881 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+    HOT C T=new code 2960->2897 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+    HOT B T=new code 18137->18405 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9784->9925 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=new code 18173->18375 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT B T=new code 18152->18231 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT B T=new code 18281->18098 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT D T=new code 3085->2415 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT C T=new code 1213->1018 lanes=- eq=- tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1166->1044 lanes=- eq=- tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new added 0->483 lanes=- eq=- tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)
+    C T=new added 0->311 lanes=- eq=- tomo::Client::build_segment_iov(bool&, unsigned int&)
+    C T=new code 2733->2733 lanes=- eq=- void tomo::IoLoop::adopt_client<false, false>(tomo::Client*, bool, bool)
+    D T=new code 3581->3678 lanes=respresume eq=- tomo::IoLoop::close_client(tomo::Client*, bool)
+    C T=new code 1668->1684 lanes=- eq=- bool tomo::IoLoop::r7_drive_tls<false, true>(tomo::Client*) [clone .isra.0]
+    C T=new added 0->47 lanes=- eq=- tomo::IoLoop::touch_worker(unsigned int)
+    D T=new code 3557->3525 lanes=respresume eq=- tomo::IoLoop::lb_control_pass()
+    C T=new code 1324->1068 lanes=- eq=- tomo::IoLoop::pubsub_append_ack(tomo::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_
+    C T=new code 2094->1886 lanes=- eq=- tomo::IoLoop::deferred_timer_pass(unsigned long)
+    C T=new code 2000->1959 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=rlfix code 6295->6583 lanes=rlfix eq=- tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::Rea
+    C T=new code 2094->2110 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    C T=PRE code 6295->6279 lanes=- eq=- tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::
+    C T=new code 903->664 lanes=- eq=- tomo::IoLoop::quiesce_accepts_for_conversion()
+    C T=new code 4301->4055 lanes=- eq=- tomo::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_
+    C T=new code 661->629 lanes=- eq=- tomo::Server::save_cron_pass(tomo::ThreadCtx&, tomo::Ring&)
+    C T=new code 2067->1608 lanes=- eq=- bool tomo::WbEngine::pump_tls<true, false>(tomo::Client&, tomo::TlsConn&)
+    C T=new code 1394->1197 lanes=- eq=- tomo::FlatStore::active_expire_fields(unsigned int)::{lambda(unsigned long)#1}::operator()(unsigned long) cons
+    C T=new code 2942->2797 lanes=- eq=- tomo::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsi
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=40 --param ipa-cp-unit-growth=9", "unit": 114487, "changed": 46, "hot_changed": 11, "A": 35, "B": 6, "C": 2, "D": 3, "hotA": 5, "hotB": 4, "hotCD": 2, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_reorder.o.0b8c0b8a7b3d.o"}
+    HOT B T=respresume code 18137->18373 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9784->9925 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18173->18386 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT B T=respresume code 18152->18389 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT B T=respresume code 18281->18465 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT C T=new code 1737->1721 lanes=- eq=- bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT C T=new code 1412->1614 lanes=- eq=- unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    D T=new code 2047->2144 lanes=respresume eq=- void tomo::IoLoop::adopt_client<true, false>(tomo::Client*, bool, bool)
+    D T=new code 2047->2144 lanes=respresume eq=- void tomo::IoLoop::r7_adopt_client<true, true>(tomo::Client*, bool, bool)
+    D T=new code 1158->1190 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=38", "unit": 114487, "changed": 94, "hot_changed": 31, "A": 28, "B": 7, "C": 53, "D": 6, "hotA": 5, "hotB": 4, "hotCD": 22, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_reorder.o.df1e91864998.o"}
+    HOT C T=new code 3087->2682 lanes=- eq=- void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)
+    HOT C T=new code 2372->2318 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+    HOT C T=new code 2388->2334 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+    HOT C T=new code 2372->2318 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+    HOT C T=new code 2388->2334 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+    HOT C T=new code 2944->2881 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+    HOT C T=new code 2960->2897 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+    HOT C T=new code 2944->2881 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+    HOT C T=new code 2960->2897 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+    HOT C T=new code 3744->3482 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()
+    HOT C T=new code 3744->3482 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()
+    HOT C T=new code 3744->3482 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()
+    HOT C T=new code 3744->3482 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()
+    HOT B T=new code 18137->18273 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9784->9925 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=new code 18173->18276 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT B T=new code 18152->18231 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT B T=new code 18281->18098 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT D T=new code 3085->2415 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT C T=new code 1868->1692 lanes=- eq=- unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+    HOT C T=new code 1868->1692 lanes=- eq=- unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+    HOT C T=new code 1213->1018 lanes=- eq=- tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1166->1044 lanes=- eq=- tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+    HOT C T=new code 1631->1464 lanes=- eq=- tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1144->910 lanes=- eq=- tomo::FlatStore::erase(unsigned long, tomo::Slice)
+    HOT C T=PRE code 526->526 lanes=- eq=- tomo::Rob<64u>::read_local_owner_conflicts_before<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Cli
+    HOT C T=PRE code 526->526 lanes=- eq=- tomo::Rob<64u>::read_local_owner_conflicts_before<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Cli
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new added 0->483 lanes=- eq=- tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)
+    C T=new added 0->311 lanes=- eq=- tomo::Client::build_segment_iov(bool&, unsigned int&)
+    C T=new code 2733->2733 lanes=- eq=- void tomo::IoLoop::adopt_client<false, false>(tomo::Client*, bool, bool)
+    D T=new code 2047->1951 lanes=respresume eq=- void tomo::IoLoop::adopt_client<true, false>(tomo::Client*, bool, bool)
+    D T=new code 3581->3678 lanes=respresume eq=- tomo::IoLoop::close_client(tomo::Client*, bool)
+    C T=new code 1668->1684 lanes=- eq=- bool tomo::IoLoop::r7_drive_tls<false, true>(tomo::Client*) [clone .isra.0]
+    C T=new added 0->47 lanes=- eq=- tomo::IoLoop::touch_worker(unsigned int)
+    D T=new code 3557->3525 lanes=respresume eq=- tomo::IoLoop::lb_control_pass()
+    D T=new code 2047->1951 lanes=respresume eq=- void tomo::IoLoop::r7_adopt_client<true, true>(tomo::Client*, bool, bool)
+    C T=new code 1324->1068 lanes=- eq=- tomo::IoLoop::pubsub_append_ack(tomo::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_
+    C T=new code 929->1219 lanes=- eq=- tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)
+    C T=new code 2094->1886 lanes=- eq=- tomo::IoLoop::deferred_timer_pass(unsigned long)
+    C T=new code 1117->1282 lanes=- eq=- tomo::IoLoop::pubsub_start_numpat(tomo::Client*, tomo::Op&)
+    C T=new code 2000->1959 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=rlfix code 6295->6583 lanes=rlfix eq=- tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::Rea
+    C T=new code 3777->3713 lanes=- eq=- tomo::IoLoop::pubsub_finish_pending(unsigned long)
+    C T=new code 1858->1817 lanes=- eq=- tomo::IoLoop::pubsub_shutdown_events()
+    C T=new code 2094->2051 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    C T=new code 1773->1648 lanes=- eq=- tomo::IoLoop::pubsub_notification_send(std::shared_ptr<tomo::PubSubNotificationChain> const&)
+    C T=PRE code 6295->6279 lanes=- eq=- tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::
+    C T=new code 4491->4475 lanes=- eq=- tomo::IoLoop::pubsub_handle_home_request(tomo::PubSubEvent&)
+    C T=new code 903->664 lanes=- eq=- tomo::IoLoop::quiesce_accepts_for_conversion()
+    C T=new code 4301->4055 lanes=- eq=- tomo::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_
+    C T=new code 661->629 lanes=- eq=- tomo::Server::save_cron_pass(tomo::ThreadCtx&, tomo::Ring&)
+    C T=new code 5282->4717 lanes=- eq=- tomo::Server::flip_build_client_plan(tomo::Client*, std::__cxx11::basic_string<char, std::char_traits<char>, s
+    C T=new code 930->914 lanes=- eq=- tomo::ExLoopT<true>::flip_control_pass()
+    C T=new code 1173->886 lanes=- eq=- bool tomo::WbEngine::pump<false, false>(tomo::Client&)
+    C T=new code 2067->1608 lanes=- eq=- bool tomo::WbEngine::pump_tls<true, false>(tomo::Client&, tomo::TlsConn&)
+    C T=new code 1582->1502 lanes=- eq=- tomo::FlatStore::rehash_step_read_local()
+    C T=new code 808->798 lanes=- eq=- tomo::FlatStore::hash_key(tomo::Slice)
+    C T=new code 786->640 lanes=- eq=- tomo::IoLoop::flip_candidate_clients_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new added 0->67 lanes=- eq=- bool std::operator==<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std
+    C T=new code 1394->1197 lanes=- eq=- tomo::FlatStore::active_expire_fields(unsigned int)::{lambda(unsigned long)#1}::operator()(unsigned long) cons
+    C T=new code 1161->965 lanes=- eq=- tomo::FlatStore::atomic_exchange_physical(unsigned long, tomo::Slice, tomo::KvObj*)::{lambda(int)#1}::operator
+    C T=new code 1164->984 lanes=- eq=- tomo::FlatStore::atomic_exchange_physical_read_local(unsigned long, tomo::Slice, tomo::KvObj*)::{lambda(int)#1
+    C T=new added 0->93 lanes=- eq=- tomo::siphash12(char const*, unsigned long)::{lambda()#1}::operator()() const [clone .isra.0]
+    C T=new code 2942->2797 lanes=- eq=- tomo::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsi
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=41", "unit": 114487, "changed": 77, "hot_changed": 22, "A": 33, "B": 6, "C": 32, "D": 6, "hotA": 6, "hotB": 4, "hotCD": 12, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_reorder.o.6a2dc366467b.o"}
+    HOT C T=new code 2372->2628 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+    HOT C T=new code 2388->2628 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+    HOT C T=new code 2372->2628 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+    HOT C T=new code 2388->2628 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+    HOT C T=new code 3062->3136 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()
+    HOT C T=new code 3078->3152 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()
+    HOT C T=new code 3062->3136 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()
+    HOT C T=new code 3078->3152 lanes=- eq=- unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()
+    HOT B T=respresume code 18137->18373 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9784->9925 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18173->18386 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT B T=new code 18152->18381 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT B T=new code 18281->18358 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT C T=new code 1737->1721 lanes=- eq=- bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT C T=new code 1412->1614 lanes=- eq=- unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+    HOT A T=respresume code 1412->1614 lanes=respresume eq=respresume unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+    HOT C T=new code 1631->1778 lanes=- eq=- tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT C T=new code 1144->1331 lanes=- eq=- tomo::FlatStore::erase(unsigned long, tomo::Slice)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new removed 374->0 lanes=- eq=- tomo::ExpireIndex::migrate(unsigned int)
+    C T=new code 2085->2348 lanes=- eq=- tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    C T=new code 451->560 lanes=- eq=- void tomo::IoLoop::r7_on_recv<true, false, true>(tomo::Client*, int)
+    C T=new code 451->560 lanes=- eq=- void tomo::IoLoop::r7_on_recv<true, true, true>(tomo::Client*, int)
+    D T=new code 1605->1829 lanes=respresume eq=- void tomo::IoLoop::r7_admit_fd<false, true>(int, tomo::UrKind)
+    D T=new code 1605->1829 lanes=respresume eq=- void tomo::IoLoop::r7_admit_fd<true, true>(int, tomo::UrKind)
+    D T=new code 2047->2144 lanes=respresume eq=- void tomo::IoLoop::adopt_client<true, false>(tomo::Client*, bool, bool)
+    D T=new code 3581->3927 lanes=respresume eq=- tomo::IoLoop::close_client(tomo::Client*, bool)
+    C T=new code 1737->1721 lanes=- eq=- bool tomo::IoLoop::r7_drive_tls<true, true>(tomo::Client*) [clone .isra.0]
+    D T=new code 2047->2144 lanes=respresume eq=- void tomo::IoLoop::r7_adopt_client<true, true>(tomo::Client*, bool, bool)
+    C T=new code 1324->1532 lanes=- eq=- tomo::IoLoop::pubsub_append_ack(tomo::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_
+    C T=new code 2861->3246 lanes=- eq=- tomo::IoLoop::pubsub_home_publish(tomo::PubSubEvent&, bool)
+    C T=new code 2000->2039 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    C T=new code 3777->3712 lanes=- eq=- tomo::IoLoop::pubsub_finish_pending(unsigned long)
+    C T=new code 1858->1887 lanes=- eq=- tomo::IoLoop::pubsub_shutdown_events()
+    C T=new code 2094->2257 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    C T=PRE code 53->53 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0] [clone .cold]
+    C T=new code 437->645 lanes=- eq=- void tomo::IoLoop::arm_recv<false>(tomo::Client*)
+    C T=new code 5845->5876 lanes=- eq=- tomo::Server::flip_reserve_shard_plan(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<
+    C T=new code 1656->1848 lanes=- eq=- bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)
+    C T=new code 1956->2103 lanes=- eq=- tomo::WbEngine::defer_oob(tomo::Client&, char const*, unsigned long, char const*, unsigned long)
+    C T=new code 1153->1472 lanes=- eq=- tomo::FlatStore::active_expire(unsigned int)
+    D T=new code 1158->1190 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
+    C T=new removed 221->0 lanes=- eq=- tomo::ThreadCtx::post_client(unsigned int, tomo::Client*, tomo::Ring&, tomo::LoopSignals&)
+    C T=new removed 22->0 lanes=- eq=- tomo::Rob<64u>::quiesced() const
+    C T=new code 704->708 lanes=- eq=- tomo::IoLoop::flip_io_drained() const
+{"object": "src/core/reorder.o", "params": "--param ipa-cp-unit-growth=9", "unit": 114487, "changed": 46, "hot_changed": 11, "A": 35, "B": 6, "C": 2, "D": 3, "hotA": 5, "hotB": 4, "hotCD": 2, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_reorder.o.a85503f0df21.o"}
+    HOT B T=respresume code 18137->18373 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9784->9925 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18173->18386 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT B T=respresume code 18152->18389 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT B T=respresume code 18281->18465 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT C T=new code 1737->1721 lanes=- eq=- bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT C T=new code 1412->1614 lanes=- eq=- unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    D T=new code 2047->2144 lanes=respresume eq=- void tomo::IoLoop::adopt_client<true, false>(tomo::Client*, bool, bool)
+    D T=new code 2047->2144 lanes=respresume eq=- void tomo::IoLoop::r7_adopt_client<true, true>(tomo::Client*, bool, bool)
+    D T=new code 1158->1190 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)
