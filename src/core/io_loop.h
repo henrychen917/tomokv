@@ -852,6 +852,7 @@ private:
             const ssize_t n = ::recv(c->fd(), dst, avail, MSG_DONTWAIT);
             if (n > 0) {
                 self_->sig().epoll_recvs++;
+                self_->sig().net_input_bytes.store(self_->sig().net_input_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(n), std::memory_order_relaxed);
                 c->commit_read(static_cast<size_t>(n));
                 if (query_buffer_exceeded(*c)) { epoll_request_close(c); return; }
                 c->set_last_interaction_s(cached_now_s_);
