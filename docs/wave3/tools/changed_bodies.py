@@ -40,11 +40,16 @@ def reason(row, composite):
     if row['cls'] == 'B':
         c = composite.get((row['object'], row['name']))
         extra = f"; decomposition: {c['level']}" if c else ''
-        if set(row['merged_equals_lane']) >= set(l for l in lanes if l != 'wave2') and 'wave2' not in lanes:
+        changers = [l for l in lanes if l != 'wave2']
+        equal = [l for l in row['merged_equals_lane'] if l in changers]
+        if row.get('merged_equals_base'):
+            return ('equals 991d48f65 (every lane\'s base): the code generation drift of ' + ' + '.join(lanes) +
+                    ' in this cold body cancels in the merged unit')
+        if equal and set(equal) == set(changers) and 'wave2' not in lanes:
             return 'every changing lane builds this exact body (identical code generation)' + extra
-        if row['merged_equals_lane']:
-            return ('equals ' + '+'.join(row['merged_equals_lane']) + "'s own body; the other lane's change in "
-                    'this body is code generation only') + extra
+        if equal:
+            return ('equals ' + '+'.join(equal) + "'s own body; the other change-set's difference in this body is "
+                    'code generation only') + extra
         return 'composite: each of ' + ' + '.join(lanes) + ' changes this body in its own build' + extra
     if row['cls'] == 'D':
         if 'record_post_image_impl' in row['name']:

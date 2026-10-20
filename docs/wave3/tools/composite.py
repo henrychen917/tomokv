@@ -8,6 +8,8 @@ objdump -d -r -w, and normalize each instruction: no addresses; relocations by t
 every placement change, and intra-function branch targets become placeholders).
 
 Checks, from strongest to weakest, each on the whole normalized instruction sequence:
+  equals-<lane>   M is exactly that lane's own body (the other lane's change to this body was code
+                  generation only, e.g. no marker instruction in its own build either);
   additive        the lanes' W->Li edit scripts (difflib opcodes) touch disjoint W ranges and
                   applying all of them reproduces M exactly;
   projection      for some lane Li, the edits Li->M are exactly the other lanes' W->Lj edits (the
@@ -157,7 +159,8 @@ def main():
             lanes = {l: disassemble(A.LANE_DIRS[l] / obj, x['symbol']) for l in x['lanes_changed']}
             base = disassemble(A.BASE / obj, x['symbol'])
             res = analyse(w, m, lanes)
-            level = ('additive' if res['additive'] else 'projection' if res['projection'] else
+            same = [l for l, b in lanes.items() if b == m]
+            level = ('equals-' + '+'.join(same) if same else 'additive' if res['additive'] else 'projection' if res['projection'] else
                      'projection-modulo-registers' if res['projection_reg'] else
                      'contains-every-lane-change' if all(res['contains'].values()) else
                      'calls-additive+markers' if res['calls_additive'] and res['markers_present'] else

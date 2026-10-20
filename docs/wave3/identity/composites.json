@@ -65,7 +65,7 @@
    "respresume",
    "mkfix"
   ],
-  "level": "unexplained",
+  "level": "equals-respresume",
   "pre_equals_991d48f65": true,
   "instructions": {
    "pre": 1970,
@@ -242,7 +242,7 @@
    "respresume",
    "mkfix"
   ],
-  "level": "unexplained",
+  "level": "equals-respresume",
   "pre_equals_991d48f65": true,
   "instructions": {
    "pre": 1927,
@@ -360,7 +360,7 @@
    "respresume",
    "mkfix"
   ],
-  "level": "contains-every-lane-change",
+  "level": "equals-respresume+mkfix",
   "pre_equals_991d48f65": true,
   "instructions": {
    "pre": 532,
@@ -1141,7 +1141,7 @@
    "respresume",
    "rlfix"
   ],
-  "level": "contains-every-lane-change",
+  "level": "equals-respresume+rlfix",
   "pre_equals_991d48f65": true,
   "instructions": {
    "pre": 1228,
@@ -1304,7 +1304,7 @@
    "respresume",
    "mkfix"
   ],
-  "level": "unexplained",
+  "level": "equals-respresume",
   "pre_equals_991d48f65": true,
   "instructions": {
    "pre": 2435,
@@ -1481,7 +1481,7 @@
    "respresume",
    "rlfix"
   ],
-  "level": "contains-every-lane-change",
+  "level": "equals-respresume+rlfix",
   "pre_equals_991d48f65": true,
   "instructions": {
    "pre": 0,
