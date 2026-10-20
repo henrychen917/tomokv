@@ -14,7 +14,7 @@ Safety : every ticket <= safe has its epoch stored (no reader cut names an undec
 Liveness at quiescence: when every committer is done, safe == commit_seq.
 """
 
-def run(n, fixed):
+def run(n, fixed, exact=False):
     init = ((0, 0, 0, 0),) * n          # per committer: (pc, ticket, drawn, s)
     start = (init, (0, 0, 0, 0))        # global: (inflight, seq, safe, stored_bits)
     seen, stack = set(), [(start, ())]
@@ -52,13 +52,13 @@ def run(n, fixed):
                 nl[i] = (6, t, drawn, s) if fixed else ('done', t, drawn, s)
                 step = f'C{i}:safe=max(safe,{drawn})'
             elif pc == 6:
-                nl[i] = ('done', t, drawn, seq) if seq <= safe else (7, t, drawn, seq)
+                nl[i] = ('done', t, drawn, seq) if seq <= (drawn if exact else safe) else (7, t, drawn, seq)
                 step = f'C{i}:recheck seq={seq}'
             elif pc == 7:
                 nl[i] = ('done', t, drawn, s) if inflight != 0 else (8, t, drawn, s)
                 step = f'C{i}:inflight={inflight}'
             elif pc == 8:
-                ng[2] = max(ng[2], s); nl[i] = (6, t, drawn, s); step = f'C{i}:safe=max(safe,{s})'
+                ng[2] = max(ng[2], s); nl[i] = (6, t, s if exact else drawn, s); step = f'C{i}:safe=max(safe,{s})'
             stack.append(((tuple(nl), tuple(ng)), trace + (step,)))
     return len(seen), bad_safety, bad_live, examples, finals
 
@@ -70,3 +70,13 @@ for fixed in (False, True):
               f"final(safe,seq)={sorted({(f[2], f[1]) for f in finals})}")
         if not fixed and n == 2 and ex:
             print('  example', ex[0][0]); [print('    ', s) for s in ex[0][1]]
+        assert bs == 0
+        assert bl == (0 if fixed else {2: 2, 3: 36}[n]), 'lost the required liveness witness'
+
+# Appendix A compares newer with shared safe. Also enumerate the literal 5.1
+# implementation: compare with local drawn, then adopt newer on the back edge.
+for n in (2, 3):
+    states, bs, bl, ex, finals = run(n, True, exact=True)
+    print(f'EXACT FIX committers={n}: states={states} safety_violations={bs} '
+          f'orphaned_final_states={bl}')
+    assert bs == bl == 0

@@ -40,6 +40,12 @@ def repro(a):
         ok &= run(name, ['python3', 'tests/publishfix_e2e.py', '--binary', a.parked,
                         '--artifacts', out / name, '--port', '25810'], out,
                   expected=1 if a.arm == 'pre' else 0)
+        events = [json.loads(s) for s in (out / name / 'events.jsonl').read_text().splitlines()]
+        v, = [r for r in events if r['event'] == 'visibility']
+        expected_live = [None, None] if a.arm == 'pre' else ['B', 'B']
+        assert v['live'] == v['delayed'] == expected_live
+        assert v['live2'] == v['reloaded'] == ['B', 'B']
+        assert v['windows'] == 1 and v['holds'] == (1 if a.arm == 'pre' else 0)
     for mode, db, policy, count, port in [('1s', 16, 'always', 300, 25820),
                                          ('2s', 1, 'everysec', 100, 25830)]:
         failures = windows = holds = visibility = 0
