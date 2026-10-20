@@ -121,6 +121,9 @@ def batteries(a):
                         # initial state for every invocation and record it explicitly.
                         c = server.client()
                         assert c.cmd('CONFIG', 'SET', 'atomic', str(atomic)) == b'OK'
+                        # Like the gate, hold no harness connection into the battery or
+                        # into the shutdown check (Server.stop closes clients after SIGTERM).
+                        c.close()
                         h.emit('battery', name=test, initial_atomic=atomic, mode=mode)
                         argv = ['python3', f'tests/{test}.py', '127.0.0.1', '25850']
                         if test == 'atomic_torn':
