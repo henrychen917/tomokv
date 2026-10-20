@@ -1,0 +1,45 @@
+{
+  "pre_commit": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "post_source_commit": "2062b382e911879b057984e1478b45469561072f",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "affinity": {
+    "all": "48-63",
+    "server": "48-55",
+    "oracle": "56",
+    "clients": "57-63"
+  },
+  "ports": "25600-25699",
+  "build_commands": [
+    [
+      "taskset",
+      "-c",
+      "48-63",
+      "make",
+      "-j16",
+      "BUILD_ROOT=build/rlfix/pre",
+      "all"
+    ],
+    [
+      "taskset",
+      "-c",
+      "48-63",
+      "make",
+      "-j16",
+      "all"
+    ]
+  ],
+  "production_builds": "docs/rlfix/production-units.json",
+  "binaries": "docs/rlfix/binaries.json",
+  "standard_hot_audits_pass": true,
+  "strict_local_get_hit_bytes_equal": false,
+  "layout_locks_hold": true,
+  "full_gate_run": false,
+  "throughput_measurements_run": false,
+  "source_sha256": {
+    "Makefile": "488a690cdbf43107392e1f1a53d445d76562aa9f5417ca321ad9b5a0e54f4b05",
+    "src/core/ex_loop.h": "7a2b7d9a9d0f5ee066850e11075ea2d68bd4487ab7bb8b534bc3a2495dbc8c13",
+    "src/core/io_loop.h": "238dd10c999225181a0b3a8a86c6f383b941e73ea5dc529684feed3844f9c320",
+    "tests/rlfix.py": "d842de2bc18ee5f651baba5aedd769dce85fce08c14fdf29ab49ce0443bbd657",
+    "tests/gate.sh": "0017737086defcd19f47649f67fa18c748a84ff0c5ee721b77204fd088016235"
+  }
+}

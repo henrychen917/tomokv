@@ -1,0 +1,18 @@
+{
+  "PRE": {
+    "binary": "/home/user/Projects/cx-rlfix/build/rlfix/pre/tomokv",
+    "sha256": "7775c8c27ffaa18ccad76bfb425c7ad3c741a204888d903123c04d1199d77468"
+  },
+  "POST": {
+    "binary": "/home/user/Projects/cx-rlfix/build/rlfix/post/tomokv",
+    "sha256": "d3880ba6d766c80b0b296c5eb99590d8c25b0f02a32aeefdf234ca55077a97a6"
+  },
+  "PAD-A": {
+    "binary": "/home/user/Projects/cx-rlfix/build/rlfix/pad-a/tomokv",
+    "sha256": "63715fbe03430c2b86ab8abfa3caab062b8bf858c4bcdeb124c6913aaabf87be"
+  },
+  "Redis 7.4.10": {
+    "binary": "/home/user/Projects/redis74/src/redis-server",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+  }
+}

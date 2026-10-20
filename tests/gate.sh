@@ -317,7 +317,9 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # = DQ=+12, DF=+12: maintainer sets EXPECT_QUICK=625+12=637 / EXPECT_FULL=642+12=654.
 # respresume (NT4.2/NT4.3): twelve RESP resumable rows (fragment, cpu, neighbour x 1s/2s x
 # epoll/uring), collected after respcompat, before the quick-tier exit: DQ=+12, DF=+12.
-# wave3 running total (respresume): DQ=+12, DF=+12 over 637/654 -> 649 quick / 666 full.
+# rlfix (RL4.3/RL4.4): read-local GET miss and one-key delete batteries per mode, in the
+# read-local MGET fence job, before the quick-tier exit: DQ=+4, DF=+4.
+# wave3 running total (respresume +12, rlfix +4): DQ=+16, DF=+16 over 637/654 -> 653 / 670.
 EXPECT_QUICK=637
 EXPECT_FULL=654                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -2178,6 +2180,18 @@ py tests/read_local_lane.py 127.0.0.1 "$PORT" --mget-fence \
     >$TMPDIR/gate-rlfence-1s.txt 2>&1 \
     && ok "read-local MGET fence battery (1s)" \
     || bad "read-local MGET fence battery (1s)" "see $TMPDIR/gate-rlfence-1s.txt"
+# RL4.3: each row requires exact local-miss accounting and keymiss delivery.
+# Both collection sites precede the quick-tier exit: DQ=DF=+2; EXPECT is owner-owned.
+row_begin "read-local GET miss battery (1s)"
+py tests/rlfix.py 127.0.0.1 "$PORT" --case miss >$TMPDIR/gate-rlfix-miss-1s.txt 2>&1 \
+    && ok "read-local GET miss battery (1s)" \
+    || bad "read-local GET miss battery (1s)" "see $TMPDIR/gate-rlfix-miss-1s.txt"
+# RL4.4: precise DEL/UNLINK plus same-key RYOW; multi-key control stays broad.
+# These two rows also precede quick exit: RL4.3+RL4.4 total DQ=DF=+4.
+row_begin "read-local one-key delete battery (1s)"
+py tests/rlfix.py 127.0.0.1 "$PORT" --case delete >$TMPDIR/gate-rlfix-del-1s.txt 2>&1 \
+    && ok "read-local one-key delete battery (1s)" \
+    || bad "read-local one-key delete battery (1s)" "see $TMPDIR/gate-rlfix-del-1s.txt"
 stop
 row_begin "read-local MGET fence battery (2s)"
 if boot "$CANDIDATE_BINARY" --atomic 1 --read-local 1 --enable-debug-command yes && \
@@ -2187,6 +2201,14 @@ if boot "$CANDIDATE_BINARY" --atomic 1 --read-local 1 --enable-debug-command yes
 else
     bad "read-local MGET fence battery (2s)" "see $TMPDIR/gate-rlfence-2s.txt and $SRVLOG"
 fi
+row_begin "read-local GET miss battery (2s)"
+py tests/rlfix.py 127.0.0.1 "$PORT" --case miss >$TMPDIR/gate-rlfix-miss-2s.txt 2>&1 \
+    && ok "read-local GET miss battery (2s)" \
+    || bad "read-local GET miss battery (2s)" "see $TMPDIR/gate-rlfix-miss-2s.txt"
+row_begin "read-local one-key delete battery (2s)"
+py tests/rlfix.py 127.0.0.1 "$PORT" --case delete >$TMPDIR/gate-rlfix-del-2s.txt 2>&1 \
+    && ok "read-local one-key delete battery (2s)" \
+    || bad "read-local one-key delete battery (2s)" "see $TMPDIR/gate-rlfix-del-2s.txt"
 stop
 }
 

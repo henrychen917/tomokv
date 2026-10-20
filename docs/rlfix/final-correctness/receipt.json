@@ -1,0 +1,398 @@
+[
+  {
+    "label": "1s-a0-0-miss",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "25610",
+      "--case",
+      "miss",
+      "--oracle-port",
+      "25611"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a0-1-delete",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "25610",
+      "--case",
+      "delete"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a0-2-ryow",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/ryow.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a0-3-atomic_ryow",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/atomic_ryow.py",
+      "127.0.0.1",
+      "25610",
+      "--no-rate-assertions"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a0-4-bplus",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/bplus.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 1
+  },
+  {
+    "label": "1s-a0-5-read_local_lane",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/read_local_lane.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a0-6-read_local_lane",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/read_local_lane.py",
+      "127.0.0.1",
+      "25610",
+      "--mget-fence"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a1-0-miss",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "25610",
+      "--case",
+      "miss",
+      "--oracle-port",
+      "25611"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a1-1-delete",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "25610",
+      "--case",
+      "delete"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a1-2-ryow",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/ryow.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a1-3-atomic_ryow",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/atomic_ryow.py",
+      "127.0.0.1",
+      "25610",
+      "--no-rate-assertions"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a1-4-bplus",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/bplus.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a1-5-read_local_lane",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/read_local_lane.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "1s-a1-6-read_local_lane",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/read_local_lane.py",
+      "127.0.0.1",
+      "25610",
+      "--mget-fence"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a0-0-miss",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "25610",
+      "--case",
+      "miss",
+      "--oracle-port",
+      "25611"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a0-1-delete",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "25610",
+      "--case",
+      "delete"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a0-2-ryow",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/ryow.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a0-3-atomic_ryow",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/atomic_ryow.py",
+      "127.0.0.1",
+      "25610",
+      "--no-rate-assertions"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a0-4-bplus",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/bplus.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a0-5-read_local_lane",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/read_local_lane.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a0-6-read_local_lane",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/read_local_lane.py",
+      "127.0.0.1",
+      "25610",
+      "--mget-fence"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a1-0-miss",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "25610",
+      "--case",
+      "miss",
+      "--oracle-port",
+      "25611"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a1-1-delete",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "25610",
+      "--case",
+      "delete"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a1-2-ryow",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/ryow.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a1-3-atomic_ryow",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/atomic_ryow.py",
+      "127.0.0.1",
+      "25610",
+      "--no-rate-assertions"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a1-4-bplus",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/bplus.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a1-5-read_local_lane",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/read_local_lane.py",
+      "127.0.0.1",
+      "25610"
+    ],
+    "exit_code": 0
+  },
+  {
+    "label": "2s-a1-6-read_local_lane",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/read_local_lane.py",
+      "127.0.0.1",
+      "25610",
+      "--mget-fence"
+    ],
+    "exit_code": 0
+  }
+]
