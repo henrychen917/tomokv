@@ -221,6 +221,12 @@ fixed in the existing epoll send paths. No command handler was edited.
 Performance and the full gate remain maintainer-owned; there is no throughput
 claim.
 
+**Qualification:** all requested proof was run, but the standard io_uring matrix
+has one unresolved one-millisecond HPTTL deadline failure. The epoll standard
+matrix, limits and fragment corpora, directed rows, gate-profile batteries,
+gate self-tests, and production builds pass. This is not an all-green
+correctness sign-off.
+
 ### Identity attempt and final source
 
 `09addf4cc` changes only four Makefile inlining budgets and retains the
@@ -350,10 +356,10 @@ candidate TLS streams; no receipt claims that Redis was booted with TLS.
 | N3/N4 rows on PRE `567d3b8e3` | **FAIL as required**, both modes and engines; [PRE ledger](docs/ntfix/ntfix2/pre-final/rows.log) |
 | N4 deterministic production-parser unit | PRE **FAIL**, POST **PASS**; [PRE](docs/ntfix/ntfix2/pre-final/frontier-unit.log), [POST full netcap unit](docs/ntfix/ntfix2/post/netcap-unit.log) |
 | Unchanged respresume limits corpus, 2 modes × 2 engines × TCP/TLS | **0 differences** in every geometry; [ledger](docs/ntfix/ntfix2/post/limits.log), exact compressed streams in its adjacent `limits/` tree |
-| TLS/RESP fragment corpus including close cases | PENDING FINAL RECEIPT |
-| Existing RESP/netcap/TLS batteries | PENDING FINAL RECEIPT |
-| Epoll infofix, both geometries, atomics 0/1, seeds 7/19/20/23 | PENDING FINAL RECEIPT |
-| `tests/differ_gate.sh` standard seeds, both engines | PENDING FINAL RECEIPT |
+| TLS/RESP fragment corpus including close cases | **PASS**, 4,692 trials × 8 mode/engine/transport combinations = **37,536 trials, 0 differences**. All 19 close-case families remain enabled, RESP2/RESP3 and seeds 7/19/20/23. [Ledger](docs/ntfix/ntfix2/post/fragments-batteries.log), individual `fragment-tcp.log` / `fragment-tls.log` receipts in the adjacent tree. |
+| Existing RESP/netcap/TLS batteries | **PASS**, 12/12 battery legs across both modes and engines with the gate's declared boot settings; [ledger](docs/ntfix/ntfix2/post/batteries-gate-profile.log). Initial boot-contract and optional default-cipher failures are retained and explained below. |
+| Epoll infofix, both geometries, atomics 0/1, seeds 7/19/20/23 | **PASS**, all 16 INFO legs. [Split](docs/ntfix/ntfix2/differ/epoll-split-infofix.log): 8/8. [Armed fused](docs/ntfix/ntfix2/differ/epoll-armed-fused-infofix-witness.log): 8 INFO + 8 unchanged string legs and both read-local witnesses pass. |
+| `tests/differ_gate.sh` standard seeds, both engines | **Epoll PASS: 475/475. io_uring FAIL: 474 pass / 1 fail**, `hexpire`, atomic=0, seed=7, one HPTTL deadline comparison. Both run all 47 suites, seeds 7/19/20/23/21, atomic 0/1, four multi repeats and the 32-case mode-equivalence check. [io_uring](docs/ntfix/ntfix2/differ/uring-split-standard.log), [epoll](docs/ntfix/ntfix2/differ/epoll-split-standard.log). |
 | `python3 tests/gates_test.py` | **PASS**, 66 tests in 317.224 seconds, plus the nested 14-test persistence identity self-test; [log](docs/ntfix/ntfix2/post/gates-test.log). Command: `taskset -c 105-111 env GATE_TEST_PORT=25899 python3 tests/gates_test.py`. |
 | `make all`, every `job_production_units` target, freshness | **PASS**: all 31 named unit/control targets plus both `mdbqsbr-live-arms` binaries, 36 successful build/freshness commands; [results](docs/ntfix/ntfix2/production/results.json), [inventory](docs/ntfix/ntfix2/production/targets.txt). The aggregate is phony; `make -q` checked each concrete arm with its original flags. |
 | Full gate / ABBA / throughput measurements | **NOT RUN** — explicitly maintainer-owned |
@@ -365,11 +371,78 @@ valid ten-argument DEL. An initially used ten-argument PING exposed a separate
 AUTH-versus-arity error-precedence difference; that is not a length-limit
 failure and is not silently presented as fixed here.
 
+The initial combined fragment/battery run used the ordinary default boot.
+Its **eight fragment legs and four RESP compatibility legs pass**. All four
+netcap invocations correctly refused the missing fixed-ownership precondition
+(`--client-lb 0`). Both io_uring full TLS batteries passed; both epoll default-
+cipher TLS batteries failed the `TLSv1.3 did not retain the OpenSSL record layer`
+gauge assertion. These six failures remain in the combined ledger; its nonzero
+exit is not described as a successful whole run.
+
+`6792184d2` fixes only the new proof driver's battery boot: `--client-lb 0`,
+`--enable-debug-command yes`, and the TLS gate's existing TLS1.2 CBC / TLS1.3
+AES-256-GCM cipher settings with `--expect-ktls no`. The unchanged batteries
+then pass all twelve legs, including the userspace-cipher counters. The
+fragment receipts retain their original default-client-balancing/default-cipher
+boots. No battery assertion or deadline was changed. Separate frozen-PRE and
+POST default-cipher controls are retained under
+[controls](docs/ntfix/ntfix2/controls/results.json).
+
+Fresh uninstrumented default-cipher controls passed on PRE in both modes and
+on POST split, while POST fused failed the same gauge assertion. Five further
+fresh fused boots **per arm**, recording the unchanged battery's INFO results
+in memory, reproduced it **5/5 on PRE and 5/5 on POST**.
+[Results](docs/ntfix/ntfix2/controls-gauges/results.json) and per-boot
+`gauges.json` snapshots show TLS1.3 fallback and RX-decline counters increasing
+3 → 4 while `tls_ktls_active` remains 1 from the preceding, gracefully closed
+TLS1.2 probe. This is a pre-existing default-cipher kTLS gauge/lifecycle
+finding, still open. The observer returns each original INFO dictionary
+unchanged and writes snapshots only after the battery finishes; assertions,
+the 50 ms close interval, and the rest of the battery are untouched.
+
+The initial focused armed-fused INFO run had **zero reply/property differences
+in all eight legs**, but its coordinator correctly failed both read-local
+non-vacuity checks: INFO ends with `CONFIG RESETSTAT`, so every sampled counter
+was zero. The retained [first receipt](docs/ntfix/ntfix2/differ/epoll-armed-fused-infofix.log)
+is not called a pass. The follow-up adds the existing `string` suite before
+each INFO leg, without changing either suite or the coordinator. Sampled
+read-local peaks are 6 (atomic=0) and 7 (atomic=1), while final counters are
+zero after RESETSTAT. The coordinator now passes all 18 checks.
+
+The standard io_uring failure is retained at
+[hexpire-a0-s7.txt](docs/ntfix/ntfix2/differ/uring-split-standard/hexpire-a0-s7.txt):
+HPTTL returned 107502935413 ms for an absolute deadline of
+1900000007777000000 ns. That implies a clock cut of 1792497072364000000 ns,
+one millisecond before the measured request window beginning at
+1792497072365000000 ns. The handler, its cached-clock source, and the
+differential assertion are unchanged. The first focused PRE/POST repeat
+passes 8/8 on each arm; five additional fresh PRE matrices pass 40/40.
+[Initial repeats](docs/ntfix/ntfix2/expiry/results.json),
+[bounded PRE rolls](docs/ntfix/ntfix2/expiry-pre-rolls/results.json).
+Thus this failure was **not reproduced on PRE**, and remains unresolved;
+the focused successes do not replace the failed standard run or establish
+that its cause is pre-existing.
+
+The AUTH-versus-arity difference is directly reproduced on frozen PRE and
+POST in both modes: a ten-argument unauthenticated PING returns the arity error,
+where Redis returns NOAUTH; all keep the connection open. See each
+`auth-arity.json` under [controls](docs/ntfix/ntfix2/controls/).
+The valid ten-argument DEL in N3 isolates the protocol count boundary while
+retaining this separate finding.
+
 The existing `respresume-unit` also passes all three groups. The migration
 unit initially refused the seven-CPU client mask because its fixture requires
 eight allowed CPUs; rerunning this in-process unit on 96–111 passes all six
 ordinary/R7, 1s/2s, client-LB/FLIP migration witnesses. Both execution receipts
 are retained under `docs/ntfix/ntfix2/post/`.
+
+Final checks repeat all **34 `make -q` checks successfully**, including `all`
+and both concrete parked/no-wake arms, without rebuilding or changing the
+candidate. Python compilation, shell syntax, and `git diff --check` pass.
+All lane listeners are gone. The final hashes, oracle/source identity, CPU
+masks, unchanged EXPECT constants, and freshness results are recorded in
+[artifacts.json](docs/ntfix/ntfix2/artifacts.json) and
+[final-freshness.json](docs/ntfix/ntfix2/production/final-freshness.json).
 
 ### Gate accounting
 
@@ -403,6 +476,8 @@ This is a **total-text-size control**, not a
 claim that every POST function has PRE placement.
 [Build/validation receipt](docs/ntfix/ntfix2/pad/receipt.json);
 reproducible builder: `docs/ntfix/pad.py`.
+All sixteen directed row outcomes on PAD A also match frozen PRE exactly;
+[behaviour receipt](docs/ntfix/ntfix2/pad/behaviour.json).
 
 The first generic padding attempt was rejected because an assembly object
 without `.note.gnu.property` dropped IBT/SHSTK and changed the PLT. Its receipt

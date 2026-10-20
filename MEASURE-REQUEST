@@ -1,8 +1,12 @@
-Lane ntfix2: correctness candidate ready for maintainer merit review.
+Lane ntfix2: correctness candidate and maintainer merit request.
 
 The full request, correctness results, changed-body inventory, gate row accounting,
 and reproducible build receipts are in MEASURE-REQUEST-ntfix.md, section "ntfix2".
 Read that section's outstanding/failing proof disclosures before gating or merging.
+The standard io_uring matrix has one unresolved one-millisecond HPTTL deadline
+failure; focused repeats are green but do not erase it. The default-cipher epoll
+kTLS gauge/lifecycle finding also reproduces on PRE. This is not an all-green
+correctness sign-off.
 
 PRE:   build/ntfix-pre/tomokv
        5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5

@@ -1,0 +1,147 @@
+[
+  {
+    "arm": "pre",
+    "repeat": 1,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/pre-expiry-uring",
+      "25810",
+      "25811",
+      "96-103",
+      "6:2"
+    ],
+    "binary_sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_DIFFER_ORACLE_CORES": "104",
+      "GATE_LOAD_CORES": "105-111",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/pre-r1",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-ntfix/.gate-history/differ-ntfix2-expiry",
+      "GATE_RUN_ID": "ntfix2-expiry",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/seeds.txt"
+    },
+    "returncode": 0
+  },
+  {
+    "arm": "pre",
+    "repeat": 2,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/pre-expiry-uring",
+      "25810",
+      "25811",
+      "96-103",
+      "6:2"
+    ],
+    "binary_sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_DIFFER_ORACLE_CORES": "104",
+      "GATE_LOAD_CORES": "105-111",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/pre-r2",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-ntfix/.gate-history/differ-ntfix2-expiry",
+      "GATE_RUN_ID": "ntfix2-expiry",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/seeds.txt"
+    },
+    "returncode": 0
+  },
+  {
+    "arm": "pre",
+    "repeat": 3,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/pre-expiry-uring",
+      "25810",
+      "25811",
+      "96-103",
+      "6:2"
+    ],
+    "binary_sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_DIFFER_ORACLE_CORES": "104",
+      "GATE_LOAD_CORES": "105-111",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/pre-r3",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-ntfix/.gate-history/differ-ntfix2-expiry",
+      "GATE_RUN_ID": "ntfix2-expiry",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/seeds.txt"
+    },
+    "returncode": 0
+  },
+  {
+    "arm": "pre",
+    "repeat": 4,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/pre-expiry-uring",
+      "25810",
+      "25811",
+      "96-103",
+      "6:2"
+    ],
+    "binary_sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_DIFFER_ORACLE_CORES": "104",
+      "GATE_LOAD_CORES": "105-111",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/pre-r4",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-ntfix/.gate-history/differ-ntfix2-expiry",
+      "GATE_RUN_ID": "ntfix2-expiry",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/seeds.txt"
+    },
+    "returncode": 0
+  },
+  {
+    "arm": "pre",
+    "repeat": 5,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/pre-expiry-uring",
+      "25810",
+      "25811",
+      "96-103",
+      "6:2"
+    ],
+    "binary_sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_DIFFER_ORACLE_CORES": "104",
+      "GATE_LOAD_CORES": "105-111",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/pre-r5",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-ntfix/.gate-history/differ-ntfix2-expiry",
+      "GATE_RUN_ID": "ntfix2-expiry",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/expiry-pre-rolls/seeds.txt"
+    },
+    "returncode": 0
+  }
+]

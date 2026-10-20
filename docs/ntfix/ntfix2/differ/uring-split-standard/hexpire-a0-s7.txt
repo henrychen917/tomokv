@@ -1,0 +1,5 @@
+  TTL DEADLINE FAIL side=target command=['HPTTL', 'hx4', 'FIELDS', '2', 'f13', 'f12'] reply=107502935413 deadline_ns=(1900000007777000000, 1900000007777000000) window_ns=(1792497072365000000, 1792497072369783835)
+  DIFF op 2224 ['HPTTL', 'hx4', 'FIELDS', '2']
+    target: b'*2\r\n:107502935413\r\n:107506527636\r\n'
+    oracle: b'*2\r\n:107502935412\r\n:107506527635\r\n'
+DIFFER hexpire: 4288 ops, 1 diffs, 299 deadline-bounded TTL checks -> FAIL
