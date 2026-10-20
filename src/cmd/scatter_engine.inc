@@ -1465,24 +1465,6 @@ void free_state_key_anchors(ScatterState& state) {
     }
 }
 
-// MGET/MSET post one task per distinct shard from the connection's IO producer.
-// Probe that producer's existing inbox credits before allocating/registering a cut.
-// The dispatch-side check remains authoritative if a shard's owner moves meanwhile.
-__attribute__((noinline)) bool multikey_task_room(Server& server, uint32_t owner_io,
-                                                  const RouteKey* routes, uint32_t count) {
-    uint64_t seen[4] = {};
-    uint16_t needed[kMaxThreads] = {};
-    for (uint32_t i = 0; i < count; ++i) {
-        const uint32_t sid = static_cast<uint32_t>(routes[i].shard);
-        const uint64_t bit = uint64_t{1} << (sid & 63);
-        if (seen[sid / 64] & bit) continue;
-        seen[sid / 64] |= bit;
-        const uint32_t owner = server.worker_of_shard(static_cast<int32_t>(sid));
-        if (server.thread(owner).task_free_slots(owner_io) < ++needed[owner]) return false;
-    }
-    return true;
-}
-
 }  // namespace
 
 ScatterArenaPool::~ScatterArenaPool() {
@@ -1897,15 +1879,6 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             if (routes != route_stack) delete[] routes;
             return ScatterPrepare::NotScatter;
         }
-    }
-
-    // Only top-level MGET/MSET use this initial IO fan-out. Forced EXEC children have
-    // an outer owner/queue plan and must not consume or test these unrelated credits.
-    // Backpressure leaves the frame unconsumed under the existing parser retry path.
-    if (!force_atomic && origin_client && (kind == Kind::Mget || kind == Kind::Mset) &&
-        !multikey_task_room(server, owner_io, routes, key_count)) {
-        if (routes != route_stack) delete[] routes;
-        return ScatterPrepare::Backpressure;
     }
 
     uint32_t phase1_first = (is_store_setop(kind) || is_store_zsetop(kind) ||
