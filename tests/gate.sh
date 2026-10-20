@@ -1262,7 +1262,7 @@ store_build(){
       "$PWD/build/store-regression${variant:+-$variant}" \
       "$PWD/build/gate-cache/store${variant:+-$variant}-objects" \
       "$flags" '-Wl,--gc-sections' \
-      tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/storesize.cc
+      tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/hexpread.cc src/cmd/storesize.cc
 }
 
 job_release(){

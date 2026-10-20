@@ -1,0 +1,12 @@
+/usr/bin/ld: /home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/build/gate-cache/store-objects-repro/src_cmd_t_hash.o: in function `void tomo::(anonymous namespace)::cmd_hscan<true>(tomo::Shard&, tomo::Op&)':
+/home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/src/cmd/t_hash.cc:1264:(.text._ZN4tomo12_GLOBAL__N_19cmd_hscanILb1EEEvRNS_5ShardERNS_2OpE+0x8f): undefined reference to `tomo::hash_parked_reply(tomo::Shard&, tomo::Op&)'
+/usr/bin/ld: /home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/build/gate-cache/store-objects-repro/src_cmd_t_hash.o: in function `void tomo::(anonymous namespace)::cmd_hscan<false>(tomo::Shard&, tomo::Op&)':
+/home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/src/cmd/t_hash.cc:1264:(.text._ZN4tomo12_GLOBAL__N_19cmd_hscanILb0EEEvRNS_5ShardERNS_2OpE+0x8f): undefined reference to `tomo::hash_parked_reply(tomo::Shard&, tomo::Op&)'
+/usr/bin/ld: /home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/build/gate-cache/store-objects-repro/src_cmd_t_hash.o: in function `void tomo::(anonymous namespace)::cmd_hmget<true>(tomo::Shard&, tomo::Op&)':
+/home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/src/cmd/t_hash.cc:984:(.text._ZN4tomo12_GLOBAL__N_19cmd_hmgetILb1EEEvRNS_5ShardERNS_2OpE+0x3d): undefined reference to `tomo::hash_parked_reply(tomo::Shard&, tomo::Op&)'
+/usr/bin/ld: /home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/build/gate-cache/store-objects-repro/src_cmd_t_hash.o: in function `void tomo::(anonymous namespace)::cmd_hget<true>(tomo::Shard&, tomo::Op&)':
+/home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/src/cmd/t_hash.cc:972:(.text._ZN4tomo12_GLOBAL__N_18cmd_hgetILb1EEEvRNS_5ShardERNS_2OpE+0x131): undefined reference to `tomo::hash_parked_reply(tomo::Shard&, tomo::Op&)'
+/usr/bin/ld: /home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/build/gate-cache/store-objects-repro/src_cmd_t_hash.o: in function `void tomo::(anonymous namespace)::cmd_hmget<false>(tomo::Shard&, tomo::Op&)':
+/home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/src/cmd/t_hash.cc:984:(.text._ZN4tomo12_GLOBAL__N_19cmd_hmgetILb0EEEvRNS_5ShardERNS_2OpE+0x3d): undefined reference to `tomo::hash_parked_reply(tomo::Shard&, tomo::Op&)'
+/usr/bin/ld: /home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/build/gate-cache/store-objects-repro/src_cmd_t_hash.o:/home/user/Projects/cx-wave3/build/wave3/refs/hexpread-src/src/cmd/t_hash.cc:972: more undefined references to `tomo::hash_parked_reply(tomo::Shard&, tomo::Op&)' follow
+collect2: error: ld returned 1 exit status
