@@ -1,0 +1,12 @@
+[
+  {
+    "revision": "98c69316d",
+    "sha256": "e3533b8b6248a0ef8efc53be343831b0881e9d014a330abc6995bda6c260cb18",
+    "body": "    void atomic_commit_publish() {\n        // Loaded BEFORE the decrement on purpose: it is the value whose publication the count\n        // still proves. Reading it after would let a ticket drawn by a newcomer ride in.\n        const uint64_t drawn = commit_seq_.load(std::memory_order_seq_cst);\n        if (atomic_commit_inflight_.fetch_sub(1, std::memory_order_acq_rel) != 1) {\n            // Another committer is still between its draw and its store, so the watermark stays\n            // where it is and every reader's cut stays below that undecided ticket. Counting it is\n            // how the regression battery proves the guarded window actually opened.\n            atomic_commit_windows_.fetch_add(1, std::memory_order_relaxed);\n            return;\n        }\n        uint64_t safe = atomic_commit_safe_.load(std::memory_order_relaxed);\n        while (safe < drawn &&\n               !atomic_commit_safe_.compare_exchange_weak(\n                   safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}\n    }"
+  },
+  {
+    "revision": "bd2fb1fcb",
+    "sha256": "e3533b8b6248a0ef8efc53be343831b0881e9d014a330abc6995bda6c260cb18",
+    "body": "    void atomic_commit_publish() {\n        // Loaded BEFORE the decrement on purpose: it is the value whose publication the count\n        // still proves. Reading it after would let a ticket drawn by a newcomer ride in.\n        const uint64_t drawn = commit_seq_.load(std::memory_order_seq_cst);\n        if (atomic_commit_inflight_.fetch_sub(1, std::memory_order_acq_rel) != 1) {\n            // Another committer is still between its draw and its store, so the watermark stays\n            // where it is and every reader's cut stays below that undecided ticket. Counting it is\n            // how the regression battery proves the guarded window actually opened.\n            atomic_commit_windows_.fetch_add(1, std::memory_order_relaxed);\n            return;\n        }\n        uint64_t safe = atomic_commit_safe_.load(std::memory_order_relaxed);\n        while (safe < drawn &&\n               !atomic_commit_safe_.compare_exchange_weak(\n                   safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}\n    }"
+  }
+]
