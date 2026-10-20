@@ -1,0 +1,12 @@
+1s-uring respcompat: rc=0
+1s-uring netcap: rc=0
+1s-uring tls: rc=0
+1s-epoll respcompat: rc=0
+1s-epoll netcap: rc=0
+1s-epoll tls: rc=0
+2s-uring respcompat: rc=0
+2s-uring netcap: rc=0
+2s-uring tls: rc=0
+2s-epoll respcompat: rc=0
+2s-epoll netcap: rc=0
+2s-epoll tls: rc=0
