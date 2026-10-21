@@ -233,8 +233,11 @@ matrices. No new row skips an unobserved window.
 Integration starts from `c72768985` and merges `origin/cpp` at `8656f9fa9`
 with merge commit `640a11b42`. Git reports no textual conflicts. Both lanes'
 production changes and all seven combined rows remain. No EXPECT constant is
-edited. Validation and compile-only derivation receipts follow under
-`docs/compat2b`; this section will be completed with final outcomes.
+edited. All three compat2 rows pass POST and fail headline through the same
+gate job interface. The four standard differential matrices pass **1,882/1,882**.
+The final selected-job replay is **40 pass / 1 fail**: its sole failure is the
+unmodified receipt entry guard refusing owner-owned EXPECT_FULL=686 against
+689 source/fixture rows. Receipts and the final audit are under `docs/compat2b`.
 
 ### Redis 7.4.10 precedence after composition
 
@@ -390,7 +393,16 @@ Actual interface receipts are `docs/compat2b/gate-post/` and `gate-pre/`;
 `directed-summary.json` retains each C1 comparison count, C2 witnessed state and
 C3 unit output. The C1 inventory still covers 245 registered top-level commands,
 with explicit metadata exclusions and authenticated/unauthenticated right/wrong
-arity probes. The pinned Redis oracle remains 7.4.10.
+arity probes. The pinned Redis oracle remains 7.4.10. Per leg, the 1,522
+comparisons are 340 unauthenticated right-arity, 340 authenticated right-arity,
+433 unauthenticated wrong-arity, 407 authenticated wrong-arity, and two unknown
+command probes. Authenticated right-arity probes deliberately use a command-
+denied ACL user; wrong-arity probes use the fully authorized default user.
+This isolates arity/AUTH/ACL precedence without executing blocking or unstable
+administrative handlers. The receipt explicitly lists 24 variadic entries with
+no representable invalid advertised arity (their valid boundary is tested),
+and `FLIP`, the local extension with no Redis oracle. No missing probe is
+silently counted as a successful comparison.
 
 All **20 rows in the actual TLS job pass**. The supplemental batteries also
 pass **24/24 live commands** across both modes/engines: required and optional
@@ -414,55 +426,106 @@ environment, return codes and every per-leg comparison log are under
 | io_uring / split | **475 pass / 0 fail** | 7, 19, 20, 23, 21 |
 | io_uring / fused with read-local armed | **466 pass / 0 fail** | 7, 19, 20, 23, 22 |
 | epoll / split | **475 pass / 0 fail** | 7, 19, 20, 23, 24 |
-| epoll / fused with read-local armed | Running | 7, 19, 20, 23, 25 |
+| epoll / fused with read-local armed | **466 pass / 0 fail** | 7, 19, 20, 23, 25 |
+
+Together these are **1,876 successful Redis-comparison legs**, four positive
+read-local witnesses and two successful mode-equivalence matrices: **1,882
+pass / 0 fail**. The focused suite totals are **40/40 each** for `infofix`,
+`notify`, `hash`, `hexpire` and `edgetime`, covering both engines, both modes,
+both atomic settings and all standard seeds. In particular, epoll's formerly
+failing INFO differential passes **20/20 legs**. Full suite and seed accounting
+is in `final-proof.json`.
 
 The standard fused driver skips SORT because that suite requires split 6:2;
 these skips are not passes, and SORT remains exercised in each split matrix.
 The standard driver's mode-equivalence display still says “all 32,” but the
 current source declares and checks **16 cells** (`mode_equivalence.py:41–42,
 179`), and both engine receipts contain **16/16**: 6,137 byte-identical replies
-per io_uring cell and 6,154 per epoll cell. This report uses the executed inventory, not the stale label.
+per io_uring cell and 6,154 per epoll cell. This report uses the executed
+inventory, not the stale label.
 
-### Initial failures retained; final replay required
+### Initial failures retained and final replay outcomes
 
 - `storesize published monitoring` still expected the historical
   `-ERR unknown DBSIZE option` for `DBSIZE bad`. C1 intentionally follows Redis's
   advertised arity. The passing C1 oracle receipts show the exact wrong-arity
   reply in both authentication states. `storesize_unit.cc` now requires that
   exact reply; the existing `DBSIZE NOW` / `now` extension assertions remain.
-  No production change was needed. The owning `atomic_units` job is queued for
-  replay through the same gate interface.
+  No production change was needed. The owning `atomic_units` job now passes
+  **27/27 rows**, including the corrected assertion, through the same interface.
 - The initial `gates_test.py` run reports **67 tests / 29 subtest failures**:
   its helper-invocation assertions still required short-circuiting after the
   first failure. They now require **all 15 helpers**, while preserving every
   assertion that any nonzero helper result makes the row fail. All **five
-  focused LedgerWiring tests pass**; the whole suite is queued in the actual
-  `abba_selftest` replay. Its scheduler fixture also uses its permitted CPU mask,
-  as described above.
+  focused LedgerWiring tests pass**; the whole suite now passes **67/67** in
+  the actual `abba_selftest` replay. Its nested 14-test scheduler suite also
+  passes. The scheduler fixture uses its permitted CPU mask, as described above.
 - The initial history self-test reports **55 tests / three failures** because
   its isolated real-job fixture lacks `GATE_SLOTS` and `ALL_BUILD_CORES`, now
   read by the single-slot build-mask preservation. The fixture now declares
   one slot and uses its permitted fixture CPU for builds. Timeout, partial-ledger,
   child-reaping and inherited-finalizer assertions remain unchanged. The full
-  history suite runs in the queued actual `abba_selftest` job replay.
+  history suite now passes **55/55** in the actual `abba_selftest` job replay.
 - The initial ABBA self-test has one `KeyError: statistical_verdict` in its
   favorable-null mutation case. A scheduler-fixture source edit occurred during
   that test, whose real driver refuses a changed harness before publishing
   `statistical_verdict`. This is consistent with the change guard, not evidence
   of a server defect. The **unchanged focused test passes** with frozen sources
   (one test, 96.327 seconds); no comparator assertion or instrument behavior was
-  changed to obtain that result. The complete frozen-source job replay is still
-  required to supersede the initial failure.
+  changed to obtain that result. The complete frozen-source job replay now
+  passes **121/121**, superseding the initial failure.
 - The first attempt to queue that replay used a leading-hyphen label as a
   separate argparse value and exited 2 before the gate started. That usage error
   is retained at `docs/compat2b/differ/gate-final.log`. The corrected command uses
-  `--label=-final` and runs after the standard matrices, with all twelve parser
-  regression jobs and `atomic_units` in the same selected-job interface.
+  `--label=-final` and completed after the standard matrices, with all twelve
+  parser regression jobs and `atomic_units` in the same selected-job interface.
 - The receipt self-test refuses **EXPECT_FULL=686 versus source/fixture=689**,
   with **zero missing and zero extra fixture labels**. The counts are owner-owned;
   this refusal is retained, not bypassed. Its internal receipt-control suite
-  cannot run until the maintainer updates EXPECT. The other independent helper
-  commands still run and the aggregate row stays failed.
+  is **NOT RUN** because that entry guard refuses the current EXPECT value.
+  All other independent helper commands completed; their test summaries pass
+  and the aggregate row correctly stays failed.
+
+### Final replay, build freshness and artifacts
+
+The final run, `docs/compat2b/gate-post-final/`, executes the actual selected-job
+interface with **40 pass / 1 fail**: one release row, **27 atomic-unit rows**,
+and **12 parser rows** pass; the ABBA helper row fails only on the receipt-count
+refusal above. The parser rows cover fragment, bounded CPU work and neighbour
+progress for every **1s/2s × epoll/uring** combination. All 15 independent ABBA
+helper commands are present. The completed unit-test summaries have no failures;
+raw logs retain both the expected receipt refusal and the successful summaries.
+The earlier failing ledgers are retained alongside this final replay.
+
+`make -k -j16 all` plus **every one of the 35 `job_production_units` targets**
+succeeds. Both concrete MDBQSBR witness arms also build successfully. All
+**38 `make -q` freshness checks** return zero: `all`, the 35 targets and both
+concrete arms with their original flags. `production/results.json` records all
+40 commands and their zero return codes. Shell syntax, 12 Python AST checks and
+`git diff --check` for the production/harness source changes also pass.
+
+The final audit rehashes POST, the frozen compat2 reference, headline, the Redis
+oracle and both Redis source-anchor files. Every reference still matches its
+original receipt. POST is unchanged by the unit rebuilds:
+
+| Arm | Binary | SHA-256 |
+|---|---|---|
+| Merged POST | `build/tomokv` | `d611f49909f254fa94e9096283c5ec4921593e8de24b549453e884c0a8a5b8c0` |
+| 8656f9fa9 | `build/compat2b/headline-src/build/tomokv` | `91ae41fd2fda0738a02ee0eed50021d772985654b19f55d1296812aaafaa6426` |
+
+`final-proof.json` records the gate ledgers, standard matrices, helper summaries,
+build freshness, final source/fixture inventory and hashes. Resource snapshots
+in `resource-observations.json` confirm server threads on 64–71, Redis on 72
+and clients on 73–79. The final cleanup check finds **no listeners on
+26800–26899 and no remaining owned correctness-server processes**.
+
+**NOT RUN:** the receipt-control suite behind the refusing entry guard; the
+20 fused SORT legs that the unchanged standard driver excludes because they
+require split 6:2 (all 20 split SORT legs pass); a Redis comparison for the
+local-only `FLIP` extension; and performance/null measurements and the full
+landing/iteration gate reserved for the maintainer. The 24 variadic entries
+without a representable invalid advertised arity are explicitly recorded by
+C1, rather than fabricated as successful wrong-arity probes.
 
 ### Required counts and landing comparison
 
@@ -486,7 +549,14 @@ self-test can complete; no passing full-gate receipt is claimed here.
 
 The maintainer's pending work is the requested **null comparison of merged POST
 against 8656f9fa9**, using the gate's own instrument, followed by the landing
-gate. The lane ran correctness only. No throughput, latency, cycles/op or merit
+gate. Use the full current `tests/headline_cells.txt` inventory and the two
+binary arms/hashes listed above, with the instrument's existing geometry,
+matched offered load, and same-binary null control. The gate's existing per-cell
+acceptance rules decide: rate for throughput cells and its latency score for
+depth-one cells; retain cycles/op, instructions/op and IPC to explain any change.
+This compat2b request supersedes the older-base arm paths in the compat2 section;
+its previously measured merit and PAD artifacts are historical evidence only.
+The lane ran correctness only. No throughput, latency, cycles/op or merit
 claim is made from compile identity or correctness results. No performance
 benchmark, measurement load generator, full `iteration`, push or merge into
 `cpp` was run by this lane.

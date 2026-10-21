@@ -98,5 +98,103 @@
         }
       }
     ]
+  },
+  {
+    "observed_at": "2026-10-21T11:45:11.336716+00:00",
+    "phase": "epoll-armed-fused",
+    "processes": [
+      {
+        "pid": 2973731,
+        "kind": "oracle",
+        "argv": [
+          "/home/user/Projects/redis74/src/redis-server 127.0.0.1:26811"
+        ],
+        "thread_affinity": {
+          "2973731": "72",
+          "2973740": "72",
+          "2973741": "72",
+          "2973742": "72",
+          "2973743": "72",
+          "2973744": "72"
+        }
+      },
+      {
+        "pid": 2973756,
+        "kind": "target",
+        "argv": [
+          "/home/user/Projects/cx-compat2/build/tomokv",
+          "--net-io",
+          "epoll",
+          "--port",
+          "26810",
+          "--bind",
+          "127.0.0.1",
+          "--shards",
+          "16",
+          "--thread-mode",
+          "fused",
+          "--read-local",
+          "1",
+          "--databases",
+          "16",
+          "--atomic",
+          "0",
+          "--save",
+          "--dir",
+          "/home/user/Projects/cx-compat2/docs/compat2b/differ/epoll-armed-fused/target-atomic-0",
+          "--enable-debug-command",
+          "yes",
+          "--aclfile",
+          "/home/user/Projects/cx-compat2/docs/compat2b/differ/epoll-armed-fused/ccfix.acl"
+        ],
+        "thread_affinity": {
+          "2973756": "64-71",
+          "2973765": "64",
+          "2973766": "65",
+          "2973767": "66",
+          "2973768": "67",
+          "2973769": "68",
+          "2973770": "69",
+          "2973771": "70",
+          "2973772": "71"
+        }
+      },
+      {
+        "pid": 2978271,
+        "kind": "client",
+        "argv": [
+          "timeout",
+          "900",
+          "python3",
+          "tests/differ.py",
+          "127.0.0.1",
+          "26810",
+          "127.0.0.1",
+          "26811",
+          "climon",
+          "7"
+        ],
+        "thread_affinity": {
+          "2978271": "73-79"
+        }
+      },
+      {
+        "pid": 2978272,
+        "kind": "client",
+        "argv": [
+          "python3",
+          "tests/differ.py",
+          "127.0.0.1",
+          "26810",
+          "127.0.0.1",
+          "26811",
+          "climon",
+          "7"
+        ],
+        "thread_affinity": {
+          "2978272": "73-79"
+        }
+      }
+    ]
   }
 ]

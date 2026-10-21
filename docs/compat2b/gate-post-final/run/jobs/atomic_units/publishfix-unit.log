@@ -1,0 +1,4 @@
+committers=2 safe=2 drawn=2 windows=1
+committers=3 safe=3 drawn=3 windows=2
+handoff safe=2 drawn=2 windows=1
+PASS publishfix

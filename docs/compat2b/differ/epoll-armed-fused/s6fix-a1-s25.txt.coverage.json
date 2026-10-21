@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "commands": {
+    "DEL": 478,
+    "EXISTS": 461,
+    "GET": 567,
+    "LASTSAVE": 1,
+    "RANDOMKEY": 1,
+    "SCAN": 1019,
+    "SET": 682,
+    "TYPE": 495,
+    "WAITAOF": 505
+  },
+  "kinds": {
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "LASTSAVE": [
+      "positive/not-future property on both servers"
+    ],
+    "RANDOMKEY": [
+      "membership/coverage property on both servers"
+    ],
+    "SCAN": [
+      "complete typed-key set property on both servers",
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ],
+    "WAITAOF": [
+      "reply"
+    ]
+  }
+}

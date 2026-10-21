@@ -1,0 +1,280 @@
+{
+  "binaries_and_source": {
+    "compat2": {
+      "path": "/home/user/Projects/cx-compat2/build/compat2b/compat2/tomokv",
+      "sha256": "b8a21b0f8e880877b46a71b27e89a86ee5071c766da459417d773ba8a52c0596"
+    },
+    "headline": {
+      "path": "/home/user/Projects/cx-compat2/build/compat2b/headline-src/build/tomokv",
+      "sha256": "91ae41fd2fda0738a02ee0eed50021d772985654b19f55d1296812aaafaa6426"
+    },
+    "oracle": {
+      "path": "/home/user/Projects/redis74/src/redis-server",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+    },
+    "networking.c": {
+      "path": "/home/user/Projects/redis/src/networking.c",
+      "sha256": "0ed207f003c35589f97e6375bcf589c5fb22a1f905b3c2e9ec6a08d67984893c"
+    },
+    "server.c": {
+      "path": "/home/user/Projects/redis/src/server.c",
+      "sha256": "9d1f0f0bdc25ed6ebb2efcfce50bd4e678301567507ac6d6c67f1d85e0e6c58e"
+    },
+    "POST": {
+      "path": "/home/user/Projects/cx-compat2/build/tomokv",
+      "sha256": "d611f49909f254fa94e9096283c5ec4921593e8de24b549453e884c0a8a5b8c0"
+    }
+  },
+  "matrices": [
+    {
+      "name": "uring-split",
+      "passed": 475,
+      "failed": 0,
+      "runtime": "17m56s",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "redis_legs": {
+        "ok": 474
+      },
+      "focus_passed": {
+        "infofix": 10,
+        "notify": 10,
+        "hash": 10,
+        "hexpire": 10,
+        "edgetime": 10
+      },
+      "mode_equivalence": {
+        "cells": 16,
+        "replies_per_cell": [
+          6137
+        ]
+      },
+      "read_local_witnesses": []
+    },
+    {
+      "name": "uring-armed-fused",
+      "passed": 466,
+      "failed": 0,
+      "runtime": "17m24s",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        22
+      ],
+      "redis_legs": {
+        "ok": 464,
+        "SKIP": 10
+      },
+      "focus_passed": {
+        "infofix": 10,
+        "notify": 10,
+        "hash": 10,
+        "hexpire": 10,
+        "edgetime": 10
+      },
+      "read_local_witnesses": [
+        "read-local lane fired (atomic=0)                           ok (hits=1257 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+        "read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=21 final_fallbacks=239)"
+      ]
+    },
+    {
+      "name": "epoll-split",
+      "passed": 475,
+      "failed": 0,
+      "runtime": "17m57s",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        24
+      ],
+      "redis_legs": {
+        "ok": 474
+      },
+      "focus_passed": {
+        "infofix": 10,
+        "notify": 10,
+        "hash": 10,
+        "hexpire": 10,
+        "edgetime": 10
+      },
+      "mode_equivalence": {
+        "cells": 16,
+        "replies_per_cell": [
+          6154
+        ]
+      },
+      "read_local_witnesses": []
+    },
+    {
+      "name": "epoll-armed-fused",
+      "passed": 466,
+      "failed": 0,
+      "runtime": "17m20s",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        25
+      ],
+      "redis_legs": {
+        "ok": 464,
+        "SKIP": 10
+      },
+      "focus_passed": {
+        "infofix": 10,
+        "notify": 10,
+        "hash": 10,
+        "hexpire": 10,
+        "edgetime": 10
+      },
+      "read_local_witnesses": [
+        "read-local lane fired (atomic=0)                           ok (hits=1269 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+        "read-local lane fired (atomic=1)                           ok (hits=1269 fallbacks=2 at peak; final_hits=21 final_fallbacks=239)"
+      ]
+    }
+  ],
+  "differential_total_passed": 1882,
+  "gates": {
+    "gate-post": {
+      "passed": 127,
+      "failed": 2,
+      "failed_labels": [
+        "ABBA comparison + saturation negative controls",
+        "storesize published monitoring"
+      ],
+      "command": "docs/compat2b/gate-post/command.json"
+    },
+    "gate-pre": {
+      "passed": 1,
+      "failed": 3,
+      "failed_labels": [
+        "compat2 autharity",
+        "compat2 expire_notify",
+        "compat2 ktls_lifetime"
+      ],
+      "command": "docs/compat2b/gate-pre/command.json"
+    },
+    "gate-post-final": {
+      "passed": 40,
+      "failed": 1,
+      "failed_labels": [
+        "ABBA comparison + saturation negative controls"
+      ],
+      "command": "docs/compat2b/gate-post-final/command.json"
+    }
+  },
+  "instrument_completed_suites": [
+    {
+      "tests": 121,
+      "seconds": 255.065,
+      "verdict": "OK"
+    },
+    {
+      "tests": 10,
+      "seconds": 0.008,
+      "verdict": "OK"
+    },
+    {
+      "tests": 9,
+      "seconds": 0.47,
+      "verdict": "OK"
+    },
+    {
+      "tests": 16,
+      "seconds": 0.401,
+      "verdict": "OK"
+    },
+    {
+      "tests": 8,
+      "seconds": 0.041,
+      "verdict": "OK"
+    },
+    {
+      "tests": 11,
+      "seconds": 2.632,
+      "verdict": "OK"
+    },
+    {
+      "tests": 7,
+      "seconds": 0.822,
+      "verdict": "OK"
+    },
+    {
+      "tests": 11,
+      "seconds": 0.001,
+      "verdict": "OK"
+    },
+    {
+      "tests": 55,
+      "seconds": 21.114,
+      "verdict": "OK"
+    },
+    {
+      "tests": 12,
+      "seconds": 0.481,
+      "verdict": "OK"
+    },
+    {
+      "tests": 14,
+      "seconds": 0.202,
+      "verdict": "OK"
+    },
+    {
+      "tests": 67,
+      "seconds": 322.767,
+      "verdict": "OK"
+    },
+    {
+      "tests": 8,
+      "seconds": 0.044,
+      "verdict": "OK"
+    },
+    {
+      "tests": 8,
+      "seconds": 1.823,
+      "verdict": "OK"
+    },
+    {
+      "tests": 3,
+      "seconds": 0.009,
+      "verdict": "OK"
+    }
+  ],
+  "receipt_control_suite": "NOT RUN: the unmodified entry guard refuses EXPECT_FULL=686 versus 689 source/fixture rows",
+  "production": {
+    "targets": 35,
+    "commands": 40,
+    "freshness_checks": 38,
+    "all_returncodes_zero": true
+  },
+  "ledger": {
+    "quick": 672,
+    "full": 689,
+    "headline_quick": 669,
+    "headline_full": 686,
+    "missing": {},
+    "extra": {},
+    "constants": [
+      "EXPECT_QUICK=669",
+      "EXPECT_FULL=686                 # ABBA reports only; self-test remains counted."
+    ],
+    "source_sha256": "4ebbd433579e7dfab90601a55592f9457e97ad04957ebbeeab0a9e4a93c25faf",
+    "fixture_sha256": "0c873fd81d58a57d60ffc77061b7bd4c3d2ea32a82098cfa56c19d0d166a0744",
+    "strict_checker_refusal": "tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=686, fixture=689, source declarations=689\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth."
+  },
+  "cleanup": {
+    "listeners_26800_26899": [],
+    "owned_correctness_server_processes": []
+  },
+  "static_checked_sources_unchanged": true
+}
