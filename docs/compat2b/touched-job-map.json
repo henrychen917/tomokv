@@ -1,0 +1,45 @@
+{
+  "tests/infofix.py": [
+    "ntfix_input",
+    "standard differ_gate.sh matrices, both engines and modes"
+  ],
+  "tests/respcompat.py": [
+    "respcompat",
+    "tls (N3/N4)"
+  ],
+  "tests/tls.py": [
+    "tls (N2 and historical TLS rows)",
+    "compat2 (C3 live controls)",
+    "supplemental 24 TLS battery/KeyUpdate legs"
+  ],
+  "tests/netcap_unit.cc": [
+    "netcap",
+    "tls (N4 frontier unit)"
+  ],
+  "tests/gates_test.py": [
+    "abba_selftest (actual python3 tests/gates_test.py command)"
+  ],
+  "tests/gate_measurements.json": [
+    "abba_selftest"
+  ],
+  "tests/fixtures/nullrefresh-ledger-labels.json": [
+    "source-only fixture inventory",
+    "abba_selftest (receipt fixture check)"
+  ],
+  "Makefile": [
+    "release plus explicit make all",
+    "every job_production_units target and freshness",
+    "all selected serverless consuming jobs"
+  ],
+  "src/core/io_loop.h, src/core/reorder.cc, src/net/conn.h, src/net/resp.h, src/net/wb.h": [
+    "compat2",
+    "tls",
+    "ntfix_input",
+    "netcap",
+    "respcompat",
+    "netio-1s",
+    "netio-2s",
+    "serverless production units",
+    "standard differential both engines/modes/atomic settings"
+  ]
+}
