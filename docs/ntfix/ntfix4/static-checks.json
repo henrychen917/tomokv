@@ -1,13 +1,14 @@
 {
   "python_files": [
-    "docs/ntfix/ntfix4/identity.py",
     "docs/ntfix/ntfix4/audits.py",
-    "docs/ntfix/ntfix4/production.py",
-    "docs/ntfix/ntfix4/runtime.py",
     "docs/ntfix/ntfix4/budget.py",
-    "docs/ntfix/ntfix4/ledger_check.py",
+    "docs/ntfix/ntfix4/differ.py",
+    "docs/ntfix/ntfix4/finalize.py",
     "docs/ntfix/ntfix4/frontier_control.py",
-    "docs/ntfix/ntfix4/differ.py"
+    "docs/ntfix/ntfix4/identity.py",
+    "docs/ntfix/ntfix4/ledger_check.py",
+    "docs/ntfix/ntfix4/production.py",
+    "docs/ntfix/ntfix4/runtime.py"
   ],
   "expect_unchanged": [
     "EXPECT_QUICK=665",

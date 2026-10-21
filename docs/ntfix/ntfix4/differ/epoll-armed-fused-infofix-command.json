@@ -1,0 +1,27 @@
+{
+  "label": "epoll-armed-fused-infofix",
+  "command": [
+    "taskset",
+    "-c",
+    "89-95",
+    "bash",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-ntfix/build/ntfix4/tomokv-epoll",
+    "22810",
+    "22811",
+    "80-87",
+    "6:2"
+  ],
+  "environment": {
+    "REDIS74_ROOT": "/home/user/Projects/redis74",
+    "GATE_DIFFER_ORACLE_CORES": "88",
+    "GATE_LOAD_CORES": "89-95",
+    "GATE_DIFFER_GEOMETRY": "armed-fused",
+    "GATE_DIFFER_OUT": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix4/differ/epoll-armed-fused-infofix",
+    "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-ntfix/.gate-history/differ-ntfix4",
+    "GATE_RUN_ID": "ntfix4-infofix",
+    "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix4/differ/infofix-witness-suites.txt",
+    "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix4/differ/infofix-seeds.txt"
+  },
+  "binary_sha256": "db07cacf524e03f9907ac7c42c1c79b668792c322f9d73e3d127b2d07b18afae"
+}

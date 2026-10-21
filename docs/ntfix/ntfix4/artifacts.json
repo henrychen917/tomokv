@@ -1,0 +1,119 @@
+{
+  "post": "build/tomokv",
+  "post_sha256": "db07cacf524e03f9907ac7c42c1c79b668792c322f9d73e3d127b2d07b18afae",
+  "headline": "build/ntfix4/headline-src/build/tomokv",
+  "headline_sha256": "247bb68cf027485c61269762216c73fc81de6cdb968b84c28b44f7ad1da87ca5",
+  "source_commit": "47fa7d9b1",
+  "build_cpus": "80-95",
+  "server_cpus": "80-87",
+  "oracle_cpus": "88",
+  "client_cpus": "89-95",
+  "ports": "22800-22899",
+  "fragments": [
+    {
+      "log": "docs/ntfix/ntfix4/post/fragments/1s-epoll/fragment-tcp.log",
+      "fragment_trials": 4692,
+      "seeds": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "result": "PASS"
+    },
+    {
+      "log": "docs/ntfix/ntfix4/post/fragments/1s-epoll/fragment-tls.log",
+      "fragment_trials": 4692,
+      "seeds": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "result": "PASS"
+    },
+    {
+      "log": "docs/ntfix/ntfix4/post/fragments/1s-uring/fragment-tcp.log",
+      "fragment_trials": 4692,
+      "seeds": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "result": "PASS"
+    },
+    {
+      "log": "docs/ntfix/ntfix4/post/fragments/1s-uring/fragment-tls.log",
+      "fragment_trials": 4692,
+      "seeds": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "result": "PASS"
+    },
+    {
+      "log": "docs/ntfix/ntfix4/post/fragments/2s-epoll/fragment-tcp.log",
+      "fragment_trials": 4692,
+      "seeds": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "result": "PASS"
+    },
+    {
+      "log": "docs/ntfix/ntfix4/post/fragments/2s-epoll/fragment-tls.log",
+      "fragment_trials": 4692,
+      "seeds": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "result": "PASS"
+    },
+    {
+      "log": "docs/ntfix/ntfix4/post/fragments/2s-uring/fragment-tcp.log",
+      "fragment_trials": 4692,
+      "seeds": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "result": "PASS"
+    },
+    {
+      "log": "docs/ntfix/ntfix4/post/fragments/2s-uring/fragment-tls.log",
+      "fragment_trials": 4692,
+      "seeds": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "result": "PASS"
+    }
+  ],
+  "fragment_trials": 37536,
+  "production_freshness_checks": 36,
+  "lane_listeners": [],
+  "expect_constants": [
+    "EXPECT_QUICK=665",
+    "EXPECT_FULL=682                 # ABBA reports only; self-test remains counted."
+  ],
+  "required_counts": {
+    "quick": 669,
+    "full": 686,
+    "DQ": 4,
+    "DF": 4
+  },
+  "not_run": {
+    "performance/null/ABBA/landing gate": "maintainer-owned; excluded from correctness authorization",
+    "broad standard differential matrix": "outside the ntfix4 requested focused matrix"
+  }
+}

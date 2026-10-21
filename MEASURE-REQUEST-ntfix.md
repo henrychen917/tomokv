@@ -784,3 +784,84 @@ The unmodified `ccfix_audit.py`, `lbstall_artifacts.py compare`, and
 finds 1,164/1,214 equal after relocation resolution (1,156 raw-byte equal).
 Identity remains a proxy; the 20 compositions are explicitly handed to the
 maintainer's merit review, with no identity stop and no performance verdict.
+
+### Correctness receipts and build coverage
+
+All builds/trials use CPUs **80–95**, `-j16`; correctness servers use **80–87**,
+Redis 7.4 uses **88**, clients use **89–95**, and all listener ports are within
+**22800–22899**. The proof driver boots 16 shards / one database, fused with
+read-local 1 or split with ratio 6:2. The focused differential retains its
+existing 16-database geometry. The in-process migration witness needs at least
+eight allowed CPUs and runs on 80–95. Temporary gate-test state stays under
+this worktree's `build/ntfix4/tmp`; its socket fixture uses port 22899.
+
+The pinned oracle is `/home/user/Projects/redis74/src/redis-server`, SHA-256
+`ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b`.
+It has no TLS listener, so the unchanged corpus compares decrypted candidate
+TLS replies and close outcomes with the oracle's TCP stream. `limits-redis-tls`
+files are that TCP reference, not evidence of a Redis TLS boot.
+
+| Requested proof | Result |
+|---|---|
+| N1–N4 on merged POST | **16/16 PASS**, both modes and engines; N3/N4 include TCP and TLS. [Ledger](docs/ntfix/ntfix4/post/rows.log) |
+| Same rows on bce4eb0aa | **12 expected failures / 4 unaffected controls pass**: N1 fails epoll, N2 fails uring, N3/N4 fail both engines, in both modes. The driver requires this exact outcome set. [Ledger](docs/ntfix/ntfix4/headline/rows.log) |
+| Current `netcap-unit frontier` on headline / POST | **Headline FAIL as required, POST PASS**, including cap equality and queued MULTI. Full POST netcap unit also passes. [Headline witness](docs/ntfix/ntfix4/headline/frontier-unit.log), [POST frontier](docs/ntfix/ntfix4/post/frontier-unit.log), [full unit](docs/ntfix/ntfix4/post/netcap-unit.log) |
+| Unchanged respresume limits corpus | **0 differences**: nine cases × 2 modes × 2 engines × TCP/TLS; exact streams retained. [Ledger](docs/ntfix/ntfix4/post/limits.log) |
+| Fragment corpus with close cases | **37,536 trials, 0 differences**: 4,692 × eight mode/engine/transport combinations, RESP2/RESP3, seeds 7/19/20/23, every close-case family enabled. [Ledger](docs/ntfix/ntfix4/post/fragments.log) |
+| RESP/netcap/TLS batteries | **12/12 PASS**, using their unchanged gate boot contracts. [Ledger](docs/ntfix/ntfix4/post/batteries.log) |
+| Parser and migration units | **PASS**: all three parser groups and all six ordinary/R7, 1s/2s, client-LB/FLIP migration witnesses. [Parser](docs/ntfix/ntfix4/post/respresume-unit.log), [migration](docs/ntfix/ntfix4/post/respresume-migration.log) |
+| Epoll `infofix`, both geometries, atomic 0/1, seeds 7/19/20/23 | **16/16 INFO legs PASS**. Split: 8/8. Armed fused: eight INFO + eight unchanged string controls + two read-local activity witnesses, 18/18. [Split](docs/ntfix/ntfix4/differ/epoll-split-infofix.log), [armed fused](docs/ntfix/ntfix4/differ/epoll-armed-fused-infofix.log) |
+| `python3 tests/gates_test.py` | **66/66 PASS**, plus the nested 14-test persistence check. [Log](docs/ntfix/ntfix4/post/gates-test.log) |
+| `make all` and every `job_production_units` target | **PASS**: 33 named targets plus both `mdbqsbr-live-arms` binaries; all 38 build/freshness commands return 0. [Build](docs/ntfix/ntfix4/post-build.log), [target inventory](docs/ntfix/ntfix4/production/targets.txt), [receipts](docs/ntfix/ntfix4/production/results.json) |
+
+The locked layouts remain `Op=336 Client=1984 ThreadCtx=1408 Shard=1440
+FlatStore=944 Rob=192 AtomicEntry=144 Config=624`. The server build has no
+compiler warnings; the unit builds retain 13 custom-allocator mismatch warnings
+in the unchanged atomic-survivors/lbplanner fixtures and one nested-make
+jobserver notice. Every target is built and fresh despite those notices.
+The phony live-arm aggregate is checked through each concrete binary's original
+`BUILD_ROOT` and flags.
+
+The armed INFO proof includes the unchanged string suite because INFO ends in
+`CONFIG RESETSTAT`. Its read-local witnesses observe peaks of **29** hits for
+atomic=0 and **27** for atomic=1, while the final counters are zero as expected
+after reset. Both witnesses pass without changing an assertion or suite.
+This focused proof does not claim coverage of the full standard differential
+matrix. [Differential commands, environments, and results](docs/ntfix/ntfix4/differ/results.json).
+
+The runtime driver verifies POST's hash before each job; the differential
+records it before each geometry, and the final check requires all hashes to
+agree. [Runtime manifest](docs/ntfix/ntfix4/runtime.json).
+All **36 final concrete `make -q` checks return 0**, including `all` and both
+live-control binaries with their original flags.
+[Final freshness](docs/ntfix/ntfix4/production/final-freshness.json).
+Python syntax, shell syntax, and `git diff --check` pass. The final listener
+check finds no listener on 22800–22899; only owned child PIDs were stopped.
+[Final artifacts and cleanup](docs/ntfix/ntfix4/artifacts.json).
+
+### Final artifacts and maintainer handoff
+
+| Arm | Path in this worktree | SHA-256 |
+|---|---|---|
+| Headline `bce4eb0aa`, fresh normal reference build | `build/ntfix4/headline-src/build/tomokv` | `247bb68cf027485c61269762216c73fc81de6cdb968b84c28b44f7ad1da87ca5` |
+| **ntfix4 merged POST** | **`build/tomokv`** | **`db07cacf524e03f9907ac7c42c1c79b668792c322f9d73e3d127b2d07b18afae`** |
+| Frozen ntfix3 body reference | `build/ntfix4/ntfix3/tomokv` | `2a102311d91b99bcff78af38742c1176bec5634ae9f1875af8cb74e645d9075b` |
+
+The production source/budgets are fixed at `47fa7d9b1`; subsequent commits retain
+proof and documentation. Use the final merged POST above for the maintainer's
+**merged-versus-bce4eb0aa null** with the gate's unchanged instrument, cells,
+CPU/load plan, and acceptance rules, then the landing gate. The 20 composed
+hot bodies are explicit merit-review input. This lane supplies no rate,
+latency, cycles/op, IPC, instruction-count, or throughput claim.
+
+**NOT RUN:** performance benchmarks, measurement load generators, ABBA/null,
+and `tests/gate.sh iteration` / landing gate: these remain maintainer-owned
+and outside the correctness authorization. The broad standard differential
+matrix is **NOT RUN in ntfix4**, because this task requests the focused epoll
+INFO matrix; no claim is made to resolve the older ntfix2 findings outside
+that coverage. A Redis TLS listener is unavailable in the pinned oracle;
+all requested candidate TCP/TLS corpus legs were run against its TCP reference.
+
+All requested ntfix4 correctness/build work is complete and passes. The source
+fixture matches 686 labels; the maintainer still changes the required EXPECT
+counts to **669/686**. Work is committed on `cx-ntfix`; nothing was pushed.

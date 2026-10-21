@@ -1,3 +1,16 @@
+ntfix4 integration handoff — current ntfix artifact
+
+See MEASURE-REQUEST-ntfix.md, section ntfix4, for the completed correctness
+matrix, all body differences and the 669/686 row inventory (EXPECT untouched).
+Merged headline: bce4eb0aa6ab5b855903e201f6f19b321e09cba0.
+POST: /home/user/Projects/cx-ntfix/build/tomokv
+SHA-256: db07cacf524e03f9907ac7c42c1c79b668792c322f9d73e3d127b2d07b18afae
+Headline reference: build/ntfix4/headline-src/build/tomokv
+SHA-256: 247bb68cf027485c61269762216c73fc81de6cdb968b84c28b44f7ad1da87ca5
+Maintainer runs the merged/headline null and landing gate using the existing
+instrument and acceptance rules. No performance measurement or push by this lane.
+This supersedes the ntfix3 POST path/hash below; prior requests are retained as history.
+
 Lane ntfix2: correctness candidate and maintainer merit request.
 
 The full request, correctness results, changed-body inventory, gate row accounting,
