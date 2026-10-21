@@ -1,0 +1,40 @@
+{"check": "frozen clock non-vacuity", "actual": 1000000, "expected": 1000000, "ok": true}
+{"mode": "2s", "owner": 6, "shard": 0, "probe_thread": 5, "targets": [70, 71], "t0": 1792589472954, "t1": 1792589473004}
+{"check": "stall non-vacuity", "actual": 2, "expected": 2, "ok": true}
+{"check": "PTTL", "actual": 1000000, "expected": 999950, "ok": false}
+{"check": "GET expired key", "actual": "v", "expected": null, "ok": false}
+{"check": "EXISTS expired key", "actual": 1, "expected": 0, "ok": false}
+{"check": "HPEXPIREAT past deadline", "actual": [1], "expected": [2], "ok": false}
+{"check": "post-release control PTTL", "actual": 999950, "expected": 999950, "ok": true}
+{"check": "NT-new-7 frozen clock non-vacuity", "actual": 10, "expected": 10, "ok": true}
+{"check": "NT-new-7 PTTL at deadline", "actual": -2, "expected": 0, "ok": false}
+{"check": "NT-new-7 TTL at deadline", "actual": -2, "expected": 0, "ok": false}
+{"check": "NT-new-7 PEXPIRETIME at deadline", "actual": -2, "expected": 1792589473388, "ok": false}
+{"check": "NT-new-7 GET at deadline", "actual": null, "expected": "v", "ok": false}
+{"check": "NT-new-7 EXISTS at deadline", "actual": 0, "expected": 1, "ok": false}
+{"check": "NT-new-7 TYPE at deadline", "actual": "none", "expected": "string", "ok": false}
+{"check": "NT-new-7 relative PX at deadline", "actual": -2, "expected": 0, "ok": false}
+{"check": "NT-new-7 PEXPIREAT deadline reached", "actual": -2, "expected": 0, "ok": false}
+{"check": "NT-new-7 KEYS at deadline", "actual": [], "expected": ["nt7:abs", "nt7:exec", "nt7:exp", "nt7:rel", "nt7:watch"], "ok": false}
+{"check": "NT-new-7 SCAN at deadline", "actual": [], "expected": ["nt7:abs", "nt7:exec", "nt7:exp", "nt7:rel", "nt7:watch"], "ok": false}
+{"check": "NT-new-7 WATCH and EXEC at deadline", "actual": [null], "expected": ["v"], "ok": false}
+{"check": "NT-new-7 SET PXAT now stays live", "actual": 0, "expected": 1, "ok": false}
+{"check": "NT-new-7 PEXPIREAT now deletes", "actual": [1, 0], "expected": [1, 0], "ok": true}
+{"check": "NT-new-7 GETEX PXAT now deletes", "actual": ["v", 0], "expected": ["v", 0], "ok": true}
+{"check": "NT-new-7 WATCH armed at deadline aborts after it", "actual": [null], "expected": null, "ok": false}
+{"check": "NT-new-7 PTTL past deadline", "actual": -2, "expected": -2, "ok": true}
+{"check": "NT-new-7 GET past deadline", "actual": null, "expected": null, "ok": true}
+{"check": "NT-new-7 SET PXAT now key past deadline", "actual": 0, "expected": 0, "ok": true}
+{"check": "NT-new-7 KEYS past deadline", "actual": [], "expected": [], "ok": true}
+{"check": "NT-new-7 RANDOMKEY at deadline", "actual": false, "expected": true, "ok": false}
+{"check": "NT-new-7 RANDOMKEY past deadline", "actual": null, "expected": null, "ok": true}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 328, in <module>
+    main()
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 324, in main
+    clock_check(args)
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 289, in clock_check
+    require(control and all(results) and all(boundary),
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 101, in require
+    raise AssertionError(why)
+AssertionError: NT-new-4: 4/4 stale-clock replies; NT-new-7: 14/22 exact-deadline replies

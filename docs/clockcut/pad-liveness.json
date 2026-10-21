@@ -1,0 +1,587 @@
+{
+ "binary": "build/clockcut/tomokv-pad-a",
+ "patches": 35,
+ "instructions_examined": 415,
+ "failures": [],
+ "call_argument_warnings": [
+  {
+   "patch": "0xb5789",
+   "at": "0xb57fc",
+   "callee": "_ZN8tomo_db017multi_task_taggedERKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0xb5d05",
+   "at": "0xb5d73",
+   "callee": "_ZN8tomo_db017multi_task_taggedERKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0xc0351",
+   "at": "0xc03c3",
+   "callee": "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0xc0351",
+   "at": "0xc03ee",
+   "callee": "_ZN8tomo_db07ExLoopTILb0EE18flush_notify_batchEv",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0xc0351",
+   "at": "0xc06e1",
+   "callee": "_ZN8tomo_db07ExLoopTILb0EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0xc0ba4",
+   "at": "0xc0c45",
+   "callee": "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0xc0ba4",
+   "at": "0xc0f7a",
+   "callee": "_ZN8tomo_db07ExLoopTILb0EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0xc1464",
+   "at": "0xc14df",
+   "callee": "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0xc1464",
+   "at": "0xc1814",
+   "callee": "_ZN8tomo_db07ExLoopTILb0EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x30fa59",
+   "at": "0x30facc",
+   "callee": "_ZN8tomo_db017multi_task_taggedERKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0x30ffd5",
+   "at": "0x310043",
+   "callee": "_ZN8tomo_db017multi_task_taggedERKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0x310ea1",
+   "at": "0x310f13",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x310ea1",
+   "at": "0x310f3e",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE18flush_notify_batchEv",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0x310ea1",
+   "at": "0x311105",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x311694",
+   "at": "0x311735",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x311694",
+   "at": "0x311b1f",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x3118ee",
+   "at": "0x31198f",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x3118ee",
+   "at": "0x311ada",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x3120e4",
+   "at": "0x312185",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x3120e4",
+   "at": "0x31254a",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x31233e",
+   "at": "0x3123df",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x31233e",
+   "at": "0x312505",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x3169d4",
+   "at": "0x316a41",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x3169d4",
+   "at": "0x316f17",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x316d1f",
+   "at": "0x316db0",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x316d1f",
+   "at": "0x316f35",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x3c18fb",
+   "at": "0x3c198d",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x3c18fb",
+   "at": "0x3c1ce6",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x3c1aab",
+   "at": "0x3c1b19",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x3c1aab",
+   "at": "0x3c1cfb",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x3c3108",
+   "at": "0x3c316f",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x3c3108",
+   "at": "0x3c345a",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x3c32b9",
+   "at": "0x3c3345",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x3c32b9",
+   "at": "0x3c346f",
+   "callee": "_ZN8tomo_db07ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x43bec9",
+   "at": "0x43bf3c",
+   "callee": "_ZN4tomo17multi_task_taggedERKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0x43c445",
+   "at": "0x43c4b3",
+   "callee": "_ZN4tomo17multi_task_taggedERKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0x4459c1",
+   "at": "0x445a33",
+   "callee": "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x4459c1",
+   "at": "0x445a5e",
+   "callee": "_ZN4tomo7ExLoopTILb0EE18flush_notify_batchEv",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0x4459c1",
+   "at": "0x445d51",
+   "callee": "_ZN4tomo7ExLoopTILb0EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x446214",
+   "at": "0x4462b5",
+   "callee": "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x446214",
+   "at": "0x4465ea",
+   "callee": "_ZN4tomo7ExLoopTILb0EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x446ad4",
+   "at": "0x446b4f",
+   "callee": "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x446ad4",
+   "at": "0x446e84",
+   "callee": "_ZN4tomo7ExLoopTILb0EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x6aace9",
+   "at": "0x6aad5c",
+   "callee": "_ZN4tomo17multi_task_taggedERKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0x6ab265",
+   "at": "0x6ab2d3",
+   "callee": "_ZN4tomo17multi_task_taggedERKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0x6ac0c1",
+   "at": "0x6ac133",
+   "callee": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x6ac0c1",
+   "at": "0x6ac15e",
+   "callee": "_ZN4tomo7ExLoopTILb1EE18flush_notify_batchEv",
+   "live_argument_registers": [
+    "rcx",
+    "rdx",
+    "rsi"
+   ]
+  },
+  {
+   "patch": "0x6ac0c1",
+   "at": "0x6ac325",
+   "callee": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x6ac8b4",
+   "at": "0x6ac955",
+   "callee": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x6ac8b4",
+   "at": "0x6acd3f",
+   "callee": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x6acb0e",
+   "at": "0x6acbaf",
+   "callee": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x6acb0e",
+   "at": "0x6accfa",
+   "callee": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x6ad304",
+   "at": "0x6ad3a5",
+   "callee": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x6ad304",
+   "at": "0x6ad76a",
+   "callee": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x6ad55e",
+   "at": "0x6ad5ff",
+   "callee": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x6ad55e",
+   "at": "0x6ad725",
+   "callee": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x6b1b54",
+   "at": "0x6b1bc1",
+   "callee": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x6b1b54",
+   "at": "0x6b2097",
+   "callee": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x6b1e9f",
+   "at": "0x6b1f30",
+   "callee": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x6b1e9f",
+   "at": "0x6b20b5",
+   "callee": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x75e99b",
+   "at": "0x75ea2d",
+   "callee": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x75e99b",
+   "at": "0x75ed86",
+   "callee": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x75eb4b",
+   "at": "0x75ebb9",
+   "callee": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x75eb4b",
+   "at": "0x75ed9b",
+   "callee": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  },
+  {
+   "patch": "0x760168",
+   "at": "0x7601cf",
+   "callee": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+   "live_argument_registers": [
+    "rcx",
+    "rdx"
+   ]
+  },
+  {
+   "patch": "0x760168",
+   "at": "0x760333",
+   "callee": "_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj",
+   "live_argument_registers": [
+    "rcx"
+   ]
+  }
+ ]
+}
