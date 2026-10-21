@@ -150,6 +150,13 @@ if __name__ == '__main__':
             owner = f'{namespace}::ExLoopT<true>::prefetch_owner_batch({namespace}::Task const*, unsigned int)'
             for binary in (pre, post):
                 assert len(binary.groups.get(owner, ())) == 1, f'missing owner prefetch body: {namespace}'
+            # clockcut: the post-dequeue command-clock refresh grows the split executor's
+            # exec_batch_prefetched, which GCC now keeps out of line (146 -> 147 per runtime).
+            expected[namespace] += 1
+            batch = (f'void {namespace}::ExLoopT<false>::exec_batch_prefetched<false>'
+                     f'({namespace}::Task const*, unsigned int)')
+            for binary in (pre, post):
+                assert len(binary.groups.get(batch, ())) == 1, f'missing split batch body: {namespace}'
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):
