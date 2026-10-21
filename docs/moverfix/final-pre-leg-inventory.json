@@ -1,0 +1,1012 @@
+[
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "databases": 1,
+    "legs": [
+      {
+        "name": "unit-1s-uring-1-RPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-uring-1-LMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-uring-1-BRPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-uring-1-BLMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-uring-1-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-1s-uring-1-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-1s-uring-1-SMOVE.log",
+        "bytes": 111,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: SMOVE exactly one actual removal and winner"
+        ]
+      },
+      {
+        "name": "live-1s-uring-1-RPOPLPUSH.log",
+        "bytes": 521,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('RPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-uring-1-LMOVE.log",
+        "bytes": 527,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('LMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-uring-1-BRPOPLPUSH.log",
+        "bytes": 522,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BRPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-uring-1-BLMOVE.log",
+        "bytes": 528,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BLMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-uring-1-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-1s-uring-1-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-1s-uring-1-SMOVE.log",
+        "bytes": 483,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('multiple SMOVE winners', [1, 0, 1, 1])"
+        ]
+      },
+      {
+        "name": "live-1s-uring-1-T05.log",
+        "bytes": 606,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: members lost or duplicated"
+        ]
+      },
+      {
+        "name": "live-1s-uring-1-G5.log",
+        "bytes": 568,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: duplicate delivery"
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "databases": 16,
+    "legs": [
+      {
+        "name": "unit-1s-uring-16-RPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-uring-16-LMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-uring-16-BRPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-uring-16-BLMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-uring-16-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-1s-uring-16-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-1s-uring-16-SMOVE.log",
+        "bytes": 111,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: SMOVE exactly one actual removal and winner"
+        ]
+      },
+      {
+        "name": "live-1s-uring-16-RPOPLPUSH.log",
+        "bytes": 521,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('RPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-uring-16-LMOVE.log",
+        "bytes": 527,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('LMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-uring-16-BRPOPLPUSH.log",
+        "bytes": 522,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BRPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-uring-16-BLMOVE.log",
+        "bytes": 528,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BLMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-uring-16-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-1s-uring-16-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-1s-uring-16-SMOVE.log",
+        "bytes": 483,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('multiple SMOVE winners', [1, 1, 1, 1])"
+        ]
+      },
+      {
+        "name": "live-1s-uring-16-T05.log",
+        "bytes": 606,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: members lost or duplicated"
+        ]
+      },
+      {
+        "name": "live-1s-uring-16-G5.log",
+        "bytes": 568,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: duplicate delivery"
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "databases": 1,
+    "legs": [
+      {
+        "name": "unit-1s-epoll-1-RPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-epoll-1-LMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-epoll-1-BRPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-epoll-1-BLMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-epoll-1-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-1s-epoll-1-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-1s-epoll-1-SMOVE.log",
+        "bytes": 111,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: SMOVE exactly one actual removal and winner"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-1-RPOPLPUSH.log",
+        "bytes": 521,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('RPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-1-LMOVE.log",
+        "bytes": 527,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('LMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-1-BRPOPLPUSH.log",
+        "bytes": 522,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BRPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-1-BLMOVE.log",
+        "bytes": 528,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BLMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-1-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-1s-epoll-1-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-1s-epoll-1-SMOVE.log",
+        "bytes": 483,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('multiple SMOVE winners', [1, 1, 1, 0])"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-1-T05.log",
+        "bytes": 606,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: members lost or duplicated"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-1-G5.log",
+        "bytes": 568,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: duplicate delivery"
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "databases": 16,
+    "legs": [
+      {
+        "name": "unit-1s-epoll-16-RPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-epoll-16-LMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-epoll-16-BRPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-epoll-16-BLMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-1s-epoll-16-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-1s-epoll-16-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-1s-epoll-16-SMOVE.log",
+        "bytes": 111,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: SMOVE exactly one actual removal and winner"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-16-RPOPLPUSH.log",
+        "bytes": 521,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('RPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-16-LMOVE.log",
+        "bytes": 527,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('LMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-16-BRPOPLPUSH.log",
+        "bytes": 522,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BRPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-16-BLMOVE.log",
+        "bytes": 528,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BLMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-16-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-1s-epoll-16-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-1s-epoll-16-SMOVE.log",
+        "bytes": 483,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('multiple SMOVE winners', [1, 0, 0, 1])"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-16-T05.log",
+        "bytes": 606,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: members lost or duplicated"
+        ]
+      },
+      {
+        "name": "live-1s-epoll-16-G5.log",
+        "bytes": 568,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: duplicate delivery"
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "databases": 1,
+    "legs": [
+      {
+        "name": "unit-2s-uring-1-RPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-uring-1-LMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-uring-1-BRPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-uring-1-BLMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-uring-1-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-2s-uring-1-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-2s-uring-1-SMOVE.log",
+        "bytes": 111,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: SMOVE exactly one actual removal and winner"
+        ]
+      },
+      {
+        "name": "live-2s-uring-1-RPOPLPUSH.log",
+        "bytes": 521,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('RPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-uring-1-LMOVE.log",
+        "bytes": 527,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('LMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-uring-1-BRPOPLPUSH.log",
+        "bytes": 522,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BRPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-uring-1-BLMOVE.log",
+        "bytes": 528,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BLMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-uring-1-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-2s-uring-1-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-2s-uring-1-SMOVE.log",
+        "bytes": 55,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-2s-uring-1-T05.log",
+        "bytes": 605,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: members lost or duplicated"
+        ]
+      },
+      {
+        "name": "live-2s-uring-1-G5.log",
+        "bytes": 568,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: duplicate delivery"
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "databases": 16,
+    "legs": [
+      {
+        "name": "unit-2s-uring-16-RPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-uring-16-LMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-uring-16-BRPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-uring-16-BLMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-uring-16-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-2s-uring-16-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-2s-uring-16-SMOVE.log",
+        "bytes": 111,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: SMOVE exactly one actual removal and winner"
+        ]
+      },
+      {
+        "name": "live-2s-uring-16-RPOPLPUSH.log",
+        "bytes": 521,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('RPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-uring-16-LMOVE.log",
+        "bytes": 527,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('LMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-uring-16-BRPOPLPUSH.log",
+        "bytes": 522,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BRPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-uring-16-BLMOVE.log",
+        "bytes": 528,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BLMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-uring-16-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-2s-uring-16-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-2s-uring-16-SMOVE.log",
+        "bytes": 55,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-2s-uring-16-T05.log",
+        "bytes": 605,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: members lost or duplicated"
+        ]
+      },
+      {
+        "name": "live-2s-uring-16-G5.log",
+        "bytes": 568,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: duplicate delivery"
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "databases": 1,
+    "legs": [
+      {
+        "name": "unit-2s-epoll-1-RPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-epoll-1-LMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-epoll-1-BRPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-epoll-1-BLMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-epoll-1-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-2s-epoll-1-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-2s-epoll-1-SMOVE.log",
+        "bytes": 111,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: SMOVE exactly one actual removal and winner"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-1-RPOPLPUSH.log",
+        "bytes": 521,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('RPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-1-LMOVE.log",
+        "bytes": 527,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('LMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-1-BRPOPLPUSH.log",
+        "bytes": 522,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BRPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-1-BLMOVE.log",
+        "bytes": 528,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BLMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-1-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-2s-epoll-1-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-2s-epoll-1-SMOVE.log",
+        "bytes": 483,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('multiple SMOVE winners', [1, 1, 0, 0])"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-1-T05.log",
+        "bytes": 605,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: members lost or duplicated"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-1-G5.log",
+        "bytes": 568,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: duplicate delivery"
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "databases": 16,
+    "legs": [
+      {
+        "name": "unit-2s-epoll-16-RPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-epoll-16-LMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-epoll-16-BRPOPLPUSH.log",
+        "bytes": 109,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-epoll-16-BLMOVE.log",
+        "bytes": 105,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: destination arriving first must defer"
+        ]
+      },
+      {
+        "name": "unit-2s-epoll-16-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-2s-epoll-16-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "failure_lines": []
+      },
+      {
+        "name": "unit-2s-epoll-16-SMOVE.log",
+        "bytes": 111,
+        "hits": 1,
+        "failure_lines": [
+          "FAIL: SMOVE exactly one actual removal and winner"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-16-RPOPLPUSH.log",
+        "bytes": 521,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('RPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-16-LMOVE.log",
+        "bytes": 527,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('LMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-16-BRPOPLPUSH.log",
+        "bytes": 522,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BRPOPLPUSH', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-16-BLMOVE.log",
+        "bytes": 528,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: ('BLMOVE', 'duplicate/missing delivery')"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-16-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-2s-epoll-16-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-2s-epoll-16-SMOVE.log",
+        "bytes": 55,
+        "hits": 0,
+        "failure_lines": []
+      },
+      {
+        "name": "live-2s-epoll-16-T05.log",
+        "bytes": 605,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: members lost or duplicated"
+        ]
+      },
+      {
+        "name": "live-2s-epoll-16-G5.log",
+        "bytes": 568,
+        "hits": 0,
+        "failure_lines": [
+          "AssertionError: duplicate delivery"
+        ]
+      }
+    ]
+  }
+]

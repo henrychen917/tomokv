@@ -70,7 +70,7 @@ ratio) remain separately identified; the successful reproduction reruns use the
 correct production grammar. No reproduction failure is counted as a successful
 POST result.
 
-### Final gate result so far
+### Gate results
 
 Final POST ran through `tests/gate.sh quick` with `GATE_ONLY_JOBS`; this was not a
 full quick gate or iteration. The selected jobs produced **146 PASS / 2 FAIL**.
@@ -89,8 +89,22 @@ The failures were:
 production-unit target. The phony `mdbqsbr-live-arms` target's two actual `all`
 outputs were checked separately. See `freshness.json`.
 
-PRE gate controls, supplemental atomic/EXEC coverage, standard differential seeds
-and a quiet scheduler-suite rerun remain in progress. The initial standalone
+PRE then ran the same selected job list through the same gate interface:
+**139 PASS / 9 FAIL**. Eight failures are the new mover rows and the ninth is the
+same expected-count guard. R7 passes on PRE. All 128 PRE leg logs exist; each
+unit fixture asserts its contention witness, and T05/G5 fail for conservation or
+duplicate delivery in all eight geometries. `gate-final-pre/` and
+`final-pre-leg-inventory.json` retain every leg, including passing PRE pop
+coverage and occasional passing live races. The deterministic fixture is the
+non-vacuous defect control, so no live lottery success is used as proof.
+
+The gate's PRE candidate selects PRE servers and the separately compiled PRE
+mover fixtures. Its other serverless jobs use the gate's normal current-worktree
+unit outputs; they are not falsely presented as paired PRE production-unit builds.
+Exact job invocation and sequencing are retained in `remaining.py` and gate logs.
+
+Supplemental atomic/EXEC coverage, standard differential seeds and a quiet
+scheduler-suite rerun remain in progress. The initial standalone
 `gates_test.py` run retained 65 passes and two 45-second scheduler-fixture timeouts
 while compilation was active; no deadline or assertion was changed.
 

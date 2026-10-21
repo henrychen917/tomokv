@@ -1,0 +1,51 @@
+{
+  "donor_helper_sha256": "8da318c91ccbdecf4f3f1edd7b2f38d8675ffd2a4cec8075e87061541372fe2d",
+  "donor_helper_byte_identical": true,
+  "headline_anchors": {
+    "claim_read_context": {
+      "file": "src/cmd/xshard_movers.inc",
+      "line": 7,
+      "source": "struct MoverLiveRead"
+    },
+    "source_claim": {
+      "file": "src/cmd/xshard_movers.inc",
+      "line": 21,
+      "source": "ScatterTaskResult execute_plain_element_mover"
+    },
+    "live_pop": {
+      "file": "src/cmd/xshard_movers.inc",
+      "line": 75,
+      "source": "ScatterTaskResult execute_live_pop"
+    },
+    "mover_dispatch": {
+      "file": "src/cmd/scatter_engine.inc",
+      "line": 3172,
+      "source": "return execute_plain_element_mover(task, shard, op);"
+    },
+    "source_miss_reply": {
+      "file": "src/cmd/xshard_commands.inc",
+      "line": 1691,
+      "source": "state.direct_ready.load(std::memory_order_acquire) == 2"
+    },
+    "EXEC_force_atomic": {
+      "file": "src/cmd/multi.inc",
+      "line": 708,
+      "source": "state.origin_conn_id, child_dispatch, true, state.client);"
+    },
+    "force_atomic_selection": {
+      "file": "src/cmd/scatter_engine.inc",
+      "line": 1579,
+      "source": "const bool atomic_enabled = force_atomic"
+    },
+    "atomic_apply_selection": {
+      "file": "src/cmd/scatter_engine.inc",
+      "line": 1779,
+      "source": "const bool atomic_apply = kind == Kind::Script"
+    },
+    "atomic_apply_execution": {
+      "file": "src/cmd/scatter_engine.inc",
+      "line": 2837,
+      "source": "if (state.atomic_apply && state.phase == 2) {"
+    }
+  }
+}
