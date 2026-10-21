@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "commands": {
+    "COPY": 149,
+    "DEL": 160,
+    "EXISTS": 143,
+    "GET": 143,
+    "KEYS": 133,
+    "LMOVE": 123,
+    "LRANGE": 156,
+    "MGET": 145,
+    "MSET": 143,
+    "MSETNX": 168,
+    "RENAME": 171,
+    "RENAMENX": 144,
+    "RPOPLPUSH": 172,
+    "RPUSH": 185,
+    "SADD": 173,
+    "SDIFF": 153,
+    "SDIFFSTORE": 138,
+    "SET": 171,
+    "SINTER": 150,
+    "SINTERCARD": 153,
+    "SINTERSTORE": 162,
+    "SMEMBERS": 157,
+    "SMOVE": 130,
+    "SUNION": 153,
+    "SUNIONSTORE": 136,
+    "TOUCH": 156,
+    "TYPE": 152,
+    "UNLINK": 157
+  },
+  "kinds": {
+    "COPY": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "KEYS": [
+      "reply"
+    ],
+    "LMOVE": [
+      "reply"
+    ],
+    "LRANGE": [
+      "reply"
+    ],
+    "MGET": [
+      "reply"
+    ],
+    "MSET": [
+      "reply"
+    ],
+    "MSETNX": [
+      "reply"
+    ],
+    "RENAME": [
+      "reply"
+    ],
+    "RENAMENX": [
+      "reply"
+    ],
+    "RPOPLPUSH": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SDIFF": [
+      "reply"
+    ],
+    "SDIFFSTORE": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SINTER": [
+      "reply"
+    ],
+    "SINTERCARD": [
+      "reply"
+    ],
+    "SINTERSTORE": [
+      "reply"
+    ],
+    "SMEMBERS": [
+      "reply"
+    ],
+    "SMOVE": [
+      "reply"
+    ],
+    "SUNION": [
+      "reply"
+    ],
+    "SUNIONSTORE": [
+      "reply"
+    ],
+    "TOUCH": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ],
+    "UNLINK": [
+      "reply"
+    ]
+  }
+}

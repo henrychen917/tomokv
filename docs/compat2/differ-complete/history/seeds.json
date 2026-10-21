@@ -1,6 +1,12 @@
 {
-  "next": 23,
-  "failed": [],
+  "next": 26,
+  "failed": [
+    7,
+    19,
+    20,
+    23,
+    24
+  ],
   "runs": {
     "compat2-uring-split": {
       "seed": 21,
@@ -23,6 +29,38 @@
         23,
         22
       ]
+    },
+    "compat2-epoll-split": {
+      "seed": 24,
+      "started": "2026-10-21T03:24:22.315204+00:00",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        24
+      ]
+    },
+    "compat2-epoll-armed-fused": {
+      "seed": 25,
+      "started": "2026-10-21T03:41:39.931610+00:00",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        24,
+        25
+      ]
     }
+  },
+  "failed_by_suite": {
+    "infofix": [
+      7,
+      19,
+      20,
+      23,
+      24
+    ]
   }
 }

@@ -1,0 +1,26 @@
+{
+  "run": "compat2-epoll-armed-fused",
+  "permanent": [
+    7,
+    19,
+    20,
+    23
+  ],
+  "failed": [
+    7,
+    19,
+    20,
+    23,
+    24
+  ],
+  "rotating": 25,
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    24,
+    25
+  ],
+  "history": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/history"
+}

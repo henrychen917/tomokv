@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "commands": {
+    "DEL": 361,
+    "EXISTS": 183,
+    "GET": 1,
+    "LLEN": 1,
+    "LMPOP": 188,
+    "LPOS": 350,
+    "LRANGE": 172,
+    "RPUSH": 189,
+    "SADD": 8,
+    "SET": 4,
+    "SORT": 688,
+    "TYPE": 169,
+    "ZADD": 218,
+    "ZCARD": 1,
+    "ZMPOP": 176,
+    "ZRANGE": 208,
+    "ZRANGESTORE": 393
+  },
+  "kinds": {
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "LLEN": [
+      "reply"
+    ],
+    "LMPOP": [
+      "reply"
+    ],
+    "LPOS": [
+      "reply"
+    ],
+    "LRANGE": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SORT": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZCARD": [
+      "reply"
+    ],
+    "ZMPOP": [
+      "reply"
+    ],
+    "ZRANGE": [
+      "reply"
+    ],
+    "ZRANGESTORE": [
+      "reply"
+    ]
+  }
+}

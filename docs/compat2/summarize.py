@@ -2,7 +2,6 @@
 """Summarize final receipts without hiding the retained unsuccessful attempts."""
 import json
 from pathlib import Path
-import re
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'docs/compat2'
@@ -46,6 +45,7 @@ summary = dict(directed=directed, build_freshness_commands=len(units),
     production_targets=len(read('units-complete/targets.json')), live_tls_checks=len(tls) - 1,
     serverless_tls_cases=len(tls_units), selftest='66/66 plus 14/14 nested',
     differential_matrices=matrices,
+    existing_epoll_info_failure=read('infofix-control/summary.json'),
     known_retained_attempts=['one C2 positive-control delivery-order failure; final C2 controls isolate event classes',
                             'one KeyUpdate unit usage error; all five correctly invoked cases pass',
                             'earlier source/harness iterations in intermediate-evidence.tar.xz'],

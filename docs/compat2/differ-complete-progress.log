@@ -1,1 +1,3 @@
 uring-split 0
+uring-armed-fused 0
+epoll-split 1

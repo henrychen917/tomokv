@@ -560,7 +560,7 @@ def self_test():
         def test_real_socket_owner_reports_pid_cmdline_and_refuses_boot(self):
             # A socket-only fixture, with no accept loop or server process.
             with socket.socket() as listener:
-                listener.bind(('127.0.0.1', 0))
+                listener.bind(('127.0.0.1', int(os.environ.get('GATE_TEST_PORT', '0'))))
                 listener.listen(1)
                 port = listener.getsockname()[1]
                 self.assertTrue(check_port_owner(port, os.getpid()))
