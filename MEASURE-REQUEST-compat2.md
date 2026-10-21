@@ -346,3 +346,21 @@ files/gate interface, and the two current compat2 witness targets appended to
 its Makefile. Thus its C3 deterministic unit uses PRE headers and objects,
 while the POST unit uses POST. Its C1/C2 live tests use the PRE server binary.
 This avoids presenting a POST unit as a PRE failure witness.
+
+The unmodified strict tools (`ccfix_audit.py`, `lbstall_artifacts.py compare`,
+`linked_bytes.py`) each exit **1**; their exact outputs are retained under
+`docs/compat2b/identity`. The full tool counts 340 differences among shared
+objects; the complete inventory adds the 14 bodies from the new autharity
+objects, for 354 total. Linked `.text` is **7,735,985 → 7,732,822 bytes**
+(−3,163), an identity observation only. No new PAD measurement arm is requested;
+the maintainer's requested comparison remains merged POST versus 8656f9fa9.
+
+All **26 changed command-handler bodies** equal compat2 exactly; the other
+**1,185 of 1,211** handlers equal headline. These counts include object copies.
+
+The scheduler self-test's real shell fixture now initializes `ALL_BUILD_CORES`
+from its permitted fixture CPU list. Previously its unused placeholder was CPU
+0; the single-slot build-mask preservation makes that value active. This keeps
+the existing scheduling/affinity assertions within the caller's allocation.
+The fix was made before this run reached `gates_test.py`; no assertion or
+deadline changed.
