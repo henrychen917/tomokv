@@ -248,6 +248,7 @@ Order is by stage, not by an error ranking independent of socket-read boundaries
 | Each RESP bulk header | Invalid integer/negative length/configured bulk ceiling gives invalid bulk length; otherwise length above 16384 while unauthenticated gives unauthenticated bulk length. These errors close after the reply. | `networking.c:2388–2397` |
 | Fully parsed command | Unknown command or unknown advertised subcommand before arity and AUTH. | `server.c:3806`, `3919–3922` |
 | Known command/subcommand | Advertised arity error before AUTH (EXEC preserves EXECABORT prefix). | `server.c:3838`, `3923–3926` |
+| Protected command policy | Redis checks protected DEBUG/MODULE policy after arity, before AUTH. The oracle differential explicitly enables DEBUG on both servers. | `server.c:3929–3941` |
 | Valid advertised arity | NOAUTH unless the command permits unauthenticated use; ACL checks follow. | `server.c:3963–3990` |
 | Authorized handler | Handler grammar, such as PING's optional-argument maximum, follows authentication. Ten-argument PING therefore returns NOAUTH before AUTH; an array of eleven args instead fails at the parser. | `server.c:3963` and subsequent command execution |
 

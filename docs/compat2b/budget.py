@@ -62,7 +62,7 @@ def compare(path, obj):
             continue
         c = old.canon(sym)
         lane = (obj, sym) in LANE_CHANGED
-        match_old = b is not None and b == c
+        match_old = b == c  # Two absent copies also match; no emitted instructions are erased.
         same_targets = bool(a and b and a[1] == b[1])
         rows.append(dict(object=obj, symbol=sym, name=name, hot=is_hot,
                          headline=ref.size(sym), compat2=old.size(sym), post=post.size(sym),
@@ -127,6 +127,7 @@ def trial(job, keys, outdir):
 
 def main():
     jobs=json.loads(Path(sys.argv[1]).read_text())
+    jobs=list({json.dumps(job,sort_keys=True):job for job in jobs}.values())
     outdir=Path(sys.argv[2]); outdir.mkdir(parents=True,exist_ok=True)
     keys={}
     for tree in {j.get('tree','post') for j in jobs}:

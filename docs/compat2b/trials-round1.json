@@ -1,0 +1,254 @@
+[
+  {
+    "object": "db0/src/core/genthread.o",
+    "budget": 130329
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "budget": 130337
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "budget": 130345
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "budget": 25344
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "budget": 25352
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "budget": 25360
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 126770
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 126778
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 126786
+  },
+  {
+    "object": "src/main.o",
+    "budget": 147435
+  },
+  {
+    "object": "src/main.o",
+    "budget": 147443
+  },
+  {
+    "object": "src/main.o",
+    "budget": 147451
+  },
+  {
+    "object": "db0/src/cmd/t_zset.o",
+    "budget": 32976
+  },
+  {
+    "object": "db0/src/cmd/t_zset.o",
+    "budget": 32984
+  },
+  {
+    "object": "db0/src/cmd/t_zset.o",
+    "budget": 32992
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "budget": 35477
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "budget": 35485
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "budget": 35493
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "budget": 31403
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "budget": 31411
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "budget": 31419
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "budget": 162741
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "budget": 162749
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "budget": 162757
+  },
+  {
+    "object": "src/cmd/climon.o",
+    "budget": 26188
+  },
+  {
+    "object": "src/cmd/climon.o",
+    "budget": 26196
+  },
+  {
+    "object": "src/cmd/climon.o",
+    "budget": 26204
+  },
+  {
+    "object": "src/cmd/t_set.o",
+    "budget": 23574
+  },
+  {
+    "object": "src/cmd/t_set.o",
+    "budget": 23582
+  },
+  {
+    "object": "src/cmd/t_set.o",
+    "budget": 23590
+  },
+  {
+    "object": "db0/src/cmd/t_set.o",
+    "budget": 23434
+  },
+  {
+    "object": "db0/src/cmd/t_set.o",
+    "budget": 23442
+  },
+  {
+    "object": "db0/src/cmd/t_set.o",
+    "budget": 23450
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128102
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128110
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128118
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "budget": 162359
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "budget": 162367
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "budget": 162375
+  },
+  {
+    "object": "src/cmd/t_zset.o",
+    "budget": 33401
+  },
+  {
+    "object": "src/cmd/t_zset.o",
+    "budget": 33409
+  },
+  {
+    "object": "src/cmd/t_zset.o",
+    "budget": 33417
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "budget": 148969
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "budget": 148977
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "budget": 148985
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "budget": 35432
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "budget": 35440
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "budget": 35448
+  },
+  {
+    "object": "src/core/genthread.o",
+    "budget": 130097
+  },
+  {
+    "object": "src/core/genthread.o",
+    "budget": 130105
+  },
+  {
+    "object": "src/core/genthread.o",
+    "budget": 130113
+  },
+  {
+    "object": "db0/src/main.o",
+    "budget": 147456
+  },
+  {
+    "object": "db0/src/main.o",
+    "budget": 147464
+  },
+  {
+    "object": "db0/src/main.o",
+    "budget": 147472
+  },
+  {
+    "object": "db0/src/cmd/climon.o",
+    "budget": 26263
+  },
+  {
+    "object": "db0/src/cmd/climon.o",
+    "budget": 26271
+  },
+  {
+    "object": "db0/src/cmd/climon.o",
+    "budget": 26279
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "budget": 31802
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "budget": 31810
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "budget": 31818
+  },
+  {
+    "object": "src/core/reorder.o",
+    "budget": 147975
+  },
+  {
+    "object": "src/core/reorder.o",
+    "budget": 147983
+  },
+  {
+    "object": "src/core/reorder.o",
+    "budget": 147991
+  }
+]
