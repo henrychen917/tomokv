@@ -1,0 +1,4 @@
+  row budget: 900s; median=-s; no-history-conservative-default; perfex clock binary regression
+  perfex clock binary regression                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; perfex batch binary regression
+  perfex batch binary regression                       ok

@@ -1,0 +1,4 @@
+ok	0.300000	NET1 inline + query cap (1s, uring)
+ok	0.290000	NET1 inline + query cap (1s, epoll)
+ok	0.300000	NET1 inline + query cap (2s, uring)
+ok	0.290000	NET1 inline + query cap (2s, epoll)

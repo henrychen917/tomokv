@@ -1,0 +1,10 @@
+PASS build/ack: PASS persistfix ack-window: stale target, unposted, posted, durable
+PASS build/remote: PASS persistfix remote-window: final owner waits for buffered remote fragment
+PASS build/shutdown: PASS persistfix shutdown-window: writer waited, all producers stopped, file closed
+PASS build/refusal: PASS persistfix refusal: retained chunk, counter and log line
+AOF refused post: producer=1 recording=0 refused=1
+PASS old-ack/ack: FAIL persistfix: acknowledgement cannot precede post
+PASS old-close/shutdown: FAIL persistfix: writer cannot close before producers stop posting
+PASS no-refusal/refusal: AOF refused post: producer=1 recording=0 refused=1
+FAIL persistfix: refused post appears in persistence report
+PASS persistfix schema: missing evidence and five dirty shutdowns rejected

@@ -1,0 +1,32 @@
+0000 [ 7] mov -0x6e8(%rbp),%r8 | 4c 8b 85 18 f9 ff ff
+0007 [ 5] mov 0x8(%r12),%edx | 41 8b 54 24 08
+000c [ 7] mov -0x718(%rbp),%rcx | 48 8b 8d e8 f8 ff ff
+0013 [ 6] mov -0x6f8(%rbp),%esi | 8b b5 08 f9 ff ff
+0019 [ 7] mov -0x710(%rbp),%rdi | 48 8b bd f0 f8 ff ff
+0020 [ 5] call <tomo::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)> | e8 ?? ?? ?? ??
+0025 [ 7] mov %rax,-0x6e8(%rbp) | 48 89 85 18 f9 ff ff
+002c [ 5] jmp <tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]+0x13df> | e9 ?? ?? ?? ??
+0031 [ 5] call <abort@plt> | e8 ?? ?? ?? ??
+0036 [ 3] mov %r14,%rdi | 4c 89 f7
+0039 [ 3] vzeroupper | c5 f8 77
+003c [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+0041 [ 4] mov -0x38(%rbp),%rax | 48 8b 45 c8
+0045 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+004e [ 2] jne <+0xa1> | 75 51
+0050 [ 3] mov %rbx,%rdi | 48 89 df
+0053 [ 5] call <_Unwind_Resume@plt> | e8 ?? ?? ?? ??
+0058 [ 7] mov -0x718(%rbp),%r9 | 4c 8b 8d e8 f8 ff ff
+005f [ 3] xor %r14d,%r14d | 45 31 f6
+0062 [ 6] mov $0x100000,%r8d | 41 b8 00 00 10 00
+0068 [ 7] lea -0x6e8(%rbp),%rcx | 48 8d 8d 18 f9 ff ff
+006f [ 7] lea -0x6ec(%rbp),%rsi | 48 8d b5 14 f9 ff ff
+0076 [ 3] mov %rbx,%rdx | 48 89 da
+0079 [ 3] mov %r12,%rdi | 4c 89 e7
+007c [ 5] call <tomo::Client::resume_multibulk(unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)> | e8 ?? ?? ?? ??
+0081 [ 7] or -0x719(%rbp),%r14b | 44 0a b5 e7 f8 ff ff
+0088 [ 5] jmp <tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]+0x2c5> | e9 ?? ?? ?? ??
+008d [ 6] mov $0x1,%r14d | 41 be 01 00 00 00
+0093 [ 6] mov $0x4000,%r9d | 41 b9 00 40 00 00
+0099 [ 6] mov $0xa,%r8d | 41 b8 0a 00 00 00
+009f [ 2] jmp <+0x68> | eb c7
+00a1 [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??

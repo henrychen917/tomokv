@@ -1,0 +1,35 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "64-79",
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-72",
+    "--load-cores",
+    "73-79",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-compat2/build/compat2b/headline-src/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-compat2/build/compat2b/headline-src",
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/cx-compat2/build/compat2b/oracle",
+    "GATE_ONLY_JOBS": "compat2",
+    "GATE_DIFFER_ORACLE_CORES": "72",
+    "GATE_TEST_PORT": "26899",
+    "GATE_HISTORY": "/home/user/Projects/cx-compat2/build/compat2b/history-gate-pre",
+    "GATE_LEDGER": "/home/user/Projects/cx-compat2/docs/compat2b/gate-pre/ledger",
+    "TMPDIR": "/home/user/Projects/cx-compat2/build/compat2b/tmp"
+  },
+  "binary_sha256": "91ae41fd2fda0738a02ee0eed50021d772985654b19f55d1296812aaafaa6426",
+  "returncode": 1,
+  "run_directory": "/home/user/Projects/cx-compat2/build/compat2b/headline-src/build/gate-run.EbYoxB"
+}

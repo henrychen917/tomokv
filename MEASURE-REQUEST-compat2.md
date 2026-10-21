@@ -250,7 +250,7 @@ Order is by stage, not by an error ranking independent of socket-read boundaries
 | Known command/subcommand | Advertised arity error before AUTH (EXEC preserves EXECABORT prefix). | `server.c:3838`, `3923–3926` |
 | Protected command policy | Redis checks protected DEBUG/MODULE policy after arity, before AUTH. The oracle differential explicitly enables DEBUG on both servers. | `server.c:3929–3941` |
 | Valid advertised arity | NOAUTH unless the command permits unauthenticated use; ACL checks follow. | `server.c:3963–3990` |
-| Authorized handler | Handler grammar, such as PING's optional-argument maximum, follows authentication. Ten-argument PING therefore returns NOAUTH before AUTH; an array of eleven args instead fails at the parser. | `server.c:3963` and subsequent command execution |
+| Authorized handler | Handler grammar, such as PING's optional-argument maximum, follows authentication. Ten-argument PING therefore returns NOAUTH before AUTH; an array of eleven args instead fails at the parser. | `server.c:3963–3969`, handler call `4198` |
 
 The merged ordinary/R7 parser applies N3 only on its parse-error exit; C1 runs
 only after successful parsing. N4's conservative common-path bound and cold
@@ -364,3 +364,72 @@ from its permitted fixture CPU list. Previously its unused placeholder was CPU
 the existing scheduling/affinity assertions within the caller's allocation.
 The fix was made before this run reached `gates_test.py`; no assertion or
 deadline changed.
+
+### Directed gate results and TLS coverage
+
+The first POST partial gate executes **129 rows: 127 pass / 2 fail**. All seven
+combined compat2/ntfix defect rows pass. The two other failures and their
+corrections/replays are documented below; this first ledger is not described as
+an all-green run. PRE executes the identical `job_compat2` body and test files
+(`pre-post-interface.json` verifies their hashes): one release prerequisite
+passes and **all three compat2 rows fail as required**.
+
+| Defect / four mode-engine combinations | 8656f9fa9 PRE | Merged POST |
+|---|---|---|
+| C1 full command-table differential | 228 differences in each 1,522-comparison leg | **0 differences in all four legs** (6,088 comparisons) |
+| C2 held RENAME candidate, three predecessor GETs | Three false expiry events in each leg | **Zero events**; all replies remain `old` |
+| C2 MSET TTL-clearing control | Zero events in each leg | Zero events in each leg |
+| C3 held reclamation, both modes | `live=0 ktls=1 tls_closed=0 retained=1`, then required failure | `live=0 ktls=0 tls_closed=1 retained=1`, then PASS |
+| C3 real TLS1.2 kTLS / TLS1.3 fallback, all four legs | Eventual teardown controls pass | All pass |
+| N1 exact epoll/uring byte accounting | Already fixed in headline; no negative claim | All four legs pass |
+| N2 silent-peer close-after-reply | Already fixed in headline; no negative claim | All eight mode/engine/transport legs pass |
+| N3 pre-AUTH length errors | Already fixed in headline; no negative claim | **23 exact cases × eight legs**, all pass |
+| N4 query-buffer frontier | Already fixed in headline; no negative claim | **Four exact cases × eight legs**, plus deterministic frontier unit, all pass |
+
+Actual interface receipts are `docs/compat2b/gate-post/` and `gate-pre/`;
+`directed-summary.json` retains each C1 comparison count, C2 witnessed state and
+C3 unit output. The C1 inventory still covers 245 registered top-level commands,
+with explicit metadata exclusions and authenticated/unauthenticated right/wrong
+arity probes. The pinned Redis oracle remains 7.4.10.
+
+All **20 rows in the actual TLS job pass**. The supplemental batteries also
+pass **24/24 live commands** across both modes/engines: required and optional
+client certificates, default kTLS, forced userspace fallback, and live KeyUpdate.
+All **five unique serverless RX/KeyUpdate cases pass** (also repeated by the
+separate `tls-units` invocation). Exact commands and return codes are retained
+in `docs/compat2b/tls/results.json` and `tls-units/results.json`.
+
+### Initial failures retained; final replay required
+
+- `storesize published monitoring` still expected the historical
+  `-ERR unknown DBSIZE option` for `DBSIZE bad`. C1 intentionally follows Redis's
+  advertised arity. The passing C1 oracle receipts show the exact wrong-arity
+  reply in both authentication states. `storesize_unit.cc` now requires that
+  exact reply; the existing `DBSIZE NOW` / `now` extension assertions remain.
+  No production change was needed. The owning `atomic_units` job is queued for
+  replay through the same gate interface.
+- The initial `gates_test.py` run reports **67 tests / 29 subtest failures**:
+  its helper-invocation assertions still required short-circuiting after the
+  first failure. They now require **all 15 helpers**, while preserving every
+  assertion that any nonzero helper result makes the row fail. All **five
+  focused LedgerWiring tests pass**; the whole suite is queued in the actual
+  `abba_selftest` replay. Its scheduler fixture also uses its permitted CPU mask,
+  as described above.
+- The initial ABBA self-test has one `KeyError: statistical_verdict` in its
+  favorable-null mutation case. A scheduler-fixture source edit occurred during
+  that test, whose real driver refuses a changed harness before publishing
+  `statistical_verdict`. This is consistent with the change guard, not evidence
+  of a server defect. The **unchanged focused test passes** with frozen sources
+  (one test, 96.327 seconds); no comparator assertion or instrument behavior was
+  changed to obtain that result. The complete frozen-source job replay is still
+  required to supersede the initial failure.
+- The first attempt to queue that replay used a leading-hyphen label as a
+  separate argparse value and exited 2 before the gate started. That usage error
+  is retained at `docs/compat2b/differ/gate-final.log`. The corrected command uses
+  `--label=-final` and runs after the standard matrices, with all twelve parser
+  regression jobs and `atomic_units` in the same selected-job interface.
+- The receipt self-test refuses **EXPECT_FULL=686 versus source/fixture=689**,
+  with **zero missing and zero extra fixture labels**. The counts are owner-owned;
+  this refusal is retained, not bypassed. Its internal receipt-control suite
+  cannot run until the maintainer updates EXPECT. The other independent helper
+  commands still run and the aggregate row stays failed.
