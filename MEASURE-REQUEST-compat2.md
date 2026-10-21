@@ -413,15 +413,15 @@ environment, return codes and every per-leg comparison log are under
 |---|---|---|
 | io_uring / split | **475 pass / 0 fail** | 7, 19, 20, 23, 21 |
 | io_uring / fused with read-local armed | **466 pass / 0 fail** | 7, 19, 20, 23, 22 |
-| epoll / split | Running | 7, 19, 20, 23, 24 |
-| epoll / fused with read-local armed | Pending | Standard allocation |
+| epoll / split | **475 pass / 0 fail** | 7, 19, 20, 23, 24 |
+| epoll / fused with read-local armed | Running | 7, 19, 20, 23, 25 |
 
 The standard fused driver skips SORT because that suite requires split 6:2;
 these skips are not passes, and SORT remains exercised in each split matrix.
 The standard driver's mode-equivalence display still says “all 32,” but the
 current source declares and checks **16 cells** (`mode_equivalence.py:41–42,
-179`), and its io_uring receipt contains **16/16** with 6,137 byte-identical
-replies per cell. This report uses the executed inventory, not the stale label.
+179`), and both engine receipts contain **16/16**: 6,137 byte-identical replies
+per io_uring cell and 6,154 per epoll cell. This report uses the executed inventory, not the stale label.
 
 ### Initial failures retained; final replay required
 

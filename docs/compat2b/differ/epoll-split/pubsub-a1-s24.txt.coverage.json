@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "commands": {
+    "PING": 2,
+    "PSUBSCRIBE": 160,
+    "PUBLISH": 2339,
+    "PUBSUB": 399,
+    "PUNSUBSCRIBE": 161,
+    "RESET": 10,
+    "SET": 2,
+    "SPUBLISH": 400,
+    "SSUBSCRIBE": 127,
+    "SUBSCRIBE": 182,
+    "SUNSUBSCRIBE": 125,
+    "UNSUBSCRIBE": 162
+  },
+  "kinds": {
+    "PING": [
+      "reply"
+    ],
+    "PSUBSCRIBE": [
+      "reply"
+    ],
+    "PUBLISH": [
+      "reply"
+    ],
+    "PUBSUB": [
+      "reply"
+    ],
+    "PUNSUBSCRIBE": [
+      "reply",
+      "unordered acknowledgement multiset"
+    ],
+    "RESET": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SPUBLISH": [
+      "reply"
+    ],
+    "SSUBSCRIBE": [
+      "reply"
+    ],
+    "SUBSCRIBE": [
+      "reply"
+    ],
+    "SUNSUBSCRIBE": [
+      "reply",
+      "unordered acknowledgement multiset"
+    ],
+    "UNSUBSCRIBE": [
+      "reply",
+      "unordered acknowledgement multiset"
+    ]
+  }
+}
