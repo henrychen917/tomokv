@@ -1085,7 +1085,7 @@ plan_jobs(){
               wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries hexpread bplus acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries moverfix hexpread bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -2156,6 +2156,44 @@ row_begin "dispatched==executed (N)"
 R=$(shutdown_value work.dispatched)
 E=$(shutdown_value work.executed)
 [ -n "$R" ] && [ "$R" = "$E" ] && ok "dispatched==executed ($R)" || bad "dispatched==executed" "$R vs $E"
+}
+
+# moverfix: eight conservation rows before the quick exit (DQ=DF=+8).
+# Each row runs every family even after an earlier failure, on the candidate's
+# matching deterministic owner fixture and its live mode/engine/database image.
+job_moverfix(){
+  local mode engine databases family rc unit boot_fn label unit_root
+  unit_root=$(dirname "$CANDIDATE_BINARY")
+  for mode in 1s 2s; do for engine in uring epoll; do for databases in 1 16; do
+    label="moverfix conservation ($mode, $engine, databases $databases, atomic 0)"
+    row_begin "$label"
+    rc=0
+    unit="$unit_root/moverfix-unit"
+    [ "$databases" != 1 ] || unit="$unit_root/moverfix-db0-unit"
+    for family in RPOPLPUSH LMOVE BRPOPLPUSH BLMOVE LMPOP ZMPOP SMOVE; do
+      taskset -c "$CORES" "$unit" "$mode" "$family" \
+        >"$TMPDIR/unit-$mode-$engine-$databases-$family.log" 2>&1 || rc=1
+    done
+    boot_fn=boot
+    [ "$mode" != 1s ] || boot_fn=boot_fused
+    if "$boot_fn" "$CANDIDATE_BINARY" --atomic 0 --net-io "$engine" \
+        --databases "$databases" --read-local 0 --key-lb 0 --client-lb 0 \
+        --flip-auto 0 --enable-debug-command yes; then
+      for family in RPOPLPUSH LMOVE BRPOPLPUSH BLMOVE LMPOP ZMPOP SMOVE; do
+        py tests/txn_movers.py 127.0.0.1 "$PORT" --only "$family" \
+          >"$TMPDIR/live-$mode-$engine-$databases-$family.log" 2>&1 || rc=1
+      done
+      for family in T05 G5; do
+        py tests/moverfix.py 127.0.0.1 "$PORT" --only "$family" \
+          >"$TMPDIR/live-$mode-$engine-$databases-$family.log" 2>&1 || rc=1
+      done
+    else
+      rc=1
+    fi
+    stop
+    shutdown_clean || rc=1
+    [ "$rc" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/{unit,live}-$mode-$engine-$databases-*.log"
+  done; done; done
 }
 
 job_atomic_batteries(){
@@ -3701,14 +3739,14 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
+      build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/respresume-unit build/respresume-migration \
       build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
   make -q build/respresume-unit && : > "$RUN_DIR/unit-ready/respresume-unit"
   make -q build/respresume-migration && : > "$RUN_DIR/unit-ready/respresume-migration"
-  for target in publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
+  for target in moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -3793,7 +3831,7 @@ job_dependencies(){
     tls) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*|aof_frame|aoforder) echo 'release production_units';;
+    debug-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
@@ -3938,6 +3976,7 @@ collect_job readonly
 collect_job release_batteries
 
 collect_job atomic_batteries
+collect_job moverfix
 # hexpread: eight independently scored rows before the quick exit (DQ +8 / DF +8).
 # EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 collect_job hexpread

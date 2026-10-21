@@ -964,3 +964,9 @@ build/lbplanner-units: build/lbplanner-unit build/lbplanner-unit-pad build/lbosc
 build/lbplanner-trace: tools/lbplanner_trace.cc Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $< -o $@
+
+# D2 deterministic owner-turn controls, same fixture against either source arm.
+$(BUILD_ROOT)/moverfix-unit: tests/moverfix_unit.cc src/cmd/xshard.cc $(filter-out $(BUILD_ROOT)/src/main.o $(BUILD_ROOT)/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(filter-out $(BUILD_ROOT)/src/main.o $(BUILD_ROOT)/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+$(BUILD_ROOT)/moverfix-db0-unit: tests/moverfix_unit.cc src/cmd/xshard.cc $(filter-out $(BUILD_ROOT)/db0/src/main.o $(BUILD_ROOT)/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(filter-out $(BUILD_ROOT)/db0/src/main.o $(BUILD_ROOT)/db0/src/cmd/xshard.o,$(DB0_OBJ)) $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
