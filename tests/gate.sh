@@ -1084,7 +1084,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
+              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries hexpread bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1)
@@ -1474,6 +1474,34 @@ job_perfex_live(){
     fi
     stop
   done
+}
+
+ntnew4_live_leg(){
+  local mode=$1 engine=$2 launch_fn=boot
+  [ "$mode" != 1s ] || launch_fn=boot_fused
+  py tests/ntnew4_clock.py prepare --clock-file "$TMPDIR/ntnew4-clock" &&
+    LD_PRELOAD="$TMPDIR/ntnew4-clock.so" TOMO_NTNEW4_CLOCK="$TMPDIR/ntnew4-clock" \
+      "$launch_fn" "$CANDIDATE_BINARY" --net-io "$engine" --atomic 0 --read-local 0 \
+      --databases 1 --key-lb 0 --client-lb 0 --flip-auto 0 \
+      --enable-debug-command yes --save '' --appendonly no &&
+    py tests/ntnew4_clock.py check --port "$PORT" --mode "$mode" --server-log "$SRVLOG" \
+      --clock-file "$TMPDIR/ntnew4-clock" >"$TMPDIR/ntnew4-$mode-$engine.log" 2>&1
+}
+
+job_ntnew4_live(){
+  local mode label
+  for mode in 2s 1s; do
+    label="NT-new-4 command clock after dequeue ($mode)"
+    row_begin "$label"
+    if ntnew4_live_leg "$mode" uring; then ok "$label";
+    else bad "$label" "see $TMPDIR/ntnew4-$mode-uring.log and $SRVLOG"; fi
+    stop
+  done
+  label="NT-new-4 command clock after dequeue (2s, epoll)"
+  row_begin "$label"
+  if ntnew4_live_leg 2s epoll; then ok "$label";
+  else bad "$label" "see $TMPDIR/ntnew4-2s-epoll.log and $SRVLOG"; fi
+  stop
 }
 
 job_persistfix_units(){
@@ -3879,6 +3907,7 @@ collect_job exbatch_live
 collect_job persistfix_units
 collect_job perfex_units
 collect_job perfex_live
+collect_job ntnew4_live
 collect_job clientfix
 collect_job core_units
 # flipfix: two serverless sanitizer rows before the quick exit (+2 quick / +2 full).

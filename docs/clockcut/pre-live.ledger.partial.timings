@@ -1,0 +1,4 @@
+ok	0.010000	release build (+footprint locks)
+FAIL	0.860000	NT-new-4 command clock after dequeue (2s)
+FAIL	0.850000	NT-new-4 command clock after dequeue (1s)
+FAIL	0.850000	NT-new-4 command clock after dequeue (2s, epoll)
