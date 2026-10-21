@@ -95,9 +95,11 @@ def server(binary, directory, port, cores, mode='2s', engine='uring', extra=(), 
                '--port', str(port), '--dir', str(directory), '--save', '', '--appendonly', 'no',
                '--protected-mode', 'no', '--enable-debug-command', 'yes']
     if not oracle:
-        command += ['--shards', '16', '--ratio', '6:2', '--thread-mode', mode,
+        command += ['--shards', '16', '--thread-mode', mode,
                     '--net-io', engine, '--key-lb', '0', '--client-lb', '0',
                     '--flip-auto', '0', '--read-local', '0', '--reorder', '0', '--databases', '16']
+        if mode == '2s':
+            command += ['--ratio', '6:2']
     command += list(extra)
     save(directory / 'command.json', command)
     with (directory / 'server.log').open('w') as log:

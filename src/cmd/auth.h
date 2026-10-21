@@ -9,10 +9,10 @@ struct CommandSpec;
 class Op;
 bool auth_arity_reply(Op& op, const CommandSpec& spec, bool unauthenticated,
                       bool outer_rejected = false);
+const char* auth_noauth_error(const Op& op);
 
 class Client;
 class IoLoop;
-class Op;
 class Server;
 struct Slice;
 

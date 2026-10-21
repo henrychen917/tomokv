@@ -1464,7 +1464,7 @@ class PersistfixWiring(unittest.TestCase):
         # active-close teardown. The plain-bind control must witness TIME_WAIT.
         with socket.socket() as listener:
             listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            listener.bind(('127.0.0.1', 0))
+            listener.bind(('127.0.0.1', int(os.environ.get('GATE_TEST_PORT', '0'))))
             listener.listen(1)
             listener.settimeout(2)
             port = listener.getsockname()[1]

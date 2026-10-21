@@ -1394,6 +1394,7 @@ void reply_command_docs(Op::Sink& sink, const CommandMetadata& metadata, bool re
 }
 
 void cmd_command(Shard&, Op& op) {
+    if (auth_arity_reply(op, *op.spec, false)) return;
     auto sink = op.sink();
     if (op.argc() == 1) {
         const uint32_t count = command_registry_size();
@@ -2820,6 +2821,7 @@ void cmd_info(Shard&, Op& op) {
 }
 
 void cmd_dbsize(Shard&, Op& op) {
+    if (auth_arity_reply(op, *op.spec, false)) return;
     if (op.argc() == 2 && !eq_icase(op.arg(1), "NOW")) {
         reply_err(op.sink(), "ERR unknown DBSIZE option");
         return;
@@ -2961,7 +2963,7 @@ static const CommandSpec kTable[] = {
     {"HELLO",       1, -1, CmdFlags::ConnLocal | CmdFlags::AclExempt,              cmd_hello,      0,  0, 0},
     {"RESET",      1,  1, CmdFlags::ConnLocal | CmdFlags::AclExempt |
                           CmdFlags::Climon,                                       cmd_reset,      0,  0, 0},
-    {"QUIT",       1,  1, CmdFlags::ConnLocal | CmdFlags::AclExempt,              cmd_quit,       0,  0, 0},
+    {"QUIT",       1, -1, CmdFlags::ConnLocal | CmdFlags::AclExempt,              cmd_quit,       0,  0, 0},
     {"SUBSCRIBE",   2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
     {"UNSUBSCRIBE", 1, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},
     {"PSUBSCRIBE",  2, -1, CmdFlags::ConnLocal | CmdFlags::PubSub,                cmd_pubsub_only,0,  0, 0},

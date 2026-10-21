@@ -1,0 +1,19 @@
+{
+  "run": "compat2-uring-split",
+  "permanent": [
+    7,
+    19,
+    20,
+    23
+  ],
+  "failed": [],
+  "rotating": 21,
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    21
+  ],
+  "history": "/home/user/Projects/cx-compat2/docs/compat2/differ-final/history"
+}

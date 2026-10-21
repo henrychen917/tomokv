@@ -1398,7 +1398,7 @@ private:
         }
     }
 
-    void release_tls(Client* c) {
+    __attribute__((noinline)) void release_tls(Client* c) {
         if (!c->is_tls()) return;
         const uint32_t slot = c->tls_slot();
         if (slot >= tls_slots_.size() || !tls_slots_[slot]) std::abort();
@@ -4923,6 +4923,11 @@ ordinary_shard_ready:
         connreset::note(*c, self_->id(), "fd_release", site);
 #endif
         ::close(c->fd());
+        // At this fence the socket is gone and all recv/send/poll references
+        // have drained. Count live TLS connections here, independently of the
+        // extra iteration retaining Client for late executor inbox messages.
+        // reap_dead's idempotent release remains the cleanup fallback.
+        release_tls(c);
         srv_->client_released();
         srv_->lb_forget_client(c->id());
         // NOT delete. An ex-side claimed post may still sit un-consumed in our inbound channels

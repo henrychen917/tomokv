@@ -1,0 +1,18 @@
+[
+  {
+    "name": "hot",
+    "argv": [
+      "taskset",
+      "-c",
+      "64-79",
+      "python3",
+      "tools/lbstall_artifacts.py",
+      "compare",
+      "/home/user/Projects/cx-compat2/build/compat2/pre-source/build",
+      "/home/user/Projects/cx-compat2/build",
+      "/home/user/Projects/cx-compat2/docs/compat2/identity-final/hot.json"
+    ],
+    "env": null,
+    "returncode": 1
+  }
+]

@@ -21,14 +21,12 @@ PASSWORD = 'compat2-secret'
 
 def run(a):
     a.output.mkdir(parents=True, exist_ok=False)
-    rows, failures, unavailable = [], [], []
+    rows, failures, unavailable, queries = [], [], [], []
     with server(a.binary, a.output / 'target', a.port, a.cores, a.mode, a.engine), \
          server(a.oracle, a.output / 'oracle', a.port + 1, a.oracle_cores, oracle=True):
         ports = (a.port, a.port + 1)
         for port in ports:
             with Client(port) as c:
-                assert c.cmd('ACL', 'SETUSER', 'compat2', 'on', '>' + PASSWORD,
-                             '~*', '&*', '-@all', '+auth', '+hello', '+quit', '+reset') == b'OK'
                 assert c.cmd('CONFIG', 'SET', 'requirepass', PASSWORD) == b'OK'
         with Client(a.port + 1) as c:
             assert c.cmd('AUTH', PASSWORD) == b'OK'
@@ -39,6 +37,9 @@ def run(a):
                 bounds[name.lower()] = (int(lo), int(hi))
 
         def compare(name, kind, argv, auth, denied=False):
+            queries.append((name, kind, argv, auth, denied))
+
+        def check(name, kind, argv, auth, denied):
             replies = []
             for port in ports:
                 with Client(port) as c:
@@ -83,6 +84,8 @@ def run(a):
                         wrong_counts.add(hi + 1)
                 if child == 'ping':
                     wrong_counts.add(10)
+                if child == 'quit':
+                    wrong_counts.add(2)  # Redis accepts and closes even with extra arguments
                 if not wrong_counts:
                     unavailable.append(dict(command=child, reason='variadic; no invalid advertised arity'))
                 for count in sorted(wrong_counts):
@@ -92,11 +95,25 @@ def run(a):
                         # Local maxima of a variadic Redis command are handler grammar,
                         # beyond the advertised-arity matrix. Probe their AUTH ordering;
                         # PING is also checked with normal authenticated execution.
-                        if authenticated and arity < 0 and count >= minimum and child != 'ping':
+                        if authenticated and arity < 0 and count >= minimum and child not in ('ping', 'quit'):
                             continue
                         compare(child, 'wrong', wrong, authenticated)
         for auth in (False, True):
             compare('unknown', 'unknown', ['COMPAT2-UNKNOWN', 'x'], auth)
+        # First prove the original requirepass-only boot, including fully
+        # authorized wrong-arity commands. Enabling an ACL user later must not
+        # conceal missing arity checks on that path.
+        for query in queries:
+            if not query[-1]:
+                check(*query)
+        for port in ports:
+            with Client(port) as c:
+                assert c.cmd('AUTH', PASSWORD) == b'OK'
+                assert c.cmd('ACL', 'SETUSER', 'compat2', 'on', '>' + PASSWORD,
+                             '~*', '&*', '-@all', '+auth', '+hello', '+quit', '+reset') == b'OK'
+        for query in queries:
+            if query[-1]:
+                check(*query)
         save(a.output / 'results.json', dict(inventory=inventory, rows=rows,
                                             unavailable=unavailable, failures=failures))
     print(f'autharity: commands={len(inventory)} comparisons={len(rows)} failures={len(failures)}')

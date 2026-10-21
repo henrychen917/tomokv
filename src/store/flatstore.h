@@ -1269,11 +1269,18 @@ public:
         if (!candidate && rehashing()) candidate = find_in(1, h, key);
         const bool expired = candidate && deadline_elapsed(h, candidate, cached_now_ms_) &&
                              !(snapshot_active_ && candidate == find_in(1, h, key));
-        if (expired && read_retirement_available())
+        if (expired && !notify_read_resolves_versions() && read_retirement_available())
             notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
         KvObj* found = find(h, key);
         if (!found) notify_emit(sink, NOTIFY_KEY_MISS, NotifyEventId::Keymiss, key);
         return found;
+    }
+
+    // Notification-only cold query. The version-aware find is a logical read:
+    // it neither deletes a foreign candidate nor reaps an expired predecessor.
+    // Even an unrelated key on this store uses that resolver while records live.
+    __attribute__((noinline)) bool notify_read_resolves_versions() const {
+        return atomic_has_records();
     }
 
     // Same-size-CLASS overwrite, allocation-free. Asking for 88 bytes gets 96, so a value that grew

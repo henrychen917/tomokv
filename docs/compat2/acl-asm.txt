@@ -1,0 +1,304 @@
+000000000050a870 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]>:
+  50a870:	push   %rbp
+  50a871:	mov    %rsp,%rbp
+  50a874:	push   %r15
+  50a876:	push   %r14
+  50a878:	push   %r13
+  50a87a:	push   %r12
+  50a87c:	push   %rbx
+  50a87d:	mov    %r8d,%r14d
+  50a880:	mov    %ecx,%ebx
+  50a882:	sub    $0xb8,%rsp
+  50a889:	mov    %r9,%r15
+  50a88c:	mov    %rdi,-0xc0(%rbp)
+  50a893:	mov    %rsi,-0xb8(%rbp)
+  50a89a:	mov    %cl,-0xc1(%rbp)
+  50a8a0:	mov    %fs:0x28,%rax
+  50a8a9:	mov    %rax,-0x38(%rbp)
+  50a8ad:	xor    %eax,%eax
+  50a8af:	cmp    $0x2,%cl
+  50a8b2:	jne    50a950 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0xe0>
+  50a8b8:	test   %r14d,%r14d
+  50a8bb:	jns    50a950 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0xe0>
+  50a8c1:	mov    0xc0(%rsi),%rax
+  50a8c8:	and    $0x7fffffff,%r14d
+  50a8cf:	test   %rax,%rax
+  50a8d2:	je     50ab50 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x2e0>
+  50a8d8:	shl    $0x4,%r14
+  50a8dc:	add    %r14,%rax
+  50a8df:	mov    (%rax),%rdi
+  50a8e2:	mov    0x8(%rax),%esi
+  50a8e5:	mov    $0x2,%edx
+  50a8ea:	lea    0x286d3c(%rip),%rcx        # 79162d <_IO_stdin_used+0x1562d>
+  50a8f1:	call   4fd390 <tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]>
+  50a8f6:	lea    0x277243(%rip),%rsi        # 781b40 <_IO_stdin_used+0x5b40>
+  50a8fd:	lea    -0xb0(%rbp),%rdi
+  50a904:	movb   $0x0,-0xa8(%rbp)
+  50a90b:	test   %al,%al
+  50a90d:	lea    0x2771e4(%rip),%rax        # 781af8 <_IO_stdin_used+0x5af8>
+  50a914:	cmovne %rax,%rsi
+  50a918:	mov    -0xb8(%rbp),%rax
+  50a91f:	mov    %rax,-0xb0(%rbp)
+  50a926:	call   40b830 <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+  50a92b:	mov    -0x38(%rbp),%rax
+  50a92f:	sub    %fs:0x28,%rax
+  50a938:	jne    50ad98 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x528>
+  50a93e:	lea    -0x28(%rbp),%rsp
+  50a942:	pop    %rbx
+  50a943:	pop    %r12
+  50a945:	pop    %r13
+  50a947:	pop    %r14
+  50a949:	pop    %r15
+  50a94b:	pop    %rbp
+  50a94c:	ret
+  50a94d:	nopl   (%rax)
+  50a950:	mov    %edx,%edi
+  50a952:	lea    0x28321f(%rip),%rcx        # 78db78 <_IO_stdin_used+0x11b78>
+  50a959:	call   4fcd30 <tomo::(anonymous namespace)::acl_slot(unsigned int)>
+  50a95e:	mov    $0x7,%edx
+  50a963:	mov    %rcx,-0xd0(%rbp)
+  50a96a:	test   %rax,%rax
+  50a96d:	je     50a983 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x113>
+  50a96f:	mov    (%rax),%rax
+  50a972:	mov    %rax,%rdi
+  50a975:	mov    %rax,-0xd0(%rbp)
+  50a97c:	call   1c980 <strlen@plt>
+  50a981:	mov    %eax,%edx
+  50a983:	xor    %r13d,%r13d
+  50a986:	movabs $0xffffffff00000000,%rcx
+  50a990:	mov    -0xd0(%rbp),%r12
+  50a997:	mov    %r13,%rax
+  50a99a:	and    %rcx,%rax
+  50a99d:	or     %rdx,%rax
+  50a9a0:	mov    %eax,%r13d
+  50a9a3:	mov    -0xb8(%rbp),%rax
+  50a9aa:	mov    0xcc(%rax),%edx
+  50a9b0:	test   %edx,%edx
+  50a9b2:	je     50aaa0 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x230>
+  50a9b8:	mov    0xc0(%rax),%rcx
+  50a9bf:	add    $0xd0,%rax
+  50a9c5:	lea    -0x90(%rbp),%rdi
+  50a9cc:	test   %rcx,%rcx
+  50a9cf:	cmovne %rcx,%rax
+  50a9d3:	mov    0x8(%rax),%rsi
+  50a9d7:	mov    (%rax),%r8
+  50a9da:	mov    %rdi,-0xa0(%rbp)
+  50a9e1:	movq   $0x0,-0x98(%rbp)
+  50a9ec:	movb   $0x0,-0x90(%rbp)
+  50a9f3:	mov    %rsi,%r9
+  50a9f6:	cmp    $0x1,%bl
+  50a9f9:	je     50ad10 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x4a0>
+  50a9ff:	lea    -0x2(%rbx),%eax
+  50aa02:	cmp    $0x1,%al
+  50aa04:	ja     50aba0 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x330>
+  50aa0a:	cmp    %edx,%r14d
+  50aa0d:	jae    50aada <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x26a>
+  50aa13:	test   %rcx,%rcx
+  50aa16:	je     50ad80 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x510>
+  50aa1c:	shl    $0x4,%r14
+  50aa20:	add    %r14,%rcx
+  50aa23:	mov    0x8(%rcx),%r9
+  50aa27:	mov    (%rcx),%r8
+  50aa2a:	movzbl -0xc1(%rbp),%edx
+  50aa31:	xor    %ecx,%ecx
+  50aa33:	mov    -0xc0(%rbp),%rsi
+  50aa3a:	push   %r13
+  50aa3c:	mov    %r15,%rdi
+  50aa3f:	push   %r12
+  50aa41:	lea    -0xa0(%rbp),%r14
+  50aa48:	call   509aa0 <tomo::acl_log_denial(tomo::ThreadCtx&, tomo::Client const&, tomo::AclDeniedReason, tomo::AclLogContext, tomo::Slice, tomo::Slice)>
+  50aa4d:	pop    %rdi
+  50aa4e:	pop    %r8
+  50aa50:	cmp    $0x2,%bl
+  50aa53:	jne    50ab10 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x2a0>
+  50aa59:	lea    -0xa0(%rbp),%r14
+  50aa60:	mov    -0xb8(%rbp),%rax
+  50aa67:	lea    -0xb0(%rbp),%rdi
+  50aa6e:	lea    0x27717b(%rip),%rsi        # 781bf0 <_IO_stdin_used+0x5bf0>
+  50aa75:	incq   0x480(%r15)
+  50aa7c:	movb   $0x0,-0xa8(%rbp)
+  50aa83:	mov    %rax,-0xb0(%rbp)
+  50aa8a:	call   40b830 <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+  50aa8f:	nop
+  50aa90:	mov    %r14,%rdi
+  50aa93:	call   7fe60 <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+  50aa98:	jmp    50a92b <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0xbb>
+  50aa9d:	nopl   (%rax)
+  50aaa0:	lea    -0x90(%rbp),%rax
+  50aaa7:	xor    %r8d,%r8d
+  50aaaa:	xor    %r9d,%r9d
+  50aaad:	movq   $0x0,-0x98(%rbp)
+  50aab8:	mov    %rax,-0xa0(%rbp)
+  50aabf:	movb   $0x0,-0x90(%rbp)
+  50aac6:	cmp    $0x1,%bl
+  50aac9:	je     50abb0 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x340>
+  50aacf:	lea    -0x2(%rbx),%eax
+  50aad2:	cmp    $0x1,%al
+  50aad4:	ja     50ab70 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x300>
+  50aada:	movzbl -0xc1(%rbp),%edx
+  50aae1:	mov    -0xc0(%rbp),%rsi
+  50aae8:	push   %r13
+  50aaea:	xor    %ecx,%ecx
+  50aaec:	push   %r12
+  50aaee:	mov    %r15,%rdi
+  50aaf1:	lea    -0xa0(%rbp),%r14
+  50aaf8:	call   509aa0 <tomo::acl_log_denial(tomo::ThreadCtx&, tomo::Client const&, tomo::AclDeniedReason, tomo::AclLogContext, tomo::Slice, tomo::Slice)>
+  50aafd:	pop    %rcx
+  50aafe:	pop    %rsi
+  50aaff:	cmp    $0x2,%bl
+  50ab02:	je     50aa60 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x1f0>
+  50ab08:	cmp    $0x3,%bl
+  50ab0b:	jne    50aa90 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x220>
+  50ab0d:	nopl   (%rax)
+  50ab10:	mov    -0xb8(%rbp),%rax
+  50ab17:	lea    -0xb0(%rbp),%rdi
+  50ab1e:	lea    0x2770f3(%rip),%rsi        # 781c18 <_IO_stdin_used+0x5c18>
+  50ab25:	incq   0x488(%r15)
+  50ab2c:	movb   $0x0,-0xa8(%rbp)
+  50ab33:	mov    %rax,-0xb0(%rbp)
+  50ab3a:	call   40b830 <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+  50ab3f:	jmp    50aa90 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x220>
+  50ab44:	data16 cs nopw 0x0(%rax,%rax,1)
+  50ab4f:	nop
+  50ab50:	mov    -0xb8(%rbp),%rbx
+  50ab57:	lea    0xd(%r14),%eax
+  50ab5b:	shl    $0x4,%rax
+  50ab5f:	add    %rbx,%rax
+  50ab62:	jmp    50a8df <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x6f>
+  50ab67:	nopw   0x0(%rax,%rax,1)
+  50ab70:	push   %r13
+  50ab72:	xor    %r8d,%r8d
+  50ab75:	push   %r12
+  50ab77:	xor    %r9d,%r9d
+  50ab7a:	movzbl -0xc1(%rbp),%edx
+  50ab81:	mov    -0xc0(%rbp),%rsi
+  50ab88:	xor    %ecx,%ecx
+  50ab8a:	mov    %r15,%rdi
+  50ab8d:	lea    -0xa0(%rbp),%r14
+  50ab94:	call   509aa0 <tomo::acl_log_denial(tomo::ThreadCtx&, tomo::Client const&, tomo::AclDeniedReason, tomo::AclLogContext, tomo::Slice, tomo::Slice)>
+  50ab99:	pop    %rax
+  50ab9a:	pop    %rdx
+  50ab9b:	jmp    50aa90 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x220>
+  50aba0:	push   %r13
+  50aba2:	push   %r12
+  50aba4:	jmp    50ab7a <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x30a>
+  50aba6:	cs nopw 0x0(%rax,%rax,1)
+  50abb0:	xor    %esi,%esi
+  50abb2:	lea    -0x60(%rbp),%rax
+  50abb6:	lea    -0xa0(%rbp),%r14
+  50abbd:	mov    %rax,%rdi
+  50abc0:	mov    %rax,-0xd8(%rbp)
+  50abc7:	call   4ff3e0 <tomo::(anonymous namespace)::acl_lower(tomo::Slice) [clone .isra.0]>
+  50abcc:	mov    -0xd8(%rbp),%rsi
+  50abd3:	mov    %r14,%rdi
+  50abd6:	call   4fd050 <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::operator=(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&) [clone .isra.0]>
+  50abdb:	mov    -0xd8(%rbp),%rdi
+  50abe2:	call   7fe60 <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+  50abe7:	push   %r13
+  50abe9:	mov    -0x98(%rbp),%r9d
+  50abf0:	push   %r12
+  50abf2:	movzbl -0xc1(%rbp),%edx
+  50abf9:	mov    -0xa0(%rbp),%r8
+  50ac00:	xor    %ecx,%ecx
+  50ac02:	mov    %r15,%rdi
+  50ac05:	mov    -0xc0(%rbp),%rsi
+  50ac0c:	call   509aa0 <tomo::acl_log_denial(tomo::ThreadCtx&, tomo::Client const&, tomo::AclDeniedReason, tomo::AclLogContext, tomo::Slice, tomo::Slice)>
+  50ac11:	pop    %r9
+  50ac13:	pop    %r10
+  50ac15:	cmp    $0x1,%bl
+  50ac18:	jne    50aaff <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x28f>
+  50ac1e:	mov    -0xb8(%rbp),%rbx
+  50ac25:	xor    %edi,%edi
+  50ac27:	incq   0x478(%r15)
+  50ac2e:	mov    0xcc(%rbx),%esi
+  50ac34:	test   %esi,%esi
+  50ac36:	je     50ac53 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x3e3>
+  50ac38:	mov    0xc0(%rbx),%rax
+  50ac3f:	lea    0xd0(%rbx),%rdx
+  50ac46:	test   %rax,%rax
+  50ac49:	cmove  %rdx,%rax
+  50ac4d:	mov    (%rax),%rdi
+  50ac50:	mov    0x8(%rax),%esi
+  50ac53:	mov    $0x4,%edx
+  50ac58:	lea    0x28404d(%rip),%rcx        # 78ecac <_IO_stdin_used+0x12cac>
+  50ac5f:	call   4fd390 <tomo::Slice::eq_icase(std::basic_string_view<char, std::char_traits<char> >) const [clone .isra.0]>
+  50ac64:	lea    -0x80(%rbp),%rbx
+  50ac68:	lea    0x2840b6(%rip),%rsi        # 78ed25 <_IO_stdin_used+0x12d25>
+  50ac6f:	test   %al,%al
+  50ac71:	lea    0x276f10(%rip),%rax        # 781b88 <_IO_stdin_used+0x5b88>
+  50ac78:	mov    %rbx,%rdi
+  50ac7b:	cmovne %rax,%rsi
+  50ac7f:	call   4fd5d0 <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&) [clone .isra.0]>
+  50ac84:	mov    -0xd0(%rbp),%rsi
+  50ac8b:	mov    %rbx,%rdi
+  50ac8e:	call   83120 <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::append(char const*)>
+  50ac93:	lea    0x276f2e(%rip),%rsi        # 781bc8 <_IO_stdin_used+0x5bc8>
+  50ac9a:	mov    %rbx,%rdi
+  50ac9d:	call   83120 <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::append(char const*)>
+  50aca2:	mov    -0xb8(%rbp),%rdi
+  50aca9:	xor    %esi,%esi
+  50acab:	call   727500 <tomo::command_metadata_resolve(tomo::Op&, unsigned int)>
+  50acb0:	mov    %rax,%rdi
+  50acb3:	test   %rax,%rax
+  50acb6:	je     50ad20 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x4b0>
+  50acb8:	call   725b50 <tomo::command_metadata_name(tomo::CommandMetadata const&)>
+  50acbd:	mov    %rax,%rsi
+  50acc0:	mov    %edx,%edx
+  50acc2:	mov    %rbx,%rdi
+  50acc5:	call   15cc60 <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::append(char const*, unsigned long)>
+  50acca:	lea    0x282635(%rip),%rsi        # 78d306 <_IO_stdin_used+0x11306>
+  50acd1:	mov    %rbx,%rdi
+  50acd4:	call   83120 <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::append(char const*)>
+  50acd9:	mov    -0xb8(%rbp),%rax
+  50ace0:	mov    -0x80(%rbp),%rsi
+  50ace4:	lea    -0xb0(%rbp),%rdi
+  50aceb:	movb   $0x0,-0xa8(%rbp)
+  50acf2:	mov    %rax,-0xb0(%rbp)
+  50acf9:	call   40b830 <void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)>
+  50acfe:	mov    %rbx,%rdi
+  50ad01:	call   7fe60 <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+  50ad06:	jmp    50aa90 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x220>
+  50ad0b:	nopl   0x0(%rax,%rax,1)
+  50ad10:	mov    (%rax),%rsi
+  50ad13:	mov    0x8(%rax),%edx
+  50ad16:	jmp    50abb2 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x342>
+  50ad1b:	nopl   0x0(%rax,%rax,1)
+  50ad20:	mov    -0xb8(%rbp),%rcx
+  50ad27:	mov    0xcc(%rcx),%edx
+  50ad2d:	test   %edx,%edx
+  50ad2f:	je     50ad4c <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x4dc>
+  50ad31:	mov    0xc0(%rcx),%rax
+  50ad38:	lea    0xd0(%rcx),%rdx
+  50ad3f:	test   %rax,%rax
+  50ad42:	cmove  %rdx,%rax
+  50ad46:	mov    (%rax),%rdi
+  50ad49:	mov    0x8(%rax),%edx
+  50ad4c:	mov    %rdi,%rsi
+  50ad4f:	mov    -0xd8(%rbp),%rdi
+  50ad56:	call   4ff3e0 <tomo::(anonymous namespace)::acl_lower(tomo::Slice) [clone .isra.0]>
+  50ad5b:	mov    -0x58(%rbp),%rdx
+  50ad5f:	mov    -0x60(%rbp),%rsi
+  50ad63:	mov    %rbx,%rdi
+  50ad66:	call   15cc60 <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::append(char const*, unsigned long)>
+  50ad6b:	mov    -0xd8(%rbp),%rdi
+  50ad72:	call   7fe60 <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>
+  50ad77:	jmp    50acca <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x45a>
+  50ad7c:	nopl   0x0(%rax)
+  50ad80:	mov    -0xb8(%rbp),%rax
+  50ad87:	add    $0xd,%r14
+  50ad8b:	shl    $0x4,%r14
+  50ad8f:	lea    (%rax,%r14,1),%rcx
+  50ad93:	jmp    50aa23 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]+0x1b3>
+  50ad98:	call   1c7b0 <__stack_chk_fail@plt>
+  50ad9d:	endbr64
+  50ada1:	mov    %rax,%r15
+  50ada4:	vzeroupper
+  50ada7:	jmp    3ad66 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0] [clone .cold]+0xf>
+  50adac:	endbr64
+  50adb0:	mov    %rax,%rbx
+  50adb3:	vzeroupper
+  50adb6:	jmp    3ad71 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0] [clone .cold]+0x1a>
+  50adbb:	endbr64
+  50adbf:	mov    %rax,%r15
+  50adc2:	jmp    3ad57 <tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0] [clone .cold]>
+  50adc7:	nopw   0x0(%rax,%rax,1)

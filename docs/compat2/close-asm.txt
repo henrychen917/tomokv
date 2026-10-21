@@ -1,0 +1,1034 @@
+0000000000459c90 <tomo::IoLoop::close_client(tomo::Client*, bool)>:
+  459c90:	endbr64
+  459c94:	push   %rbp
+  459c95:	mov    %rsp,%rbp
+  459c98:	push   %r15
+  459c9a:	push   %r14
+  459c9c:	push   %r13
+  459c9e:	push   %r12
+  459ca0:	push   %rbx
+  459ca1:	sub    $0x68,%rsp
+  459ca5:	mov    %fs:0x28,%rax
+  459cae:	mov    %rax,0x58(%rsp)
+  459cb3:	xor    %eax,%eax
+  459cb5:	cmpb   $0x0,0x33(%rsi)
+  459cb9:	jne    45a210 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x580>
+  459cbf:	movzbl 0x32(%rsi),%r14d
+  459cc4:	mov    %rdi,%r12
+  459cc7:	mov    %rsi,%rbx
+  459cca:	mov    %edx,%r13d
+  459ccd:	test   %r14b,%r14b
+  459cd0:	je     459df0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x160>
+  459cd6:	mov    %rbx,%rsi
+  459cd9:	mov    %r12,%rdi
+  459cdc:	call   4bceb0 <tomo::multi_close_entry(tomo::IoLoop&, tomo::Client&)>
+  459ce1:	mov    0x7bc(%rbx),%eax
+  459ce7:	cmp    $0xffffffff,%eax
+  459cea:	je     459d20 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x90>
+  459cec:	mov    0x1a68(%r12),%rcx
+  459cf4:	mov    0x1a70(%r12),%rdx
+  459cfc:	sub    %rcx,%rdx
+  459cff:	sar    $0x3,%rdx
+  459d03:	cmp    %rdx,%rax
+  459d06:	jae    459d20 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x90>
+  459d08:	mov    (%rcx,%rax,8),%rdi
+  459d0c:	test   %rdi,%rdi
+  459d0f:	je     459d20 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x90>
+  459d11:	cmpb   $0x3,0x10(%rdi)
+  459d15:	je     459d20 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x90>
+  459d17:	test   %r13b,%r13b
+  459d1a:	jne    45a240 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x5b0>
+  459d20:	mov    %rbx,%rsi
+  459d23:	mov    %r12,%rdi
+  459d26:	call   4599e0 <tomo::IoLoop::pubsub_disconnect_ready(tomo::Client*)>
+  459d2b:	test   %al,%al
+  459d2d:	je     459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  459d33:	mov    0x1968(%r12),%rsi
+  459d3b:	mov    0x1960(%r12),%rax
+  459d43:	movb   $0x0,0x31(%rbx)
+  459d47:	mov    %rsi,%rcx
+  459d4a:	sub    %rax,%rcx
+  459d4d:	sar    $0x3,%rcx
+  459d51:	cmp    %rsi,%rax
+  459d54:	je     459d84 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf4>
+  459d56:	xor    %edx,%edx
+  459d58:	jmp    459d6c <tomo::IoLoop::close_client(tomo::Client*, bool)+0xdc>
+  459d5a:	nopw   0x0(%rax,%rax,1)
+  459d60:	inc    %rdx
+  459d63:	add    $0x8,%rax
+  459d67:	cmp    %rcx,%rdx
+  459d6a:	jae    459d84 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf4>
+  459d6c:	cmp    %rbx,(%rax)
+  459d6f:	jne    459d60 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xd0>
+  459d71:	mov    -0x8(%rsi),%rdx
+  459d75:	sub    $0x8,%rsi
+  459d79:	mov    %rdx,(%rax)
+  459d7c:	mov    %rsi,0x1968(%r12)
+  459d84:	mov    0x190(%r12),%rdi
+  459d8c:	mov    %rbx,%rsi
+  459d8f:	call   3fe7e0 <tomo::ThreadCtx::remove_client(tomo::Client*)>
+  459d94:	mov    0xc0(%rbx),%rdx
+  459d9b:	mov    0x100(%rbx),%rax
+  459da2:	cmp    %rax,%rdx
+  459da5:	jne    459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  459da7:	cmpb   $0x0,0x29(%rbx)
+  459dab:	jne    459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  459dad:	cmpb   $0x0,0x2a(%rbx)
+  459db1:	je     459f70 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x2e0>
+  459db7:	nopw   0x0(%rax,%rax,1)
+  459dc0:	mov    0x58(%rsp),%rax
+  459dc5:	sub    %fs:0x28,%rax
+  459dce:	jne    45acf8 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1068>
+  459dd4:	add    $0x68,%rsp
+  459dd8:	mov    %rbx,%rsi
+  459ddb:	mov    %r12,%rdi
+  459dde:	pop    %rbx
+  459ddf:	pop    %r12
+  459de1:	pop    %r13
+  459de3:	pop    %r14
+  459de5:	pop    %r15
+  459de7:	pop    %rbp
+  459de8:	jmp    405440 <tomo::IoLoop::mark_active(tomo::Client*)>
+  459ded:	nopl   (%rax)
+  459df0:	cmpl   $0x200,0x68(%rsi)
+  459df7:	movb   $0x1,0x32(%rsi)
+  459dfb:	movl   $0x0,0x4c(%rsi)
+  459e02:	movl   $0x0,0x74(%rsi)
+  459e09:	movq   $0x0,0x6c(%rsi)
+  459e11:	movq   $0xffffffffffffffff,0x78(%rsi)
+  459e19:	ja     45a260 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x5d0>
+  459e1f:	mov    0x2d0(%r12),%rdx
+  459e27:	xor    %esi,%esi
+  459e29:	movabs $0x6db6db6db6db6db7,%rdi
+  459e33:	cmp    %rdx,0x2d8(%r12)
+  459e3b:	jne    459e6f <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1df>
+  459e3d:	movzbl 0x37(%rbx),%eax
+  459e41:	jmp    45a283 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x5f3>
+  459e46:	cs nopw 0x0(%rax,%rax,1)
+  459e50:	mov    0x2d8(%r12),%rax
+  459e58:	inc    %rsi
+  459e5b:	sub    %rdx,%rax
+  459e5e:	sar    $0x3,%rax
+  459e62:	imul   %rdi,%rax
+  459e66:	cmp    %rax,%rsi
+  459e69:	jae    459f12 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x282>
+  459e6f:	imul   $0x38,%rsi,%rcx
+  459e73:	vmovdqu (%rdx,%rcx,1),%ymm5
+  459e78:	vmovdqu %ymm5,0x20(%rsp)
+  459e7e:	vmovdqu 0x18(%rdx,%rcx,1),%ymm6
+  459e84:	vmovdqu %ymm6,0x38(%rsp)
+  459e8a:	cmp    %rbx,0x20(%rsp)
+  459e8f:	jne    459e50 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1c0>
+  459e91:	mov    0x28(%rsp),%rax
+  459e96:	mov    %eax,%edx
+  459e98:	and    $0x7,%eax
+  459e9b:	shr    $0x3,%edx
+  459e9e:	and    $0x7,%edx
+  459ea1:	imul   $0x150,%rax,%rax
+  459ea8:	add    0x80(%rbx,%rdx,8),%rax
+  459eb0:	movb   $0x2,0xb8(%rax)
+  459eb7:	mov    0x188(%r12),%rax
+  459ebf:	lock decq 0x14ba0(%rax)
+  459ec7:	mov    0x2d8(%r12),%rax
+  459ecf:	mov    0x2d0(%r12),%rdx
+  459ed7:	mov    $0x1,%r14d
+  459edd:	vmovdqu -0x38(%rax),%ymm7
+  459ee2:	sub    $0x38,%rax
+  459ee6:	vmovdqu %ymm7,(%rdx,%rcx,1)
+  459eeb:	vmovdqu 0x11(%rax),%ymm3
+  459ef0:	vmovdqu %ymm3,0x11(%rdx,%rcx,1)
+  459ef6:	mov    %rax,0x2d8(%r12)
+  459efe:	sub    %rdx,%rax
+  459f01:	sar    $0x3,%rax
+  459f05:	imul   %rdi,%rax
+  459f09:	cmp    %rax,%rsi
+  459f0c:	jb     459e6f <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1df>
+  459f12:	movzbl 0x37(%rbx),%eax
+  459f16:	test   %r14b,%r14b
+  459f19:	je     45a280 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x5f0>
+  459f1f:	and    $0x7f,%eax
+  459f22:	cmpb   $0x0,0x30(%rbx)
+  459f26:	mov    %rbx,0x20(%rsp)
+  459f2b:	mov    %al,0x37(%rbx)
+  459f2e:	jne    45a410 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x780>
+  459f34:	mov    0x1d8(%r12),%rdi
+  459f3c:	mov    0x1c8(%r12),%rax
+  459f44:	movb   $0x1,0x30(%rbx)
+  459f48:	lea    -0x8(%rdi),%rdx
+  459f4c:	cmp    %rdx,%rax
+  459f4f:	je     45a630 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x9a0>
+  459f55:	mov    %rbx,(%rax)
+  459f58:	add    $0x8,%rax
+  459f5c:	mov    %rax,0x1c8(%r12)
+  459f64:	movzbl 0x37(%rbx),%eax
+  459f68:	vzeroupper
+  459f6b:	jmp    45a283 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x5f3>
+  459f70:	movzbl 0x780(%rbx),%eax
+  459f77:	test   %al,%al
+  459f79:	jne    459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  459f7f:	mov    0x7a0(%rbx),%eax
+  459f85:	test   %eax,%eax
+  459f87:	jne    459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  459f8d:	mov    %rbx,%rsi
+  459f90:	mov    %r12,%rdi
+  459f93:	call   432f30 <tomo::IoLoop::client_executor_quiesced(tomo::Client*) const>
+  459f98:	test   %al,%al
+  459f9a:	je     459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  459fa0:	mov    0xc0(%rbx),%rdx
+  459fa7:	mov    0x100(%rbx),%rax
+  459fae:	cmp    %rax,%rdx
+  459fb1:	jne    459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  459fb7:	cmpb   $0x0,0x29(%rbx)
+  459fbb:	jne    459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  459fc1:	cmpb   $0x0,0x2a(%rbx)
+  459fc5:	jne    459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  459fcb:	movzbl 0x780(%rbx),%eax
+  459fd2:	test   %al,%al
+  459fd4:	jne    459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  459fda:	mov    0x7a0(%rbx),%eax
+  459fe0:	test   %eax,%eax
+  459fe2:	jne    459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  459fe8:	lea    0x1ba8(%r12),%rdi
+  459ff0:	mov    %rbx,%rsi
+  459ff3:	call   3e10c0 <std::_Hashtable<tomo::Client*, std::pair<tomo::Client* const, tomo::IoLoop::ClientWorkFence>, std::allocator<std::pair<tomo::Client* const, tomo::IoLoop::ClientWorkFence> >, std::__detail::_Select1st, std::equal_to<tomo::Client*>, std::hash<tomo::Client*>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_erase(std::integral_constant<bool, true>, tomo::Client* const&) [clone .isra.0]>
+  459ff8:	mov    %rbx,%rsi
+  459ffb:	mov    %r12,%rdi
+  459ffe:	call   654df0 <tomo::IoLoop::climon_untrack_client(tomo::Client*)>
+  45a003:	mov    %rbx,%rdi
+  45a006:	call   51b050 <tomo::command_client_disconnected(tomo::Client*)>
+  45a00b:	mov    0x190(%r12),%r13
+  45a013:	mov    0x784(%rbx),%r14d
+  45a01a:	cmp    $0xffffffff,%r14d
+  45a01e:	je     45a08a <tomo::IoLoop::close_client(tomo::Client*, bool)+0x3fa>
+  45a020:	mov    0x288(%r13),%rax
+  45a027:	mov    %r14d,%edx
+  45a02a:	sub    0x280(%r13),%rax
+  45a031:	sar    $0x3,%rax
+  45a035:	cmp    %rax,%rdx
+  45a038:	jae    45a08a <tomo::IoLoop::close_client(tomo::Client*, bool)+0x3fa>
+  45a03a:	mov    %r14d,%eax
+  45a03d:	mov    %r14d,%ecx
+  45a040:	mov    $0xfffffffffffffffe,%rsi
+  45a047:	shr    $0x6,%eax
+  45a04a:	rol    %cl,%rsi
+  45a04d:	and    $0xf,%eax
+  45a050:	lock and %rsi,0x200(%r13,%rax,8)
+  45a059:	mov    0x280(%r13),%rax
+  45a060:	movq   $0x0,(%rax,%rdx,8)
+  45a068:	mov    0x2a0(%r13),%rax
+  45a06f:	cmp    0x2a8(%r13),%rax
+  45a076:	je     45a7ce <tomo::IoLoop::close_client(tomo::Client*, bool)+0xb3e>
+  45a07c:	mov    %r14d,(%rax)
+  45a07f:	add    $0x4,%rax
+  45a083:	mov    %rax,0x2a0(%r13)
+  45a08a:	movl   $0xffffffff,0x784(%rbx)
+  45a094:	mov    %rbx,%rsi
+  45a097:	lea    0x1838(%r12),%rdi
+  45a09f:	call   455ed0 <tomo::WbEngine::teardown(tomo::Client&)>
+  45a0a4:	mov    (%rbx),%edi
+  45a0a6:	call   1c380 <close@plt>
+  45a0ab:	mov    %rbx,%rsi
+  45a0ae:	mov    %r12,%rdi
+  45a0b1:	call   402ad0 <tomo::IoLoop::release_tls(tomo::Client*)>
+  45a0b6:	mov    0x188(%r12),%rax
+  45a0be:	mov    $0xffffffffffffffff,%rdx
+  45a0c5:	lock xadd %rdx,0x14b88(%rax)
+  45a0ce:	test   %rdx,%rdx
+  45a0d1:	je     45aef8 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1268>
+  45a0d7:	mov    0x188(%r12),%r13
+  45a0df:	mov    0x9c(%r13),%eax
+  45a0e6:	test   %eax,%eax
+  45a0e8:	je     45a1b5 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x525>
+  45a0ee:	lea    0x14668(%r13),%r14
+  45a0f5:	mov    0x7a8(%rbx),%r15
+  45a0fc:	mov    %r14,%rdi
+  45a0ff:	call   1c760 <pthread_mutex_lock@plt>
+  45a104:	test   %eax,%eax
+  45a106:	jne    45aeba <tomo::IoLoop::close_client(tomo::Client*, bool)+0x122a>
+  45a10c:	cmpq   $0x0,0x14740(%r13)
+  45a114:	jne    45a667 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x9d7>
+  45a11a:	mov    0x14738(%r13),%rax
+  45a121:	lea    0x14738(%r13),%rcx
+  45a128:	test   %rax,%rax
+  45a12b:	jne    45a13e <tomo::IoLoop::close_client(tomo::Client*, bool)+0x4ae>
+  45a12d:	jmp    45a1ad <tomo::IoLoop::close_client(tomo::Client*, bool)+0x51d>
+  45a12f:	nop
+  45a130:	mov    (%rax),%rdx
+  45a133:	mov    %rax,%rcx
+  45a136:	test   %rdx,%rdx
+  45a139:	je     45a1ad <tomo::IoLoop::close_client(tomo::Client*, bool)+0x51d>
+  45a13b:	mov    %rdx,%rax
+  45a13e:	cmp    0x8(%rax),%r15
+  45a142:	jne    45a130 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x4a0>
+  45a144:	mov    (%rcx),%r8
+  45a147:	xor    %edx,%edx
+  45a149:	mov    0x8(%r8),%rax
+  45a14d:	divq   0x14730(%r13)
+  45a154:	mov    %rdx,%r10
+  45a157:	lea    0x0(,%rdx,8),%rdi
+  45a15f:	mov    0x14728(%r13),%r9
+  45a166:	mov    (%r8),%rsi
+  45a169:	add    %r9,%rdi
+  45a16c:	mov    (%rdi),%r11
+  45a16f:	cmp    %r11,%rcx
+  45a172:	je     45a761 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xad1>
+  45a178:	test   %rsi,%rsi
+  45a17b:	je     45a196 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x506>
+  45a17d:	mov    0x8(%rsi),%rax
+  45a181:	xor    %edx,%edx
+  45a183:	divq   0x14730(%r13)
+  45a18a:	cmp    %rdx,%r10
+  45a18d:	je     45a196 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x506>
+  45a18f:	mov    %rcx,(%r9,%rdx,8)
+  45a193:	mov    (%r8),%rsi
+  45a196:	mov    %rsi,(%rcx)
+  45a199:	mov    %r8,%rdi
+  45a19c:	mov    $0x30,%esi
+  45a1a1:	call   1cbb0 <operator delete(void*, unsigned long)@plt>
+  45a1a6:	decq   0x14740(%r13)
+  45a1ad:	mov    %r14,%rdi
+  45a1b0:	call   1c6e0 <pthread_mutex_unlock@plt>
+  45a1b5:	cmpl   $0x200,0x68(%rbx)
+  45a1bc:	movb   $0x1,0x33(%rbx)
+  45a1c0:	movl   $0x0,0x4c(%rbx)
+  45a1c7:	movl   $0x0,0x74(%rbx)
+  45a1ce:	movq   $0x0,0x6c(%rbx)
+  45a1d6:	movq   $0xffffffffffffffff,0x78(%rbx)
+  45a1de:	ja     45a64a <tomo::IoLoop::close_client(tomo::Client*, bool)+0x9ba>
+  45a1e4:	mov    0xa78(%r12),%rax
+  45a1ec:	cmp    0xa80(%r12),%rax
+  45a1f4:	je     45a6d8 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xa48>
+  45a1fa:	mov    %rbx,(%rax)
+  45a1fd:	add    $0x8,%rax
+  45a201:	mov    %rax,0xa78(%r12)
+  45a209:	nopl   0x0(%rax)
+  45a210:	mov    0x58(%rsp),%rax
+  45a215:	sub    %fs:0x28,%rax
+  45a21e:	jne    45acf8 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1068>
+  45a224:	add    $0x68,%rsp
+  45a228:	pop    %rbx
+  45a229:	pop    %r12
+  45a22b:	pop    %r13
+  45a22d:	pop    %r14
+  45a22f:	pop    %r15
+  45a231:	pop    %rbp
+  45a232:	ret
+  45a233:	data16 cs nopw 0x0(%rax,%rax,1)
+  45a23e:	xchg   %ax,%ax
+  45a240:	call   481500 <tomo::TlsConn::output_pending() const>
+  45a245:	test   %al,%al
+  45a247:	jne    459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  45a24d:	cmpb   $0x0,0x2a(%rbx)
+  45a251:	je     459d20 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x90>
+  45a257:	jmp    459dc0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x130>
+  45a25c:	nopl   0x0(%rax)
+  45a260:	mov    0x60(%rsi),%rdi
+  45a264:	call   1cce0 <free@plt>
+  45a269:	movq   $0x0,0x60(%rbx)
+  45a271:	movl   $0x0,0x68(%rbx)
+  45a278:	jmp    459e1f <tomo::IoLoop::close_client(tomo::Client*, bool)+0x18f>
+  45a27d:	nopl   (%rax)
+  45a280:	vzeroupper
+  45a283:	test   %al,%al
+  45a285:	js     45a3a0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x710>
+  45a28b:	mov    0x7bc(%rbx),%eax
+  45a291:	cmp    $0xffffffff,%eax
+  45a294:	je     45a380 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x6f0>
+  45a29a:	mov    0x1a68(%r12),%rcx
+  45a2a2:	mov    0x1a70(%r12),%rdx
+  45a2aa:	sub    %rcx,%rdx
+  45a2ad:	sar    $0x3,%rdx
+  45a2b1:	cmp    %rdx,%rax
+  45a2b4:	jae    45a380 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x6f0>
+  45a2ba:	mov    (%rcx,%rax,8),%rdi
+  45a2be:	test   %rdi,%rdi
+  45a2c1:	je     45a2c9 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x639>
+  45a2c3:	cmpb   $0x3,0x10(%rdi)
+  45a2c7:	je     45a340 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x6b0>
+  45a2c9:	mov    (%rcx,%rax,8),%r14
+  45a2cd:	test   %r14,%r14
+  45a2d0:	je     45a380 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x6f0>
+  45a2d6:	movzbl 0x10(%r14),%eax
+  45a2db:	cmp    $0x3,%al
+  45a2dd:	je     45a380 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x6f0>
+  45a2e3:	cmp    $0x1,%al
+  45a2e5:	je     45a420 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x790>
+  45a2eb:	cmpb   $0x0,0xc10(%r12)
+  45a2f4:	je     45a2fc <tomo::IoLoop::close_client(tomo::Client*, bool)+0x66c>
+  45a2f6:	movw   $0x0,0x29(%rbx)
+  45a2fc:	mov    %r14,%rdi
+  45a2ff:	movb   $0x0,0x1889(%r12)
+  45a308:	call   481500 <tomo::TlsConn::output_pending() const>
+  45a30d:	test   %al,%al
+  45a30f:	jne    45a317 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x687>
+  45a311:	cmpb   $0x0,0x2a(%rbx)
+  45a315:	je     45a320 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x690>
+  45a317:	test   %r13b,%r13b
+  45a31a:	jne    459cd6 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x46>
+  45a320:	mov    (%rbx),%edi
+  45a322:	mov    $0x2,%esi
+  45a327:	call   1cd10 <shutdown@plt>
+  45a32c:	jmp    459cd6 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x46>
+  45a331:	data16 cs nopw 0x0(%rax,%rax,1)
+  45a33c:	nopl   0x0(%rax)
+  45a340:	cmpb   $0x0,0x2a(%rbx)
+  45a344:	jne    45a2c9 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x639>
+  45a346:	cmpb   $0x0,0x40(%rdi)
+  45a34a:	jne    45a2c9 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x639>
+  45a350:	call   482de0 <tomo::TlsConn::shutdown()>
+  45a355:	mov    0x7bc(%rbx),%eax
+  45a35b:	cmp    $0xffffffff,%eax
+  45a35e:	je     45a380 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x6f0>
+  45a360:	mov    0x1a68(%r12),%rcx
+  45a368:	mov    0x1a70(%r12),%rdx
+  45a370:	sub    %rcx,%rdx
+  45a373:	sar    $0x3,%rdx
+  45a377:	cmp    %rdx,%rax
+  45a37a:	jb     45a2c9 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x639>
+  45a380:	cmpb   $0x0,0xc10(%r12)
+  45a389:	je     45a391 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x701>
+  45a38b:	movw   $0x0,0x29(%rbx)
+  45a391:	movb   $0x0,0x1889(%r12)
+  45a39a:	jmp    45a320 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x690>
+  45a39c:	nopl   0x0(%rax)
+  45a3a0:	mov    0x190(%r12),%rsi
+  45a3a8:	mov    0x188(%r12),%rdi
+  45a3b0:	lea    0xac8(%r12),%rdx
+  45a3b8:	mov    %rbx,%rcx
+  45a3bb:	call   4998a0 <tomo::blocking_cancel_client(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&)>
+  45a3c0:	test   %al,%al
+  45a3c2:	je     45a28b <tomo::IoLoop::close_client(tomo::Client*, bool)+0x5fb>
+  45a3c8:	cmpb   $0x0,0x30(%rbx)
+  45a3cc:	mov    %rbx,0x20(%rsp)
+  45a3d1:	jne    45a28b <tomo::IoLoop::close_client(tomo::Client*, bool)+0x5fb>
+  45a3d7:	mov    0x1d8(%r12),%rdi
+  45a3df:	mov    0x1c8(%r12),%rax
+  45a3e7:	movb   $0x1,0x30(%rbx)
+  45a3eb:	lea    -0x8(%rdi),%rdx
+  45a3ef:	cmp    %rdx,%rax
+  45a3f2:	je     45a8d2 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xc42>
+  45a3f8:	mov    %rbx,(%rax)
+  45a3fb:	add    $0x8,%rax
+  45a3ff:	mov    %rax,0x1c8(%r12)
+  45a407:	jmp    45a28b <tomo::IoLoop::close_client(tomo::Client*, bool)+0x5fb>
+  45a40c:	nopl   0x0(%rax)
+  45a410:	vzeroupper
+  45a413:	jmp    45a28b <tomo::IoLoop::close_client(tomo::Client*, bool)+0x5fb>
+  45a418:	nopl   0x0(%rax,%rax,1)
+  45a420:	cmpb   $0x0,0x40(%r14)
+  45a425:	jne    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45a42b:	mov    %r14,%rdi
+  45a42e:	call   482de0 <tomo::TlsConn::shutdown()>
+  45a433:	cmpb   $0x0,0x1888(%r12)
+  45a43c:	lea    0x1838(%r12),%rdi
+  45a444:	jne    45a7af <tomo::IoLoop::close_client(tomo::Client*, bool)+0xb1f>
+  45a44a:	movzbl 0x188a(%r12),%r15d
+  45a453:	test   %r15b,%r15b
+  45a456:	je     45a79f <tomo::IoLoop::close_client(tomo::Client*, bool)+0xb0f>
+  45a45c:	movzbl 0x2a(%rbx),%eax
+  45a460:	mov    %al,0x10(%rsp)
+  45a464:	test   %al,%al
+  45a466:	jne    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45a46c:	lea    0x20(%rsp),%rax
+  45a471:	mov    %r14,%rdi
+  45a474:	movq   $0x0,0x20(%rsp)
+  45a47d:	mov    %rax,%rsi
+  45a480:	mov    %rax,(%rsp)
+  45a484:	call   481430 <tomo::TlsConn::peek_output(char const*&) const>
+  45a489:	mov    %eax,%edx
+  45a48b:	test   %eax,%eax
+  45a48d:	jg     45a979 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xce9>
+  45a493:	movzbl 0x10(%r14),%eax
+  45a498:	dec    %eax
+  45a49a:	cmp    $0x2,%al
+  45a49c:	ja     45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45a4a2:	movzbl 0x28(%rbx),%eax
+  45a4a6:	mov    0x20(%rbx),%rdi
+  45a4aa:	mov    %eax,%esi
+  45a4ac:	xor    $0x1,%esi
+  45a4af:	movzbl %sil,%ecx
+  45a4b3:	imul   $0x218,%rcx,%rdx
+  45a4ba:	mov    0x148(%rbx,%rdx,1),%rdx
+  45a4c2:	cmp    %rdx,%rdi
+  45a4c5:	jae    45aa4c <tomo::IoLoop::close_client(tomo::Client*, bool)+0xdbc>
+  45a4cb:	imul   $0x218,%rcx,%rcx
+  45a4d2:	sub    %rdi,%rdx
+  45a4d5:	mov    0x140(%rbx,%rcx,1),%rsi
+  45a4dd:	add    %rdi,%rsi
+  45a4e0:	mov    0x30(%r14),%eax
+  45a4e4:	test   %eax,%eax
+  45a4e6:	je     45a4fe <tomo::IoLoop::close_client(tomo::Client*, bool)+0x86e>
+  45a4e8:	cmp    %rsi,0x28(%r14)
+  45a4ec:	jne    45aef8 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1268>
+  45a4f2:	cmp    %rax,%rdx
+  45a4f5:	jb     45aef8 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1268>
+  45a4fb:	mov    %rax,%rdx
+  45a4fe:	mov    %r14,%rdi
+  45a501:	call   482d00 <tomo::TlsConn::write_plain(char const*, unsigned long)>
+  45a506:	cmp    $0x1,%al
+  45a508:	je     45aadf <tomo::IoLoop::close_client(tomo::Client*, bool)+0xe4f>
+  45a50e:	cmp    $0xfe,%al
+  45a510:	je     45aacb <tomo::IoLoop::close_client(tomo::Client*, bool)+0xe3b>
+  45a516:	inc    %al
+  45a518:	jne    45a529 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x899>
+  45a51a:	mov    0x1880(%r12),%rax
+  45a522:	incq   0x118(%rax)
+  45a529:	cmpb   $0x4,0x10(%r14)
+  45a52e:	je     45ac26 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf96>
+  45a534:	mov    (%rsp),%rsi
+  45a538:	xor    %edi,%edi
+  45a53a:	mov    %rdi,0x20(%rsp)
+  45a53f:	mov    %r14,%rdi
+  45a542:	call   481430 <tomo::TlsConn::peek_output(char const*&) const>
+  45a547:	mov    %eax,%r15d
+  45a54a:	test   %eax,%eax
+  45a54c:	jle    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45a552:	mov    0x1838(%r12),%rcx
+  45a55a:	mov    0x20(%rsp),%rdx
+  45a55f:	cmpl   $0x0,0x100(%rcx)
+  45a566:	jns    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45a56c:	mov    0x44(%rcx),%eax
+  45a56f:	mov    0xc0(%rcx),%esi
+  45a575:	lea    0x1(%rax),%edi
+  45a578:	mov    (%rcx),%rax
+  45a57b:	mov    (%rax),%eax
+  45a57d:	test   $0x2,%sil
+  45a581:	je     45a583 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x8f3>
+  45a583:	mov    %edi,%r8d
+  45a586:	sub    %eax,%r8d
+  45a589:	cmp    %r8d,0x5c(%rcx)
+  45a58d:	jb     45ae21 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1191>
+  45a593:	mov    0x44(%rcx),%eax
+  45a596:	mov    %edi,0x44(%rcx)
+  45a599:	and    0x58(%rcx),%eax
+  45a59c:	shr    $0xa,%esi
+  45a59f:	and    $0x1,%esi
+  45a5a2:	shlx   %esi,%eax,%eax
+  45a5a7:	shl    $0x6,%rax
+  45a5ab:	add    0x38(%rcx),%rax
+  45a5af:	je     45ae21 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1191>
+  45a5b5:	mov    (%rbx),%ecx
+  45a5b7:	mov    %rdx,0x10(%rax)
+  45a5bb:	movabs $0xffffffffffff,%rdx
+  45a5c5:	xor    %esi,%esi
+  45a5c7:	and    %rbx,%rdx
+  45a5ca:	movl   $0x1a,(%rax)
+  45a5d0:	mov    %r15d,0x18(%rax)
+  45a5d4:	mov    %rsi,0x28(%rax)
+  45a5d8:	mov    %rsi,0x30(%rax)
+  45a5dc:	mov    %rsi,0x38(%rax)
+  45a5e0:	movl   $0x4000,0x1c(%rax)
+  45a5e7:	mov    %ecx,0x4(%rax)
+  45a5ea:	xor    %ecx,%ecx
+  45a5ec:	mov    %rcx,0x8(%rax)
+  45a5f0:	mov    $0xb,%ecx
+  45a5f5:	shl    $0x38,%rcx
+  45a5f9:	or     %rcx,%rdx
+  45a5fc:	mov    %rdx,0x20(%rax)
+  45a600:	mov    0x1838(%r12),%rax
+  45a608:	movb   $0x1,0xda(%rax)
+  45a60f:	mov    %r15d,0x2c(%rbx)
+  45a613:	movb   $0x1,0x2a(%rbx)
+  45a617:	incq   0x18d0(%r12)
+  45a61f:	jmp    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45a624:	data16 cs nopw 0x0(%rax,%rax,1)
+  45a62f:	nop
+  45a630:	lea    0x20(%rsp),%rsi
+  45a635:	lea    0x198(%r12),%rdi
+  45a63d:	vzeroupper
+  45a640:	call   418a20 <void std::deque<tomo::Client*, std::allocator<tomo::Client*> >::_M_push_back_aux<tomo::Client* const&>(tomo::Client* const&)>
+  45a645:	jmp    459e3d <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1ad>
+  45a64a:	mov    0x60(%rbx),%rdi
+  45a64e:	call   1cce0 <free@plt>
+  45a653:	movq   $0x0,0x60(%rbx)
+  45a65b:	movl   $0x0,0x68(%rbx)
+  45a662:	jmp    45a1e4 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x554>
+  45a667:	mov    0x14730(%r13),%r8
+  45a66e:	mov    %r15,%rax
+  45a671:	xor    %edx,%edx
+  45a673:	div    %r8
+  45a676:	mov    0x14728(%r13),%rax
+  45a67d:	lea    0x0(,%rdx,8),%rdi
+  45a685:	mov    %rdx,%r11
+  45a688:	mov    %rdx,%r10
+  45a68b:	mov    (%rax,%rdi,1),%rcx
+  45a68f:	test   %rcx,%rcx
+  45a692:	je     45a1ad <tomo::IoLoop::close_client(tomo::Client*, bool)+0x51d>
+  45a698:	mov    (%rcx),%rax
+  45a69b:	mov    0x8(%rax),%rsi
+  45a69f:	cmp    %rsi,%r15
+  45a6a2:	je     45a6d0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xa40>
+  45a6a4:	mov    (%rax),%r9
+  45a6a7:	test   %r9,%r9
+  45a6aa:	je     45a1ad <tomo::IoLoop::close_client(tomo::Client*, bool)+0x51d>
+  45a6b0:	mov    0x8(%r9),%rsi
+  45a6b4:	mov    %rax,%rcx
+  45a6b7:	xor    %edx,%edx
+  45a6b9:	mov    %rsi,%rax
+  45a6bc:	div    %r8
+  45a6bf:	cmp    %rdx,%r11
+  45a6c2:	jne    45a1ad <tomo::IoLoop::close_client(tomo::Client*, bool)+0x51d>
+  45a6c8:	mov    %r9,%rax
+  45a6cb:	cmp    %rsi,%r15
+  45a6ce:	jne    45a6a4 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xa14>
+  45a6d0:	mov    (%rcx),%r8
+  45a6d3:	jmp    45a15f <tomo::IoLoop::close_client(tomo::Client*, bool)+0x4cf>
+  45a6d8:	mov    0xa70(%r12),%r14
+  45a6e0:	mov    %rax,%r15
+  45a6e3:	movabs $0xfffffffffffffff,%rdx
+  45a6ed:	sub    %r14,%r15
+  45a6f0:	mov    %r15,%rcx
+  45a6f3:	sar    $0x3,%rcx
+  45a6f7:	cmp    %rdx,%rcx
+  45a6fa:	je     45aed5 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1245>
+  45a700:	cmp    %r14,%rax
+  45a703:	je     45a89b <tomo::IoLoop::close_client(tomo::Client*, bool)+0xc0b>
+  45a709:	lea    (%rcx,%rcx,1),%rdx
+  45a70d:	cmp    %rcx,%rdx
+  45a710:	jb     45a8c6 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xc36>
+  45a716:	xor    %r13d,%r13d
+  45a719:	xor    %edi,%edi
+  45a71b:	test   %rdx,%rdx
+  45a71e:	jne    45aaad <tomo::IoLoop::close_client(tomo::Client*, bool)+0xe1d>
+  45a724:	lea    0x8(%rdi,%r15,1),%rdx
+  45a729:	vmovq  %rdi,%xmm2
+  45a72e:	mov    %rbx,(%rdi,%r15,1)
+  45a732:	vpinsrq $0x1,%rdx,%xmm2,%xmm0
+  45a738:	test   %r15,%r15
+  45a73b:	jg     45a860 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xbd0>
+  45a741:	test   %r14,%r14
+  45a744:	jne    45a8e9 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xc59>
+  45a74a:	vmovdqu %xmm0,0xa70(%r12)
+  45a754:	mov    %r13,0xa80(%r12)
+  45a75c:	jmp    45a210 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x580>
+  45a761:	test   %rsi,%rsi
+  45a764:	je     45a780 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xaf0>
+  45a766:	mov    0x8(%rsi),%rax
+  45a76a:	xor    %edx,%edx
+  45a76c:	divq   0x14730(%r13)
+  45a773:	cmp    %rdx,%r10
+  45a776:	je     45a196 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x506>
+  45a77c:	mov    %rcx,(%r9,%rdx,8)
+  45a780:	lea    0x14738(%r13),%rax
+  45a787:	cmp    %rax,%r11
+  45a78a:	je     45a96d <tomo::IoLoop::close_client(tomo::Client*, bool)+0xcdd>
+  45a790:	movq   $0x0,(%rdi)
+  45a797:	mov    (%r8),%rsi
+  45a79a:	jmp    45a196 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x506>
+  45a79f:	mov    %r14,%rdx
+  45a7a2:	mov    %rbx,%rsi
+  45a7a5:	call   409be0 <bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)>
+  45a7aa:	jmp    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45a7af:	mov    %r14,%rdx
+  45a7b2:	mov    %rbx,%rsi
+  45a7b5:	call   4093c0 <bool tomo::WbEngine::pump_tls<true, false>(tomo::Client&, tomo::TlsConn&)>
+  45a7ba:	cmpb   $0x0,0xc10(%r12)
+  45a7c3:	jne    45a2f6 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x666>
+  45a7c9:	jmp    45a2fc <tomo::IoLoop::close_client(tomo::Client*, bool)+0x66c>
+  45a7ce:	mov    0x298(%r13),%rcx
+  45a7d5:	mov    %rax,%rsi
+  45a7d8:	movabs $0x1fffffffffffffff,%rdx
+  45a7e2:	sub    %rcx,%rsi
+  45a7e5:	mov    %rsi,%rdi
+  45a7e8:	sar    $0x2,%rdi
+  45a7ec:	cmp    %rdx,%rdi
+  45a7ef:	je     45aed5 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1245>
+  45a7f5:	cmp    %rcx,%rax
+  45a7f8:	je     45a922 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xc92>
+  45a7fe:	lea    (%rdi,%rdi,1),%r8
+  45a802:	cmp    %rdi,%r8
+  45a805:	jb     45a968 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xcd8>
+  45a80b:	xor    %r15d,%r15d
+  45a80e:	xor    %edi,%edi
+  45a810:	test   %r8,%r8
+  45a813:	jne    45ace2 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1052>
+  45a819:	lea    0x4(%rdi,%rsi,1),%rdx
+  45a81e:	vmovq  %rdi,%xmm4
+  45a823:	mov    %r14d,(%rdi,%rsi,1)
+  45a827:	vpinsrq $0x1,%rdx,%xmm4,%xmm3
+  45a82d:	vmovdqa %xmm3,0x10(%rsp)
+  45a833:	test   %rsi,%rsi
+  45a836:	jg     45a8f6 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xc66>
+  45a83c:	test   %rcx,%rcx
+  45a83f:	jne    45acd3 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1043>
+  45a845:	vmovdqa 0x10(%rsp),%xmm4
+  45a84b:	mov    %r15,0x2a8(%r13)
+  45a852:	vmovdqu %xmm4,0x298(%r13)
+  45a85b:	jmp    45a08a <tomo::IoLoop::close_client(tomo::Client*, bool)+0x3fa>
+  45a860:	mov    %r14,%rsi
+  45a863:	mov    %r15,%rdx
+  45a866:	vmovdqa %xmm0,0x10(%rsp)
+  45a86c:	call   1c580 <memmove@plt>
+  45a871:	mov    0xa80(%r12),%rsi
+  45a879:	vmovdqa 0x10(%rsp),%xmm0
+  45a87f:	sub    %r14,%rsi
+  45a882:	mov    %r14,%rdi
+  45a885:	vmovdqa %xmm0,0x10(%rsp)
+  45a88b:	call   1cbb0 <operator delete(void*, unsigned long)@plt>
+  45a890:	vmovdqa 0x10(%rsp),%xmm0
+  45a896:	jmp    45a74a <tomo::IoLoop::close_client(tomo::Client*, bool)+0xaba>
+  45a89b:	mov    %rcx,%rax
+  45a89e:	add    $0x1,%rax
+  45a8a2:	jb     45a8c6 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xc36>
+  45a8a4:	cmp    %rdx,%rax
+  45a8a7:	cmova  %rdx,%rax
+  45a8ab:	lea    0x0(,%rax,8),%r13
+  45a8b3:	mov    %r13,%rdi
+  45a8b6:	call   1ce50 <operator new(unsigned long)@plt>
+  45a8bb:	mov    %rax,%rdi
+  45a8be:	add    %rax,%r13
+  45a8c1:	jmp    45a724 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xa94>
+  45a8c6:	movabs $0x7ffffffffffffff8,%r13
+  45a8d0:	jmp    45a8b3 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xc23>
+  45a8d2:	lea    0x20(%rsp),%rsi
+  45a8d7:	lea    0x198(%r12),%rdi
+  45a8df:	call   418a20 <void std::deque<tomo::Client*, std::allocator<tomo::Client*> >::_M_push_back_aux<tomo::Client* const&>(tomo::Client* const&)>
+  45a8e4:	jmp    45a28b <tomo::IoLoop::close_client(tomo::Client*, bool)+0x5fb>
+  45a8e9:	mov    0xa80(%r12),%rsi
+  45a8f1:	sub    %r14,%rsi
+  45a8f4:	jmp    45a882 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xbf2>
+  45a8f6:	mov    %rsi,%rdx
+  45a8f9:	mov    %rcx,%rsi
+  45a8fc:	mov    %rcx,0x8(%rsp)
+  45a901:	call   1c580 <memmove@plt>
+  45a906:	mov    0x2a8(%r13),%rsi
+  45a90d:	mov    0x8(%rsp),%rcx
+  45a912:	sub    %rcx,%rsi
+  45a915:	mov    %rcx,%rdi
+  45a918:	call   1cbb0 <operator delete(void*, unsigned long)@plt>
+  45a91d:	jmp    45a845 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xbb5>
+  45a922:	add    $0x1,%rdi
+  45a926:	jb     45a968 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xcd8>
+  45a928:	movabs $0x1fffffffffffffff,%rax
+  45a932:	cmp    %rax,%rdi
+  45a935:	cmovbe %rdi,%rax
+  45a939:	lea    0x0(,%rax,4),%r15
+  45a941:	mov    %rsi,0x8(%rsp)
+  45a946:	mov    %rcx,0x10(%rsp)
+  45a94b:	mov    %r15,%rdi
+  45a94e:	call   1ce50 <operator new(unsigned long)@plt>
+  45a953:	mov    0x8(%rsp),%rsi
+  45a958:	mov    0x10(%rsp),%rcx
+  45a95d:	mov    %rax,%rdi
+  45a960:	add    %rax,%r15
+  45a963:	jmp    45a819 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xb89>
+  45a968:	mov    %rdx,%rax
+  45a96b:	jmp    45a939 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xca9>
+  45a96d:	mov    %rsi,0x14738(%r13)
+  45a974:	jmp    45a790 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xb00>
+  45a979:	mov    0x1838(%r12),%rcx
+  45a981:	mov    0x20(%rsp),%r15
+  45a986:	mov    0x100(%rcx),%eax
+  45a98c:	test   %eax,%eax
+  45a98e:	jns    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45a994:	mov    0x44(%rcx),%eax
+  45a997:	mov    0xc0(%rcx),%esi
+  45a99d:	lea    0x1(%rax),%edi
+  45a9a0:	mov    (%rcx),%rax
+  45a9a3:	mov    (%rax),%eax
+  45a9a5:	test   $0x2,%sil
+  45a9a9:	je     45a9ab <tomo::IoLoop::close_client(tomo::Client*, bool)+0xd1b>
+  45a9ab:	mov    %edi,%r8d
+  45a9ae:	sub    %eax,%r8d
+  45a9b1:	cmp    %r8d,0x5c(%rcx)
+  45a9b5:	jb     45ac5b <tomo::IoLoop::close_client(tomo::Client*, bool)+0xfcb>
+  45a9bb:	mov    0x44(%rcx),%eax
+  45a9be:	mov    %edi,0x44(%rcx)
+  45a9c1:	and    0x58(%rcx),%eax
+  45a9c4:	shr    $0xa,%esi
+  45a9c7:	and    $0x1,%esi
+  45a9ca:	shlx   %esi,%eax,%eax
+  45a9cf:	shl    $0x6,%rax
+  45a9d3:	add    0x38(%rcx),%rax
+  45a9d7:	je     45ac5b <tomo::IoLoop::close_client(tomo::Client*, bool)+0xfcb>
+  45a9dd:	mov    (%rbx),%ecx
+  45a9df:	mov    $0xb,%esi
+  45a9e4:	mov    %r15,0x10(%rax)
+  45a9e8:	xor    %r11d,%r11d
+  45a9eb:	xor    %r15d,%r15d
+  45a9ee:	movl   $0x1a,(%rax)
+  45a9f4:	mov    %r11,0x8(%rax)
+  45a9f8:	mov    %edx,0x18(%rax)
+  45a9fb:	shl    $0x38,%rsi
+  45a9ff:	mov    %r15,0x28(%rax)
+  45aa03:	mov    %r15,0x30(%rax)
+  45aa07:	mov    %r15,0x38(%rax)
+  45aa0b:	movl   $0x4000,0x1c(%rax)
+  45aa12:	mov    %ecx,0x4(%rax)
+  45aa15:	movabs $0xffffffffffff,%rcx
+  45aa1f:	and    %rbx,%rcx
+  45aa22:	or     %rsi,%rcx
+  45aa25:	mov    %rcx,0x20(%rax)
+  45aa29:	mov    0x1838(%r12),%rax
+  45aa31:	movb   $0x1,0xda(%rax)
+  45aa38:	mov    %edx,0x2c(%rbx)
+  45aa3b:	movb   $0x1,0x2a(%rbx)
+  45aa3f:	incq   0x18d0(%r12)
+  45aa47:	jmp    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45aa4c:	mov    0x63c(%rbx),%r11d
+  45aa53:	test   %r11d,%r11d
+  45aa56:	jne    45acfd <tomo::IoLoop::close_client(tomo::Client*, bool)+0x106d>
+  45aa5c:	imul   $0x218,%rax,%rax
+  45aa63:	add    %rbx,%rax
+  45aa66:	cmpq   $0x0,0x148(%rax)
+  45aa6e:	je     45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45aa74:	imul   $0x218,%rcx,%rcx
+  45aa7b:	xor    %r9d,%r9d
+  45aa7e:	xor    %r10d,%r10d
+  45aa81:	mov    %r9,0x148(%rbx,%rcx,1)
+  45aa89:	mov    %sil,0x28(%rbx)
+  45aa8d:	mov    %r10,0x20(%rbx)
+  45aa91:	mov    0x148(%rax),%rdx
+  45aa98:	test   %rdx,%rdx
+  45aa9b:	je     45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45aaa1:	mov    0x140(%rax),%rsi
+  45aaa8:	jmp    45a4e0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x850>
+  45aaad:	movabs $0xfffffffffffffff,%rax
+  45aab7:	cmp    %rax,%rdx
+  45aaba:	cmova  %rax,%rdx
+  45aabe:	lea    0x0(,%rdx,8),%r13
+  45aac6:	jmp    45a8b3 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xc23>
+  45aacb:	mov    0x1880(%r12),%rax
+  45aad3:	incq   0x120(%rax)
+  45aada:	jmp    45a529 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x899>
+  45aadf:	shr    $0x20,%rax
+  45aae3:	cmpb   $0x0,0x10(%rsp)
+  45aae8:	mov    %eax,%ecx
+  45aaea:	mov    %eax,%r15d
+  45aaed:	je     45aeb1 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1221>
+  45aaf3:	test   %eax,%eax
+  45aaf5:	je     45ae9b <tomo::IoLoop::close_client(tomo::Client*, bool)+0x120b>
+  45aafb:	cmpl   $0x0,0x63c(%rbx)
+  45ab02:	je     45abb4 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf24>
+  45ab08:	mov    %r14,0x10(%rsp)
+  45ab0d:	mov    %r13d,0x8(%rsp)
+  45ab12:	mov    %r12,%r14
+  45ab15:	mov    %ecx,%r13d
+  45ab18:	mov    0x638(%rbx),%edx
+  45ab1e:	mov    0x630(%rbx),%rdi
+  45ab25:	lea    (%rdx,%rdx,2),%rax
+  45ab29:	lea    (%rdi,%rax,8),%rsi
+  45ab2d:	mov    0x644(%rbx),%eax
+  45ab33:	mov    0x10(%rsi),%r9d
+  45ab37:	mov    %r9d,%r12d
+  45ab3a:	sub    %eax,%r12d
+  45ab3d:	cmp    %r13d,%r12d
+  45ab40:	cmova  %r13d,%r12d
+  45ab44:	add    %r12d,%eax
+  45ab47:	cmpb   $0x1,(%rsi)
+  45ab4a:	mov    %eax,0x644(%rbx)
+  45ab50:	je     45abf3 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf63>
+  45ab56:	cmp    %eax,%r9d
+  45ab59:	jne    45ab8e <tomo::IoLoop::close_client(tomo::Client*, bool)+0xefe>
+  45ab5b:	lea    (%rdx,%rdx,2),%rax
+  45ab5f:	lea    (%rdi,%rax,8),%rax
+  45ab63:	cmpb   $0x0,(%rax)
+  45ab66:	je     45abe5 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf55>
+  45ab68:	mov    0x638(%rbx),%edx
+  45ab6e:	decl   0x63c(%rbx)
+  45ab74:	movl   $0x0,0x644(%rbx)
+  45ab7e:	je     45ab9d <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf0d>
+  45ab80:	lea    0x1(%rdx),%eax
+  45ab83:	sub    %r12d,%r13d
+  45ab86:	mov    %eax,0x638(%rbx)
+  45ab8c:	jne    45ab18 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xe88>
+  45ab8e:	mov    %r14,%r12
+  45ab91:	mov    0x8(%rsp),%r13d
+  45ab96:	mov    0x10(%rsp),%r14
+  45ab9b:	jmp    45abb4 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf24>
+  45ab9d:	mov    %r14,%r12
+  45aba0:	mov    0x8(%rsp),%r13d
+  45aba5:	mov    0x10(%rsp),%r14
+  45abaa:	xor    %r8d,%r8d
+  45abad:	mov    %r8d,0x638(%rbx)
+  45abb4:	cmpb   $0x0,0x7b4(%rbx)
+  45abbb:	je     45abd1 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf41>
+  45abbd:	mov    0x38(%rbx),%rax
+  45abc1:	cmp    %r15,%rax
+  45abc4:	jb     45aef8 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1268>
+  45abca:	sub    %r15,%rax
+  45abcd:	mov    %rax,0x38(%rbx)
+  45abd1:	mov    0x1880(%r12),%rax
+  45abd9:	add    %r15,0x140(%rax)
+  45abe0:	jmp    45a529 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x899>
+  45abe5:	mov    0x8(%rax),%rdi
+  45abe9:	call   1cce0 <free@plt>
+  45abee:	jmp    45ab68 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xed8>
+  45abf3:	cmp    %eax,%r9d
+  45abf6:	jne    45ab8e <tomo::IoLoop::close_client(tomo::Client*, bool)+0xefe>
+  45abf8:	mov    0x8(%rsi),%rdx
+  45abfc:	mov    0x1840(%r14),%rdi
+  45ac03:	mov    0x14(%rsi),%esi
+  45ac06:	incq   0x1930(%r14)
+  45ac0d:	call   *0x1848(%r14)
+  45ac14:	mov    0x630(%rbx),%rdi
+  45ac1b:	mov    0x638(%rbx),%edx
+  45ac21:	jmp    45ab5b <tomo::IoLoop::close_client(tomo::Client*, bool)+0xecb>
+  45ac26:	cmpq   $0x0,0x70(%r14)
+  45ac2b:	je     45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45ac31:	mov    0x7a8(%rbx),%rcx
+  45ac38:	mov    0x68(%r14),%r8
+  45ac3c:	mov    0x40ee1d(%rip),%rdi        # 869a60 <stderr@GLIBC_2.2.5>
+  45ac43:	lea    0x332c6e(%rip),%rdx        # 78d8b8 <_IO_stdin_used+0x118b8>
+  45ac4a:	mov    $0x2,%esi
+  45ac4f:	xor    %eax,%eax
+  45ac51:	call   1c700 <__fprintf_chk@plt>
+  45ac56:	jmp    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45ac5b:	cmpl   $0x0,0x100(%rcx)
+  45ac62:	jns    45ac7e <tomo::IoLoop::close_client(tomo::Client*, bool)+0xfee>
+  45ac64:	mov    %rcx,%rdi
+  45ac67:	mov    %edx,0x8(%rsp)
+  45ac6b:	mov    %rcx,0x10(%rsp)
+  45ac70:	call   1d250 <io_uring_submit@plt>
+  45ac75:	mov    0x8(%rsp),%edx
+  45ac79:	mov    0x10(%rsp),%rcx
+  45ac7e:	mov    0x44(%rcx),%eax
+  45ac81:	mov    0xc0(%rcx),%esi
+  45ac87:	movb   $0x0,0xda(%rcx)
+  45ac8e:	lea    0x1(%rax),%edi
+  45ac91:	mov    (%rcx),%rax
+  45ac94:	mov    (%rax),%eax
+  45ac96:	test   $0x2,%sil
+  45ac9a:	je     45ac9c <tomo::IoLoop::close_client(tomo::Client*, bool)+0x100c>
+  45ac9c:	mov    %edi,%r8d
+  45ac9f:	sub    %eax,%r8d
+  45aca2:	cmp    %r8d,0x5c(%rcx)
+  45aca6:	jb     45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45acac:	mov    0x44(%rcx),%eax
+  45acaf:	mov    %edi,0x44(%rcx)
+  45acb2:	and    0x58(%rcx),%eax
+  45acb5:	shr    $0xa,%esi
+  45acb8:	and    $0x1,%esi
+  45acbb:	shlx   %esi,%eax,%eax
+  45acc0:	shl    $0x6,%rax
+  45acc4:	add    0x38(%rcx),%rax
+  45acc8:	jne    45a9dd <tomo::IoLoop::close_client(tomo::Client*, bool)+0xd4d>
+  45acce:	jmp    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45acd3:	mov    0x2a8(%r13),%rsi
+  45acda:	sub    %rcx,%rsi
+  45acdd:	jmp    45a915 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xc85>
+  45ace2:	movabs $0x1fffffffffffffff,%rax
+  45acec:	cmp    %rax,%r8
+  45acef:	cmovbe %r8,%rax
+  45acf3:	jmp    45a939 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xca9>
+  45acf8:	call   1c7b0 <__stack_chk_fail@plt>
+  45acfd:	mov    0x638(%rbx),%edx
+  45ad03:	vmovq  0x630(%rbx),%xmm1
+  45ad0b:	lea    0x648(%rbx),%r8
+  45ad12:	xor    %r10d,%r10d
+  45ad15:	xor    %ecx,%ecx
+  45ad17:	xor    %esi,%esi
+  45ad19:	mov    %edx,0x8(%rsp)
+  45ad1d:	imul   $0x18,%rdx,%rdx
+  45ad21:	vmovq  %xmm1,%rax
+  45ad26:	add    %rax,%rdx
+  45ad29:	mov    0x644(%rbx),%eax
+  45ad2f:	jmp    45ad95 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1105>
+  45ad31:	mov    $0x7ffff000,%r9d
+  45ad37:	sub    %eax,%edi
+  45ad39:	sub    %r10d,%r9d
+  45ad3c:	cmp    %edi,%r9d
+  45ad3f:	cmova  %edi,%r9d
+  45ad43:	mov    %esi,%edi
+  45ad45:	add    0x8(%rdx),%rax
+  45ad49:	shl    $0x4,%rdi
+  45ad4d:	add    %r8,%rdi
+  45ad50:	cmpb   $0x1,(%rdx)
+  45ad53:	mov    %rax,(%rdi)
+  45ad56:	mov    %r9d,%eax
+  45ad59:	mov    %rax,0x8(%rdi)
+  45ad5d:	sete   %al
+  45ad60:	inc    %ecx
+  45ad62:	add    %r9d,%r10d
+  45ad65:	inc    %esi
+  45ad67:	or     %al,0x10(%rsp)
+  45ad6b:	cmp    %ecx,%r11d
+  45ad6e:	je     45ada3 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1113>
+  45ad70:	cmp    $0x10,%esi
+  45ad73:	je     45add4 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1144>
+  45ad75:	cmp    $0x7fffefff,%r10d
+  45ad7c:	ja     45ada3 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1113>
+  45ad7e:	mov    0x8(%rsp),%eax
+  45ad82:	vmovq  %xmm1,%rdi
+  45ad87:	add    %ecx,%eax
+  45ad89:	mov    %eax,%eax
+  45ad8b:	lea    (%rax,%rax,2),%rax
+  45ad8f:	lea    (%rdi,%rax,8),%rdx
+  45ad93:	xor    %eax,%eax
+  45ad95:	mov    0x10(%rdx),%edi
+  45ad98:	cmp    %edi,%eax
+  45ad9a:	jb     45ad31 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x10a1>
+  45ad9c:	inc    %ecx
+  45ad9e:	cmp    %ecx,%r11d
+  45ada1:	jne    45ad7e <tomo::IoLoop::close_client(tomo::Client*, bool)+0x10ee>
+  45ada3:	mov    %esi,%eax
+  45ada5:	vpxor  %xmm1,%xmm1,%xmm1
+  45ada9:	vmovdqu8 %ymm1,0x748(%rbx)
+  45adb3:	mov    %r8,0x758(%rbx)
+  45adba:	vmovdqu8 %ymm1,0x760(%rbx)
+  45adc1:	mov    %rax,0x760(%rbx)
+  45adc8:	test   %esi,%esi
+  45adca:	jne    45adfb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x116b>
+  45adcc:	vzeroupper
+  45adcf:	jmp    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45add4:	vpxor  %xmm1,%xmm1,%xmm1
+  45add8:	vmovdqu8 %ymm1,0x748(%rbx)
+  45ade2:	mov    %r8,0x758(%rbx)
+  45ade9:	vmovdqu8 %ymm1,0x760(%rbx)
+  45adf0:	movq   $0x10,0x760(%rbx)
+  45adfb:	cmpb   $0x0,0x10(%rsp)
+  45ae00:	jne    45aef5 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1265>
+  45ae06:	mov    0x648(%rbx),%rsi
+  45ae0d:	mov    0x650(%rbx),%rdx
+  45ae14:	mov    %r15b,0x10(%rsp)
+  45ae19:	vzeroupper
+  45ae1c:	jmp    45a4e0 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x850>
+  45ae21:	cmpl   $0x0,0x100(%rcx)
+  45ae28:	jns    45ae46 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x11b6>
+  45ae2a:	mov    %rcx,%rdi
+  45ae2d:	mov    %rdx,0x8(%rsp)
+  45ae32:	mov    %rcx,0x10(%rsp)
+  45ae37:	call   1d250 <io_uring_submit@plt>
+  45ae3c:	mov    0x8(%rsp),%rdx
+  45ae41:	mov    0x10(%rsp),%rcx
+  45ae46:	mov    0x44(%rcx),%eax
+  45ae49:	mov    0xc0(%rcx),%esi
+  45ae4f:	movb   $0x0,0xda(%rcx)
+  45ae56:	lea    0x1(%rax),%edi
+  45ae59:	mov    (%rcx),%rax
+  45ae5c:	mov    (%rax),%eax
+  45ae5e:	test   $0x2,%sil
+  45ae62:	je     45ae64 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x11d4>
+  45ae64:	mov    %edi,%r8d
+  45ae67:	sub    %eax,%r8d
+  45ae6a:	cmp    %r8d,0x5c(%rcx)
+  45ae6e:	jb     45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45ae74:	mov    0x44(%rcx),%eax
+  45ae77:	mov    %edi,0x44(%rcx)
+  45ae7a:	and    0x58(%rcx),%eax
+  45ae7d:	shr    $0xa,%esi
+  45ae80:	and    $0x1,%esi
+  45ae83:	shlx   %esi,%eax,%eax
+  45ae88:	shl    $0x6,%rax
+  45ae8c:	add    0x38(%rcx),%rax
+  45ae90:	jne    45a5b5 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x925>
+  45ae96:	jmp    45a2eb <tomo::IoLoop::close_client(tomo::Client*, bool)+0x65b>
+  45ae9b:	cmpb   $0x0,0x7b4(%rbx)
+  45aea2:	je     45abd1 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf41>
+  45aea8:	mov    0x38(%rbx),%rax
+  45aeac:	jmp    45abca <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf3a>
+  45aeb1:	add    %r15,0x20(%rbx)
+  45aeb5:	jmp    45abb4 <tomo::IoLoop::close_client(tomo::Client*, bool)+0xf24>
+  45aeba:	mov    0x58(%rsp),%rdx
+  45aebf:	sub    %fs:0x28,%rdx
+  45aec8:	jne    45acf8 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1068>
+  45aece:	mov    %eax,%edi
+  45aed0:	call   1c9c0 <std::__throw_system_error(int)@plt>
+  45aed5:	mov    0x58(%rsp),%rax
+  45aeda:	sub    %fs:0x28,%rax
+  45aee3:	jne    45acf8 <tomo::IoLoop::close_client(tomo::Client*, bool)+0x1068>
+  45aee9:	lea    0x332381(%rip),%rdi        # 78d271 <_IO_stdin_used+0x11271>
+  45aef0:	call   1ccf0 <std::__throw_length_error(char const*)@plt>
+  45aef5:	vzeroupper
+  45aef8:	call   1cee0 <abort@plt>
+  45aefd:	nopl   (%rax)

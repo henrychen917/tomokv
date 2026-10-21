@@ -6,6 +6,7 @@ held across distinct owners. Three fresh arms at most must witness the live
 predecessor, an undecided group and its installed entries before the deadline.
 """
 import argparse
+import re
 import select
 import time
 
@@ -46,7 +47,7 @@ def run(a):
         sub.read(); sub.read()
         (ka, sa), (kb, sb) = keys(c)
         receipt.append(dict(geometry=[ka, sa, kb, sb], mode=a.mode, engine=a.engine))
-        for kind in ('MSET', 'RENAME'):
+        for kind in (('MSET-TTL',) if a.synthetic_mset else ('MSET', 'RENAME')):
             for attempt in range(3):
                 assert c.cmd('FLUSHDB') == b'OK'
                 assert c.cmd('SET', ka, 'old') == b'OK'
@@ -59,9 +60,16 @@ def run(a):
                 armed = False
                 try:
                     group.send(*(['RENAME', kb, ka] if kind == 'RENAME' else
-                                 ['MSET', ka, 'new', kb, 'new']))
+                                 ['MSET', ka, 'compat2-ttl-candidate', kb, 'compat2-ttl-candidate']
+                                 if kind == 'MSET-TTL' else ['MSET', ka, 'new', kb, 'new']))
                     installed = wait_for(lambda: (s if (s := stats(c))[
                         'atomic_pending_entries'] >= 2 else None), 'group not installed')
+                    if kind == 'MSET-TTL':
+                        markers = re.findall(r'compat2_mset_candidate key=(\S+) deadline=(\d+)',
+                            (a.output / 'server/server.log').read_text())
+                        latest = dict(markers[-2:])
+                        assert set(latest) == {ka, kb}, ('candidate injector did not fire', markers)
+                        deadline = max(map(int, latest.values()))
                     assert not select.select([group.s], [], [], 0)[0], 'group already replied'
                     old = c.cmd('GET', ka)
                     armed = time.time_ns() // 1000000 < deadline
@@ -117,4 +125,5 @@ def run(a):
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     arguments(p)
+    p.add_argument('--synthetic-mset', action='store_true')
     run(p.parse_args())

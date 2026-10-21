@@ -1083,7 +1083,7 @@ plan_jobs(){
               wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries hexpread bplus acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries hexpread compat2 bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
               aof_frame aoforder tls fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -1533,6 +1533,32 @@ job_clientfix(){
         bad "$label" "see $TMPDIR/clientfix-$case-$mode.log"
       fi
     done
+  done
+}
+
+job_compat2(){
+  local mode engine case failed
+  for case in autharity expire_notify ktls_lifetime; do
+    row_begin "compat2 $case"
+    failed=0
+    local extra=()
+    if [ "$case" = autharity ]; then
+      extra=(--oracle "$REDIS74_ROOT/src/redis-server" --oracle-cores "$CORES")
+    elif [ "$case" = ktls_lifetime ]; then
+      unit_ready ktls-lifetime-unit && taskset -c "$CORES" build/ktls-lifetime-unit \
+          >"$TMPDIR/compat2-ktls-unit.log" 2>&1 || failed=1
+      py tests/tls.py --generate "$TMPDIR/compat2-certs" \
+          >"$TMPDIR/compat2-certs.log" 2>&1 || failed=1
+      extra=(--certs "$TMPDIR/compat2-certs")
+    fi
+    for mode in 1s 2s; do for engine in epoll uring; do
+      py "tests/$case.py" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+          --mode "$mode" --engine "$engine" "${extra[@]}" \
+          --output "$TMPDIR/compat2-$case-$mode-$engine" \
+          >"$TMPDIR/compat2-$case-$mode-$engine.log" 2>&1 || failed=1
+    done; done
+    if [ "$failed" = 0 ]; then ok "compat2 $case";
+    else bad "compat2 $case" "see $TMPDIR/compat2-$case-*.log"; fi
   done
 }
 
@@ -3632,14 +3658,14 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
+      build/ktls-lifetime-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/respresume-unit build/respresume-migration \
       build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
   make -q build/respresume-unit && : > "$RUN_DIR/unit-ready/respresume-unit"
   make -q build/respresume-migration && : > "$RUN_DIR/unit-ready/respresume-migration"
-  for target in publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
+  for target in ktls-lifetime-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -3721,7 +3747,7 @@ job_dependencies(){
     core_units|flipfix_units) echo 'production_units core_tsan_build';;
     racefix_counters) echo racefix_tsan_build;;
     racefix_climon) echo production_units;;
-    tls) echo 'release production_units';;
+    tls|compat2) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|aof_frame|aoforder) echo 'release production_units';;
@@ -3871,6 +3897,8 @@ collect_job atomic_batteries
 # hexpread: eight independently scored rows before the quick exit (DQ +8 / DF +8).
 # EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 collect_job hexpread
+# Three compat2 rows, collected before the quick-tier exit: DQ=+3, DF=+3.
+collect_job compat2
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done

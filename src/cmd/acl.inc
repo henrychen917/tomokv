@@ -1332,6 +1332,7 @@ static constexpr SubcommandArity kAclSubcommands[] = {
 };
 
 void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
+    if (auth_arity_reply(op, *op.spec, false)) return;
     if (!command_validate_subcommand(op, "ACL", kAclSubcommands,
                                      sizeof(kAclSubcommands) / sizeof(kAclSubcommands[0]))) return;
     const Slice sub = op.arg(1);
