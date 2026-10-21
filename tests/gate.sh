@@ -330,6 +330,9 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # quick-tier exit): DQ=+1, DF=+1. With wave3: EXPECT_QUICK=664+1=665 / EXPECT_FULL=681+1=682.
 # ntfix N1-N4: DQ=+4, DF=+4; all four rows are collected before the quick exit.
 # Maintainer updates required counts from 665/682 to 669/686.
+# clockcut: job_ntnew4_live's three rows (2s, 1s, 2s epoll; NT-new-4 plus the NT-new-7 exact-
+# deadline assertions) are collected before the quick exit: DQ=+3, DF=+3. Maintainer updates
+# required counts from 669/686 to 672/689 and adds the three labels to the label fixture.
 EXPECT_QUICK=669
 EXPECT_FULL=686                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
