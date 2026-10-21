@@ -399,6 +399,30 @@ All **five unique serverless RX/KeyUpdate cases pass** (also repeated by the
 separate `tls-units` invocation). Exact commands and return codes are retained
 in `docs/compat2b/tls/results.json` and `tls-units/results.json`.
 
+### Standard differential matrix
+
+The unmodified `tests/differ_gate.sh` runs sequentially on POST for both engines
+and both geometries, with both atomic settings and its complete standard seed
+inventory. The target uses CPUs 64–71, the pinned Redis oracle uses CPU 72,
+and clients use 73–79; ports are 26810/26811. Engine wrappers only prepend
+`--net-io epoll` or `--net-io uring` to the frozen POST binary. Exact argv,
+environment, return codes and every per-leg comparison log are under
+`docs/compat2b/differ`.
+
+| Engine / geometry | Result | Seeds |
+|---|---|---|
+| io_uring / split | **475 pass / 0 fail** | 7, 19, 20, 23, 21 |
+| io_uring / fused with read-local armed | Running | 7, 19, 20, 23, 22 |
+| epoll / split | Pending | Standard allocation |
+| epoll / fused with read-local armed | Pending | Standard allocation |
+
+The standard fused driver skips SORT because that suite requires split 6:2;
+these skips are not passes, and SORT remains exercised in each split matrix.
+The standard driver's mode-equivalence display still says “all 32,” but the
+current source declares and checks **16 cells** (`mode_equivalence.py:41–42,
+179`), and its io_uring receipt contains **16/16** with 6,137 byte-identical
+replies per cell. This report uses the executed inventory, not the stale label.
+
 ### Initial failures retained; final replay required
 
 - `storesize published monitoring` still expected the historical
@@ -439,3 +463,30 @@ in `docs/compat2b/tls/results.json` and `tls-units/results.json`.
   this refusal is retained, not bypassed. Its internal receipt-control suite
   cannot run until the maintainer updates EXPECT. The other independent helper
   commands still run and the aggregate row stays failed.
+
+### Required counts and landing comparison
+
+`collect_job compat2` is at **tests/gate.sh:3981**, before the quick-tier exit
+at **4093–4097**. Its three labels each occur once: `compat2 autharity`,
+`compat2 expire_notify`, and `compat2 ktls_lifetime`. Therefore **DQ=+3, DF=+3**:
+
+| Tier | Headline count | compat2 addition | Required count |
+|---|---:|---:|---:|
+| quick | 669 | 3 | **672** |
+| full | 686 | 3 | **689** |
+
+N1 is still collected at line **3954**; the TLS job containing N2/N3/N4 is
+collected at **4043**, also before the quick exit. Their four rows are already
+included in headline's 669/686, so they are not added twice. The source-only
+label inventory finds **672 quick / 689 full**, and the full fixture has all
+689 labels with **zero missing and zero extra occurrences** (`ledger.json`).
+`EXPECT_QUICK=669` and `EXPECT_FULL=686` remain byte-identical to headline at
+lines **336–337**. The maintainer must update them to 672/689 before the receipt
+self-test can complete; no passing full-gate receipt is claimed here.
+
+The maintainer's pending work is the requested **null comparison of merged POST
+against 8656f9fa9**, using the gate's own instrument, followed by the landing
+gate. The lane ran correctness only. No throughput, latency, cycles/op or merit
+claim is made from compile identity or correctness results. No performance
+benchmark, measurement load generator, full `iteration`, push or merge into
+`cpp` was run by this lane.
