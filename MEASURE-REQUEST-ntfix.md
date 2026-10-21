@@ -865,3 +865,152 @@ all requested candidate TCP/TLS corpus legs were run against its TCP reference.
 All requested ntfix4 correctness/build work is complete and passes. The source
 fixture matches 686 labels; the maintainer still changes the required EXPECT
 counts to **669/686**. Work is committed on `cx-ntfix`; nothing was pushed.
+
+## ntfix5
+
+2026-10-21; starts at `8ae8e65e5` on `cx-ntfix`. The three failed landing-gate
+rows now run successfully through **`tests/gate.sh`'s actual `tls` job**.
+`tlsboot` reads the argument following `--thread-mode` and omits its default
+`--ratio 6:2` only for `fused` / `1s`. All row bodies and existing assertions
+are unchanged. No production code changed and **`build/tomokv` was not rebuilt**.
+
+### Boot argv preservation
+
+[Every before/after argv](docs/ntfix/ntfix5/argv-before-after.txt) lists all
+**15 expanded `tlsboot` invocations**, with source lines and shell quoting that
+preserves empty and multiword arguments. The [NUL-delimited capture comparison](docs/ntfix/ntfix5/argv-before-after.json)
+records each argument and both byte-stream hashes. The three historical boots
+(`yes`, `optional`, and the explicit userspace coexistence cipher boot) and the
+six ntfix split boots are **byte-identical**. The six ntfix fused boots differ
+**only by removal of the two arguments `--ratio` and `6:2`**. Fixed environment
+values are identical across captures; this is an argv audit, not a server run.
+
+[The replayable audit](docs/ntfix/ntfix5/argv_audit.py) also requires the entire
+gate source outside `tlsboot` to equal `8ae8e65e5`, including all call sites,
+assertions, rows, and EXPECT constants. The added serverless regression test
+covers both engines, the `fused`/`1s` and `split`/`2s` aliases, repeated mode
+options, and unrelated password values `fused`/`1s`. Against the old helper it
+fails exactly the four fused/1s × engine subtests; the other cases pass.
+[Negative-control output](docs/ntfix/ntfix5/argv-negative-control.log.gz).
+
+### Exact gate interface and geometry
+
+The documented `GATE_ONLY_JOBS=tls` selection runs `release`,
+`production_units`, and `tls` through the normal worker/finalizer machinery.
+`quick` selects the correctness-only tier; no full iteration, ABBA, NIC tier,
+or performance load generator runs. The explicit candidate bypasses the
+release rebuild. The real production-unit prerequisites ran and were already
+up to date, including the two live-arm binaries.
+
+Both commands ran from `/home/user/Projects/cx-ntfix`:
+
+```sh
+taskset -c 80-95 env \
+  REDIS74_ROOT=/home/user/Projects/redis74 GATE_ONLY_JOBS=tls \
+  GATE_HISTORY="$PWD/build/ntfix5/history-post" \
+  GATE_LEDGER="$PWD/build/ntfix5/post-ledger" \
+  bash tests/gate.sh quick \
+  --server-cores 80-87 --load-cores 88-95 --server-smt '' --load-smt '' \
+  --ports 22800-22899 --candidate-binary "$PWD/build/tomokv"
+
+taskset -c 80-95 env \
+  REDIS74_ROOT=/home/user/Projects/redis74 GATE_ONLY_JOBS=tls \
+  GATE_HISTORY="$PWD/build/ntfix5/history-pre" \
+  GATE_LEDGER="$PWD/build/ntfix5/pre-ledger" \
+  bash tests/gate.sh quick \
+  --server-cores 80-87 --load-cores 88-95 --server-smt '' --load-smt '' \
+  --ports 22800-22899 \
+  --candidate-binary "$PWD/build/ntfix4/headline-src/build/tomokv"
+```
+
+This is one normal eight-server-core slot, not a changed server geometry:
+**CPUs 80–87, 16 shards, split ratio 6:2; fused has eight unified threads and
+read-local 1**. The coordinator and protocol clients use 88–95; prerequisite
+build commands use only 80–95. TCP/TLS listeners are **22800/22801**. No
+quiet-screen bypass, assertion relaxation, or alternate row driver was used.
+The gate's optional quiet-file setting was not enabled. Separate row histories
+keep these diagnostic failures out of the maintainer's standing history.
+
+The pinned Redis directory contains binaries but lacks `src/server.h`,
+`src/acl.c`, and `src/commands.def`, so both jobs print that preflight warning.
+The selected TLS job has no ACL-source-generation row and does not boot Redis;
+all selected jobs complete. The separately run oracle check below validates the
+unchanged byte corpus against the requested binary.
+
+### Actual results and failure witnesses
+
+| Check | POST | Headline PRE `bce4eb0aa` |
+|---|---|---|
+| N2: silent peer closes after reply | PASS, all eight mode × engine × TCP/TLS legs | Aggregate FAIL; both io_uring modes receive the complete TLS reply but time out waiting for EOF; both epoll controls PASS |
+| N3: pre-AUTH limit errors | PASS, 23 exact cases in each of eight legs | FAIL in all four mode/engine boots: the first TCP case returns `invalid multibulk length` instead of the unauthenticated-length error |
+| N4: query-buffer frontier | PASS, four exact cases in each of eight legs, plus frontier unit | FAIL in all four mode/engine boots: the first TCP case closes before unconsumed input exceeds the limit |
+| Other TLS rows | **17/17 PASS** | **17/17 PASS** |
+| TLS job | **20 PASS / 0 FAIL** | **17 PASS / 3 expected FAIL** |
+| PARTIAL gate including release prerequisite | **21 PASS / 0 FAIL, exit 0** | **18 PASS / 3 expected FAIL, exit 1** |
+| Actual TCP+TLS listener boots | **15/15**, including six fused boots | **15/15**, including six fused boots |
+
+POST has **all 12 mode/engine output files and all 24 transport legs**: eight
+per new row. PRE has all 12 output files too; its failures occur inside the
+unchanged defect assertions. PRE's N3/N4 TCP failures stop those scripts before
+their TLS loop, and PRE's N2 io_uring EOF timeout stops before its TCP loop;
+these unvisited PRE transports are not claimed as exercised. No PRE or POST
+server log contains the ratio refusal. Each fused server log records
+`thread-mode=1s`, `read-local=1`, both live listeners, and a shutdown report.
+The `netcap-unit frontier` invocation remains the current worktree unit even
+when `--candidate-binary` is PRE; PRE's N4 verdict is established by the live
+server failures, not by an assertion that this unit is a PRE build.
+
+Receipts: [POST partial ledger](docs/ntfix/ntfix5/post/ledger.partial),
+[PRE partial ledger](docs/ntfix/ntfix5/pre/ledger.partial),
+[POST TLS output](docs/ntfix/ntfix5/post/tls/output.log),
+[PRE TLS output](docs/ntfix/ntfix5/pre/tls/output.log),
+[verified per-leg results and compressed boot-log index](docs/ntfix/ntfix5/results.json),
+[verification replay](docs/ntfix/ntfix5/verify_results.py).
+Original runs remain in `build/gate-run.8snCc5` (POST) and
+`build/gate-run.mX3NSO` (PRE). Their plans, ledgers, prerequisite logs, battery
+outputs, and all 30 server logs are retained under `docs/ntfix/ntfix5/`.
+
+### Harness self-test, oracle, and scope
+
+The first `gates_test.py` attempt passed 67 tests plus its nested 14-test
+persistence check, but the nested persistence socket fixture used `bind(..., 0)`
+and therefore requested a port outside the lane's fixed allocation. That
+attempt is **not counted as port-compliant**; its
+[unmodified output is retained](docs/ntfix/ntfix5/gates-test-initial-port-exception.log.gz).
+The one-line fixture change in `tests/persistfix.py` makes it honor the existing
+`GATE_TEST_PORT` variable, matching the main harness fixture. No assertion
+changed. The final rerun uses:
+
+```sh
+taskset -c 80-95 env TMPDIR="$PWD/build/ntfix5/tmp" GATE_TEST_PORT=22899 \
+  python3 tests/gates_test.py
+```
+
+The final port-constrained rerun **passes 67/67 tests plus the nested 14/14**,
+exit 0. [Complete output](docs/ntfix/ntfix5/gates-test.log). Shell syntax and
+`git diff --check` also pass. The final listener check finds no listener on
+22800–22899; both gate finalizers and the oracle cleanly reaped their children.
+
+The supplemental oracle uses `/home/user/Projects/redis74/src/redis-server`
+on CPUs 80–87 / port 22802. Redis identifies itself as **7.4.10** and passes
+all **23 N3 + four N4 exact cases** over TCP, with the unchanged corpus.
+[Corpus output](docs/ntfix/ntfix5/oracle/corpus.log),
+[exact server argv and digest](docs/ntfix/ntfix5/oracle/result.json),
+[replay](docs/ntfix/ntfix5/oracle_check.py).
+This supplements, and does not replace, the actual gate-job results above.
+
+| Binary | SHA-256 |
+|---|---|
+| Unrebuilt POST `build/tomokv` | `db07cacf524e03f9907ac7c42c1c79b668792c322f9d73e3d127b2d07b18afae` |
+| PRE `build/ntfix4/headline-src/build/tomokv` | `247bb68cf027485c61269762216c73fc81de6cdb968b84c28b44f7ad1da87ca5` |
+| Redis 7.4 oracle | `ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b` |
+
+ntfix5 adds **zero gate rows**. ntfix remains **DQ/DF +4/+4**: N1 is collected
+at `tests/gate.sh:3918`, the TLS job containing N2–N4 at line **4005**, both
+before the quick-tier exit at line **4055**. Required counts remain **669/686**;
+`EXPECT_QUICK` / `EXPECT_FULL` are unchanged from the supplied HEAD.
+
+**NOT RUN:** full `tests/gate.sh iteration`, performance benchmarks, measurement
+load generators, ABBA/null, and NIC measurements: these remain maintainer-owned
+and outside this lane's correctness authorization. No performance claim or PAD
+arm is introduced. Nothing was pushed.
