@@ -1,6 +1,6 @@
 # Complete changed-body inventory
 
-PRE `8656f9fa9` versus the tuned candidate: 16,694 paired emitted bodies;
+PRE `8656f9fa9` versus the tuned candidate: 16,694 emitted-body inventory entries;
 16,617 equal and 77 changed. All changes are in the two xshard objects.
 All 1,211 command-handler bodies and 1,218 selected hot bodies are canonically
 equal (resolved relocation targets retained). The lbstall selection separately

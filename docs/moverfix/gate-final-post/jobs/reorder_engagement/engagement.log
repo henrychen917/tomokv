@@ -1,0 +1,2 @@
+PASS build/reorder-engagement-unit: production shadow, FIFO control, disabled capability rejected
+PASS build/reorder-engagement-unit-db0: production shadow, FIFO control, disabled capability rejected

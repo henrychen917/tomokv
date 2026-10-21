@@ -7,8 +7,8 @@ that worktree was not modified. No push. This request is still being completed.
 The isolated atomic-0 claim protocol is implemented. **A broader EXEC conservation
 claim is false on the headline:** the supplemental four-client EXEC/RPOPLPUSH
 check fails on both PRE and POST, in both thread modes. This is retained as a
-separate failure, not weakened or included as a passing D2 claim. It is outside
-this lane's permitted atomic-0 runtime changes.
+separate failure, not weakened or included as a passing D2 claim. The requested broader conserving EXEC proof/equivalent is therefore **NOT
+ESTABLISHED**. No EXEC algorithm change is included in this isolated port.
 
 ### Runtime boundary
 
@@ -30,7 +30,12 @@ read context and retain the parent's origin; `MoverLiveRead` leaves children
 alone. Thus the donor's private-overlay helper is not a dependency of this port.
 This is a reachability argument about the port, **not a claim that existing EXEC
 is conserving**. The supplemental diagnostic and its PRE controls disprove that
-stronger claim. Existing MULTI/EXEC batteries are run without assertion edits.
+stronger claim. Sending those children through the bare claim helper would
+mutate outside their parent's atomic publication, so that is not a valid minimal
+substitute. A live-view selection alone also cannot arbitrate two undecided
+parents. The unlanded branch's parent arbitration/private overlays were expressly
+excluded from this lane. Existing MULTI/EXEC batteries are run without assertion
+edits; passing them cannot erase this counterexample.
 
 ### Controls and gate inventory
 
@@ -54,7 +59,7 @@ the headline's earlier AT1 fix already passes those schedules on PRE.
 One `job_moverfix` owns eight rows, each with all seven mover families and T05/G5,
 including every live leg even after an earlier failure. Both engines, both modes
 and both database counts are explicit in each label. It is collected BEFORE the
-quick-tier exit: **DQ=+8, DF=+8; required EXPECT_QUICK=677, EXPECT_FULL=694** (from
+quick-tier exit (`collect_job moverfix` at line 3979; exit at line 4094): **DQ=+8, DF=+8; required EXPECT_QUICK=677, EXPECT_FULL=694** (from
 669/686). Neither constant has been edited. The explicit label fixture has no
 missing/extra labels; its count comparison remains red until the maintainer
 updates those constants.
@@ -64,6 +69,30 @@ Receipts: `docs/moverfix/pre-reproduce/`, `post-reproduce/`, `exec-controls/`,
 ratio) remain separately identified; the successful reproduction reruns use the
 correct production grammar. No reproduction failure is counted as a successful
 POST result.
+
+### Final gate result so far
+
+Final POST ran through `tests/gate.sh quick` with `GATE_ONLY_JOBS`; this was not a
+full quick gate or iteration. The selected jobs produced **146 PASS / 2 FAIL**.
+All eight new mover rows passed, with all 128 leg logs present and 448 asserted
+deterministic contention hits. Receipts: `gate-final-post/`,
+`final-post-leg-inventory.json`, and `final-gate.log` under `docs/moverfix/`.
+The failures were:
+
+- ABBA serverless self-test: the existing receipt fixture guard stops at
+  EXPECT_FULL=686 versus 694 declared/fixture labels, with no missing/extra label.
+- R7 FIFO twin identity: its hard-coded off-path inventory expects 146 bodies in
+  each namespace; the new linked inventory has 145 normal / 146 DB0. Its guard is
+  unchanged. This is reported for merit review, not waived as a green row.
+
+`make -B -j16 all` succeeded. All 38 freshness checks are zero, including every
+production-unit target. The phony `mdbqsbr-live-arms` target's two actual `all`
+outputs were checked separately. See `freshness.json`.
+
+PRE gate controls, supplemental atomic/EXEC coverage, standard differential seeds
+and a quiet scheduler-suite rerun remain in progress. The initial standalone
+`gates_test.py` run retained 65 passes and two 45-second scheduler-fixture timeouts
+while compilation was active; no deadline or assertion was changed.
 
 ### Identity and layout
 

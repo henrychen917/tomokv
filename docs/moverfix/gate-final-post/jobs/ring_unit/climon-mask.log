@@ -1,0 +1,10 @@
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -I. tests/climon_mask_unit.cc -o build/climon-mask-unit
+sed 's/return io >> 6;/return 0;/' src/core/climon_mask.h > build/climon-mask-old/src/core/climon_mask.h
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -Ibuild/climon-mask-old -I. tests/climon_mask_unit.cc -o build/climon-mask-old-unit
+In file included from tests/climon_mask_unit.cc:2:
+build/climon-mask-old/src/core/climon_mask.h: In static member function ‘static constexpr uint32_t tomo::ClimonIoMask::word(uint32_t)’:
+build/climon-mask-old/src/core/climon_mask.h:13:45: warning: unused parameter ‘io’ [-Wunused-parameter]
+   13 |     static constexpr uint32_t word(uint32_t io) { return 0; }
+      |                                    ~~~~~~~~~^~
+climon mask tracking: PASS (64 owner pairs, both disarm directions)
+climon mask monitor: PASS (64 owner pairs, both disarm directions)

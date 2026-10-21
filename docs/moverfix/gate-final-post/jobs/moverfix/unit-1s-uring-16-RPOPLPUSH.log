@@ -1,0 +1,9 @@
+HIT RPOPLPUSH both probes before claims count=1 left=0 to_left=0
+HIT RPOPLPUSH both probes before claims count=2 left=0 to_left=0
+HIT RPOPLPUSH both probes before claims count=1 left=0 to_left=1
+HIT RPOPLPUSH both probes before claims count=2 left=0 to_left=1
+HIT RPOPLPUSH both probes before claims count=1 left=1 to_left=0
+HIT RPOPLPUSH both probes before claims count=2 left=1 to_left=0
+HIT RPOPLPUSH both probes before claims count=1 left=1 to_left=1
+HIT RPOPLPUSH both probes before claims count=2 left=1 to_left=1
+PASS moverfix deterministic claims

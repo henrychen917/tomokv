@@ -1,0 +1,2 @@
+  row budget: 900s; median=0.88s; correctness-plan-fallback; splitlocal template forwarding + old-argument controls
+  splitlocal template forwarding + old-argument controls ok
