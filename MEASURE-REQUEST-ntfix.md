@@ -677,3 +677,110 @@ isolate recovery from ntfix2, but cannot replace PRE/POST acceptance.
 No performance measurement, gate coordinator, or push is run by this lane.
 
 All requested ntfix3 correctness jobs passed on the recorded POST. [Runtime manifest](docs/ntfix/ntfix3/runtime.json) and [final artifacts](docs/ntfix/ntfix3/artifacts.json) record commands, hashes, CPU/port allocation, unchanged gate constants, and completed listener cleanup. Python compilation, shell syntax, and `git diff --check` also pass. Work is committed on `cx-ntfix`; no push.
+
+## ntfix4
+
+Merged `origin/cpp` at **bce4eb0aa6ab5b855903e201f6f19b321e09cba0** into
+`cx-ntfix` in `339b546e2`. N1/N2/N3, N4's ntfix3 cold refinement, and epoll
+output accounting are retained alongside all wave3 changes. The three network
+headers are unchanged from ntfix3. No throughput claim is made; the maintainer
+owns the merged/headline null and landing gate.
+
+### Merge and gate accounting
+
+The actual conflicts were `Makefile`, `tests/gate.sh`, and the root
+`MEASURE-REQUEST`. The merge retains the respresume/lottery/aoforder targets,
+both `aoforder` and `ntfix_input` job registrations, the new wave3 count
+comments, and both request-file histories. The Makefile initially takes the
+headline's budgets, then the compile-only derivation below adjusts four.
+
+The fixture merged automatically but lacked the four ntfix labels. It now
+retains every headline label and adds exactly N1–N4. The old conditional N3/N4
+label assignment was invisible to the source-only inventory parser, which
+counted N3 twice. An explicit finite case/label list now names both rows
+without changing their tests or collection sites.
+
+**DQ = +4, DF = +4 versus bce4eb0aa; required counts are 669 quick / 686 full
+(665/682 + 4/4).** ntfix4 adds no further row beyond the lane's existing four.
+The actual `EXPECT_QUICK=665` and `EXPECT_FULL=682` lines remain byte-identical
+to the fetched headline; only the maintainer may change them.
+
+| Row | Definition/label line in `tests/gate.sh` | Collection line |
+|---|---:|---:|
+| N1 INFO received bytes exact (also exact output bytes) | 1908 | 3910 (`ntfix_input`) |
+| N2 TLS silent-peer close after reply | 3341 | 3997 (`tls`) |
+| N3 RESP pre-AUTH limit errors | label 3358; `row_begin` 3362 | 3997 (`tls`) |
+| N4 RESP query-buffer frontier | label 3359; `row_begin` 3362 | 3997 (`tls`) |
+
+All four collection sites precede the **quick-tier exit at line 4047**.
+[Source/fixture receipt](docs/ntfix/ntfix4/ledger.json): source 669/686,
+fixture 686, **zero missing and zero extra labels**, including multiplicities.
+The unmodified fixture checker exits **1 solely because EXPECT_FULL remains
+682**, while source and fixture both contain 686. Its refusal is retained;
+source-count validation with 686 in memory passes and does not edit a file or
+claim a gate pass.
+
+### Compile-only derivation and remaining body differences
+
+The headline reference is built from an unmodified `git archive bce4eb0aa`
+inside this worktree, with its original Makefile and `taskset -c 80-95 make
+-j16 all`. Its freshness check passes. Before rebuilding POST, ntfix3's binary
+and production objects were frozen in `build/ntfix4/ntfix3/`; that binary still
+has SHA-256 **2a102311d91b99bcff78af38742c1176bec5634ae9f1875af8cb74e645d9075b**.
+[Reference provenance](docs/ntfix/ntfix4/references.json).
+
+Eight headline reference trials reproduce every emitted body. **56 merged
+compile-only trials** cover main/genthread/rl2s/reorder in both namespaces.
+The initial IPA-size growth over headline is +127 / +142 / +172 / +172,
+respectively. Selection first minimizes hot bodies differing from both eligible
+references, then other residual bodies, then total differences; no difference
+is silently normalized away. The db0 reorder `max-inline-insns-auto=14` and
+db0 main `=18` options remain.
+
+| Object | Headline budget | Merged budget |
+|---|---:|---:|
+| `src/core/genthread.o` | 129975 | 130084 |
+| `db0/src/core/genthread.o` | 130179 | 130316 |
+| `src/core/reorder.o` | 147778 | 147950 |
+| `db0/src/core/reorder.o` | 148779 | 148944 |
+
+Main and rl2s keep their headline budgets; the main/db0-rl2s alternatives
+produce the same bodies, while changing src rl2s introduces four extra hot
+differences. All other production unit budgets remain at headline values.
+The selected budgets restore the initial merged build's three unedited db0
+reorder hot differences. [Derivation, ranges, and selection](docs/ntfix/ntfix4/budget-README.md),
+[exact chosen trials](docs/ntfix/ntfix4/selected.json),
+[final production objects equal all eight chosen trials](docs/ntfix/ntfix4/final-equals-selected.json).
+
+| Final inventory | Result |
+|---|---|
+| Command handlers versus headline | **1,211/1,211 identical** |
+| All emitted bodies versus headline | **16,435/16,683 identical; 248 changed** |
+| Selected hot bodies versus headline | **1,168/1,218 identical** |
+| Additional hot bodies equal to ntfix3, which changed those bodies | **30** |
+| Remaining hot bodies equal to neither reference | **20 ordinary/R7 dispatchers** |
+| All remaining bodies equal to neither eligible reference | **37: 20 hot + 17 other** |
+| Linked `.text` | **7,730,449 → 7,735,985 bytes (+5,536)** |
+
+The 20 parser bodies compose ntfix's N3/N4 behaviour with mkfix2's new
+scatter-reply marker in inlined `release_op`. For example, db0 genthread's
+`parse_and_dispatch<true,32,false>` keeps its 18,561-byte size but changes the
+single `-2` scatter-marker check into the mask/comparison accepting both `-2`
+and `-6`. GCC also changes control-flow placement and some inlining; db0 R7's
+false dispatcher inlines `RespFrontier::finish`. These bodies cannot be called
+byte-identical to either reference. [Explanation and exact disassembly](docs/ntfix/ntfix4/identity/dispatcher-composition.md).
+
+Every one of the 248 changed bodies, object copies, and clones has both reference
+sizes, POST size, and its reason in [the complete table](docs/ntfix/ntfix4/identity/changed-bodies.md).
+The [50 changed hot bodies](docs/ntfix/ntfix4/identity/changed-hot-bodies.md) and
+[20 remaining hot bodies](docs/ntfix/ntfix4/identity/residual-hot-bodies.md) are
+also listed separately. The [machine-readable comparison](docs/ntfix/ntfix4/identity/dual-reference.json.gz)
+records reference eligibility and equality. Remaining non-hot differences are
+compiler inlining/codegen in unedited functions, not hand edits to force identity.
+
+The unmodified `ccfix_audit.py`, `lbstall_artifacts.py compare`, and
+`linked_bytes.py` each exit **1**, and those strict failures are retained in
+[tool receipts](docs/ntfix/ntfix4/identity/tools.json). The smaller hot selector
+finds 1,164/1,214 equal after relocation resolution (1,156 raw-byte equal).
+Identity remains a proxy; the 20 compositions are explicitly handed to the
+maintainer's merit review, with no identity stop and no performance verdict.

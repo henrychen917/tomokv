@@ -1,0 +1,50 @@
+[
+  {
+    "object": "src/main.o",
+    "selected_trial": "/home/user/Projects/cx-ntfix/build/ntfix4/trials/src_main.o.d76d08e1b8a30cc3.o",
+    "functions": 672,
+    "differences": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "selected_trial": "/home/user/Projects/cx-ntfix/build/ntfix4/trials/db0_src_main.o.bb4a689b48d299d6.o",
+    "functions": 668,
+    "differences": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "selected_trial": "/home/user/Projects/cx-ntfix/build/ntfix4/trials/src_core_genthread.o.a9f6e8a9b8ef7462.o",
+    "functions": 784,
+    "differences": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "selected_trial": "/home/user/Projects/cx-ntfix/build/ntfix4/trials/db0_src_core_genthread.o.4865780d255b35f5.o",
+    "functions": 776,
+    "differences": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "selected_trial": "/home/user/Projects/cx-ntfix/build/ntfix4/trials/src_core_rl2s.o.5a10920be2caf767.o",
+    "functions": 717,
+    "differences": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "selected_trial": "/home/user/Projects/cx-ntfix/build/ntfix4/trials/db0_src_core_rl2s.o.84ff2a4aa92fa870.o",
+    "functions": 706,
+    "differences": []
+  },
+  {
+    "object": "src/core/reorder.o",
+    "selected_trial": "/home/user/Projects/cx-ntfix/build/ntfix4/trials/src_core_reorder.o.189b1032f85e956d.o",
+    "functions": 852,
+    "differences": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "selected_trial": "/home/user/Projects/cx-ntfix/build/ntfix4/trials/db0_src_core_reorder.o.6f97334d27f29dfa.o",
+    "functions": 840,
+    "differences": []
+  }
+]
