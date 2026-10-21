@@ -33,6 +33,8 @@
 #   --candidate-binary bypasses only the release build; instrumented source builds still run.
 #   Such external binaries remain valid perf/iteration diagnostics but cannot earn a source receipt.
 #   GATE_ONLY_JOBS='debug-0 debug-1' selects whole jobs plus build prerequisites.
+#   GATE_DIFFER_ORACLE_CORES reserves an explicit oracle CPU mask (default: slot servers).
+#   With one slot, unused selected server cores remain available to prerequisite builds.
 #   Commas are accepted too. Output is a separate PARTIAL ledger, never counted
 #   against EXPECT and never eligible for a receipt; ABBA/NIC do not run.
 #   Push/release/full also require a source/binary-bound local receipt. GATE_RECEIPT_BASELINE
@@ -83,6 +85,7 @@ if [ "${GATE_PARTIAL:-0}" = 1 ] && [ "$TIER" = perf ]; then
 fi
 source tests/gate_subset.sh
 ALL_BUILD_CORES=$BUILD_CORES
+ORACLE_CORES_OVERRIDE=${GATE_DIFFER_ORACLE_CORES:-}
 mkdir -p "$PWD/build" || exit 2
 RUN_DIR=$(mktemp -d "$PWD/build/gate-run.XXXXXX") || exit 2
 phase(){ printf '%s\t%s\n' "$1" "$(date +%s.%N)" >> "$RUN_DIR/phases.tsv"; }
@@ -103,7 +106,7 @@ set_slot(){
   export GATE_CORES="$CORES" GATE_LOAD_CORES="$LOAD_CORES" GATE_PORT="$PORT"
   export GATE_FEATURE_PORT="$PORT" GATE_SPARE_PORT="$((PORT+2))"
   export GATE_DIFFER_ORACLE_PORT="$((PORT+1))" GATE_GLOBCASE_ORACLE_PORT="$((PORT+2))"
-  export GATE_DIFFER_ORACLE_CORES="$CORES"
+  export GATE_DIFFER_ORACLE_CORES="${ORACLE_CORES_OVERRIDE:-$CORES}"
   taskset -pc "$LOAD_CORES" "$BASHPID" >/dev/null
 }
 set_slot 0
@@ -1037,6 +1040,7 @@ run_job(){ (
   trap 'exit 130' INT TERM
   set_slot "$slot"
   BUILD_CORES="$CORES,$LOAD_CORES"
+  [ "$GATE_SLOTS" != 1 ] || BUILD_CORES="$ALL_BUILD_CORES"
   BUILD_JOBS=$(taskset -c "$BUILD_CORES" nproc)
   export PARBUILD_JOBS="$BUILD_JOBS"
   quiet_wait
@@ -1545,7 +1549,7 @@ job_compat2(){
     failed=0
     local extra=()
     if [ "$case" = autharity ]; then
-      extra=(--oracle "$REDIS74_ROOT/src/redis-server" --oracle-cores "$CORES")
+      extra=(--oracle "$REDIS74_ROOT/src/redis-server" --oracle-cores "$GATE_DIFFER_ORACLE_CORES")
     elif [ "$case" = expire_notify ]; then
       unit_ready expire-notify-unit && taskset -c "$CORES" build/expire-notify-unit \
           >"$TMPDIR/compat2-expire-unit.log" 2>&1 || failed=1
