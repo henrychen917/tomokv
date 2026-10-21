@@ -620,9 +620,9 @@ public:
                         self_->sig().configure_age_sampling(age_rate);
                     }
                 }
-                // Sample wall time after the diagnostic CPU-clock syscall: a
-                // delayed sample must not leave newly arrived tasks with a
-                // timestamp from before their request. Still one read per pass.
+                // The pass clock serves deferred work, local reads and housekeeping.
+                // Fresh inbox batches re-cut after dequeue: even a vDSO read can be
+                // followed by preemption before a newly arrived request is popped.
                 cached_now_ms_ = realtime_ms();
                 if (maxmemory_enabled_)
                     cached_lru_clock_ = static_cast<uint8_t>(
@@ -1728,6 +1728,13 @@ private:
         return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
     }
 
+    void refresh_command_clock() {
+        cached_now_ms_ = realtime_ms();
+        if (maxmemory_enabled_)
+            cached_lru_clock_ = static_cast<uint8_t>(
+                (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
+    }
+
     // Monitoring is independent of active expiry and ordinary command batches.
     // Bound both the cheap search and the expensive probes: inspect at most
     // eight owned shards, sampling at most one volatile shard per owner beat.
@@ -2171,6 +2178,7 @@ private:
               bool IofusedPrivateQueue = false>
     uint32_t drain_tasks_snapshot(bool unmasked = false) {
         auto take = [&](const Task& task) {
+            refresh_command_clock();
             schedule_snapshot_task<IofusedPrivateQueue>(task);
         };
         const uint32_t n = unmasked
@@ -2316,6 +2324,10 @@ private:
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
+        // All tasks in this batch were dequeued before this sample. Keep it
+        // fixed throughout each command/script; MULTI and scatter retain their
+        // operation-wide pins. Later local reads inherit this newer pass value.
+        refresh_command_clock();
         {
             // Completion notification is coalesced over this loop and flushed when the scope
             // closes -- before the publish and reclamation work below, so the io is not made to
