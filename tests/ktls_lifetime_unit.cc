@@ -48,9 +48,12 @@ struct LbPlannerTest {
 };
 }
 
-int main() {
+int main(int argc, char** argv) {
+    const bool split = argc == 1 || (argc == 2 && std::strcmp(argv[1], "2s") == 0);
+    const bool fused = argc == 1 || (argc == 2 && std::strcmp(argv[1], "1s") == 0);
+    tomo::CoreConcurrencyTest::require(split || fused, "usage: ktls-lifetime-unit [1s|2s]");
     tomo::CoreConcurrencyTest::require(tomo::command_registry_init(false), "registry");
-    tomo::LbPlannerTest::run<false>();
-    tomo::LbPlannerTest::run<true>();
+    if (split) tomo::LbPlannerTest::run<false>();
+    if (fused) tomo::LbPlannerTest::run<true>();
     std::puts("PASS kTLS socket lifetime accounting");
 }

@@ -1,0 +1,33 @@
+{
+  "reason": "Stopped before final guard correction: find uses live version records, while atomic_has_records also includes script reservations. Rerun all correctness on final exact predicate.",
+  "processes": [
+    {
+      "pid": 2962520,
+      "cmd": "/home/user/Projects/redis74/src/redis-server 127.0.0.1:26811                                                                                                                                                                                                                                                                   "
+    },
+    {
+      "pid": 2962597,
+      "cmd": "/home/user/Projects/cx-compat2/build/tomokv --net-io uring --port 26810 --bind 127.0.0.1 --shards 16 --ratio 6:2 --databases 16 --atomic 0 --save  --dir /home/user/Projects/cx-compat2/docs/compat2/differ-final/uring-split/target-atomic-0 --enable-debug-command yes --aclfile /home/user/Projects/cx-compat2/docs/compat2/differ-final/uring-split/ccfix.acl "
+    },
+    {
+      "pid": 3074859,
+      "cmd": "python3 tests/differ.py 127.0.0.1 26810 127.0.0.1 26811 climon 21 "
+    },
+    {
+      "pid": 3074858,
+      "cmd": "timeout 900 python3 tests/differ.py 127.0.0.1 26810 127.0.0.1 26811 climon 21 "
+    },
+    {
+      "pid": 2962355,
+      "cmd": "bash tests/differ_gate.sh /home/user/Projects/cx-compat2/build/compat2/uring-server 26810 26811 64-71 6:2 "
+    },
+    {
+      "pid": 2962340,
+      "cmd": "python3 docs/compat2/proof.py differ --label=-final "
+    },
+    {
+      "pid": 2886273,
+      "cmd": "bash -c make -j16 all build/ktls-lifetime-unit >docs/compat2/final-build.log 2>&1 && taskset -c 73-79 python3 docs/compat2/proof.py rows --label=-final >docs/compat2/rows-final-progress.log 2>&1; taskset -c 73-79 python3 docs/compat2/proof.py differ --label=-final >docs/compat2/differ-final-progress.log 2>&1; taskset -c 73-79 python3 docs/compat2/proof.py tls --label=-final >docs/compat2/tls-final-progress.log 2>&1 "
+    }
+  ]
+}

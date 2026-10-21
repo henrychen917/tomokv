@@ -97,27 +97,23 @@ def main():
                 assert len(raw) == 5 and raw[0] == 0xe8
                 patch(address, bytes.fromhex('31c0909090'), kind + ': use PRE fallback', symbol)
                 counts[kind] += 1
+        if (not a.unit and symbol.startswith('_GLOBAL__sub_I_') and
+                'debug_sleep_prepare' in symbol and '::kTable+0x1e8>' in text):
+            # QUIT is table entry 10. Its constructor stores the packed min/max
+            # from RSI (1,-1). RDX still holds (1,1) for RESET/SAVE/LASTSAVE.
+            # Check that defining load and every intervening register write.
+            assert len(raw) == 7 and raw[:3] == bytes.fromhex('488935'), text
+            writes = [old for old in history if re.search(r',%[er]dx$', old.split('#')[0].strip())]
+            assert writes, history
+            load = re.search(r'mov\s+.*\(%rip\),%rdx\s+# ([0-9a-f]+)', writes[-1])
+            assert load, writes[-1]
+            at = offset(int(load[1], 16), 8)
+            assert original[at:at+8] == struct.pack('<ii', 1, 1)
+            replacement = bytes.fromhex('488915') + raw[3:]
+            patch(address, replacement, 'QUIT: initialize PRE bounds (1,1)', symbol)
+            counts['quit'] += 1
         history.append(text)
     if not a.unit:
-        # The two static CommandSpec tables reference the merged uppercase name.
-        for segment in loads:
-            if segment[0] != 1:
-                continue
-            start, end = segment[2], segment[2] + segment[5]
-            at = original.find(b'QUIT\0', start, end)
-            while at >= 0:
-                address = segment[3] + at - segment[2]
-                pattern = struct.pack('<Qii', address, 1, -1)
-                site = original.find(pattern)
-                while site >= 0:
-                    containing = [q for q in loads if q[0] == 1 and q[2] <= site < q[2] + q[5]]
-                    assert len(containing) == 1
-                    q = containing[0]
-                    patch(q[3] + site - q[2] + 12, struct.pack('<i', 1),
-                          'QUIT: restore PRE local maximum', 'CommandSpec QUIT')
-                    counts['quit'] += 1
-                    site = original.find(pattern, site + 1)
-                at = original.find(b'QUIT\0', at + 1, end)
         assert counts == dict(arity=2, noauth=2, notification=4, tls=2, acl_name=2, acl_exec=2, quit=2), counts
     else:
         assert counts['tls'] == 1, counts

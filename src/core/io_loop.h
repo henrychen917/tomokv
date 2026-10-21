@@ -3373,8 +3373,8 @@ private:
             if ((spec->flags & CmdFlags::SubcmdRoute) &&
                 command_reply_container_subcommand_arity(*op, *spec)) {
                 // A known child has its own generated arity and Redis checks that before ACL and
-                // MULTI. Unknown children deliberately continue: on an unauthenticated connection
-                // XGROUP x is parent-arity-valid and must reach NOAUTH.
+                // MULTI. Unknown children continue to the cold AUTH/ACL hook or container
+                // handler, where lookup errors precede authentication checks.
                 conn.advance_parse(consumed);
                 finish_prebuilt(c, *op);
                 continue;

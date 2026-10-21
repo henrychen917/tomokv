@@ -50,8 +50,11 @@ def main():
                         run(name, ['python3', f'tests/{case}.py', '--binary', image,
                             '--output', out / name, '--mode', mode, '--engine', engine,
                             '--cores', '64-71', '--port', '26800', *extra])
-        run('post-ktls-window', ['build/ktls-lifetime-unit'], cores='64-71')
-        run('pre-ktls-window', ['build/compat2/ktls-lifetime-pre'], cores='64-71')
+        run('post-reservation-expiry', ['build/expire-notify-unit'], cores='64-71')
+        run('pre-reservation-expiry', ['build/compat2/expire-notify-pre'], cores='64-71')
+        for mode in ('1s', '2s'):
+            run('post-ktls-window-' + mode, ['build/ktls-lifetime-unit', mode], cores='64-71')
+            run('pre-ktls-window-' + mode, ['build/compat2/ktls-lifetime-pre', mode], cores='64-71')
     elif a.part == 'differ':
         for engine in ('uring', 'epoll'):
             wrapper = ROOT / 'build/compat2' / f'{engine}-server'

@@ -1278,9 +1278,10 @@ public:
 
     // Notification-only cold query. The version-aware find is a logical read:
     // it neither deletes a foreign candidate nor reaps an expired predecessor.
-    // Even an unrelated key on this store uses that resolver while records live.
+    // Match find's live-version predicate exactly: script intents alone leave
+    // physical expiry enabled. Unrelated keys use the resolver while versions live.
     __attribute__((noinline)) bool notify_read_resolves_versions() const {
-        return atomic_has_records();
+        return atomic_pending_ && atomic_pending_->live != 0;
     }
 
     // Same-size-CLASS overwrite, allocation-free. Asking for 88 bytes gets 96, so a value that grew

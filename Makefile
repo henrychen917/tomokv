@@ -425,6 +425,9 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # Deterministic core regressions: the test TU instantiates the real executor/IO methods
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
+build/expire-notify-unit: tests/expire_notify_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/ktls-lifetime-unit: tests/ktls_lifetime_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm

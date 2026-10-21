@@ -1,0 +1,24 @@
+make: Nothing to be done for 'all'.
+make: 'build/expire-notify-unit' is up to date.
+make: 'build/ktls-lifetime-unit' is up to date.
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/net/tls.cc -o build/publishfix-unit-objects/src/net/tls.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/commands.cc -o build/publishfix-unit-objects/src/cmd/commands.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/glob.cc -o build/publishfix-unit-objects/src/cmd/glob.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/xshard.cc -o build/publishfix-unit-objects/src/cmd/xshard.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/acl.cc -o build/publishfix-unit-objects/src/cmd/acl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/hll.cc -o build/publishfix-unit-objects/src/cmd/hll.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/t_server.cc -o build/publishfix-unit-objects/src/cmd/t_server.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/t_string.cc -o build/publishfix-unit-objects/src/cmd/t_string.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/t_string_notify.cc -o build/publishfix-unit-objects/src/cmd/t_string_notify.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/t_hash.cc -o build/publishfix-unit-objects/src/cmd/t_hash.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/t_hash_ttl.cc -o build/publishfix-unit-objects/src/cmd/t_hash_ttl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/t_list.cc -o build/publishfix-unit-objects/src/cmd/t_list.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/t_set.cc -o build/publishfix-unit-objects/src/cmd/t_set.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/t_zset.cc -o build/publishfix-unit-objects/src/cmd/t_zset.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/t_zset_ops.cc -o build/publishfix-unit-objects/src/cmd/t_zset_ops.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/geo.cc -o build/publishfix-unit-objects/src/cmd/geo.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/t_stream.cc -o build/publishfix-unit-objects/src/cmd/t_stream.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/t_stream_groups.cc -o build/publishfix-unit-objects/src/cmd/t_stream_groups.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/scripting.cc -o build/publishfix-unit-objects/src/cmd/scripting.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/functions.cc -o build/publishfix-unit-objects/src/cmd/functions.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_PUBLISHFIX_TEST -I. -c src/cmd/serialize.cc -o build/publishfix-unit-objects/src/cmd/serialize.o

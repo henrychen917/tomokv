@@ -78,3 +78,35 @@ src/cmd/slowlog.o 73 bodies
 src/cmd/storesize.o 20 bodies
 src/cmd/t_hash.o 235 bodies
 src/cmd/t_hash_ttl.o 98 bodies
+src/cmd/t_list.o 194 bodies
+src/cmd/t_server.o 229 bodies
+src/cmd/t_set.o 206 bodies
+src/cmd/t_sort.o 22 bodies
+src/cmd/t_stream.o 252 bodies
+src/cmd/t_stream_groups.o 160 bodies
+src/cmd/t_string.o 144 bodies
+src/cmd/t_string_notify.o 174 bodies
+src/cmd/t_zset.o 294 bodies
+src/cmd/t_zset_ops.o 1 bodies
+src/cmd/tracking.o 76 bodies
+src/cmd/xshard.o 885 bodies
+src/core/flipctl.o 73 bodies
+src/core/genthread.o 782 bodies
+src/core/lbplanner.o 73 bodies
+src/core/lbstall.o 12 bodies
+src/core/reorder.o 850 bodies
+src/core/rl2s.o 714 bodies
+src/core/version.o 0 bodies
+src/main.o 669 bodies
+src/net/tls.o 38 bodies
+src/persist/aof.o 331 bodies
+src/persist/aof_frame_debug.o 6 bodies
+src/snapshot/snapshot.o 128 bodies
+{"total": 16701, "equal": 16321, "changed": 380, "handlers": 1211, "handlers_equal": 1176, "hot": 1218, "hot_equal": 1148, "hot_nonerror_equal": 1148, "handlers_nonerror_equal": 1176}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-compat2/tools/ccfix_audit.py", line 157, in <module>
+    main()
+  File "/home/user/Projects/cx-compat2/tools/ccfix_audit.py", line 151, in main
+    assert not report['other_hot'], 'ordinary hot-path bytes changed'
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ordinary hot-path bytes changed

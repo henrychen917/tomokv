@@ -1,0 +1,71 @@
+[
+  {
+    "name": "mset-pre-1s-epoll",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "/home/user/Projects/cx-compat2/build/compat2/mset-pre-v2/tomokv",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-final/mset-pre-1s-epoll",
+      "--mode",
+      "1s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--synthetic-mset"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "mset-post-1s-epoll",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "/home/user/Projects/cx-compat2/build/compat2/mset-post/tomokv",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-final/mset-post-1s-epoll",
+      "--mode",
+      "1s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--synthetic-mset"
+    ],
+    "returncode": 0,
+    "expected": 0
+  },
+  {
+    "name": "pad-autharity-1s-epoll",
+    "command": [
+      "python3",
+      "tests/autharity.py",
+      "--binary",
+      "build/compat2/tomokv-pad-a",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-final/pad-autharity-1s-epoll",
+      "--mode",
+      "1s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--oracle",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--oracle-cores",
+      "72"
+    ],
+    "returncode": 1,
+    "expected": 1
+  }
+]
