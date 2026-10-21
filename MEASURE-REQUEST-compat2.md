@@ -415,6 +415,12 @@ in `docs/compat2b/tls/results.json` and `tls-units/results.json`.
   focused LedgerWiring tests pass**; the whole suite is queued in the actual
   `abba_selftest` replay. Its scheduler fixture also uses its permitted CPU mask,
   as described above.
+- The initial history self-test reports **55 tests / three failures** because
+  its isolated real-job fixture lacks `GATE_SLOTS` and `ALL_BUILD_CORES`, now
+  read by the single-slot build-mask preservation. The fixture now declares
+  one slot and uses its permitted fixture CPU for builds. Timeout, partial-ledger,
+  child-reaping and inherited-finalizer assertions remain unchanged. The full
+  history suite runs in the queued actual `abba_selftest` job replay.
 - The initial ABBA self-test has one `KeyError: statistical_verdict` in its
   favorable-null mutation case. A scheduler-fixture source edit occurred during
   that test, whose real driver refuses a changed harness before publishing

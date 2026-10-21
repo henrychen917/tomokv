@@ -41,5 +41,8 @@
     "netio-2s",
     "serverless production units",
     "standard differential both engines/modes/atomic settings"
+  ],
+  "tests/gate_history.py": [
+    "abba_selftest (actual gate_history.py self-test command)"
   ]
 }

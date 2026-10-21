@@ -1404,6 +1404,7 @@ BUILD_RC=7; pausable make -j2 build/example; [ "$?" = 7 ] || exit 82
         atomic_json(directory / "plan.json", plan)
         setup = r'''set -u
 ROW_PLAN="$RUN_DIR/plan.json"; ROW_HISTORY="$RUN_DIR/history"; ROW_RUN_ID=fixture
+GATE_SLOTS=1; ALL_BUILD_CORES="$FIXTURE_CPU"
 PASS=0; FAIL=0; WORKER_PIDS=(); SRV=0; GLOBCASE_ORACLE=0; MMPID=0; ABBA_PID=0; PAUSABLE_PID=0
 quiet_wait(){ :; }
 set_slot(){ CORES="$FIXTURE_CPU"; LOAD_CORES="$FIXTURE_CPU"; }
