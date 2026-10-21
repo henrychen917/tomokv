@@ -147,17 +147,76 @@ def t05(b, kind="rpoplpush", N=2000, W=4):
     assert len(popped) == len(set(popped)), "RPOPLPUSH duplicated a delivery"
 
 
+def exec_moves(b):
+    # Headline EXEC forces atomic children even at CONFIG atomic=0. Exercise
+    # both the parent's own writes and simultaneous children from four clients.
+    src, dst = b.pair()
+    c = b.conn()
+    c.must("MULTI")
+    for command in (("RPUSH", src, "own1", "own2"),
+                    ("LMOVE", src, dst, "LEFT", "RIGHT"),
+                    ("LMPOP", 2, src, dst, "RIGHT", "COUNT", 3)):
+        assert c.must(*command) == b"QUEUED"
+    assert c.must("EXEC") == [2, b"own1", [src.encode(), [b"own2"]]]
+    assert c.must("LRANGE", dst, 0, -1) == [b"own1"]
+    for verb in ("RPOPLPUSH", "LMOVE", "LMPOP", "ZMPOP"):
+        src, dst = b.pair()
+        count = 2000
+        expected = {str(i).encode() for i in range(count)}
+        pop = verb in ("LMPOP", "ZMPOP")
+        if verb == "ZMPOP":
+            b.admin.must("ZADD", src, *[v for i in range(count) for v in (i, str(i))])
+        else:
+            b.admin.must("RPUSH", src, *sorted(expected))
+        command = (verb, src, dst)
+        if verb == "LMOVE":
+            command += ("RIGHT", "LEFT")
+        if pop:
+            command = (verb, 2, src, dst, "MIN" if verb == "ZMPOP" else "LEFT", "COUNT", 3)
+        clients = [b.conn(timeout=30) for _ in range(4)]
+        start = threading.Barrier(4)
+        def worker(client):
+            start.wait()
+            result = []
+            for _ in range(count):
+                assert client.must("MULTI") == b"OK"
+                assert client.must(*command) == b"QUEUED"
+                reply = client.must("EXEC")
+                assert isinstance(reply, list) and len(reply) == 1, reply
+                value = reply[0]
+                if value is None:
+                    return result
+                if pop:
+                    result.extend(value[1] if verb == "LMPOP" else [v[0] for v in value[1]])
+                else:
+                    assert isinstance(value, bytes), value
+                    result.append(value)
+            raise AssertionError("EXEC mover did not drain within bounded attempts")
+        with concurrent.futures.ThreadPoolExecutor(4) as pool:
+            delivered = [v for values in pool.map(worker, clients) for v in values]
+        print("EXEC receipt", verb, "delivered", len(delivered), "unique", len(set(delivered)),
+              "expected", count, "missing", len(expected - set(delivered)), flush=True)
+        assert len(delivered) == len(set(delivered)) == count and set(delivered) == expected, (verb, "EXEC duplicate/loss")
+        assert b.admin.must("EXISTS", src) == 0
+        if not pop:
+            destination = b.admin.must("LRANGE", dst, 0, -1)
+            assert len(destination) == count and set(destination) == expected
+        print("PASS EXEC", verb, "exact claimed deliveries", count, flush=True)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("host")
     p.add_argument("port", type=int)
-    p.add_argument("--only", choices=("T05", "G5"), required=True)
+    p.add_argument("--only", choices=("T05", "G5", "EXEC"), required=True)
     args = p.parse_args()
     b = Battery(args)
     try:
         assert b.atomic() == 0, "D2 requires atomic 0"
         if args.only == "T05":
             t05(b)
+        elif args.only == "EXEC":
+            exec_moves(b)
         else:
             b.moves("smove", adders=True)
             b.moves("smove")
