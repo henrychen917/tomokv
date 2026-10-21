@@ -1,0 +1,39 @@
+{
+  "object": "db0/src/core/reorder.o",
+  "tree": "pre",
+  "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+  "unit": 113431,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=148358",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.a084a81f9d60f327.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.a084a81f9d60f327"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.a084a81f9d60f327.o",
+  "sha256": "585a2fdbc9881b01232d7c40b442bff04f9ea4e7afd97d6045299897fff61ad8",
+  "counts": {
+    "lane": 0,
+    "hot": 0,
+    "other": 0
+  },
+  "changes": []
+}

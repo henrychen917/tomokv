@@ -1,0 +1,99 @@
+{
+  "object": "src/core/genthread.o",
+  "budget": 129471,
+  "tree": "post",
+  "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+  "unit": 102613,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=129471",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.15941e6230277655.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.15941e6230277655"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.15941e6230277655.o",
+  "sha256": "dacbae175a86ed67313d36f93082f883537b94dd5686379fd0a7736709231736",
+  "counts": {
+    "lane": 2,
+    "hot": 2,
+    "other": 6
+  },
+  "changes": [
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+      "pre": 717,
+      "post": 733
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()",
+      "pre": 2881,
+      "post": 2572
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+      "pre": 3010,
+      "post": 3065
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]",
+      "pre": 1957,
+      "post": 2035
+    },
+    {
+      "kind": "hot",
+      "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+      "pre": 5149,
+      "post": 5177
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+      "pre": 3090,
+      "post": 3119
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+      "pre": 1401,
+      "post": 1481
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ThreadCtx::publish_read_local_parked(unsigned long)",
+      "pre": 36,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+      "pre": 4551,
+      "post": 4573
+    },
+    {
+      "kind": "other",
+      "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+      "pre": 332,
+      "post": 332
+    }
+  ]
+}

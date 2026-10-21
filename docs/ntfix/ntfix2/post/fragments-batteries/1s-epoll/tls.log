@@ -1,0 +1,15 @@
+  ok   no accepts missing client cert
+  ok   no accepts configured client cert
+  ok   client rejects untrusted server certificate
+  ok   all TLS knobs are visible and boot-only
+TLS FAIL: TLSv1.3 did not retain the OpenSSL record layer
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ntfix/tests/tls.py", line 548, in <module>
+    main()
+  File "/home/user/Projects/cx-ntfix/tests/tls.py", line 541, in main
+    full_battery(args.host, args.tls_port, args.plain_port, args.cert_dir, args.mode,
+  File "/home/user/Projects/cx-ntfix/tests/tls.py", line 367, in full_battery
+    handshake_matrix(host, tls_port, cert_dir, client_kind, admin, expect_ktls)
+  File "/home/user/Projects/cx-ntfix/tests/tls.py", line 310, in handshake_matrix
+    raise AssertionError("%s did not retain the OpenSSL record layer" % label)
+AssertionError: TLSv1.3 did not retain the OpenSSL record layer

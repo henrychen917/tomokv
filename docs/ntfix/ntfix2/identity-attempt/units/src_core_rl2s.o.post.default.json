@@ -1,0 +1,74 @@
+{
+  "object": "src/core/rl2s.o",
+  "tree": "post",
+  "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+  "unit": 110675,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=162305",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/rl2s.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.d09b97f50382a4dc.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.d09b97f50382a4dc"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.d09b97f50382a4dc.o",
+  "sha256": "2da20bdffaa087e2120050d36c68d85327b802af080025344b9356391399e8d0",
+  "counts": {
+    "lane": 2,
+    "hot": 2,
+    "other": 2
+  },
+  "changes": [
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+      "pre": 717,
+      "post": 733
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+      "pre": 4317,
+      "post": 4373
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "pre": 21207,
+      "post": 21138
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "pre": 21112,
+      "post": 21049
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "pre": 6362,
+      "post": 6382
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+      "pre": 2069,
+      "post": 2149
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+TLS FAIL: The read operation timed out
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ntfix/tests/tls.py", line 548, in <module>
+    main()
+  File "/home/user/Projects/cx-ntfix/tests/tls.py", line 535, in main
+    close_after_reply(args.host, args.tls_port, args.cert_dir, args.plain_port)
+  File "/home/user/Projects/cx-ntfix/tests/tls.py", line 503, in close_after_reply
+    trailing = sock.recv(1)
+               ^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1233, in recv
+    return self.read(buflen)
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/ssl.py", line 1106, in read
+    return self._sslobj.read(len)
+           ^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: The read operation timed out

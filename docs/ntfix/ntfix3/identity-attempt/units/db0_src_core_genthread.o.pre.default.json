@@ -1,0 +1,40 @@
+{
+  "object": "db0/src/core/genthread.o",
+  "tree": "pre",
+  "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+  "unit": 101795,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=129704",
+    "-Wa,--defsym,tomo_rlfence_text_pad=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_genthread.o.cb0a01c952d3740d.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_genthread.o.cb0a01c952d3740d"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_genthread.o.cb0a01c952d3740d.o",
+  "sha256": "06ef5e173a29e42afa385ff8bd5d008cab2600bc3837bc21f51f5e2a1a285dcf",
+  "counts": {
+    "lane": 0,
+    "hot": 0,
+    "other": 0
+  },
+  "changes": []
+}

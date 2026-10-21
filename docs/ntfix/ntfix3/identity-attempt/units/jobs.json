@@ -1,0 +1,73 @@
+[
+  {
+    "object": "src/main.o",
+    "tree": "pre"
+  },
+  {
+    "object": "src/main.o",
+    "tree": "post",
+    "budget": 147428
+  },
+  {
+    "object": "src/core/genthread.o",
+    "tree": "pre"
+  },
+  {
+    "object": "src/core/genthread.o",
+    "tree": "post",
+    "budget": 129487
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "tree": "pre"
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "tree": "post",
+    "budget": 162357
+  },
+  {
+    "object": "src/core/reorder.o",
+    "tree": "pre"
+  },
+  {
+    "object": "src/core/reorder.o",
+    "tree": "post"
+  },
+  {
+    "object": "db0/src/main.o",
+    "tree": "pre"
+  },
+  {
+    "object": "db0/src/main.o",
+    "tree": "post",
+    "budget": 147449
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "tree": "pre"
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "tree": "post",
+    "budget": 129744
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "tree": "pre"
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "tree": "post",
+    "budget": 162334
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "tree": "pre"
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "tree": "post",
+    "budget": 148398
+  }
+]

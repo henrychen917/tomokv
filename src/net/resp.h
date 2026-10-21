@@ -161,6 +161,36 @@ __attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(
     return ParseResult::Error;
 }
 
+// N3: the pre-AUTH fast bound deliberately uses 10 / 16384. On its error exit,
+// distinguish a valid-but-unauthenticated length from invalid syntax/overflow
+// or the configured bulk ceiling, which Redis checks first. Reuse the strict
+// decoder on at most ten headers; completed payloads are only stepped over.
+// Ordinary parsing and the resumable frontier keep their calling conventions.
+[[gnu::cold, gnu::noinline]] inline const char* resp_preauth_error(
+        const char* buf, uint32_t len, uint32_t start, uint64_t max_bulk,
+        const char* original) {
+    if (start >= len || buf[start] != '*') return original;
+    uint32_t p = start + 1;
+    uint64_t count = 0;
+    const char* error = original;
+    auto result = resp_length_slow(buf, len, p, INT32_MAX, count, true, &error);
+    if (result == ParseResult::Error) return error;
+    if (result != ParseResult::Ok) return original;
+    if (count > 10) return "ERR Protocol error: unauthenticated multibulk length";
+    for (uint64_t a = 0; a < count; ++a) {
+        if (p >= len || buf[p] != '$') return original;
+        ++p;
+        uint64_t bulk = 0;
+        result = resp_length_slow(buf, len, p, max_bulk, bulk, false, &error);
+        if (result == ParseResult::Error) return error;
+        if (result != ParseResult::Ok) return original;
+        if (bulk > 16384) return "ERR Protocol error: unauthenticated bulk length";
+        if (uint64_t(p) + bulk + 2 > len) return original;
+        p += static_cast<uint32_t>(bulk) + 2;
+    }
+    return original;
+}
+
 // An exceptional header finishes the entire request here, never returning into
 // the ordinary parser's argument loop. The already parsed argv prefix is kept:
 // resetting Op would discard the connection flags captured by ROB acquisition.

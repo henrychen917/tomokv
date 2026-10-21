@@ -1,0 +1,152 @@
+{
+  "post_sha256": "2a102311d91b99bcff78af38742c1176bec5634ae9f1875af8cb74e645d9075b",
+  "jobs": [
+    {
+      "name": "pre/rows",
+      "command": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tools/ntfix_proof.py",
+        "--binary",
+        "/home/user/Projects/bins/ntfix-pre-5c8ca908",
+        "--out",
+        "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix3/pre/rows",
+        "--rows-only"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 13.822
+    },
+    {
+      "name": "post/rows",
+      "command": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tools/ntfix_proof.py",
+        "--binary",
+        "/home/user/Projects/cx-ntfix/build/tomokv",
+        "--out",
+        "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix3/post/rows",
+        "--rows-only",
+        "--expect-equal"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 20.072
+    },
+    {
+      "name": "post/limits",
+      "command": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tools/ntfix_proof.py",
+        "--binary",
+        "/home/user/Projects/cx-ntfix/build/tomokv",
+        "--out",
+        "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix3/post/limits",
+        "--expect-equal"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 109.771
+    },
+    {
+      "name": "post/fragments",
+      "command": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tools/ntfix_proof.py",
+        "--binary",
+        "/home/user/Projects/cx-ntfix/build/tomokv",
+        "--out",
+        "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix3/post/fragments",
+        "--fragments",
+        "--expect-equal"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 112.238
+    },
+    {
+      "name": "post/batteries",
+      "command": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tools/ntfix_proof.py",
+        "--binary",
+        "/home/user/Projects/cx-ntfix/build/tomokv",
+        "--out",
+        "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix3/post/batteries",
+        "--batteries",
+        "--expect-equal"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 70.082
+    },
+    {
+      "name": "post/netcap-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "89-95",
+        "build/netcap-unit"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.011
+    },
+    {
+      "name": "post/frontier-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "89-95",
+        "build/netcap-unit",
+        "frontier"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.007
+    },
+    {
+      "name": "post/respresume-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "89-95",
+        "build/respresume-unit"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 1.375
+    },
+    {
+      "name": "post/respresume-migration",
+      "command": [
+        "taskset",
+        "-c",
+        "80-95",
+        "build/respresume-migration"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.009
+    },
+    {
+      "name": "post/gates-test",
+      "command": [
+        "taskset",
+        "-c",
+        "89-95",
+        "env",
+        "GATE_TEST_PORT=22899",
+        "python3",
+        "tests/gates_test.py"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 315.531
+    }
+  ]
+}

@@ -2066,7 +2066,11 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
         }
         if (pr == ParseResult::Error) {
             if (op->reply.size()) finish_prebuilt(c, *op);
-            else finish_locally(c, *op, err ? err : "ERR protocol error");
+            else {
+                if (auth_required && !conn.authenticated())
+                    err = resp_preauth_error(pass_rbuf, pass_rlen, conn.rpos(), pass_max_bulk_len, err);
+                finish_locally(c, *op, err ? err : "ERR protocol error");
+            }
             conn.advance_parse(pass_rlen - conn.rpos());
             c->mark_closing();
             result = DispatchResult::Error;

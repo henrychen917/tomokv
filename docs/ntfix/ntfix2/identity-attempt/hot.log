@@ -1,0 +1,2 @@
+Hot bodies: 1210; raw byte equal: 1209; bytes + resolved relocation targets equal: 1209
+DIFF db0/src/core/reorder.o 796 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()

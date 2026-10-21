@@ -1,0 +1,19 @@
+{
+  "ntfix3_commit": "f361de8eddc645b4f1283a4aa4711899f57ca7a3",
+  "ntfix3_sha256": "2a102311d91b99bcff78af38742c1176bec5634ae9f1875af8cb74e645d9075b",
+  "headline_commit": "bce4eb0aa6ab5b855903e201f6f19b321e09cba0",
+  "headline_sha256": "247bb68cf027485c61269762216c73fc81de6cdb968b84c28b44f7ad1da87ca5",
+  "headline_build": [
+    "taskset",
+    "-c",
+    "80-95",
+    "make",
+    "-C",
+    "build/ntfix4/headline-src",
+    "-j16",
+    "all"
+  ],
+  "headline_freshness": 0,
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
+}

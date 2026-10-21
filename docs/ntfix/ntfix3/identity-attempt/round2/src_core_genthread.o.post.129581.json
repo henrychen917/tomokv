@@ -1,0 +1,189 @@
+{
+  "object": "src/core/genthread.o",
+  "budget": 129581,
+  "tree": "post",
+  "source_sha256": "8fd4775241cff31cae5d77574b694fea292ed4be9e78290aa37ce43a4edd2c26",
+  "unit": 102715,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=129581",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_genthread.o.42870fa8a0191545.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_genthread.o.42870fa8a0191545"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_genthread.o.42870fa8a0191545.o",
+  "sha256": "e2024c772d42421d48ea70f9857be8742baad0ec36f9a7e123ed0412693b715f",
+  "counts": {
+    "lane": 10,
+    "hot": 1,
+    "other": 14
+  },
+  "changes": [
+    {
+      "kind": "other",
+      "name": "tomo::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)",
+      "pre": 0,
+      "post": 375
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]",
+      "pre": 337,
+      "post": 371
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+      "pre": 0,
+      "post": 38
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::Client::read_space_refined(unsigned long, unsigned long&, bool, unsigned long, unsigned long)",
+      "pre": 0,
+      "post": 299
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+      "pre": 717,
+      "post": 574
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+      "pre": 3010,
+      "post": 3065
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "pre": 18610,
+      "post": 18665
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "pre": 9870,
+      "post": 9906
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "pre": 117,
+      "post": 166
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "pre": 18530,
+      "post": 18584
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]",
+      "pre": 1957,
+      "post": 2035
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::on_recv<false, false, true>(tomo::Client*, int)",
+      "pre": 428,
+      "post": 476
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::on_recv<false, true, true>(tomo::Client*, int)",
+      "pre": 428,
+      "post": 476
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::on_recv<true, false, true>(tomo::Client*, int)",
+      "pre": 451,
+      "post": 499
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::on_recv<true, true, true>(tomo::Client*, int)",
+      "pre": 451,
+      "post": 499
+    },
+    {
+      "kind": "hot",
+      "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+      "pre": 5149,
+      "post": 5177
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+      "pre": 3090,
+      "post": 3119
+    },
+    {
+      "kind": "other",
+      "name": "tomo::WbEngine::pump_epoll(tomo::Client&)",
+      "pre": 1424,
+      "post": 1488
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+      "pre": 1401,
+      "post": 1481
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo::WbEngine::pump_tls<true, false>(tomo::Client&, tomo::TlsConn&)",
+      "pre": 1608,
+      "post": 1640
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+      "pre": 1185,
+      "post": 1185
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ThreadCtx::publish_read_local_parked(unsigned long)",
+      "pre": 36,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::query_buffer_exceeded(tomo::Client const&) const",
+      "pre": 158,
+      "post": 165
+    },
+    {
+      "kind": "other",
+      "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+      "pre": 4551,
+      "post": 4573
+    },
+    {
+      "kind": "other",
+      "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+      "pre": 332,
+      "post": 332
+    }
+  ]
+}

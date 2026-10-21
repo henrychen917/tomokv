@@ -1,0 +1,4 @@
+PASS netcap inline preauth owner=0 p50_before=0.000017 p50_during=0.000017 closed_id=316
+PASS netcap live query cap, raised cap, queued MULTI argv
+PASS netcap Redis framing errors
+PASS netcap live

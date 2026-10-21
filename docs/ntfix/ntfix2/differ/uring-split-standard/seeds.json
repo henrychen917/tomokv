@@ -1,0 +1,24 @@
+{
+  "run": "ntfix2-standard",
+  "permanent": [
+    7,
+    19,
+    20,
+    23
+  ],
+  "failed": [
+    7,
+    19,
+    20,
+    23
+  ],
+  "rotating": 21,
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    21
+  ],
+  "history": "/home/user/Projects/cx-ntfix/.gate-history/differ-ntfix2"
+}

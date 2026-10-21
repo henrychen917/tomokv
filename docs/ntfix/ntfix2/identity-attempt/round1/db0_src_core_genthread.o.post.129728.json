@@ -1,0 +1,90 @@
+{
+  "object": "db0/src/core/genthread.o",
+  "budget": 129728,
+  "tree": "post",
+  "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+  "unit": 101835,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=129728",
+    "-Wa,--defsym,tomo_rlfence_text_pad=16",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.34b34e403826ac81.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.34b34e403826ac81"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.34b34e403826ac81.o",
+  "sha256": "a82def855015011893f2d49d3f6f3020c4b535ff4084427c28653d114e07d990",
+  "counts": {
+    "lane": 2,
+    "hot": 3,
+    "other": 3
+  },
+  "changes": [
+    {
+      "kind": "lane",
+      "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+      "pre": 717,
+      "post": 733
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+      "pre": 3662,
+      "post": 3715
+    },
+    {
+      "kind": "hot",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "pre": 9906,
+      "post": 9954
+    },
+    {
+      "kind": "hot",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "pre": 117,
+      "post": 117
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::IoLoop::pubsub_start_numpat(tomo_db0::Client*, tomo_db0::Op&)",
+      "pre": 1117,
+      "post": 1282
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "pre": 4632,
+      "post": 4744
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::ExLoopT<true>::on_cqe(io_uring_cqe*)",
+      "pre": 114,
+      "post": 0
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+      "pre": 1656,
+      "post": 1720
+    }
+  ]
+}

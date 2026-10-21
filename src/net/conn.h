@@ -319,8 +319,18 @@ public:
         }
         return result;
     }
+    uint32_t query_buffer_pos() const {
+        // Redis trims qb_pos after each input pass, including decoded headers
+        // and completed arguments of an incomplete multibulk. Our argv slices
+        // pin that prefix; account as if trimmed without moving any bytes.
+        return rpos_ + (__builtin_expect(multibulk_pending(), false) ? multibulk_.next : 0);
+    }
     bool query_buffer_exceeded(uint64_t limit, uint64_t queued = 0) const {
-        return queued > limit || rlen_ - rpos_ > limit - queued;
+        // The retained frame is a conservative bound. Consult the saved parser
+        // frontier only when that bound would close the connection.
+        return queued > limit ||
+            (__builtin_expect(rlen_ - rpos_ > limit - queued, false) &&
+             rlen_ - query_buffer_pos() > limit - queued);
     }
 
     // Space to recv() into. Returns nullptr to mean "do not read right now".
@@ -336,9 +346,10 @@ public:
     // resumes. That is backpressure, not a stall.
     static constexpr size_t kMinRecv = 2048;
 
-    char* read_space(size_t want, size_t& out_avail, bool may_grow,
-                     [[maybe_unused]] uint64_t proto_max_bulk_len = 512ull * 1024 * 1024,
-                     uint64_t query_limit = 1024ull * 1024 * 1024, uint64_t queued = 0) {
+    template <bool kFrontier>
+    [[gnu::always_inline]] char* read_space_impl(
+            size_t want, size_t& out_avail, bool may_grow,
+            uint64_t query_limit, uint64_t queued) {
         size_t avail = rcap_ - rlen_;
         // Past the soft cap, growth continues ONLY while the entire buffer is one incomplete
         // command (rpos_ == 0 after the quiescence reset: nothing parsed, nothing in flight --
@@ -346,7 +357,8 @@ public:
         // Offer one byte beyond the limit to distinguish equality (legal) from overflow.
         // Parsed bytes still pinned by workers are not pending input. Queued MULTI argv is.
         const uint64_t remaining = queued < query_limit ? query_limit - queued : 0;
-        size_t hard_cap = std::min<uint64_t>(kRbufHardCap, rpos_ + remaining + 1);
+        size_t hard_cap = std::min<uint64_t>(kRbufHardCap,
+            (kFrontier ? query_buffer_pos() : rpos_) + remaining + 1);
         // epoll/TLS drain reads before parsing. Stop them at the inline frontier so a
         // continuously readable peer cannot postpone the protocol error until the qbuf cap.
         if (rpos_ < rlen_ && rbuf_[rpos_] != '*')
@@ -355,17 +367,42 @@ public:
         if (avail < want && may_grow && rcap_ < cap) {
             size_t ncap = rcap_ * 2;
             while (ncap < rlen_ + want && ncap < cap) ncap *= 2;
-            if (ncap > cap) ncap = cap;
+            if constexpr (kFrontier) {
+                if (ncap > cap) ncap = cap;
+            } else {
+                // Reuse the growth-clamp comparison. Equality also needs a
+                // refinement: the conservative cap may have stopped doubling.
+                if (__builtin_expect(ncap >= cap, false))
+                    return read_space_refined(want, out_avail, may_grow, query_limit, queued);
+            }
             char* n = static_cast<char*>(std::realloc(rbuf_, ncap));
             if (n) { rbuf_ = n; rcap_ = ncap; avail = rcap_ - rlen_; }
         }
-        avail = std::min(avail, hard_cap > rlen_ ? hard_cap - rlen_ : 0);
+        if constexpr (kFrontier) {
+            avail = std::min(avail, hard_cap > rlen_ ? hard_cap - rlen_ : 0);
+        } else {
+            // Reuse the receive-offer clamp comparison, before reading any
+            // frontier state. Equality matters both for growth suppressed by
+            // the conservative cap and for the final short-receive exception.
+            if (__builtin_expect(hard_cap <= rcap_, false))
+                return read_space_refined(want, out_avail, may_grow, query_limit, queued);
+        }
         if (!avail || (avail < kMinRecv && rlen_ + avail != hard_cap)) {
             out_avail = 0;
             return nullptr;
         }
         out_avail = avail;
         return rbuf_ + rlen_;
+    }
+    [[gnu::noinline, gnu::cold]] char* read_space_refined(
+            size_t want, size_t& out_avail, bool may_grow,
+            uint64_t query_limit, uint64_t queued) {
+        return read_space_impl<true>(want, out_avail, may_grow, query_limit, queued);
+    }
+    char* read_space(size_t want, size_t& out_avail, bool may_grow,
+                    [[maybe_unused]] uint64_t proto_max_bulk_len = 512ull * 1024 * 1024,
+                    uint64_t query_limit = 1024ull * 1024 * 1024, uint64_t queued = 0) {
+        return read_space_impl<false>(want, out_avail, may_grow, query_limit, queued);
     }
     void commit_read(size_t n) { rlen_ += static_cast<uint32_t>(n); }
     uint32_t last_interaction_s() const { return last_interaction_s_; }

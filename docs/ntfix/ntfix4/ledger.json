@@ -1,0 +1,28 @@
+{
+  "base": "bce4eb0aa",
+  "base_quick": 665,
+  "base_full": 682,
+  "quick": 669,
+  "full": 686,
+  "DQ": 4,
+  "DF": 4,
+  "expect_quick": 665,
+  "expect_full": 682,
+  "added": [
+    "INFO received bytes exact (ntfix N1)",
+    "RESP pre-AUTH limit errors (ntfix N3)",
+    "RESP query-buffer frontier (ntfix N4)",
+    "TLS silent-peer close after reply (ntfix N2)"
+  ],
+  "removed": [],
+  "added_before_quick_exit": 4,
+  "fixture_labels": 686,
+  "fixture_missing": [],
+  "fixture_extra": [],
+  "fixture_matches_source": true,
+  "checker_accepts_fixture_at_source_count": true,
+  "unmodified_checker": {
+    "rc": 1,
+    "output": "RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=682, fixture=686, source declarations=686\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth."
+  }
+}

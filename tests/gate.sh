@@ -328,8 +328,10 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # = DQ=+27, DF=+27: maintainer sets EXPECT_QUICK=637+27=664 / EXPECT_FULL=654+27=681.
 # publishfix: one deterministic publication-unit row (job_atomic_units, collected before the
 # quick-tier exit): DQ=+1, DF=+1. With wave3: EXPECT_QUICK=664+1=665 / EXPECT_FULL=681+1=682.
-EXPECT_QUICK=665
-EXPECT_FULL=682                 # ABBA reports only; self-test remains counted.
+# ntfix N1-N4: DQ=+4, DF=+4; all four rows are collected before the quick exit.
+# Maintainer updates required counts from 665/682 to 669/686.
+EXPECT_QUICK=669
+EXPECT_FULL=686                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1085,7 +1087,7 @@ plan_jobs(){
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries hexpread bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
-              aof_frame aoforder tls fused-0 fused-1)
+              aof_frame aoforder tls ntfix_input fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -1899,6 +1901,23 @@ for mode in 1s 2s; do for engine in uring epoll; do
   fi
   stop
 done; done
+}
+
+job_ntfix_input(){
+  local mode engine compatible=1 boot_fn
+  row_begin "INFO received bytes exact (ntfix N1)"
+  for mode in 1s 2s; do for engine in uring epoll; do
+    boot_fn=boot
+    [ "$mode" != 1s ] || boot_fn=boot_fused
+    if ! "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --save '' ||
+       ! py tests/infofix.py 127.0.0.1 "$PORT" --input-bytes-only \
+           >"$TMPDIR/ntfix-input-$mode-$engine.txt" 2>&1; then
+      compatible=0
+    fi
+    stop
+  done; done
+  [ "$compatible" = 1 ] && ok "INFO received bytes exact (ntfix N1)" \
+      || bad "INFO received bytes exact (ntfix N1)" "see $TMPDIR/ntfix-input-*.txt"
 }
 
 job_respcompat(){
@@ -3208,14 +3227,22 @@ reject_boot --port 0 --tls-port "$TLS_PORT" --tls-cert-file "$TLS_DIR/server.crt
     && ok "reject invalid tls-ciphers" || bad "reject invalid tls-ciphers"
 
 tlsboot(){ # auth-mode [extra TLS knobs]
-  local auth=$1; shift
+  local auth=$1 arg previous= thread_mode=; shift
+  local -a ratio=(--ratio "$GATE_RATIO")
+  # Only the value following --thread-mode selects the geometry; unrelated
+  # values (for example a password of "fused") must retain the split argv.
+  for arg in "$@"; do
+    [ "$previous" != --thread-mode ] || thread_mode=$arg
+    previous=$arg
+  done
+  case "$thread_mode" in fused|1s) ratio=();; esac
   quiet_wait
   SRV=0; SRVLOG=/dev/null
   guard_port "$PORT"
   guard_port "$TLS_PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-tls-srv.XXXXXX)
   taskset -c $CORES "$CANDIDATE_BINARY" --databases 1 --port "$PORT" --tls-port "$TLS_PORT" \
-      --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --protected-mode no --dir "$TLS_DIR" --save '' \
+      --bind 127.0.0.1 --shards 16 "${ratio[@]}" --protected-mode no --dir "$TLS_DIR" --save '' \
       --tls-cert-file "$TLS_DIR/server.crt" --tls-key-file "$TLS_DIR/server.key" \
       --tls-ca-cert-file "$TLS_DIR/ca.crt" --tls-auth-clients "$auth" "$@" \
       >"$SRVLOG" 2>&1 &
@@ -3317,6 +3344,48 @@ TLS_ZC=$(shutdown_value tls.zc_suppressed)
 row_begin "TLS zc borrow gates fired (suppressed=$TLS_ZC)"
 [ -n "$TLS_ZC" ] && [ "$TLS_ZC" -gt 0 ] \
     && ok "TLS zc borrow gates fired (suppressed=$TLS_ZC)" || bad "TLS zc borrow gates fired"
+
+local mode engine compatible=1 shape
+row_begin "TLS silent-peer close after reply (ntfix N2)"
+for mode in 1s 2s; do for engine in uring epoll; do
+  shape=(--thread-mode 2s)
+  [ "$mode" != 1s ] || shape=(--thread-mode fused --read-local 1)
+  if ! tlsboot no --net-io "$engine" "${shape[@]}" ||
+     ! py tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" no --plain-port "$PORT" \
+         --close-after-reply >"$TMPDIR/ntfix-close-$mode-$engine.txt" 2>&1; then
+    compatible=0
+  fi
+  stop
+done; done
+[ "$compatible" = 1 ] && ok "TLS silent-peer close after reply (ntfix N2)" \
+    || bad "TLS silent-peer close after reply (ntfix N2)" "see $TMPDIR/ntfix-close-*.txt"
+
+# N3/N4 each contribute one aggregate row, both modes/engines and TCP/TLS.
+# Collected with tls before the quick-tier exit; EXPECT remains maintainer-owned.
+local defect label ntfix_case
+for ntfix_case in "preauth-RESP pre-AUTH limit errors (ntfix N3)" \
+                  "frontier-RESP query-buffer frontier (ntfix N4)"; do
+  IFS=- read -r defect label <<< "$ntfix_case"
+  compatible=1
+  row_begin "$label"
+  if [ "$defect" = frontier ]; then
+    if ! unit_ready netcap-unit ||
+       ! taskset -c "$CORES" build/netcap-unit frontier >"$TMPDIR/ntfix-frontier-unit.txt" 2>&1; then
+      compatible=0
+    fi
+  fi
+  for mode in 1s 2s; do for engine in uring epoll; do
+    shape=(--thread-mode 2s)
+    [ "$mode" != 1s ] || shape=(--thread-mode fused --read-local 1)
+    if ! tlsboot no --net-io "$engine" "${shape[@]}" ||
+       ! py tests/respcompat.py 127.0.0.1 "$PORT" --ntfix "$defect" --tls-port "$TLS_PORT" \
+           >"$TMPDIR/ntfix-$defect-$mode-$engine.txt" 2>&1; then
+      compatible=0
+    fi
+    stop
+  done; done
+  [ "$compatible" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/ntfix-$defect-*.txt"
+done
 }
 
 job_feature_cell(){
@@ -3846,6 +3915,7 @@ collect_job netcap
 # respcompat: +1 quick / +1 full, counted here before the quick-tier exit.
 # EXPECT counts and ledger fixtures are maintained by the owner.
 collect_job respcompat
+collect_job ntfix_input
 # NT4.2: DQ=+12, DF=+12 (lane base 625/642 -> 637/654; the wave3 total is stated above EXPECT_QUICK).
 # Counted by this collection site, before the quick-tier exit below.
 for RESP_CASE in fragment cpu neighbour; do for RESP_MODE in 1s 2s; do

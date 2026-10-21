@@ -1,0 +1,12 @@
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 3, "other": 5}, "budget": 148402}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 2, "other": 5}, "budget": 148403}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 2, "other": 6}, "budget": 148407}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 1, "other": 5}, "budget": 148400}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 2, "other": 6}, "budget": 148406}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 4, "other": 5}, "budget": 148395}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 3, "other": 5}, "budget": 148396}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 3, "other": 5}, "budget": 148397}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 2, "other": 6}, "budget": 148405}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 1, "other": 5}, "budget": 148399}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 2, "other": 6}, "budget": 148404}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113471, "counts": {"lane": 2, "hot": 3, "other": 5}, "budget": 148401}

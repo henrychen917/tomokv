@@ -1,0 +1,1287 @@
+{
+  "object": "src/core/reorder.o",
+  "budget": 160242,
+  "tree": "post",
+  "source_sha256": "8fd4775241cff31cae5d77574b694fea292ed4be9e78290aa37ce43a4edd2c26",
+  "unit": 114496,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_reorder.o.acc95720b95f5791.o",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=160242",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_reorder.o.acc95720b95f5791"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/src_core_reorder.o.acc95720b95f5791.o",
+  "sha256": "2f59ce74dfa0c719aef24696c6a7dac6a579a9472c88fa3653f60f3c50dc1331",
+  "counts": {
+    "lane": 14,
+    "hot": 52,
+    "other": 142
+  },
+  "changes": [
+    {
+      "kind": "other",
+      "name": "tomo::u64_to_dec(char*, unsigned long)",
+      "pre": 160,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ExpireIndex::migrate(unsigned int)",
+      "pre": 374,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::RespFrontier::finish()",
+      "pre": 76,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&)",
+      "pre": 748,
+      "post": 752
+    },
+    {
+      "kind": "other",
+      "name": "tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, unsigned short)",
+      "pre": 2085,
+      "post": 4160
+    },
+    {
+      "kind": "other",
+      "name": "tomo::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)",
+      "pre": 0,
+      "post": 375
+    },
+    {
+      "kind": "other",
+      "name": "tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<tomo::WeightedLbAssignment, std::allocator<tomo::WeightedLbAssignment> >&)",
+      "pre": 6102,
+      "post": 7020
+    },
+    {
+      "kind": "other",
+      "name": "tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)",
+      "pre": 714,
+      "post": 772
+    },
+    {
+      "kind": "hot",
+      "name": "void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)",
+      "pre": 3087,
+      "post": 3425
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Ring::sqe()",
+      "pre": 212,
+      "post": 0
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]",
+      "pre": 337,
+      "post": 371
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+      "pre": 0,
+      "post": 38
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Client::append_fill(char const*, unsigned long)",
+      "pre": 300,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Client::safe_to_release()",
+      "pre": 71,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Client::resume_multibulk(unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)",
+      "pre": 71,
+      "post": 110
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::Client::read_space_refined(unsigned long, unsigned long&, bool, unsigned long, unsigned long)",
+      "pre": 0,
+      "post": 299
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Client::reset_rbuf_at_quiescence()",
+      "pre": 228,
+      "post": 0
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+      "pre": 717,
+      "post": 574
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_on_recv<false, false, true>(tomo::Client*, int)",
+      "pre": 560,
+      "post": 1118
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_on_recv<false, true, true>(tomo::Client*, int)",
+      "pre": 560,
+      "post": 638
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_on_recv<true, false, true>(tomo::Client*, int)",
+      "pre": 451,
+      "post": 1150
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_on_recv<true, true, true>(tomo::Client*, int)",
+      "pre": 451,
+      "post": 635
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::tls_engine(tomo::Client const*)",
+      "pre": 67,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_emit(tomo::Client*, char const*, unsigned long, bool)",
+      "pre": 1371,
+      "post": 1985
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_admit_fd<false, true>(int, tomo::UrKind)",
+      "pre": 1637,
+      "post": 1893
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_admit_fd<true, true>(int, tomo::UrKind)",
+      "pre": 1637,
+      "post": 1893
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_run_loop<false, false, false, true, false>()",
+      "pre": 4842,
+      "post": 4915
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_run_loop<false, false, true, true, false>()",
+      "pre": 4812,
+      "post": 4881
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_run_loop<false, true, false, true, false>()",
+      "pre": 4906,
+      "post": 4979
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_run_loop<false, true, true, true, false>()",
+      "pre": 4812,
+      "post": 4881
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_run_loop<true, false, false, true, false>()",
+      "pre": 4938,
+      "post": 5011
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_run_loop<true, false, true, true, false>()",
+      "pre": 4828,
+      "post": 4897
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_run_loop<true, true, false, true, false>()",
+      "pre": 5002,
+      "post": 5075
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_run_loop<true, true, true, true, false>()",
+      "pre": 4828,
+      "post": 4897
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::adopt_client<false, false>(tomo::Client*, bool, bool)",
+      "pre": 2733,
+      "post": 2879
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::adopt_client<true, false>(tomo::Client*, bool, bool)",
+      "pre": 2079,
+      "post": 2144
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::arm_tls_recv<false, false>(tomo::Client*)",
+      "pre": 392,
+      "post": 596
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::arm_tls_recv<true, false>(tomo::Client*)",
+      "pre": 563,
+      "post": 611
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+      "pre": 3742,
+      "post": 4339
+    },
+    {
+      "kind": "other",
+      "name": "bool tomo::IoLoop::r7_drive_tls<false, true>(tomo::Client*) [clone .isra.0]",
+      "pre": 1668,
+      "post": 1841
+    },
+    {
+      "kind": "other",
+      "name": "bool tomo::IoLoop::r7_drive_tls<true, true>(tomo::Client*) [clone .isra.0]",
+      "pre": 1737,
+      "post": 1889
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::flip_wake_all()",
+      "pre": 225,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo::IoLoop::r7_epoll_pass<false, true, true>(int)",
+      "pre": 729,
+      "post": 745
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo::IoLoop::r7_epoll_pass<true, true, true>(int)",
+      "pre": 777,
+      "post": 793
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::tls_slot_conn(tomo::Client const*)",
+      "pre": 67,
+      "post": 0
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+      "pre": 2372,
+      "post": 2743
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+      "pre": 2388,
+      "post": 2743
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+      "pre": 2372,
+      "post": 2743
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+      "pre": 2388,
+      "post": 2743
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()",
+      "pre": 2944,
+      "post": 3077
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()",
+      "pre": 2960,
+      "post": 3093
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()",
+      "pre": 2944,
+      "post": 3077
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()",
+      "pre": 2960,
+      "post": 3093
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+      "pre": 3062,
+      "post": 3418
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+      "pre": 3078,
+      "post": 3434
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+      "pre": 3062,
+      "post": 3418
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+      "pre": 3078,
+      "post": 3434
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+      "pre": 3744,
+      "post": 4127
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+      "pre": 3744,
+      "post": 4127
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+      "pre": 3744,
+      "post": 4127
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+      "pre": 3744,
+      "post": 4127
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::lb_control_pass()",
+      "pre": 3557,
+      "post": 3661
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_adopt_client<true, true>(tomo::Client*, bool, bool)",
+      "pre": 2112,
+      "post": 2144
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_arm_tls_recv<false, true>(tomo::Client*)",
+      "pre": 392,
+      "post": 596
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo::IoLoop::flip_control_pass<false>()",
+      "pre": 4360,
+      "post": 4664
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo::IoLoop::flip_control_pass<true>()",
+      "pre": 4360,
+      "post": 4664
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_append_ack(tomo::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, unsigned long, bool) [clone .isra.0]",
+      "pre": 1324,
+      "post": 2200
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "pre": 18373,
+      "post": 19100
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "pre": 9925,
+      "post": 10482
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "pre": 117,
+      "post": 166
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "pre": 18370,
+      "post": 18996
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::prepare_activation()",
+      "pre": 1093,
+      "post": 1557
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::finish_flip_command(char const*)",
+      "pre": 437,
+      "post": 581
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_handle_event(tomo::PubSubEvent&)",
+      "pre": 2119,
+      "post": 2507
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_home_publish(tomo::PubSubEvent&, bool)",
+      "pre": 2861,
+      "post": 3262
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_start_numsub(tomo::Client*, tomo::Op&, bool)",
+      "pre": 3252,
+      "post": 3364
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)",
+      "pre": 2000,
+      "post": 2144
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::ReadLocalDemotionPlan::commit_reads()",
+      "pre": 2329,
+      "post": 2368
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFallbackReason, bool, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, tomo::Op const*, bool)",
+      "pre": 6295,
+      "post": 6354
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::database_control_pass()",
+      "pre": 881,
+      "post": 983
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_finish_pending(unsigned long)",
+      "pre": 3777,
+      "post": 4867
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "pre": 18373,
+      "post": 19093
+    },
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "pre": 18465,
+      "post": 19048
+    },
+    {
+      "kind": "other",
+      "name": "bool tomo::IoLoop::commit_client_transfer<false>(tomo::Client*)",
+      "pre": 1701,
+      "post": 1738
+    },
+    {
+      "kind": "other",
+      "name": "bool tomo::IoLoop::commit_client_transfer<true>(tomo::Client*)",
+      "pre": 1781,
+      "post": 1818
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::erase_client_migration(tomo::Client const*)",
+      "pre": 112,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_shutdown_events()",
+      "pre": 1858,
+      "post": 1887
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]",
+      "pre": 2094,
+      "post": 2340
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0] [clone .cold]",
+      "pre": 53,
+      "post": 53
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::r7_ReadLocalDemotionPlan::commit_reads()",
+      "pre": 2682,
+      "post": 2721
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo::IoLoop&, tomo::Client*, unsigned long, bool, int, tomo::ReadLocalFallbackReason, bool, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, tomo::Op const*, bool)",
+      "pre": 6295,
+      "post": 6354
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_handle_home_request(tomo::PubSubEvent&)",
+      "pre": 4491,
+      "post": 7201
+    },
+    {
+      "kind": "other",
+      "name": "bool tomo::IoLoop::request_client_transfer_impl<true>(tomo::Client*, unsigned int, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "pre": 2155,
+      "post": 2349
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::pubsub_clear_local_subscriptions(tomo::IoLoop::PubSubLocalConn&)",
+      "pre": 265,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::PtrSet::erase_at(unsigned long)",
+      "pre": 28,
+      "post": 0
+    },
+    {
+      "kind": "lane",
+      "name": "void tomo::IoLoop::arm_recv<false>(tomo::Client*)",
+      "pre": 437,
+      "post": 645
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]",
+      "pre": 1737,
+      "post": 1889
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_on_cqe<true, false, true>(io_uring_cqe*)",
+      "pre": 681,
+      "post": 737
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::IoLoop::r7_on_cqe<true, true, true>(io_uring_cqe*)",
+      "pre": 681,
+      "post": 737
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "pre": 4301,
+      "post": 5494
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Server::flip_reserve_shard_plan(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "pre": 5845,
+      "post": 5876
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)",
+      "pre": 3085,
+      "post": 3449
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ExLoopT<true>::note_lb_hash(tomo::Shard&, unsigned long)",
+      "pre": 94,
+      "post": 0
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "pre": 3999,
+      "post": 5928
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "pre": 4306,
+      "post": 5983
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ExLoopT<true>::flip_control_pass()",
+      "pre": 930,
+      "post": 962
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "pre": 1675,
+      "post": 1848
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "pre": 3999,
+      "post": 5928
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "pre": 4306,
+      "post": 5966
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "pre": 566,
+      "post": 973
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()",
+      "pre": 882,
+      "post": 1548
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ExLoopT<true>::drain_notify_keyless(tomo::LoopSignals&, bool)",
+      "pre": 181,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::ExLoopT<true>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)",
+      "pre": 678,
+      "post": 994
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+      "pre": 3148,
+      "post": 3485
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)",
+      "pre": 5020,
+      "post": 5634
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)",
+      "pre": 3204,
+      "post": 3628
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+      "pre": 1066,
+      "post": 1477
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()",
+      "pre": 1614,
+      "post": 2285
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()",
+      "pre": 1868,
+      "post": 3107
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ExLoopT<true>::on_cqe(io_uring_cqe*)",
+      "pre": 114,
+      "post": 0
+    },
+    {
+      "kind": "hot",
+      "name": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+      "pre": 3488,
+      "post": 3726
+    },
+    {
+      "kind": "hot",
+      "name": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+      "pre": 3337,
+      "post": 3577
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+      "pre": 1412,
+      "post": 2285
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()",
+      "pre": 1868,
+      "post": 3107
+    },
+    {
+      "kind": "other",
+      "name": "tomo::WbEngine::pump_epoll(tomo::Client&)",
+      "pre": 1424,
+      "post": 1488
+    },
+    {
+      "kind": "other",
+      "name": "tomo::WbEngine::flush_deferred_oob(tomo::Client&)",
+      "pre": 695,
+      "post": 936
+    },
+    {
+      "kind": "other",
+      "name": "bool tomo::WbEngine::pump<false, false>(tomo::Client&)",
+      "pre": 1173,
+      "post": 1594
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+      "pre": 1656,
+      "post": 2149
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo::WbEngine::pump_tls<true, false>(tomo::Client&, tomo::TlsConn&)",
+      "pre": 2067,
+      "post": 2099
+    },
+    {
+      "kind": "other",
+      "name": "tomo::WbEngine::defer_oob(tomo::Client&, char const*, unsigned long, char const*, unsigned long)",
+      "pre": 1956,
+      "post": 2103
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::retire_obj(tomo::KvObj*)",
+      "pre": 645,
+      "post": 901
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)",
+      "pre": 1213,
+      "post": 1261
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::budget_admit(tomo::Slice)",
+      "pre": 963,
+      "post": 1283
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::active_expire(unsigned int)",
+      "pre": 1153,
+      "post": 1472
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::choose_victim(tomo::Slice)",
+      "pre": 2858,
+      "post": 2995
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
+      "pre": 7311,
+      "post": 8263
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::snapshot_progress(unsigned int, unsigned int)",
+      "pre": 663,
+      "post": 651
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::maybe_start_shrink()",
+      "pre": 594,
+      "post": 1022
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)",
+      "pre": 1166,
+      "post": 1207
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::retire_detached_obj(tomo::KvObj*)",
+      "pre": 600,
+      "post": 1063
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::atomic_recycle_value(tomo::KvObj*)",
+      "pre": 613,
+      "post": 936
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)",
+      "pre": 1631,
+      "post": 1842
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
+      "pre": 1190,
+      "post": 1532
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::choose_victim_read_local(tomo::Slice)",
+      "pre": 2814,
+      "post": 2960
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::snapshot_progress_record(unsigned int&)",
+      "pre": 1163,
+      "post": 1436
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::prepare_resize_retirement() [clone .isra.0]",
+      "pre": 159,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::prepare_resize_retirement() [clone .isra.0] [clone .cold]",
+      "pre": 5,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::random_volatile_candidate()",
+      "pre": 1155,
+      "post": 1299
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::read_local_reclaim_object(void*, void*, unsigned long)",
+      "pre": 664,
+      "post": 1145
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::FlatStore::read_local_topology_store<unsigned long*>(unsigned long**, unsigned long*) [clone .isra.0]",
+      "pre": 49,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "void tomo::FlatStore::read_local_topology_store<unsigned long*>(unsigned long**, unsigned long*) [clone .isra.0] [clone .cold]",
+      "pre": 6,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)",
+      "pre": 7872,
+      "post": 9058
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::snapshot_progress_read_local(unsigned int, unsigned int)",
+      "pre": 656,
+      "post": 672
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0]",
+      "pre": 84,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0] [clone .cold]",
+      "pre": 6,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::read_local_reclaim_atomic_object(void*, void*, unsigned long)",
+      "pre": 640,
+      "post": 873
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::snapshot_progress_record_read_local(unsigned int&)",
+      "pre": 1093,
+      "post": 1402
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
+      "pre": 1144,
+      "post": 1375
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)",
+      "pre": 885,
+      "post": 971
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::unborrow(char const*)",
+      "pre": 1389,
+      "post": 1456
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo::FlatStore::scan_home<tomo::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo::KvObj*)#1}&, bool)",
+      "pre": 1038,
+      "post": 1326
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "pre": 2349,
+      "post": 2705
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ThreadCtx::post_client(unsigned int, tomo::Client*, tomo::Ring&, tomo::LoopSignals&)",
+      "pre": 221,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ThreadCtx::resume_read_local_tick()",
+      "pre": 46,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::MaskedSpscArray<tomo::Task, 128u>::producer_free_slots(unsigned int) const",
+      "pre": 24,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Client::migration_protocol_idle() const",
+      "pre": 103,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::client_transfer_ready(tomo::Client*, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const",
+      "pre": 602,
+      "post": 683
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::query_buffer_exceeded(tomo::Client const&) const",
+      "pre": 158,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::flip_candidate_clients_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const",
+      "pre": 786,
+      "post": 1287
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Server::role_count(tomo::Role, bool) const",
+      "pre": 83,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Server::flip_client_at(unsigned int, unsigned int) const",
+      "pre": 83,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Server::lb_acked(unsigned int) const",
+      "pre": 45,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ExLoopT<true>::fairlane_owner_debt_pending() const",
+      "pre": 178,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::ExLoopT<true>::shutdown_snapshot_blocks_tasks() const",
+      "pre": 68,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::atomic_live_value(tomo::KvObj*) const",
+      "pre": 67,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::atomic_find_physical(unsigned long, tomo::Slice) const",
+      "pre": 935,
+      "post": 1221
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::foreign_read_key_unsafe(unsigned long) const",
+      "pre": 201,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>::operator+=(long) [clone .isra.0]",
+      "pre": 127,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**> >(std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, unsigned long)",
+      "pre": 2692,
+      "post": 3319
+    },
+    {
+      "kind": "other",
+      "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server_reordered(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+      "pre": 4587,
+      "post": 5118
+    },
+    {
+      "kind": "other",
+      "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server_reordered(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+      "pre": 332,
+      "post": 333
+    },
+    {
+      "kind": "other",
+      "name": "std::vector<tomo::AtomicSeenKey, std::allocator<tomo::AtomicSeenKey> >::reserve(unsigned long)",
+      "pre": 226,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_replace(unsigned long, unsigned long, char const*, unsigned long)",
+      "pre": 311,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&)",
+      "pre": 232,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&)",
+      "pre": 232,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]",
+      "pre": 1951,
+      "post": 2114
+    },
+    {
+      "kind": "other",
+      "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&, char const*)",
+      "pre": 468,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&)::{lambda(unsigned int, unsigned int)#1}::operator()(unsigned int, unsigned int) const",
+      "pre": 97,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<tomo::WeightedLbAssignment, std::allocator<tomo::WeightedLbAssignment> >&)::{lambda(std::vector<double, std::allocator<double> > const&)#3}::operator()(std::vector<double, std::allocator<double> > const&) const",
+      "pre": 201,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<tomo::WeightedLbAssignment, std::allocator<tomo::WeightedLbAssignment> >&)::{lambda(std::vector<double, std::allocator<double> > const&)#1}::operator()(std::vector<double, std::allocator<double> > const&) const",
+      "pre": 201,
+      "post": 0
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo::KvObj*)#1}::operator()(tomo::KvObj*) const",
+      "pre": 488,
+      "post": 607
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_impl<false, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 1201,
+      "post": 1441
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_impl<false, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 1201,
+      "post": 1441
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_impl<false, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 936,
+      "post": 1176
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_impl<false, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 936,
+      "post": 1176
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_impl<true, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 1249,
+      "post": 1489
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_impl<true, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 1249,
+      "post": 1489
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_impl<true, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 984,
+      "post": 1224
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_impl<true, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 984,
+      "post": 1224
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_tls_impl<false, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 952,
+      "post": 1192
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_tls_impl<false, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 952,
+      "post": 1192
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 1016,
+      "post": 1240
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+      "pre": 1016,
+      "post": 1240
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::active_expire(unsigned int)::{lambda(unsigned long)#1}::operator()(unsigned long) const",
+      "pre": 1107,
+      "post": 1392
+    },
+    {
+      "kind": "other",
+      "name": "tomo::FlatStore::active_expire_fields(unsigned int)::{lambda(unsigned long)#1}::operator()(unsigned long) const",
+      "pre": 1394,
+      "post": 1664
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "pre": 2184,
+      "post": 2667
+    },
+    {
+      "kind": "hot",
+      "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "pre": 2184,
+      "post": 2667
+    },
+    {
+      "kind": "other",
+      "name": "tomo::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "pre": 2942,
+      "post": 3433
+    }
+  ]
+}

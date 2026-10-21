@@ -458,6 +458,7 @@ public:
                 stats_.zc_bytes += conn.consume_segments(static_cast<uint32_t>(n),
                     [&](int32_t shard, const char* ptr) { release(shard, ptr); });
                 stats_.bytes_sent += static_cast<uint64_t>(n);
+                tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(n), std::memory_order_relaxed);
                 if (static_cast<uint32_t>(n) < total) stats_.short_writes++;
                 else stats_.sends_completed++;
                 c.set_last_interaction_s(*cached_now_s_);
@@ -520,7 +521,15 @@ public:
             if (conn.write_drained() && conn.has_pending_fill()) conn.swap_buffers();
             const size_t total = conn.send_buf().size();
             const size_t sent = conn.wsent();
-            if (sent >= total) return false;
+            if (sent >= total) {
+                // The last reply and all ciphertext have drained. A silent TLS peer
+                // can still own a uring recv/poll; wake its CQE so the existing
+                // safe_to_release fence can finish close-after-reply teardown.
+                if constexpr (!kEp)
+                    if (c.closing() && c.rob().quiesced() && c.recv_armed())
+                        (void)::shutdown(c.fd(), SHUT_RDWR);
+                return false;
+            }
             plain = conn.send_buf().data() + sent;
             plain_bytes = total - sent;
         }
@@ -899,6 +908,7 @@ private:
         if (n <= 0) { note_send_stop(c, n); return false; }
         c.commit_write(static_cast<uint32_t>(n));
         stats_.bytes_sent += static_cast<uint64_t>(n);
+        tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(n), std::memory_order_relaxed);
         if (static_cast<size_t>(n) < request) stats_.short_writes++;
         else if (c.write_drained()) stats_.sends_completed++;
         c.set_last_interaction_s(*cached_now_s_);
@@ -937,6 +947,7 @@ private:
             const uint32_t sent = static_cast<uint32_t>(n);
             if (!tls.consume_output(sent)) { send_failed_ = true; return did; }
             stats_.bytes_sent += sent;
+            tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + sent, std::memory_order_relaxed);
             tls_signals_->tls_ciphertext_output_bytes += sent;
             c.set_last_interaction_s(*cached_now_s_);
             did = true;

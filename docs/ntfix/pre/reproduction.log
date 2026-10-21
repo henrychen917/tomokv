@@ -1,0 +1,4 @@
+1s-uring: 10 differences
+1s-epoll: 9 differences
+2s-uring: 10 differences
+2s-epoll: 9 differences

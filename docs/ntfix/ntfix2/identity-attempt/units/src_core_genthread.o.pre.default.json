@@ -1,0 +1,37 @@
+{
+  "object": "src/core/genthread.o",
+  "tree": "pre",
+  "source_sha256": "89d7873a98596ef3b9761ce141c603862453aa3b3022015673488af90989ead1",
+  "unit": 102573,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=129447",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.ef26073c2c1d9e4d.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.ef26073c2c1d9e4d"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.ef26073c2c1d9e4d.o",
+  "sha256": "4a6f707602219298ab46a61e7fcf919dbc2f291621536a3935b64f7d08e492ed",
+  "counts": {
+    "lane": 0,
+    "hot": 0,
+    "other": 0
+  },
+  "changes": []
+}

@@ -1,0 +1,16 @@
+{"object": "src/core/genthread.o", "budget": 130087, "tree": "post", "unit": 102872, "hot": 114, "hot_equal_headline": 110, "hot_equal_ntfix3": 2, "residual_hot": 2, "residual": 6, "changed": 22}
+{"object": "src/core/genthread.o", "budget": 130091, "tree": "post", "unit": 102872, "hot": 114, "hot_equal_headline": 110, "hot_equal_ntfix3": 2, "residual_hot": 2, "residual": 6, "changed": 22}
+{"object": "src/core/genthread.o", "budget": 130080, "tree": "post", "unit": 102872, "hot": 114, "hot_equal_headline": 110, "hot_equal_ntfix3": 2, "residual_hot": 2, "residual": 6, "changed": 22}
+{"object": "db0/src/core/genthread.o", "budget": 130323, "tree": "post", "unit": 102092, "hot": 114, "hot_equal_headline": 110, "hot_equal_ntfix3": 2, "residual_hot": 2, "residual": 5, "changed": 21}
+{"object": "src/core/genthread.o", "budget": 130083, "tree": "post", "unit": 102872, "hot": 114, "hot_equal_headline": 110, "hot_equal_ntfix3": 2, "residual_hot": 2, "residual": 5, "changed": 21}
+{"object": "db0/src/core/genthread.o", "budget": 130319, "tree": "post", "unit": 102092, "hot": 114, "hot_equal_headline": 110, "hot_equal_ntfix3": 0, "residual_hot": 4, "residual": 5, "changed": 19}
+{"object": "db0/src/core/genthread.o", "budget": 130315, "tree": "post", "unit": 102092, "hot": 114, "hot_equal_headline": 110, "hot_equal_ntfix3": 2, "residual_hot": 2, "residual": 3, "changed": 19}
+{"object": "db0/src/core/genthread.o", "budget": 130327, "tree": "post", "unit": 102092, "hot": 114, "hot_equal_headline": 110, "hot_equal_ntfix3": 0, "residual_hot": 4, "residual": 8, "changed": 22}
+{"object": "src/core/reorder.o", "budget": 147954, "tree": "post", "unit": 114741, "hot": 131, "hot_equal_headline": 125, "hot_equal_ntfix3": 2, "residual_hot": 4, "residual": 6, "changed": 24}
+{"object": "src/core/reorder.o", "budget": 147952, "tree": "post", "unit": 114741, "hot": 131, "hot_equal_headline": 125, "hot_equal_ntfix3": 2, "residual_hot": 4, "residual": 5, "changed": 23}
+{"object": "db0/src/core/reorder.o", "budget": 148947, "tree": "post", "unit": 113833, "hot": 132, "hot_equal_headline": 126, "hot_equal_ntfix3": 0, "residual_hot": 6, "residual": 6, "changed": 22}
+{"object": "src/core/reorder.o", "budget": 147946, "tree": "post", "unit": 114741, "hot": 131, "hot_equal_headline": 125, "hot_equal_ntfix3": 2, "residual_hot": 4, "residual": 6, "changed": 23}
+{"object": "src/core/reorder.o", "budget": 147948, "tree": "post", "unit": 114741, "hot": 131, "hot_equal_headline": 125, "hot_equal_ntfix3": 2, "residual_hot": 4, "residual": 7, "changed": 24}
+{"object": "db0/src/core/reorder.o", "budget": 148959, "tree": "post", "unit": 113833, "hot": 132, "hot_equal_headline": 126, "hot_equal_ntfix3": 0, "residual_hot": 6, "residual": 10, "changed": 26}
+{"object": "db0/src/core/reorder.o", "budget": 148943, "tree": "post", "unit": 113833, "hot": 132, "hot_equal_headline": 126, "hot_equal_ntfix3": 2, "residual_hot": 4, "residual": 4, "changed": 22}
+{"object": "db0/src/core/reorder.o", "budget": 148955, "tree": "post", "unit": 113833, "hot": 132, "hot_equal_headline": 126, "hot_equal_ntfix3": 2, "residual_hot": 4, "residual": 8, "changed": 26}
