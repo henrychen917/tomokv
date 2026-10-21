@@ -2,13 +2,16 @@
 
 Lane `cx-moverfix`, based on `8656f9fa924fc06aa128504fca8aa99436aa9e41`.
 Donor `f7f3ce7a5d2008c729822332f6cc1a14270ebe15` was read from `cx-txnfix`;
-that worktree was not modified. No push. This request is still being completed.
+that worktree was not modified. No push. Correctness runs and build checks are complete;
+the maintainer's performance/merit runs are NOT RUN here.
 
 The isolated atomic-0 claim protocol is implemented. **A broader EXEC conservation
 claim is false on the headline:** the supplemental four-client EXEC/RPOPLPUSH
 check fails on both PRE and POST, in both thread modes. This is retained as a
-separate failure, not weakened or included as a passing D2 claim. The requested broader conserving EXEC proof/equivalent is therefore **NOT
-ESTABLISHED**. No EXEC algorithm change is included in this isolated port.
+separate failure, not weakened or included as a passing D2 claim. The requested
+broader conserving EXEC proof/equivalent is therefore **NOT ESTABLISHED**. No EXEC
+algorithm change is included in this isolated port. This is not a fully green
+acceptance report.
 
 ### Runtime boundary
 
@@ -30,25 +33,35 @@ read context and retain the parent's origin; `MoverLiveRead` leaves children
 alone. Thus the donor's private-overlay helper is not a dependency of this port.
 This is a reachability argument about the port, **not a claim that existing EXEC
 is conserving**. The supplemental diagnostic and its PRE controls disprove that
-stronger claim. Sending those children through the bare claim helper would
+stronger claim. Final POST delivers 2,341 replies in 2s and 2,711 in 1s from
+2,000 unique source elements; `docs/moverfix/exec-final/runs.json` binds both
+failures to the delivered POST SHA-256. PRE controls and the earlier POST build
+are retained separately in `exec-controls/`. The own-parent
+RPUSH/LMOVE/LMPOP sequence passes before the concurrent RPOPLPUSH failure.
+Sending those children through the bare claim helper would
 mutate outside their parent's atomic publication, so that is not a valid minimal
 substitute. A live-view selection alone also cannot arbitrate two undecided
 parents. The unlanded branch's parent arbitration/private overlays were expressly
 excluded from this lane. Existing MULTI/EXEC batteries are run without assertion
-edits; passing them cannot erase this counterexample.
+edits; passing them cannot erase this counterexample. Exact routing anchors and
+donor-helper identity are recorded in `docs/moverfix/runtime-anchors.json`.
 
 ### Controls and gate inventory
 
 The original T05 assertions and parameters (N=2000, W=4), G5 atomic-0 mover
 assertions, and all `txn_movers.py` assertions are preserved. Only connection and
-headline-independent helper plumbing was adapted. PRE reproduces T05 conservation
+headline-independent helper plumbing was adapted. `donor-test-parity.json`
+records the comparison: the complete G5 method matches the current donor's AST
+(including its later atomic-1-only counter assertions, unused by these rows),
+and `txn_movers.py` matches f7f3ce7a5 except for the Battery import.
+PRE reproduces T05 conservation
 failure and G5 duplicate delivery in 2s/1s, databases 1/16, uring/epoll: eight cells,
 all failing for the data assertion. Initial POST passes all eight cells, including
 all LMOVE directions, BRPOPLPUSH and all BLMOVE directions after four waiters are
 registered, LMPOP/ZMPOP both ends with COUNT 3, and 100 four-way SMOVE races.
 
-`tests/moverfix_unit.cc` schedules actual owner turns: both contenders probe the
-same source before either claims it, including a destination arriving first and
+`tests/moverfix_unit.cc` exercises real scatter code in a fixed owner-turn order:
+both contenders probe the same source before either claims it, including a destination arriving first and
 a fully depleted source. It runs against PRE and POST, in both compiled database
 namespaces. The fixture has no server, worker, timing window or injected pause;
 its HIT line is preceded by assertions on both nonempty source probes. The
@@ -59,13 +72,14 @@ the headline's earlier AT1 fix already passes those schedules on PRE.
 One `job_moverfix` owns eight rows, each with all seven mover families and T05/G5,
 including every live leg even after an earlier failure. Both engines, both modes
 and both database counts are explicit in each label. It is collected BEFORE the
-quick-tier exit (`collect_job moverfix` at line 3979; exit at line 4094): **DQ=+8, DF=+8; required EXPECT_QUICK=677, EXPECT_FULL=694** (from
-669/686). Neither constant has been edited. The explicit label fixture has no
+quick-tier exit (`collect_job moverfix` at line 3979; exit at line 4094):
+**DQ=+8, DF=+8; required EXPECT_QUICK=677, EXPECT_FULL=694** (from 669/686).
+Neither constant has been edited. The explicit label fixture has no
 missing/extra labels; its count comparison remains red until the maintainer
 updates those constants.
 
 Receipts: `docs/moverfix/pre-reproduce/`, `post-reproduce/`, `exec-controls/`,
-`pad-controls/`. Initial harness errors (invalid boot option and fused
+`exec-final/`, `pad-controls/`. Initial harness errors (invalid boot option and fused
 ratio) remain separately identified; the successful reproduction reruns use the
 correct production grammar. No reproduction failure is counted as a successful
 POST result.
@@ -85,9 +99,17 @@ The failures were:
   each namespace; the new linked inventory has 145 normal / 146 DB0. Its guard is
   unchanged. This is reported for merit review, not waived as a green row.
 
+R7's unchanged negative-control function was also run against final POST after
+the gate guard stopped its row: missing policy symbol, missing splitlocal parser,
+and changed opcode are all rejected (`reorder-negative-post.json`). The row
+itself remains red. The ten remaining top-level ABBA serverless checks all pass
+when invoked unchanged after the count guard stopped their parent job; see
+`remaining-runs.json` and `abba-tail-*`. `gate_receipt.py`'s own checks beyond its
+entry fixture guard remain NOT RUN. Neither guard was bypassed to claim a pass.
+
 `make -B -j16 all` succeeded. All 38 freshness checks are zero, including every
 production-unit target. The phony `mdbqsbr-live-arms` target's two actual `all`
-outputs were checked separately. See `freshness.json`.
+outputs were checked separately. The final repeat is `final-freshness.json`.
 
 PRE then ran the same selected job list through the same gate interface:
 **139 PASS / 9 FAIL**. Eight failures are the new mover rows and the ninth is the
@@ -109,15 +131,50 @@ read-local-armed modes on its deterministic MGET fan-out witness. Those runs
 report zero cuts for that witness; all observations and failure lines are retained.
 The recording driver exits zero after completing all invocations, so its wrapper
 return code is not a battery verdict: `final-supplement/runs.json` contains the
-individual child statuses. Matching PRE armed controls and POST standard unarmed
-atomic checks are queued. Standard differential seeds and a quiet scheduler-suite
-rerun remain in progress. The initial standalone
+individual child statuses. Matching PRE armed controls reproduce the same
+`execatomic.py` witness failure in both modes: no mixed-value observation is
+reported; the required fan-out cut never arms and the straddle sees all-new
+values. The unchanged standard unarmed atomic checks (`atomic_torn`,
+`atomic_ryow`, `atomic_hazards`, `execatomic`) pass on final POST in both modes,
+eight of eight invocations. See `atomic-controls/runs.json` and its logs.
+The armed 15-battery run includes the unchanged MULTI/EXEC, txn, and atomic
+batteries; 28 of those 30 invocations pass. The other eight supplemental
+invocations are the armed atomic-0 mover cells, all passing. These counts do not
+turn the two armed witness failures into green results.
+
+The standard differential gate is complete on both engines, using the unchanged
+47-suite inventory, seeds 7, 19, 20, 23 and rotating seed 21, both atomic settings,
+and the standard repeated MULTI legs:
+
+| Engine | Geometry | PASS | FAIL | Harness-declared SORT skips |
+|---|---|---:|---:|---:|
+| io_uring | split 6:2 | 475 | 0 | 0 |
+| io_uring | armed fused | 466 | 0 | 10 |
+| epoll | split 6:2 | 475 | 0 | 0 |
+| epoll | armed fused | 466 | 0 | 10 |
+
+Both split invocations also pass all 32 mode-equivalence combinations. Each fused
+invocation proves read-local hits in both atomic settings. SORT's fused legs are
+NOT RUN by the unchanged harness because that suite requires split 6:2; its full
+seed matrix ran in both split invocations. The harness's command-coverage reports
+also remain intact; this is not a claim that every registered command was diffed.
+See `final-differ/runs.json`, the four complete logs, and per-leg receipts:
+**1,882 PASS / 0 FAIL**, with the 20 fused SORT legs explicitly skipped above.
+The initial standalone
 `gates_test.py` run retained 65 passes and two 45-second scheduler-fixture timeouts
-while compilation was active; no deadline or assertion was changed.
+while compilation was active; no deadline or assertion was changed. The quiet
+rerun, without this lane's compilation or live workloads, passes **67/67** in
+339.439 seconds (`gates-test-quiet.log`, return code 0).
+
+All work stayed within CPUs 80-95: builds used -j16, servers 80-87, the Redis
+7.4.10 oracle on 88, and clients 89-95. All listeners used ports 23800-23899.
+`final-cleanup.json` records no remaining listeners or owned server/gate watcher
+processes after the last diagnostic.
 
 ### Identity and layout
 
-Locked sizes are unchanged on PRE and POST (no headers or fields changed): Op 336, Client 1984,
+Locked sizes are unchanged on PRE and POST (no headers or fields changed):
+Op 336, Client 1984,
 ThreadCtx 1408, Shard 1440, FlatStore 944, Rob<64> 192, AtomicEntry 144,
 Config 624; ScatterState also remains 896. No header or member order changed.
 
@@ -137,10 +194,15 @@ Identity is a proxy; the merit run decides.
 
 Use the gate's instrument and unchanged generic 14 cells in
 `docs/moverfix/generic14-cells.txt` (copied from `docs/lbplanner/generic-cells.txt`).
+The current `abbagate.read_cells` accepts all 14 cells; see
+`generic14-validation.json`. The `ov=0` column is the parser's retired-knob
+assertion, not a server flag.
 Run a same-session PRE/PRE null, then PRE/POST and PRE/PAD-A comparisons with the
 same cell geometry and matched offered load. Retain each arm's rate, cycles/op,
-instructions/op and IPC plus the per-cell verdict; no average can hide a losing
-cell. The maintainer's merit verdict, not instruction count or identity, decides.
+instructions/op and IPC plus the per-cell verdict. Use each cell's existing rate
+or latency score; retain the standard latency quantiles for latency cells.
+No average can hide a losing cell. The maintainer's merit verdict, not instruction
+count or identity, decides.
 No throughput claim is made. No mover-path dynamic instruction cost was measured
 serverlessly; the deterministic owner fixture is a correctness instrument.
 
@@ -160,6 +222,22 @@ database namespaces). `pad-controls/runs.json` binds each running server's
 | POST | `build/tomokv` | `82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f` |
 | PAD-A | `build/moverfix/pad-a/tomokv` | `297f2dc1683de49b66c71d0ddba4fd728aa830e9f92339e8c4a1083d2094660b` |
 
-No throughput benchmarks, full iteration, merit ABBA or mover-path instruction
-measurement ran in this lane. These remain NOT RUN here by the owner's division
-of measurement work.
+All three digests were checked again after the final build and controls
+(`final-arm-check.log`).
+
+### NOT RUN and remaining limits
+
+- Throughput benchmarks, full iteration, merit ABBA, and mover-path dynamic
+  instruction measurement: reserved for the maintainer's quiet-box measurement.
+- `atomic_ryow.py`'s rate assertions: its existing `--no-rate-assertions` flag
+  retains correctness checks while leaving performance judgments to that run.
+- Twenty fused differential SORT legs: excluded by the unchanged harness's
+  split-6:2 requirement; all standard split seeds ran on both engines.
+- `gate_receipt.py` self-tests beyond the entry fixture guard: blocked by the
+  maintainer-owned EXPECT counts. Other ABBA top-level checks were run separately.
+- Later concurrent EXEC LMOVE/LMPOP/ZMPOP diagnostic branches: the unchanged
+  diagnostic stops at the first RPOPLPUSH duplicate assertion on PRE and POST.
+  The complete bare-command mover families ran in all declared gate cells.
+- Conserving EXEC proof/minimal equivalent: NOT ESTABLISHED. The parent conflict
+  failure already exists on PRE, and this isolated port does not import the
+  excluded EXEC arbitration/overlay redesign. Its counterexample remains open.
