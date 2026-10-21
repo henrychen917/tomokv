@@ -18,7 +18,7 @@
 17546:     size:3.000000, time:2.000000,  executed if:(not inlined)
 359854:    Known to be false: not inlined
 359855:    size:596
-359856: 
+359856:
 359857: Inlining atomic_for_each_unique_key.isra/39322 size 599.
 359858:  Called once from void tomo::FlatStore::atomic_for_each_side_key(uint64_t, Fn&&) [with Fn = tomo::xshard_execute(const Task&, Shard&, Op&, uint32_t)::<lambda(tomo::Slice)>]/12161 12 insns.
 359859:    Estimating body: atomic_for_each_unique_key.isra/39322
@@ -57,22 +57,22 @@
 551267: _ZN4tomo9FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_.isra.0/39322 (atomic_for_each_unique_key.isra)
 551268:   Type: function definition analyzed
 551269:   Visibility:
-551270:   References: 
-551271:   Referring: 
+551270:   References:
+551271:   Referring:
 551272:   Function atomic_for_each_unique_key.isra/39322 is inline copy in tomo::ScatterTaskResult tomo::xshard_execute(const Task&, Shard&, Op&, uint32_t)/8398
 551273:   Clone of _ZN4tomo9FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_/15320
 551274:   Availability: local
 551275:   Function flags: count:1326140 (estimated locally) local
-551276:   Called by: _ZN4tomo9FlatStore24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_/12161 (inlined) (1326140 (estimated locally),0.00 per call) (can throw external) 
+551276:   Called by: _ZN4tomo9FlatStore24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_/12161 (inlined) (1326140 (estimated locally),0.00 per call) (can throw external)
 551278: _ZNSt6vectorIN4tomo12_GLOBAL__N_110ZImageItemESaIS2_EE12emplace_backIJS2_EEERS2_DpOT_.isra.0/39321 (emplace_back.isra)
 557754: _ZN4tomo9FlatStore4scanIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEmmjOT_b.constprop.0/38752 (scan.constprop)
 557755:   Type: function definition analyzed
 557756:   Visibility:
-557757:   References: 
-557758:   Referring: 
+557757:   References:
+557758:   Referring:
 557759:   Clone of _ZN4tomo9FlatStore4scanIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEmmjOT_b/12158
 557760:   Availability: local
 557761:   Function flags: count:44703678 (estimated locally) local
-557762:   Called by: _ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj/8398 (3929114 (estimated locally),0.00 per call) 
+557762:   Called by: _ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj/8398 (3929114 (estimated locally),0.00 per call)
 557764: _ZN4tomo12_GLOBAL__N_119begin_plain_versionERNS_6ServerERNS_5ShardENS_5SliceEmmm.constprop.0/38751 (begin_plain_version.constprop)
 557765:   Type: function definition analyzed

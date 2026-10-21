@@ -3,48 +3,48 @@
   "dumps": [
     {
       "path": "build/moverfix2/trials/pre-normal.085i.inline.gz",
-      "sha256": "dbf97a453e93f8c83aa075eccdc9b352b78970c43814b59f8aafacad61fcba28",
       "excerpt": "docs/moverfix2/pre-normal-ipa-excerpts.txt",
       "clones": {
         "atomic_for_each_unique_key.isra": "39288",
         "scan.constprop": "38718"
-      }
+      },
+      "uncompressed_sha256": "dbf97a453e93f8c83aa075eccdc9b352b78970c43814b59f8aafacad61fcba28"
     },
     {
       "path": "build/moverfix2/trials/pre-db0.085i.inline.gz",
-      "sha256": "33576eb2a056f9b80be4dda636b563e9e7fdb1fb8498b0f59fe36d9665355fcd",
       "excerpt": "docs/moverfix2/pre-db0-ipa-excerpts.txt",
       "clones": {
         "atomic_for_each_unique_key.isra": "39218",
         "scan.constprop": "38651"
-      }
+      },
+      "uncompressed_sha256": "33576eb2a056f9b80be4dda636b563e9e7fdb1fb8498b0f59fe36d9665355fcd"
     },
     {
       "path": "build/moverfix2/trials/normal-128550.085i.inline.gz",
-      "sha256": "ad0b8207344217d3b70137a78e596b2c2f2dcfd161f18e0df53b952fc612c99c",
       "excerpt": "docs/moverfix2/normal-128550-ipa-excerpts.txt",
       "clones": {
         "atomic_for_each_unique_key.isra": "39322",
         "scan.constprop": "38752"
-      }
+      },
+      "uncompressed_sha256": "ad0b8207344217d3b70137a78e596b2c2f2dcfd161f18e0df53b952fc612c99c"
     },
     {
       "path": "build/moverfix2/trials/db0-127250.085i.inline.gz",
-      "sha256": "68a557a3a3167ecfdcbeae34784ad4db2d8da109b37d84f90332157d7a5c76ff",
       "excerpt": "docs/moverfix2/db0-127250-ipa-excerpts.txt",
       "clones": {
         "atomic_for_each_unique_key.isra": "39252",
         "scan.constprop": "38685"
-      }
+      },
+      "uncompressed_sha256": "68a557a3a3167ecfdcbeae34784ad4db2d8da109b37d84f90332157d7a5c76ff"
     },
     {
       "path": "build/moverfix2/trials/normal-136000.085i.inline.gz",
-      "sha256": "758fc699fa770e9a1f66f3cb87d297d048a242324f425ef3462eaa1a309f8593",
       "excerpt": "docs/moverfix2/normal-136000-ipa-excerpts.txt",
       "clones": {
         "atomic_for_each_unique_key.isra": "39322",
         "scan.constprop": "38752"
-      }
+      },
+      "uncompressed_sha256": "758fc699fa770e9a1f66f3cb87d297d048a242324f425ef3462eaa1a309f8593"
     }
   ],
   "src/store/flatstore_atomic.inc": {

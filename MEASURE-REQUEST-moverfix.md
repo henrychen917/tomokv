@@ -241,3 +241,98 @@ All three digests were checked again after the final build and controls
 - Conserving EXEC proof/minimal equivalent: NOT ESTABLISHED. The parent conflict
   failure already exists on PRE, and this isolated port does not import the
   excluded EXEC arbitration/overlay redesign. Its counterexample remains open.
+
+
+## moverfix2
+
+Based on `c100f703f`, on `cx-moverfix`; no push. The existing R7 FIFO twin row is
+now green. This is a harness inventory correction: production source, Makefile,
+POST and PAD-A bytes are unchanged. Attribution and all compile-only trials are
+in [docs/moverfix2/README.md](docs/moverfix2/README.md).
+
+The normal namespace's 146 -> 145 is a net delta: `src/cmd/xshard.o` no longer
+emits the KEYS/RANDOMKEY instantiation of
+`FlatStore::atomic_for_each_unique_key<atomic_for_each_side_key<xshard_execute(...)...>...>`
+`.isra.0` (2394 bytes) or its `.cold` fragment (5 bytes), but now emits the
+`FlatStore::scan<xshard_execute(...)::{lambda(KvObj*)#1}>` `.constprop.0` clone
+(1071 bytes). Exact mangled/demangled names and object/link digests are in
+`docs/moverfix2/inventory.json`. GCC's late called-once pass inlines the first
+helper through `atomic_for_each_side_key` into `xshard_execute`; this is not
+linker merging or deleted KEYS code. The affected store source and scan calls
+are unchanged from PRE. DB0's separate `TOMO_SINGLE_DATABASE=1` compilation and
+127250 budget retain the 2219+5-byte unique-key bodies and inline scan, keeping
+146. The compiler excerpts record both decisions and their different caller
+sizes; the normal POST budget remains 128550.
+
+Restoration was attempted with 17 normal-budget compilations, a DB0 baseline
+compilation, and fresh PRE compiler dumps. Every changed object body is recorded.
+None of the tested budgets restores the helpers while preserving all current
+hot bodies. At the lowest tested value retaining them, 136000, 174 object bodies
+change, including 10 selected hot bodies. A compile-only link confirms five hot
+store bodies change (including `find`, `find_notify`, `insert`, `insert_notify`
+and `erase_notify`); it also loses the `<false, false>` `xshard_execute` lambda,
+leaving its total R7 count at 145/146 anyway. These are identity observations,
+not throughput or cycle claims. The task's permitted fallback updates only
+`expected['tomo']` in `tests/r7shadow_noop.py`, with the named delta explained in
+the style of 13d6fabbc. DB0's count, every byte comparison, policy checks,
+splitlocal checks and negative controls are unchanged.
+
+Final POST verification used the gate's own interface:
+
+```
+taskset -c 80-95 env GATE_ONLY_JOBS='reorder_identity moverfix' \
+  tests/gate.sh quick --server-cores 80-88 --server-smt '' \
+  --load-cores 89-95 --load-smt '' --ports 23800-23877 \
+  --candidate-binary /home/user/Projects/cx-moverfix/build/tomokv
+```
+
+The planner requires 16 advertised physical CPUs; the ninth advertised server
+CPU (88) is unused by its single correctness slot. Actual servers use 80-87,
+clients 89-95, shards 16 and split ratio 6:2. Builds use 80-95 with `-j16`.
+Serverless self-test sockets use 23879 and the existing 23880-23899 bounded
+port adapter. All work remains inside the authorized CPU/port allocation.
+
+| Required check | Result |
+|---|---|
+| Gate job `reorder_identity` | PASS: 291/291 bodies, 145 normal + 146 DB0 |
+| R7 negative controls, inside that job | PASS: missing policy symbol, missing splitlocal parser, changed opcode all rejected |
+| Gate job `moverfix` | PASS: all 8 rows, 1s/2s x uring/epoll x databases 1/16 |
+| Complete mover legs | 128/128 logs: 7 unit + 7 live families + T05/G5 per cell; 448 asserted unit contention hits |
+| Selected gate ledger | 10 PASS / 0 FAIL, including release prerequisite; partial diagnostic, not a complete gate |
+| `python3 tests/gates_test.py` | PASS: 67/67 in 330.320 s |
+| `make -j16 all` + every `job_production_units` target | PASS |
+| `make -q` freshness | PASS: 38/38, including both concrete outputs of phony `mdbqsbr-live-arms` |
+
+The only touched gate job is R7 identity, included above. Receipts are in
+`docs/moverfix2/gate/`, `gate.log`, `gates-test.log`, `freshness.json`,
+`leg-inventory.json`, `receipt-inventory.json` and `runs.json`. `final-freshness.json` repeats all 38 checks, and
+`cleanup.json` confirms no lane listeners or owned server/gate processes remain.
+The untouched negative-control/normalizer sources and `gate.sh` are hash-bound in the receipt.
+The full generated disassemblies/FIFO twin remain in the original build run
+named by that receipt. No gate row was added or retired: **DQ=0, DF=0;
+required counts remain 677/694**. Neither EXPECT constant was edited; their
+existing maintainer-owned 669/686 values remain as inherited.
+
+The entire delivered POST is byte-identical to the previous audited binary,
+so all GET/SET/MGET/MSET hot bodies and locked layouts remain identical to that
+POST. Rebuilding POST/PAD-A for a changed candidate is not needed. Final hashes:
+
+| Arm | Binary | SHA-256 |
+|---|---|---|
+| PRE | `build/moverfix/pre/tomokv` | `7cc73003cf0e25aceb27016b24f66a1e877143a4416cd54470dd60a23c16f72a` |
+| POST | `build/tomokv` | `82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f` |
+| PAD-A | `build/moverfix/pad-a/tomokv` | `297f2dc1683de49b66c71d0ddba4fd728aa830e9f92339e8c4a1083d2094660b` |
+
+The maintainer should measure the same frozen PRE, POST and PAD-A arms from the
+moverfix request: PRE/PRE null, PRE/POST and PRE/PAD-A, with the unchanged
+14-cell `docs/moverfix/generic14-cells.txt` and the gate's instrument. PAD-A is
+**(A) behaviour twin: PRE mover behaviour with POST text size/layout**. Retain
+per-cell rate/latency verdicts at matched offered load, cycles/op, instructions/op
+and IPC; an average must not conceal a losing cell. No new arm is required by
+moverfix2, and no throughput claim is made.
+
+**NOT RUN:** performance benchmarks, measurement load generators, merit ABBA
+and full `tests/gate.sh iteration`, reserved for the maintainer. Rejected budget
+trial binaries were inspected offline only. The prior moverfix report's separate
+EXEC conservation and armed-witness limitations are unchanged; this green
+selected job run makes no broader correctness claim.

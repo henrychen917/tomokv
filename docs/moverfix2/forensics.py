@@ -34,11 +34,11 @@ for label in ('pre-normal', 'pre-db0', 'normal-128550', 'db0-127250', 'normal-13
                 selected.update(range(index, index + 9))
             if line.startswith('_ZN') and line.endswith('(' + name + ')') and '/' + number + ' ' in line:
                 selected.update(range(index, index + 12))
-    text = '\n'.join(f'{i+1}: {lines[i]}' for i in sorted(selected)
+    text = '\n'.join(f'{i+1}: {lines[i]}'.rstrip() for i in sorted(selected)
                      if not lines[i].startswith('  Calls:')) + '\n'
     excerpt = OUT / (label + '-ipa-excerpts.txt')
     excerpt.write_text(text)
-    report['dumps'].append(dict(path=str(path.relative_to(ROOT)), sha256=sha(data),
+    report['dumps'].append(dict(path=str(path.relative_to(ROOT)), uncompressed_sha256=sha(data),
                                 excerpt=str(excerpt.relative_to(ROOT)), clones=ids))
 
 for rel in ('src/store/flatstore_atomic.inc', 'src/cmd/scatter_engine.inc'):

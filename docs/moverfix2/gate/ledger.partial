@@ -1,0 +1,11 @@
+PARTIAL	0	GATE_ONLY_JOBS=reorder_identity moverfix; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	93.310000	R7 FIFO twin off-path identity + negative controls
+ok	2.700000	moverfix conservation (1s, uring, databases 1, atomic 0)
+ok	2.470000	moverfix conservation (1s, uring, databases 16, atomic 0)
+ok	2.470000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+ok	2.480000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+ok	2.500000	moverfix conservation (2s, uring, databases 1, atomic 0)
+ok	2.500000	moverfix conservation (2s, uring, databases 16, atomic 0)
+ok	2.490000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+ok	2.490000	moverfix conservation (2s, epoll, databases 16, atomic 0)

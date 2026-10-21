@@ -56,7 +56,8 @@ current POST object using the existing ccfix canonicalizer. No trial is executed
 The baseline trials reproduce both POST objects' entire canonical body inventory.
 All commands, object digests, changed names and sizes are in `trials-*.json`.
 The complete IPA dumps are under `build/moverfix2/trials`; their digests and
-retained line-numbered excerpts are recorded in `forensics.json`.
+retained line-numbered excerpts (line-end whitespace stripped) are recorded
+in `forensics.json`.
 
 | Namespace / budget | Unique-key bodies | Scan bodies | Changed object bodies | Selected hot changes |
 |---|---:|---:|---:|---:|

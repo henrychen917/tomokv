@@ -1,0 +1,10 @@
+Function: tomo::cmd_get_tls(tomo::Shard&, tomo::Op&)
+Occurrence: 0
+--- PRE
++++ POST
+@@ -1,4 +1,4 @@
+-0000 [ 4] endbr64 | f3 0f 1e fa
++0000 [ 4] endbr64 | f3 0f 1e fa ff
+ 0004 [ 1] push %rbp | 55
+ 0005 [ 1] push %rbx | 53
+ 0006 [ 3] mov %rdi,%rbp | 48 89 fd
