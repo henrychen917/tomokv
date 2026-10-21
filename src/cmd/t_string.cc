@@ -470,10 +470,10 @@ void cmd_set(Shard& sh, Op& op) {
     int64_t expire = options.expire_at_ms;
     const bool reserve_ttl_slot = options.keep_ttl && old && old->has_ttl_slot();
     if (options.keep_ttl && old) expire = sh.store().deadline(op.hash, old);
-    // Redis treats an already elapsed absolute SET deadline as set-then-expire: the old value is
+    // Redis treats an already elapsed (now > at) SET deadline as set-then-expire: the old value is
     // removed, no dead replacement is left for DBSIZE/active expiry, and GET (if requested) keeps
-    // the reply copied above. Relative EX/PX cannot reach here with a non-future deadline.
-    if (expire >= 0 && expire <= sh.now_ms()) {
+    // the reply copied above (never EX/PX). A deadline equal to now stays live until the next ms.
+    if (expire >= 0 && expire < sh.now_ms()) {
         if (old) sh.store_erase<kNotify>(op.hash, op.key());
         else if constexpr (kNotify)
             notify_record(sh, op, NOTIFY_GENERIC, NotifyEventId::Del, op.key());
@@ -522,7 +522,7 @@ void cmd_set<false>(Shard& sh, Op& op) {
     int64_t expire = options.expire_at_ms;
     const bool reserve_ttl_slot = options.keep_ttl && old && old->has_ttl_slot();
     if (options.keep_ttl && old) expire = sh.store().deadline(op.hash, old);
-    if (expire >= 0 && expire <= sh.now_ms()) {
+    if (expire >= 0 && expire < sh.now_ms()) {  // elapsed only: Redis serves at now == at
         if (old) sh.store().erase(op.hash, op.key());
         if (!options.get) reply_ok(op.sink());
         return;

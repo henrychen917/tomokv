@@ -3095,7 +3095,7 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
             return false;
         }
         if (kind == AofRecordKind::Del || kind == AofRecordKind::GroupDel ||
-            (expire >= 0 && expire <= now)) {
+            (expire >= 0 && expire < now)) {
             shard.store().erase(hash, key);
             continue;
         }

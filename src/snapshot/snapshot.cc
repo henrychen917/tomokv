@@ -1107,7 +1107,7 @@ bool snapshot_load_shard(const SnapshotLoadPlan& plan, Server& server, Shard& sh
         const Slice payload(reinterpret_cast<const char*>(section.data() + pos),
                             static_cast<uint32_t>(payload_len));
         pos += static_cast<size_t>(payload_len);
-        if (expire >= 0 && expire <= now) continue;
+        if (expire >= 0 && expire < now) continue;  // Redis rdbLoad: expiretime < now
         const uint64_t hash = FlatStore::hash_key(key);
         if (server.router().shard_of(hash) != shard.id()) {
             error = "snapshot key is in the wrong shard section";

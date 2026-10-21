@@ -1108,7 +1108,7 @@ private:
                 }
                 if (flags & KvObjFlags::HasTtl) {
                     const int64_t deadline = object->read_local_expire_at_ms(flags);
-                    if (deadline >= 0 && deadline <= command_now_ms) {
+                    if (deadline >= 0 && deadline < command_now_ms) {  // Redis: now > at
                         read_local_clear_reply(op);
                         return {ReadLocalFallbackReason::Expired};
                     }
@@ -1205,7 +1205,7 @@ private:
             }
             if (flags & KvObjFlags::HasTtl) {
                 const int64_t deadline = object->read_local_expire_at_ms(flags);
-                if (deadline >= 0 && deadline <= cached_now_ms_) {
+                if (deadline >= 0 && deadline < cached_now_ms_) {  // Redis: now > at
                     read_local_clear_reply(op);
                     return {ReadLocalFallbackReason::Expired};
                 }
