@@ -19,7 +19,7 @@ def reason(r):
     if 'parse_and_dispatch<' in name:
         why = 'N3 pre-AUTH error exit and N4 cold frontier guard'
         if r['headline_changed_since_lane_base']:
-            why += '; composed with wave3 dispatcher edits (read-local demotion / scatter prebuild)'
+            why += '; composed with mkfix2 scatter-reply marker (-6) in inlined release_op; associated inlining/codegen'
     elif 'resp_preauth_error(' in name:
         why = 'N3 cold pre-AUTH error classifier'
     elif 'IoLoop::epoll_recv(' in name:

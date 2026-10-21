@@ -56,7 +56,9 @@ def main():
                 for engine in ("uring", "epoll") for n in (3, 4)}
     expected |= {f"{mode}-epoll N1: rc=1" for mode in ("1s", "2s")}
     expected |= {f"{mode}-uring N2: rc=1" for mode in ("1s", "2s")}
-    assert expected <= set(pre_rows), pre_rows
+    expected |= {f"{mode}-uring N1: rc=0" for mode in ("1s", "2s")}
+    expected |= {f"{mode}-epoll N2: rc=0" for mode in ("1s", "2s")}
+    assert expected == set(pre_rows), pre_rows
     assert all(not r["returncode"] for r in rows), rows
 
 

@@ -1,0 +1,66 @@
+{
+  "python_files": [
+    "docs/ntfix/ntfix4/identity.py",
+    "docs/ntfix/ntfix4/audits.py",
+    "docs/ntfix/ntfix4/production.py",
+    "docs/ntfix/ntfix4/runtime.py",
+    "docs/ntfix/ntfix4/budget.py",
+    "docs/ntfix/ntfix4/ledger_check.py",
+    "docs/ntfix/ntfix4/frontier_control.py",
+    "docs/ntfix/ntfix4/differ.py"
+  ],
+  "expect_unchanged": [
+    "EXPECT_QUICK=665",
+    "EXPECT_FULL=682                 # ABBA reports only; self-test remains counted."
+  ],
+  "row_lines": [
+    [
+      331,
+      "# ntfix N1-N4: DQ=+4, DF=+4; all four rows are collected before the quick exit."
+    ],
+    [
+      1908,
+      "row_begin \"INFO received bytes exact (ntfix N1)\""
+    ],
+    [
+      1919,
+      "[ \"$compatible\" = 1 ] && ok \"INFO received bytes exact (ntfix N1)\" \\"
+    ],
+    [
+      1920,
+      "|| bad \"INFO received bytes exact (ntfix N1)\" \"see $TMPDIR/ntfix-input-*.txt\""
+    ],
+    [
+      3341,
+      "row_begin \"TLS silent-peer close after reply (ntfix N2)\""
+    ],
+    [
+      3352,
+      "[ \"$compatible\" = 1 ] && ok \"TLS silent-peer close after reply (ntfix N2)\" \\"
+    ],
+    [
+      3353,
+      "|| bad \"TLS silent-peer close after reply (ntfix N2)\" \"see $TMPDIR/ntfix-close-*.txt\""
+    ],
+    [
+      3358,
+      "for ntfix_case in \"preauth-RESP pre-AUTH limit errors (ntfix N3)\" \\"
+    ],
+    [
+      3359,
+      "\"frontier-RESP query-buffer frontier (ntfix N4)\"; do"
+    ],
+    [
+      3910,
+      "collect_job ntfix_input"
+    ],
+    [
+      3997,
+      "collect_job tls"
+    ],
+    [
+      4047,
+      "if [ \"$TIER\" = quick ]; then"
+    ]
+  ]
+}
