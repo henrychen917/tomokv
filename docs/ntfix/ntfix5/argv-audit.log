@@ -1,0 +1,1 @@
+PASS: all 15 tlsboot invocations captured; 9 byte-identical; 6 fused calls lose only --ratio 6:2
