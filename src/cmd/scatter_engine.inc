@@ -2401,7 +2401,7 @@ void script_clear_attempt(ScatterState& state, Op& op) {
     }
     state.script_staged_bytes.store(0, std::memory_order_relaxed);
     state.script_conflict.store(false, std::memory_order_relaxed);
-    notify_discard_batch(state.notify.exchange(nullptr));
+    notify_discard_speculative(state.notify);
 }
 
 uint32_t script_select_positions(ScatterState& state, ScriptPhase phase) {
@@ -3691,7 +3691,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 if (state.aborted.load(std::memory_order_acquire)) {
                     server.note_script_abort_oom();
                     script_engine_error_reply(op, state, state.final_error);
-                    notify_discard_batch(state.notify.exchange(nullptr));
+                    notify_discard_speculative(state.notify);
                     state.script_apply_after_unpin = false;
                     state.script_commit_after_unpin = false;
                     if (!launch(ScriptPhase::Unpin)) return outcome;
@@ -3730,7 +3730,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     server.note_script_giveup();
                     op.clear_reply();
                     reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                    notify_discard_batch(state.notify.exchange(nullptr));
+                    notify_discard_speculative(state.notify);
                     state.script_apply_after_unpin = false;
                     state.script_commit_after_unpin = false;
                     if (!launch(ScriptPhase::Unpin)) return outcome;
@@ -3764,7 +3764,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     server.note_script_giveup();
                     op.clear_reply();
                     reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                    notify_discard_batch(state.notify.exchange(nullptr));
+                    notify_discard_speculative(state.notify);
                     state.script_apply_after_unpin = false;
                     state.script_commit_after_unpin = false;
                     if (!launch(ScriptPhase::Unpin)) return outcome;
@@ -3818,7 +3818,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     else server.note_script_abort_oom();
                     state.aborted.store(true, std::memory_order_release);
                     aof_abort_scatter_group(state);
-                    notify_discard_batch(state.notify.exchange(nullptr));
+                    notify_discard_speculative(state.notify);
                     if (state.script_ticket_live) {
                         server.atomic_commit_publish();
                         state.script_ticket_live = false;

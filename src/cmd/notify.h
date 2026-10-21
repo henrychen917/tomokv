@@ -6,6 +6,7 @@
 // publication remain out of line.
 #pragma once
 
+#include <atomic>
 #include <cstdint>
 #include <deque>
 #include <memory>
@@ -197,6 +198,8 @@ inline bool notify_record_keyless(ShardLike& shard, uint32_t cls,
     if (!routes) return save_observed;
     return notify_record_keyless_slow(shard, routes, cls, event, key);
 }
+// A NotPossible overwrite probe can reap before insert_notify sees the old key.
+void notify_overwrite_expiry(Shard& shard, uint64_t expired_before, Slice key);
 bool notify_flat_enabled(void* shard, uint32_t cls);
 void notify_flat_emit(void* shard, uint32_t cls, NotifyEventId event, Slice key);
 void notify_bind_flat_store(const FlatStore* store, FlatNotifySink* sink);
@@ -218,6 +221,7 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
 NotifyBatch* notify_take_batch(Op& op);
 void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer_id = 0);
 void notify_discard_batch(NotifyBatch* batch);
+void notify_discard_speculative(std::atomic<NotifyBatch*>& slot);
 void notify_abort_op(Op& op);
 void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state);
 

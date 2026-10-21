@@ -187,11 +187,17 @@ StoreResult store_string_notify(Shard& sh, Slice key, uint64_t hash, Slice value
         return map_insert_notify(sh, hash, replacement);
     }
     if (expire_at_ms < 0 && !reserve_ttl_slot) {
+        // The overwrite probe uses find_without_touch and can physically reap an
+        // expired value before insert_notify sees it. Observe its physical count
+        // only on NotPossible: Updated/OOM can expire other keys during admission.
+        // The original probe retains its lookup and eviction-policy touch count.
+        const uint64_t expired_before = sh.stats().expired;
         const FlatStore::OverwriteResult overwritten =
             sh.store_try_overwrite<true>(hash, key, value);
         if (overwritten == FlatStore::OverwriteResult::Updated) return StoreResult::Stored;
         if (overwritten == FlatStore::OverwriteResult::MaxmemoryOom)
             return StoreResult::MaxmemoryOom;
+        notify_overwrite_expiry(sh, expired_before, key);
     }
     KvObj* replacement = sh.store().make_set_string(
         key, value, expire_at_ms, reserve_ttl_slot);

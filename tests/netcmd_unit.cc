@@ -26,6 +26,7 @@ void operator delete[](void* ptr) noexcept { std::free(ptr); }
 void operator delete[](void* ptr, size_t) noexcept { std::free(ptr); }
 
 #include "hexpire_oom_checks.inc"
+#include "notify_order_checks.inc"
 
 namespace tomo {
 struct NetcmdRegression {
@@ -64,6 +65,7 @@ struct NetcmdRegression {
         }
     };
     static void notify_oom() {
+        check_notify_order_failures();
         Server server;
         auto chain = std::make_unique<PubSubNotificationChain>();
         chain->items.push_back(PubSubNotificationItem{"channel", "message"});
