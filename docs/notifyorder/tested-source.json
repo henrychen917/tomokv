@@ -1,0 +1,17 @@
+{
+  "base": "8656f9fa924fc06aa128504fca8aa99436aa9e41",
+  "files": {
+    "Makefile": "0e82767ff318598e7370ae8372f495715844cf9f81dd8d61867a310e1aa0aec9",
+    "src/cmd/notify.h": "8905d3731e34d782b392bfe1384282b8afe24fa5e8fd3412999dff35e0f24bd9",
+    "src/cmd/notify.inc": "20d9a69789e5c21b33c2371ffa158841d50c158947fc00c887e567cb2ac377d9",
+    "src/cmd/scatter_engine.inc": "f7cd60a5d6da5d2c5bfcc69dfd1e5a9f7566f5ece0d8a65a137ad8e5aaefa754",
+    "src/cmd/t_string.cc": "548be2f08b479d0942e4b7cc10ff9ca947e8c96c7b429fa4d5aba36f8b110ec4",
+    "src/persist/aof.cc": "f2dd693972a7b944f84029105dd1047f61d0691dcbf12ea3f93ef5557d2c3c13",
+    "tests/fixtures/nullrefresh-ledger-labels.json": "08ce1b1111f84628e207209b1aee77a069f674c31ff334b8c0e13f4b4e57c1f0",
+    "tests/gate.sh": "bea2f28f581fb7f79764eaad4b5d9096c715d1ceb8fdb0df87083053d747d9a1",
+    "tests/netcmd_unit.cc": "544a96b66b840d27daee90eac7c4272ef9bf33f460e251c8673cdf2e403015a8",
+    "tests/notify_order.py": "930b9776547188d1c5350e02d2e997b1b74d28756a2a62b2dbf26f49b90d5ecd",
+    "tests/notify_order_checks.inc": "82c02904cb2d1d288771f8a4fe427c6588bba1b183aea3400f24d6fac044453d"
+  },
+  "purpose": "Production and test content used by the final proof; commit organization preserves these bytes."
+}
