@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "commands": {
+    "CONFIG": 41,
+    "DEL": 39,
+    "HDEL": 520,
+    "HSET": 522,
+    "OBJECT": 2677,
+    "SADD": 694,
+    "SREM": 666,
+    "ZADD": 138,
+    "ZREM": 136
+  },
+  "kinds": {
+    "CONFIG": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "HDEL": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "OBJECT": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SREM": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZREM": [
+      "reply"
+    ]
+  }
+}
