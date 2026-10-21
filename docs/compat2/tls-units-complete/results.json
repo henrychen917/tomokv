@@ -1,0 +1,67 @@
+[
+  {
+    "name": "keyupdate-unit-rx-policy",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate-unit",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "rx-policy"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "keyupdate-unit-tls12",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate-unit",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "tls12"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "keyupdate-unit-userspace",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate-unit",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "userspace"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "keyupdate-unit-tx-rekey",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate-unit",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "tx-rekey"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "keyupdate-unit-tx-failure",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate-unit",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "tx-failure"
+    ],
+    "env": null,
+    "returncode": 0
+  }
+]

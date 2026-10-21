@@ -15,7 +15,7 @@ from compat2_support import save, server
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('part', choices=('rows', 'differ', 'tls', 'units', 'selftest', 'identity'))
+    p.add_argument('part', choices=('rows', 'differ', 'tls', 'tls-units', 'units', 'selftest', 'identity'))
     p.add_argument('--label', default='')
     a = p.parse_args()
     out = ROOT / 'docs/compat2' / (a.part + a.label)
@@ -39,6 +39,9 @@ def main():
     pre = ROOT / 'build/compat2/pre-source/build/tomokv'
     oracle = '/home/user/Projects/redis74/src/redis-server'
     certs = ROOT / 'build/compat2/certs'
+    def keyupdate_units():
+        for case in ('rx-policy', 'tls12', 'userspace', 'tx-rekey', 'tx-failure'):
+            run('keyupdate-unit-' + case, ['build/ktls-keyupdate-unit', certs, case])
     if a.part == 'rows':
         for arm, image in (('pre', pre), ('post', binary)):
             for case in ('autharity', 'expire_notify', 'ktls_lifetime'):
@@ -67,6 +70,8 @@ def main():
                         GATE_DIFFER_ORACLE_CORES='72', GATE_DIFFER_GEOMETRY=geometry,
                         GATE_DIFFER_OUT=str(out / name), GATE_DIFFER_HISTORY=str(out / 'history'),
                         GATE_RUN_ID='compat2-' + name))
+    elif a.part == 'tls-units':
+        keyupdate_units()
     elif a.part == 'tls':
         for mode in ('1s', '2s'):
             for engine in ('epoll', 'uring'):
@@ -88,7 +93,7 @@ def main():
                         if auth == 'optional':
                             for kind in ('tx', 'userspace'):
                                 run(name + '-' + kind, ['build/ktls-keyupdate', '127.0.0.1', '26821', kind])
-        run('keyupdate-unit', ['build/ktls-keyupdate-unit'])
+        keyupdate_units()
     elif a.part == 'units':
         body = (ROOT / 'tests/gate.sh').read_text().split('job_production_units(){', 1)[1].split('\n}', 1)[0]
         targets = re.findall(r'build/[\w-]+', body.split('>"$TMPDIR/build.log"', 1)[0])

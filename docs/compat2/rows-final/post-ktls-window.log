@@ -1,3 +1,0 @@
-mode=2s live=0 ktls=0 tls_closed=1 retained=1
-mode=1s live=0 ktls=0 tls_closed=1 retained=1
-PASS kTLS socket lifetime accounting

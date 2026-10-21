@@ -1,8 +1,0 @@
-autharity: commands=245 comparisons=1522 failures=228
-Traceback (most recent call last):
-  File "/home/user/Projects/cx-compat2/tests/autharity.py", line 113, in <module>
-    run(p.parse_args())
-  File "/home/user/Projects/cx-compat2/tests/autharity.py", line 105, in run
-    assert not failures, failures[:5]
-           ^^^^^^^^^^^^
-AssertionError: [{'command': 'acl', 'kind': 'right', 'argv': ['acl', 'compat2-invalid'], 'authenticated': False, 'restricted_user': False, 'target': b'-NOAUTH Authentication required.\r\n', 'oracle': b"-ERR unknown subcommand 'compat2-invalid'. Try ACL HELP.\r\n"}, {'command': 'acl', 'kind': 'right', 'argv': ['acl', 'compat2-invalid'], 'authenticated': True, 'restricted_user': True, 'target': b"-NOPERM User compat2 has no permissions to run the 'acl' command\r\n", 'oracle': b"-ERR unknown subcommand 'compat2-invalid'. Try ACL HELP.\r\n"}, {'command': 'acl|cat', 'kind': 'right', 'argv': ['acl', 'cat'], 'authenticated': True, 'restricted_user': True, 'target': b"-NOPERM User compat2 has no permissions to run the 'acl' command\r\n", 'oracle': b"-NOPERM User compat2 has no permissions to run the 'acl|cat' command\r\n"}, {'command': 'acl|load', 'kind': 'right', 'argv': ['acl', 'load'], 'authenticated': True, 'restricted_user': True, 'target': b"-NOPERM User compat2 has no permissions to run the 'acl' command\r\n", 'oracle': b"-NOPERM User compat2 has no permissions to run the 'acl|load' command\r\n"}, {'command': 'acl|load', 'kind': 'wrong', 'argv': ['acl', 'load', 'compat2-invalid'], 'authenticated': False, 'restricted_user': False, 'target': b'-NOAUTH Authentication required.\r\n', 'oracle': b"-ERR wrong number of arguments for 'acl|load' command\r\n"}]

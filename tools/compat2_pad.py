@@ -52,6 +52,10 @@ def main():
             if not match or '[clone .cold]' in match[3]:
                 continue
             name, address = match[3], int(match[1], 16)
+            # Preserve CET's indirect-branch landing pad when one is present.
+            # The replacement still occupies existing body bytes only.
+            if original[offset(address, 4):offset(address, 4) + 4] == bytes.fromhex('f30f1efa'):
+                address += 4
             if '::auth_noauth_error(' in name:
                 literals = []
                 for q in loads:

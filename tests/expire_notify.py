@@ -104,19 +104,30 @@ def run(a):
                 assert c.cmd('MGET', ka, kb) == [b'new', b'new']
                 assert c.cmd('PTTL', ka) == -1 and c.cmd('PTTL', kb) == -1
 
-        # A separate ordinary expired key proves the x notification was really armed.
-        assert c.cmd('SET', ka, 'live', 'PX', 100) == b'OK'
-        deadline = c.cmd('PEXPIRETIME', ka)
-        assert c.cmd('GET', ka) == b'live', 'positive expiry control missed its live arm'
+        # Isolate each class: expired uses the existing keyless transport while
+        # keymiss rides the command batch. Their relative delivery order is a
+        # separate PRE concern (docs/compat2/notification_order.py).
+        positive = ka + ':positive'
+        assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', 'Ex') == b'OK'
+        events(sub)
+        assert c.cmd('SET', positive, 'live', 'PX', 100) == b'OK'
+        deadline = c.cmd('PEXPIRETIME', positive)
+        assert c.cmd('GET', positive) == b'live', 'positive expiry control missed its live arm'
         while time.time_ns() // 1000000 <= deadline + 20:
             time.sleep(.002)
         before = stats(c)
         events(sub)
-        assert c.cmd('GET', ka) is None
-        required = [sub.read(), sub.read()]
-        assert required == [[b'message', b'__keyevent@0__:expired', ka.encode()],
-                            [b'message', b'__keyevent@0__:keymiss', ka.encode()]], required
+        assert c.cmd('GET', positive) is None
+        required = [sub.read()]
+        assert required == [[b'message', b'__keyevent@0__:expired', positive.encode()]], required
         assert stats(c)['expired_keys'] == before['expired_keys'] + 1
+        assert events(sub) == [], 'ordinary expiry emitted extra events'
+        assert c.cmd('CONFIG', 'SET', 'notify-keyspace-events', 'Em') == b'OK'
+        assert c.cmd('GET', positive) is None
+        missed = sub.read()
+        assert missed == [b'message', b'__keyevent@0__:keymiss', positive.encode()], missed
+        required.append(missed)
+        assert events(sub) == [], 'ordinary miss emitted extra events'
         receipt.append(dict(positive_control=required))
         save(a.output / 'results.json', receipt)
     print('expire_notify: held MSET and expiring RENAME, plus real expiry control PASS')

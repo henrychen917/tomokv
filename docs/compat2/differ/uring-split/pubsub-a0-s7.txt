@@ -1,1 +1,0 @@
-DIFFER pubsub: 4198 logical ops, 25486 checks, 0 diffs -> PASS

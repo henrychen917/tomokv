@@ -1,0 +1,11 @@
+{
+  "kind": "A: PRE behavior in POST layout",
+  "all_section_headers_equal": true,
+  "all_symbol_addresses_sizes_equal": true,
+  "changed_sections": [
+    ".text"
+  ],
+  "changed_bytes": 58,
+  "post_sha256": "b8a21b0f8e880877b46a71b27e89a86ee5071c766da459417d773ba8a52c0596",
+  "pad_sha256": "5c830403b32304512fe6b72ecf8d5d47e4e5f506cd7e294101798acc78b94ac1"
+}

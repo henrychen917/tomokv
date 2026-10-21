@@ -1,2 +1,0 @@
-  multidb DBSIZE properties: exact_positions=290 publication_polls=1 publication_ms=0.103 published=1 exact=1 converged=True
-DIFFER multidb: 5419 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS

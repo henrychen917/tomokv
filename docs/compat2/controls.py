@@ -8,9 +8,9 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
 p = argparse.ArgumentParser(description=__doc__)
-p.add_argument('--label', default='-final')
-p.add_argument('--rows-label', default='-final')
-p.add_argument('--mset-post', default='build/compat2/mset-post/tomokv')
+p.add_argument('--label', default='-complete')
+p.add_argument('--rows-label', default='-complete')
+p.add_argument('--mset-post', default='build/compat2/mset-post-complete/tomokv')
 a = p.parse_args()
 OUT = ROOT / ('docs/compat2/controls' + a.label)
 OUT.mkdir(parents=True, exist_ok=False)
