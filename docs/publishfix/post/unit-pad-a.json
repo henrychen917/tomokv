@@ -1,0 +1,38 @@
+{
+  "kind": "A: behaviour twin",
+  "source": "build/publishfix-unit",
+  "output": "build/publishfix/unit-pad-a",
+  "source_sha256": "a81c294734e2dd1ce3d6b54b7ed61f8f810e76766fbcf4d3a0ebfe34262e333c",
+  "output_sha256": "c909ebcb39b20573b40cc8fff6be1d37181ec33dea3bb7027423ab614a5a0e76",
+  "changes": [
+    {
+      "function": "000000000002e810 <_ZZN12_GLOBAL__N_111overlappingEjENUlRN4tomo6ServerEE_4_FUNES2_>:",
+      "location": "/home/user/Projects/cx-publishfix/./src/core/server.h:2598",
+      "address": "0x2e8ce",
+      "offset": 190670,
+      "before": "7390",
+      "after": "eb90",
+      "instruction": "2e8ce:\t73 90                \tjae    2e860 <_ZZN12_GLOBAL__N_111overlappingEjENUlRN4tomo6ServerEE_4_FUNES2_+0x50>"
+    },
+    {
+      "function": "000000000002ed40 <_ZN4tomo6Server21atomic_commit_publishEv>:",
+      "location": "/home/user/Projects/cx-publishfix/./src/core/server.h:2598",
+      "address": "0x2ed93",
+      "offset": 191891,
+      "before": "720b",
+      "after": "9090",
+      "instruction": "2ed93:\t72 0b                \tjb     2eda0 <_ZN4tomo6Server21atomic_commit_publishEv+0x60>"
+    },
+    {
+      "function": "0000000000068840 <_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE>:",
+      "location": "/home/user/Projects/cx-publishfix/src/cmd/../core/server.h:2598",
+      "address": "0x68a0c",
+      "offset": 428556,
+      "before": "0f82fe010000",
+      "after": "909090909090",
+      "instruction": "68a0c:\t0f 82 fe 01 00 00    \tjb     68c10 <_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE+0x3d0>"
+    }
+  ],
+  "sections_and_symbols_identical": true,
+  "residual_work": "POST sequence recheck load and comparison remain; catch-up disabled"
+}

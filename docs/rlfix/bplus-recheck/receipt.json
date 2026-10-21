@@ -1,0 +1,58 @@
+[
+  {
+    "arm": "PRE",
+    "mode": "1s",
+    "exit_code": 0,
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "python3",
+      "tests/bplus.py",
+      "127.0.0.1",
+      "25610"
+    ]
+  },
+  {
+    "arm": "PRE",
+    "mode": "2s",
+    "exit_code": 0,
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "python3",
+      "tests/bplus.py",
+      "127.0.0.1",
+      "25610"
+    ]
+  },
+  {
+    "arm": "POST",
+    "mode": "1s",
+    "exit_code": 0,
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "python3",
+      "tests/bplus.py",
+      "127.0.0.1",
+      "25610"
+    ]
+  },
+  {
+    "arm": "POST",
+    "mode": "2s",
+    "exit_code": 0,
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "python3",
+      "tests/bplus.py",
+      "127.0.0.1",
+      "25610"
+    ]
+  }
+]

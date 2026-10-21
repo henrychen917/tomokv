@@ -1,0 +1,5 @@
+t_hash src 27100 outside-read 20 bytes 16277
+t_hash src 27000 outside-read 25 bytes 19818
+t_hash src 27300 outside-read 12 bytes 8940
+t_hash src 27200 outside-read 17 bytes 11900
+t_hash src 27400 outside-read 9 bytes 6784

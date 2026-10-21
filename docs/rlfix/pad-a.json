@@ -1,0 +1,43 @@
+{
+  "kind": "A: behaviour twin",
+  "source": "build/tomokv",
+  "output": "build/rlfix/pad-a/tomokv",
+  "post_sha256": "d3880ba6d766c80b0b296c5eb99590d8c25b0f02a32aeefdf234ca55077a97a6",
+  "pad_sha256": "63715fbe03430c2b86ab8abfa3caab062b8bf858c4bcdeb124c6913aaabf87be",
+  "sections_symbols_and_sizes_identical": true,
+  "changes_confined_to_four_text_ranges": true,
+  "patches": [
+    {
+      "symbol": "_ZN4tomo6IoLoop21ReadLocalDemotionPlan7prepareERS0_PNS_6ClientEmbiNS_23ReadLocalFallbackReasonEbPKmPKS5_jPKNS_2OpEb",
+      "function_offset": 230,
+      "file_offset": 6866614,
+      "before": "0f85a4000000",
+      "after": "e9a500000090",
+      "purpose": "Skip the new DEL/UNLINK refinement; keep staged broad generation"
+    },
+    {
+      "symbol": "_ZN4tomo7ExLoopTILb1EE18prepare_local_readERNS_2OpEPNS_9FlatStoreEbPKNS4_24ReadLocalPrefetchCaptureE",
+      "function_offset": 352,
+      "file_offset": 6946400,
+      "before": "48b800000000ffffffffc6431d0048c7432800000000c783bc00000000000000488983b0000000498b86d8160000c783a40000000000000048c783a8000000000000004885c0740a807823000f85fe0200004180bd",
+      "after": "48b800000000ffffffff48c7432800000000c6431d00c783bc00000000000000c783a40000000000000048c783a800000000000000488983b0000000c68424900000000a48c784249400000000000000e96bffffff",
+      "purpose": "Missing returns the PRE fallback after clearing the reply"
+    },
+    {
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE18prepare_local_readERNS_2OpEPNS_9FlatStoreEbPKNS4_24ReadLocalPrefetchCaptureE",
+      "function_offset": 352,
+      "file_offset": 3208112,
+      "before": "48b800000000ffffffffc6431d0048c7432800000000c783bc00000000000000488983b0000000498b86d8160000c783a40000000000000048c783a8000000000000004885c0740a807823000f85fe0200004180bd",
+      "after": "48b800000000ffffffff48c7432800000000c6431d00c783bc00000000000000c783a40000000000000048c783a800000000000000488983b0000000c68424900000000a48c784249400000000000000e96bffffff",
+      "purpose": "Missing returns the PRE fallback after clearing the reply"
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop21ReadLocalDemotionPlan7prepareERS0_PNS_6ClientEmbiNS_23ReadLocalFallbackReasonEbPKmPKS5_jPKNS_2OpEb",
+      "function_offset": 224,
+      "file_offset": 3126944,
+      "before": "0f859a000000",
+      "after": "e99b00000090",
+      "purpose": "Skip the new DEL/UNLINK refinement; keep staged broad generation"
+    }
+  ]
+}

@@ -1,0 +1,252 @@
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162334", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.e8694d31a9fa.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162786", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.e66a5bf17848.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162600", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.b93989e642b8.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162620", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.6480b2ac885a.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162640", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.0c83229353f2.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162660", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.6e795b329b5d.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162680", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.1dbfc3e41c5b.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162700", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.ff96c08ce1da.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162720", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.6e1f9cea997f.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162740", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.c998ab2421bb.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162760", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.944a4bbd4ed9.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162780", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.084f8b640884.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162800", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.014f4f9a865a.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162820", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.1b192122ed51.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162840", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.03726b5b48f3.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162860", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.0b4a15d112af.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162880", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.2965cad0e375.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162900", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.97449a3f69c1.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162920", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.a118f5cae013.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162940", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.935ba5e3b4e6.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162960", "unit": 109885, "changed": 35, "hot_changed": 11, "A": 31, "B": 4, "C": 0, "D": 0, "hotA": 7, "hotB": 4, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_core_rl2s.o.f14b4c5e9117.o"}
+    HOT B T=respresume code 21076->21259 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [c
+    HOT B T=respresume code 21218->21346 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT A T=respresume code 12061->12326 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT A T=respresume code 48->121 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clo
+    HOT B T=respresume code 21192->21304 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT A T=respresume code 63->143 lanes=respresume eq=respresume tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [cl
+    HOT B T=respresume code 21058->21344 lanes=respresume,mkfix eq=- tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    HOT A T=rlfix code 1848->2530 lanes=rlfix eq=rlfix tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::Re
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::Tl

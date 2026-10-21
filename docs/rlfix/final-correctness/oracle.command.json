@@ -1,0 +1,1 @@
+["taskset", "-c", "56", "/home/user/Projects/redis74/src/redis-server", "--port", "25611", "--bind", "127.0.0.1", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-rlfix/docs/rlfix/final-correctness", "--enable-debug-command", "yes", "--daemonize", "no"]

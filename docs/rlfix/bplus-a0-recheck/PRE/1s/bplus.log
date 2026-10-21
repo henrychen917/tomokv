@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-rlfix/tests/bplus.py", line 577, in <module>
+    main()
+  File "/home/user/Projects/cx-rlfix/tests/bplus.py", line 538, in main
+    raise AssertionError(
+AssertionError: B+ test needs CONFIG atomic=1, got b'0'

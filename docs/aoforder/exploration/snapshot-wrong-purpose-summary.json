@@ -1,0 +1,158 @@
+[
+  {
+    "label": "1s-db1-a0-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 7.196288678329438
+  },
+  {
+    "label": "1s-db1-a0-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 7.243167984765023
+  },
+  {
+    "label": "1s-db1-a1-uring",
+    "status": "FAIL",
+    "error": "['taskset', '-c', '105-107', 'python3', 'tests/snap_typed_race.py', '25730', 'race', '/home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/1s-db1-a1-uring/race/race.tomo']: exit 1; see /home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/1s-db1-a1-uring/race.log",
+    "seconds": 4.468644269742072
+  },
+  {
+    "label": "1s-db1-a1-epoll",
+    "status": "FAIL",
+    "error": "['taskset', '-c', '105-107', 'python3', 'tests/snap_typed_race.py', '25730', 'race', '/home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/1s-db1-a1-epoll/race/race.tomo']: exit 1; see /home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/1s-db1-a1-epoll/race.log",
+    "seconds": 4.479316281620413
+  },
+  {
+    "label": "1s-db16-a0-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 7.252136567141861
+  },
+  {
+    "label": "1s-db16-a0-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 7.197045623790473
+  },
+  {
+    "label": "1s-db16-a1-uring",
+    "status": "FAIL",
+    "error": "['taskset', '-c', '105-107', 'python3', 'tests/snap_typed_race.py', '25730', 'race', '/home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/1s-db16-a1-uring/race/race.tomo']: exit 1; see /home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/1s-db16-a1-uring/race.log",
+    "seconds": 4.470245647244155
+  },
+  {
+    "label": "1s-db16-a1-epoll",
+    "status": "FAIL",
+    "error": "['taskset', '-c', '105-107', 'python3', 'tests/snap_typed_race.py', '25730', 'race', '/home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/1s-db16-a1-epoll/race/race.tomo']: exit 1; see /home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/1s-db16-a1-epoll/race.log",
+    "seconds": 4.473884131759405
+  },
+  {
+    "label": "2s-db1-a0-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 7.16814934508875
+  },
+  {
+    "label": "2s-db1-a0-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 7.191694224253297
+  },
+  {
+    "label": "2s-db1-a1-uring",
+    "status": "FAIL",
+    "error": "['taskset', '-c', '105-107', 'python3', 'tests/snap_typed_race.py', '25730', 'race', '/home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/2s-db1-a1-uring/race/race.tomo']: exit 1; see /home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/2s-db1-a1-uring/race.log",
+    "seconds": 4.437821619678289
+  },
+  {
+    "label": "2s-db1-a1-epoll",
+    "status": "FAIL",
+    "error": "['taskset', '-c', '105-107', 'python3', 'tests/snap_typed_race.py', '25730', 'race', '/home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/2s-db1-a1-epoll/race/race.tomo']: exit 1; see /home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/2s-db1-a1-epoll/race.log",
+    "seconds": 4.470767756924033
+  },
+  {
+    "label": "2s-db16-a0-uring",
+    "status": "PASS",
+    "error": null,
+    "seconds": 7.120447577908635
+  },
+  {
+    "label": "2s-db16-a0-epoll",
+    "status": "PASS",
+    "error": null,
+    "seconds": 7.23159846290946
+  },
+  {
+    "label": "2s-db16-a1-uring",
+    "status": "FAIL",
+    "error": "['taskset', '-c', '105-107', 'python3', 'tests/snap_typed_race.py', '25730', 'race', '/home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/2s-db16-a1-uring/race/race.tomo']: exit 1; see /home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/2s-db16-a1-uring/race.log",
+    "seconds": 4.54390071099624
+  },
+  {
+    "label": "2s-db16-a1-epoll",
+    "status": "FAIL",
+    "error": "['taskset', '-c', '105-107', 'python3', 'tests/snap_typed_race.py', '25730', 'race', '/home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/2s-db16-a1-epoll/race/race.tomo']: exit 1; see /home/user/Projects/cx-aoforder/build/aoforder/proof-snapshot/2s-db16-a1-epoll/race.log",
+    "seconds": 4.574965772219002
+  },
+  {
+    "label": "shutdown-1s",
+    "status": "PASS",
+    "error": null,
+    "seconds": 2.501898910384625
+  },
+  {
+    "label": "savefix-acks-1s-sigterm",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.8106041797436774
+  },
+  {
+    "label": "savefix-acks-1s-command",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.026299717836082
+  },
+  {
+    "label": "savefix-bgsave-1s-0",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.0313296457752585
+  },
+  {
+    "label": "savefix-bgsave-1s-1",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.075885506812483
+  },
+  {
+    "label": "shutdown-2s",
+    "status": "PASS",
+    "error": null,
+    "seconds": 2.4891135059297085
+  },
+  {
+    "label": "savefix-acks-2s-sigterm",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.762638975866139
+  },
+  {
+    "label": "savefix-acks-2s-command",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.0323555478826165
+  },
+  {
+    "label": "savefix-bgsave-2s-0",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.1461105509661138
+  },
+  {
+    "label": "savefix-bgsave-2s-1",
+    "status": "PASS",
+    "error": null,
+    "seconds": 1.1240303106606007
+  }
+]

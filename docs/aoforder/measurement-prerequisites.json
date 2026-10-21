@@ -1,0 +1,10 @@
+{
+  "abba_threads": 8,
+  "reviewed_ratio": null,
+  "error": "no reviewed abba io:ex ratio for 8 server threads; record the measured geometry in gate_measurements.json, never derive it from a core range",
+  "requested_split_ratio": "6:2",
+  "requested_server_cores": "96-103",
+  "requested_load_cores": "105-111",
+  "aof_on_requires_owner_instrument_support": true,
+  "reason": "abbagate.py owns appendonly=no and rejects appendonly in srv="
+}

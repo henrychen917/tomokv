@@ -1,0 +1,98 @@
+[
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "python3",
+      "docs/hexpread/common.py",
+      "--binary",
+      "build/tomokv",
+      "--mode",
+      "1s",
+      "--atomic",
+      "0",
+      "--cores",
+      "96-103",
+      "--port",
+      "25803",
+      "--artifacts",
+      "docs/hexpread/common-1s-atomic0",
+      "--compare",
+      "docs/hexpread/common-oracle-resp3/common.json"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "python3",
+      "docs/hexpread/common.py",
+      "--binary",
+      "build/tomokv",
+      "--mode",
+      "1s",
+      "--atomic",
+      "1",
+      "--cores",
+      "96-103",
+      "--port",
+      "25803",
+      "--artifacts",
+      "docs/hexpread/common-1s-atomic1",
+      "--compare",
+      "docs/hexpread/common-oracle-resp3/common.json"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "python3",
+      "docs/hexpread/common.py",
+      "--binary",
+      "build/tomokv",
+      "--mode",
+      "2s",
+      "--atomic",
+      "0",
+      "--cores",
+      "96-103",
+      "--port",
+      "25803",
+      "--artifacts",
+      "docs/hexpread/common-2s-atomic0",
+      "--compare",
+      "docs/hexpread/common-oracle-resp3/common.json"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "python3",
+      "docs/hexpread/common.py",
+      "--binary",
+      "build/tomokv",
+      "--mode",
+      "2s",
+      "--atomic",
+      "1",
+      "--cores",
+      "96-103",
+      "--port",
+      "25803",
+      "--artifacts",
+      "docs/hexpread/common-2s-atomic1",
+      "--compare",
+      "docs/hexpread/common-oracle-resp3/common.json"
+    ],
+    "exit_code": 0
+  }
+]

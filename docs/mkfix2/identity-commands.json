@@ -1,0 +1,104 @@
+{
+  "a": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "32-47",
+        "python3",
+        "tools/lbstall_artifacts.py",
+        "compare",
+        "build/mkfix2/pre",
+        "build/mkfix2/a",
+        "docs/mkfix2/a-hot.json"
+      ],
+      "exit": 1,
+      "log": "build/mkfix2/a-hot.log",
+      "archived_log": "docs/mkfix2/a-hot.log.gz",
+      "archived_output": "docs/mkfix2/a-hot.json.gz"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "32-47",
+        "python3",
+        "docs/deadswitch/linked_bytes.py",
+        "build/mkfix2/pre/tomokv",
+        "build/mkfix2/a/tomokv",
+        "docs/mkfix2/a-linked.json"
+      ],
+      "exit": 1,
+      "log": "build/mkfix2/a-linked.log",
+      "archived_log": "docs/mkfix2/a-linked.log.gz"
+    }
+  ],
+  "ab": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "32-47",
+        "python3",
+        "tools/lbstall_artifacts.py",
+        "compare",
+        "build/mkfix2/pre",
+        "build/mkfix2/ab",
+        "docs/mkfix2/ab-hot.json"
+      ],
+      "exit": 1,
+      "log": "build/mkfix2/ab-hot.log",
+      "archived_log": "docs/mkfix2/ab-hot.log.gz",
+      "archived_output": "docs/mkfix2/ab-hot.json.gz"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "32-47",
+        "python3",
+        "docs/deadswitch/linked_bytes.py",
+        "build/mkfix2/pre/tomokv",
+        "build/mkfix2/ab/tomokv",
+        "docs/mkfix2/ab-linked.json"
+      ],
+      "exit": 1,
+      "log": "build/mkfix2/ab-linked.log",
+      "archived_log": "docs/mkfix2/ab-linked.log.gz"
+    }
+  ],
+  "abc": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "32-47",
+        "python3",
+        "tools/lbstall_artifacts.py",
+        "compare",
+        "build/mkfix2/pre",
+        "build/mkfix2/abc",
+        "docs/mkfix2/abc-hot.json"
+      ],
+      "exit": 1,
+      "log": "build/mkfix2/abc-hot.log",
+      "archived_log": "docs/mkfix2/abc-hot.log.gz",
+      "archived_output": "docs/mkfix2/abc-hot.json.gz"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "32-47",
+        "python3",
+        "docs/deadswitch/linked_bytes.py",
+        "build/mkfix2/pre/tomokv",
+        "build/mkfix2/abc/tomokv",
+        "docs/mkfix2/abc-linked.json"
+      ],
+      "exit": 1,
+      "log": "build/mkfix2/abc-linked.log",
+      "archived_log": "docs/mkfix2/abc-linked.log.gz"
+    }
+  ]
+}

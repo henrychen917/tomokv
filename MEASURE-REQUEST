@@ -28,3 +28,14 @@ Use tools/wbknobs_measure.py on the scheduled quiet box. The report specifies
 PMU diagnostics are separate --profile 1 runs, not acceptance evidence.
 No server, benchmark or gate was run by the lane. Gate inventory is +2/+2,
 504 quick / 521 full. Append measurements as MEASURE-RESULT.
+
+mkfix2 — three measured multi-key leads, committed parts ready for maintainer merit.
+See MEASURE-REQUEST-mkfix.md, section mkfix2, for 288 finite count boots, full
+focused correctness proof, the exact 52-cell request, PRE/A/AB/ABC SHA-256, and
+A-PAD (kind A: PRE behaviour with A's exact linked text layout). A still batches
+less than plain MSET; 40 hot-body differences are explicitly retained for merit.
+B/C clear arena overflow frees and abandoned prepares in the POST census.
+All layout locks and GET/SET handler bodies hold. DQ +0 / DF +0; 625 / 642 unchanged.
+Use CPUs 32-47 and ports 25500-25599. The current standalone ABBA catalog lacks
+the requested 8-core/16-shard shape; register/select the geometry before measuring.
+No throughput claims, full gate or push. Append quiet-box merit to MEASURE-RESULT.

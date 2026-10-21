@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 159, in <module>
+    main()
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 147, in main
+    rows = misses(args.host, args.port)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 114, in misses
+    counted(d, {
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 34, in counted
+    expect(d.get(key, 0), value, key)
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 29, in expect
+    assert actual == expected, f"{label}: got {actual!r}, wanted {expected!r}"
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: read_local_hits: got 0, wanted 1

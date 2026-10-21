@@ -1,0 +1,6 @@
+oracle rc=0
+fresh-oracle-equals-committed rc=0
+1s atomic=0 rc=0
+1s atomic=1 rc=0
+2s atomic=0 rc=0
+2s atomic=1 rc=0

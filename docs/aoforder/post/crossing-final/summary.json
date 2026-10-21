@@ -1,0 +1,418 @@
+[
+  {
+    "label": "1s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/post-scheduled-guard/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/crossing-final/1s-everysec-db1",
+      "--case",
+      "crossing",
+      "--mode",
+      "1s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "reloaded": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "restarted": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "1s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/post-scheduled-guard/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/crossing-final/1s-everysec-db16",
+      "--case",
+      "crossing",
+      "--mode",
+      "1s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "1s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/post-scheduled-guard/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/crossing-final/1s-always-db1",
+      "--case",
+      "crossing",
+      "--mode",
+      "1s",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "1s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/post-scheduled-guard/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/crossing-final/1s-always-db16",
+      "--case",
+      "crossing",
+      "--mode",
+      "1s",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "2s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/post-scheduled-guard/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/crossing-final/2s-everysec-db1",
+      "--case",
+      "crossing",
+      "--mode",
+      "2s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "2s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/post-scheduled-guard/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/crossing-final/2s-everysec-db16",
+      "--case",
+      "crossing",
+      "--mode",
+      "2s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "reloaded": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "restarted": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "2s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/post-scheduled-guard/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/crossing-final/2s-always-db1",
+      "--case",
+      "crossing",
+      "--mode",
+      "2s",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "reloaded": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "restarted": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "2s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/post-scheduled-guard/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/crossing-final/2s-always-db16",
+      "--case",
+      "crossing",
+      "--mode",
+      "2s",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "equal": true
+      }
+    ]
+  }
+]

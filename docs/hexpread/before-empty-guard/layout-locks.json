@@ -1,0 +1,53 @@
+{
+  "validation": "make all compiled these unmodified assertions",
+  "locks": [
+    {
+      "type": "Op",
+      "bytes": 336,
+      "source": "src/exec/op.h",
+      "line": 486
+    },
+    {
+      "type": "Client",
+      "bytes": 1984,
+      "source": "src/net/conn.h",
+      "line": 913
+    },
+    {
+      "type": "ThreadCtx",
+      "bytes": 1408,
+      "source": "src/core/thread.h",
+      "line": 1200
+    },
+    {
+      "type": "Shard",
+      "bytes": 1440,
+      "source": "src/core/shard.h",
+      "line": 559
+    },
+    {
+      "type": "FlatStore",
+      "bytes": 944,
+      "source": "src/store/flatstore.h",
+      "line": 3803
+    },
+    {
+      "type": "Rob<64>",
+      "bytes": 192,
+      "source": "src/net/rob.h",
+      "line": 1111
+    },
+    {
+      "type": "AtomicEntry",
+      "bytes": 144,
+      "source": "src/store/atomic_mvcc.h",
+      "line": 71
+    },
+    {
+      "type": "Config",
+      "bytes": 624,
+      "source": "src/core/config.h",
+      "line": 465
+    }
+  ]
+}

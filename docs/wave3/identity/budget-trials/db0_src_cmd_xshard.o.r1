@@ -1,0 +1,66 @@
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126566", "unit": 99104, "changed": 19, "hot_changed": 0, "A": 17, "B": 1, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.bef23685fe7f.o"}
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126645", "unit": 99104, "changed": 20, "hot_changed": 0, "A": 17, "B": 1, "C": 2, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.167a7267a00f.o"}
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126540", "unit": 99104, "changed": 25, "hot_changed": 0, "A": 17, "B": 1, "C": 6, "D": 1, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.9786a552a4cf.o"}
+    C T=new code 1422->1362 lanes=- eq=- tomo_db0::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo_db0:
+    C T=PRE code 127->117 lanes=- eq=- tomo_db0::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo_db0:
+    C T=new code 1297->1230 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=PRE code 90->86 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    D T=new code 6796->6780 lanes=mkfix eq=- tomo_db0::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126552", "unit": 99104, "changed": 22, "hot_changed": 0, "A": 17, "B": 1, "C": 4, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.6b62bd20180d.o"}
+    C T=new code 1297->1230 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=PRE code 90->86 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126564", "unit": 99104, "changed": 24, "hot_changed": 0, "A": 21, "B": 1, "C": 2, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.aecfc7afc1e7.o"}
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126576", "unit": 99104, "changed": 23, "hot_changed": 0, "A": 21, "B": 1, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.52ead18a10b5.o"}
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126588", "unit": 99104, "changed": 21, "hot_changed": 0, "A": 15, "B": 1, "C": 4, "D": 1, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.b80624a8f450.o"}
+    C T=new code 1297->1230 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=PRE code 90->86 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    D T=new code 6796->6780 lanes=mkfix eq=- tomo_db0::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126600", "unit": 99104, "changed": 19, "hot_changed": 0, "A": 15, "B": 1, "C": 3, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.48d65a407de1.o"}
+    C T=new code 1297->1230 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=PRE code 90->86 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126612", "unit": 99104, "changed": 21, "hot_changed": 0, "A": 19, "B": 1, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.04f1eb5aed72.o"}
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126624", "unit": 99104, "changed": 20, "hot_changed": 0, "A": 19, "B": 1, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.9f8ff25471d4.o"}
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126636", "unit": 99104, "changed": 18, "hot_changed": 0, "A": 13, "B": 1, "C": 4, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.5bcd65722bf9.o"}
+    C T=new code 1297->1230 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=PRE code 90->86 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126648", "unit": 99104, "changed": 15, "hot_changed": 0, "A": 13, "B": 1, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.687484b578ed.o"}
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126660", "unit": 99104, "changed": 14, "hot_changed": 0, "A": 13, "B": 1, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.54c02164ac74.o"}
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126672", "unit": 99104, "changed": 16, "hot_changed": 0, "A": 14, "B": 1, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.57fe2416f004.o"}
+    C T=new code 6055->6087 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126684", "unit": 99104, "changed": 17, "hot_changed": 0, "A": 17, "B": 0, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.3ec08a87c8fa.o"}
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126696", "unit": 99104, "changed": 23, "hot_changed": 0, "A": 17, "B": 1, "C": 5, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.9bcd0d1264ad.o"}
+    C T=new code 1297->1230 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=PRE code 90->86 lanes=- eq=- tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Image
+    C T=new code 1304->1404 lanes=- eq=- tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db
+    C T=new code 6055->6023 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126708", "unit": 99104, "changed": 16, "hot_changed": 0, "A": 13, "B": 1, "C": 2, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.ee6bb84cd02c.o"}
+    C T=new code 1304->1404 lanes=- eq=- tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db
+    C T=PRE code 5840->5851 lanes=- eq=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126720", "unit": 99104, "changed": 15, "hot_changed": 0, "A": 13, "B": 1, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.9ef01cee21ae.o"}
+    C T=new code 1304->1404 lanes=- eq=- tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126732", "unit": 99104, "changed": 17, "hot_changed": 0, "A": 14, "B": 1, "C": 2, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.23fd1d0c9d65.o"}
+    C T=new code 1304->1404 lanes=- eq=- tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db
+    C T=new code 6055->6087 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126744", "unit": 99104, "changed": 15, "hot_changed": 0, "A": 14, "B": 0, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.ac9de62d4991.o"}
+    C T=new code 1304->1404 lanes=- eq=- tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db
+{"object": "db0/src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=126756", "unit": 99104, "changed": 20, "hot_changed": 0, "A": 18, "B": 0, "C": 2, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/db0_src_cmd_xshard.o.69e946700757.o"}
+    C T=new code 1304->1404 lanes=- eq=- tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db
+    C T=new code 6055->6087 lanes=- eq=- tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)

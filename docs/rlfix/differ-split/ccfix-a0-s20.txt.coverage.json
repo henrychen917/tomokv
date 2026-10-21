@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "commands": {
+    "ACL": 3,
+    "AUTH": 1,
+    "BITOP": 28,
+    "CONFIG": 32,
+    "COPY": 12,
+    "DEL": 12,
+    "EVAL": 2,
+    "EXEC": 2,
+    "FLUSHALL": 1,
+    "GET": 9,
+    "INFO": 7,
+    "MULTI": 1,
+    "PING": 1,
+    "PUBLISH": 48,
+    "RPUSH": 1,
+    "SADD": 4,
+    "SDIFFSTORE": 12,
+    "SET": 4,
+    "SINTERSTORE": 12,
+    "SUBSCRIBE": 1,
+    "SUNIONSTORE": 12
+  },
+  "kinds": {
+    "ACL": [
+      "reply"
+    ],
+    "AUTH": [
+      "reply"
+    ],
+    "BITOP": [
+      "keymiss frames",
+      "reply"
+    ],
+    "CONFIG": [
+      "reply"
+    ],
+    "COPY": [
+      "keymiss frames",
+      "reply"
+    ],
+    "DEL": [
+      "keymiss frames",
+      "reply"
+    ],
+    "EVAL": [
+      "reply"
+    ],
+    "EXEC": [
+      "reply"
+    ],
+    "FLUSHALL": [
+      "reply"
+    ],
+    "GET": [
+      "keymiss frames",
+      "reply"
+    ],
+    "INFO": [
+      "commandstats counters"
+    ],
+    "MULTI": [
+      "reply"
+    ],
+    "PING": [
+      "reply"
+    ],
+    "PUBLISH": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SDIFFSTORE": [
+      "keymiss frames",
+      "reply"
+    ],
+    "SET": [
+      "keymiss frames",
+      "reply"
+    ],
+    "SINTERSTORE": [
+      "keymiss frames",
+      "reply"
+    ],
+    "SUBSCRIBE": [
+      "reply"
+    ],
+    "SUNIONSTORE": [
+      "keymiss frames",
+      "reply"
+    ]
+  }
+}

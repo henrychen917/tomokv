@@ -158,11 +158,12 @@ private:
                       int64_t expire_at_ms, uint64_t group, const uint8_t* payload,
                       uint64_t payload_len, const SnapshotTypeHooks* hooks,
                       SnapshotSaveCursor* cursor, AofOwnerContext* context);
-    bool emit(const uint8_t* bytes, uint64_t length, bool large, AofOwnerContext* context);
+    bool emit(const uint8_t* bytes, uint64_t length, bool large, AofOwnerContext* context,
+              uint64_t ticket);
     bool seal(uint32_t flags, AofOwnerContext* context);
     bool post_ready(AofOwnerContext& context);
     bool maybe_timestamp(int64_t now_ms, AofOwnerContext* context);
-    std::unique_ptr<AofChunk> make_chunk(uint32_t flags = 0);
+    std::unique_ptr<AofChunk> make_chunk(uint32_t flags = 0, uint64_t ticket = 0);
     std::unique_ptr<AofChunk> make_group_chunk(uint32_t flags = 0);
     bool group_emit(PendingGroup& group, const uint8_t* bytes, uint64_t length, bool large);
     bool group_seal(PendingGroup& group, uint32_t flags);
@@ -175,6 +176,7 @@ private:
                                       bool physical);
     bool make_ready(std::unique_ptr<AofChunk> chunk);
     bool resolve_groups();
+    uint64_t staging_ticket(AofRecordKind kind, uint8_t type, Slice key) const;
 
     AofManager* manager_ = nullptr;
     int32_t sid_ = -1;
@@ -324,7 +326,7 @@ public:
     void note_buffered(int32_t sid);
 
 private:
-    friend struct PersistFixTest;
+    friend struct PersistFixTest; friend class AofProducer;
     struct Completion { Op* op; Client* client; };
     struct CompletionBatch {
         std::vector<Completion> entries;

@@ -1,0 +1,36 @@
+[
+  {
+    "label": "1s-a1-0-miss",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "25610",
+      "--case",
+      "miss",
+      "--oracle-port",
+      "25611"
+    ],
+    "exit_code": 1
+  },
+  {
+    "label": "2s-a1-0-miss",
+    "command": [
+      "taskset",
+      "-c",
+      "57-63",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "25610",
+      "--case",
+      "miss",
+      "--oracle-port",
+      "25611"
+    ],
+    "exit_code": 1
+  }
+]

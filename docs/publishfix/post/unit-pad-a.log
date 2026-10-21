@@ -1,0 +1,4 @@
+FAIL publishfix: a quiescent bracket publishes every drawn ticket
+committers=2 safe=1 drawn=2 windows=1
+committers=3 safe=1 drawn=3 windows=2
+handoff safe=2 drawn=2 windows=1

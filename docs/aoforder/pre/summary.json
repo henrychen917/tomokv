@@ -1,0 +1,274 @@
+[
+  {
+    "mode": "1s",
+    "policy": "everysec",
+    "observations": [
+      {
+        "event": "arm",
+        "binary": "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+        "sha256": "97b29eda0c498dc471fa4f9cb91abc8f7e9e6dff45943dbdca1bf8edffe6e1f6",
+        "mode": "1s",
+        "policy": "everysec",
+        "databases": 16
+      },
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            4,
+            [
+              "aoforder:0",
+              4
+            ]
+          ],
+          [
+            3,
+            [
+              "aoforder:1",
+              11
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "stop",
+        "exit": 0,
+        "escalated": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "stop",
+        "exit": 0,
+        "escalated": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/1s-everysec"
+  },
+  {
+    "mode": "1s",
+    "policy": "always",
+    "observations": [
+      {
+        "event": "arm",
+        "binary": "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+        "sha256": "97b29eda0c498dc471fa4f9cb91abc8f7e9e6dff45943dbdca1bf8edffe6e1f6",
+        "mode": "1s",
+        "policy": "always",
+        "databases": 16
+      },
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            3,
+            [
+              "aoforder:0",
+              11
+            ]
+          ],
+          [
+            1,
+            [
+              "aoforder:2",
+              9
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "stop",
+        "exit": 0,
+        "escalated": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "stop",
+        "exit": 0,
+        "escalated": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/1s-always"
+  },
+  {
+    "mode": "2s",
+    "policy": "everysec",
+    "observations": [
+      {
+        "event": "arm",
+        "binary": "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+        "sha256": "97b29eda0c498dc471fa4f9cb91abc8f7e9e6dff45943dbdca1bf8edffe6e1f6",
+        "mode": "2s",
+        "policy": "everysec",
+        "databases": 16
+      },
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            7,
+            [
+              "aoforder:0",
+              13
+            ]
+          ],
+          [
+            6,
+            [
+              "aoforder:2",
+              0
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "stop",
+        "exit": 0,
+        "escalated": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "stop",
+        "exit": 0,
+        "escalated": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/2s-everysec"
+  },
+  {
+    "mode": "2s",
+    "policy": "always",
+    "observations": [
+      {
+        "event": "arm",
+        "binary": "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+        "sha256": "97b29eda0c498dc471fa4f9cb91abc8f7e9e6dff45943dbdca1bf8edffe6e1f6",
+        "mode": "2s",
+        "policy": "always",
+        "databases": 16
+      },
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            7,
+            [
+              "aoforder:0",
+              5
+            ]
+          ],
+          [
+            6,
+            [
+              "aoforder:1",
+              6
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "stop",
+        "exit": 0,
+        "escalated": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "stop",
+        "exit": 0,
+        "escalated": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/2s-always"
+  }
+]

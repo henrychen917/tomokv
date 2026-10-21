@@ -1,0 +1,6 @@
+integrated build rc=0
+integrated patched rltopo 1s rc=0 PASS rltopo 1s (demotions, zero retries, negative controls, arm transients)
+integrated patched rltopo 2s rc=0 PASS rltopo 2s (demotions, zero retries, negative controls, arm transients)
+base991 build rc=0
+base991 patched rltopo 1s rc=1 FAIL rltopo: readreply GET/missing: exact final fallback reason
+base991 patched rltopo 2s rc=1 FAIL rltopo: readreply GET/missing: exact final fallback reason

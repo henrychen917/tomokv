@@ -1,0 +1,429 @@
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129447", "unit": 102730, "changed": 60, "hot_changed": 17, "A": 35, "B": 3, "C": 18, "D": 4, "hotA": 7, "hotB": 2, "hotCD": 8, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.9e625db1b641.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT C T=new code 2889->2556 lanes=- eq=- unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()
+    HOT C T=new code 2889->2556 lanes=- eq=- unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT C T=new code 5052->5024 lanes=- eq=- void tomo::IoLoop::run_loop<false, true, false, true, false>()
+    HOT C T=new code 5116->5088 lanes=- eq=- void tomo::IoLoop::run_loop<true, false, false, true, false>()
+    HOT C T=new code 5157->5129 lanes=- eq=- void tomo::IoLoop::run_loop<true, false, true, true, false>()
+    HOT C T=new code 5177->5126 lanes=- eq=- void tomo::IoLoop::run_loop<true, true, false, true, false>()
+    HOT C T=new code 5157->5129 lanes=- eq=- void tomo::IoLoop::run_loop<true, true, true, true, false>()
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT C T=new code 1018->942 lanes=- eq=- tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    D T=new code 3557->3525 lanes=rlfix eq=- tomo::IoLoop::lb_control_pass()
+    C T=new code 2861->2451 lanes=- eq=- tomo::IoLoop::pubsub_home_publish(tomo::PubSubEvent&, bool)
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    C T=new code 881->866 lanes=- eq=- tomo::IoLoop::database_control_pass()
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    C T=new code 4055->3888 lanes=- eq=- tomo::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_
+    C T=new code 1727->1695 lanes=- eq=- tomo::Server::transfer_shard_quiesced(int, unsigned int, unsigned int)
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1137 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+    C T=new added 0->36 lanes=- eq=- tomo::ThreadCtx::publish_read_local_parked(unsigned long)
+    C T=new added 0->59 lanes=- eq=- tomo::Server::flip_final_role(unsigned int) const
+    C T=new code 4573->4551 lanes=- eq=- std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::Snapshot
+    C T=new reloc-only 332->332 lanes=- eq=- std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::Snapshot
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129780", "unit": 102730, "changed": 41, "hot_changed": 8, "A": 34, "B": 2, "C": 2, "D": 3, "hotA": 6, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.ca9738fcc099.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129807", "unit": 102730, "changed": 40, "hot_changed": 8, "A": 34, "B": 3, "C": 1, "D": 2, "hotA": 6, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.d6529bbcf186.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=PRE code 1217->1217 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129835", "unit": 102730, "changed": 39, "hot_changed": 7, "A": 33, "B": 2, "C": 1, "D": 3, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.08e2a2b0f201.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129700", "unit": 102730, "changed": 43, "hot_changed": 10, "A": 35, "B": 3, "C": 2, "D": 3, "hotA": 7, "hotB": 2, "hotCD": 1, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.9c5fc7a1e68e.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT C T=new code 1018->942 lanes=- eq=- tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129710", "unit": 102730, "changed": 48, "hot_changed": 10, "A": 35, "B": 3, "C": 6, "D": 4, "hotA": 7, "hotB": 2, "hotCD": 1, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.06b54b59877f.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT C T=new code 5177->5149 lanes=- eq=- void tomo::IoLoop::run_loop<true, true, false, true, false>()
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    D T=new code 3557->3525 lanes=rlfix eq=- tomo::IoLoop::lb_control_pass()
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+    C T=new added 0->36 lanes=- eq=- tomo::ThreadCtx::publish_read_local_parked(unsigned long)
+    C T=new code 4573->4551 lanes=- eq=- std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::Snapshot
+    C T=new reloc-only 332->332 lanes=- eq=- std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::Snapshot
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129720", "unit": 102730, "changed": 47, "hot_changed": 10, "A": 35, "B": 3, "C": 6, "D": 3, "hotA": 7, "hotB": 2, "hotCD": 1, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.e4dbae609377.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT C T=new code 5177->5149 lanes=- eq=- void tomo::IoLoop::run_loop<true, true, false, true, false>()
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+    C T=new added 0->36 lanes=- eq=- tomo::ThreadCtx::publish_read_local_parked(unsigned long)
+    C T=new code 4573->4551 lanes=- eq=- std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::Snapshot
+    C T=new reloc-only 332->332 lanes=- eq=- std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::Snapshot
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129730", "unit": 102730, "changed": 43, "hot_changed": 9, "A": 35, "B": 3, "C": 2, "D": 3, "hotA": 7, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.0083b0952e09.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129740", "unit": 102730, "changed": 42, "hot_changed": 9, "A": 35, "B": 3, "C": 1, "D": 3, "hotA": 7, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.846615293973.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129750", "unit": 102730, "changed": 41, "hot_changed": 9, "A": 35, "B": 3, "C": 1, "D": 2, "hotA": 7, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.82157bd71a59.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129760", "unit": 102730, "changed": 42, "hot_changed": 9, "A": 35, "B": 3, "C": 1, "D": 3, "hotA": 7, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.e2896bf15624.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=new code 3119->3148 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129770", "unit": 102730, "changed": 46, "hot_changed": 9, "A": 34, "B": 3, "C": 6, "D": 3, "hotA": 6, "hotB": 2, "hotCD": 1, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.daa322ce558e.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT C T=new code 5177->5149 lanes=- eq=- void tomo::IoLoop::run_loop<true, true, false, true, false>()
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+    C T=new added 0->36 lanes=- eq=- tomo::ThreadCtx::publish_read_local_parked(unsigned long)
+    C T=new code 4573->4551 lanes=- eq=- std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::Snapshot
+    C T=new reloc-only 332->332 lanes=- eq=- std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::Snapshot
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129790", "unit": 102730, "changed": 41, "hot_changed": 8, "A": 34, "B": 3, "C": 1, "D": 3, "hotA": 6, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.348426bd9019.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129800", "unit": 102730, "changed": 39, "hot_changed": 8, "A": 34, "B": 2, "C": 1, "D": 2, "hotA": 6, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.385fe3a999b3.o"}
+    HOT A T=respresume code 2881->2572 lanes=respresume eq=respresume unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129810", "unit": 102730, "changed": 45, "hot_changed": 8, "A": 33, "B": 3, "C": 6, "D": 3, "hotA": 5, "hotB": 2, "hotCD": 1, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.97a629274fd3.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT C T=new code 5177->5149 lanes=- eq=- void tomo::IoLoop::run_loop<true, true, false, true, false>()
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+    C T=new added 0->36 lanes=- eq=- tomo::ThreadCtx::publish_read_local_parked(unsigned long)
+    C T=new code 4573->4551 lanes=- eq=- std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::Snapshot
+    C T=new reloc-only 332->332 lanes=- eq=- std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::Snapshot
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129820", "unit": 102730, "changed": 41, "hot_changed": 7, "A": 33, "B": 3, "C": 2, "D": 3, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.0781ea442487.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129830", "unit": 102730, "changed": 40, "hot_changed": 7, "A": 33, "B": 3, "C": 1, "D": 3, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.c5a18eb98e7a.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129840", "unit": 102730, "changed": 39, "hot_changed": 7, "A": 33, "B": 3, "C": 1, "D": 2, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.96bf6ca85f18.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129850", "unit": 102730, "changed": 39, "hot_changed": 7, "A": 33, "B": 3, "C": 1, "D": 2, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.2b73aa4cd800.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=PRE code 1217->1217 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129860", "unit": 102730, "changed": 40, "hot_changed": 7, "A": 33, "B": 3, "C": 2, "D": 2, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.da2688eeb915.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129870", "unit": 102730, "changed": 39, "hot_changed": 7, "A": 33, "B": 3, "C": 1, "D": 2, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.ce1320ca7732.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129880", "unit": 102730, "changed": 38, "hot_changed": 7, "A": 33, "B": 3, "C": 1, "D": 1, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.b679c1d9370e.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129890", "unit": 102730, "changed": 40, "hot_changed": 7, "A": 32, "B": 3, "C": 2, "D": 3, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.e07e00216609.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129900", "unit": 102730, "changed": 39, "hot_changed": 7, "A": 32, "B": 3, "C": 1, "D": 3, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.e12fdea6d460.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129910", "unit": 102730, "changed": 38, "hot_changed": 7, "A": 32, "B": 3, "C": 1, "D": 2, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.53a742720753.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129920", "unit": 102730, "changed": 38, "hot_changed": 7, "A": 32, "B": 3, "C": 1, "D": 2, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.a0c70686e332.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1749->1381 lanes=wave2 eq=respresume,rlfix,mkfix,aoforder,hexpread tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    D T=PRE code 1217->1217 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129930", "unit": 102730, "changed": 38, "hot_changed": 7, "A": 32, "B": 2, "C": 2, "D": 2, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.6a5a22c252b5.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    C T=new code 2035->1957 lanes=- eq=- tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129940", "unit": 102730, "changed": 38, "hot_changed": 7, "A": 32, "B": 3, "C": 1, "D": 2, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.eeb553001b1c.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 3119->3090 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129950", "unit": 102730, "changed": 36, "hot_changed": 7, "A": 32, "B": 2, "C": 1, "D": 1, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.728b0a321c8b.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=new code 1217->1185 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129960", "unit": 102730, "changed": 37, "hot_changed": 7, "A": 32, "B": 3, "C": 1, "D": 1, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.f4376e614dd6.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    C T=new code 1980->1958 lanes=- eq=- tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    D T=PRE code 1217->1217 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129970", "unit": 102730, "changed": 36, "hot_changed": 7, "A": 32, "B": 3, "C": 0, "D": 1, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.cf5c1f484987.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    D T=PRE code 1217->1217 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129980", "unit": 102730, "changed": 37, "hot_changed": 7, "A": 32, "B": 3, "C": 0, "D": 2, "hotA": 5, "hotB": 2, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_core_genthread.o.245a9ec1596c.o"}
+    HOT B T=respresume code 18299->18610 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT A T=respresume code 9698->9870 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT A T=respresume code 44->117 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] 
+    HOT B T=respresume code 18304->18530 lanes=respresume,mkfix eq=- tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT A T=rlfix code 1675->2249 lanes=rlfix eq=rlfix tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchC
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    D T=new code 3119->3148 lanes=wave2 eq=- unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()
+    D T=PRE code 1217->1217 lanes=wave2 eq=- tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)

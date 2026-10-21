@@ -1,0 +1,7 @@
+PARTIAL	0	GATE_ONLY_JOBS=reorder_sync wbland_units splitlocal_units reorder_identity; NOT A RECEIPT
+ok	0.040000	release build (+footprint locks)
+ok	0.870000	R7 generated envelope parity
+ok	92.960000	R7 FIFO twin off-path identity + negative controls
+ok	5.550000	writeback policy clauses witnesses + negative controls
+ok	1.840000	writeback policy paths witnesses + negative controls
+ok	0.870000	splitlocal template forwarding + old-argument controls

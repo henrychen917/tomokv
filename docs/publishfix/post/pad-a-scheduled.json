@@ -1,0 +1,65 @@
+{
+  "kind": "A: behaviour twin",
+  "source": "build/aoforder-scheduled",
+  "output": "build/publishfix/pad-a-scheduled/tomokv",
+  "source_sha256": "3551e57a61edfdc2e3926f19f1eec570bf5dcbc290a9653ae137e045cafd600f",
+  "output_sha256": "7fca7285fe624329df65d63c4d5f243cd83056ae7969da99dc8a25b27821a2dd",
+  "changes": [
+    {
+      "function": "00000000000621f0 <_ZZN8tomo_db06Server4initERKNS_6ConfigEPKNS_13AofReplayPlanEENUlPvE_4_FUNES7_>:",
+      "location": "/home/user/Projects/cx-publishfix/src/core/server.h:2598",
+      "address": "0x62241",
+      "offset": 401985,
+      "before": "720d",
+      "after": "9090",
+      "instruction": "62241:\t72 0d                \tjb     62250 <_ZZN8tomo_db06Server4initERKNS_6ConfigEPKNS_13AofReplayPlanEENUlPvE_4_FUNES7_+0x60>"
+    },
+    {
+      "function": "000000000012e700 <_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE>:",
+      "location": "/home/user/Projects/cx-publishfix/build/aoforder/scheduled/source/src/cmd/../core/server.h:2598",
+      "address": "0x12e8b8",
+      "offset": 1239224,
+      "before": "0f8202020000",
+      "after": "909090909090",
+      "instruction": "12e8b8:\t0f 82 02 02 00 00    \tjb     12eac0 <_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE+0x3c0>"
+    },
+    {
+      "function": "0000000000158670 <_ZN8tomo_db06Server21atomic_commit_publishEv>:",
+      "location": "/home/user/Projects/cx-publishfix/build/aoforder/scheduled/source/src/cmd/../core/server.h:2598",
+      "address": "0x1586ab",
+      "offset": 1410731,
+      "before": "7203",
+      "after": "9090",
+      "instruction": "1586ab:\t72 03                \tjb     1586b0 <_ZN8tomo_db06Server21atomic_commit_publishEv+0x40>"
+    },
+    {
+      "function": "00000000003edac0 <_ZZN4tomo6Server4initERKNS_6ConfigEPKNS_13AofReplayPlanEENUlPvE_4_FUNES7_>:",
+      "location": "/home/user/Projects/cx-publishfix/src/core/server.h:2598",
+      "address": "0x3edb11",
+      "offset": 4119313,
+      "before": "720d",
+      "after": "9090",
+      "instruction": "3edb11:\t72 0d                \tjb     3edb20 <_ZZN4tomo6Server4initERKNS_6ConfigEPKNS_13AofReplayPlanEENUlPvE_4_FUNES7_+0x60>"
+    },
+    {
+      "function": "00000000004b8670 <_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE>:",
+      "location": "/home/user/Projects/cx-publishfix/build/aoforder/scheduled/source/src/cmd/../core/server.h:2598",
+      "address": "0x4b8828",
+      "offset": 4950056,
+      "before": "0f8202020000",
+      "after": "909090909090",
+      "instruction": "4b8828:\t0f 82 02 02 00 00    \tjb     4b8a30 <_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE+0x3c0>"
+    },
+    {
+      "function": "00000000004e2aa0 <_ZN4tomo6Server21atomic_commit_publishEv>:",
+      "location": "/home/user/Projects/cx-publishfix/build/aoforder/scheduled/source/src/cmd/../core/server.h:2598",
+      "address": "0x4e2adb",
+      "offset": 5122779,
+      "before": "7203",
+      "after": "9090",
+      "instruction": "4e2adb:\t72 03                \tjb     4e2ae0 <_ZN4tomo6Server21atomic_commit_publishEv+0x40>"
+    }
+  ],
+  "sections_and_symbols_identical": true,
+  "residual_work": "POST sequence recheck load and comparison remain; catch-up disabled"
+}

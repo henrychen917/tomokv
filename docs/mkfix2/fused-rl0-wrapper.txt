@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+import os,sys
+a=[];it=iter(sys.argv[1:])
+for x in it:
+ if x=="--ratio":next(it)
+ else:a.append(x)
+os.execvp("taskset",["taskset","-c","32-39","/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",*a,"--thread-mode","1s","--read-local","0"])

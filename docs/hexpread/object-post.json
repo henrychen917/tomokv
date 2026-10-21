@@ -1,0 +1,42 @@
+[
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "python3",
+      "tests/objectpread.py",
+      "--binary",
+      "build/tomokv",
+      "--artifacts",
+      "docs/hexpread/object-post-1s",
+      "--mode",
+      "1s",
+      "--cores",
+      "96-103",
+      "--port",
+      "25802"
+    ],
+    "exit_code": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "python3",
+      "tests/objectpread.py",
+      "--binary",
+      "build/tomokv",
+      "--artifacts",
+      "docs/hexpread/object-post-2s",
+      "--mode",
+      "2s",
+      "--cores",
+      "96-103",
+      "--port",
+      "25802"
+    ],
+    "exit_code": 0
+  }
+]

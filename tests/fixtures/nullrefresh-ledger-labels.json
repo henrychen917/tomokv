@@ -1,7 +1,7 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
   "source_sha256": "8c1e51707e09366c289fbbe39466844d5936e8e027843897719adea590cb3304",
-  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full); savefix adds 24 witnessed shutdown-save/capture rows (+24 quick/+24 full); aclfix adds six reproductions per thread mode before the quick exit (+12 quick/+12 full); authfix adds five config/auth/slowlog regression rows before the quick exit (+5 quick/+5 full); clientfix adds 14 focused correctness rows before the quick exit (+14 quick/+14 full); racefix adds INFO counter TSan and directed Climon refresh rows before the quick-tier exit (+2 quick/+2 full); perfio adds two migration and two stream mode rows before the quick exit (+4/+4); perfex adds two binary regressions and two live TTL sampler rows before quick exit (+4 quick/+4 full); rlresize adds the storage flush-prepared-capacity case and two armed resize retirement rows (atomic-growth, flush-prepared) before the quick exit (+3 quick/+3 full); dbdefault adds one default-config row covering both modes before the quick exit (+1 quick/+1 full)",
+  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full); savefix adds 24 witnessed shutdown-save/capture rows (+24 quick/+24 full); aclfix adds six reproductions per thread mode before the quick exit (+12 quick/+12 full); authfix adds five config/auth/slowlog regression rows before the quick exit (+5 quick/+5 full); clientfix adds 14 focused correctness rows before the quick exit (+14 quick/+14 full); racefix adds INFO counter TSan and directed Climon refresh rows before the quick-tier exit (+2 quick/+2 full); perfio adds two migration and two stream mode rows before the quick exit (+4/+4); perfex adds two binary regressions and two live TTL sampler rows before quick exit (+4 quick/+4 full); rlresize adds the storage flush-prepared-capacity case and two armed resize retirement rows (atomic-growth, flush-prepared) before the quick exit (+3 quick/+3 full); dbdefault adds one default-config row covering both modes before the quick exit (+1 quick/+1 full); respresume adds twelve resumable-RESP rows (fragment, cpu and neighbour x 1s/2s x epoll/uring) collected after respcompat, before the quick exit (+12 quick/+12 full); aoforder declares three commit-order regressions before the quick-tier exit (+3 quick/+3 full); EXPECT constants remain maintainer-owned; hexpread adds three parked-hash expiry rows and one OBJECT expiry row per mode before the quick exit (+8 quick/+8 full), with EXPECT constants left to the maintainer",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
@@ -84,6 +84,7 @@
     "storage hash-bytes regression",
     "storage deadline-allocation-failure regression",
     "storage flush-prepared-capacity regression",
+    "atomic commit publication catches up at quiescence",
     "flushfix flush witnesses",
     "flushfix headers witnesses",
     "multidb serverless owners",
@@ -131,6 +132,18 @@
     "NET1 inline + query cap (2s, uring)",
     "NET1 inline + query cap (2s, epoll)",
     "RESP protocol error compatibility",
+    "RESP resumable fragment (1s, epoll)",
+    "RESP resumable fragment (1s, uring)",
+    "RESP resumable fragment (2s, epoll)",
+    "RESP resumable fragment (2s, uring)",
+    "RESP resumable cpu (1s, epoll)",
+    "RESP resumable cpu (1s, uring)",
+    "RESP resumable cpu (2s, epoll)",
+    "RESP resumable cpu (2s, uring)",
+    "RESP resumable neighbour (1s, epoll)",
+    "RESP resumable neighbour (1s, uring)",
+    "RESP resumable neighbour (2s, epoll)",
+    "RESP resumable neighbour (2s, uring)",
     "generated Redis 7.4 ACL categories",
     "reject --mode (flag deleted)",
     "reject --spread",
@@ -159,6 +172,14 @@
     "atomic RYOW/mixed-write battery",
     "atomic owner-local hazard battery",
     "atomic shutdown invariants",
+    "hexpread torn (1s)",
+    "hexpread replies (1s)",
+    "hexpread deferred (1s)",
+    "hexpread OBJECT expiry (1s)",
+    "hexpread torn (2s)",
+    "hexpread replies (2s)",
+    "hexpread deferred (2s)",
+    "hexpread OBJECT expiry (2s)",
     "s6 battery (atomic 0)",
     "multi_exec battery (atomic 0)",
     "blocking battery (atomic 0)",
@@ -322,7 +343,11 @@
     "B+ held-group GET/MGET filter battery",
     "read-local lane admission battery",
     "read-local MGET fence battery (1s)",
+    "read-local GET miss battery (1s)",
+    "read-local one-key delete battery (1s)",
     "read-local MGET fence battery (2s)",
+    "read-local GET miss battery (2s)",
+    "read-local one-key delete battery (2s)",
     "ACL recheck one-reply battery (2s)",
     "ACL recheck one-reply battery (1s)",
     "aclfix sort (1s)",
@@ -656,7 +681,10 @@
     "perfio stale epoll registration (epoll-flip)",
     "perfio stale epoll registration (epoll-lb)",
     "perfio XREADGROUP bounded delivery + Redis metadata (1s)",
-    "perfio XREADGROUP bounded delivery + Redis metadata (2s)"
+    "perfio XREADGROUP bounded delivery + Redis metadata (2s)",
+    "AOF commit order single",
+    "AOF commit order crossing",
+    "AOF commit order rewrite"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",
@@ -942,5 +970,20 @@
       "FLIP planned-connection close lifetime (ASAN+TSAN)",
       "FLIP fingerprint publication (ASAN+TSAN)"
     ]
+  },
+  "rlfix_supplement": {
+    "added": [
+      "read-local GET miss battery (1s)",
+      "read-local GET miss battery (2s)",
+      "read-local one-key delete battery (1s)",
+      "read-local one-key delete battery (2s)"
+    ],
+    "purpose": "RL4.3/RL4.4 exact local miss accounting and single-key DEL/UNLINK precision, same-connection RYOW and multi-key broad controls; all before quick exit, DQ=DF=+4. Source inventory only."
+  },
+  "publishfix_supplement": {
+    "added": [
+      "atomic commit publication catches up at quiescence"
+    ],
+    "purpose": "Lost-publication repair: the deterministic serverless publication unit (build/publishfix-unit) in job_atomic_units, collected before the quick-tier exit, DQ=DF=+1. Fails on PRE with safe=1 drawn=2. Source inventory only; EXPECT stays maintainer-owned."
   }
 }
