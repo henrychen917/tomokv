@@ -1,0 +1,78 @@
+6091: IPA function summary for atomic_for_each_unique_key.isra/39322 inlinable
+6092:   global time:     78439.424072
+6093:   self size:       67
+6094:   global size:     67
+6095:   min size:       0
+6096:   self stack:      32
+6097:   global stack:    32
+6098:     size:0.000000, time:0.000000
+6099:     size:3.000000, time:2.000011,  executed if:(not inlined)
+17538: IPA function summary for scan.constprop/38752 inlinable
+17539:   global time:     1271.428221
+17540:   self size:       96
+17541:   global size:     95
+17542:   min size:       0
+17543:   self stack:      0
+17544:   global stack:    0
+17545:     size:0.000000, time:0.000000
+17546:     size:3.000000, time:2.000000,  executed if:(not inlined)
+375614:    Known to be false: not inlined, op2 changed, op4 changed
+375615:    size:240
+375616: 
+375617: Inlining scan.constprop/38752 size 248.
+375618:  Called once from tomo::ScatterTaskResult tomo::xshard_execute(const Task&, Shard&, Op&, uint32_t)/8398 3410 insns.
+375619:    Estimating body: scan.constprop/38752
+375620:    Known to be false: not inlined, op2 changed, op4 changed
+375621:    size:240
+375622:   Parm map:  1 -1 -1 -5 -1
+375623: Updated mod-ref summary for tomo::ScatterTaskResult tomo::xshard_execute(const Task&, Shard&, Op&, uint32_t)/8398
+375624:   loads:
+375625:     Every base
+375626:   stores:
+375627:     Every base
+375628:   Side effects
+375629:   Nondeterministic
+375630:   Global memory read
+375631:   Global memory written
+375632:   parm 0 flags: no_direct_clobber no_direct_escape not_returned_directly
+375633:   parm 3 flags: no_direct_clobber no_indirect_clobber no_direct_escape no_indirect_escape not_returned_directly not_returned_indirectly no_direct_read no_indirect_read
+375634: 		Accounting size:2.50, time:0.01 on predicate exec:(true)
+375635: 		Accounting size:202.00, time:8.18 on predicate exec:(true)
+375636: Processing frequency scan.constprop/38752
+375637:   Called by tomo::ScatterTaskResult tomo::xshard_execute(const Task&, Shard&, Op&, uint32_t)/8398 that is normal or hot
+375638: Processing frequency uint64_t tomo::scan_cursor_reverse_bits(uint64_t)/41643
+375639:   Called by uint64_t tomo::scan_cursor_next(uint64_t, uint64_t)/3831 that is normal or hot
+375640: Processing frequency uint64_t tomo::scan_cursor_next(uint64_t, uint64_t)/40361
+375641:   Called by scan.constprop/38752 that is normal or hot
+375642: Processing frequency uint64_t tomo::scan_cursor_reverse_bits(uint64_t)/41225
+396082: IPA function summary for atomic_for_each_unique_key.isra/39322 inlinable
+396083:   global time:     66878.494873
+396084:   self size:       67
+396085:   global size:     599
+396086:   min size:       0
+396087:   self stack:      32
+396088:   global stack:    48
+396089:   estimated growth:-6
+396090:     size:0.000000, time:0.000000
+581194: _ZN4tomo9FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_.isra.0/39322 (atomic_for_each_unique_key.isra)
+581195:   Type: function definition analyzed
+581196:   Visibility:
+581197:   References: 
+581198:   Referring: 
+581199:   Clone of _ZN4tomo9FlatStore26atomic_for_each_unique_keyIZNS0_24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_EUlmSA_E_EEvSD_/15320
+581200:   Availability: local
+581201:   Function flags: count:378081 (estimated locally) local
+581202:   Called by: _ZN4tomo9FlatStore24atomic_for_each_side_keyIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlNS_5SliceEE_EEvmOT_/12161 (1326140 (estimated locally),0.00 per call) (can throw external) 
+581204: _ZNSt6vectorIN4tomo12_GLOBAL__N_110ZImageItemESaIS2_EE12emplace_backIJS2_EEERS2_DpOT_.isra.0/39321 (emplace_back.isra)
+581205:   Type: function definition analyzed
+587681: _ZN4tomo9FlatStore4scanIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEmmjOT_b.constprop.0/38752 (scan.constprop)
+587682:   Type: function definition analyzed
+587683:   Visibility:
+587684:   References: 
+587685:   Referring: 
+587686:   Function scan.constprop/38752 is inline copy in tomo::ScatterTaskResult tomo::xshard_execute(const Task&, Shard&, Op&, uint32_t)/8398
+587687:   Clone of _ZN4tomo9FlatStore4scanIZNS_14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjEUlPNS_5KvObjEE_EEmmjOT_b/12158
+587688:   Availability: local
+587689:   Function flags: count:3929114 (estimated locally) local
+587690:   Called by: _ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj/8398 (inlined) (3929114 (estimated locally),0.00 per call) 
+587692: _ZN4tomo12_GLOBAL__N_119begin_plain_versionERNS_6ServerERNS_5ShardENS_5SliceEmmm.constprop.0/38751 (begin_plain_version.constprop)
