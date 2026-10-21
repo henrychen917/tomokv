@@ -1,0 +1,2 @@
+{"kind": "A: behaviour twin", "source": "build/tomokv", "output": "build/tomokv-publishfix-pad-a", "source_sha256": "4ba570b00c999ccf870a73f4665eac3609d5075682e8b10e5e03619a3f162b88", "output_sha256": "00618bdf924ab09208a8c979b8a050eb088ce57cc92999aad3df1e5f74470f5b", "sections_and_symbols_identical": true, "residual_work": "POST sequence recheck load and comparison remain; catch-up disabled"}
+patched publisher comparisons: 6

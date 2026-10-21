@@ -1,0 +1,98 @@
+[
+  {
+    "label": "uring-1s-db1-aof_rewrite_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.230374997947365
+  },
+  {
+    "label": "uring-1s-db1-aof_rewrite_trigger_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.611460084095597
+  },
+  {
+    "label": "uring-1s-db16-aof_rewrite_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.233435784932226
+  },
+  {
+    "label": "uring-1s-db16-aof_rewrite_trigger_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.691869562026113
+  },
+  {
+    "label": "uring-2s-db1-aof_rewrite_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.190509153995663
+  },
+  {
+    "label": "uring-2s-db1-aof_rewrite_trigger_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.601368212141097
+  },
+  {
+    "label": "uring-2s-db16-aof_rewrite_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.240766291040927
+  },
+  {
+    "label": "uring-2s-db16-aof_rewrite_trigger_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.409750903956592
+  },
+  {
+    "label": "epoll-1s-db1-aof_rewrite_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.239466400817037
+  },
+  {
+    "label": "epoll-1s-db1-aof_rewrite_trigger_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.77049013087526
+  },
+  {
+    "label": "epoll-1s-db16-aof_rewrite_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.197015725076199
+  },
+  {
+    "label": "epoll-1s-db16-aof_rewrite_trigger_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.5523484740406275
+  },
+  {
+    "label": "epoll-2s-db1-aof_rewrite_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.187710836995393
+  },
+  {
+    "label": "epoll-2s-db1-aof_rewrite_trigger_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.6106230318546295
+  },
+  {
+    "label": "epoll-2s-db16-aof_rewrite_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.240202240180224
+  },
+  {
+    "label": "epoll-2s-db16-aof_rewrite_trigger_matrix.sh",
+    "status": "PASS",
+    "error": null,
+    "seconds": 5.651601702906191
+  }
+]

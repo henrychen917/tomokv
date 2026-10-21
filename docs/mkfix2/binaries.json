@@ -1,0 +1,71 @@
+{
+  "pre_branch_commit": "33bb0bd8f",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "cpus": "32-47",
+  "server_cpus": "32-39",
+  "ports": "25500-25599",
+  "arms": {
+    "pre": {
+      "path": "build/mkfix2/pre/tomokv",
+      "source_commit": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+      "sha256": "330eb467062473b99c9913e024bbbcdc87a79108fcf2c3a783fced7f229fedef"
+    },
+    "a": {
+      "path": "build/mkfix2/a/tomokv",
+      "source_commit": "2fa94d2dc97c20bbe13ddeeaebf3cd4328d5e1d5",
+      "sha256": "4a4842e8dffdb2b51b97b32e2288285dde41a24e7c6d52382274519fa29ac93d"
+    },
+    "ab": {
+      "path": "build/mkfix2/ab/tomokv",
+      "source_commit": "5b8ab21f400b161ac2690c960bbdf522bfc08499",
+      "sha256": "3bb97dae385d2a90b87d7907c77b53b25c43d2154f8a11ee4b8843977c97b023"
+    },
+    "abc": {
+      "path": "build/mkfix2/abc/tomokv",
+      "source_commit": "ba0160c0ce359781db05fc4f2ef4206aea3da5c7",
+      "sha256": "f5fc255ff286a450210e914683de2b0171ed7258b2fe124da4b3eec07d00b104"
+    },
+    "a-pad": {
+      "path": "build/mkfix2/a-pad/tomokv",
+      "kind": "A: behaviour twin",
+      "behaviour": "PRE",
+      "text_layout": "a",
+      "sha256": "007acf2cca08107900b297b69fa552d703b3c87a64ab926c7197603854e435a3"
+    },
+    "final": {
+      "path": "build/tomokv",
+      "source_commit": "ba0160c0ce359781db05fc4f2ef4206aea3da5c7",
+      "sha256": "f5fc255ff286a450210e914683de2b0171ed7258b2fe124da4b3eec07d00b104"
+    }
+  },
+  "scratch": {
+    "pre": {
+      "path": "build/mkfix2/count-pre/tomokv",
+      "sha256": "6661ac4fb5127b31329eabf5624ffacff2f3fbc83bd1039435fcdca0a700a342"
+    },
+    "a": {
+      "path": "build/mkfix2/count-a/tomokv",
+      "sha256": "cbab3d3d9e2bab8bfe94847b5aac9cc570b9398938a781d13bb0ad058ae78e75"
+    },
+    "ab": {
+      "path": "build/mkfix2/count-ab/tomokv",
+      "sha256": "d04bd1daf9c4dc769a3800d01e690c62421be42351350e4a91ac8b6943d298e6"
+    },
+    "abc": {
+      "path": "build/mkfix2/count-abc/tomokv",
+      "sha256": "b71ea7d24f16b196f4fe0df27589619b70f55106e9bc674bf4c2cea4a8693f82"
+    },
+    "count.c": {
+      "path": "build/mkfix2/scratch/count.c",
+      "sha256": "53ce8874caaec2846b6147883e8a73e64758a48d0e16be4702254ed35ae41567"
+    },
+    "count.so": {
+      "path": "build/mkfix2/scratch/count.so",
+      "sha256": "1c76950e75a3e520c6246591f3259b6f7b1a827342249866b89fdf03026dab0b"
+    },
+    "instrument.py": {
+      "path": "build/mkfix2/scratch/instrument.py",
+      "sha256": "cdd37574393aac6f685b6323109aab2cab60ef9eaf61488c25dc15ed42351e38"
+    }
+  }
+}

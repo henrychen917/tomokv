@@ -1,0 +1,10 @@
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147428", "unit": 97560, "changed": 27, "hot_changed": 4, "A": 27, "B": 0, "C": 0, "D": 0, "hotA": 4, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_main.o.d20a3d5b1949.o"}
+    HOT A T=respresume code 12293->12606 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)
+    HOT A T=respresume code 12408->12750 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147632", "unit": 97560, "changed": 27, "hot_changed": 4, "A": 27, "B": 0, "C": 0, "D": 0, "hotA": 4, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_main.o.c56ce789891b.o"}
+    HOT A T=respresume code 12293->12606 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)
+    HOT A T=respresume code 12408->12750 lanes=respresume eq=respresume tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,
+    HOT A T=PRE code 451->451 lanes=mkfix eq=mkfix tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*,

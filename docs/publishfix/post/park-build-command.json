@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "make",
+    "-j16",
+    "BUILD_ROOT=/home/user/Projects/cx-publishfix/build/publishfix/sched-post-final/objects",
+    "all"
+  ],
+  "cwd": "/home/user/Projects/cx-publishfix/build/publishfix/sched-post-final/source"
+}

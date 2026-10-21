@@ -1,0 +1,34 @@
+{
+  "pre": {
+    "path": "build/mkfix/pre/tomokv",
+    "sha256": "330eb467062473b99c9913e024bbbcdc87a79108fcf2c3a783fced7f229fedef"
+  },
+  "count": {
+    "path": "build/mkfix/count/tomokv",
+    "sha256": "06fdd64ff44459ee81af4b7e9ceb35b4d4b1cefb6482237608b1b154b43c5cb9"
+  },
+  "c12": {
+    "path": "build/mkfix/c12/tomokv",
+    "sha256": "7a8e31cbb6fb6b8a6dcb9b54c7c84defb785c52d206dad81aae55252e28914b8"
+  },
+  "c3-padding": {
+    "path": "build/mkfix/c3-padding/tomokv",
+    "sha256": "00575d34ee6b71d18dc5c5b4a232cb5fde2d310d77e70ef824976ea446944e00"
+  },
+  "final": {
+    "path": "build/tomokv",
+    "sha256": "330eb467062473b99c9913e024bbbcdc87a79108fcf2c3a783fced7f229fedef"
+  },
+  "scratch/count.c": {
+    "path": "build/mkfix/scratch/count.c",
+    "sha256": "b449d1a9675002ce0cc8be5832d2f505eaa0f710e1ada5daaeabecb48c2dd043"
+  },
+  "scratch/count.so": {
+    "path": "build/mkfix/scratch/count.so",
+    "sha256": "9f422a44cf7a53d308e54669acb68481fe63956399a367a1bfa9b3aa868b7a13"
+  },
+  "scratch/source/src/cmd/atomics_glue.inc": {
+    "path": "build/mkfix/scratch/source/src/cmd/atomics_glue.inc",
+    "sha256": "ca606987fccb921b7ee757a9cdaca7c5bc14fb9c3dcf2a9714af12d4391acd30"
+  }
+}

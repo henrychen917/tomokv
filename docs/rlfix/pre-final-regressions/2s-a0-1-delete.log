@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 228, in <module>
+    main()
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 213, in main
+    deletes(args.host, args.port)
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 177, in deletes
+    counted(d, {"read_local_hits": 0 if broad else 4,
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 34, in counted
+    expect(d.get(key, 0), value, key)
+  File "/home/user/Projects/cx-rlfix/tests/rlfix.py", line 29, in expect
+    assert actual == expected, f"{label}: got {actual!r}, wanted {expected!r}"
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: read_local_hits: got 0, wanted 4

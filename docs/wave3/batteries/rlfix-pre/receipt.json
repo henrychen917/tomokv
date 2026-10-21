@@ -1,0 +1,130 @@
+[
+  {
+    "label": "1s-a0-0-miss",
+    "command": [
+      "taskset",
+      "-c",
+      "89-95",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "22885",
+      "--case",
+      "miss",
+      "--oracle-port",
+      "22886"
+    ],
+    "exit_code": 1
+  },
+  {
+    "label": "1s-a0-1-delete",
+    "command": [
+      "taskset",
+      "-c",
+      "89-95",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "22885",
+      "--case",
+      "delete"
+    ],
+    "exit_code": 1
+  },
+  {
+    "label": "1s-a1-0-miss",
+    "command": [
+      "taskset",
+      "-c",
+      "89-95",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "22885",
+      "--case",
+      "miss",
+      "--oracle-port",
+      "22886"
+    ],
+    "exit_code": 1
+  },
+  {
+    "label": "1s-a1-1-delete",
+    "command": [
+      "taskset",
+      "-c",
+      "89-95",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "22885",
+      "--case",
+      "delete"
+    ],
+    "exit_code": 1
+  },
+  {
+    "label": "2s-a0-0-miss",
+    "command": [
+      "taskset",
+      "-c",
+      "89-95",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "22885",
+      "--case",
+      "miss",
+      "--oracle-port",
+      "22886"
+    ],
+    "exit_code": 1
+  },
+  {
+    "label": "2s-a0-1-delete",
+    "command": [
+      "taskset",
+      "-c",
+      "89-95",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "22885",
+      "--case",
+      "delete"
+    ],
+    "exit_code": 1
+  },
+  {
+    "label": "2s-a1-0-miss",
+    "command": [
+      "taskset",
+      "-c",
+      "89-95",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "22885",
+      "--case",
+      "miss",
+      "--oracle-port",
+      "22886"
+    ],
+    "exit_code": 1
+  },
+  {
+    "label": "2s-a1-1-delete",
+    "command": [
+      "taskset",
+      "-c",
+      "89-95",
+      "/usr/bin/python3",
+      "tests/rlfix.py",
+      "127.0.0.1",
+      "22885",
+      "--case",
+      "delete"
+    ],
+    "exit_code": 1
+  }
+]

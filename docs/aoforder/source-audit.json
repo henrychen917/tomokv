@@ -1,0 +1,14 @@
+{
+  "base": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "changed_source": [
+    "src/persist/aof.cc",
+    "src/persist/aof.h",
+    "src/store/flatstore.h"
+  ],
+  "objects_with_changed_function_bytes_or_targets": [
+    "db0/src/persist/aof.o",
+    "src/persist/aof.o"
+  ],
+  "object_count": 99,
+  "ordinary_function_comparison": "raw bytes plus resolved relocation target identities; no error-callee exception"
+}

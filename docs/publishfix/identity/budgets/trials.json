@@ -1,0 +1,1490 @@
+[
+  {
+    "arm": "post",
+    "unit": "src/cmd/xshard.o",
+    "budget": 128010,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128010.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=128010",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128010.o"
+    ],
+    "changed": 11,
+    "spillover": 8,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+        "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 947,
+        "post_size": 963
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_114assemble_finalERNS_6ClientERNS_2OpERNS_12ScatterStateEPvPFvS7_iPKcEPFvS7_E",
+        "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+        "direct": false,
+        "hot": false,
+        "pre_size": 7107,
+        "post_size": 7109
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_116bitfield_genericILb1EEEvRNS_5ShardERNS_2OpEb",
+        "name": "void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 2933,
+        "post_size": 2882
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+        "name": "tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 1072,
+        "post_size": 1072
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3308,
+        "post_size": 3454
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 45,
+        "post_size": 45
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN4tomo6Server21atomic_commit_publishEv",
+        "name": "tomo::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      },
+      {
+        "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0",
+        "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3702,
+        "post_size": 3686
+      },
+      {
+        "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0.cold",
+        "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0] [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 162,
+        "post_size": 162
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/cmd/xshard.o",
+    "budget": 128012,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128012.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=128012",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128012.o"
+    ],
+    "changed": 8,
+    "spillover": 5,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_116bitfield_genericILb1EEEvRNS_5ShardERNS_2OpEb",
+        "name": "void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 2933,
+        "post_size": 2882
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3308,
+        "post_size": 3454
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 45,
+        "post_size": 45
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN4tomo6Server21atomic_commit_publishEv",
+        "name": "tomo::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      },
+      {
+        "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0",
+        "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3702,
+        "post_size": 3686
+      },
+      {
+        "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0.cold",
+        "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0] [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 162,
+        "post_size": 162
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/cmd/xshard.o",
+    "budget": 128022,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128022.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=128022",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128022.o"
+    ],
+    "changed": 8,
+    "spillover": 5,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+        "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 947,
+        "post_size": 963
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_116bitfield_genericILb1EEEvRNS_5ShardERNS_2OpEb",
+        "name": "void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 2933,
+        "post_size": 2882
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+        "name": "tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 1072,
+        "post_size": 1072
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3308,
+        "post_size": 3454
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 45,
+        "post_size": 45
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN4tomo6Server21atomic_commit_publishEv",
+        "name": "tomo::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/cmd/xshard.o",
+    "budget": 128025,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128025.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=128025",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128025.o"
+    ],
+    "changed": 9,
+    "spillover": 6,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+        "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 947,
+        "post_size": 963
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_116bitfield_genericILb1EEEvRNS_5ShardERNS_2OpEb",
+        "name": "void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 2933,
+        "post_size": 2882
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+        "name": "tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 1072,
+        "post_size": 1072
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3308,
+        "post_size": 3454
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 45,
+        "post_size": 45
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN4tomo6Server21atomic_commit_publishEv",
+        "name": "tomo::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      },
+      {
+        "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIS7_SaIS7_EEEElNS0_5__ops15_Iter_less_iterEEvT_SF_T0_T1_.isra.0",
+        "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 5840,
+        "post_size": 5851
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/cmd/xshard.o",
+    "budget": 128026,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128026.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=128026",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128026.o"
+    ],
+    "changed": 7,
+    "spillover": 4,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_116bitfield_genericILb1EEEvRNS_5ShardERNS_2OpEb",
+        "name": "void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 2933,
+        "post_size": 2882
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3308,
+        "post_size": 3454
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 45,
+        "post_size": 45
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN4tomo6Server21atomic_commit_publishEv",
+        "name": "tomo::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      },
+      {
+        "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIS7_SaIS7_EEEElNS0_5__ops15_Iter_less_iterEEvT_SF_T0_T1_.isra.0",
+        "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 5840,
+        "post_size": 5851
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/cmd/xshard.o",
+    "budget": 128027,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128027.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=128027",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128027.o"
+    ],
+    "changed": 8,
+    "spillover": 5,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_116bitfield_genericILb1EEEvRNS_5ShardERNS_2OpEb",
+        "name": "void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 2933,
+        "post_size": 2882
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3308,
+        "post_size": 3454
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 45,
+        "post_size": 45
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN4tomo6Server21atomic_commit_publishEv",
+        "name": "tomo::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      },
+      {
+        "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0",
+        "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3702,
+        "post_size": 3715
+      },
+      {
+        "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0.cold",
+        "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0] [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 162,
+        "post_size": 162
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/cmd/xshard.o",
+    "budget": 128030,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128030.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=128030",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128030.o"
+    ],
+    "changed": 10,
+    "spillover": 7,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+        "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 947,
+        "post_size": 963
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_116bitfield_genericILb1EEEvRNS_5ShardERNS_2OpEb",
+        "name": "void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 2933,
+        "post_size": 2882
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+        "name": "tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 1072,
+        "post_size": 1072
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3308,
+        "post_size": 3454
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 45,
+        "post_size": 45
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN4tomo6Server21atomic_commit_publishEv",
+        "name": "tomo::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      },
+      {
+        "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0",
+        "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3702,
+        "post_size": 3715
+      },
+      {
+        "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0.cold",
+        "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0] [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 162,
+        "post_size": 162
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/cmd/xshard.o",
+    "budget": 128042,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128042.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=128042",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/src_cmd_xshard.o-post-128042.o"
+    ],
+    "changed": 5,
+    "spillover": 2,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 3308,
+        "post_size": 3454
+      },
+      {
+        "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+        "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 45,
+        "post_size": 45
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN4tomo6Server21atomic_commit_publishEv",
+        "name": "tomo::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/cmd/xshard.o",
+    "budget": 126678,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126678.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126678",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126678.o"
+    ],
+    "changed": 5,
+    "spillover": 2,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_116prepare_commandsERNS_6ServerERNS_14MultiExecStateERSt6vectorINS_18MultiQueuedCommandESaIS6_EE",
+        "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 11640,
+        "post_size": 11640
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN8tomo_db06Server21atomic_commit_publishEv",
+        "name": "tomo_db0::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      },
+      {
+        "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIS7_SaIS7_EEEElNS0_5__ops15_Iter_less_iterEEvT_SF_T0_T1_.isra.0",
+        "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 5840,
+        "post_size": 5851
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/cmd/xshard.o",
+    "budget": 126680,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126680.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126680",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126680.o"
+    ],
+    "changed": 9,
+    "spillover": 6,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN8tomo_db010kvobj_freeEPNS_5KvObjE.part.0",
+        "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 383,
+        "post_size": 351
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+        "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 947,
+        "post_size": 945
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_116prepare_commandsERNS_6ServerERNS_14MultiExecStateERSt6vectorINS_18MultiQueuedCommandESaIS6_EE",
+        "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 11640,
+        "post_size": 11640
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+        "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 1072,
+        "post_size": 1072
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN8tomo_db06Server21atomic_commit_publishEv",
+        "name": "tomo_db0::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      },
+      {
+        "symbol": "_ZNSt6vectorIjSaIjEE12emplace_backIJjEEERjDpOT_.isra.0",
+        "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 371,
+        "post_size": 352
+      },
+      {
+        "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIS7_SaIS7_EEEElNS0_5__ops15_Iter_less_iterEEvT_SF_T0_T1_.isra.0",
+        "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 5840,
+        "post_size": 5851
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/cmd/xshard.o",
+    "budget": 126690,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126690.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126690",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126690.o"
+    ],
+    "changed": 4,
+    "spillover": 1,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_116prepare_commandsERNS_6ServerERNS_14MultiExecStateERSt6vectorINS_18MultiQueuedCommandESaIS6_EE",
+        "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 11640,
+        "post_size": 11640
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN8tomo_db06Server21atomic_commit_publishEv",
+        "name": "tomo_db0::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/cmd/xshard.o",
+    "budget": 126693,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126693.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126693",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126693.o"
+    ],
+    "changed": 4,
+    "spillover": 1,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_116prepare_commandsERNS_6ServerERNS_14MultiExecStateERSt6vectorINS_18MultiQueuedCommandESaIS6_EE",
+        "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 11640,
+        "post_size": 11640
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN8tomo_db06Server21atomic_commit_publishEv",
+        "name": "tomo_db0::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/cmd/xshard.o",
+    "budget": 126694,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126694.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126694",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126694.o"
+    ],
+    "changed": 5,
+    "spillover": 2,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_116prepare_commandsERNS_6ServerERNS_14MultiExecStateERSt6vectorINS_18MultiQueuedCommandESaIS6_EE",
+        "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 11640,
+        "post_size": 11640
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN8tomo_db06Server21atomic_commit_publishEv",
+        "name": "tomo_db0::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore26atomic_collapse_read_localEmm",
+        "name": "tomo_db0::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 6796,
+        "post_size": 6828
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/cmd/xshard.o",
+    "budget": 126695,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126695.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126695",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126695.o"
+    ],
+    "changed": 9,
+    "spillover": 6,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN8tomo_db010kvobj_freeEPNS_5KvObjE.part.0",
+        "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 383,
+        "post_size": 351
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+        "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 947,
+        "post_size": 945
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_116prepare_commandsERNS_6ServerERNS_14MultiExecStateERSt6vectorINS_18MultiQueuedCommandESaIS6_EE",
+        "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 11640,
+        "post_size": 11640
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+        "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 1072,
+        "post_size": 1072
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN8tomo_db06Server21atomic_commit_publishEv",
+        "name": "tomo_db0::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore26atomic_collapse_read_localEmm",
+        "name": "tomo_db0::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 6796,
+        "post_size": 6828
+      },
+      {
+        "symbol": "_ZNSt6vectorIjSaIjEE12emplace_backIJjEEERjDpOT_.isra.0",
+        "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 371,
+        "post_size": 352
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/cmd/xshard.o",
+    "budget": 126698,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126698.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126698",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126698.o"
+    ],
+    "changed": 9,
+    "spillover": 6,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN8tomo_db010kvobj_freeEPNS_5KvObjE.part.0",
+        "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 383,
+        "post_size": 351
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+        "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 947,
+        "post_size": 945
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_116prepare_commandsERNS_6ServerERNS_14MultiExecStateERSt6vectorINS_18MultiQueuedCommandESaIS6_EE",
+        "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 11640,
+        "post_size": 11640
+      },
+      {
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+        "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 1072,
+        "post_size": 1072
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN8tomo_db06Server21atomic_commit_publishEv",
+        "name": "tomo_db0::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore26atomic_collapse_read_localEmm",
+        "name": "tomo_db0::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)",
+        "direct": false,
+        "hot": false,
+        "pre_size": 6796,
+        "post_size": 6828
+      },
+      {
+        "symbol": "_ZNSt6vectorIjSaIjEE12emplace_backIJjEEERjDpOT_.isra.0",
+        "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+        "direct": false,
+        "hot": false,
+        "pre_size": 371,
+        "post_size": 352
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/cmd/xshard.o",
+    "budget": 126710,
+    "start_size": null,
+    "object": "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126710.o",
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126710",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-publishfix/build/publishfix/budgets/db0_src_cmd_xshard.o-post-126710.o"
+    ],
+    "changed": 3,
+    "spillover": 0,
+    "hot": 0,
+    "bodies": [
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+        "direct": true,
+        "hot": false,
+        "pre_size": 1494,
+        "post_size": 1530
+      },
+      {
+        "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE.cold",
+        "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+        "direct": true,
+        "hot": false,
+        "pre_size": 15,
+        "post_size": 15
+      },
+      {
+        "symbol": "_ZN8tomo_db06Server21atomic_commit_publishEv",
+        "name": "tomo_db0::Server::atomic_commit_publish()",
+        "direct": true,
+        "hot": false,
+        "pre_size": 57,
+        "post_size": 86
+      }
+    ]
+  }
+]

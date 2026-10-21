@@ -1,0 +1,75 @@
+{
+  "binary_sha256": "d3880ba6d766c80b0b296c5eb99590d8c25b0f02a32aeefdf234ca55077a97a6",
+  "suites_file": "docs/rlfix/differ-suites.txt",
+  "seeds_file": "docs/rlfix/differ-seeds.txt",
+  "all_discovered_suites_selected": true,
+  "scope": "Requested fixed-seed matrix; script focused mode disables extra rotating seeds, multi repetitions and mode-equivalence.",
+  "runs": [
+    {
+      "geometry": "split",
+      "pass_count": 376,
+      "fail_count": 0,
+      "runtime": "15m27s",
+      "requested_suites": 47,
+      "executed_legs": 376,
+      "skips": [],
+      "seeds": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "observed_registered_commands": 232,
+      "registered_commands": 245,
+      "lane_witnesses": [],
+      "log": "docs/rlfix/differ-split.log"
+    },
+    {
+      "geometry": "armed-fused",
+      "pass_count": 370,
+      "fail_count": 0,
+      "runtime": "13m56s",
+      "requested_suites": 47,
+      "executed_legs": 368,
+      "skips": [
+        "  differ sort (atomic=0 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=0 seed=23)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=7)                              SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=19)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=20)                             SKIP (suite requires the split 6:2 geometry)",
+        "  differ sort (atomic=1 seed=23)                             SKIP (suite requires the split 6:2 geometry)"
+      ],
+      "seeds": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "atomics": [
+        0,
+        1
+      ],
+      "observed_registered_commands": 232,
+      "registered_commands": 245,
+      "lane_witnesses": [
+        {
+          "atomic": 0,
+          "peak_hits": 1257,
+          "peak_fallbacks": 2
+        },
+        {
+          "atomic": 1,
+          "peak_hits": 1257,
+          "peak_fallbacks": 2
+        }
+      ],
+      "log": "docs/rlfix/differ-armed-fused.log"
+    }
+  ]
+}

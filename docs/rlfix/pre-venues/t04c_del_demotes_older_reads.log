@@ -1,0 +1,21 @@
+T4c PASS: 1s SET replies == redis -- tomo=[b't4c:z1', b't4c:z2', b't4c:z3', b'OK', b't4c:z4'] redis=[b't4c:z1', b't4c:z2', b't4c:z3', b'OK', b't4c:z4']
+T4c NOTE: 1s SET         4 GETs: local=4 demoted=0 -- {'read_local_hits': 4, 'read_local_keyspace_hits': 4, 'read_local_write_ring_records': 1}
+T4c PASS: 1s DEL-1key replies == redis -- tomo=[b't4c:z1', b't4c:z2', b't4c:z3', 1, b't4c:z4'] redis=[b't4c:z1', b't4c:z2', b't4c:z3', 1, b't4c:z4']
+T4c NOTE: 1s DEL-1key    4 GETs: local=0 demoted=4 -- {'read_local_fallback_inflight_write': 4, 'read_local_fallbacks': 4}
+T4c PASS: 1s UNLINK-1key replies == redis -- tomo=[b't4c:z1', b't4c:z2', b't4c:z3', 1, b't4c:z4'] redis=[b't4c:z1', b't4c:z2', b't4c:z3', 1, b't4c:z4']
+T4c NOTE: 1s UNLINK-1key 4 GETs: local=0 demoted=4 -- {'read_local_fallback_inflight_write': 4, 'read_local_fallbacks': 4}
+T4c PASS: 1s DEL-2keys replies == redis -- tomo=[b't4c:z1', b't4c:z2', b't4c:z3', 2, b't4c:z4'] redis=[b't4c:z1', b't4c:z2', b't4c:z3', 2, b't4c:z4']
+T4c NOTE: 1s DEL-2keys   4 GETs: local=0 demoted=4 -- {'read_local_fallback_inflight_write': 4, 'read_local_fallbacks': 4}
+T4c PASS: 1s SET a: all 4 disjoint GETs stay local -- {'read_local_hits': 4, 'read_local_keyspace_hits': 4, 'read_local_write_ring_records': 1}
+T4c PASS: 1s DEL a (one key): disjoint GETs demoted (older pending + younger) -- {'read_local_fallback_inflight_write': 4, 'read_local_fallbacks': 4}
+T4c PASS: 2s SET replies == redis -- tomo=[b't4c:z1', b't4c:z2', b't4c:z3', b'OK', b't4c:z4'] redis=[b't4c:z1', b't4c:z2', b't4c:z3', b'OK', b't4c:z4']
+T4c NOTE: 2s SET         4 GETs: local=4 demoted=0 -- {'read_local_hits': 4, 'read_local_keyspace_hits': 4, 'read_local_write_ring_records': 1}
+T4c PASS: 2s DEL-1key replies == redis -- tomo=[b't4c:z1', b't4c:z2', b't4c:z3', 1, b't4c:z4'] redis=[b't4c:z1', b't4c:z2', b't4c:z3', 1, b't4c:z4']
+T4c NOTE: 2s DEL-1key    4 GETs: local=0 demoted=4 -- {'read_local_fallback_inflight_write': 4, 'read_local_fallbacks': 4}
+T4c PASS: 2s UNLINK-1key replies == redis -- tomo=[b't4c:z1', b't4c:z2', b't4c:z3', 1, b't4c:z4'] redis=[b't4c:z1', b't4c:z2', b't4c:z3', 1, b't4c:z4']
+T4c NOTE: 2s UNLINK-1key 4 GETs: local=0 demoted=4 -- {'read_local_fallback_inflight_write': 4, 'read_local_fallbacks': 4}
+T4c PASS: 2s DEL-2keys replies == redis -- tomo=[b't4c:z1', b't4c:z2', b't4c:z3', 2, b't4c:z4'] redis=[b't4c:z1', b't4c:z2', b't4c:z3', 2, b't4c:z4']
+T4c NOTE: 2s DEL-2keys   4 GETs: local=0 demoted=4 -- {'read_local_fallback_inflight_write': 4, 'read_local_fallbacks': 4}
+T4c PASS: 2s SET a: all 4 disjoint GETs stay local -- {'read_local_hits': 4, 'read_local_keyspace_hits': 4, 'read_local_write_ring_records': 1}
+T4c PASS: 2s DEL a (one key): disjoint GETs demoted (older pending + younger) -- {'read_local_fallback_inflight_write': 4, 'read_local_fallbacks': 4}
+T4c SUMMARY: 12 checks, 0 FAIL

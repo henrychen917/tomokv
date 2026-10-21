@@ -1,0 +1,23 @@
+{
+  "kind": "A: behaviour twin",
+  "behaviour": "PRE opaque atomic-MSET completion, otherwise A (which has no B/C)",
+  "layout": "A: all ELF section sizes and addresses unchanged",
+  "source": "build/mkfix2/a/tomokv",
+  "output": "build/mkfix2/a-pad/tomokv",
+  "source_sha256": "4a4842e8dffdb2b51b97b32e2288285dde41a24e7c6d52382274519fa29ac93d",
+  "sha256": "007acf2cca08107900b297b69fa552d703b3c87a64ab926c7197603854e435a3",
+  "patches": [
+    {
+      "symbol": "_ZN8tomo_db020xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+      "file_offset": 1232666,
+      "before": "0f85d7feffff",
+      "after": "e9d8feffff90"
+    },
+    {
+      "symbol": "_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE",
+      "file_offset": 4904394,
+      "before": "0f85d7feffff",
+      "after": "e9d8feffff90"
+    }
+  ]
+}

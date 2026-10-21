@@ -1,0 +1,2 @@
+{"arm": "post", "mode": "1s", "databases": 16, "policy": "always", "runs": 300, "failures": 0, "windows_witnessed": 223, "holds_witnessed": 0, "visibility_failures": 0}
+{"arm": "post", "mode": "2s", "databases": 1, "policy": "everysec", "runs": 100, "failures": 0, "windows_witnessed": 78, "holds_witnessed": 0, "visibility_failures": 0}

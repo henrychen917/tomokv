@@ -1,0 +1,56 @@
+# mkfix2: 48 depth cells + four atomic-1 p1 GET/SET controls; no invented load pins.
+# Geometry request: server CPUs 32-39, load 40-47; 16 shards, split 6:2; wb-policy 1.
+# The ABBA geometry catalog needs the maintainer to register this eight-core shape first.
+# Counts used a fixed tuple; these merit cells use the gate's independently generated keys.
+mk2_1s_get_a0_p8 | 1s | rl=0 | ov=0 | ro=0 | GET | p8 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_get_a0_p32 | 1s | rl=0 | ov=0 | ro=0 | GET | p32 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_get_a0_p128 | 1s | rl=0 | ov=0 | ro=0 | GET | p128 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_get_a1_p8 | 1s | rl=0 | ov=0 | ro=0 | GET | p8 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_get_a1_p32 | 1s | rl=0 | ov=0 | ro=0 | GET | p32 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_get_a1_p128 | 1s | rl=0 | ov=0 | ro=0 | GET | p128 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_set_a0_p8 | 1s | rl=0 | ov=0 | ro=0 | SET | p8 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_set_a0_p32 | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_set_a0_p128 | 1s | rl=0 | ov=0 | ro=0 | SET | p128 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_set_a1_p8 | 1s | rl=0 | ov=0 | ro=0 | SET | p8 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_set_a1_p32 | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_set_a1_p128 | 1s | rl=0 | ov=0 | ro=0 | SET | p128 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mget_a0_p8 | 1s | rl=0 | ov=0 | ro=0 | MGET | p8 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mget_a0_p32 | 1s | rl=0 | ov=0 | ro=0 | MGET | p32 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mget_a0_p128 | 1s | rl=0 | ov=0 | ro=0 | MGET | p128 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mget_a1_p8 | 1s | rl=0 | ov=0 | ro=0 | MGET | p8 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mget_a1_p32 | 1s | rl=0 | ov=0 | ro=0 | MGET | p32 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mget_a1_p128 | 1s | rl=0 | ov=0 | ro=0 | MGET | p128 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mset_a0_p8 | 1s | rl=0 | ov=0 | ro=0 | MSET | p8 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mset_a0_p32 | 1s | rl=0 | ov=0 | ro=0 | MSET | p32 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mset_a0_p128 | 1s | rl=0 | ov=0 | ro=0 | MSET | p128 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mset_a1_p8 | 1s | rl=0 | ov=0 | ro=0 | MSET | p8 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mset_a1_p32 | 1s | rl=0 | ov=0 | ro=0 | MSET | p32 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_mset_a1_p128 | 1s | rl=0 | ov=0 | ro=0 | MSET | p128 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_get_a1_p1 | 1s | rl=0 | ov=0 | ro=0 | GET | p1 | 64 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_1s_set_a1_p1 | 1s | rl=0 | ov=0 | ro=0 | SET | p1 | 64 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_get_a0_p8 | 2s | rl=0 | ov=0 | ro=0 | GET | p8 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_get_a0_p32 | 2s | rl=0 | ov=0 | ro=0 | GET | p32 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_get_a0_p128 | 2s | rl=0 | ov=0 | ro=0 | GET | p128 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_get_a1_p8 | 2s | rl=0 | ov=0 | ro=0 | GET | p8 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_get_a1_p32 | 2s | rl=0 | ov=0 | ro=0 | GET | p32 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_get_a1_p128 | 2s | rl=0 | ov=0 | ro=0 | GET | p128 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_set_a0_p8 | 2s | rl=0 | ov=0 | ro=0 | SET | p8 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_set_a0_p32 | 2s | rl=0 | ov=0 | ro=0 | SET | p32 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_set_a0_p128 | 2s | rl=0 | ov=0 | ro=0 | SET | p128 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_set_a1_p8 | 2s | rl=0 | ov=0 | ro=0 | SET | p8 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_set_a1_p32 | 2s | rl=0 | ov=0 | ro=0 | SET | p32 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_set_a1_p128 | 2s | rl=0 | ov=0 | ro=0 | SET | p128 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mget_a0_p8 | 2s | rl=0 | ov=0 | ro=0 | MGET | p8 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mget_a0_p32 | 2s | rl=0 | ov=0 | ro=0 | MGET | p32 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mget_a0_p128 | 2s | rl=0 | ov=0 | ro=0 | MGET | p128 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mget_a1_p8 | 2s | rl=0 | ov=0 | ro=0 | MGET | p8 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mget_a1_p32 | 2s | rl=0 | ov=0 | ro=0 | MGET | p32 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mget_a1_p128 | 2s | rl=0 | ov=0 | ro=0 | MGET | p128 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mset_a0_p8 | 2s | rl=0 | ov=0 | ro=0 | MSET | p8 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mset_a0_p32 | 2s | rl=0 | ov=0 | ro=0 | MSET | p32 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mset_a0_p128 | 2s | rl=0 | ov=0 | ro=0 | MSET | p128 | 64 | - | - | - | atomic=0 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mset_a1_p8 | 2s | rl=0 | ov=0 | ro=0 | MSET | p8 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mset_a1_p32 | 2s | rl=0 | ov=0 | ro=0 | MSET | p32 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_mset_a1_p128 | 2s | rl=0 | ov=0 | ro=0 | MSET | p128 | 64 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_get_a1_p1 | 2s | rl=0 | ov=0 | ro=0 | GET | p1 | 64 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--wb-policy 1
+mk2_2s_set_a1_p1 | 2s | rl=0 | ov=0 | ro=0 | SET | p1 | 64 | - | - | - | atomic=1 | score=latency | mix=- | smoke=0 | srv=--wb-policy 1

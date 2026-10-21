@@ -267,6 +267,13 @@ bool     hash_ttl_externalize(Shard& shard, Op& op, KvObj*& object, bool notify)
 // Out-of-line lazy reap, called only behind the shard-level gate. Returns the object, or nullptr if
 // the last live field expired and the key was deleted.
 KvObj* hash_ttl_on_access(Shard& shard, Op& op, KvObj* object, bool notify);
+
+// Cold immutable replies and a read-only visitor over the hash's physical cursor.
+bool hash_parked_reply(Shard& shard, Op& op);
+bool hash_field_value_ro(const KvObj* object, Slice field, Slice& value);
+uint64_t hash_read_visit(const KvObj* object, uint64_t cursor, uint64_t count,
+                         void* context, void (*visit)(void*, Slice, Slice));
+
 // (The active-cycle reap hook, hash_ttl_active_reap, is declared in flatstore.h next to its caller.)
 // HSET semantics: writing a field's value clears that field's TTL (Redis 7.4).
 void hash_ttl_clear_field(Shard& shard, KvObj* object, Slice field);

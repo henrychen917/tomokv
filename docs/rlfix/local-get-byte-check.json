@@ -1,0 +1,115 @@
+{
+  "requirement": "GET/SET hit paths byte-identical, including read-local GET",
+  "passed": false,
+  "standard_selectors_include_resolver": false,
+  "evidence": "src/core/genthread.o return block at +0x131 changes load 0xb0(%rsp) to 0x90(%rsp); +0x139 changes 0xb8(%rsp) to 0x98(%rsp). This block also returns successful GET hits. Internal branch offsets change too.",
+  "local_resolver_bodies": [
+    {
+      "object": "db0/src/core/genthread.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE18prepare_local_readERNS_2OpEPNS_9FlatStoreEbPKNS4_24ReadLocalPrefetchCaptureE",
+      "name": "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1675,
+      "post_size": 2249,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE18prepare_local_readERNS_2OpEPNS_9FlatStoreEbPKNS4_24ReadLocalPrefetchCaptureE",
+      "name": "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1675,
+      "post_size": 2249,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/core/rl2s.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE18prepare_local_readERNS_2OpEPNS_9FlatStoreEbPKNS4_24ReadLocalPrefetchCaptureE",
+      "name": "tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1848,
+      "post_size": 2530,
+      "classification": "other"
+    },
+    {
+      "object": "src/core/genthread.o",
+      "symbol": "_ZN4tomo7ExLoopTILb1EE18prepare_local_readERNS_2OpEPNS_9FlatStoreEbPKNS4_24ReadLocalPrefetchCaptureE",
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1675,
+      "post_size": 2249,
+      "classification": "other"
+    },
+    {
+      "object": "src/core/reorder.o",
+      "symbol": "_ZN4tomo7ExLoopTILb1EE18prepare_local_readERNS_2OpEPNS_9FlatStoreEbPKNS4_24ReadLocalPrefetchCaptureE",
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1675,
+      "post_size": 2249,
+      "classification": "other"
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo7ExLoopTILb1EE18prepare_local_readERNS_2OpEPNS_9FlatStoreEbPKNS4_24ReadLocalPrefetchCaptureE",
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1848,
+      "post_size": 2530,
+      "classification": "other"
+    }
+  ],
+  "source_functions_changed": [
+    "ExLoopT<true>::prepare_local_read",
+    "IoLoop::ReadLocalDemotionPlan::prepare"
+  ],
+  "rejected_helpers": [
+    {
+      "trial": "noinline",
+      "source_sha256": "0e3661ad43ea90274139cdfbc281c78ff3a07fc1cd6b712ab8d666a80aa876aa",
+      "reason": "Did not restore exact local-hit bytes; not adopted"
+    },
+    {
+      "trial": "cold",
+      "source_sha256": "9497ef242ad7de0ddf0e842534f6680a89c6350f69ee9813e0725ed311a6f996",
+      "reason": "Did not restore exact local-hit bytes; not adopted"
+    },
+    {
+      "trial": "output-reference",
+      "source_sha256": "310eff96260ef01cd0e430c84f8328f33adf4fd3be583a464ef1974e3db6bdac",
+      "reason": "Did not restore exact local-hit bytes; not adopted"
+    },
+    {
+      "trial": "integer-register",
+      "source_sha256": "411d67a75952804fe46ac4724019074656a9d89069c733fa1e5d9038bd72c72c",
+      "reason": "Did not restore exact local-hit bytes; not adopted"
+    },
+    {
+      "trial": "reason-return",
+      "source_sha256": "aae4b5edd53b06c4720061cf8cabd3481722093c981134137e142815132dad34",
+      "reason": "Did not restore exact local-hit bytes; not adopted"
+    },
+    {
+      "trial": "return-barrier",
+      "source_sha256": "8bde4aa49fdaa50905f38cc34994fb5427a56c4c851cde93416de7ee36f47c3f",
+      "reason": "Did not restore exact local-hit bytes; not adopted"
+    },
+    {
+      "trial": "noipa",
+      "source_sha256": "f433e01cf05332363aa2d201a48099d0163289e93c59b5a592c0921f38225cec",
+      "reason": "Did not restore exact local-hit bytes; not adopted"
+    }
+  ]
+}

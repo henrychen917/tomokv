@@ -1,0 +1,23 @@
+  ok   geometry A/B shard=4 owner=4 cells=1525/2992; P/C shard=7 owner=7 cells=2443/2912; reader-thread=0
+  ok   get seed A
+  ok   get seed B
+  ok   get seed P
+  ok   get seed C
+  ok   get arm commit hold
+  ok   get disarm future commit holds
+  ok   get group is installed and held before epoch publication
+  ok   GET unrelated B serves the old value locally
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-rlfix/tests/bplus.py", line 577, in <module>
+    main()
+  File "/home/user/Projects/cx-rlfix/tests/bplus.py", line 565, in main
+    get_case(control, witnesses, unrelated, touched, geometry)
+  File "/home/user/Projects/cx-rlfix/tests/bplus.py", line 452, in get_case
+    held_group(control, witnesses, geometry, values, case, exercise)
+  File "/home/user/Projects/cx-rlfix/tests/bplus.py", line 379, in held_group
+    exercise(checkpoint, started + CLASSIFY_BUDGET, writer)
+  File "/home/user/Projects/cx-rlfix/tests/bplus.py", line 449, in exercise
+    expect(touched.read(), values[("a", "old")],
+  File "/home/user/Projects/cx-rlfix/tests/bplus.py", line 106, in expect
+    raise AssertionError("%s: got %r, wanted %r" % (label, actual, wanted))
+AssertionError: GET touched A falls back at its pinned old cut: got b'bplus:get:a:new:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', wanted b'bplus:get:a:old:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'

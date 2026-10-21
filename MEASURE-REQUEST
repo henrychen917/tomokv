@@ -29,3 +29,31 @@ Use epoll's own qualified floors/null. Unresolved nulls do not establish a pass.
 
 This lane ran correctness only. Full gate, ABBA, and throughput measurements
 remain NOT RUN and maintainer-owned. No push.
+
+wbknobs — 2026-10-09
+
+See MEASURE-REQUEST-wbknobs.md for the complete owner handoff, binary hashes,
+knob grammar/defaults, instruction and body receipts, and exact commands.
+
+Mainline acceptance, still pending:
+1. The 14 cells in tests/wbland_merit_cells.txt: newest headline defaults versus
+   build/wbknobs/POST/tomokv defaults, every cell within the class band.
+2. p8g and p8s in tests/wbknobs_sweep_cells.txt: identical POST bytes in both arms,
+   policy=1/S=0/D=3 versus policy=1/S=16/D=3, GET and SET each +6..+10%.
+
+Use tools/wbknobs_measure.py on the scheduled quiet box. The report specifies
+32 physical server cores 0-31, load 32-111, no SMT, and eight deep-cell loaders.
+PMU diagnostics are separate --profile 1 runs, not acceptance evidence.
+No server, benchmark or gate was run by the lane. Gate inventory is +2/+2,
+504 quick / 521 full. Append measurements as MEASURE-RESULT.
+
+mkfix2 — three measured multi-key leads, committed parts ready for maintainer merit.
+See MEASURE-REQUEST-mkfix.md, section mkfix2, for 288 finite count boots, full
+focused correctness proof, the exact 52-cell request, PRE/A/AB/ABC SHA-256, and
+A-PAD (kind A: PRE behaviour with A's exact linked text layout). A still batches
+less than plain MSET; 40 hot-body differences are explicitly retained for merit.
+B/C clear arena overflow frees and abandoned prepares in the POST census.
+All layout locks and GET/SET handler bodies hold. DQ +0 / DF +0; 625 / 642 unchanged.
+Use CPUs 32-47 and ports 25500-25599. The current standalone ABBA catalog lacks
+the requested 8-core/16-shard shape; register/select the geometry before measuring.
+No throughput claims, full gate or push. Append quiet-box merit to MEASURE-RESULT.

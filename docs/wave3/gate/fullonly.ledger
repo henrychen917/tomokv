@@ -1,0 +1,23 @@
+PARTIAL	0	GATE_ONLY_JOBS=asan_batteries replyoff zc rldbg rlcache differ-split differ-armed globcase; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	0.990000	ASAN build
+ok	44.040000	read-local ownership-invariant build
+ok	530.740000	Redis 7.4 differential part (split, atomic 0)
+ok	530.510000	Redis 7.4 differential part (split, atomic 1)
+ok	525.910000	Redis 7.4 differential part (armed fused, atomic 0)
+ok	526.950000	Redis 7.4 differential part (armed fused, atomic 1)
+ok	21.310000	mode equivalence part (all execution modes and knobs)
+ok	6.940000	torture under ASAN
+ok	0.990000	RYOW under ASAN
+ok	25.100000	atomic torn/window under ASAN
+ok	4.070000	atomic RYOW under ASAN
+ok	0.020000	ASAN clean
+ok	1.230000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)
+ok	1.230000	CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)
+ok	1.360000	zc borrow battery
+ok	0.020000	zc fired (zc_sends=N)
+ok	1.380000	zc borrow battery under ASAN
+ok	0.020000	zc ASAN clean
+ok	25.130000	armed block-cache churn battery
+ok	0.020000	read-local ownership invariants
+ok	2.050000	glob/scan grammar parity vs Redis 7.4

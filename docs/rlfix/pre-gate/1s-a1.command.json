@@ -1,0 +1,1 @@
+["taskset", "-c", "48-55", "/home/user/Projects/cx-rlfix/build/rlfix/pre/tomokv", "--port", "25610", "--bind", "127.0.0.1", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-rlfix/docs/rlfix/pre-gate", "--enable-debug-command", "yes", "--shards", "16", "--thread-mode", "1s", "--read-local", "1", "--atomic", "1"]

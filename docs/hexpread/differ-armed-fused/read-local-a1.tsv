@@ -1,0 +1,15 @@
+leg	hits	fallbacks
+boot	0	0
+hexpire-a1-s7.txt	0	0
+edgetime-a1-s7.txt	40	195
+hash-a1-s7.txt	40	196
+hexpire-a1-s19.txt	40	196
+edgetime-a1-s19.txt	70	421
+hash-a1-s19.txt	70	422
+hexpire-a1-s20.txt	70	422
+edgetime-a1-s20.txt	102	622
+hash-a1-s20.txt	102	623
+hexpire-a1-s23.txt	102	623
+edgetime-a1-s23.txt	122	835
+hash-a1-s23.txt	122	836
+final	122	836

@@ -1,0 +1,82 @@
+[
+  {
+    "label": "pre-1s",
+    "binary": "build/wave3/refs/pre-src/build/tomokv",
+    "appendonly": "yes",
+    "expect": "tear",
+    "rc": 1,
+    "tear_witnessed": true,
+    "as_expected": true,
+    "seconds": 1.59
+  },
+  {
+    "label": "pre-2s",
+    "binary": "build/wave3/refs/pre-src/build/tomokv",
+    "appendonly": "yes",
+    "expect": "tear",
+    "rc": 1,
+    "tear_witnessed": true,
+    "as_expected": true,
+    "seconds": 1.59
+  },
+  {
+    "label": "pre-off-1s",
+    "binary": "build/wave3/refs/pre-src/build/tomokv",
+    "appendonly": "no",
+    "expect": "tear",
+    "rc": 1,
+    "tear_witnessed": true,
+    "as_expected": true,
+    "seconds": 1.44
+  },
+  {
+    "label": "pre-off-2s",
+    "binary": "build/wave3/refs/pre-src/build/tomokv",
+    "appendonly": "no",
+    "expect": "tear",
+    "rc": 1,
+    "tear_witnessed": true,
+    "as_expected": true,
+    "seconds": 1.44
+  },
+  {
+    "label": "integrated-1s",
+    "binary": "build/tomokv",
+    "appendonly": "yes",
+    "expect": "pass",
+    "rc": 0,
+    "tear_witnessed": false,
+    "as_expected": true,
+    "seconds": 1.5
+  },
+  {
+    "label": "integrated-2s",
+    "binary": "build/tomokv",
+    "appendonly": "yes",
+    "expect": "pass",
+    "rc": 0,
+    "tear_witnessed": false,
+    "as_expected": true,
+    "seconds": 1.54
+  },
+  {
+    "label": "integrated-off-1s",
+    "binary": "build/tomokv",
+    "appendonly": "no",
+    "expect": "pass",
+    "rc": 0,
+    "tear_witnessed": false,
+    "as_expected": true,
+    "seconds": 1.38
+  },
+  {
+    "label": "integrated-off-2s",
+    "binary": "build/tomokv",
+    "appendonly": "no",
+    "expect": "pass",
+    "rc": 0,
+    "tear_witnessed": false,
+    "as_expected": true,
+    "seconds": 1.38
+  }
+]

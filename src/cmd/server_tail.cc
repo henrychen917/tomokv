@@ -43,6 +43,8 @@
 #endif
 
 namespace tomo {
+
+KvObj* object_read_no_touch(Shard& shard, uint64_t hash, Slice key);
 namespace {
 
 bool eq_icase(Slice s, const char* lit) {
@@ -427,7 +429,7 @@ void cmd_object_impl(Shard& shard, Op& op) {
     // ENCODING/REFCOUNT go through the notify-aware lookup so an armed keymiss event still fires.
     // IDLETIME/FREQ must not touch the metadata they are about to report.
     KvObj* object = (idletime || freq)
-        ? shard.store_find_read_no_touch(op.hash, op.arg(2))
+        ? object_read_no_touch(shard, op.hash, op.arg(2))
         : shard.store_find_read<kNotify>(op.hash, op.arg(2));
     if (!object) { reply_null(op.sink(), op.resp3()); return; }
     if (encoding) {

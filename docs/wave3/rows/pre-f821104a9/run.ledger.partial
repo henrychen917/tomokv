@@ -1,0 +1,24 @@
+PARTIAL	0	GATE_ONLY_JOBS=respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-fragment-2s-uring bplus aoforder hexpread; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+FAIL	16.520000	RESP resumable fragment (2s, uring)
+FAIL	2.640000	RESP resumable cpu (2s, uring)
+FAIL	0.860000	RESP resumable neighbour (1s, epoll)
+FAIL	1.160000	hexpread torn (1s)
+FAIL	1.150000	hexpread replies (1s)
+FAIL	5.170000	hexpread deferred (1s)
+FAIL	1.160000	hexpread OBJECT expiry (1s)
+FAIL	1.160000	hexpread torn (2s)
+FAIL	1.160000	hexpread replies (2s)
+FAIL	5.160000	hexpread deferred (2s)
+FAIL	1.150000	hexpread OBJECT expiry (2s)
+ok	2.130000	B+ held-group GET/MGET filter battery
+ok	0.140000	read-local lane admission battery
+ok	0.030000	read-local MGET fence battery (1s)
+FAIL	0.150000	read-local GET miss battery (1s)
+FAIL	0.100000	read-local one-key delete battery (1s)
+ok	0.280000	read-local MGET fence battery (2s)
+FAIL	0.150000	read-local GET miss battery (2s)
+FAIL	0.100000	read-local one-key delete battery (2s)
+FAIL	10.190000	AOF commit order single
+ok	4.110000	AOF commit order crossing
+FAIL	4.800000	AOF commit order rewrite

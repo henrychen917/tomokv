@@ -1,0 +1,63 @@
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127924", "unit": 100411, "changed": 25, "hot_changed": 0, "A": 17, "B": 5, "C": 3, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.533eebc9c778.o"}
+    C T=new code 2933->2882 lanes=- eq=- void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)
+    C T=new code 1016->940 lanes=- eq=- tomo::(anonymous namespace)::sort_encode_store(std::vector<std::__cxx11::basic_string<char, std::char_traits<c
+    C T=new code 84->81 lanes=- eq=- tomo::(anonymous namespace)::sort_encode_store(std::vector<std::__cxx11::basic_string<char, std::char_traits<c
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=128003", "unit": 100411, "changed": 20, "hot_changed": 0, "A": 15, "B": 5, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.8908e8c37d87.o"}
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127900", "unit": 100411, "changed": 24, "hot_changed": 0, "A": 16, "B": 5, "C": 3, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.266f0468df9c.o"}
+    C T=new code 2933->2882 lanes=- eq=- void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)
+    C T=new code 1016->940 lanes=- eq=- tomo::(anonymous namespace)::sort_encode_store(std::vector<std::__cxx11::basic_string<char, std::char_traits<c
+    C T=new code 84->81 lanes=- eq=- tomo::(anonymous namespace)::sort_encode_store(std::vector<std::__cxx11::basic_string<char, std::char_traits<c
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127912", "unit": 100411, "changed": 24, "hot_changed": 0, "A": 17, "B": 5, "C": 2, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.6b5ccf55d79f.o"}
+    C T=new code 1016->940 lanes=- eq=- tomo::(anonymous namespace)::sort_encode_store(std::vector<std::__cxx11::basic_string<char, std::char_traits<c
+    C T=new code 84->81 lanes=- eq=- tomo::(anonymous namespace)::sort_encode_store(std::vector<std::__cxx11::basic_string<char, std::char_traits<c
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127936", "unit": 100411, "changed": 23, "hot_changed": 0, "A": 17, "B": 4, "C": 2, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.9df77660014f.o"}
+    C T=new code 2933->2882 lanes=- eq=- void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)
+    C T=new code 4171->4064 lanes=- eq=- tomo::IoLoop::pubsub_finish_pending(unsigned long)
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127948", "unit": 100411, "changed": 24, "hot_changed": 0, "A": 19, "B": 4, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.ec76658a7fad.o"}
+    C T=new code 2933->2882 lanes=- eq=- void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127960", "unit": 100411, "changed": 24, "hot_changed": 0, "A": 19, "B": 4, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.bbe8cde5b1d0.o"}
+    C T=new code 2933->2882 lanes=- eq=- void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127972", "unit": 100411, "changed": 24, "hot_changed": 0, "A": 18, "B": 5, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.a8807c429110.o"}
+    C T=new code 2933->2882 lanes=- eq=- void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127984", "unit": 100411, "changed": 19, "hot_changed": 0, "A": 14, "B": 4, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.d61fd34d2c78.o"}
+    C T=new code 2933->2882 lanes=- eq=- void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127996", "unit": 100411, "changed": 22, "hot_changed": 0, "A": 16, "B": 5, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.5ca661e0ab4b.o"}
+    C T=new code 2933->2882 lanes=- eq=- void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=128008", "unit": 100411, "changed": 22, "hot_changed": 0, "A": 17, "B": 5, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.f2fffe70b5f4.o"}
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=128020", "unit": 100411, "changed": 19, "hot_changed": 0, "A": 14, "B": 5, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.74d90ac13045.o"}
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=128032", "unit": 100411, "changed": 22, "hot_changed": 0, "A": 15, "B": 4, "C": 0, "D": 3, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.ff1fa028ca77.o"}
+    D T=new code 947->963 lanes=respresume eq=- tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymou
+    D T=new code 1314->1374 lanes=respresume eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+    D T=PRE code 118->129 lanes=respresume eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=128044", "unit": 100411, "changed": 20, "hot_changed": 0, "A": 14, "B": 5, "C": 0, "D": 1, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.9596e5611d42.o"}
+    D T=new code 947->963 lanes=respresume eq=- tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymou
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=128056", "unit": 100411, "changed": 19, "hot_changed": 0, "A": 13, "B": 4, "C": 0, "D": 2, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.1fa8ef8c26da.o"}
+    D T=new code 1314->1374 lanes=respresume eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+    D T=PRE code 118->129 lanes=respresume eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=128068", "unit": 100411, "changed": 22, "hot_changed": 0, "A": 13, "B": 5, "C": 2, "D": 2, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.ee9ed9e73df2.o"}
+    C T=new code 2509->2542 lanes=- eq=- tomo::(anonymous namespace)::BlockingRegistry::add(tomo::Shard&, tomo::BlockingState&, unsigned int)
+    C T=new code 803->807 lanes=- eq=- tomo::(anonymous namespace)::BlockingRegistry::add(tomo::Shard&, tomo::BlockingState&, unsigned int) [clone .c
+    D T=new code 1314->1374 lanes=respresume eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+    D T=PRE code 118->129 lanes=respresume eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=128080", "unit": 100411, "changed": 23, "hot_changed": 0, "A": 13, "B": 5, "C": 5, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.1a517a4dee67.o"}
+    C T=new code 7290->7358 lanes=- eq=- tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&
+    C T=PRE code 242->246 lanes=- eq=- tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&
+    C T=new code 812->982 lanes=- eq=- tomo::FlatStore::start_rehash(unsigned int)
+    C T=new removed 84->0 lanes=- eq=- tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0]
+    C T=new removed 6->0 lanes=- eq=- tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0] [clone .cold]
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=128092", "unit": 100411, "changed": 23, "hot_changed": 0, "A": 13, "B": 5, "C": 5, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.4361edbc8f78.o"}
+    C T=new code 7290->7358 lanes=- eq=- tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&
+    C T=PRE code 242->246 lanes=- eq=- tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&
+    C T=new code 812->982 lanes=- eq=- tomo::FlatStore::start_rehash(unsigned int)
+    C T=new removed 84->0 lanes=- eq=- tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0]
+    C T=new removed 6->0 lanes=- eq=- tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0] [clone .cold]
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=128104", "unit": 100411, "changed": 27, "hot_changed": 0, "A": 13, "B": 5, "C": 7, "D": 2, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_xshard.o.5d1bac689c77.o"}
+    C T=new code 2509->2542 lanes=- eq=- tomo::(anonymous namespace)::BlockingRegistry::add(tomo::Shard&, tomo::BlockingState&, unsigned int)
+    C T=new code 803->807 lanes=- eq=- tomo::(anonymous namespace)::BlockingRegistry::add(tomo::Shard&, tomo::BlockingState&, unsigned int) [clone .c
+    D T=new code 1314->1374 lanes=respresume eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+    D T=PRE code 118->129 lanes=respresume eq=- tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyE
+    C T=new code 7290->7358 lanes=- eq=- tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&
+    C T=PRE code 242->246 lanes=- eq=- tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&
+    C T=new code 812->982 lanes=- eq=- tomo::FlatStore::start_rehash(unsigned int)
+    C T=new removed 84->0 lanes=- eq=- tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0]
+    C T=new removed 6->0 lanes=- eq=- tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0] [clone .cold]

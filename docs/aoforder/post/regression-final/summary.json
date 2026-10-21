@@ -1,0 +1,1982 @@
+[
+  {
+    "label": "pre-1s-MSETNX",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/pre-1s-MSETNX",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "MSETNX",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "expected": 1,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ]
+  },
+  {
+    "label": "pre-1s-DEL",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/pre-1s-DEL",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "DEL",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "expected": 1,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          null
+        ],
+        "reloaded": [
+          "9",
+          null
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          null
+        ],
+        "restarted": [
+          "9",
+          null
+        ],
+        "equal": false
+      }
+    ]
+  },
+  {
+    "label": "pre-1s-UNLINK",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/pre-1s-UNLINK",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "UNLINK",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "expected": 1,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          null
+        ],
+        "reloaded": [
+          "9",
+          null
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          null
+        ],
+        "restarted": [
+          "9",
+          null
+        ],
+        "equal": false
+      }
+    ]
+  },
+  {
+    "label": "pre-1s-RENAME",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/pre-1s-RENAME",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "RENAME",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "expected": 1,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          "0"
+        ],
+        "reloaded": [
+          null,
+          "9"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          "0"
+        ],
+        "restarted": [
+          null,
+          "9"
+        ],
+        "equal": false
+      }
+    ]
+  },
+  {
+    "label": "pad-1s",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pad-final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/pad-1s",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "expected": 1,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ]
+  },
+  {
+    "label": "pre-2s-MSETNX",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/pre-2s-MSETNX",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "MSETNX",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "expected": 1,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ]
+  },
+  {
+    "label": "pre-2s-DEL",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/pre-2s-DEL",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "DEL",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "expected": 1,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          null
+        ],
+        "reloaded": [
+          "9",
+          null
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          null
+        ],
+        "restarted": [
+          "9",
+          null
+        ],
+        "equal": false
+      }
+    ]
+  },
+  {
+    "label": "pre-2s-UNLINK",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/pre-2s-UNLINK",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "UNLINK",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "expected": 1,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          null
+        ],
+        "reloaded": [
+          "9",
+          null
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          null
+        ],
+        "restarted": [
+          "9",
+          null
+        ],
+        "equal": false
+      }
+    ]
+  },
+  {
+    "label": "pre-2s-RENAME",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/pre-2s-RENAME",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "RENAME",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "expected": 1,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          "0"
+        ],
+        "reloaded": [
+          null,
+          "9"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          "0"
+        ],
+        "restarted": [
+          null,
+          "9"
+        ],
+        "equal": false
+      }
+    ]
+  },
+  {
+    "label": "pad-2s",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pad-final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/pad-2s",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "expected": 1,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ]
+  },
+  {
+    "label": "post-single-1s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-single-1s-everysec-db1",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-single-1s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-single-1s-everysec-db16",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-single-1s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-single-1s-always-db1",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-single-1s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-single-1s-always-db16",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-single-2s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-single-2s-everysec-db1",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-single-2s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-single-2s-everysec-db16",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-single-2s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-single-2s-always-db1",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-single-2s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-single-2s-always-db16",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-rewrite-1s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-rewrite-1s-everysec-db1",
+      "--case",
+      "rewrite",
+      "--mode",
+      "1s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-rewrite-1s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-rewrite-1s-everysec-db16",
+      "--case",
+      "rewrite",
+      "--mode",
+      "1s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-rewrite-1s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-rewrite-1s-always-db1",
+      "--case",
+      "rewrite",
+      "--mode",
+      "1s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-rewrite-1s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-rewrite-1s-always-db16",
+      "--case",
+      "rewrite",
+      "--mode",
+      "1s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-rewrite-2s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-rewrite-2s-everysec-db1",
+      "--case",
+      "rewrite",
+      "--mode",
+      "2s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-rewrite-2s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-rewrite-2s-everysec-db16",
+      "--case",
+      "rewrite",
+      "--mode",
+      "2s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-rewrite-2s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-rewrite-2s-always-db1",
+      "--case",
+      "rewrite",
+      "--mode",
+      "2s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-rewrite-2s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-rewrite-2s-always-db16",
+      "--case",
+      "rewrite",
+      "--mode",
+      "2s",
+      "--operation",
+      "MSET",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-1s-MSETNX",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-1s-MSETNX",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "MSETNX",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-1s-DEL",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-1s-DEL",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "DEL",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          null
+        ],
+        "reloaded": [
+          null,
+          null
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          null
+        ],
+        "restarted": [
+          null,
+          null
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-1s-UNLINK",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-1s-UNLINK",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "UNLINK",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          null
+        ],
+        "reloaded": [
+          null,
+          null
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          null
+        ],
+        "restarted": [
+          null,
+          null
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-1s-RENAME",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-1s-RENAME",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "RENAME",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          "0"
+        ],
+        "reloaded": [
+          null,
+          "0"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          "0"
+        ],
+        "restarted": [
+          null,
+          "0"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-1s-LMPOP",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-1s-LMPOP",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--operation",
+      "LMPOP",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "string",
+          "\u0000\u00019\f\u0000\\xe2\\x94sw,.\u0110"
+        ],
+        "reloaded": [
+          "string",
+          "\u0000\u00019\f\u0000\\xe2\\x94sw,.\u0110"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "string",
+          "\u0000\u00019\f\u0000\\xe2\\x94sw,.\u0110"
+        ],
+        "restarted": [
+          "string",
+          "\u0000\u00019\f\u0000\\xe2\\x94sw,.\u0110"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-2s-MSETNX",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-2s-MSETNX",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "MSETNX",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "1",
+          "1"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-2s-DEL",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-2s-DEL",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "DEL",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          null
+        ],
+        "reloaded": [
+          null,
+          null
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          null
+        ],
+        "restarted": [
+          null,
+          null
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-2s-UNLINK",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-2s-UNLINK",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "UNLINK",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          null
+        ],
+        "reloaded": [
+          null,
+          null
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          null
+        ],
+        "restarted": [
+          null,
+          null
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-2s-RENAME",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-2s-RENAME",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "RENAME",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          null,
+          "0"
+        ],
+        "reloaded": [
+          null,
+          "0"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          null,
+          "0"
+        ],
+        "restarted": [
+          null,
+          "0"
+        ],
+        "equal": true
+      }
+    ]
+  },
+  {
+    "label": "post-2s-LMPOP",
+    "command": [
+      "taskset",
+      "-c",
+      "105-107",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/final/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/regression-final/post-2s-LMPOP",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--operation",
+      "LMPOP",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 0,
+    "expected": 0,
+    "passed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "string",
+          "\u0000\u00019\f\u0000\\xe2\\x94sw,.\u0110"
+        ],
+        "reloaded": [
+          "string",
+          "\u0000\u00019\f\u0000\\xe2\\x94sw,.\u0110"
+        ],
+        "equal": true
+      },
+      {
+        "event": "restart",
+        "live": [
+          "string",
+          "\u0000\u00019\f\u0000\\xe2\\x94sw,.\u0110"
+        ],
+        "restarted": [
+          "string",
+          "\u0000\u00019\f\u0000\\xe2\\x94sw,.\u0110"
+        ],
+        "equal": true
+      }
+    ]
+  }
+]
