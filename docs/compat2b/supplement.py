@@ -59,6 +59,8 @@ def main():
             run('post-ktls-window-' + mode, ['build/ktls-lifetime-unit', mode], cores='64-71')
             run('pre-ktls-window-' + mode, ['build/compat2/ktls-lifetime-pre', mode], cores='64-71')
     elif a.part == 'differ':
+        run('gate-final', ['python3', 'docs/compat2b/run_gate.py', 'post',
+            '--jobs', 'atomic_units abba_selftest respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring', '--label', '-final'], cores='64-79')
         for engine in ('uring', 'epoll'):
             wrapper = ROOT / 'build/compat2' / f'{engine}-server'
             wrapper.write_text(f'#!/bin/bash\nexec {binary} --net-io {engine} "$@"\n')

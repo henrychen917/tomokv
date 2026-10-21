@@ -2031,7 +2031,7 @@ job_respresume(){
   if [ "$booted" = 1 ] && [ "$kind" = fragment ]; then
     guard_port "$oracle_port"
     oracle_dir=$(mktemp -d "$TMPDIR/respresume-oracle.XXXXXX")
-    taskset -c "$CORES" "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+    taskset -c "${GATE_DIFFER_ORACLE_CORES:-$CORES}" "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
       --port "$oracle_port" --bind 127.0.0.1 --save '' --appendonly no --dir "$oracle_dir" \
       >"$TMPDIR/respresume-oracle.log" 2>&1 &
     GLOBCASE_ORACLE=$!
