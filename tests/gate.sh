@@ -330,8 +330,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # quick-tier exit): DQ=+1, DF=+1. With wave3: EXPECT_QUICK=664+1=665 / EXPECT_FULL=681+1=682.
 # ntfix N1-N4: DQ=+4, DF=+4; all four rows are collected before the quick exit.
 # Maintainer updates required counts from 665/682 to 669/686.
-EXPECT_QUICK=665
-EXPECT_FULL=682                 # ABBA reports only; self-test remains counted.
+EXPECT_QUICK=669
+EXPECT_FULL=686                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
