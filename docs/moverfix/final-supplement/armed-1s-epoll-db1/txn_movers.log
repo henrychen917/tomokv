@@ -1,0 +1,15 @@
+PASS RPOPLPUSH RIGHT LEFT exact deliveries 2000 resumed False
+PASS LMOVE LEFT LEFT exact deliveries 2000 resumed False
+PASS LMOVE LEFT RIGHT exact deliveries 2000 resumed False
+PASS LMOVE RIGHT LEFT exact deliveries 2000 resumed False
+PASS LMOVE RIGHT RIGHT exact deliveries 2000 resumed False
+PASS BRPOPLPUSH RIGHT LEFT exact deliveries 2000 resumed True
+PASS BLMOVE LEFT LEFT exact deliveries 2000 resumed True
+PASS BLMOVE LEFT RIGHT exact deliveries 2000 resumed True
+PASS BLMOVE RIGHT LEFT exact deliveries 2000 resumed True
+PASS BLMOVE RIGHT RIGHT exact deliveries 2000 resumed True
+PASS LMPOP LEFT exact live pops 2000
+PASS LMPOP RIGHT exact live pops 2000
+PASS ZMPOP MIN exact live pops 2000
+PASS ZMPOP MAX exact live pops 2000
+PASS SMOVE one actual removal, one winner in 100 races

@@ -103,8 +103,15 @@ mover fixtures. Its other serverless jobs use the gate's normal current-worktree
 unit outputs; they are not falsely presented as paired PRE production-unit builds.
 Exact job invocation and sequencing are retained in `remaining.py` and gate logs.
 
-Supplemental atomic/EXEC coverage, standard differential seeds and a quiet
-scheduler-suite rerun remain in progress. The initial standalone
+The supplemental armed run completed 38 child invocations: 36 pass, including
+all eight atomic-0 mover mode/engine/database cells; `execatomic.py` fails in both
+read-local-armed modes on its deterministic MGET fan-out witness. Those runs
+report zero cuts for that witness; all observations and failure lines are retained.
+The recording driver exits zero after completing all invocations, so its wrapper
+return code is not a battery verdict: `final-supplement/runs.json` contains the
+individual child statuses. Matching PRE armed controls and POST standard unarmed
+atomic checks are queued. Standard differential seeds and a quiet scheduler-suite
+rerun remain in progress. The initial standalone
 `gates_test.py` run retained 65 passes and two 45-second scheduler-fixture timeouts
 while compilation was active; no deadline or assertion was changed.
 
