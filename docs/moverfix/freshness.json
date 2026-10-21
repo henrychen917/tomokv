@@ -1,0 +1,207 @@
+{
+  "checks": [
+    {
+      "target": "all",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/moverfix-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/moverfix-db0-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/publishfix-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/at15-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/netcmd-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/netcap-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/waits-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/multidb-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/storesize-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/respresume-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/respresume-migration",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/exbatch-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/wb-rule-units",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/wbland-units",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/rltopo-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/lbplanner-units",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/shutdown-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/persistfix-units",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/flushfix-units",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/racefix-climon",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "build/aoforder-scheduled",
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "mdbqsbr-live-arms output mdbqsbr2-park",
+      "argv": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-park",
+        "all"
+      ],
+      "rc": 0,
+      "output": ""
+    },
+    {
+      "target": "mdbqsbr-live-arms output mdbqsbr2-no-wake",
+      "argv": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-no-wake",
+        "all"
+      ],
+      "rc": 0,
+      "output": ""
+    }
+  ],
+  "phony_note": "mdbqsbr-live-arms is explicitly .PHONY; its two real all targets are checked separately."
+}

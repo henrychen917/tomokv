@@ -1,0 +1,1 @@
+ok: 245 registered commands, all present in 341 generated rows; 18 generator sources cover every CommandSpec table; no orphans; offline regeneration byte-identical

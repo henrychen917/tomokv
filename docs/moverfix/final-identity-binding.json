@@ -1,0 +1,20 @@
+[
+  {
+    "path": "src/cmd/xshard.o",
+    "production_sha256": "349aad6496a42c38ef7338d07a58cdad04519b4795b175ff6f524261fe6c596c",
+    "audited_sha256": "349aad6496a42c38ef7338d07a58cdad04519b4795b175ff6f524261fe6c596c",
+    "equal": true
+  },
+  {
+    "path": "db0/src/cmd/xshard.o",
+    "production_sha256": "64f021265d5d4611eb90d316f76e6eefef89e1c969800445b8dc26361d2a108f",
+    "audited_sha256": "64f021265d5d4611eb90d316f76e6eefef89e1c969800445b8dc26361d2a108f",
+    "equal": true
+  },
+  {
+    "path": "tomokv",
+    "production_sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "audited_sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "equal": true
+  }
+]

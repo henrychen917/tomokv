@@ -1,0 +1,4 @@
+  row budget: 900s; median=-s; no-history-conservative-default; waits config publication + admission unit
+  waits config publication + admission unit            ok
+  row budget: 900s; median=-s; no-history-conservative-default; reads never wait for retirement quiescence
+  reads never wait for retirement quiescence           ok
