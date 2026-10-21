@@ -24,7 +24,7 @@ def main():
     body = gate.split("job_production_units(){", 1)[1].split("\n}", 1)[0]
     targets = sorted(set(re.findall(r"build/[A-Za-z0-9_.-]+", body)))
     (OUT / "targets.txt").write_text("\n".join(targets + ["mdbqsbr-live-arms"]) + "\n")
-    receipts = [run(["make", "-k", "-j16", *targets], "build")]
+    receipts = [run(["make", "-k", "-j16", "all", *targets], "build")]
     for target in ["all", *targets]:
         receipts.append(run(["make", "-q", target], "fresh-" + target.replace("/", "_")))
     receipts.append(run(["make", "-j16", "mdbqsbr-live-arms"], "mdbqsbr-live-arms-build"))
