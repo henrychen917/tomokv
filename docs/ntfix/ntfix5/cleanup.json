@@ -1,0 +1,13 @@
+{
+  "command": [
+    "ss",
+    "-H",
+    "-ltn",
+    "sport >= :22800 and sport <= :22899"
+  ],
+  "output": "",
+  "gate_finalizers_complete": true,
+  "oracle_exit": 0,
+  "initial_selftest_port_exception": "Nested persistence fixture used bind(port=0); retained but not counted as port-compliant.",
+  "final_selftest_port": 22899
+}

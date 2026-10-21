@@ -1,0 +1,13 @@
+{"object": "src/core/genthread.o", "tree": "post", "unit": 102715, "counts": {"lane": 10, "hot": 1, "other": 13}, "budget": 129573}
+{"object": "src/core/genthread.o", "tree": "post", "unit": 102715, "counts": {"lane": 10, "hot": 1, "other": 14}, "budget": 129589}
+{"object": "src/core/genthread.o", "tree": "post", "unit": 102715, "counts": {"lane": 10, "hot": 1, "other": 14}, "budget": 129605}
+{"object": "db0/src/core/genthread.o", "tree": "post", "unit": 101937, "counts": {"lane": 10, "hot": 0, "other": 11}, "budget": 129830}
+{"object": "db0/src/core/genthread.o", "tree": "post", "unit": 101937, "counts": {"lane": 10, "hot": 1, "other": 10}, "budget": 129862}
+{"object": "db0/src/core/genthread.o", "tree": "post", "unit": 101937, "counts": {"lane": 10, "hot": 1, "other": 12}, "budget": 129846}
+{"object": "db0/src/main.o", "tree": "post", "unit": 96922, "counts": {"lane": 11, "hot": 0, "other": 7}, "budget": 147576}
+{"object": "src/main.o", "tree": "post", "unit": 97684, "counts": {"lane": 11, "hot": 0, "other": 7}, "budget": 147555}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113603, "counts": {"lane": 12, "hot": 2, "other": 12}, "budget": 148514}
+{"object": "src/core/rl2s.o", "tree": "post", "unit": 110807, "counts": {"lane": 18, "hot": 0, "other": 11}, "budget": 162477}
+{"object": "db0/src/core/rl2s.o", "tree": "post", "unit": 109896, "counts": {"lane": 18, "hot": 0, "other": 8}, "budget": 162506}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113603, "counts": {"lane": 12, "hot": 2, "other": 12}, "budget": 148530}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113603, "counts": {"lane": 12, "hot": 1, "other": 12}, "budget": 148546}

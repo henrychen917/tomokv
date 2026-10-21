@@ -1,0 +1,4 @@
+pre-1s default-cipher epoll TLS: rc=0
+pre-2s default-cipher epoll TLS: rc=0
+post-1s default-cipher epoll TLS: rc=1
+post-2s default-cipher epoll TLS: rc=0

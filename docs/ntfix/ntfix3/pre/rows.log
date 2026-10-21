@@ -1,0 +1,17 @@
+/home/user/Projects/cx-ntfix/build/ntfix-certs
+1s-uring N1: rc=0
+1s-uring N2: rc=1
+1s-uring N3: rc=1
+1s-uring N4: rc=1
+1s-epoll N1: rc=1
+1s-epoll N2: rc=0
+1s-epoll N3: rc=1
+1s-epoll N4: rc=1
+2s-uring N1: rc=0
+2s-uring N2: rc=1
+2s-uring N3: rc=1
+2s-uring N4: rc=1
+2s-epoll N1: rc=1
+2s-epoll N2: rc=0
+2s-epoll N3: rc=1
+2s-epoll N4: rc=1

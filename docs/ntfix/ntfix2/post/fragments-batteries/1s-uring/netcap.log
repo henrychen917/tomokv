@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ntfix/tests/netcap.py", line 184, in <module>
+    main()
+  File "/home/user/Projects/cx-ntfix/tests/netcap.py", line 177, in main
+    inline_attack(admin, args.host, args.port)
+  File "/home/user/Projects/cx-ntfix/tests/netcap.py", line 64, in inline_attack
+    require(admin.must("CONFIG", "GET", "client-lb") == [b"client-lb", b"0"],
+  File "/home/user/Projects/cx-ntfix/tests/netcap.py", line 21, in require
+    raise AssertionError(label)
+AssertionError: NET1 witness requires fixed client ownership (--client-lb 0)

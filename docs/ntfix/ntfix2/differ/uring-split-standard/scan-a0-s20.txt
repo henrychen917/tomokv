@@ -1,0 +1,3 @@
+  SSCAN-CHURN target: 83 calls, 192 permanent members covered
+  SSCAN-CHURN oracle: 43 calls, 192 permanent members covered
+DIFFER scan: 4081 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS

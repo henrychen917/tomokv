@@ -1,0 +1,3 @@
+PASS POST: 20/20 TLS rows, 12 mode/engine logs, 24 TCP/TLS legs; 15/15 boots
+PASS PRE negative control: exactly N2/N3/N4 fail; all 15 boots succeed, including six fused boots
+PASS binary hashes and unchanged EXPECT_QUICK=669 / EXPECT_FULL=686

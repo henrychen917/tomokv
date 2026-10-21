@@ -1904,6 +1904,55 @@ CORES=112-127; PORT=17991; GATE_RATIO=6:2
             self.assertIn("--save ''", body, 'AOF recovery proof must disable shutdown snapshots')
 
 
+class TlsBootGeometry(unittest.TestCase):
+    def test_ratio_follows_thread_mode_value_and_preserves_other_arguments(self):
+        root = Path(__file__).resolve().parents[1]
+        gate = (root / 'tests/gate.sh').read_text()
+        helper = gate[gate.index('tlsboot(){'):].split('\n}', 1)[0] + '\n}\n'
+        cases = [
+            (['yes'], True),
+            (['optional'], True),
+            (['no', '--tls-protocols', 'TLSv1.2 TLSv1.3', '--tls-ciphers',
+              'ECDHE-RSA-AES256-SHA384', '--tls-ciphersuites', 'TLS_AES_256_GCM_SHA384',
+              '--tls-prefer-server-ciphers', 'yes'], True),
+            (['no', '--requirepass', 'fused'], True),
+            (['no', '--requirepass', '1s'], True),
+            (['no', '--thread-mode', 'fused', '--thread-mode', '2s'], True),
+        ]
+        for mode in ('fused', '1s', '2s', 'split'):
+            for engine in ('uring', 'epoll'):
+                cases.append((['no', '--net-io', engine, '--thread-mode', mode,
+                               '--read-local', '1'], mode in ('2s', 'split')))
+        # Capture the real helper's argv without starting a server or opening sockets.
+        with tempfile.TemporaryDirectory(dir=root / 'build') as directory:
+            for args, split in cases:
+                with self.subTest(args=args):
+                    script = '''
+quiet_wait(){ :; }
+guard_port(){ :; }
+seq(){ :; }
+taskset(){ printf '%s\\0' "$@" > "$TMPDIR/argv"; }
+CORES=80-87; PORT=22800; TLS_PORT=22801; GATE_RATIO=6:2
+CANDIDATE_BINARY=/unused/tomokv; TLS_DIR=/unused/tls
+''' + helper + '\ntlsboot "$@"\nwait "$SRV"\n'
+                    result = subprocess.run(['bash', '-c', script, 'tlsboot', *args],
+                                            capture_output=True, text=True, timeout=5,
+                                            env=dict(os.environ, TMPDIR=directory))
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    argv = (Path(directory) / 'argv').read_bytes().split(b'\0')[:-1]
+                    expected = ['-c', '80-87', '/unused/tomokv', '--databases', '1',
+                                '--port', '22800', '--tls-port', '22801', '--bind',
+                                '127.0.0.1', '--shards', '16']
+                    if split:
+                        expected += ['--ratio', '6:2']
+                    expected += ['--protected-mode', 'no', '--dir', '/unused/tls',
+                                 '--save', '', '--tls-cert-file', '/unused/tls/server.crt',
+                                 '--tls-key-file', '/unused/tls/server.key',
+                                 '--tls-ca-cert-file', '/unused/tls/ca.crt',
+                                 '--tls-auth-clients', args[0], *args[1:]]
+                    self.assertEqual(argv, [word.encode() for word in expected])
+
+
 class EarlyGateDispatch(unittest.TestCase):
     def test_perf_self_test_reaches_abba_and_common_options_reach_planner(self):
         root = Path(__file__).resolve().parent.parent

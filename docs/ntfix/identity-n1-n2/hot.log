@@ -1,0 +1,12 @@
+Hot bodies: 1210; raw byte equal: 1196; bytes + resolved relocation targets equal: 1199
+DIFF db0/src/core/genthread.o 9906 9890 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/genthread.o 117 117 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]
+DIFF db0/src/core/reorder.o 3631 3565 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+DIFF db0/src/core/reorder.o 4180 4033 unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+DIFF db0/src/core/reorder.o 18345 18394 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 4180 4033 unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+DIFF db0/src/core/reorder.o 796 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+DIFF src/core/genthread.o 2881 2572 unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+DIFF src/core/genthread.o 5149 5177 void tomo::IoLoop::run_loop<true, true, false, true, false>()
+DIFF src/core/rl2s.o 21207 21138 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+DIFF src/core/rl2s.o 21112 21049 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)

@@ -1,0 +1,13 @@
+832687:C 21 Oct 2026 05:39:28.054 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+832687:C 21 Oct 2026 05:39:28.054 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+832687:C 21 Oct 2026 05:39:28.054 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=832687, just started
+832687:C 21 Oct 2026 05:39:28.054 * Configuration loaded
+832687:M 21 Oct 2026 05:39:28.055 * monotonic clock: POSIX clock_gettime
+832687:M 21 Oct 2026 05:39:28.055 * Running mode=standalone, port=22802.
+832687:M 21 Oct 2026 05:39:28.055 * Server initialized
+832687:M 21 Oct 2026 05:39:28.055 * Ready to accept connections tcp
+832687:M 21 Oct 2026 05:39:44.476 # Closing client that reached max query buffer length: id=10 addr=127.0.0.1:59400 laddr=127.0.0.1:22802 fd=12 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=1048577 qbuf-free=1572853 argv-mem=4 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=2638732 events=r cmd=NULL user=default redir=-1 resp=2 lib-name= lib-ver= (qbuf initial bytes: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+832687:M 21 Oct 2026 05:39:50.982 # Closing client that reached max query buffer length: id=23 addr=127.0.0.1:49694 laddr=127.0.0.1:22802 fd=12 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=1048577 qbuf-free=1572853 argv-mem=4 multi-mem=0 rbs=16384 rbp=16384 obl=0 oll=0 omem=0 tot-mem=2638732 events=r cmd=NULL user=default redir=-1 resp=2 lib-name= lib-ver= (qbuf initial bytes: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+832687:signal-handler (1792532395) Received SIGTERM scheduling shutdown...
+832687:M 21 Oct 2026 05:39:55.335 * User requested shutdown...
+832687:M 21 Oct 2026 05:39:55.335 # Redis is now ready to exit, bye bye...

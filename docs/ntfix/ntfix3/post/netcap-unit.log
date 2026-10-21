@@ -1,0 +1,6 @@
+--client-query-buffer-limit: argument must be between 1048576 and 9223372036854775807 inclusive
+--client-query-buffer-limit: argument must be a memory value
+--client-query-buffer-limit: argument must be between 1048576 and 9223372036854775807 inclusive
+--client-query-buffer-limit: argument must be a memory value
+layouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624
+PASS netcap all

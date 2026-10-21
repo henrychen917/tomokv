@@ -1,0 +1,16 @@
+{"object": "src/core/genthread.o", "tree": "pre", "unit": 102573, "counts": {"lane": 0, "hot": 0, "other": 0}, "budget": null}
+{"object": "db0/src/core/genthread.o", "tree": "pre", "unit": 101795, "counts": {"lane": 0, "hot": 0, "other": 0}, "budget": null}
+{"object": "db0/src/core/genthread.o", "tree": "post", "unit": 101937, "counts": {"lane": 10, "hot": 1, "other": 12}, "budget": 129744}
+{"object": "db0/src/main.o", "tree": "post", "unit": 96922, "counts": {"lane": 11, "hot": 0, "other": 7}, "budget": 147449}
+{"object": "db0/src/main.o", "tree": "pre", "unit": 96795, "counts": {"lane": 0, "hot": 0, "other": 0}, "budget": null}
+{"object": "src/core/genthread.o", "tree": "post", "unit": 102715, "counts": {"lane": 10, "hot": 3, "other": 13}, "budget": 129487}
+{"object": "db0/src/core/reorder.o", "tree": "post", "unit": 113603, "counts": {"lane": 12, "hot": 5, "other": 15}, "budget": 148398}
+{"object": "src/core/reorder.o", "tree": "post", "unit": 114496, "counts": {"lane": 12, "hot": 3, "other": 12}, "budget": null}
+{"object": "db0/src/core/rl2s.o", "tree": "post", "unit": 109896, "counts": {"lane": 18, "hot": 0, "other": 8}, "budget": 162334}
+{"object": "db0/src/core/rl2s.o", "tree": "pre", "unit": 109724, "counts": {"lane": 0, "hot": 0, "other": 0}, "budget": null}
+{"object": "db0/src/core/reorder.o", "tree": "pre", "unit": 113431, "counts": {"lane": 0, "hot": 0, "other": 0}, "budget": null}
+{"object": "src/main.o", "tree": "post", "unit": 97684, "counts": {"lane": 11, "hot": 0, "other": 7}, "budget": 147428}
+{"object": "src/core/rl2s.o", "tree": "pre", "unit": 110635, "counts": {"lane": 0, "hot": 0, "other": 0}, "budget": null}
+{"object": "src/main.o", "tree": "pre", "unit": 97557, "counts": {"lane": 0, "hot": 0, "other": 0}, "budget": null}
+{"object": "src/core/reorder.o", "tree": "pre", "unit": 114324, "counts": {"lane": 0, "hot": 0, "other": 0}, "budget": null}
+{"object": "src/core/rl2s.o", "tree": "post", "unit": 110807, "counts": {"lane": 18, "hot": 0, "other": 8}, "budget": 162357}

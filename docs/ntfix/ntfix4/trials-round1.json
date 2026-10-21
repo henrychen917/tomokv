@@ -1,0 +1,66 @@
+[
+  {
+    "object": "src/main.o",
+    "budget": 147555
+  },
+  {
+    "object": "db0/src/main.o",
+    "budget": 147576
+  },
+  {
+    "object": "src/core/genthread.o",
+    "budget": 130085
+  },
+  {
+    "object": "src/core/genthread.o",
+    "budget": 130117
+  },
+  {
+    "object": "src/core/genthread.o",
+    "budget": 130149
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "budget": 130305
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "budget": 130321
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "budget": 130353
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "budget": 162768
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "budget": 162888
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "budget": 162506
+  },
+  {
+    "object": "src/core/reorder.o",
+    "budget": 147918
+  },
+  {
+    "object": "src/core/reorder.o",
+    "budget": 147950
+  },
+  {
+    "object": "src/core/reorder.o",
+    "budget": 147982
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "budget": 148951
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "budget": 148983
+  }
+]

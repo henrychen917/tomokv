@@ -1,0 +1,98 @@
+{
+  "base_commit": "b2ad3f3c7",
+  "production_source_commit": "b3f960b4b",
+  "branch": "cx-ntfix",
+  "arms": {
+    "pre": {
+      "path": "/home/user/Projects/bins/ntfix-pre-5c8ca908",
+      "sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5"
+    },
+    "post": {
+      "path": "/home/user/Projects/cx-ntfix/build/tomokv",
+      "sha256": "2a102311d91b99bcff78af38742c1176bec5634ae9f1875af8cb74e645d9075b"
+    },
+    "pad_a": {
+      "path": "/home/user/Projects/cx-ntfix/build/tomokv-ntfix-pad-a",
+      "sha256": "65c81751a6c56e6c96f19102d788cffec0e71a86ce5799b19de58404fa2c6ddd"
+    },
+    "ntfix2_post": {
+      "path": "/home/user/Projects/bins/ntfix-post-d6876ec3",
+      "sha256": "d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01"
+    }
+  },
+  "pre_rebuild_sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "oracle_networking_sha256": "0ed207f003c35589f97e6375bcf589c5fb22a1f905b3c2e9ec6a08d67984893c",
+  "cores": {
+    "builds": "80-95",
+    "servers": "80-87",
+    "oracle": "88",
+    "clients": "89-95",
+    "in_process_migration": "80-95"
+  },
+  "ports": [
+    22800,
+    22801,
+    22802,
+    22899
+  ],
+  "checked_boot_commands": [
+    "docs/ntfix/ntfix3/pad/rows/1s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/pad/rows/1s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/pad/rows/1s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/pad/rows/1s-uring/redis-command.json",
+    "docs/ntfix/ntfix3/pad/rows/2s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/pad/rows/2s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/pad/rows/2s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/pad/rows/2s-uring/redis-command.json",
+    "docs/ntfix/ntfix3/post/batteries/1s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/post/batteries/1s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/post/batteries/1s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/post/batteries/1s-uring/redis-command.json",
+    "docs/ntfix/ntfix3/post/batteries/2s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/post/batteries/2s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/post/batteries/2s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/post/batteries/2s-uring/redis-command.json",
+    "docs/ntfix/ntfix3/post/fragments/1s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/post/fragments/1s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/post/fragments/1s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/post/fragments/1s-uring/redis-command.json",
+    "docs/ntfix/ntfix3/post/fragments/2s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/post/fragments/2s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/post/fragments/2s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/post/fragments/2s-uring/redis-command.json",
+    "docs/ntfix/ntfix3/post/limits/1s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/post/limits/1s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/post/limits/1s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/post/limits/1s-uring/redis-command.json",
+    "docs/ntfix/ntfix3/post/limits/2s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/post/limits/2s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/post/limits/2s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/post/limits/2s-uring/redis-command.json",
+    "docs/ntfix/ntfix3/post/rows/1s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/post/rows/1s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/post/rows/1s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/post/rows/1s-uring/redis-command.json",
+    "docs/ntfix/ntfix3/post/rows/2s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/post/rows/2s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/post/rows/2s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/post/rows/2s-uring/redis-command.json",
+    "docs/ntfix/ntfix3/pre/rows/1s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/pre/rows/1s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/pre/rows/1s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/pre/rows/1s-uring/redis-command.json",
+    "docs/ntfix/ntfix3/pre/rows/2s-epoll/candidate-command.json",
+    "docs/ntfix/ntfix3/pre/rows/2s-epoll/redis-command.json",
+    "docs/ntfix/ntfix3/pre/rows/2s-uring/candidate-command.json",
+    "docs/ntfix/ntfix3/pre/rows/2s-uring/redis-command.json"
+  ],
+  "all_runtime_jobs_pass": true,
+  "full_gate_and_performance": "NOT RUN: maintainer-owned",
+  "gate_file_unchanged": true,
+  "gate_constants": [
+    "EXPECT_QUICK=637",
+    "EXPECT_FULL=654                 # ABBA reports only; self-test remains counted."
+  ],
+  "new_gate_rows": 0,
+  "lane_listeners_after_cleanup": []
+}

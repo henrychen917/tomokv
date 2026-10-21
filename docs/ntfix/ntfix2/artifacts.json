@@ -1,0 +1,50 @@
+{
+  "artifacts": {
+    "pre": {
+      "path": "/home/user/Projects/cx-ntfix/build/ntfix-pre/tomokv",
+      "sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5"
+    },
+    "post": {
+      "path": "/home/user/Projects/cx-ntfix/build/tomokv",
+      "sha256": "d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01"
+    },
+    "pad_a": {
+      "path": "/home/user/Projects/cx-ntfix/build/tomokv-ntfix-pad-a",
+      "sha256": "fa5564d4e9f6b65eddb17016168a8b8ee520609a19a4820f68cbb02e8ab89a3f"
+    },
+    "oracle": {
+      "path": "/home/user/Projects/redis74/src/redis-server",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+    },
+    "oracle_source_binary": {
+      "path": "/home/user/Projects/redis/src/redis-server",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+    },
+    "networking_source": {
+      "path": "/home/user/Projects/redis/src/networking.c",
+      "sha256": "0ed207f003c35589f97e6375bcf589c5fb22a1f905b3c2e9ec6a08d67984893c"
+    }
+  },
+  "pad_kind": "A: PRE behaviour with POST aggregate .text size",
+  "production_source_through": "7aa2b2aba",
+  "pre_commit": "567d3b8e3",
+  "branch": "cx-ntfix",
+  "unchanged_expect_counts": {
+    "EXPECT_QUICK": "637",
+    "EXPECT_FULL": "654"
+  },
+  "owner_expected_counts": {
+    "quick": 641,
+    "full": 658
+  },
+  "compile_affinity": "96-111",
+  "server_affinity": "96-103",
+  "oracle_affinity": "104",
+  "client_affinity": "105-111",
+  "listening_ports": "25800-25899",
+  "no_remaining_listeners": true,
+  "final_make_q_checks": 34,
+  "final_make_q_failures": 0,
+  "syntax_and_diff_checks": "PASS",
+  "performance_and_full_gate": "NOT RUN: maintainer-owned"
+}

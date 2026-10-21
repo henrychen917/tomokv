@@ -1,0 +1,28 @@
+1s-uring fragment-tcp: rc=0
+1s-uring fragment-tls: rc=0
+1s-uring respcompat: rc=0
+1s-uring netcap: rc=1
+1s-uring tls: rc=0
+1s-epoll fragment-tcp: rc=0
+1s-epoll fragment-tls: rc=0
+1s-epoll respcompat: rc=0
+1s-epoll netcap: rc=1
+1s-epoll tls: rc=1
+2s-uring fragment-tcp: rc=0
+2s-uring fragment-tls: rc=0
+2s-uring respcompat: rc=0
+2s-uring netcap: rc=1
+2s-uring tls: rc=0
+2s-epoll fragment-tcp: rc=0
+2s-epoll fragment-tls: rc=0
+2s-epoll respcompat: rc=0
+2s-epoll netcap: rc=1
+2s-epoll tls: rc=1
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ntfix/tools/ntfix_proof.py", line 241, in <module>
+    cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+
+  File "/home/user/Projects/cx-ntfix/tools/ntfix_proof.py", line 237, in main
+    ]
+^^^^^
+AssertionError: 6 differences

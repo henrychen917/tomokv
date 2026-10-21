@@ -1,0 +1,152 @@
+[
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 1,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "docs/ntfix/tls_gauges.py",
+      "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/controls-gauges/pre-1s-epoll-r1/gauges.json"
+    ],
+    "binary_sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "returncode": 1
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 2,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "docs/ntfix/tls_gauges.py",
+      "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/controls-gauges/pre-1s-epoll-r2/gauges.json"
+    ],
+    "binary_sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "returncode": 1
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 3,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "docs/ntfix/tls_gauges.py",
+      "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/controls-gauges/pre-1s-epoll-r3/gauges.json"
+    ],
+    "binary_sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "returncode": 1
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 4,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "docs/ntfix/tls_gauges.py",
+      "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/controls-gauges/pre-1s-epoll-r4/gauges.json"
+    ],
+    "binary_sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "returncode": 1
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "repeat": 5,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "docs/ntfix/tls_gauges.py",
+      "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/controls-gauges/pre-1s-epoll-r5/gauges.json"
+    ],
+    "binary_sha256": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+    "returncode": 1
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 1,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "docs/ntfix/tls_gauges.py",
+      "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/controls-gauges/post-1s-epoll-r1/gauges.json"
+    ],
+    "binary_sha256": "d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01",
+    "returncode": 1
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 2,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "docs/ntfix/tls_gauges.py",
+      "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/controls-gauges/post-1s-epoll-r2/gauges.json"
+    ],
+    "binary_sha256": "d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01",
+    "returncode": 1
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 3,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "docs/ntfix/tls_gauges.py",
+      "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/controls-gauges/post-1s-epoll-r3/gauges.json"
+    ],
+    "binary_sha256": "d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01",
+    "returncode": 1
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 4,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "docs/ntfix/tls_gauges.py",
+      "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/controls-gauges/post-1s-epoll-r4/gauges.json"
+    ],
+    "binary_sha256": "d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01",
+    "returncode": 1
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "repeat": 5,
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "docs/ntfix/tls_gauges.py",
+      "/home/user/Projects/cx-ntfix/docs/ntfix/ntfix2/controls-gauges/post-1s-epoll-r5/gauges.json"
+    ],
+    "binary_sha256": "d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01",
+    "returncode": 1
+  }
+]

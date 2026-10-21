@@ -852,6 +852,7 @@ private:
             const ssize_t n = ::recv(c->fd(), dst, avail, MSG_DONTWAIT);
             if (n > 0) {
                 self_->sig().epoll_recvs++;
+                self_->sig().net_input_bytes.store(self_->sig().net_input_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(n), std::memory_order_relaxed);
                 c->commit_read(static_cast<size_t>(n));
                 if (query_buffer_exceeded(*c)) { epoll_request_close(c); return; }
                 c->set_last_interaction_s(cached_now_s_);
@@ -3305,7 +3306,11 @@ private:
             }
             if (pr == ParseResult::Error) {
                 if (op->reply.size()) finish_prebuilt(c, *op);
-                else finish_locally(c, *op, err ? err : "ERR protocol error");
+                else {
+                    if (auth_required && !conn.authenticated())
+                        err = resp_preauth_error(pass_rbuf, pass_rlen, conn.rpos(), pass_max_bulk_len, err);
+                    finish_locally(c, *op, err ? err : "ERR protocol error");
+                }
                 conn.advance_parse(pass_rlen - conn.rpos());
                 c->mark_closing();
                 result = DispatchResult::Error;
