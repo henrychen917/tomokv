@@ -1,0 +1,102 @@
+[
+  {
+    "observed_at": "2026-10-21T11:24:02.432046+00:00",
+    "phase": "uring-armed-fused",
+    "processes": [
+      {
+        "pid": 2355084,
+        "kind": "oracle",
+        "argv": [
+          "/home/user/Projects/redis74/src/redis-server 127.0.0.1:26811"
+        ],
+        "thread_affinity": {
+          "2355084": "72",
+          "2355093": "72",
+          "2355094": "72",
+          "2355095": "72",
+          "2355096": "72",
+          "2355097": "72"
+        }
+      },
+      {
+        "pid": 2702932,
+        "kind": "target",
+        "argv": [
+          "/home/user/Projects/cx-compat2/build/tomokv",
+          "--net-io",
+          "uring",
+          "--port",
+          "26810",
+          "--bind",
+          "127.0.0.1",
+          "--shards",
+          "16",
+          "--thread-mode",
+          "fused",
+          "--read-local",
+          "1",
+          "--databases",
+          "16",
+          "--atomic",
+          "1",
+          "--save",
+          "--dir",
+          "/home/user/Projects/cx-compat2/docs/compat2b/differ/uring-armed-fused/target-atomic-1",
+          "--enable-debug-command",
+          "yes",
+          "--aclfile",
+          "/home/user/Projects/cx-compat2/docs/compat2b/differ/uring-armed-fused/ccfix.acl"
+        ],
+        "thread_affinity": {
+          "2702932": "64-71",
+          "2702941": "64",
+          "2702942": "65",
+          "2702943": "66",
+          "2702944": "67",
+          "2702945": "68",
+          "2702946": "69",
+          "2702947": "70",
+          "2702948": "71",
+          "2722881": "70",
+          "2742301": "64"
+        }
+      },
+      {
+        "pid": 2777792,
+        "kind": "client",
+        "argv": [
+          "timeout",
+          "900",
+          "python3",
+          "tests/differ.py",
+          "127.0.0.1",
+          "26810",
+          "127.0.0.1",
+          "26811",
+          "cmdgap2",
+          "22"
+        ],
+        "thread_affinity": {
+          "2777792": "73-79"
+        }
+      },
+      {
+        "pid": 2777794,
+        "kind": "client",
+        "argv": [
+          "python3",
+          "tests/differ.py",
+          "127.0.0.1",
+          "26810",
+          "127.0.0.1",
+          "26811",
+          "cmdgap2",
+          "22"
+        ],
+        "thread_affinity": {
+          "2777794": "73-79"
+        }
+      }
+    ]
+  }
+]

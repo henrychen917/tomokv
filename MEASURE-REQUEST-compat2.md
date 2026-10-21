@@ -412,8 +412,8 @@ environment, return codes and every per-leg comparison log are under
 | Engine / geometry | Result | Seeds |
 |---|---|---|
 | io_uring / split | **475 pass / 0 fail** | 7, 19, 20, 23, 21 |
-| io_uring / fused with read-local armed | Running | 7, 19, 20, 23, 22 |
-| epoll / split | Pending | Standard allocation |
+| io_uring / fused with read-local armed | **466 pass / 0 fail** | 7, 19, 20, 23, 22 |
+| epoll / split | Running | 7, 19, 20, 23, 24 |
 | epoll / fused with read-local armed | Pending | Standard allocation |
 
 The standard fused driver skips SORT because that suite requires split 6:2;
