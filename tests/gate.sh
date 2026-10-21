@@ -3227,14 +3227,22 @@ reject_boot --port 0 --tls-port "$TLS_PORT" --tls-cert-file "$TLS_DIR/server.crt
     && ok "reject invalid tls-ciphers" || bad "reject invalid tls-ciphers"
 
 tlsboot(){ # auth-mode [extra TLS knobs]
-  local auth=$1; shift
+  local auth=$1 arg previous= thread_mode=; shift
+  local -a ratio=(--ratio "$GATE_RATIO")
+  # Only the value following --thread-mode selects the geometry; unrelated
+  # values (for example a password of "fused") must retain the split argv.
+  for arg in "$@"; do
+    [ "$previous" != --thread-mode ] || thread_mode=$arg
+    previous=$arg
+  done
+  case "$thread_mode" in fused|1s) ratio=();; esac
   quiet_wait
   SRV=0; SRVLOG=/dev/null
   guard_port "$PORT"
   guard_port "$TLS_PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-tls-srv.XXXXXX)
   taskset -c $CORES "$CANDIDATE_BINARY" --databases 1 --port "$PORT" --tls-port "$TLS_PORT" \
-      --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --protected-mode no --dir "$TLS_DIR" --save '' \
+      --bind 127.0.0.1 --shards 16 "${ratio[@]}" --protected-mode no --dir "$TLS_DIR" --save '' \
       --tls-cert-file "$TLS_DIR/server.crt" --tls-key-file "$TLS_DIR/server.key" \
       --tls-ca-cert-file "$TLS_DIR/ca.crt" --tls-auth-clients "$auth" "$@" \
       >"$SRVLOG" 2>&1 &
