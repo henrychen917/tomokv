@@ -7,6 +7,7 @@ No sorting, timing tolerance, skipped arm, or event-order retry is permitted.
 """
 import argparse
 import json
+from pathlib import Path
 import select
 import time
 
@@ -151,8 +152,15 @@ class Peer:
 
 
 def choose(target, prefix, kind):
-    if kind not in ('C2', 'C7'):
+    if kind not in ('C2', 'C7', 'A5'):
         return [prefix]
+    if kind == 'A5':
+        first = None
+        for key, sid, _owner in probe_keys(target.admin, prefix, target.topo):
+            if first is None:
+                first = (key, sid)
+            elif sid == first[1]:
+                return [first[0], key]
     if kind == 'C7':
         first = None
         for key, _sid, owner in probe_keys(target.admin, prefix, target.topo):
@@ -330,11 +338,73 @@ def tracking_case(peers):
             tracker.close(); witness.close()
 
 
+def aof_case(peers, output):
+    from aof_frames import read_frames
+    import io
+    keys = choose(peers[0], 'notifyorder:aof', 'A5')
+    equal(shard_of(peers[0].admin, keys[0]), shard_of(peers[0].admin, keys[1]), 'local script shard')
+    script = "redis.call('SET',KEYS[1],'one'); redis.call('SET',KEYS[2],'two'); return 2"
+    results = []
+    for peer in peers:
+        equal(peer.admin.cmd('CONFIG', 'GET', 'appendonly'), [b'appendonly', b'yes'], 'AOF enabled')
+        equal(peer.admin.cmd('CONFIG', 'GET', 'appendfsync'), [b'appendfsync', b'always'], 'durable reply')
+        peer.configure('AKE')
+        equal(peer.driver.cmd('EVAL', script, 2, *keys), 2, 'local script writes')
+        equal(peer.collect(4), frames([('set', key) for key in keys]), 'script recorded notifications')
+        live = peer.driver.cmd('MGET', *keys)
+        equal(live, [b'one', b'two'], 'live script state')
+        directory = Path(peer.admin.cmd('CONFIG', 'GET', 'dir')[1].decode())
+        appenddir = peer.admin.cmd('CONFIG', 'GET', 'appenddirname')[1].decode()
+        records = []
+        if peer.target:
+            paths = list((directory / appenddir).glob('*.incr.tomo'))
+            assert paths, 'no target AOF increment'
+            for path in paths:
+                chunks, _size, truncated = read_frames(path)
+                assert truncated is None, 'target AOF has incomplete frame after durable reply'
+                for chunk in chunks:
+                    records += [(kind, key.decode(), ticket) for kind, key, _size, ticket, _pos in chunk.records()]
+            writes = [(key, ticket) for kind, key, ticket in records if kind == 5 and key in keys]
+            tickets = {ticket for _key, ticket in writes}
+            grouped = (len(writes) == 2 and {key for key, _ticket in writes} == set(keys)
+                       and len(tickets) == 1 and 0 not in tickets
+                       and any(kind == 7 and ticket in tickets for kind, _key, ticket in records)
+                       and not any(kind in (1, 2) and key in keys for kind, key, _ticket in records))
+        else:
+            paths = list((directory / appenddir).glob('*.incr.aof'))
+            assert paths, 'no oracle AOF increment'
+            for path in paths:
+                decoder = Conn.__new__(Conn)
+                decoder.file = io.BytesIO(path.read_bytes())
+                while decoder.file.tell() < len(decoder.file.getbuffer()):
+                    records.append(decoder.read())
+            last_flush = max(i for i, record in enumerate(records) if record == [b'FLUSHALL'])
+            records = records[last_flush + 1:]
+            wanted = [[b'MULTI'], [b'SET', keys[0].encode(), b'one'],
+                      [b'SET', keys[1].encode(), b'two'], [b'EXEC']]
+            grouped = records == wanted
+        peer.configure('')
+        equal(peer.admin.cmd('DEBUG', 'LOADAOF'), b'OK', 'AOF reload')
+        recovered = peer.driver.cmd('MGET', *keys)
+        result = dict(target=peer.target, keys=keys, records=repr(records), grouped=grouped,
+                      live=repr(live), recovered=repr(recovered))
+        results.append(result)
+        print(json.dumps(result), flush=True)
+    Path(output).write_text(json.dumps(results, indent=2) + '\n')
+    assert results[1]['grouped'], 'Redis did not group script effects in MULTI/EXEC'
+    equal(results[1]['recovered'], results[1]['live'], 'oracle reload')
+    assert results[0]['grouped'], 'target lost local script grouped AOF record with notifications on'
+    equal(results[0]['recovered'], results[0]['live'], 'target reload')
+    equal(results[0]['recovered'], results[1]['recovered'], 'AOF reload differential')
+    print('PASS local script notifications + grouped AOF + reload vs Redis', flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('host')
     parser.add_argument('port', type=int)
     parser.add_argument('--oracle', nargs=2, required=True)
+    parser.add_argument('--aof', type=Path, help='check local script AOF and write evidence')
     parser.add_argument('--mode', choices=('1s', '2s'), required=True)
     parser.add_argument('--engine', choices=('epoll', 'uring'), required=True)
     parser.add_argument('--atomic', type=int, choices=(0, 1), required=True)
@@ -345,6 +415,9 @@ def main():
         peers.append(Peer(args.host, args.port, True,
                           (args.mode, args.engine, args.atomic, args.read_local)))
         peers.append(Peer(*args.oracle))
+        if args.aof:
+            aof_case(peers, args.aof)
+            return 0
         for kind, count in [('C1', 8), ('C2', 2), ('C3', 4), ('C4', 4), ('C5', 1), ('C6', 1), ('C7', 1), ('C8', 1)]:
             for trial in range(count):
                 try:
