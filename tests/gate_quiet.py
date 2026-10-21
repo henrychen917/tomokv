@@ -254,7 +254,8 @@ def self_test():
 
         def test_idle_listener_blocks_only_intended_port(self):
             with socket.socket() as listener:
-                listener.bind(("127.0.0.1", 0))
+                listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                listener.bind(("127.0.0.1", int(os.environ.get("GATE_TEST_PORT", "0"))))
                 listener.listen()
                 port = listener.getsockname()[1]
                 self.assertEqual(occupied_ports([port]), [port])

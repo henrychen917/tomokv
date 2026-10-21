@@ -1554,8 +1554,10 @@ job_compat2(){
       unit_ready expire-notify-unit && taskset -c "$CORES" build/expire-notify-unit \
           >"$TMPDIR/compat2-expire-unit.log" 2>&1 || failed=1
     elif [ "$case" = ktls_lifetime ]; then
-      unit_ready ktls-lifetime-unit && taskset -c "$CORES" build/ktls-lifetime-unit \
-          >"$TMPDIR/compat2-ktls-unit.log" 2>&1 || failed=1
+      for mode in 1s 2s; do
+        unit_ready ktls-lifetime-unit && taskset -c "$CORES" build/ktls-lifetime-unit "$mode" \
+            >"$TMPDIR/compat2-ktls-unit-$mode.log" 2>&1 || failed=1
+      done
       py tests/tls.py --generate "$TMPDIR/compat2-certs" \
           >"$TMPDIR/compat2-certs.log" 2>&1 || failed=1
       extra=(--certs "$TMPDIR/compat2-certs")
@@ -3447,22 +3449,23 @@ job_abba_selftest(){
 # partial completion publication or leaked child invalidates every later measurement.
 # This expanded row has its own timing context; pre-scheduler samples measured less work.
 row_begin "ABBA comparison + saturation negative controls" "with-scheduler-controls"
-py tests/abbagate.py --self-test > $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/gate_quiet.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/gate_measurements.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/gate_receipt.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/abba_instrument.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/background_environment_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/gate_history.py self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/gate_process_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/gates_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/gate_subset_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/wb_policy.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/lb_stationary.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/netio.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/gateprod.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
-    && ok "ABBA comparison + saturation negative controls" \
+local controls_ok=1
+py tests/abbagate.py --self-test > $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/gate_quiet.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/gate_measurements.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/gate_receipt.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/abba_instrument.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/background_environment_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/gate_history.py self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/gate_process_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/gates_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/gate_subset_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/wb_policy.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/lb_stationary.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/netio.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/gateprod.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || controls_ok=0
+[ "$controls_ok" = 1 ] && ok "ABBA comparison + saturation negative controls" \
     || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"
 }
 
