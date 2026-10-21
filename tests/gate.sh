@@ -3354,11 +3354,11 @@ done; done
 
 # N3/N4 each contribute one aggregate row, both modes/engines and TCP/TLS.
 # Collected with tls before the quick-tier exit; EXPECT remains maintainer-owned.
-local defect label
-for defect in preauth frontier; do
+local defect label ntfix_case
+for ntfix_case in "preauth-RESP pre-AUTH limit errors (ntfix N3)" \
+                  "frontier-RESP query-buffer frontier (ntfix N4)"; do
+  IFS=- read -r defect label <<< "$ntfix_case"
   compatible=1
-  label="RESP pre-AUTH limit errors (ntfix N3)"
-  [ "$defect" != frontier ] || label="RESP query-buffer frontier (ntfix N4)"
   row_begin "$label"
   if [ "$defect" = frontier ]; then
     if ! unit_ready netcap-unit ||
