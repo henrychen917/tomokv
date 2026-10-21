@@ -206,7 +206,8 @@ struct CoreConcurrencyTest {
         if (state == "external") value = std::string(513, 'x') + "\r\n";
         if (state == "empty") value.clear();
         if (state == "integer") value = "-9223372036854775808";
-        const int64_t deadline = state == "expired" ? 1000 : state == "ttl-live" ? 1001 : -1;
+        // Fixture now is 1000; a key is expired only once now > deadline (Redis keyIsExpired).
+        const int64_t deadline = state == "expired" ? 999 : state == "ttl-live" ? 1001 : -1;
         KvObj* object = state == "integer"
             ? kvobj_new_int(slice(f.key), INT64_MIN)
             : kvobj_new_string(slice(f.key), slice(value), deadline, state == "persisted");
