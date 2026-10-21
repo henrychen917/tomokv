@@ -1,0 +1,435 @@
+[
+  {
+    "argv": [
+      "make",
+      "-q",
+      "all"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/expire-notify-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/ktls-lifetime-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/publishfix-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/at15-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/at15-db0-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/execabort-watch-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/execabort-watch-db0-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/core-concurrency-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/atomic-survivors-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/netcmd-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/encodingfix-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/netcap-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/waits-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/rehash-waits-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/multidb-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/multidb-boundary-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/storesize-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/respresume-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/respresume-migration"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/exbatch-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/exbatch-db0-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/wb-rule-units"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/wbland-units"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/rltopo-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/lbplanner-units"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/shutdown-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/persistfix-units"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/ktls-keyupdate"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/ktls-keyupdate-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/flushfix-units"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/splitlocal-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/reorder-engagement-unit"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/reorder-engagement-unit-db0"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/racefix-climon"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "build/aoforder-scheduled"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "BUILD_ROOT=build/mdbqsbr2-park",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+      "all"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "BUILD_ROOT=build/mdbqsbr2-no-wake",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE",
+      "all"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--check",
+      "bce4eb0aa6ab5b855903e201f6f19b321e09cba0"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "python3",
+      "tools/reorder_sync.py"
+    ],
+    "returncode": 0,
+    "stdout": "R7 shadow production envelopes: current\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "bce4eb0aa6ab5b855903e201f6f19b321e09cba0:tests/gate.sh"
+    ],
+    "returncode": 0,
+    "stdout": {
+      "length": 226279,
+      "sha256": "ade39da3e79ac7669ced6508737c61b5302ff03316cfd00f5db76ba5a6c54882"
+    },
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--name-only",
+      "bce4eb0aa6ab5b855903e201f6f19b321e09cba0",
+      "--",
+      "Makefile",
+      "src",
+      "tests",
+      "tools"
+    ],
+    "returncode": 0,
+    "stdout": "Makefile\nsrc/cmd/acl.inc\nsrc/cmd/auth.h\nsrc/cmd/auth.inc\nsrc/cmd/autharity.cc\nsrc/cmd/command.h\nsrc/cmd/commands.cc\nsrc/cmd/scripting.cc\nsrc/cmd/t_server.cc\nsrc/core/io_loop.h\nsrc/core/reorder.cc\nsrc/store/flatstore.h\ntests/autharity.py\ntests/compat2_support.py\ntests/expire_notify.py\ntests/expire_notify_unit.cc\ntests/gate.sh\ntests/gates_test.py\ntests/ktls_lifetime.py\ntests/ktls_lifetime_unit.cc\ntests/persistfix.py\ntools/compat2_mset_control.py\ntools/compat2_pad.py\n",
+    "stderr": ""
+  }
+]

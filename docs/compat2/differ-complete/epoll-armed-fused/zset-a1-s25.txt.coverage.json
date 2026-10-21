@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "commands": {
+    "DEL": 1,
+    "SET": 1,
+    "ZADD": 1075,
+    "ZCARD": 171,
+    "ZCOUNT": 169,
+    "ZINCRBY": 175,
+    "ZLEXCOUNT": 2,
+    "ZMSCORE": 179,
+    "ZPOPMAX": 91,
+    "ZPOPMIN": 87,
+    "ZRANGE": 356,
+    "ZRANGEBYLEX": 3,
+    "ZRANGEBYSCORE": 162,
+    "ZRANK": 150,
+    "ZREM": 178,
+    "ZREMRANGEBYLEX": 1,
+    "ZREMRANGEBYRANK": 190,
+    "ZREMRANGEBYSCORE": 202,
+    "ZREVRANGEBYLEX": 1,
+    "ZREVRANK": 161,
+    "ZSCORE": 176
+  },
+  "kinds": {
+    "DEL": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZCARD": [
+      "reply"
+    ],
+    "ZCOUNT": [
+      "reply"
+    ],
+    "ZINCRBY": [
+      "reply"
+    ],
+    "ZLEXCOUNT": [
+      "reply"
+    ],
+    "ZMSCORE": [
+      "reply"
+    ],
+    "ZPOPMAX": [
+      "reply"
+    ],
+    "ZPOPMIN": [
+      "reply"
+    ],
+    "ZRANGE": [
+      "reply"
+    ],
+    "ZRANGEBYLEX": [
+      "reply"
+    ],
+    "ZRANGEBYSCORE": [
+      "reply"
+    ],
+    "ZRANK": [
+      "reply"
+    ],
+    "ZREM": [
+      "reply"
+    ],
+    "ZREMRANGEBYLEX": [
+      "reply"
+    ],
+    "ZREMRANGEBYRANK": [
+      "reply"
+    ],
+    "ZREMRANGEBYSCORE": [
+      "reply"
+    ],
+    "ZREVRANGEBYLEX": [
+      "reply"
+    ],
+    "ZREVRANK": [
+      "reply"
+    ],
+    "ZSCORE": [
+      "reply"
+    ]
+  }
+}

@@ -20,6 +20,9 @@
     "tests/gate.sh": "dfff9fb8b0b3ae7bbdf5ea24cbbf1cb7d5a85345a9687df9b46aa443473cd580",
     "tests/gates_test.py": "3325139022085d3695c57e7ee1b3020dacdd2877a651ed3ee47b50b6b7ddcc68",
     "tests/ktls_lifetime.py": "a6a816ed40c490446bb89f8b5e0193e92430c4960818b840bbfb5e1df1e89d56",
-    "tests/ktls_lifetime_unit.cc": "b9d1dc02740a5c4d2f18a7c2dbf6a6b34dbdc1d2cf11deb221227c04770789e7"
+    "tests/ktls_lifetime_unit.cc": "b9d1dc02740a5c4d2f18a7c2dbf6a6b34dbdc1d2cf11deb221227c04770789e7",
+    "tests/persistfix.py": "41e49982c91ac5c47048955f12e27f08cb2d23c31abab5d4474f8c714790f626",
+    "tools/compat2_mset_control.py": "75d192730baa702f89e54223ef0eb78f311afaf216461013814396d50b2e1284",
+    "tools/compat2_pad.py": "5fae967038935ee2456ba2d28335c6ba295dfd8b96f4a9b700ae265f8c658683"
   }
 }

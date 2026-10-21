@@ -73,5 +73,30 @@
       "GATE_RUN_ID": "compat2-epoll-split"
     },
     "returncode": 1
+  },
+  {
+    "name": "epoll-armed-fused",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-compat2/build/compat2/epoll-server",
+      "26810",
+      "26811",
+      "64-71",
+      "6:2"
+    ],
+    "env": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_LOAD_CORES": "73-79",
+      "GATE_DIFFER_ORACLE_CORES": "72",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/history",
+      "GATE_RUN_ID": "compat2-epoll-armed-fused"
+    },
+    "returncode": 1
   }
 ]

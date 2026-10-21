@@ -1,0 +1,429 @@
+{
+  "directed": {
+    "directed_commands": 30,
+    "initial_positive_control_failure": "post-expire_notify-2s-epoll",
+    "final_expiry_commands": 20,
+    "final_expected_results": true,
+    "control_commands": 20,
+    "arity": [
+      {
+        "mode": "1s",
+        "engine": "epoll",
+        "pre_diffs": 228,
+        "post_diffs": 0,
+        "comparisons": 1522,
+        "pre_pad_replies_equal": true
+      },
+      {
+        "mode": "1s",
+        "engine": "uring",
+        "pre_diffs": 228,
+        "post_diffs": 0,
+        "comparisons": 1522,
+        "pre_pad_replies_equal": true
+      },
+      {
+        "mode": "2s",
+        "engine": "epoll",
+        "pre_diffs": 228,
+        "post_diffs": 0,
+        "comparisons": 1522,
+        "pre_pad_replies_equal": true
+      },
+      {
+        "mode": "2s",
+        "engine": "uring",
+        "pre_diffs": 228,
+        "post_diffs": 0,
+        "comparisons": 1522,
+        "pre_pad_replies_equal": true
+      }
+    ],
+    "tls_window": [
+      {
+        "mode": "1s",
+        "pre": "mode=1s live=0 ktls=1 tls_closed=0 retained=1\nFAIL core concurrency: TLS gauges must reflect socket release before deferred Client reclamation\n",
+        "post": "mode=1s live=0 ktls=0 tls_closed=1 retained=1\nPASS kTLS socket lifetime accounting\n",
+        "pad": "mode=1s live=0 ktls=1 tls_closed=0 retained=1\nFAIL core concurrency: TLS gauges must reflect socket release before deferred Client reclamation\n"
+      },
+      {
+        "mode": "2s",
+        "pre": "mode=2s live=0 ktls=1 tls_closed=0 retained=1\nFAIL core concurrency: TLS gauges must reflect socket release before deferred Client reclamation\n",
+        "post": "mode=2s live=0 ktls=0 tls_closed=1 retained=1\nPASS kTLS socket lifetime accounting\n",
+        "pad": "mode=2s live=0 ktls=1 tls_closed=0 retained=1\nFAIL core concurrency: TLS gauges must reflect socket release before deferred Client reclamation\n"
+      }
+    ]
+  },
+  "build_freshness_commands": 40,
+  "production_targets": 35,
+  "live_tls_checks": 24,
+  "serverless_tls_cases": 5,
+  "selftest": "66/66 plus 14/14 nested",
+  "selftest_receipt": "selftest-port-complete/gates-test.log",
+  "selftest_port": 26899,
+  "differential_checks": 1974,
+  "differential_passed": 1952,
+  "differential_failures": 22,
+  "notification_hash_ttl_legs": 168,
+  "differential_matrices": [
+    {
+      "name": "uring-split",
+      "returncode": 0,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "checks": 475,
+      "passed": 475,
+      "failures": 0,
+      "recorded_legs": 490,
+      "failed_legs": [],
+      "notification_hash_ttl_legs": 40,
+      "tail": [
+        "  target atomic=1 stop                                       ok (port 26810 free)",
+        "  oracle stop                                                ok (port 26811 free)",
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2145032 recorded comparison witnesses, 474 legs)",
+        "  not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE",
+        "  mode equivalence: all 32 execution/knob combinations       ok (exact replies and mechanism witnesses)",
+        "DIFFER GATE: pass=475 fail=0 runtime=17m58s"
+      ]
+    },
+    {
+      "name": "uring-armed-fused",
+      "returncode": 0,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        22
+      ],
+      "checks": 466,
+      "passed": 466,
+      "failures": 0,
+      "recorded_legs": 464,
+      "failed_legs": [],
+      "notification_hash_ttl_legs": 40,
+      "tail": [
+        "  read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=22 final_fallbacks=238)",
+        "  target atomic=1 stop                                       ok (port 26810 free)",
+        "  oracle stop                                                ok (port 26811 free)",
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2098301 recorded comparison witnesses, 464 legs)",
+        "  not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE",
+        "DIFFER GATE: pass=466 fail=0 runtime=17m23s"
+      ]
+    },
+    {
+      "name": "epoll-split",
+      "returncode": 1,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        24
+      ],
+      "checks": 475,
+      "passed": 465,
+      "failures": 10,
+      "recorded_legs": 490,
+      "failed_legs": [
+        {
+          "timestamp": "2026-10-21T03:24:40.858532+00:00",
+          "run": "compat2-epoll-split",
+          "seed": 7,
+          "suite": "infofix",
+          "geometry": "split",
+          "atomic": 0,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-split/infofix-a0-s7.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:26:22.242443+00:00",
+          "run": "compat2-epoll-split",
+          "seed": 19,
+          "suite": "infofix",
+          "geometry": "split",
+          "atomic": 0,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-split/infofix-a0-s19.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:28:06.011607+00:00",
+          "run": "compat2-epoll-split",
+          "seed": 20,
+          "suite": "infofix",
+          "geometry": "split",
+          "atomic": 0,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-split/infofix-a0-s20.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:29:46.439105+00:00",
+          "run": "compat2-epoll-split",
+          "seed": 23,
+          "suite": "infofix",
+          "geometry": "split",
+          "atomic": 0,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-split/infofix-a0-s23.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:31:26.081445+00:00",
+          "run": "compat2-epoll-split",
+          "seed": 24,
+          "suite": "infofix",
+          "geometry": "split",
+          "atomic": 0,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-split/infofix-a0-s24.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:33:08.235647+00:00",
+          "run": "compat2-epoll-split",
+          "seed": 7,
+          "suite": "infofix",
+          "geometry": "split",
+          "atomic": 1,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-split/infofix-a1-s7.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:34:49.726322+00:00",
+          "run": "compat2-epoll-split",
+          "seed": 19,
+          "suite": "infofix",
+          "geometry": "split",
+          "atomic": 1,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-split/infofix-a1-s19.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:36:33.223364+00:00",
+          "run": "compat2-epoll-split",
+          "seed": 20,
+          "suite": "infofix",
+          "geometry": "split",
+          "atomic": 1,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-split/infofix-a1-s20.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:38:13.549549+00:00",
+          "run": "compat2-epoll-split",
+          "seed": 23,
+          "suite": "infofix",
+          "geometry": "split",
+          "atomic": 1,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-split/infofix-a1-s23.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:39:54.094380+00:00",
+          "run": "compat2-epoll-split",
+          "seed": 24,
+          "suite": "infofix",
+          "geometry": "split",
+          "atomic": 1,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-split/infofix-a1-s24.txt"
+        }
+      ],
+      "notification_hash_ttl_legs": 40,
+      "tail": [
+        "  target atomic=1 stop                                       ok (port 26810 free)",
+        "  oracle stop                                                ok (port 26811 free)",
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2125105 recorded comparison witnesses, 474 legs)",
+        "  not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE",
+        "  mode equivalence: all 32 execution/knob combinations       ok (exact replies and mechanism witnesses)",
+        "DIFFER GATE: pass=465 fail=10 runtime=17m17s"
+      ]
+    },
+    {
+      "name": "epoll-armed-fused",
+      "returncode": 1,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        24,
+        25
+      ],
+      "checks": 558,
+      "passed": 546,
+      "failures": 12,
+      "recorded_legs": 556,
+      "failed_legs": [
+        {
+          "timestamp": "2026-10-21T03:41:58.407698+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 7,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 0,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a0-s7.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:43:39.223078+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 19,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 0,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a0-s19.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:45:21.666789+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 20,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 0,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a0-s20.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:47:00.977694+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 23,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 0,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a0-s23.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:48:39.494587+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 24,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 0,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a0-s24.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:50:20.051318+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 25,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 0,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a0-s25.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:51:57.147800+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 7,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 1,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a1-s7.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:53:37.474396+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 19,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 1,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a1-s19.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:55:20.865003+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 20,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 1,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a1-s20.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:56:59.629644+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 23,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 1,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a1-s23.txt"
+        },
+        {
+          "timestamp": "2026-10-21T03:58:38.520441+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 24,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 1,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a1-s24.txt"
+        },
+        {
+          "timestamp": "2026-10-21T04:00:19.635751+00:00",
+          "run": "compat2-epoll-armed-fused",
+          "seed": 25,
+          "suite": "infofix",
+          "geometry": "armed-fused",
+          "atomic": 1,
+          "verdict": "FAIL",
+          "log": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/epoll-armed-fused/infofix-a1-s25.txt"
+        }
+      ],
+      "notification_hash_ttl_legs": 48,
+      "tail": [
+        "  read-local lane fired (atomic=1)                           ok (hits=1269 fallbacks=2 at peak; final_hits=16 final_fallbacks=244)",
+        "  target atomic=1 stop                                       ok (port 26810 free)",
+        "  oracle stop                                                ok (port 26811 free)",
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2490337 recorded comparison witnesses, 556 legs)",
+        "  not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE",
+        "DIFFER GATE: pass=546 fail=12 runtime=20m00s"
+      ]
+    }
+  ],
+  "existing_epoll_info_failure": {
+    "cases": 16,
+    "pre_post_match": true,
+    "epoll": {
+      "pre_failures": 4,
+      "post_failures": 4,
+      "reason": "existing uncounted epoll input/output bytes; instantaneous_input_kbps remains 0"
+    },
+    "uring": {
+      "pre_passes": 4,
+      "post_passes": 4
+    }
+  },
+  "known_retained_attempts": [
+    "one C2 positive-control delivery-order failure; final C2 controls isolate event classes",
+    "one KeyUpdate unit usage error; all five correctly invoked cases pass",
+    "earlier source/harness iterations in intermediate-evidence.tar.xz"
+  ],
+  "arms": {
+    "build/compat2/pre-source/build/tomokv": "cedd6d07c8a274b71fe76fc4ef28f2bbfb0381e1ad8705a1bb880cb8290ee607",
+    "build/compat2/tomokv-post": "b8a21b0f8e880877b46a71b27e89a86ee5071c766da459417d773ba8a52c0596",
+    "build/compat2/tomokv-pad-a": "5c830403b32304512fe6b72ecf8d5d47e4e5f506cd7e294101798acc78b94ac1",
+    "build/tomokv": "b8a21b0f8e880877b46a71b27e89a86ee5071c766da459417d773ba8a52c0596"
+  },
+  "identity": {
+    "changed_or_added": 394,
+    "new_object_bodies": 14,
+    "categories": {
+      "compiler propagation": 232,
+      "C1 direct": 60,
+      "C3 direct": 28,
+      "C1 new object": 14,
+      "C2 direct": 52,
+      "C3 caller": 8
+    }
+  }
+}

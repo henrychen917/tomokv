@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "commands": {
+    "BLMOVE": 201,
+    "BLMPOP": 210,
+    "BLPOP": 182,
+    "BRPOP": 218,
+    "BRPOPLPUSH": 2,
+    "BZMPOP": 200,
+    "BZPOPMAX": 220,
+    "BZPOPMIN": 195,
+    "DEL": 1614,
+    "EXEC": 14,
+    "LPUSH": 316,
+    "MULTI": 14,
+    "RPUSH": 783,
+    "WAIT": 209,
+    "ZADD": 904
+  },
+  "kinds": {
+    "BLMOVE": [
+      "reply"
+    ],
+    "BLMPOP": [
+      "reply"
+    ],
+    "BLPOP": [
+      "reply"
+    ],
+    "BRPOP": [
+      "reply"
+    ],
+    "BRPOPLPUSH": [
+      "reply"
+    ],
+    "BZMPOP": [
+      "reply"
+    ],
+    "BZPOPMAX": [
+      "reply"
+    ],
+    "BZPOPMIN": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "EXEC": [
+      "reply"
+    ],
+    "LPUSH": [
+      "reply"
+    ],
+    "MULTI": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "WAIT": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ]
+  }
+}

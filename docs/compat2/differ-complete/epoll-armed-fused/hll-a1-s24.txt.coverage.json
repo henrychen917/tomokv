@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "commands": {
+    "DEL": 1,
+    "GET": 193,
+    "PFADD": 1938,
+    "PFCOUNT": 728,
+    "PFMERGE": 8,
+    "SADD": 1,
+    "SET": 3,
+    "STRLEN": 190
+  },
+  "kinds": {
+    "DEL": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "PFADD": [
+      "reply"
+    ],
+    "PFCOUNT": [
+      "reply"
+    ],
+    "PFMERGE": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "STRLEN": [
+      "reply"
+    ]
+  }
+}
