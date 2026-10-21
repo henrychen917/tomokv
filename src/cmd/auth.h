@@ -5,6 +5,10 @@
 #include <cstdint>
 
 namespace tomo {
+struct CommandSpec;
+class Op;
+bool auth_arity_reply(Op& op, const CommandSpec& spec, bool unauthenticated,
+                      bool outer_rejected = false);
 
 class Client;
 class IoLoop;

@@ -2112,7 +2112,8 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             // Routed containers and SLOWLOG keep a broad container bound in the registry so
             // malformed requests are rejected before ACL and MULTI. On this already-taken
             // cold error path, recover Redis's more specific subcommand name/grammar.
-            const bool container_reply = command_reply_container_outer_arity(*op, *spec);
+            const bool container_reply = command_reply_container_outer_arity(
+                *op, *spec, auth_required && !conn.authenticated());
             conn.advance_parse(consumed);
             if (container_reply) {
                 finish_prebuilt(c, *op);

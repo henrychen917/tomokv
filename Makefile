@@ -45,6 +45,7 @@ SRC      += src/cmd/aclkeys.cc
 # Keep the armed-only witness parser after ordinary objects (weak-symbol selection).
 SRC      += src/cmd/blocking_debug.cc
 SRC      += src/cmd/objectpread.cc src/cmd/hexpread.cc
+SRC      += src/cmd/autharity.cc
 # The entry wrapper belongs only to server links using --wrap=main.
 SERVER_ONLY_SRC := src/core/version.cc
 LDLIBS   += -lssl -lcrypto
