@@ -256,3 +256,93 @@ The merged ordinary/R7 parser applies N3 only on its parse-error exit; C1 runs
 only after successful parsing. N4's conservative common-path bound and cold
 frontier refinement remain intact. The gate harness honors the existing oracle
 CPU override and uses all selected CPUs for single-slot prerequisite builds.
+
+### Compile-only budgets and identity
+
+All 29 pinned translation units were recompiled from the unmodified headline
+source; all 29 reproduce every reference body. The initial merged build was
+also recompiled for all 29 units. Nearby trials preserve IPA headroom and then
+minimize, in order, hot bodies differing from both eligible references, all
+remaining differences, and total differences. Established budgets remain when
+they achieve the same body score. Exact commands, unit sizes and comparisons
+are in `docs/compat2b/trials/`; selections are in `selected.json`.
+
+| Object | 8656f9fa9 budget | Selected budget |
+|---|---:|---:|
+| `db0/src/cmd/acl.o` | 35324 | 35432 |
+| `db0/src/cmd/climon.o` | 26220 | 26279 |
+| `db0/src/cmd/t_server.o` | 31787 | 31804 |
+| `db0/src/cmd/t_set.o` | 23428 | 23442 |
+| `db0/src/cmd/t_zset.o` | 32970 | 32984 |
+| `db0/src/cmd/xshard.o` | 126710 | 126778 |
+| `db0/src/core/genthread.o` | 130316 | 130343 |
+| `db0/src/core/reorder.o` | 148944 | 148983 |
+| `src/cmd/acl.o` | 35369 | 35485 |
+| `src/cmd/climon.o` | 26145 | 26196 |
+| `src/cmd/t_list.o` | 25338 | 25352 |
+| `src/cmd/t_zset.o` | 33395 | 33409 |
+| `src/cmd/xshard.o` | 128042 | 128118 |
+| `src/core/genthread.o` | 130084 | 130113 |
+| `src/core/reorder.o` | 147950 | 147991 |
+
+The other pinned budgets remain unchanged. All final production objects for
+these 29 units equal their selected trial bodies (`final-equals-selected.json`).
+The full merged inventory contains **16,753 bodies: 16,399 equal to headline,
+354 changed**. Of **1,218 selected hot bodies**, **1,145 equal headline** and
+**33 further bodies equal compat2**, including two copies absent in both merged
+POST and compat2. **40 dispatcher bodies match neither reference**: they combine
+C1's authenticated-state argument on the cold arity path with ntfix's N3 length
+classifier/N4 cold frontier behavior. Strict hot-body identity is therefore
+**not achieved**. It remains a merit input and did not stop correctness work.
+
+Every changed body, including the **74 residual bodies** (40 hot, 34 other),
+has object, symbol, reference/POST sizes and reason in
+`docs/compat2b/identity/changed-bodies.md`; the residual hot list is separate.
+Unedited bodies changed by compiler decisions are identified as such, without
+claiming to have isolated each optimizer decision. No runtime layout, field,
+knob, retry, or lock was added to force identity. The only new production-build
+edits after the mechanical merge are the listed Makefile budgets.
+
+One initial round-2 coordinator run accidentally submitted the same reorder
+trial twice, racing its temporary IPA dump removal. Its error log is retained.
+The coordinator now deduplicates trial jobs; the complete rerun uses all unique
+successful receipts. This was a compile-only driver error, not a server run.
+
+### Gate interface and resource allocation
+
+`docs/compat2b/run_gate.py` invokes **the actual `tests/gate.sh quick` job
+interface**, with `GATE_ONLY_JOBS`, separate diagnostic histories and PARTIAL
+ledgers. It does not call replacement row drivers. The exact command is:
+
+```sh
+taskset -c 64-79 env GATE_ONLY_JOBS="<recorded job list>" \
+  GATE_DIFFER_ORACLE_CORES=72 GATE_TEST_PORT=26899 \
+  REDIS74_ROOT="$PWD/build/compat2b/oracle" \
+  bash tests/gate.sh quick --server-cores 64-72 --load-cores 73-79 \
+  --server-smt '' --load-smt '' --ports 26800-26899 \
+  --candidate-binary "<recorded absolute binary path>"
+```
+
+The planner selects one ordinary eight-server-core slot, **64–71**, with
+**16 shards / split ratio 6:2**; fused has eight unified threads and read-local
+where the row declares it. The ninth selected server core, **72**, is outside
+the actual server slot and is reserved for Redis. Clients/coordinator use
+**73–79**. Single-slot prerequisite builds use all selected **64–79**, `-j16`.
+There is no reduced server geometry, full iteration or performance tier.
+
+The oracle directory contains symlinks to local Redis 7.4.10 source, with its
+server/CLI symlinks explicitly targeting `/home/user/Projects/redis74/src`.
+This supplies the source metadata checks without substituting the requested
+oracle binary. `references.json` records the oracle and source hashes.
+
+Harness changes preserve the explicit oracle affinity instead of overwriting
+it; retain both C3 mode-specific deterministic failures independently; let all
+15 independent ABBA self-test commands run even after one fails, retaining the
+aggregate failure; and honor `GATE_TEST_PORT` in the remaining socket fixtures.
+No assertion, timeout, tolerance, EXPECT constant, or row count is relaxed.
+
+PRE uses an archive of **8656f9fa9 production source**, the same merged test
+files/gate interface, and the two current compat2 witness targets appended to
+its Makefile. Thus its C3 deterministic unit uses PRE headers and objects,
+while the POST unit uses POST. Its C1/C2 live tests use the PRE server binary.
+This avoids presenting a POST unit as a PRE failure witness.
