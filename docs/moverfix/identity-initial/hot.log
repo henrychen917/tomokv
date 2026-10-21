@@ -1,0 +1,6 @@
+Hot bodies: 1214; raw byte equal: 1209; bytes + resolved relocation targets equal: 1209
+DIFF db0/src/cmd/xshard.o 732 606 tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)
+DIFF db0/src/cmd/xshard.o 1602 1493 tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)
+DIFF src/cmd/xshard.o 630 540 tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const
+DIFF src/cmd/xshard.o 1014 942 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+DIFF src/cmd/xshard.o 783 580 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)

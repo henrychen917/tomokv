@@ -1,0 +1,607 @@
+
+build/tomokv:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.got:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+00000000004a9ed0 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0>:
+  4a9ed0:	55                   	push   %rbp
+  4a9ed1:	48 89 e5             	mov    %rsp,%rbp
+  4a9ed4:	41 57                	push   %r15
+  4a9ed6:	41 56                	push   %r14
+  4a9ed8:	41 55                	push   %r13
+  4a9eda:	41 54                	push   %r12
+  4a9edc:	53                   	push   %rbx
+  4a9edd:	49 89 f4             	mov    %rsi,%r12
+  4a9ee0:	48 81 ec 88 00 00 00 	sub    $0x88,%rsp
+  4a9ee7:	8b 36                	mov    (%rsi),%esi
+  4a9ee9:	48 89 55 98          	mov    %rdx,-0x68(%rbp)
+  4a9eed:	48 89 7d a0          	mov    %rdi,-0x60(%rbp)
+  4a9ef1:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax
+  4a9ef8:	00 00 
+  4a9efa:	48 89 45 c8          	mov    %rax,-0x38(%rbp)
+  4a9efe:	31 c0                	xor    %eax,%eax
+  4a9f00:	e8 bb 0b fe ff       	call   48aac0 <_ZN4tomo12_GLOBAL__N_19group_forERNS_12ScatterStateEi>
+  4a9f05:	8b 50 04             	mov    0x4(%rax),%edx
+  4a9f08:	48 89 45 90          	mov    %rax,-0x70(%rbp)
+  4a9f0c:	48 8b 87 38 02 00 00 	mov    0x238(%rdi),%rax
+  4a9f13:	83 3c 90 01          	cmpl   $0x1,(%rax,%rdx,4)
+  4a9f17:	0f 84 d3 07 00 00    	je     4aa6f0 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x820>
+  4a9f1d:	49 8d 44 24 38       	lea    0x38(%r12),%rax
+  4a9f22:	48 89 85 68 ff ff ff 	mov    %rax,-0x98(%rbp)
+  4a9f29:	49 8b 84 24 a0 00 00 	mov    0xa0(%r12),%rax
+  4a9f30:	00 
+  4a9f31:	48 89 85 60 ff ff ff 	mov    %rax,-0xa0(%rbp)
+  4a9f38:	49 8b 84 24 a8 00 00 	mov    0xa8(%r12),%rax
+  4a9f3f:	00 
+  4a9f40:	48 89 85 58 ff ff ff 	mov    %rax,-0xa8(%rbp)
+  4a9f47:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  4a9f4b:	80 78 3c 00          	cmpb   $0x0,0x3c(%rax)
+  4a9f4f:	0f 84 71 06 00 00    	je     4aa5c6 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x6f6>
+  4a9f55:	48 8b 45 90          	mov    -0x70(%rbp),%rax
+  4a9f59:	45 31 ff             	xor    %r15d,%r15d
+  4a9f5c:	8b 40 08             	mov    0x8(%rax),%eax
+  4a9f5f:	85 c0                	test   %eax,%eax
+  4a9f61:	0f 84 3a 04 00 00    	je     4aa3a1 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4d1>
+  4a9f67:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+  4a9f6e:	00 00 
+  4a9f70:	48 8b 45 90          	mov    -0x70(%rbp),%rax
+  4a9f74:	48 8b 7d a0          	mov    -0x60(%rbp),%rdi
+  4a9f78:	44 89 fa             	mov    %r15d,%edx
+  4a9f7b:	03 50 04             	add    0x4(%rax),%edx
+  4a9f7e:	48 8b 87 38 02 00 00 	mov    0x238(%rdi),%rax
+  4a9f85:	8b 04 90             	mov    (%rax,%rdx,4),%eax
+  4a9f88:	48 89 c3             	mov    %rax,%rbx
+  4a9f8b:	49 89 c5             	mov    %rax,%r13
+  4a9f8e:	48 89 45 88          	mov    %rax,-0x78(%rbp)
+  4a9f92:	48 c1 e3 05          	shl    $0x5,%rbx
+  4a9f96:	48 03 9f 30 02 00 00 	add    0x230(%rdi),%rbx
+  4a9f9d:	83 f8 01             	cmp    $0x1,%eax
+  4a9fa0:	0f 84 ba 04 00 00    	je     4aa460 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x590>
+  4a9fa6:	41 80 bc 24 28 01 00 	cmpb   $0x0,0x128(%r12)
+  4a9fad:	00 00 
+  4a9faf:	48 8b 33             	mov    (%rbx),%rsi
+  4a9fb2:	4d 8b b4 24 00 01 00 	mov    0x100(%r12),%r14
+  4a9fb9:	00 
+  4a9fba:	0f 84 c0 00 00 00    	je     4aa080 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x1b0>
+  4a9fc0:	48 8b 85 68 ff ff ff 	mov    -0x98(%rbp),%rax
+  4a9fc7:	48 89 75 b8          	mov    %rsi,-0x48(%rbp)
+  4a9fcb:	48 89 45 b0          	mov    %rax,-0x50(%rbp)
+  4a9fcf:	4d 85 f6             	test   %r14,%r14
+  4a9fd2:	0f 84 a3 08 00 00    	je     4aa87b <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x9ab>
+  4a9fd8:	41 80 be 24 05 00 00 	cmpb   $0x0,0x524(%r14)
+  4a9fdf:	00 
+  4a9fe0:	0f 84 17 ee b8 ff    	je     38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4a9fe6:	41 8b 86 80 05 00 00 	mov    0x580(%r14),%eax
+  4a9fed:	8d 50 01             	lea    0x1(%rax),%edx
+  4a9ff0:	41 89 96 80 05 00 00 	mov    %edx,0x580(%r14)
+  4a9ff7:	85 c0                	test   %eax,%eax
+  4a9ff9:	0f 84 39 08 00 00    	je     4aa838 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x968>
+  4a9fff:	90                   	nop
+  4aa000:	49 8b 86 c0 c5 00 00 	mov    0xc5c0(%r14),%rax
+  4aa007:	49 8d be c0 05 00 00 	lea    0x5c0(%r14),%rdi
+  4aa00e:	49 8d 8e c0 c5 00 00 	lea    0xc5c0(%r14),%rcx
+  4aa015:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  4aa019:	0f 84 f1 06 00 00    	je     4aa710 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x840>
+  4aa01f:	48 ff c0             	inc    %rax
+  4aa022:	49 89 86 c0 c5 00 00 	mov    %rax,0xc5c0(%r14)
+  4aa029:	48 89 7d 80          	mov    %rdi,-0x80(%rbp)
+  4aa02d:	e8 3e 5c 03 00       	call   4dfc70 <_ZN4tomo17ForeignReadSafety8add_hashEm>
+  4aa032:	41 8b 86 84 05 00 00 	mov    0x584(%r14),%eax
+  4aa039:	48 8b 7d 80          	mov    -0x80(%rbp),%rdi
+  4aa03d:	83 f8 ff             	cmp    $0xffffffff,%eax
+  4aa040:	0f 84 39 07 00 00    	je     4aa77f <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x8af>
+  4aa046:	8d 50 01             	lea    0x1(%rax),%edx
+  4aa049:	41 89 96 84 05 00 00 	mov    %edx,0x584(%r14)
+  4aa050:	85 c0                	test   %eax,%eax
+  4aa052:	75 10                	jne    4aa064 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x194>
+  4aa054:	f0 49 0f ba ae 48 05 	lock btsq $0x1,0x548(%r14)
+  4aa05b:	00 00 01 
+  4aa05e:	0f 82 2e 07 00 00    	jb     4aa792 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x8c2>
+  4aa064:	41 80 bc 24 28 01 00 	cmpb   $0x0,0x128(%r12)
+  4aa06b:	00 00 
+  4aa06d:	4d 8b b4 24 00 01 00 	mov    0x100(%r12),%r14
+  4aa074:	00 
+  4aa075:	0f 85 35 07 00 00    	jne    4aa7b0 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x8e0>
+  4aa07b:	48 8b 33             	mov    (%rbx),%rsi
+  4aa07e:	eb 0c                	jmp    4aa08c <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x1bc>
+  4aa080:	48 c7 45 b0 00 00 00 	movq   $0x0,-0x50(%rbp)
+  4aa087:	00 
+  4aa088:	48 89 75 b8          	mov    %rsi,-0x48(%rbp)
+  4aa08c:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  4aa090:	8b 53 08             	mov    0x8(%rbx),%edx
+  4aa093:	48 8b 80 c0 00 00 00 	mov    0xc0(%rax),%rax
+  4aa09a:	48 85 c0             	test   %rax,%rax
+  4aa09d:	0f 84 ed 03 00 00    	je     4aa490 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x5c0>
+  4aa0a3:	48 c1 e2 04          	shl    $0x4,%rdx
+  4aa0a7:	48 01 d0             	add    %rdx,%rax
+  4aa0aa:	4c 8b 40 08          	mov    0x8(%rax),%r8
+  4aa0ae:	48 8b 10             	mov    (%rax),%rdx
+  4aa0b1:	4c 89 f7             	mov    %r14,%rdi
+  4aa0b4:	48 89 75 80          	mov    %rsi,-0x80(%rbp)
+  4aa0b8:	4c 89 c1             	mov    %r8,%rcx
+  4aa0bb:	4c 89 85 70 ff ff ff 	mov    %r8,-0x90(%rbp)
+  4aa0c2:	48 89 95 78 ff ff ff 	mov    %rdx,-0x88(%rbp)
+  4aa0c9:	e8 12 00 ff ff       	call   49a0e0 <_ZNK4tomo9FlatStore18atomic_key_pendingEmNS_5SliceE.isra.0>
+  4aa0ce:	48 8b 75 80          	mov    -0x80(%rbp),%rsi
+  4aa0d2:	48 8b 95 78 ff ff ff 	mov    -0x88(%rbp),%rdx
+  4aa0d9:	4c 8b 85 70 ff ff ff 	mov    -0x90(%rbp),%r8
+  4aa0e0:	84 c0                	test   %al,%al
+  4aa0e2:	0f 85 08 03 00 00    	jne    4aa3f0 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x520>
+  4aa0e8:	49 8b bc 24 00 01 00 	mov    0x100(%r12),%rdi
+  4aa0ef:	00 
+  4aa0f0:	4c 89 c1             	mov    %r8,%rcx
+  4aa0f3:	e8 58 1a fe ff       	call   48bb50 <_ZNK4tomo9FlatStore24atomic_has_script_intentEmNS_5SliceE.isra.0>
+  4aa0f8:	41 89 c6             	mov    %eax,%r14d
+  4aa0fb:	84 c0                	test   %al,%al
+  4aa0fd:	0f 85 ed 02 00 00    	jne    4aa3f0 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x520>
+  4aa103:	48 8b 4d a0          	mov    -0x60(%rbp),%rcx
+  4aa107:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  4aa10b:	48 8b 33             	mov    (%rbx),%rsi
+  4aa10e:	80 79 2e 17          	cmpb   $0x17,0x2e(%rcx)
+  4aa112:	48 8b b8 c0 00 00 00 	mov    0xc0(%rax),%rdi
+  4aa119:	8b 43 08             	mov    0x8(%rbx),%eax
+  4aa11c:	0f 84 8e 03 00 00    	je     4aa4b0 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x5e0>
+  4aa122:	48 8b 4d a0          	mov    -0x60(%rbp),%rcx
+  4aa126:	48 8b 91 80 02 00 00 	mov    0x280(%rcx),%rdx
+  4aa12d:	48 89 55 80          	mov    %rdx,-0x80(%rbp)
+  4aa131:	45 85 ed             	test   %r13d,%r13d
+  4aa134:	0f 85 d6 03 00 00    	jne    4aa510 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x640>
+  4aa13a:	0f b6 49 4b          	movzbl 0x4b(%rcx),%ecx
+  4aa13e:	89 8d 78 ff ff ff    	mov    %ecx,-0x88(%rbp)
+  4aa144:	48 85 ff             	test   %rdi,%rdi
+  4aa147:	0f 84 23 05 00 00    	je     4aa670 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x7a0>
+  4aa14d:	48 c1 e0 04          	shl    $0x4,%rax
+  4aa151:	48 01 f8             	add    %rdi,%rax
+  4aa154:	48 8b 10             	mov    (%rax),%rdx
+  4aa157:	48 8b 48 08          	mov    0x8(%rax),%rcx
+  4aa15b:	48 8b bd 68 ff ff ff 	mov    -0x98(%rbp),%rdi
+  4aa162:	e8 29 c1 03 00       	call   4e6290 <_ZN4tomo9FlatStore4findEmNS_5SliceE>
+  4aa167:	48 8b 55 80          	mov    -0x80(%rbp),%rdx
+  4aa16b:	8b b5 78 ff ff ff    	mov    -0x88(%rbp),%esi
+  4aa171:	48 89 c7             	mov    %rax,%rdi
+  4aa174:	e8 f7 0a 0c 00       	call   56ac70 <_ZN4tomo16xshard_peek_listEPNS_5KvObjEbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE>
+  4aa179:	84 c0                	test   %al,%al
+  4aa17b:	75 61                	jne    4aa1de <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x30e>
+  4aa17d:	48 8b 45 80          	mov    -0x80(%rbp),%rax
+  4aa181:	31 ff                	xor    %edi,%edi
+  4aa183:	48 b9 00 00 00 00 ff 	movabs $0xffffffff00000000,%rcx
+  4aa18a:	ff ff ff 
+  4aa18d:	8b 50 08             	mov    0x8(%rax),%edx
+  4aa190:	48 8b 30             	mov    (%rax),%rsi
+  4aa193:	48 89 f8             	mov    %rdi,%rax
+  4aa196:	48 21 c8             	and    %rcx,%rax
+  4aa199:	48 8b 0b             	mov    (%rbx),%rcx
+  4aa19c:	48 09 d0             	or     %rdx,%rax
+  4aa19f:	89 c7                	mov    %eax,%edi
+  4aa1a1:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  4aa1a5:	44 0f b6 40 4b       	movzbl 0x4b(%rax),%r8d
+  4aa1aa:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  4aa1ae:	48 8b 90 c0 00 00 00 	mov    0xc0(%rax),%rdx
+  4aa1b5:	8b 43 08             	mov    0x8(%rbx),%eax
+  4aa1b8:	48 85 d2             	test   %rdx,%rdx
+  4aa1bb:	0f 84 1b 05 00 00    	je     4aa6dc <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x80c>
+  4aa1c1:	48 c1 e0 04          	shl    $0x4,%rax
+  4aa1c5:	48 01 d0             	add    %rdx,%rax
+  4aa1c8:	4c 8b 08             	mov    (%rax),%r9
+  4aa1cb:	48 8b 50 08          	mov    0x8(%rax),%rdx
+  4aa1cf:	57                   	push   %rdi
+  4aa1d0:	4c 89 e7             	mov    %r12,%rdi
+  4aa1d3:	56                   	push   %rsi
+  4aa1d4:	4c 89 ce             	mov    %r9,%rsi
+  4aa1d7:	e8 f4 93 0c 00       	call   5735d0 <_ZN4tomo26xshard_remove_list_elementERNS_5ShardENS_5SliceEmbS2_>
+  4aa1dc:	5a                   	pop    %rdx
+  4aa1dd:	59                   	pop    %rcx
+  4aa1de:	ba 06 00 00 00       	mov    $0x6,%edx
+  4aa1e3:	3c 04                	cmp    $0x4,%al
+  4aa1e5:	77 0e                	ja     4aa1f5 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x325>
+  4aa1e7:	0f b6 d0             	movzbl %al,%edx
+  4aa1ea:	48 8d 1d 9b 5d 2f 00 	lea    0x2f5d9b(%rip),%rbx        # 79ff8c <CSWTCH.5786>
+  4aa1f1:	0f b6 14 13          	movzbl (%rbx,%rdx,1),%edx
+  4aa1f5:	48 8b 5d a0          	mov    -0x60(%rbp),%rbx
+  4aa1f9:	48 8b 8b 48 02 00 00 	mov    0x248(%rbx),%rcx
+  4aa200:	48 8b 5d 88          	mov    -0x78(%rbp),%rbx
+  4aa204:	88 14 19             	mov    %dl,(%rcx,%rbx,1)
+  4aa207:	45 84 f6             	test   %r14b,%r14b
+  4aa20a:	74 18                	je     4aa224 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x354>
+  4aa20c:	49 c7 84 24 a0 00 00 	movq   $0xffffffffffffffff,0xa0(%r12)
+  4aa213:	00 ff ff ff ff 
+  4aa218:	49 c7 84 24 a8 00 00 	movq   $0x0,0xa8(%r12)
+  4aa21f:	00 00 00 00 00 
+  4aa224:	45 85 ed             	test   %r13d,%r13d
+  4aa227:	75 14                	jne    4aa23d <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x36d>
+  4aa229:	84 c0                	test   %al,%al
+  4aa22b:	0f 85 21 02 00 00    	jne    4aa452 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x582>
+  4aa231:	b8 01 00 00 00       	mov    $0x1,%eax
+  4aa236:	48 8b 5d a0          	mov    -0x60(%rbp),%rbx
+  4aa23a:	88 43 1e             	mov    %al,0x1e(%rbx)
+  4aa23d:	48 8b 45 b0          	mov    -0x50(%rbp),%rax
+  4aa241:	48 85 c0             	test   %rax,%rax
+  4aa244:	0f 84 46 01 00 00    	je     4aa390 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4c0>
+  4aa24a:	80 b8 f0 00 00 00 00 	cmpb   $0x0,0xf0(%rax)
+  4aa251:	48 8b 55 b8          	mov    -0x48(%rbp),%rdx
+  4aa255:	0f 84 35 01 00 00    	je     4aa390 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4c0>
+  4aa25b:	48 8b 88 c8 00 00 00 	mov    0xc8(%rax),%rcx
+  4aa262:	48 85 c9             	test   %rcx,%rcx
+  4aa265:	0f 84 92 eb b8 ff    	je     38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa26b:	80 b9 24 05 00 00 00 	cmpb   $0x0,0x524(%rcx)
+  4aa272:	0f 84 85 eb b8 ff    	je     38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa278:	48 8b 81 d0 c5 00 00 	mov    0xc5d0(%rcx),%rax
+  4aa27f:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  4aa283:	0f 84 cd 00 00 00    	je     4aa356 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x486>
+  4aa289:	49 89 d0             	mov    %rdx,%r8
+  4aa28c:	48 b8 cd 8c 55 ed d7 	movabs $0xff51afd7ed558ccd,%rax
+  4aa293:	af 51 ff 
+  4aa296:	49 c1 e8 21          	shr    $0x21,%r8
+  4aa29a:	49 31 d0             	xor    %rdx,%r8
+  4aa29d:	4c 0f af c0          	imul   %rax,%r8
+  4aa2a1:	4c 89 c0             	mov    %r8,%rax
+  4aa2a4:	48 c1 e8 21          	shr    $0x21,%rax
+  4aa2a8:	49 31 c0             	xor    %rax,%r8
+  4aa2ab:	48 b8 53 ec 85 1a fe 	movabs $0xc4ceb9fe1a85ec53,%rax
+  4aa2b2:	b9 ce c4 
+  4aa2b5:	4c 0f af c0          	imul   %rax,%r8
+  4aa2b9:	4c 89 c0             	mov    %r8,%rax
+  4aa2bc:	48 c1 e8 21          	shr    $0x21,%rax
+  4aa2c0:	49 31 c0             	xor    %rax,%r8
+  4aa2c3:	48 8d 81 c0 05 00 00 	lea    0x5c0(%rcx),%rax
+  4aa2ca:	41 81 e0 ff 0f 00 00 	and    $0xfff,%r8d
+  4aa2d1:	4a 8d bc c1 c0 05 00 	lea    0x5c0(%rcx,%r8,8),%rdi
+  4aa2d8:	00 
+  4aa2d9:	48 8b 37             	mov    (%rdi),%rsi
+  4aa2dc:	48 89 f2             	mov    %rsi,%rdx
+  4aa2df:	81 e2 ff ff ff 7f    	and    $0x7fffffff,%edx
+  4aa2e5:	0f 84 12 eb b8 ff    	je     38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa2eb:	48 81 fa ff ff ff 7f 	cmp    $0x7fffffff,%rdx
+  4aa2f2:	74 1a                	je     4aa30e <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x43e>
+  4aa2f4:	48 83 fa 01          	cmp    $0x1,%rdx
+  4aa2f8:	0f 84 72 02 00 00    	je     4aa570 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x6a0>
+  4aa2fe:	48 81 e6 00 00 00 80 	and    $0xffffffff80000000,%rsi
+  4aa305:	48 ff ca             	dec    %rdx
+  4aa308:	48 09 f2             	or     %rsi,%rdx
+  4aa30b:	48 89 17             	mov    %rdx,(%rdi)
+  4aa30e:	4a 8d b4 81 c0 85 00 	lea    0x85c0(%rcx,%r8,4),%rsi
+  4aa315:	00 
+  4aa316:	48 8d b9 c0 85 00 00 	lea    0x85c0(%rcx),%rdi
+  4aa31d:	8b 16                	mov    (%rsi),%edx
+  4aa31f:	ff c2                	inc    %edx
+  4aa321:	89 16                	mov    %edx,(%rsi)
+  4aa323:	48 8b 91 c0 c5 00 00 	mov    0xc5c0(%rcx),%rdx
+  4aa32a:	48 8d b1 c0 c5 00 00 	lea    0xc5c0(%rcx),%rsi
+  4aa331:	48 85 d2             	test   %rdx,%rdx
+  4aa334:	0f 84 c3 ea b8 ff    	je     38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa33a:	48 ff ca             	dec    %rdx
+  4aa33d:	48 89 91 c0 c5 00 00 	mov    %rdx,0xc5c0(%rcx)
+  4aa344:	75 10                	jne    4aa356 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x486>
+  4aa346:	48 8b 91 d0 c5 00 00 	mov    0xc5d0(%rcx),%rdx
+  4aa34d:	48 85 d2             	test   %rdx,%rdx
+  4aa350:	0f 84 91 02 00 00    	je     4aa5e7 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x717>
+  4aa356:	8b 81 84 05 00 00    	mov    0x584(%rcx),%eax
+  4aa35c:	85 c0                	test   %eax,%eax
+  4aa35e:	0f 84 e9 02 00 00    	je     4aa64d <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x77d>
+  4aa364:	ff c8                	dec    %eax
+  4aa366:	89 81 84 05 00 00    	mov    %eax,0x584(%rcx)
+  4aa36c:	75 22                	jne    4aa390 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4c0>
+  4aa36e:	48 8b 81 d0 c5 00 00 	mov    0xc5d0(%rcx),%rax
+  4aa375:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  4aa379:	74 15                	je     4aa390 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4c0>
+  4aa37b:	f0 48 0f ba b1 48 05 	lock btrq $0x1,0x548(%rcx)
+  4aa382:	00 00 01 
+  4aa385:	0f 83 72 ea b8 ff    	jae    38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa38b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+  4aa390:	48 8b 45 90          	mov    -0x70(%rbp),%rax
+  4aa394:	41 ff c7             	inc    %r15d
+  4aa397:	44 3b 78 08          	cmp    0x8(%rax),%r15d
+  4aa39b:	0f 82 cf fb ff ff    	jb     4a9f70 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0xa0>
+  4aa3a1:	c5 fa 7e 8d 60 ff ff 	vmovq  -0xa0(%rbp),%xmm1
+  4aa3a8:	ff 
+  4aa3a9:	c4 e3 f1 22 85 58 ff 	vpinsrq $0x1,-0xa8(%rbp),%xmm1,%xmm0
+  4aa3b0:	ff ff 01 
+  4aa3b3:	31 c0                	xor    %eax,%eax
+  4aa3b5:	c4 c1 7a 7f 84 24 a0 	vmovdqu %xmm0,0xa0(%r12)
+  4aa3bc:	00 00 00 
+  4aa3bf:	48 8b 55 c8          	mov    -0x38(%rbp),%rdx
+  4aa3c3:	64 48 2b 14 25 28 00 	sub    %fs:0x28,%rdx
+  4aa3ca:	00 00 
+  4aa3cc:	0f 85 a4 04 00 00    	jne    4aa876 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x9a6>
+  4aa3d2:	48 8d 65 d8          	lea    -0x28(%rbp),%rsp
+  4aa3d6:	5b                   	pop    %rbx
+  4aa3d7:	41 5c                	pop    %r12
+  4aa3d9:	41 5d                	pop    %r13
+  4aa3db:	41 5e                	pop    %r14
+  4aa3dd:	41 5f                	pop    %r15
+  4aa3df:	5d                   	pop    %rbp
+  4aa3e0:	c3                   	ret
+  4aa3e1:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  4aa3e8:	00 00 00 00 
+  4aa3ec:	0f 1f 40 00          	nopl   0x0(%rax)
+  4aa3f0:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  4aa3f4:	8b 53 08             	mov    0x8(%rbx),%edx
+  4aa3f7:	4c 8b 03             	mov    (%rbx),%r8
+  4aa3fa:	4c 8b 48 70          	mov    0x70(%rax),%r9
+  4aa3fe:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  4aa402:	48 8b 88 c0 00 00 00 	mov    0xc0(%rax),%rcx
+  4aa409:	48 89 d0             	mov    %rdx,%rax
+  4aa40c:	48 c1 e0 04          	shl    $0x4,%rax
+  4aa410:	48 01 c8             	add    %rcx,%rax
+  4aa413:	48 85 c9             	test   %rcx,%rcx
+  4aa416:	0f 84 64 01 00 00    	je     4aa580 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x6b0>
+  4aa41c:	4c 8b 75 a0          	mov    -0x60(%rbp),%r14
+  4aa420:	48 8b 10             	mov    (%rax),%rdx
+  4aa423:	48 8b 48 08          	mov    0x8(%rax),%rcx
+  4aa427:	4c 89 e6             	mov    %r12,%rsi
+  4aa42a:	49 8b 7e 78          	mov    0x78(%r14),%rdi
+  4aa42e:	e8 4d ef ff ff       	call   4a9380 <_ZN4tomo12_GLOBAL__N_119begin_plain_versionERNS_6ServerERNS_5ShardENS_5SliceEmmm.constprop.0>
+  4aa433:	84 c0                	test   %al,%al
+  4aa435:	0f 84 c5 00 00 00    	je     4aa500 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x630>
+  4aa43b:	49 8b 96 48 02 00 00 	mov    0x248(%r14),%rdx
+  4aa442:	48 8b 5d 88          	mov    -0x78(%rbp),%rbx
+  4aa446:	88 04 1a             	mov    %al,(%rdx,%rbx,1)
+  4aa449:	45 85 ed             	test   %r13d,%r13d
+  4aa44c:	0f 85 eb fd ff ff    	jne    4aa23d <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x36d>
+  4aa452:	b8 02 00 00 00       	mov    $0x2,%eax
+  4aa457:	e9 da fd ff ff       	jmp    4aa236 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x366>
+  4aa45c:	0f 1f 40 00          	nopl   0x0(%rax)
+  4aa460:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  4aa464:	0f b6 40 1e          	movzbl 0x1e(%rax),%eax
+  4aa468:	3c 01                	cmp    $0x1,%al
+  4aa46a:	0f 84 36 fb ff ff    	je     4a9fa6 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0xd6>
+  4aa470:	48 8b 45 90          	mov    -0x70(%rbp),%rax
+  4aa474:	41 ff c7             	inc    %r15d
+  4aa477:	44 3b 78 08          	cmp    0x8(%rax),%r15d
+  4aa47b:	0f 82 ef fa ff ff    	jb     4a9f70 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0xa0>
+  4aa481:	e9 1b ff ff ff       	jmp    4aa3a1 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4d1>
+  4aa486:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+  4aa48d:	00 00 00 
+  4aa490:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  4aa494:	48 83 c2 0d          	add    $0xd,%rdx
+  4aa498:	48 c1 e2 04          	shl    $0x4,%rdx
+  4aa49c:	48 01 d0             	add    %rdx,%rax
+  4aa49f:	e9 06 fc ff ff       	jmp    4aa0aa <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x1da>
+  4aa4a4:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  4aa4ab:	00 00 00 00 
+  4aa4af:	90                   	nop
+  4aa4b0:	45 85 ed             	test   %r13d,%r13d
+  4aa4b3:	0f 85 db 00 00 00    	jne    4aa594 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x6c4>
+  4aa4b9:	48 85 ff             	test   %rdi,%rdi
+  4aa4bc:	0f 84 d6 01 00 00    	je     4aa698 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x7c8>
+  4aa4c2:	4c 8b 47 30          	mov    0x30(%rdi),%r8
+  4aa4c6:	4c 8b 4f 38          	mov    0x38(%rdi),%r9
+  4aa4ca:	48 c1 e0 04          	shl    $0x4,%rax
+  4aa4ce:	48 01 f8             	add    %rdi,%rax
+  4aa4d1:	48 8b 38             	mov    (%rax),%rdi
+  4aa4d4:	48 8b 50 08          	mov    0x8(%rax),%rdx
+  4aa4d8:	48 89 f1             	mov    %rsi,%rcx
+  4aa4db:	48 89 fe             	mov    %rdi,%rsi
+  4aa4de:	4c 89 e7             	mov    %r12,%rdi
+  4aa4e1:	e8 8a 49 0d 00       	call   57ee70 <_ZN4tomo25xshard_remove_set_elementERNS_5ShardENS_5SliceEmS2_>
+  4aa4e6:	48 8b 5d a0          	mov    -0x60(%rbp),%rbx
+  4aa4ea:	31 d2                	xor    %edx,%edx
+  4aa4ec:	84 c0                	test   %al,%al
+  4aa4ee:	0f 94 c2             	sete   %dl
+  4aa4f1:	48 89 93 28 01 00 00 	mov    %rdx,0x128(%rbx)
+  4aa4f8:	e9 e1 fc ff ff       	jmp    4aa1de <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x30e>
+  4aa4fd:	0f 1f 00             	nopl   (%rax)
+  4aa500:	41 be 01 00 00 00    	mov    $0x1,%r14d
+  4aa506:	e9 f8 fb ff ff       	jmp    4aa103 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x233>
+  4aa50b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+  4aa510:	48 8b 55 80          	mov    -0x80(%rbp),%rdx
+  4aa514:	31 db                	xor    %ebx,%ebx
+  4aa516:	49 ba 00 00 00 00 ff 	movabs $0xffffffff00000000,%r10
+  4aa51d:	ff ff ff 
+  4aa520:	44 8b 42 08          	mov    0x8(%rdx),%r8d
+  4aa524:	48 8b 0a             	mov    (%rdx),%rcx
+  4aa527:	48 89 da             	mov    %rbx,%rdx
+  4aa52a:	4c 21 d2             	and    %r10,%rdx
+  4aa52d:	4c 09 c2             	or     %r8,%rdx
+  4aa530:	89 d3                	mov    %edx,%ebx
+  4aa532:	48 8b 55 a0          	mov    -0x60(%rbp),%rdx
+  4aa536:	44 0f b6 42 4c       	movzbl 0x4c(%rdx),%r8d
+  4aa53b:	48 85 ff             	test   %rdi,%rdi
+  4aa53e:	0f 84 40 01 00 00    	je     4aa684 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x7b4>
+  4aa544:	48 c1 e0 04          	shl    $0x4,%rax
+  4aa548:	48 01 f8             	add    %rdi,%rax
+  4aa54b:	48 8b 38             	mov    (%rax),%rdi
+  4aa54e:	48 8b 50 08          	mov    0x8(%rax),%rdx
+  4aa552:	53                   	push   %rbx
+  4aa553:	51                   	push   %rcx
+  4aa554:	48 89 f1             	mov    %rsi,%rcx
+  4aa557:	48 89 fe             	mov    %rdi,%rsi
+  4aa55a:	4c 89 e7             	mov    %r12,%rdi
+  4aa55d:	e8 ae 7e 0c 00       	call   572410 <_ZN4tomo24xshard_push_list_elementERNS_5ShardENS_5SliceEmbS2_>
+  4aa562:	e9 75 fc ff ff       	jmp    4aa1dc <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x30c>
+  4aa567:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+  4aa56e:	00 00 
+  4aa570:	48 c7 07 00 00 00 00 	movq   $0x0,(%rdi)
+  4aa577:	e9 92 fd ff ff       	jmp    4aa30e <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x43e>
+  4aa57c:	0f 1f 40 00          	nopl   0x0(%rax)
+  4aa580:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  4aa584:	48 83 c2 0d          	add    $0xd,%rdx
+  4aa588:	48 c1 e2 04          	shl    $0x4,%rdx
+  4aa58c:	48 01 d0             	add    %rdx,%rax
+  4aa58f:	e9 88 fe ff ff       	jmp    4aa41c <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x54c>
+  4aa594:	48 85 ff             	test   %rdi,%rdi
+  4aa597:	0f 84 1d 01 00 00    	je     4aa6ba <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x7ea>
+  4aa59d:	4c 8b 47 30          	mov    0x30(%rdi),%r8
+  4aa5a1:	4c 8b 4f 38          	mov    0x38(%rdi),%r9
+  4aa5a5:	48 c1 e0 04          	shl    $0x4,%rax
+  4aa5a9:	48 01 f8             	add    %rdi,%rax
+  4aa5ac:	48 8b 38             	mov    (%rax),%rdi
+  4aa5af:	48 8b 50 08          	mov    0x8(%rax),%rdx
+  4aa5b3:	48 89 f1             	mov    %rsi,%rcx
+  4aa5b6:	48 89 fe             	mov    %rdi,%rsi
+  4aa5b9:	4c 89 e7             	mov    %r12,%rdi
+  4aa5bc:	e8 7f b6 0d 00       	call   585c40 <_ZN4tomo25xshard_insert_set_elementERNS_5ShardENS_5SliceEmS2_>
+  4aa5c1:	e9 18 fc ff ff       	jmp    4aa1de <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x30e>
+  4aa5c6:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  4aa5ca:	48 8b 40 70          	mov    0x70(%rax),%rax
+  4aa5ce:	49 c7 84 24 a0 00 00 	movq   $0xffffffffffffffff,0xa0(%r12)
+  4aa5d5:	00 ff ff ff ff 
+  4aa5da:	49 89 84 24 a8 00 00 	mov    %rax,0xa8(%r12)
+  4aa5e1:	00 
+  4aa5e2:	e9 6e f9 ff ff       	jmp    4a9f55 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x85>
+  4aa5e7:	48 8b 91 c8 c5 00 00 	mov    0xc5c8(%rcx),%rdx
+  4aa5ee:	48 85 d2             	test   %rdx,%rdx
+  4aa5f1:	0f 84 5f fd ff ff    	je     4aa356 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x486>
+  4aa5f7:	48 8b 5d a0          	mov    -0x60(%rbp),%rbx
+  4aa5fb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+  4aa600:	48 83 c0 08          	add    $0x8,%rax
+  4aa604:	48 c7 40 f8 00 00 00 	movq   $0x0,-0x8(%rax)
+  4aa60b:	00 
+  4aa60c:	48 39 f8             	cmp    %rdi,%rax
+  4aa60f:	75 ef                	jne    4aa600 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x730>
+  4aa611:	48 89 5d a0          	mov    %rbx,-0x60(%rbp)
+  4aa615:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  4aa61c:	00 00 00 00 
+  4aa620:	8b 10                	mov    (%rax),%edx
+  4aa622:	48 83 c0 04          	add    $0x4,%rax
+  4aa626:	ff c2                	inc    %edx
+  4aa628:	89 50 fc             	mov    %edx,-0x4(%rax)
+  4aa62b:	48 39 c6             	cmp    %rax,%rsi
+  4aa62e:	75 f0                	jne    4aa620 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x750>
+  4aa630:	48 89 5d a0          	mov    %rbx,-0x60(%rbp)
+  4aa634:	48 c7 81 c8 c5 00 00 	movq   $0x0,0xc5c8(%rcx)
+  4aa63b:	00 00 00 00 
+  4aa63f:	8b 81 84 05 00 00    	mov    0x584(%rcx),%eax
+  4aa645:	85 c0                	test   %eax,%eax
+  4aa647:	0f 85 17 fd ff ff    	jne    4aa364 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x494>
+  4aa64d:	48 8b 81 d0 c5 00 00 	mov    0xc5d0(%rcx),%rax
+  4aa654:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  4aa658:	0f 84 32 fd ff ff    	je     4aa390 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4c0>
+  4aa65e:	e9 9a e7 b8 ff       	jmp    38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa663:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  4aa66a:	00 00 00 00 
+  4aa66e:	66 90                	xchg   %ax,%ax
+  4aa670:	48 8b 7d 98          	mov    -0x68(%rbp),%rdi
+  4aa674:	48 83 c0 0d          	add    $0xd,%rax
+  4aa678:	48 c1 e0 04          	shl    $0x4,%rax
+  4aa67c:	48 01 f8             	add    %rdi,%rax
+  4aa67f:	e9 d0 fa ff ff       	jmp    4aa154 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x284>
+  4aa684:	48 8b 7d 98          	mov    -0x68(%rbp),%rdi
+  4aa688:	48 83 c0 0d          	add    $0xd,%rax
+  4aa68c:	48 c1 e0 04          	shl    $0x4,%rax
+  4aa690:	48 01 f8             	add    %rdi,%rax
+  4aa693:	e9 b3 fe ff ff       	jmp    4aa54b <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x67b>
+  4aa698:	48 8b 5d 98          	mov    -0x68(%rbp),%rbx
+  4aa69c:	48 83 c0 0d          	add    $0xd,%rax
+  4aa6a0:	48 c1 e0 04          	shl    $0x4,%rax
+  4aa6a4:	4c 8b 83 00 01 00 00 	mov    0x100(%rbx),%r8
+  4aa6ab:	4c 8b 8b 08 01 00 00 	mov    0x108(%rbx),%r9
+  4aa6b2:	48 01 d8             	add    %rbx,%rax
+  4aa6b5:	e9 17 fe ff ff       	jmp    4aa4d1 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x601>
+  4aa6ba:	48 8b 5d 98          	mov    -0x68(%rbp),%rbx
+  4aa6be:	48 83 c0 0d          	add    $0xd,%rax
+  4aa6c2:	48 c1 e0 04          	shl    $0x4,%rax
+  4aa6c6:	4c 8b 83 00 01 00 00 	mov    0x100(%rbx),%r8
+  4aa6cd:	4c 8b 8b 08 01 00 00 	mov    0x108(%rbx),%r9
+  4aa6d4:	48 01 d8             	add    %rbx,%rax
+  4aa6d7:	e9 d0 fe ff ff       	jmp    4aa5ac <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x6dc>
+  4aa6dc:	48 8b 5d 98          	mov    -0x68(%rbp),%rbx
+  4aa6e0:	48 83 c0 0d          	add    $0xd,%rax
+  4aa6e4:	48 c1 e0 04          	shl    $0x4,%rax
+  4aa6e8:	48 01 d8             	add    %rbx,%rax
+  4aa6eb:	e9 d8 fa ff ff       	jmp    4aa1c8 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x2f8>
+  4aa6f0:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  4aa6f4:	0f b6 40 1e          	movzbl 0x1e(%rax),%eax
+  4aa6f8:	84 c0                	test   %al,%al
+  4aa6fa:	0f 85 1d f8 ff ff    	jne    4a9f1d <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4d>
+  4aa700:	b8 02 00 00 00       	mov    $0x2,%eax
+  4aa705:	e9 b5 fc ff ff       	jmp    4aa3bf <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4ef>
+  4aa70a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+  4aa710:	49 c7 86 d0 c5 00 00 	movq   $0xffffffffffffffff,0xc5d0(%r14)
+  4aa717:	ff ff ff ff 
+  4aa71b:	49 c7 86 c0 c5 00 00 	movq   $0xffffffffffffffff,0xc5c0(%r14)
+  4aa722:	ff ff ff ff 
+  4aa726:	4c 8b 5d a0          	mov    -0x60(%rbp),%r11
+  4aa72a:	49 8d b6 c0 85 00 00 	lea    0x85c0(%r14),%rsi
+  4aa731:	48 89 f8             	mov    %rdi,%rax
+  4aa734:	48 ba ff ff ff ff 00 	movabs $0x80000000ffffffff,%rdx
+  4aa73b:	00 00 80 
+  4aa73e:	66 90                	xchg   %ax,%ax
+  4aa740:	48 83 c0 08          	add    $0x8,%rax
+  4aa744:	48 89 50 f8          	mov    %rdx,-0x8(%rax)
+  4aa748:	48 39 f0             	cmp    %rsi,%rax
+  4aa74b:	75 f3                	jne    4aa740 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x870>
+  4aa74d:	4c 89 de             	mov    %r11,%rsi
+  4aa750:	8b 10                	mov    (%rax),%edx
+  4aa752:	48 83 c0 04          	add    $0x4,%rax
+  4aa756:	ff c2                	inc    %edx
+  4aa758:	89 50 fc             	mov    %edx,-0x4(%rax)
+  4aa75b:	48 39 c1             	cmp    %rax,%rcx
+  4aa75e:	75 f0                	jne    4aa750 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x880>
+  4aa760:	48 89 75 a0          	mov    %rsi,-0x60(%rbp)
+  4aa764:	49 c7 86 c8 c5 00 00 	movq   $0x1000,0xc5c8(%r14)
+  4aa76b:	00 10 00 00 
+  4aa76f:	41 8b 86 84 05 00 00 	mov    0x584(%r14),%eax
+  4aa776:	83 f8 ff             	cmp    $0xffffffff,%eax
+  4aa779:	0f 85 c7 f8 ff ff    	jne    4aa046 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x176>
+  4aa77f:	e8 7c 56 03 00       	call   4dfe00 <_ZN4tomo17ForeignReadSafety18poison_permanentlyEv>
+  4aa784:	f0 49 83 8e 48 05 00 	lock orq $0x2,0x548(%r14)
+  4aa78b:	00 02 
+  4aa78d:	e9 d2 f8 ff ff       	jmp    4aa064 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x194>
+  4aa792:	49 8b 86 d0 c5 00 00 	mov    0xc5d0(%r14),%rax
+  4aa799:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  4aa79d:	0f 84 c1 f8 ff ff    	je     4aa064 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x194>
+  4aa7a3:	e9 55 e6 b8 ff       	jmp    38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa7a8:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+  4aa7af:	00 
+  4aa7b0:	4d 85 f6             	test   %r14,%r14
+  4aa7b3:	0f 84 44 e6 b8 ff    	je     38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa7b9:	41 80 be 24 05 00 00 	cmpb   $0x0,0x524(%r14)
+  4aa7c0:	00 
+  4aa7c1:	0f 84 36 e6 b8 ff    	je     38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa7c7:	41 8b 86 80 05 00 00 	mov    0x580(%r14),%eax
+  4aa7ce:	85 c0                	test   %eax,%eax
+  4aa7d0:	0f 84 27 e6 b8 ff    	je     38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa7d6:	ff c8                	dec    %eax
+  4aa7d8:	41 89 86 80 05 00 00 	mov    %eax,0x580(%r14)
+  4aa7df:	0f 85 96 f8 ff ff    	jne    4aa07b <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x1ab>
+  4aa7e5:	49 8b 86 48 05 00 00 	mov    0x548(%r14),%rax
+  4aa7ec:	a8 01                	test   $0x1,%al
+  4aa7ee:	0f 84 09 e6 b8 ff    	je     38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa7f4:	48 89 c1             	mov    %rax,%rcx
+  4aa7f7:	48 be ff ff ff ff ff 	movabs $0x3fffffffffffffff,%rsi
+  4aa7fe:	ff ff 3f 
+  4aa801:	48 c1 e9 02          	shr    $0x2,%rcx
+  4aa805:	48 39 f1             	cmp    %rsi,%rcx
+  4aa808:	48 8d 14 8d 04 00 00 	lea    0x4(,%rcx,4),%rdx
+  4aa80f:	00 
+  4aa810:	48 c7 c1 fc ff ff ff 	mov    $0xfffffffffffffffc,%rcx
+  4aa817:	48 0f 44 d1          	cmove  %rcx,%rdx
+  4aa81b:	83 e0 02             	and    $0x2,%eax
+  4aa81e:	48 09 d0             	or     %rdx,%rax
+  4aa821:	49 89 86 48 05 00 00 	mov    %rax,0x548(%r14)
+  4aa828:	48 8b 33             	mov    (%rbx),%rsi
+  4aa82b:	4d 8b b4 24 00 01 00 	mov    0x100(%r12),%r14
+  4aa832:	00 
+  4aa833:	e9 54 f8 ff ff       	jmp    4aa08c <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x1bc>
+  4aa838:	49 8b 86 48 05 00 00 	mov    0x548(%r14),%rax
+  4aa83f:	a8 01                	test   $0x1,%al
+  4aa841:	0f 85 b6 e5 b8 ff    	jne    38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa847:	48 83 c8 01          	or     $0x1,%rax
+  4aa84b:	49 89 86 48 05 00 00 	mov    %rax,0x548(%r14)
+  4aa852:	4d 8b b4 24 00 01 00 	mov    0x100(%r12),%r14
+  4aa859:	00 
+  4aa85a:	4d 85 f6             	test   %r14,%r14
+  4aa85d:	0f 84 9a e5 b8 ff    	je     38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa863:	41 80 be 24 05 00 00 	cmpb   $0x0,0x524(%r14)
+  4aa86a:	00 
+  4aa86b:	0f 85 8f f7 ff ff    	jne    4aa000 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x130>
+  4aa871:	e9 87 e5 b8 ff       	jmp    38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa876:	e8 35 1f b7 ff       	call   1c7b0 <__stack_chk_fail@plt>
+  4aa87b:	e9 7d e5 b8 ff       	jmp    38dfd <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  4aa880:	f3 0f 1e fa          	endbr64
+  4aa884:	48 89 c3             	mov    %rax,%rbx
+  4aa887:	e9 76 e5 b8 ff       	jmp    38e02 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold+0x5>
+
+Disassembly of section .rlfence:
+
+Disassembly of section .fini:

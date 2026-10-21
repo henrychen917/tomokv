@@ -1,0 +1,649 @@
+
+build/tomokv:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.got:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+000000000011f130 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0>:
+  11f130:	55                   	push   %rbp
+  11f131:	48 89 e5             	mov    %rsp,%rbp
+  11f134:	41 57                	push   %r15
+  11f136:	41 56                	push   %r14
+  11f138:	41 55                	push   %r13
+  11f13a:	41 54                	push   %r12
+  11f13c:	53                   	push   %rbx
+  11f13d:	49 89 f4             	mov    %rsi,%r12
+  11f140:	48 81 ec c8 00 00 00 	sub    $0xc8,%rsp
+  11f147:	8b 36                	mov    (%rsi),%esi
+  11f149:	48 89 55 98          	mov    %rdx,-0x68(%rbp)
+  11f14d:	48 89 7d a0          	mov    %rdi,-0x60(%rbp)
+  11f151:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax
+  11f158:	00 00 
+  11f15a:	48 89 45 c8          	mov    %rax,-0x38(%rbp)
+  11f15e:	31 c0                	xor    %eax,%eax
+  11f160:	e8 eb fe fd ff       	call   ff050 <_ZN8tomo_db012_GLOBAL__N_19group_forERNS_12ScatterStateEi>
+  11f165:	8b 50 04             	mov    0x4(%rax),%edx
+  11f168:	48 89 45 90          	mov    %rax,-0x70(%rbp)
+  11f16c:	48 8b 87 38 02 00 00 	mov    0x238(%rdi),%rax
+  11f173:	83 3c 90 01          	cmpl   $0x1,(%rax,%rdx,4)
+  11f177:	0f 84 a1 08 00 00    	je     11fa1e <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x8ee>
+  11f17d:	49 8d 44 24 38       	lea    0x38(%r12),%rax
+  11f182:	48 89 85 60 ff ff ff 	mov    %rax,-0xa0(%rbp)
+  11f189:	49 8b 84 24 a0 00 00 	mov    0xa0(%r12),%rax
+  11f190:	00 
+  11f191:	48 89 85 48 ff ff ff 	mov    %rax,-0xb8(%rbp)
+  11f198:	49 8b 84 24 a8 00 00 	mov    0xa8(%r12),%rax
+  11f19f:	00 
+  11f1a0:	48 89 85 40 ff ff ff 	mov    %rax,-0xc0(%rbp)
+  11f1a7:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  11f1ab:	80 78 3c 00          	cmpb   $0x0,0x3c(%rax)
+  11f1af:	0f 84 41 07 00 00    	je     11f8f6 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x7c6>
+  11f1b5:	48 8b 45 90          	mov    -0x70(%rbp),%rax
+  11f1b9:	45 31 ff             	xor    %r15d,%r15d
+  11f1bc:	8b 40 08             	mov    0x8(%rax),%eax
+  11f1bf:	85 c0                	test   %eax,%eax
+  11f1c1:	0f 84 6a 04 00 00    	je     11f631 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x501>
+  11f1c7:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+  11f1ce:	00 00 
+  11f1d0:	48 8b 45 90          	mov    -0x70(%rbp),%rax
+  11f1d4:	48 8b 7d a0          	mov    -0x60(%rbp),%rdi
+  11f1d8:	44 89 fa             	mov    %r15d,%edx
+  11f1db:	03 50 04             	add    0x4(%rax),%edx
+  11f1de:	48 8b 87 38 02 00 00 	mov    0x238(%rdi),%rax
+  11f1e5:	8b 04 90             	mov    (%rax,%rdx,4),%eax
+  11f1e8:	48 89 c3             	mov    %rax,%rbx
+  11f1eb:	49 89 c5             	mov    %rax,%r13
+  11f1ee:	48 89 45 88          	mov    %rax,-0x78(%rbp)
+  11f1f2:	48 c1 e3 05          	shl    $0x5,%rbx
+  11f1f6:	48 03 9f 30 02 00 00 	add    0x230(%rdi),%rbx
+  11f1fd:	83 f8 01             	cmp    $0x1,%eax
+  11f200:	0f 84 0a 05 00 00    	je     11f710 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x5e0>
+  11f206:	41 80 bc 24 28 01 00 	cmpb   $0x0,0x128(%r12)
+  11f20d:	00 00 
+  11f20f:	48 8b 33             	mov    (%rbx),%rsi
+  11f212:	4d 8b b4 24 00 01 00 	mov    0x100(%r12),%r14
+  11f219:	00 
+  11f21a:	0f 84 c0 00 00 00    	je     11f2e0 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x1b0>
+  11f220:	48 8b 85 60 ff ff ff 	mov    -0xa0(%rbp),%rax
+  11f227:	48 89 75 b8          	mov    %rsi,-0x48(%rbp)
+  11f22b:	48 89 45 b0          	mov    %rax,-0x50(%rbp)
+  11f22f:	4d 85 f6             	test   %r14,%r14
+  11f232:	0f 84 73 09 00 00    	je     11fbab <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0xa7b>
+  11f238:	41 80 be 24 05 00 00 	cmpb   $0x0,0x524(%r14)
+  11f23f:	00 
+  11f240:	0f 84 7b 23 f0 ff    	je     215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11f246:	41 8b 86 80 05 00 00 	mov    0x580(%r14),%eax
+  11f24d:	8d 50 01             	lea    0x1(%rax),%edx
+  11f250:	41 89 96 80 05 00 00 	mov    %edx,0x580(%r14)
+  11f257:	85 c0                	test   %eax,%eax
+  11f259:	0f 84 09 09 00 00    	je     11fb68 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0xa38>
+  11f25f:	90                   	nop
+  11f260:	49 8b 86 c0 c5 00 00 	mov    0xc5c0(%r14),%rax
+  11f267:	49 8d be c0 05 00 00 	lea    0x5c0(%r14),%rdi
+  11f26e:	49 8d 8e c0 c5 00 00 	lea    0xc5c0(%r14),%rcx
+  11f275:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  11f279:	0f 84 c1 07 00 00    	je     11fa40 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x910>
+  11f27f:	48 ff c0             	inc    %rax
+  11f282:	49 89 86 c0 c5 00 00 	mov    %rax,0xc5c0(%r14)
+  11f289:	48 89 7d 80          	mov    %rdi,-0x80(%rbp)
+  11f28d:	e8 5e 6f 03 00       	call   1561f0 <_ZN8tomo_db017ForeignReadSafety8add_hashEm>
+  11f292:	41 8b 86 84 05 00 00 	mov    0x584(%r14),%eax
+  11f299:	48 8b 7d 80          	mov    -0x80(%rbp),%rdi
+  11f29d:	83 f8 ff             	cmp    $0xffffffff,%eax
+  11f2a0:	0f 84 09 08 00 00    	je     11faaf <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x97f>
+  11f2a6:	8d 50 01             	lea    0x1(%rax),%edx
+  11f2a9:	41 89 96 84 05 00 00 	mov    %edx,0x584(%r14)
+  11f2b0:	85 c0                	test   %eax,%eax
+  11f2b2:	75 10                	jne    11f2c4 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x194>
+  11f2b4:	f0 49 0f ba ae 48 05 	lock btsq $0x1,0x548(%r14)
+  11f2bb:	00 00 01 
+  11f2be:	0f 82 fe 07 00 00    	jb     11fac2 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x992>
+  11f2c4:	41 80 bc 24 28 01 00 	cmpb   $0x0,0x128(%r12)
+  11f2cb:	00 00 
+  11f2cd:	4d 8b b4 24 00 01 00 	mov    0x100(%r12),%r14
+  11f2d4:	00 
+  11f2d5:	0f 85 05 08 00 00    	jne    11fae0 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x9b0>
+  11f2db:	48 8b 33             	mov    (%rbx),%rsi
+  11f2de:	eb 0c                	jmp    11f2ec <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x1bc>
+  11f2e0:	48 c7 45 b0 00 00 00 	movq   $0x0,-0x50(%rbp)
+  11f2e7:	00 
+  11f2e8:	48 89 75 b8          	mov    %rsi,-0x48(%rbp)
+  11f2ec:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  11f2f0:	8b 53 08             	mov    0x8(%rbx),%edx
+  11f2f3:	48 8b 80 c0 00 00 00 	mov    0xc0(%rax),%rax
+  11f2fa:	48 85 c0             	test   %rax,%rax
+  11f2fd:	0f 84 3d 04 00 00    	je     11f740 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x610>
+  11f303:	48 c1 e2 04          	shl    $0x4,%rdx
+  11f307:	48 01 d0             	add    %rdx,%rax
+  11f30a:	48 8b 10             	mov    (%rax),%rdx
+  11f30d:	8b 48 08             	mov    0x8(%rax),%ecx
+  11f310:	4c 89 f7             	mov    %r14,%rdi
+  11f313:	48 89 75 80          	mov    %rsi,-0x80(%rbp)
+  11f317:	89 8d 74 ff ff ff    	mov    %ecx,-0x8c(%rbp)
+  11f31d:	48 89 95 78 ff ff ff 	mov    %rdx,-0x88(%rbp)
+  11f324:	e8 57 03 ff ff       	call   10f680 <_ZNK8tomo_db09FlatStore18atomic_key_pendingEmNS_5SliceE.isra.0>
+  11f329:	84 c0                	test   %al,%al
+  11f32b:	0f 85 4f 03 00 00    	jne    11f680 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x550>
+  11f331:	49 8b bc 24 00 01 00 	mov    0x100(%r12),%rdi
+  11f338:	00 
+  11f339:	8b 8d 74 ff ff ff    	mov    -0x8c(%rbp),%ecx
+  11f33f:	48 8b 95 78 ff ff ff 	mov    -0x88(%rbp),%rdx
+  11f346:	48 8b 75 80          	mov    -0x80(%rbp),%rsi
+  11f34a:	e8 91 10 fe ff       	call   1003e0 <_ZNK8tomo_db09FlatStore24atomic_has_script_intentEmNS_5SliceE.isra.0>
+  11f34f:	41 89 c6             	mov    %eax,%r14d
+  11f352:	84 c0                	test   %al,%al
+  11f354:	0f 85 26 03 00 00    	jne    11f680 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x550>
+  11f35a:	48 8b 4d a0          	mov    -0x60(%rbp),%rcx
+  11f35e:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  11f362:	48 8b 33             	mov    (%rbx),%rsi
+  11f365:	80 79 2e 17          	cmpb   $0x17,0x2e(%rcx)
+  11f369:	48 8b b8 c0 00 00 00 	mov    0xc0(%rax),%rdi
+  11f370:	8b 43 08             	mov    0x8(%rbx),%eax
+  11f373:	0f 84 e7 03 00 00    	je     11f760 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x630>
+  11f379:	48 8b 4d a0          	mov    -0x60(%rbp),%rcx
+  11f37d:	48 8b 91 80 02 00 00 	mov    0x280(%rcx),%rdx
+  11f384:	48 89 55 80          	mov    %rdx,-0x80(%rbp)
+  11f388:	45 85 ed             	test   %r13d,%r13d
+  11f38b:	0f 85 5f 04 00 00    	jne    11f7f0 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x6c0>
+  11f391:	0f b6 49 4b          	movzbl 0x4b(%rcx),%ecx
+  11f395:	89 8d 78 ff ff ff    	mov    %ecx,-0x88(%rbp)
+  11f39b:	48 85 ff             	test   %rdi,%rdi
+  11f39e:	0f 84 fc 05 00 00    	je     11f9a0 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x870>
+  11f3a4:	48 c1 e0 04          	shl    $0x4,%rax
+  11f3a8:	48 01 f8             	add    %rdi,%rax
+  11f3ab:	48 8b 10             	mov    (%rax),%rdx
+  11f3ae:	48 b9 00 00 00 00 ff 	movabs $0xffffffff00000000,%rcx
+  11f3b5:	ff ff ff 
+  11f3b8:	8b 40 08             	mov    0x8(%rax),%eax
+  11f3bb:	48 23 8d 58 ff ff ff 	and    -0xa8(%rbp),%rcx
+  11f3c2:	48 8b bd 60 ff ff ff 	mov    -0xa0(%rbp),%rdi
+  11f3c9:	48 09 c1             	or     %rax,%rcx
+  11f3cc:	48 89 8d 58 ff ff ff 	mov    %rcx,-0xa8(%rbp)
+  11f3d3:	e8 b8 df 03 00       	call   15d390 <_ZN8tomo_db09FlatStore4findEmNS_5SliceE>
+  11f3d8:	48 8b 55 80          	mov    -0x80(%rbp),%rdx
+  11f3dc:	8b b5 78 ff ff ff    	mov    -0x88(%rbp),%esi
+  11f3e2:	48 89 c7             	mov    %rax,%rdi
+  11f3e5:	e8 76 98 0c 00       	call   1e8c60 <_ZN8tomo_db016xshard_peek_listEPNS_5KvObjEbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE>
+  11f3ea:	84 c0                	test   %al,%al
+  11f3ec:	0f 85 80 00 00 00    	jne    11f472 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x342>
+  11f3f2:	48 8b 45 80          	mov    -0x80(%rbp),%rax
+  11f3f6:	31 ff                	xor    %edi,%edi
+  11f3f8:	48 b9 00 00 00 00 ff 	movabs $0xffffffff00000000,%rcx
+  11f3ff:	ff ff ff 
+  11f402:	8b 50 08             	mov    0x8(%rax),%edx
+  11f405:	48 8b 30             	mov    (%rax),%rsi
+  11f408:	48 89 f8             	mov    %rdi,%rax
+  11f40b:	48 21 c8             	and    %rcx,%rax
+  11f40e:	48 8b 0b             	mov    (%rbx),%rcx
+  11f411:	48 09 d0             	or     %rdx,%rax
+  11f414:	48 89 c7             	mov    %rax,%rdi
+  11f417:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  11f41b:	44 0f b6 40 4b       	movzbl 0x4b(%rax),%r8d
+  11f420:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  11f424:	48 8b 90 c0 00 00 00 	mov    0xc0(%rax),%rdx
+  11f42b:	8b 43 08             	mov    0x8(%rbx),%eax
+  11f42e:	48 85 d2             	test   %rdx,%rdx
+  11f431:	0f 84 d3 05 00 00    	je     11fa0a <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x8da>
+  11f437:	48 c1 e0 04          	shl    $0x4,%rax
+  11f43b:	48 01 d0             	add    %rdx,%rax
+  11f43e:	48 8b 10             	mov    (%rax),%rdx
+  11f441:	44 8b 48 08          	mov    0x8(%rax),%r9d
+  11f445:	48 b8 00 00 00 00 ff 	movabs $0xffffffff00000000,%rax
+  11f44c:	ff ff ff 
+  11f44f:	48 23 85 18 ff ff ff 	and    -0xe8(%rbp),%rax
+  11f456:	4c 09 c8             	or     %r9,%rax
+  11f459:	48 89 85 18 ff ff ff 	mov    %rax,-0xe8(%rbp)
+  11f460:	57                   	push   %rdi
+  11f461:	4c 89 e7             	mov    %r12,%rdi
+  11f464:	56                   	push   %rsi
+  11f465:	48 89 d6             	mov    %rdx,%rsi
+  11f468:	48 89 c2             	mov    %rax,%rdx
+  11f46b:	e8 40 1f 0d 00       	call   1f13b0 <_ZN8tomo_db026xshard_remove_list_elementERNS_5ShardENS_5SliceEmbS2_>
+  11f470:	5a                   	pop    %rdx
+  11f471:	59                   	pop    %rcx
+  11f472:	ba 06 00 00 00       	mov    $0x6,%edx
+  11f477:	3c 04                	cmp    $0x4,%al
+  11f479:	77 0e                	ja     11f489 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x359>
+  11f47b:	0f b6 d0             	movzbl %al,%edx
+  11f47e:	48 8d 1d 47 90 67 00 	lea    0x679047(%rip),%rbx        # 7984cc <CSWTCH.5778>
+  11f485:	0f b6 14 13          	movzbl (%rbx,%rdx,1),%edx
+  11f489:	48 8b 5d a0          	mov    -0x60(%rbp),%rbx
+  11f48d:	48 8b 8b 48 02 00 00 	mov    0x248(%rbx),%rcx
+  11f494:	48 8b 5d 88          	mov    -0x78(%rbp),%rbx
+  11f498:	88 14 19             	mov    %dl,(%rcx,%rbx,1)
+  11f49b:	45 84 f6             	test   %r14b,%r14b
+  11f49e:	74 18                	je     11f4b8 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x388>
+  11f4a0:	49 c7 84 24 a0 00 00 	movq   $0xffffffffffffffff,0xa0(%r12)
+  11f4a7:	00 ff ff ff ff 
+  11f4ac:	49 c7 84 24 a8 00 00 	movq   $0x0,0xa8(%r12)
+  11f4b3:	00 00 00 00 00 
+  11f4b8:	45 85 ed             	test   %r13d,%r13d
+  11f4bb:	75 14                	jne    11f4d1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x3a1>
+  11f4bd:	84 c0                	test   %al,%al
+  11f4bf:	0f 85 34 02 00 00    	jne    11f6f9 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x5c9>
+  11f4c5:	b8 01 00 00 00       	mov    $0x1,%eax
+  11f4ca:	48 8b 5d a0          	mov    -0x60(%rbp),%rbx
+  11f4ce:	88 43 1e             	mov    %al,0x1e(%rbx)
+  11f4d1:	48 8b 45 b0          	mov    -0x50(%rbp),%rax
+  11f4d5:	48 85 c0             	test   %rax,%rax
+  11f4d8:	0f 84 42 01 00 00    	je     11f620 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4f0>
+  11f4de:	80 b8 f0 00 00 00 00 	cmpb   $0x0,0xf0(%rax)
+  11f4e5:	48 8b 55 b8          	mov    -0x48(%rbp),%rdx
+  11f4e9:	0f 84 31 01 00 00    	je     11f620 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4f0>
+  11f4ef:	48 8b 88 c8 00 00 00 	mov    0xc8(%rax),%rcx
+  11f4f6:	48 85 c9             	test   %rcx,%rcx
+  11f4f9:	0f 84 c2 20 f0 ff    	je     215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11f4ff:	80 b9 24 05 00 00 00 	cmpb   $0x0,0x524(%rcx)
+  11f506:	0f 84 b5 20 f0 ff    	je     215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11f50c:	48 8b 81 d0 c5 00 00 	mov    0xc5d0(%rcx),%rax
+  11f513:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  11f517:	0f 84 ca 00 00 00    	je     11f5e7 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4b7>
+  11f51d:	48 89 d7             	mov    %rdx,%rdi
+  11f520:	48 b8 cd 8c 55 ed d7 	movabs $0xff51afd7ed558ccd,%rax
+  11f527:	af 51 ff 
+  11f52a:	48 c1 ef 21          	shr    $0x21,%rdi
+  11f52e:	48 31 d7             	xor    %rdx,%rdi
+  11f531:	48 8d 91 c0 05 00 00 	lea    0x5c0(%rcx),%rdx
+  11f538:	48 0f af f8          	imul   %rax,%rdi
+  11f53c:	48 89 f8             	mov    %rdi,%rax
+  11f53f:	48 c1 e8 21          	shr    $0x21,%rax
+  11f543:	48 31 c7             	xor    %rax,%rdi
+  11f546:	48 b8 53 ec 85 1a fe 	movabs $0xc4ceb9fe1a85ec53,%rax
+  11f54d:	b9 ce c4 
+  11f550:	48 0f af f8          	imul   %rax,%rdi
+  11f554:	48 89 f8             	mov    %rdi,%rax
+  11f557:	48 c1 e8 21          	shr    $0x21,%rax
+  11f55b:	48 31 c7             	xor    %rax,%rdi
+  11f55e:	81 e7 ff 0f 00 00    	and    $0xfff,%edi
+  11f564:	4c 8d 84 f9 c0 05 00 	lea    0x5c0(%rcx,%rdi,8),%r8
+  11f56b:	00 
+  11f56c:	49 8b 30             	mov    (%r8),%rsi
+  11f56f:	48 89 f0             	mov    %rsi,%rax
+  11f572:	25 ff ff ff 7f       	and    $0x7fffffff,%eax
+  11f577:	0f 84 44 20 f0 ff    	je     215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11f57d:	48 3d ff ff ff 7f    	cmp    $0x7fffffff,%rax
+  11f583:	74 1a                	je     11f59f <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x46f>
+  11f585:	48 83 f8 01          	cmp    $0x1,%rax
+  11f589:	0f 84 e1 02 00 00    	je     11f870 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x740>
+  11f58f:	48 81 e6 00 00 00 80 	and    $0xffffffff80000000,%rsi
+  11f596:	48 ff c8             	dec    %rax
+  11f599:	48 09 f0             	or     %rsi,%rax
+  11f59c:	49 89 00             	mov    %rax,(%r8)
+  11f59f:	48 8d bc b9 c0 85 00 	lea    0x85c0(%rcx,%rdi,4),%rdi
+  11f5a6:	00 
+  11f5a7:	48 8d 81 c0 85 00 00 	lea    0x85c0(%rcx),%rax
+  11f5ae:	8b 37                	mov    (%rdi),%esi
+  11f5b0:	ff c6                	inc    %esi
+  11f5b2:	89 37                	mov    %esi,(%rdi)
+  11f5b4:	48 8b b9 c0 c5 00 00 	mov    0xc5c0(%rcx),%rdi
+  11f5bb:	48 8d b1 c0 c5 00 00 	lea    0xc5c0(%rcx),%rsi
+  11f5c2:	48 85 ff             	test   %rdi,%rdi
+  11f5c5:	0f 84 f6 1f f0 ff    	je     215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11f5cb:	48 ff cf             	dec    %rdi
+  11f5ce:	48 89 b9 c0 c5 00 00 	mov    %rdi,0xc5c0(%rcx)
+  11f5d5:	75 10                	jne    11f5e7 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4b7>
+  11f5d7:	48 8b b9 d0 c5 00 00 	mov    0xc5d0(%rcx),%rdi
+  11f5de:	48 85 ff             	test   %rdi,%rdi
+  11f5e1:	0f 84 30 03 00 00    	je     11f917 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x7e7>
+  11f5e7:	8b 81 84 05 00 00    	mov    0x584(%rcx),%eax
+  11f5ed:	85 c0                	test   %eax,%eax
+  11f5ef:	0f 84 88 03 00 00    	je     11f97d <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x84d>
+  11f5f5:	ff c8                	dec    %eax
+  11f5f7:	89 81 84 05 00 00    	mov    %eax,0x584(%rcx)
+  11f5fd:	75 21                	jne    11f620 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4f0>
+  11f5ff:	48 8b 81 d0 c5 00 00 	mov    0xc5d0(%rcx),%rax
+  11f606:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  11f60a:	74 14                	je     11f620 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4f0>
+  11f60c:	f0 48 0f ba b1 48 05 	lock btrq $0x1,0x548(%rcx)
+  11f613:	00 00 01 
+  11f616:	0f 83 a5 1f f0 ff    	jae    215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11f61c:	0f 1f 40 00          	nopl   0x0(%rax)
+  11f620:	48 8b 45 90          	mov    -0x70(%rbp),%rax
+  11f624:	41 ff c7             	inc    %r15d
+  11f627:	44 3b 78 08          	cmp    0x8(%rax),%r15d
+  11f62b:	0f 82 9f fb ff ff    	jb     11f1d0 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0xa0>
+  11f631:	c5 fa 7e 8d 48 ff ff 	vmovq  -0xb8(%rbp),%xmm1
+  11f638:	ff 
+  11f639:	c4 e3 f1 22 85 40 ff 	vpinsrq $0x1,-0xc0(%rbp),%xmm1,%xmm0
+  11f640:	ff ff 01 
+  11f643:	31 c0                	xor    %eax,%eax
+  11f645:	c4 c1 7a 7f 84 24 a0 	vmovdqu %xmm0,0xa0(%r12)
+  11f64c:	00 00 00 
+  11f64f:	48 8b 55 c8          	mov    -0x38(%rbp),%rdx
+  11f653:	64 48 2b 14 25 28 00 	sub    %fs:0x28,%rdx
+  11f65a:	00 00 
+  11f65c:	0f 85 44 05 00 00    	jne    11fba6 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0xa76>
+  11f662:	48 8d 65 d8          	lea    -0x28(%rbp),%rsp
+  11f666:	5b                   	pop    %rbx
+  11f667:	41 5c                	pop    %r12
+  11f669:	41 5d                	pop    %r13
+  11f66b:	41 5e                	pop    %r14
+  11f66d:	41 5f                	pop    %r15
+  11f66f:	5d                   	pop    %rbp
+  11f670:	c3                   	ret
+  11f671:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  11f678:	00 00 00 00 
+  11f67c:	0f 1f 40 00          	nopl   0x0(%rax)
+  11f680:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  11f684:	4c 8b 03             	mov    (%rbx),%r8
+  11f687:	8b 53 08             	mov    0x8(%rbx),%edx
+  11f68a:	4c 8b 48 70          	mov    0x70(%rax),%r9
+  11f68e:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  11f692:	48 8b 80 c0 00 00 00 	mov    0xc0(%rax),%rax
+  11f699:	48 85 c0             	test   %rax,%rax
+  11f69c:	0f 84 de 01 00 00    	je     11f880 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x750>
+  11f6a2:	48 c1 e2 04          	shl    $0x4,%rdx
+  11f6a6:	48 01 d0             	add    %rdx,%rax
+  11f6a9:	4c 8b 75 a0          	mov    -0x60(%rbp),%r14
+  11f6ad:	48 8b 10             	mov    (%rax),%rdx
+  11f6b0:	48 b9 00 00 00 00 ff 	movabs $0xffffffff00000000,%rcx
+  11f6b7:	ff ff ff 
+  11f6ba:	8b 40 08             	mov    0x8(%rax),%eax
+  11f6bd:	48 23 8d 68 ff ff ff 	and    -0x98(%rbp),%rcx
+  11f6c4:	4c 89 e6             	mov    %r12,%rsi
+  11f6c7:	49 8b 7e 78          	mov    0x78(%r14),%rdi
+  11f6cb:	48 09 c1             	or     %rax,%rcx
+  11f6ce:	48 89 8d 68 ff ff ff 	mov    %rcx,-0x98(%rbp)
+  11f6d5:	e8 b6 e3 ff ff       	call   11da90 <_ZN8tomo_db012_GLOBAL__N_119begin_plain_versionERNS_6ServerERNS_5ShardENS_5SliceEmmm.constprop.0>
+  11f6da:	84 c0                	test   %al,%al
+  11f6dc:	0f 84 fe 00 00 00    	je     11f7e0 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x6b0>
+  11f6e2:	49 8b 96 48 02 00 00 	mov    0x248(%r14),%rdx
+  11f6e9:	48 8b 5d 88          	mov    -0x78(%rbp),%rbx
+  11f6ed:	88 04 1a             	mov    %al,(%rdx,%rbx,1)
+  11f6f0:	45 85 ed             	test   %r13d,%r13d
+  11f6f3:	0f 85 d8 fd ff ff    	jne    11f4d1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x3a1>
+  11f6f9:	b8 02 00 00 00       	mov    $0x2,%eax
+  11f6fe:	e9 c7 fd ff ff       	jmp    11f4ca <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x39a>
+  11f703:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  11f70a:	00 00 00 00 
+  11f70e:	66 90                	xchg   %ax,%ax
+  11f710:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  11f714:	0f b6 40 1e          	movzbl 0x1e(%rax),%eax
+  11f718:	3c 01                	cmp    $0x1,%al
+  11f71a:	0f 84 e6 fa ff ff    	je     11f206 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0xd6>
+  11f720:	48 8b 45 90          	mov    -0x70(%rbp),%rax
+  11f724:	41 ff c7             	inc    %r15d
+  11f727:	44 3b 78 08          	cmp    0x8(%rax),%r15d
+  11f72b:	0f 82 9f fa ff ff    	jb     11f1d0 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0xa0>
+  11f731:	e9 fb fe ff ff       	jmp    11f631 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x501>
+  11f736:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+  11f73d:	00 00 00 
+  11f740:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  11f744:	48 83 c2 0d          	add    $0xd,%rdx
+  11f748:	48 c1 e2 04          	shl    $0x4,%rdx
+  11f74c:	48 01 d0             	add    %rdx,%rax
+  11f74f:	e9 b6 fb ff ff       	jmp    11f30a <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x1da>
+  11f754:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  11f75b:	00 00 00 00 
+  11f75f:	90                   	nop
+  11f760:	45 85 ed             	test   %r13d,%r13d
+  11f763:	0f 85 2b 01 00 00    	jne    11f894 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x764>
+  11f769:	48 85 ff             	test   %rdi,%rdi
+  11f76c:	0f 84 56 02 00 00    	je     11f9c8 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x898>
+  11f772:	4c 8b 47 30          	mov    0x30(%rdi),%r8
+  11f776:	8b 4f 38             	mov    0x38(%rdi),%ecx
+  11f779:	48 c1 e0 04          	shl    $0x4,%rax
+  11f77d:	48 01 f8             	add    %rdi,%rax
+  11f780:	48 8b bd 38 ff ff ff 	mov    -0xc8(%rbp),%rdi
+  11f787:	48 ba 00 00 00 00 ff 	movabs $0xffffffff00000000,%rdx
+  11f78e:	ff ff ff 
+  11f791:	48 21 d7             	and    %rdx,%rdi
+  11f794:	48 23 95 30 ff ff ff 	and    -0xd0(%rbp),%rdx
+  11f79b:	48 09 cf             	or     %rcx,%rdi
+  11f79e:	48 89 f1             	mov    %rsi,%rcx
+  11f7a1:	49 89 f9             	mov    %rdi,%r9
+  11f7a4:	48 89 bd 38 ff ff ff 	mov    %rdi,-0xc8(%rbp)
+  11f7ab:	48 8b 38             	mov    (%rax),%rdi
+  11f7ae:	8b 40 08             	mov    0x8(%rax),%eax
+  11f7b1:	48 89 fe             	mov    %rdi,%rsi
+  11f7b4:	48 09 c2             	or     %rax,%rdx
+  11f7b7:	4c 89 e7             	mov    %r12,%rdi
+  11f7ba:	48 89 95 30 ff ff ff 	mov    %rdx,-0xd0(%rbp)
+  11f7c1:	e8 da e5 0d 00       	call   1fdda0 <_ZN8tomo_db025xshard_remove_set_elementERNS_5ShardENS_5SliceEmS2_>
+  11f7c6:	48 8b 5d a0          	mov    -0x60(%rbp),%rbx
+  11f7ca:	31 d2                	xor    %edx,%edx
+  11f7cc:	84 c0                	test   %al,%al
+  11f7ce:	0f 94 c2             	sete   %dl
+  11f7d1:	48 89 93 28 01 00 00 	mov    %rdx,0x128(%rbx)
+  11f7d8:	e9 95 fc ff ff       	jmp    11f472 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x342>
+  11f7dd:	0f 1f 00             	nopl   (%rax)
+  11f7e0:	41 be 01 00 00 00    	mov    $0x1,%r14d
+  11f7e6:	e9 6f fb ff ff       	jmp    11f35a <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x22a>
+  11f7eb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+  11f7f0:	48 8b 55 80          	mov    -0x80(%rbp),%rdx
+  11f7f4:	31 db                	xor    %ebx,%ebx
+  11f7f6:	49 ba 00 00 00 00 ff 	movabs $0xffffffff00000000,%r10
+  11f7fd:	ff ff ff 
+  11f800:	44 8b 42 08          	mov    0x8(%rdx),%r8d
+  11f804:	48 8b 0a             	mov    (%rdx),%rcx
+  11f807:	48 89 da             	mov    %rbx,%rdx
+  11f80a:	4c 21 d2             	and    %r10,%rdx
+  11f80d:	4c 09 c2             	or     %r8,%rdx
+  11f810:	48 89 d3             	mov    %rdx,%rbx
+  11f813:	48 8b 55 a0          	mov    -0x60(%rbp),%rdx
+  11f817:	44 0f b6 42 4c       	movzbl 0x4c(%rdx),%r8d
+  11f81c:	48 85 ff             	test   %rdi,%rdi
+  11f81f:	0f 84 8f 01 00 00    	je     11f9b4 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x884>
+  11f825:	48 c1 e0 04          	shl    $0x4,%rax
+  11f829:	48 01 f8             	add    %rdi,%rax
+  11f82c:	48 8b 10             	mov    (%rax),%rdx
+  11f82f:	48 bf 00 00 00 00 ff 	movabs $0xffffffff00000000,%rdi
+  11f836:	ff ff ff 
+  11f839:	8b 40 08             	mov    0x8(%rax),%eax
+  11f83c:	48 23 bd 50 ff ff ff 	and    -0xb0(%rbp),%rdi
+  11f843:	48 09 c7             	or     %rax,%rdi
+  11f846:	48 89 bd 50 ff ff ff 	mov    %rdi,-0xb0(%rbp)
+  11f84d:	53                   	push   %rbx
+  11f84e:	51                   	push   %rcx
+  11f84f:	48 89 f1             	mov    %rsi,%rcx
+  11f852:	48 89 d6             	mov    %rdx,%rsi
+  11f855:	48 89 fa             	mov    %rdi,%rdx
+  11f858:	4c 89 e7             	mov    %r12,%rdi
+  11f85b:	e8 f0 08 0d 00       	call   1f0150 <_ZN8tomo_db024xshard_push_list_elementERNS_5ShardENS_5SliceEmbS2_>
+  11f860:	e9 0b fc ff ff       	jmp    11f470 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x340>
+  11f865:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  11f86c:	00 00 00 00 
+  11f870:	49 c7 00 00 00 00 00 	movq   $0x0,(%r8)
+  11f877:	e9 23 fd ff ff       	jmp    11f59f <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x46f>
+  11f87c:	0f 1f 40 00          	nopl   0x0(%rax)
+  11f880:	48 8b 45 98          	mov    -0x68(%rbp),%rax
+  11f884:	48 83 c2 0d          	add    $0xd,%rdx
+  11f888:	48 c1 e2 04          	shl    $0x4,%rdx
+  11f88c:	48 01 d0             	add    %rdx,%rax
+  11f88f:	e9 15 fe ff ff       	jmp    11f6a9 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x579>
+  11f894:	48 85 ff             	test   %rdi,%rdi
+  11f897:	0f 84 4c 01 00 00    	je     11f9e9 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x8b9>
+  11f89d:	4c 8b 47 30          	mov    0x30(%rdi),%r8
+  11f8a1:	8b 4f 38             	mov    0x38(%rdi),%ecx
+  11f8a4:	48 c1 e0 04          	shl    $0x4,%rax
+  11f8a8:	48 01 f8             	add    %rdi,%rax
+  11f8ab:	48 8b bd 28 ff ff ff 	mov    -0xd8(%rbp),%rdi
+  11f8b2:	48 ba 00 00 00 00 ff 	movabs $0xffffffff00000000,%rdx
+  11f8b9:	ff ff ff 
+  11f8bc:	48 21 d7             	and    %rdx,%rdi
+  11f8bf:	48 23 95 20 ff ff ff 	and    -0xe0(%rbp),%rdx
+  11f8c6:	48 09 cf             	or     %rcx,%rdi
+  11f8c9:	48 89 f1             	mov    %rsi,%rcx
+  11f8cc:	49 89 f9             	mov    %rdi,%r9
+  11f8cf:	48 89 bd 28 ff ff ff 	mov    %rdi,-0xd8(%rbp)
+  11f8d6:	48 8b 38             	mov    (%rax),%rdi
+  11f8d9:	8b 40 08             	mov    0x8(%rax),%eax
+  11f8dc:	48 89 fe             	mov    %rdi,%rsi
+  11f8df:	48 09 c2             	or     %rax,%rdx
+  11f8e2:	4c 89 e7             	mov    %r12,%rdi
+  11f8e5:	48 89 95 20 ff ff ff 	mov    %rdx,-0xe0(%rbp)
+  11f8ec:	e8 1f 50 0e 00       	call   204910 <_ZN8tomo_db025xshard_insert_set_elementERNS_5ShardENS_5SliceEmS2_>
+  11f8f1:	e9 7c fb ff ff       	jmp    11f472 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x342>
+  11f8f6:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  11f8fa:	48 8b 40 70          	mov    0x70(%rax),%rax
+  11f8fe:	49 c7 84 24 a0 00 00 	movq   $0xffffffffffffffff,0xa0(%r12)
+  11f905:	00 ff ff ff ff 
+  11f90a:	49 89 84 24 a8 00 00 	mov    %rax,0xa8(%r12)
+  11f911:	00 
+  11f912:	e9 9e f8 ff ff       	jmp    11f1b5 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x85>
+  11f917:	48 8b b9 c8 c5 00 00 	mov    0xc5c8(%rcx),%rdi
+  11f91e:	48 85 ff             	test   %rdi,%rdi
+  11f921:	0f 84 c0 fc ff ff    	je     11f5e7 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4b7>
+  11f927:	48 8b 5d a0          	mov    -0x60(%rbp),%rbx
+  11f92b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+  11f930:	48 83 c2 08          	add    $0x8,%rdx
+  11f934:	48 c7 42 f8 00 00 00 	movq   $0x0,-0x8(%rdx)
+  11f93b:	00 
+  11f93c:	48 39 d0             	cmp    %rdx,%rax
+  11f93f:	75 ef                	jne    11f930 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x800>
+  11f941:	48 89 5d a0          	mov    %rbx,-0x60(%rbp)
+  11f945:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  11f94c:	00 00 00 00 
+  11f950:	8b 10                	mov    (%rax),%edx
+  11f952:	48 83 c0 04          	add    $0x4,%rax
+  11f956:	ff c2                	inc    %edx
+  11f958:	89 50 fc             	mov    %edx,-0x4(%rax)
+  11f95b:	48 39 f0             	cmp    %rsi,%rax
+  11f95e:	75 f0                	jne    11f950 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x820>
+  11f960:	48 89 5d a0          	mov    %rbx,-0x60(%rbp)
+  11f964:	48 c7 81 c8 c5 00 00 	movq   $0x0,0xc5c8(%rcx)
+  11f96b:	00 00 00 00 
+  11f96f:	8b 81 84 05 00 00    	mov    0x584(%rcx),%eax
+  11f975:	85 c0                	test   %eax,%eax
+  11f977:	0f 85 78 fc ff ff    	jne    11f5f5 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4c5>
+  11f97d:	48 8b 81 d0 c5 00 00 	mov    0xc5d0(%rcx),%rax
+  11f984:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  11f988:	0f 84 92 fc ff ff    	je     11f620 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4f0>
+  11f98e:	e9 2e 1c f0 ff       	jmp    215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11f993:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+  11f99a:	00 00 00 00 
+  11f99e:	66 90                	xchg   %ax,%ax
+  11f9a0:	48 8b 7d 98          	mov    -0x68(%rbp),%rdi
+  11f9a4:	48 83 c0 0d          	add    $0xd,%rax
+  11f9a8:	48 c1 e0 04          	shl    $0x4,%rax
+  11f9ac:	48 01 f8             	add    %rdi,%rax
+  11f9af:	e9 f7 f9 ff ff       	jmp    11f3ab <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x27b>
+  11f9b4:	48 8b 7d 98          	mov    -0x68(%rbp),%rdi
+  11f9b8:	48 83 c0 0d          	add    $0xd,%rax
+  11f9bc:	48 c1 e0 04          	shl    $0x4,%rax
+  11f9c0:	48 01 f8             	add    %rdi,%rax
+  11f9c3:	e9 64 fe ff ff       	jmp    11f82c <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x6fc>
+  11f9c8:	48 8b 5d 98          	mov    -0x68(%rbp),%rbx
+  11f9cc:	48 83 c0 0d          	add    $0xd,%rax
+  11f9d0:	48 c1 e0 04          	shl    $0x4,%rax
+  11f9d4:	4c 8b 83 00 01 00 00 	mov    0x100(%rbx),%r8
+  11f9db:	8b 8b 08 01 00 00    	mov    0x108(%rbx),%ecx
+  11f9e1:	48 01 d8             	add    %rbx,%rax
+  11f9e4:	e9 97 fd ff ff       	jmp    11f780 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x650>
+  11f9e9:	48 8b 5d 98          	mov    -0x68(%rbp),%rbx
+  11f9ed:	48 83 c0 0d          	add    $0xd,%rax
+  11f9f1:	48 c1 e0 04          	shl    $0x4,%rax
+  11f9f5:	4c 8b 83 00 01 00 00 	mov    0x100(%rbx),%r8
+  11f9fc:	8b 8b 08 01 00 00    	mov    0x108(%rbx),%ecx
+  11fa02:	48 01 d8             	add    %rbx,%rax
+  11fa05:	e9 a1 fe ff ff       	jmp    11f8ab <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x77b>
+  11fa0a:	48 8b 5d 98          	mov    -0x68(%rbp),%rbx
+  11fa0e:	48 83 c0 0d          	add    $0xd,%rax
+  11fa12:	48 c1 e0 04          	shl    $0x4,%rax
+  11fa16:	48 01 d8             	add    %rbx,%rax
+  11fa19:	e9 20 fa ff ff       	jmp    11f43e <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x30e>
+  11fa1e:	48 8b 45 a0          	mov    -0x60(%rbp),%rax
+  11fa22:	0f b6 40 1e          	movzbl 0x1e(%rax),%eax
+  11fa26:	84 c0                	test   %al,%al
+  11fa28:	0f 85 4f f7 ff ff    	jne    11f17d <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x4d>
+  11fa2e:	b8 02 00 00 00       	mov    $0x2,%eax
+  11fa33:	e9 17 fc ff ff       	jmp    11f64f <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x51f>
+  11fa38:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+  11fa3f:	00 
+  11fa40:	49 c7 86 d0 c5 00 00 	movq   $0xffffffffffffffff,0xc5d0(%r14)
+  11fa47:	ff ff ff ff 
+  11fa4b:	49 c7 86 c0 c5 00 00 	movq   $0xffffffffffffffff,0xc5c0(%r14)
+  11fa52:	ff ff ff ff 
+  11fa56:	4c 8b 5d a0          	mov    -0x60(%rbp),%r11
+  11fa5a:	49 8d b6 c0 85 00 00 	lea    0x85c0(%r14),%rsi
+  11fa61:	48 89 f8             	mov    %rdi,%rax
+  11fa64:	48 ba ff ff ff ff 00 	movabs $0x80000000ffffffff,%rdx
+  11fa6b:	00 00 80 
+  11fa6e:	66 90                	xchg   %ax,%ax
+  11fa70:	48 83 c0 08          	add    $0x8,%rax
+  11fa74:	48 89 50 f8          	mov    %rdx,-0x8(%rax)
+  11fa78:	48 39 f0             	cmp    %rsi,%rax
+  11fa7b:	75 f3                	jne    11fa70 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x940>
+  11fa7d:	4c 89 de             	mov    %r11,%rsi
+  11fa80:	8b 10                	mov    (%rax),%edx
+  11fa82:	48 83 c0 04          	add    $0x4,%rax
+  11fa86:	ff c2                	inc    %edx
+  11fa88:	89 50 fc             	mov    %edx,-0x4(%rax)
+  11fa8b:	48 39 c8             	cmp    %rcx,%rax
+  11fa8e:	75 f0                	jne    11fa80 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x950>
+  11fa90:	48 89 75 a0          	mov    %rsi,-0x60(%rbp)
+  11fa94:	49 c7 86 c8 c5 00 00 	movq   $0x1000,0xc5c8(%r14)
+  11fa9b:	00 10 00 00 
+  11fa9f:	41 8b 86 84 05 00 00 	mov    0x584(%r14),%eax
+  11faa6:	83 f8 ff             	cmp    $0xffffffff,%eax
+  11faa9:	0f 85 f7 f7 ff ff    	jne    11f2a6 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x176>
+  11faaf:	e8 cc 68 03 00       	call   156380 <_ZN8tomo_db017ForeignReadSafety18poison_permanentlyEv>
+  11fab4:	f0 49 83 8e 48 05 00 	lock orq $0x2,0x548(%r14)
+  11fabb:	00 02 
+  11fabd:	e9 02 f8 ff ff       	jmp    11f2c4 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x194>
+  11fac2:	49 8b 86 d0 c5 00 00 	mov    0xc5d0(%r14),%rax
+  11fac9:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+  11facd:	0f 84 f1 f7 ff ff    	je     11f2c4 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x194>
+  11fad3:	e9 e9 1a f0 ff       	jmp    215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11fad8:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+  11fadf:	00 
+  11fae0:	4d 85 f6             	test   %r14,%r14
+  11fae3:	0f 84 d8 1a f0 ff    	je     215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11fae9:	41 80 be 24 05 00 00 	cmpb   $0x0,0x524(%r14)
+  11faf0:	00 
+  11faf1:	0f 84 ca 1a f0 ff    	je     215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11faf7:	41 8b 86 80 05 00 00 	mov    0x580(%r14),%eax
+  11fafe:	85 c0                	test   %eax,%eax
+  11fb00:	0f 84 bb 1a f0 ff    	je     215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11fb06:	ff c8                	dec    %eax
+  11fb08:	41 89 86 80 05 00 00 	mov    %eax,0x580(%r14)
+  11fb0f:	0f 85 c6 f7 ff ff    	jne    11f2db <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x1ab>
+  11fb15:	49 8b 86 48 05 00 00 	mov    0x548(%r14),%rax
+  11fb1c:	a8 01                	test   $0x1,%al
+  11fb1e:	0f 84 9d 1a f0 ff    	je     215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11fb24:	48 89 c1             	mov    %rax,%rcx
+  11fb27:	48 be ff ff ff ff ff 	movabs $0x3fffffffffffffff,%rsi
+  11fb2e:	ff ff 3f 
+  11fb31:	48 c1 e9 02          	shr    $0x2,%rcx
+  11fb35:	48 39 f1             	cmp    %rsi,%rcx
+  11fb38:	48 8d 14 8d 04 00 00 	lea    0x4(,%rcx,4),%rdx
+  11fb3f:	00 
+  11fb40:	48 c7 c1 fc ff ff ff 	mov    $0xfffffffffffffffc,%rcx
+  11fb47:	48 0f 44 d1          	cmove  %rcx,%rdx
+  11fb4b:	83 e0 02             	and    $0x2,%eax
+  11fb4e:	48 09 d0             	or     %rdx,%rax
+  11fb51:	49 89 86 48 05 00 00 	mov    %rax,0x548(%r14)
+  11fb58:	48 8b 33             	mov    (%rbx),%rsi
+  11fb5b:	4d 8b b4 24 00 01 00 	mov    0x100(%r12),%r14
+  11fb62:	00 
+  11fb63:	e9 84 f7 ff ff       	jmp    11f2ec <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x1bc>
+  11fb68:	49 8b 86 48 05 00 00 	mov    0x548(%r14),%rax
+  11fb6f:	a8 01                	test   $0x1,%al
+  11fb71:	0f 85 4a 1a f0 ff    	jne    215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11fb77:	48 83 c8 01          	or     $0x1,%rax
+  11fb7b:	49 89 86 48 05 00 00 	mov    %rax,0x548(%r14)
+  11fb82:	4d 8b b4 24 00 01 00 	mov    0x100(%r12),%r14
+  11fb89:	00 
+  11fb8a:	4d 85 f6             	test   %r14,%r14
+  11fb8d:	0f 84 2e 1a f0 ff    	je     215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11fb93:	41 80 be 24 05 00 00 	cmpb   $0x0,0x524(%r14)
+  11fb9a:	00 
+  11fb9b:	0f 85 bf f6 ff ff    	jne    11f260 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x130>
+  11fba1:	e9 1b 1a f0 ff       	jmp    215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11fba6:	e8 05 cc ef ff       	call   1c7b0 <__stack_chk_fail@plt>
+  11fbab:	e9 11 1a f0 ff       	jmp    215c1 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold>
+  11fbb0:	f3 0f 1e fa          	endbr64
+  11fbb4:	48 89 c3             	mov    %rax,%rbx
+  11fbb7:	e9 0a 1a f0 ff       	jmp    215c6 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0.cold+0x5>
+
+Disassembly of section .rlfence:
+
+Disassembly of section .fini:

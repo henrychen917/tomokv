@@ -1,0 +1,442 @@
+[
+  {
+    "mode": "2s",
+    "databases": 1,
+    "engine": "uring",
+    "case": "T05",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "T05"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "2s",
+    "databases": 1,
+    "engine": "uring",
+    "case": "G5",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "G5"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "2s",
+    "databases": 1,
+    "engine": "uring",
+    "case": "families",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/txn_movers.py",
+      "127.0.0.1",
+      "23800"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "2s",
+    "databases": 1,
+    "engine": "epoll",
+    "case": "T05",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "T05"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "2s",
+    "databases": 1,
+    "engine": "epoll",
+    "case": "G5",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "G5"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "2s",
+    "databases": 1,
+    "engine": "epoll",
+    "case": "families",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/txn_movers.py",
+      "127.0.0.1",
+      "23800"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "2s",
+    "databases": 16,
+    "engine": "uring",
+    "case": "T05",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "T05"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "2s",
+    "databases": 16,
+    "engine": "uring",
+    "case": "G5",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "G5"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "2s",
+    "databases": 16,
+    "engine": "uring",
+    "case": "families",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/txn_movers.py",
+      "127.0.0.1",
+      "23800"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "2s",
+    "databases": 16,
+    "engine": "epoll",
+    "case": "T05",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "T05"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "2s",
+    "databases": 16,
+    "engine": "epoll",
+    "case": "G5",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "G5"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "2s",
+    "databases": 16,
+    "engine": "epoll",
+    "case": "families",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/txn_movers.py",
+      "127.0.0.1",
+      "23800"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 1,
+    "engine": "uring",
+    "case": "T05",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "T05"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 1,
+    "engine": "uring",
+    "case": "G5",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "G5"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 1,
+    "engine": "uring",
+    "case": "families",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/txn_movers.py",
+      "127.0.0.1",
+      "23800"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 1,
+    "engine": "epoll",
+    "case": "T05",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "T05"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 1,
+    "engine": "epoll",
+    "case": "G5",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "G5"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 1,
+    "engine": "epoll",
+    "case": "families",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/txn_movers.py",
+      "127.0.0.1",
+      "23800"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 16,
+    "engine": "uring",
+    "case": "T05",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "T05"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 16,
+    "engine": "uring",
+    "case": "G5",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "G5"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 16,
+    "engine": "uring",
+    "case": "families",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/txn_movers.py",
+      "127.0.0.1",
+      "23800"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 16,
+    "engine": "epoll",
+    "case": "T05",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "T05"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 16,
+    "engine": "epoll",
+    "case": "G5",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/moverfix.py",
+      "127.0.0.1",
+      "23800",
+      "--only",
+      "G5"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "mode": "1s",
+    "databases": 16,
+    "engine": "epoll",
+    "case": "families",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/txn_movers.py",
+      "127.0.0.1",
+      "23800"
+    ],
+    "rc": 0,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  }
+]

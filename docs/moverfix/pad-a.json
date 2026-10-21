@@ -1,0 +1,135 @@
+{
+  "kind": "A: behaviour twin",
+  "post_sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500",
+  "pad_sha256": "0aee19e6f8d3ae04ab509dc50f23e1fdc344d593c541cbe5c30792fcb2e64d25",
+  "all_section_headers_equal": true,
+  "all_symbol_addresses_and_sizes_equal": true,
+  "patches": [
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 71,
+      "file_offset": 1175927,
+      "before": "0f84a1080000",
+      "after": "909090909090",
+      "decoded": "je     11fa1e <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x8ee>",
+      "reason": "destination may execute before source"
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 127,
+      "file_offset": 1175983,
+      "before": "0f8441070000",
+      "after": "909090909090",
+      "decoded": "je     11f8f6 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x7c6>",
+      "reason": "retain PRE probe read context"
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 208,
+      "file_offset": 1176064,
+      "before": "0f840a050000",
+      "after": "909090909090",
+      "decoded": "je     11f710 <_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x5e0>",
+      "reason": "destination ignores source claim status"
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 693,
+      "file_offset": 1176549,
+      "before": "e876980c00",
+      "after": "31c0909090",
+      "decoded": "call   1e8c60 <_ZN8tomo_db016xshard_peek_listEPNS_5KvObjEbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE>",
+      "reason": "remove phase-one guess; do not refresh it"
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 926,
+      "file_offset": 1176782,
+      "before": "88431e",
+      "after": "909090",
+      "decoded": "mov    %al,0x1e(%rbx)",
+      "reason": "leave direct_ready zero so PRE still returns its phase-one guess on a miss"
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 1697,
+      "file_offset": 1177553,
+      "before": "48899328010000",
+      "after": "90909090909090",
+      "decoded": "mov    %rdx,0x128(%rbx)",
+      "reason": "retain phase-one SMOVE success instead of actual-removal success"
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 71,
+      "file_offset": 4890391,
+      "before": "0f84d3070000",
+      "after": "909090909090",
+      "decoded": "je     4aa6f0 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x820>",
+      "reason": "destination may execute before source"
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 127,
+      "file_offset": 4890447,
+      "before": "0f8471060000",
+      "after": "909090909090",
+      "decoded": "je     4aa5c6 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x6f6>",
+      "reason": "retain PRE probe read context"
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 208,
+      "file_offset": 4890528,
+      "before": "0f84ba040000",
+      "after": "909090909090",
+      "decoded": "je     4aa460 <_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x590>",
+      "reason": "destination ignores source claim status"
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 676,
+      "file_offset": 4890996,
+      "before": "e8f70a0c00",
+      "after": "31c0909090",
+      "decoded": "call   56ac70 <_ZN4tomo16xshard_peek_listEPNS_5KvObjEbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE>",
+      "reason": "remove phase-one guess; do not refresh it"
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 874,
+      "file_offset": 4891194,
+      "before": "88431e",
+      "after": "909090",
+      "decoded": "mov    %al,0x1e(%rbx)",
+      "reason": "leave direct_ready zero so PRE still returns its phase-one guess on a miss"
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_127execute_plain_element_moverERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 1569,
+      "file_offset": 4891889,
+      "before": "48899328010000",
+      "after": "90909090909090",
+      "decoded": "mov    %rdx,0x128(%rbx)",
+      "reason": "retain phase-one SMOVE success instead of actual-removal success"
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116execute_live_popERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 73,
+      "file_offset": 1170969,
+      "before": "7516",
+      "after": "eb16",
+      "decoded": "jne    11de31 <_ZN8tomo_db012_GLOBAL__N_116execute_live_popERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x61>",
+      "reason": "skip live read-context binding; retain PRE pop context"
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_116execute_live_popERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0",
+      "offset": 73,
+      "file_offset": 4888505,
+      "before": "7516",
+      "after": "eb16",
+      "decoded": "jne    4a97d1 <_ZN4tomo12_GLOBAL__N_116execute_live_popERKNS_4TaskERNS_5ShardERNS_2OpE.isra.0+0x61>",
+      "reason": "skip live read-context binding; retain PRE pop context"
+    }
+  ]
+}

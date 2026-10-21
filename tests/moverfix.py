@@ -116,17 +116,17 @@ def t05(b, kind="rpoplpush", N=2000, W=4):
     c = b.admin
     src, dst = b.pair()
     which, atomic, mode = "tomo", "0", _lib.thread_mode(c)
-    c.must("DEL", src, dst)
+    c.cmd("DEL", src, dst)
     for i in range(0, N, 500):
         batch = ["e%d" % j for j in range(i, min(N, i + 500))]
-        c.must("SADD" if kind == "smove" else "RPUSH", src, *batch)
+        c.cmd("SADD" if kind == "smove" else "RPUSH", src, *batch)
     acked = [0]; errs = []; popped = []
     lock = threading.Lock()
     def mover(lo, hi):
         x = b.conn(timeout=60)
         n = 0
         for j in range(lo, hi):
-            r = x.must("SMOVE", src, dst, "e%d" % j) if kind == "smove" else x.must("RPOPLPUSH", src, dst)
+            r = x.cmd("SMOVE", src, dst, "e%d" % j) if kind == "smove" else x.cmd("RPOPLPUSH", src, dst)
             if (kind == "smove" and r == 1) or (kind != "smove" and isinstance(r, bytes)): n += 1
             elif isinstance(r, _lib.RespError): errs.append(r)
             if kind != "smove" and isinstance(r, bytes): popped.append(r)
@@ -138,9 +138,9 @@ def t05(b, kind="rpoplpush", N=2000, W=4):
     for t in ts: t.start()
     for t in ts: t.join()
     if kind == "smove":
-        a, b = c.must("SCARD", src), c.must("SCARD", dst)
+        a, b = c.cmd("SCARD", src), c.cmd("SCARD", dst)
     else:
-        a, b = c.must("LLEN", src), c.must("LLEN", dst)
+        a, b = c.cmd("LLEN", src), c.cmd("LLEN", dst)
     print("%s atomic=%s mode=%s %s N=%d W=%d: acked=%d  src=%d dst=%d  src+dst=%d (must be %d)  dst-vs-acked=%d  errors=%d %.1fs"
           % (which, atomic, mode, kind, N, W, acked[0], a, b, a + b, N, b - acked[0], len(errs), time.time() - t0))
     assert not errs and a + b == N and b == acked[0], "members lost or duplicated"

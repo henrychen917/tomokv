@@ -1,0 +1,26 @@
+[
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "rc": 1,
+    "sha256": "7cc73003cf0e25aceb27016b24f66a1e877143a4416cd54470dd60a23c16f72a"
+  },
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "rc": 1,
+    "sha256": "7cc73003cf0e25aceb27016b24f66a1e877143a4416cd54470dd60a23c16f72a"
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "rc": 1,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "rc": 1,
+    "sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500"
+  }
+]
