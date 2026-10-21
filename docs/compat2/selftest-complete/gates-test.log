@@ -17,4 +17,8 @@ test_reload_crashes_show_status_and_tail_even_when_exit_is_delayed (persistfix.s
 Ran 14 tests in 0.114s
 
 OK
-...........
+.....................................
+----------------------------------------------------------------------
+Ran 66 tests in 319.542s
+
+OK

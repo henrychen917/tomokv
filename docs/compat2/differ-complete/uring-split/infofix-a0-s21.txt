@@ -1,0 +1,13 @@
+  versionstr target HELLO 2 / INFO redis_version=7.4.10
+  versionstr target RESP2 LOLWUT footer=TomoKV ver. 1.0-cpp
+  versionstr oracle HELLO 2 / INFO redis_version=7.4.10
+  versionstr oracle RESP2 LOLWUT footer=Redis ver. 7.4.10
+  versionstr target HELLO 3 / INFO redis_version=7.4.10
+  versionstr target RESP3 LOLWUT footer=TomoKV ver. 1.0-cpp
+  versionstr oracle HELLO 3 / INFO redis_version=7.4.10
+  versionstr oracle RESP3 LOLWUT footer=Redis ver. 7.4.10
+  infofields offered=2006.0/s polls=[[1998, 1992], [1998, 1992]]
+  infofix byte controls: target+oracle exact
+  infofix peak points: {'target': (0, 0, 524332, 524332, 0, 524332), 'oracle': (1034832, 675648000, 2112456, 675648000, 1612800, 675648000)}
+  infofix sampled rates: control=0 target=625 oracle=623 reset=0
+DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS

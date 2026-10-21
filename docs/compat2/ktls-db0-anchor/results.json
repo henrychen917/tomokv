@@ -1,0 +1,140 @@
+[
+  {
+    "name": "pre-epoll",
+    "argv": [
+      "python3",
+      "tests/ktls_lifetime.py",
+      "--binary",
+      "build/compat2/ktls-db0-pre",
+      "--mode",
+      "1s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26860",
+      "--certs",
+      "build/compat2/certs",
+      "--output",
+      "docs/compat2/ktls-db0-anchor/pre-epoll"
+    ],
+    "wrapper": "#!/bin/bash\nexec /home/user/Projects/cx-compat2/build/compat2/pre-source/build/tomokv \"$@\" --databases 1 --read-local 1\n",
+    "returncode": 0
+  },
+  {
+    "name": "pre-uring",
+    "argv": [
+      "python3",
+      "tests/ktls_lifetime.py",
+      "--binary",
+      "build/compat2/ktls-db0-pre",
+      "--mode",
+      "1s",
+      "--engine",
+      "uring",
+      "--cores",
+      "64-71",
+      "--port",
+      "26860",
+      "--certs",
+      "build/compat2/certs",
+      "--output",
+      "docs/compat2/ktls-db0-anchor/pre-uring"
+    ],
+    "wrapper": "#!/bin/bash\nexec /home/user/Projects/cx-compat2/build/compat2/pre-source/build/tomokv \"$@\" --databases 1 --read-local 1\n",
+    "returncode": 0
+  },
+  {
+    "name": "post-epoll",
+    "argv": [
+      "python3",
+      "tests/ktls_lifetime.py",
+      "--binary",
+      "build/compat2/ktls-db0-post",
+      "--mode",
+      "1s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26860",
+      "--certs",
+      "build/compat2/certs",
+      "--output",
+      "docs/compat2/ktls-db0-anchor/post-epoll"
+    ],
+    "wrapper": "#!/bin/bash\nexec /home/user/Projects/cx-compat2/build/tomokv \"$@\" --databases 1 --read-local 1\n",
+    "returncode": 0
+  },
+  {
+    "name": "post-uring",
+    "argv": [
+      "python3",
+      "tests/ktls_lifetime.py",
+      "--binary",
+      "build/compat2/ktls-db0-post",
+      "--mode",
+      "1s",
+      "--engine",
+      "uring",
+      "--cores",
+      "64-71",
+      "--port",
+      "26860",
+      "--certs",
+      "build/compat2/certs",
+      "--output",
+      "docs/compat2/ktls-db0-anchor/post-uring"
+    ],
+    "wrapper": "#!/bin/bash\nexec /home/user/Projects/cx-compat2/build/tomokv \"$@\" --databases 1 --read-local 1\n",
+    "returncode": 0
+  },
+  {
+    "name": "pad-epoll",
+    "argv": [
+      "python3",
+      "tests/ktls_lifetime.py",
+      "--binary",
+      "build/compat2/ktls-db0-pad",
+      "--mode",
+      "1s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26860",
+      "--certs",
+      "build/compat2/certs",
+      "--output",
+      "docs/compat2/ktls-db0-anchor/pad-epoll"
+    ],
+    "wrapper": "#!/bin/bash\nexec /home/user/Projects/cx-compat2/build/compat2/tomokv-pad-a \"$@\" --databases 1 --read-local 1\n",
+    "returncode": 0
+  },
+  {
+    "name": "pad-uring",
+    "argv": [
+      "python3",
+      "tests/ktls_lifetime.py",
+      "--binary",
+      "build/compat2/ktls-db0-pad",
+      "--mode",
+      "1s",
+      "--engine",
+      "uring",
+      "--cores",
+      "64-71",
+      "--port",
+      "26860",
+      "--certs",
+      "build/compat2/certs",
+      "--output",
+      "docs/compat2/ktls-db0-anchor/pad-uring"
+    ],
+    "wrapper": "#!/bin/bash\nexec /home/user/Projects/cx-compat2/build/compat2/tomokv-pad-a \"$@\" --databases 1 --read-local 1\n",
+    "returncode": 0
+  }
+]

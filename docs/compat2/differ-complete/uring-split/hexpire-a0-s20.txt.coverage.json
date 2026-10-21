@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "commands": {
+    "COPY": 1,
+    "DEL": 211,
+    "EXISTS": 77,
+    "HDEL": 178,
+    "HEXISTS": 194,
+    "HEXPIRE": 2,
+    "HEXPIREAT": 517,
+    "HEXPIRETIME": 149,
+    "HGET": 193,
+    "HGETALL": 207,
+    "HINCRBY": 176,
+    "HLEN": 85,
+    "HMGET": 201,
+    "HPERSIST": 189,
+    "HPEXPIRE": 1,
+    "HPEXPIREAT": 476,
+    "HPEXPIRETIME": 152,
+    "HPTTL": 138,
+    "HSET": 547,
+    "HSETNX": 197,
+    "HSTRLEN": 180,
+    "HTTL": 145,
+    "RENAME": 1,
+    "SET": 1,
+    "TYPE": 70
+  },
+  "kinds": {
+    "COPY": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "HDEL": [
+      "reply"
+    ],
+    "HEXISTS": [
+      "reply"
+    ],
+    "HEXPIRE": [
+      "reply"
+    ],
+    "HEXPIREAT": [
+      "reply"
+    ],
+    "HEXPIRETIME": [
+      "reply"
+    ],
+    "HGET": [
+      "reply"
+    ],
+    "HGETALL": [
+      "reply"
+    ],
+    "HINCRBY": [
+      "reply"
+    ],
+    "HLEN": [
+      "reply"
+    ],
+    "HMGET": [
+      "reply"
+    ],
+    "HPERSIST": [
+      "reply"
+    ],
+    "HPEXPIRE": [
+      "reply"
+    ],
+    "HPEXPIREAT": [
+      "reply"
+    ],
+    "HPEXPIRETIME": [
+      "reply"
+    ],
+    "HPTTL": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "HSETNX": [
+      "reply"
+    ],
+    "HSTRLEN": [
+      "reply"
+    ],
+    "HTTL": [
+      "reply"
+    ],
+    "RENAME": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "path": "src/exec/op.h",
+    "line": 490,
+    "assertion": "static_assert(sizeof(Op) == 336, \"Op grew: pay for it inside the struct or re-run the 64c A/B\");"
+  },
+  {
+    "path": "src/net/conn.h",
+    "line": 932,
+    "assertion": "static_assert(sizeof(Client) == 1984, \"Client grew: re-check the io-hot line packing and idle RSS\");"
+  },
+  {
+    "path": "src/net/rob.h",
+    "line": 1111,
+    "assertion": "static_assert(sizeof(Rob<64>) == 192, \"Rob<64> layout changed\");"
+  },
+  {
+    "path": "src/store/flatstore.h",
+    "line": 3842,
+    "assertion": "static_assert(sizeof(FlatStore) == 944);"
+  },
+  {
+    "path": "src/store/atomic_mvcc.h",
+    "line": 71,
+    "assertion": "static_assert(sizeof(AtomicEntry) == 144);"
+  },
+  {
+    "path": "src/core/config.h",
+    "line": 465,
+    "assertion": "static_assert(sizeof(Config) == 624, \"Config footprint changed; update the documented accounting\");"
+  },
+  {
+    "path": "src/core/shard.h",
+    "line": 559,
+    "assertion": "static_assert(sizeof(Shard) == 1440);"
+  },
+  {
+    "path": "src/core/thread.h",
+    "line": 1200,
+    "assertion": "static_assert(sizeof(ThreadCtx) == 1408,"
+  }
+]
