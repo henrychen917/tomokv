@@ -5,6 +5,8 @@
 #undef main
 #include <array>
 #include <sys/wait.h>
+#include <map>
+#include <functional>
 
 namespace {
 struct EpisodeUnit {
@@ -14,7 +16,7 @@ struct EpisodeUnit {
     ScatterState group;
     TxnGroupAttempt attempt;
     bool is_group;
-    std::array<bool, 2> placed{};
+    std::array<bool, 2> placed{}, attempted{};
     bool done = false;
     bool validate = false;
     std::string watched;
@@ -36,6 +38,7 @@ struct EpisodeUnit {
         txn_add_claim(exec->claims[sid], slice(key), mode);
     }
     bool place(int sid) {
+        attempted[sid] = true;
         Shard::WatchReservation r{token(), &epoch(), &aborted(),
             is_group ? &group.watch_refs : &exec->watch_refs, &client, 0, false, true};
         r.unit_kind = is_group ? 2 : 1;
@@ -160,6 +163,78 @@ void cycle(Server& server, int r, const std::array<int,5>& polls) {
     if (r == 2 || r >= 5) require(schedule.order == (r == 7 ? "UVF" : "UVW"),
                                  "older unit, validator/group, then writer");
 #endif
+    std::printf("R%d owner schedule: complete=%u order=%s (bound 64 fair rounds)\n",
+                r,schedule.complete(),schedule.order.c_str());
+}
+
+// Replay every reachable owner-turn state, then reject a recurrent component
+// in which all five actors can keep polling without reaching completion. Unlike
+// repeating one permutation, this covers changing poll orders between rounds.
+void exhaustive(Server& server, int shape) {
+    using Path = std::vector<int>;
+    const auto signature = [](const EpisodeSchedule& s) {
+        std::string key;
+        for (const auto* u : {&s.u, &s.v, &s.h}) {
+            for (bool b : u->placed) key += b ? '1' : '0';
+            for (bool b : u->attempted) key += b ? '1' : '0';
+            key += u->done ? '1' : '0';
+        }
+        key += s.writer_done ? '1' : '0';
+        return key;
+    };
+    std::vector<Path> paths(1);
+    std::vector<std::array<int,5>> edges;
+    std::vector<bool> terminal;
+    std::map<std::string,int> ids;
+    { EpisodeSchedule s(server,shape); ids.emplace(signature(s),0); }
+    for (size_t node=0;node<paths.size();++node) {
+        std::array<int,5> next{}; bool complete=false;
+        for (int actor=0;actor<5;++actor) {
+            EpisodeSchedule s(server,shape);
+            for (int previous : paths[node]) s.poll(previous);
+            complete=s.complete();
+            const auto violations=server.txn_counter(TxnCounter::OrderViolations);
+            s.poll(actor);
+            require(server.txn_counter(TxnCounter::OrderViolations)==violations,
+                    "exhaustive owner step preserves invariant I");
+            const auto [it,inserted]=ids.emplace(signature(s),paths.size());
+            next[actor]=it->second;
+            if (inserted) { auto path=paths[node];path.push_back(actor);paths.push_back(std::move(path)); }
+        }
+        edges.push_back(next);terminal.push_back(complete);
+        require(paths.size()<10000,"finite owner-state exploration bound");
+    }
+    std::vector<int> index(paths.size(),-1), low(paths.size()), stack, component(paths.size(),-1);
+    std::vector<bool> onstack(paths.size()); int serial=0, components=0;
+    std::function<void(int)> visit = [&](int v) {
+        index[v]=low[v]=serial++;stack.push_back(v);onstack[v]=true;
+        for(int w:edges[v]) {
+            if(index[w]<0) { visit(w);low[v]=std::min(low[v],low[w]); }
+            else if(onstack[w]) low[v]=std::min(low[v],index[w]);
+        }
+        if(low[v]!=index[v]) return;
+        for(;;) { int w=stack.back();stack.pop_back();onstack[w]=false;component[w]=components;if(w==v)break; }
+        ++components;
+    };
+    visit(0);
+    bool fair_cycle=false;
+    for(int c=0;c<components;++c) {
+        unsigned actors=0;bool done=false;
+        for(size_t n=0;n<paths.size();++n) if(component[n]==c) {
+            done|=terminal[n];
+            for(int actor=0;actor<5;++actor) if(component[edges[n][actor]]==c) actors|=1u<<actor;
+        }
+        fair_cycle|=!done && actors==31;
+    }
+#ifdef TXN_EPISODE_PRE
+    require(fair_cycle,"PRE exhaustive search finds the cycle");
+#elif defined(TXN_EPISODE_RANK_ONLY)
+    require(fair_cycle==(shape==3||shape==4),"rank-only exhaustive cycles are R3/R4");
+#else
+    require(!fair_cycle,"no reachable fair nonterminating component");
+#endif
+    std::printf("R%d exhaustive: %zu owner states, %zu transitions, fair cycle=%u\n",
+                shape,paths.size(),paths.size()*5,fair_cycle);
 }
 
 void controls(Server& server, const std::string& name) {
@@ -172,7 +247,11 @@ void controls(Server& server, const std::string& name) {
     writer.op.hash = FlatStore::hash_key(slice(b));
     require(!multi_plain_write_ready(shard,writer.op), "blocked episode opened");
     const auto s1=shard.watch_writer_stamp(slice(b),&writer.op);
+#if defined(TXN_EPISODE_PRE) || defined(TXN_EPISODE_RANK_ONLY)
+    require(s1,"PRE blocked-key mark observed");
+#else
     require(s1 && shard.watch_writer_stamp(slice(c),&writer.op)==s1, "complete common-stamp set");
+#endif
     if (name=="R8") {
         holder.phase().store(TxnPhase::Executing);
         require(!(holder.exec->execution_noted[1]&8), "CAS before held shard started");
@@ -195,6 +274,17 @@ void controls(Server& server, const std::string& name) {
         require(multi_plain_write_ready(shard,writer.op), "first gate pass");
         require(!shard.watch_writer_stamp(slice(b),&writer.op) &&
                 !shard.watch_writer_stamp(slice(c),&writer.op), "gate pass removes complete episode");
+        ScatterRun predecessor(server,{"MSET",b,"predecessor",
+            key_on(server,0,"episode-own-"),"predecessor"},false);
+        require(predecessor.state->atomic_write && !predecessor.state->group_attempt(),
+                "own undecided predecessor is a real blind group");
+        require(xshard_execute(Task{&predecessor.client,0,1,predecessor.state},shard,
+                predecessor.request.op,server.worker_of_shard(1))==ScatterTaskResult::Complete,
+                "blind predecessor installed on this owner before its other fragment");
+        require(xshard_task_should_defer(server,shard,Task{&predecessor.client,0,1,nullptr},writer.op),
+                "writer passes claims then parks on own undecided group");
+        require(!shard.watch_writer_stamp(slice(b),&writer.op) &&
+                !shard.watch_writer_stamp(slice(c),&writer.op),"program-order park keeps no old marks");
         EpisodeUnit second(server);
         second.claim(1,c,TxnClaimMode::Write); require(second.place(1),"second holder");
         second.phase().store(TxnPhase::Executing); second.exec->execution_noted[1]|=8;
@@ -206,11 +296,27 @@ void controls(Server& server, const std::string& name) {
         require(between.place(1),"unit between stamps passes the new episode");
         between.finish(); second.finish();
     } else if (name=="R10") {
+#if defined(TXN_EPISODE_PRE) || defined(TXN_EPISODE_RANK_ONLY)
+        EpisodeUnit first(server);first.age(s1+1);first.claim(1,c,TxnClaimMode::Write);
+        require(first.place(1),"PRE lets one later unit enter the initially unmarked key");
+        first.phase().store(TxnPhase::Executing);first.exec->execution_noted[1]|=8;
+        require(!multi_plain_write_ready(shard,writer.op),"PRE extends its persistent blocked-key marks");
+        const auto both=shard.watch_writer_stamp(slice(c),&writer.op);
+        require(both,"second blocked key is now marked too");
+        first.finish();
+        for(int turn=0;turn<32;++turn) {
+            EpisodeUnit later(server);later.age(both+1);
+            later.claim(1,turn%2 ? b:c,TxnClaimMode::Write);
+            require(!later.place(1),"PRE is bounded once both blocked-key marks exist");
+        }
+        std::puts("R10 PRE bounded: one initial overtaker, then 32 later placements blocked");
+#else
         for (int turn=0;turn<32;++turn) {
             EpisodeUnit younger(server); younger.age(s1+1);
             younger.claim(1,turn%2 ? b:c,TxnClaimMode::Write);
             require(!younger.place(1),"later units cannot overtake on either writer key");
         }
+#endif
     } else if (name=="invariant") {
 #ifndef TXN_EPISODE_PRE
         const auto before=server.txn_counter(TxnCounter::OrderViolations);
@@ -266,18 +372,12 @@ int main(int argc,char** argv) {
     require(argc==2,"one R-family case required");
     require(command_registry_init(false),"command registry");
     Config cfg; cfg.databases=1; cfg.shards=16; cfg.even_ifid=6; cfg.even_ex=2;
-    cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;
+    cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;cfg.atomic=1;
     Server server; require(server.prepare_boot(cfg)&&server.init(cfg),"owner-only boot");
     command_bind_server(&server);
     const std::string name=argv[1];
     if (name=="R12") {
-        unsigned cases=0;
-        for (int shape=1;shape<=7;++shape) {
-            std::array<int,5> polls{0,1,2,3,4};
-            do { cycle(server,shape,polls); ++cases; }
-            while(std::next_permutation(polls.begin(),polls.end()));
-        }
-        std::printf("exhaustive fair-round actor permutations: %u schedules\n",cases);
+        for(int shape=1;shape<=7;++shape) exhaustive(server,shape);
     } else if (name=="R11") txnorder_checks(server,"txnorder_placement");
     else if(name.size()==2 && name[0]=='R' && name[1]>='1' && name[1]<='7')
         cycle(server,name[1]-'0',{0,1,2,3,4});

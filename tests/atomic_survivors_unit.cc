@@ -138,10 +138,11 @@ struct ScatterRun {
     Request request;
     ScatterArenaPool pool;
     ScatterState* state = nullptr;
-    ScatterRun(Server& s, std::vector<std::string> args) : server(s), request(std::move(args)) {
+    ScatterRun(Server& s, std::vector<std::string> args, bool force = true)
+        : server(s), request(std::move(args)) {
         client.set_id(777);
         ScatterDispatch dispatch;
-        require(xshard_prepare(server, request.op, pool, 0, client.id(), dispatch, true) ==
+        require(xshard_prepare(server, request.op, pool, 0, client.id(), dispatch, force) ==
                 ScatterPrepare::Ready, "cross-owner scatter prepared");
         state = dispatch.state;
         state->now_cut_ms = now_realtime_ms();

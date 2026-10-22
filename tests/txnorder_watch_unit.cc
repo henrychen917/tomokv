@@ -44,15 +44,49 @@ void served_watch(Server& server) {
     }
 }
 
-void readonly_watch(Server& server) {
+void same_owner_rename(Server& server) {
+    const auto a=key_on(server,0,"rename-a-"), b=key_on(server,2,"rename-b-");
+    require(server.worker_of_shard(0)==server.worker_of_shard(2),"two shards on one owner");
+    require(local(server,{"SET",a,"value"})=="+OK\r\n","RENAME source seeded");
+    Client client{-1};client.set_id(640);Request request({"RENAME",a,b});
+    ScatterArenaPool pool;ScatterDispatch dispatch;
+    require(xshard_prepare(server,request.op,pool,0,client.id(),dispatch)==ScatterPrepare::Ready,
+            "bare atomic direct RENAME prepared");
+    auto* state=dispatch.state;state->now_cut_ms=now_realtime_ms();
+    require(state->atomic_direct && state->nsub==2,"two source/destination fragments");
+    bool done[16]={};bool queued=false;Ring ring;
+    for(unsigned round=0;round<64 && !queued;++round) {
+        for(unsigned g=0;g<state->nsub;++g) {
+            const int sid=state->groups[g].shard;if(done[sid])continue;
+            Task task{&client,0,sid,state};auto& shard=server.shard(sid);
+            if(xshard_task_should_defer(server,shard,task,request.op))continue;
+            if(xshard_execute(task,shard,request.op,server.worker_of_shard(sid))!=ScatterTaskResult::Complete)continue;
+            done[sid]=true;
+            const auto result=xshard_complete(server,server.thread(server.worker_of_shard(sid)),ring,task,request.op);
+            queued |= result==ScatterFinish::CommitQueued;
+        }
+    }
+    require(done[0]&&done[2]&&queued&&state->pending.load()==0,
+            "last owner must queue commit after both shards finish");
+    state->epoch.store(server.atomic_commit());
+    require(local(server,{"GET",a})=="$-1\r\n" &&
+            local(server,{"GET",b})=="$5\r\nvalue\r\n","RENAME conservation");
+    release_records(server);xshard_destroy(state,pool,0);pool.reap_deferred();
+}
+
+void readonly_watch(Server& server, bool handshake=false) {
     Client client{-1}; client.set_id(630);
     const auto a=key_on(server,0,"readonly-a-"),b=key_on(server,1,"readonly-b-");
     require(server.worker_of_shard(0)!=server.worker_of_shard(1),"two owners");
     local(server,{"SET",a,"a"}); local(server,{"SET",b,"old"});
     require(multi_io(server,client,{"WATCH",b})=="+OK\r\n","WATCH registered");
     require(multi_io(server,client,{"MULTI"})=="+OK\r\n","MULTI");
-    require(multi_io(server,client,{"GET",a})=="+QUEUED\r\n","first read queued");
-    require(multi_io(server,client,{"GET",b})=="+QUEUED\r\n","late watched read queued");
+    if (handshake) {
+        require(multi_io(server,client,{"SET",a,"one"})=="+QUEUED\r\n","write queued");
+    } else {
+        require(multi_io(server,client,{"GET",a})=="+QUEUED\r\n","first read queued");
+        require(multi_io(server,client,{"GET",b})=="+QUEUED\r\n","late watched read queued");
+    }
     Request request({"EXEC"}); MultiExecState* state=nullptr;
     require(multi_handle_io(server,client,request.op,0,state)==MultiIoAction::Dispatch && state,
             "EXEC prepared");
@@ -61,17 +95,24 @@ void readonly_watch(Server& server) {
     multi_dispatch_started(client,state);
     auto* carrier=client.rob().acquire(); require(carrier,"EXEC carrier");
     carrier->spec=request.op.spec;
-    for(int sid:state->shards) require(execute_watch_phase(*state,server.shard(sid)),"watch validation");
-    require(state->read_only && state->decision.phase.load()==TxnPhase::Executing &&
+    for(unsigned round=0;round<16 && !state->watch_phase_done.load();++round)
+        for(int sid:state->shards) execute_watch_phase(*state,server.shard(sid));
+    require(state->read_only != handshake && state->decision.phase.load()==TxnPhase::Executing &&
             state->watch_phase_done.load(),"CAS passed before delayed shard read");
     require(!client.watch_dirty(),"WATCH clean at CAS");
-    require(multi_execute_task(server,multi_make_task(&client,0,0,state),server.shard(0),
-            server.worker_of_shard(0),0,nullptr)==MultiTaskResult::Retry,"lead runs; late read held");
-    require(!state->finalized.load() && !state->execution_joined[1],"held read window exists");
-    local(server,{"SET",b,"new"},631);
     Request write({"SET",b,"new"}); write.op.hash=FlatStore::hash_key(slice(b));
-    multi_plain_write_committed(server.shard(1),write.op);
-    require(client.watch_dirty(),"foreign write committed after CAS");
+    if (handshake) {
+        require(!(state->execution_noted[1]&8),"real CAS-to-shard-start held window");
+        require(!multi_plain_write_ready(server.shard(1),write.op),
+                "D10 validation blocks writer in real EXEC CAS/start window");
+    } else {
+        require(multi_execute_task(server,multi_make_task(&client,0,0,state),server.shard(0),
+                server.worker_of_shard(0),0,nullptr)==MultiTaskResult::Retry,"lead runs; late read held");
+        require(!state->finalized.load() && !state->execution_joined[1],"held read window exists");
+        local(server,{"SET",b,"new"},631);
+        multi_plain_write_committed(server.shard(1),write.op);
+        require(client.watch_dirty(),"foreign write committed after CAS");
+    }
     std::vector<bool> done(server.nshards(),false);
     for(unsigned round=0;round<1000;++round) {
         bool all=true;
@@ -84,7 +125,12 @@ void readonly_watch(Server& server) {
     }
     require(state->finalized.load(),"all reads joined");
     set_state_reply(*state,request.op);
-    require(request.reply()=="*-1\r\n","dirty read-only WATCH returns null after last read");
+    require(request.reply()==(handshake ? "*1\r\n+OK\r\n" : "*-1\r\n"),
+            "EXEC final reply obeys held WATCH ordering");
+    if(handshake) {
+        require(local(server,{"GET",b})=="$3\r\nold\r\n","writer has not run before non-null EXEC");
+        require(multi_plain_write_ready(server.shard(1),write.op),"writer resumes after EXEC");
+    }
     release_records(server); destroy_multi_state(state);
 }
 }
@@ -93,12 +139,14 @@ int main(int argc,char** argv) {
     require(command_registry_init(false),"registry");
     Config cfg;cfg.databases=1;cfg.shards=16;cfg.even_ifid=6;cfg.even_ex=2;
     cfg.thread_mode=std::string(argv[2])=="1s" ? ThreadMode::Fused : ThreadMode::Split;
-    cfg.read_local=cfg.thread_mode==ThreadMode::Fused;cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;
+    cfg.read_local=cfg.thread_mode==ThreadMode::Fused;cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;cfg.atomic=1;
     Server server;require(server.prepare_boot(cfg)&&server.init(cfg),"owner geometry");
     command_bind_server(&server);
     std::string error;require(acl_initialize(server,cfg,error),"default ACL");
     if(std::string(argv[1])=="serve") served_watch(server);
     else if(std::string(argv[1])=="readonly") readonly_watch(server);
+    else if(std::string(argv[1])=="handshake") readonly_watch(server,true);
+    else if(std::string(argv[1])=="rename") same_owner_rename(server);
     else require(false,"known WATCH regression");
     release_records(server);
     std::puts("PASS WATCH owner-turn regression");

@@ -271,6 +271,16 @@ class Battery:
         assert torn == 0, torn
 
     def crossed_watch(self):
+        for arm in range(4):
+            try:
+                self.crossed_watch_attempt()
+                return
+            except WindowMiss:
+                if arm == 3:
+                    raise
+                print("re-arm crossed WATCH on fresh keys", arm + 1, flush=True)
+
+    def crossed_watch_attempt(self):
         a, b = self.pair()
         self.admin.must("MSET", a, 0, b, 0)
         turn = threading.Barrier(2)
@@ -314,7 +324,8 @@ class Battery:
             after = self.stats()
             conflicts = sum(int(after[key]) - int(before[key]) for key in
                             ("atomic_txn_wounds",))
-            assert conflicts > 0, "crossed WATCH reservation conflict never occurred"
+            if conflicts == 0:
+                raise WindowMiss("crossed WATCH reservation conflict never occurred")
 
     @contextlib.contextmanager
     def wounded(self, commands, watch=None, older_extra=()):

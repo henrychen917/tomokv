@@ -94,6 +94,7 @@ struct MultiWriteKey {
     uint64_t hash = 0;
     int32_t shard = -1;
     uint8_t ns = 0;
+    mutable bool signals_watch = true; // Not part of the hash/equality identity.
 };
 
 struct MultiWriteKeyHash {
@@ -716,7 +717,8 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
 
 bool state_writes_key(const MultiExecState& state, const MultiWatchedKey& watched) {
     for (const MultiWriteKey& key : state.write_keys)
-        if (key.shard == watched.shard && key.ns == watched.ns && key.key == watched.key) return true;
+        if (key.signals_watch && key.shard == watched.shard && key.ns == watched.ns &&
+            key.key == watched.key) return true;
     return false;
 }
 
@@ -728,8 +730,16 @@ void add_write_key(MultiExecState& state, const MultiCommand& command, uint32_t 
     const int32_t shard = command.key_shards[index];
     MultiWriteKey candidate{
         std::string(key.p, key.n), FlatStore::hash_key(key), shard,
-        static_cast<uint8_t>(key.ns)};
-    if (!state.write_key_set.emplace(candidate).second) return;
+        static_cast<uint8_t>(key.ns), !has_name(command.queued, "xreadgroup")};
+    const auto [position, inserted] = state.write_key_set.emplace(candidate);
+    if (!inserted) {
+        if (candidate.signals_watch && !position->signals_watch) {
+            position->signals_watch = true;
+            for (auto& prior : state.write_keys)
+                if (MultiWriteKeyEqual{}(prior, candidate)) { prior.signals_watch = true; break; }
+        }
+        return;
+    }
     state.write_keys.push_back(std::move(candidate));
 }
 
@@ -1280,7 +1290,8 @@ enum class MultiPrepareWrite : uint8_t { Ready, Retry, Error };
 MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard& shard,
                                     Slice key, uint64_t hash, uint32_t owner_thread_id,
                                     const void* watch_token = nullptr,
-                                    std::atomic<uint32_t>* watch_refs = nullptr) {
+                                    std::atomic<uint32_t>* watch_refs = nullptr,
+                                    bool signal_watch = true) {
     if (!watch_token) watch_token = &state;
     if (!multi_touch_key(state, shard, hash, key, true)) return MultiPrepareWrite::Retry;
     if (!watch_refs) watch_refs = &state.watch_refs;
@@ -1317,8 +1328,9 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
             }))
         g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
     if (!shard.watch_txn_write_ready(key, state)) return MultiPrepareWrite::Retry;
-    shard.watch_reserve_write(key, state.client, state.watch_generation, watch_token,
-                              &state.decision.epoch, &state.decision.aborted, watch_refs);
+    if (signal_watch)
+        shard.watch_reserve_write(key, state.client, state.watch_generation, watch_token,
+                                  &state.decision.epoch, &state.decision.aborted, watch_refs);
     const auto snapshot = shard.store().snapshot_prepare_write(hash, key);
     if (snapshot == FlatStore::SnapshotWriteResult::Pending) return MultiPrepareWrite::Retry;
     if (snapshot == FlatStore::SnapshotWriteResult::Error) return MultiPrepareWrite::Error;
@@ -1374,20 +1386,32 @@ bool command_has_owner_work(const MultiCommand& command) {
 bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiCommand& command,
                               Shard& shard, uint32_t owner_thread_id) {
     if (!(command.queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) return true;
-    std::vector<uint32_t> unique;
-    try { unique.reserve(command.key_args.size()); }
-    catch (const std::bad_alloc&) { state.decision.aborted.store(true, std::memory_order_release); return false; }
-    for (size_t i = 0; i < command.key_args.size(); i++) {
-        if (command.key_shards[i] != shard.id()) continue;
-        const uint32_t arg = command.key_args[i];
-        bool duplicate = false;
-        for (uint32_t prior : unique)
-            duplicate |= command.op->arg(prior).key_mem_eq(command.op->arg(arg));
-        if (!duplicate) unique.push_back(arg);
+    // The common one-key command needs no duplicate-index allocation. Keep the
+    // full preflight-before-install order for the less common multi-key handler.
+    const uint32_t single = command.key_args.empty() ? 0 : command.key_args.front();
+    std::vector<uint32_t> storage;
+    const uint32_t* unique = &single;
+    size_t count = command.key_args.size();
+    if (count == 1) {
+        if (command.key_shards.front() != shard.id()) return true;
+    } else {
+        try { storage.reserve(count); }
+        catch (const std::bad_alloc&) { state.decision.aborted.store(true, std::memory_order_release); return false; }
+        for (size_t i = 0; i < command.key_args.size(); i++) {
+            if (command.key_shards[i] != shard.id()) continue;
+            const uint32_t arg = command.key_args[i];
+            bool duplicate = false;
+            for (uint32_t prior : storage)
+                duplicate |= command.op->arg(prior).key_mem_eq(command.op->arg(arg));
+            if (!duplicate) storage.push_back(arg);
+        }
+        unique = storage.data();
+        count = storage.size();
     }
     // Reservation/snapshot checks precede every physical install, so Retry never leaves half of a
     // command installed merely because another EXEC still owns a watched key.
-    for (uint32_t arg : unique) {
+    for (size_t i = 0; i < count; ++i) {
+        const uint32_t arg = unique[i];
         const Slice key = command.op->arg(arg);
         if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, true) ||
             !shard.watch_txn_write_ready(key, state)) return false;
@@ -1398,10 +1422,12 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
             return false;
         }
     }
-    for (uint32_t arg : unique) {
+    for (size_t i = 0; i < count; ++i) {
+        const uint32_t arg = unique[i];
         const Slice key = command.op->arg(arg);
         const MultiPrepareWrite result = prepare_write_key(
-            server, state, shard, key, FlatStore::hash_key(key), owner_thread_id);
+            server, state, shard, key, FlatStore::hash_key(key), owner_thread_id,
+            nullptr, nullptr, !has_name(command.queued, "xreadgroup"));
         if (result == MultiPrepareWrite::Retry) return false;
         if (result == MultiPrepareWrite::Error) {
             state.decision.aborted.store(true, std::memory_order_release);
@@ -2690,10 +2716,16 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         if (!state.watch_phase_done.load(std::memory_order_acquire)) return MultiTaskResult::Retry;
     }
 
+    if (state.kind == MultiStateKind::Execute &&
+        state.decision.phase.load(std::memory_order_acquire) == TxnPhase::Executing)
+        noted |= 8u; // owner-local start: plain writers may no longer pass this shard
+
     // TEST HOOK (DEBUG ATOMIC-FANOUT-DEFER), the MULTI half. Park every fragment of this
     // transaction except the one on its lead shard until the deadline, so the foreign transaction
     // the battery races really does commit BETWEEN two fragments of one in-EXEC read. It sits
-    // AFTER the watch phase deliberately: that phase is an all-participants barrier, so parking
+    // AFTER the watch phase and this owner's start bit deliberately: D1 permits plain writes
+    // before owner start, so parking earlier does not hold the read claims being tested.
+    // The watch phase is an all-participants barrier, so parking
     // ahead of it would hold the lead back too and no fragment would run early. A park, not a
     // stall -- Retry re-queues the task on multi_retries_ and the owner returns to its queue, so
     // the writer is free to execute and publish its ticket inside the window. Off, this is one
@@ -2703,9 +2735,6 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         now_ns() < state.debug_fanout_deadline)
         return MultiTaskResult::Retry;
 
-    if (state.kind == MultiStateKind::Execute &&
-        state.decision.phase.load(std::memory_order_acquire) == TxnPhase::Executing)
-        noted |= 8u; // owner-local start: plain writers may no longer pass this shard
     const uint32_t shard_id = static_cast<uint32_t>(shard.id());
     std::vector<uint32_t>& command_list = state.shard_commands[shard_id];
     uint32_t& cursor = state.shard_cursors[shard_id];
@@ -3449,6 +3478,13 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
 }
 
 bool Shard::watch_key_ready(const std::string& owned, const void* token, bool all_units) {
+    // A sole reservation belonging to the caller cannot obstruct that caller.
+    // Keep finalization on every foreign/combined list and at unit retirement.
+    if (token) {
+        const auto own = watch_reservations_.find(owned);
+        if (own != watch_reservations_.end() && own->second.size() == 1 &&
+            own->second.front().token == token) return true;
+    }
     watch_finalize_reservation(owned);
     const auto found = watch_reservations_.find(owned);
     if (found == watch_reservations_.end()) return true;
@@ -3485,7 +3521,9 @@ void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_gener
                                 const void* token, std::atomic<uint64_t>* epoch,
                                 std::atomic<bool>* aborted,
                                 std::atomic<uint32_t>* refs) {
-    if (!has_watches()) return;
+    if (watchers_.empty()) return;
+    // A later WATCH cannot enter while this key has an undecided record. Only
+    // existing registrations need a dirty reservation for this decision.
     const std::string owned = watch_key_string(key);
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
         for (WatchReservation& reservation : existing->second)
@@ -3609,7 +3647,8 @@ void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
                          ScatterTaskResult result) {
     if (result != ScatterTaskResult::Complete || !task.scatter || !shard.has_watches()) return;
     ScatterState& state = *task.scatter;
-    if (!xshard_owner_mutation_phase(state, op) || state.atomic_group || state.kind == Kind::Swapdb) return;
+    if (!xshard_owner_mutation_phase(state, op) || state.atomic_group ||
+        state.kind == Kind::Swapdb || state.kind == Kind::Xreadgroup) return;
     ShardGroup* group = group_for(state, shard.id());
     if (!group || group->count == 0) return; // FLUSH records existence before clearing.
     for (uint32_t i = 0; i < group->count; i++) {
@@ -3669,7 +3708,7 @@ bool multi_plain_write_ready(Shard& shard, Op& op) {
 }
 
 void multi_plain_write_committed(Shard& shard, Op& op) {
-    if (!shard.has_watches()) return;
+    if (!shard.has_watches() || op.cmd_name().eq_icase("xreadgroup")) return;
     auto commit = [&](uint64_t, Slice key) { shard.watch_write_committed(key); };
     if (op.local_xshard()) for_each_touched_key(op, commit);
     else if (op.spec->flags & CmdFlags::ScriptRoute)
@@ -3722,7 +3761,8 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
     for (uint32_t i = 0; i < group.count; ++i) {
         const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
         if (!state.atomic_group) shard.watch_writer_unmark(key, &op);
-        else shard.watch_reserve_write(key, task.client, task.client->watch_generation(), &state,
+        else if (state.kind != Kind::Xreadgroup)
+            shard.watch_reserve_write(key, task.client, task.client->watch_generation(), &state,
                 publish_epoch(state), publish_aborted(state), &state.watch_refs);
     }
     return true;

@@ -57,7 +57,10 @@ bool txn_group_prepare(ScatterState& state, Server& server, uint32_t io,
         attempt->participants = state.nsub;
         // Atomic MSETNX already included every key owner and has sentinels.
         // APPLY phase one has no record wave and can safely widen its join here.
-        if (!state.atomic_write) state.pending.store(state.nsub, std::memory_order_relaxed);
+        // Direct RENAME already runs its record wave: its pending count names
+        // owners, not shards. Two shards on one owner must keep a count of one.
+        if (!state.atomic_write && !state.atomic_direct)
+            state.pending.store(state.nsub, std::memory_order_relaxed);
         // Keep ordinary prepare's read-cut computation unchanged. A bare
         // dependency-bearing group releases that temporary cut before dispatch
         // and protects its newest-committed reads with owner intents instead.

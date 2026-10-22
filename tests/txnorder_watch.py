@@ -5,6 +5,8 @@ The asynchronous producer/serve window and post-CAS window are covered by
 txnorder_watch_unit.cc; this battery checks their exact public replies.
 """
 import argparse
+import time
+from contextlib import closing
 import _lib
 
 
@@ -15,7 +17,7 @@ def main():
     def run(name, setup, mutation, dirty, db=0):
         admin.must('SELECT',0);admin.must('FLUSHALL')
         setup()
-        with _lib.Conn(a.host,a.port) as watch:
+        with closing(_lib.Conn(a.host,a.port)) as watch:
             watch.must('SELECT',db);assert watch.must('WATCH','watched')==b'OK'
             mutation()
             assert watch.must('MULTI')==b'OK'
@@ -30,6 +32,17 @@ def main():
                     lambda:admin.must(command,*style),False)
                 run(command+' '+str(style)+' present',lambda:admin.must('SET','watched','v'),
                     lambda:admin.must(command,*style),True)
+        def expired():
+            admin.must('SET','watched','v','PX',30)
+            time.sleep(.12)
+        for command in ['FLUSHDB','FLUSHALL']:
+            run(command+' key expired before WATCH',expired,
+                lambda:admin.must(command),False)
+            def expire_then_flush():
+                time.sleep(.12)
+                admin.must(command)
+            run(command+' key expires after WATCH',
+                lambda:admin.must('SET','watched','v','PX',60),expire_then_flush,True)
         if a.databases>1:
             def other():
                 admin.must('SELECT',1);admin.must('SET','watched','other');admin.must('SELECT',0)
@@ -62,8 +75,19 @@ def main():
         def stream():
             admin.must('XADD','watched','1-0','f','v')
             admin.must('XGROUP','CREATE','watched','g','0')
-        run('XREADGROUP metadata preserves WATCH',stream,
-            lambda:admin.must('XREADGROUP','GROUP','g','c','STREAMS','watched','>'),False)
+        xread=('XREADGROUP','GROUP','g','c','STREAMS','watched','>')
+        run('XREADGROUP metadata preserves WATCH',stream,lambda:admin.must(*xread),False)
+        def transaction(commands):
+            assert admin.must('MULTI')==b'OK'
+            for command in commands: assert admin.must(*command)==b'QUEUED'
+            reply=admin.must('EXEC')
+            assert isinstance(reply,list) and len(reply)==len(commands),reply
+        run('EXEC XREADGROUP metadata preserves WATCH',stream,
+            lambda:transaction([xread]),False)
+        run('EXEC XREADGROUP then XADD dirties WATCH',stream,
+            lambda:transaction([xread,('XADD','watched','2-0','f','next')]),True)
+        run('EXEC XADD then XREADGROUP dirties WATCH',stream,
+            lambda:transaction([('XADD','watched','2-0','f','next'),xread]),True)
     admin.close()
 
 

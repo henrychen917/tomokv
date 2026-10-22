@@ -645,10 +645,14 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
         // deliberately widened physical tear. The state word is zero unless prepare classified a
         // non-atomic cross-owner mutation; GET/SET and read/probe waves never reach this branch.
         if (__builtin_expect(state.debug_hop_deadline != 0, false) &&
-            xshard_owner_mutation_phase(state, op) &&
-            server.worker_of_shard(shard.id()) != state.debug_hop_lead_owner &&
-            debug_hop_pending(state))
-            return true;
+            xshard_owner_mutation_phase(state, op)) {
+            // Direct RENAME's source needs every ARRIVE before it may install.
+            // The held destination must participate in ARRIVE before parking,
+            // otherwise the source-complete witness can never become true.
+            if (state.atomic_direct && !txn_group_arrive(state, shard, op)) return true;
+            if (server.worker_of_shard(shard.id()) != state.debug_hop_lead_owner &&
+                debug_hop_pending(state)) return true;
+        }
         // TEST HOOK (DEBUG ATOMIC-CONDITIONAL-DEFER): park, do not stall, the atomic-OFF
         // destination check. Both contenders' destination tasks then reach this deferred queue
         // before either newly posted phase-two task can install its result.

@@ -3,7 +3,7 @@
 # write to the destination clones the pre-group value; at commit the mover's stale image wins.
 # Redis: the concurrent write always survives. Variants: SMOVE, LMOVE, PFMERGE. Control: atomic 0.
 # Usage: t03_mover_replay.py <port> <atomic 0|1> <mode 2s|1s>
-import sys, time
+import sys, time, select
 from resp import *
 port = int(sys.argv[1]); atomic = sys.argv[2]; mode = sys.argv[3]
 srv = Server(port, ["--thread-mode", mode, "--atomic", atomic, "--enable-debug-command", "yes"],
@@ -29,14 +29,34 @@ try:
     failures = []
     for name, setup, mover, concurrent, check, norm, expected in cases:
         for cmd in setup: c.cmd(*cmd)
-        g0 = int(info(c).get("atomic_groups", 0))
+        deadline = time.monotonic() + 5
+        while int(info(c).get("atomic_pending_entries", 0)):
+            assert time.monotonic() < deadline, "setup candidates did not drain before arming"
+            time.sleep(.001)
+        before = info(c)
+        g0 = int(before.get("atomic_groups", 0))
         c.cmd("DEBUG", "ATOMIC-COMMIT-HOLD", 1)
         x = srv.conn(timeout=30); y = srv.conn(timeout=30)
         x.send(*mover)
-        time.sleep(0.2)
-        t0 = time.time(); ry = y.cmd(*concurrent); ty = time.time() - t0
+        if atomic == "1":
+            deadline = time.monotonic() + 5
+            while int(info(c).get("atomic_pending_entries", 0)) == 0:
+                assert time.monotonic() < deadline, "mover installed no held candidate"
+                time.sleep(.001)
+            assert not select.select([x.s], [], [], 0)[0], "mover hold never opened"
+        else:
+            rx = x.read()  # explicit non-held atomic-0 companion
+        t0 = time.time(); y.send(*concurrent)
+        deadline = time.monotonic() + 5
+        while not select.select([y.s], [], [], 0)[0]:
+            if int(info(c).get("atomic_txn_writer_waits", 0)) > int(before.get("atomic_txn_writer_waits", 0)):
+                break
+            assert time.monotonic() < deadline, "writer neither replied nor reached held claim"
+            time.sleep(.001)
+        print("witness", name, "held candidate" if atomic == "1" else "atomic-0 non-held control", flush=True)
         c.cmd("DEBUG", "ATOMIC-COMMIT-HOLD", 0)
-        rx = x.read()
+        if atomic == "1": rx = x.read()
+        ry = y.read(); ty = time.time() - t0
         got = norm(c.cmd(*check))
         g1 = int(info(c).get("atomic_groups", 0))
         verdict = "OK" if got == expected else "LOST WRITE"

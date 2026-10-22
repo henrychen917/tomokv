@@ -44,6 +44,7 @@ Boot: --enable-debug-command yes.  Without it the armed arms cannot run and the 
 """
 
 import socket
+import select
 import sys
 import threading
 import time
@@ -222,6 +223,10 @@ def straddle_arm(mode, kind):
             writer.close()
             return
         reader = Resp()
+        # WATCH routes MGET through its owners on armed read-local boots. A local
+        # read parked before capture can legally return the complete new image;
+        # this fixture requires an already captured OLD cut.
+        assert reader.cmd("WATCH", keys[0]) == b"OK"
         started = time.time()
         if kind == "MGET":
             reader.send("MGET", *keys)
@@ -230,9 +235,13 @@ def straddle_arm(mode, kind):
         else:
             reader.send("KEYS", "execwalk:*")
         time.sleep(0.05)                     # the lead fragment has answered; the rest are parked
+        assert not select.select([reader.sock], [], [], 0)[0], "fanout hold never opened"
+        # The foreign EXEC must not inherit the read's artificial park.
+        arm(0)
         exec_started = time.time()
         reply = transaction(writer, keys, new)
         exec_done = time.time()
+        assert not select.select([reader.sock], [], [], 0)[0], "writer missed the held read window"
         writer.close()
         values = reader.read()
         elapsed = time.time() - started
