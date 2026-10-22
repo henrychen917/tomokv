@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "105-111",
+    "bash",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-trackfix/build/trackfix/server-PRE-epoll-armed-fused",
+    "22854",
+    "22855",
+    "96-103",
+    "6:2"
+  ],
+  "engine": "epoll",
+  "geometry": "armed-fused",
+  "arm": "PRE"
+}

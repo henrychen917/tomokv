@@ -20,6 +20,14 @@ def executable(path, body):
 
 def environment():
     bindir = BASE / 'bin'
+    executable(bindir / 'python3', f'''#!/bin/bash
+export PYTHONPATH={str(DOC / 'fixture_site')!r}${{PYTHONPATH:+:$PYTHONPATH}}
+export TRACKFIX_FIXTURE_PORT_LOG={str(DOC / 'fixture-ports.log')!r}
+case "${{1:-}}" in
+ *tests/atomic_ryow.py) exec /usr/bin/python3 "$@" --no-rate-assertions;;
+ *) exec /usr/bin/python3 "$@";;
+esac
+''')
     executable(bindir / 'make', '''#!/usr/bin/python3
 import os, sys
 args = ['-j16' if a.startswith('-j') and a[2:].isdigit() else a for a in sys.argv[1:]]
@@ -29,11 +37,22 @@ os.execv('/usr/bin/taskset', ['taskset', '-c', '96-111', '/usr/bin/make', *args]
 echo 'trackfix: performance load generators are reserved for the maintainer' >&2
 exit 125
 ''')
+    # The pinned installation has binaries only; use the matching 7.4.10
+    # source checkout for source-based metadata checks, retaining pinned executables.
+    source = BASE / 'oracle/src'
+    source.mkdir(parents=True, exist_ok=True)
+    for entry in Path('/home/user/Projects/redis/src').iterdir():
+        dest = source / entry.name
+        origin = ORACLE.parent / entry.name if entry.name in ('redis-server', 'redis-cli') else entry
+        if not dest.exists():
+            dest.symlink_to(origin)
     return dict(os.environ, PATH=str(bindir) + ':' + os.environ['PATH'],
-                GATE_TEST_PORT='22899', REDIS74_ROOT=str(ORACLE.parent.parent),
+                GATE_TEST_PORT='22899', REDIS74_ROOT=str(source.parent),
                 GATE_DIFFER_ORACLE_BIN=str(ORACLE),
                 GATE_DIFFER_REDIS_CLI=str(ORACLE.with_name('redis-cli')),
                 GATE_DIFFER_ORACLE_CORES='104', GATE_NOTIFY_ORACLE_CORES='104',
+                PYTHONPATH=str(DOC / 'fixture_site'),
+                TRACKFIX_FIXTURE_PORT_LOG=str(DOC / 'fixture-ports.log'),
                 GATE_LOAD_CORES='105-111')
 
 
@@ -52,9 +71,13 @@ def gate(label, binary, engine, jobs):
     dest.mkdir(parents=True, exist_ok=False)
     env = environment()
     env.update(GATE_ONLY_JOBS=' '.join(jobs), GATE_LEDGER=str(dest / 'ledger'))
+    if binary.name == 'tomokv-PRE':
+        env.update(GATE_TRACKFIX_ARM='PRE', GATE_TRACKFIX_REF='a7dfb9d23',
+                   GATE_TRACKFIX_OBJECTS=str(BASE / 'pre-objects'))
+
     argv = ['taskset', '-c', '96-111', 'bash', 'tests/gate.sh', 'full',
             '--server-cores', '96-104', '--load-cores', '105-111',
-            '--server-smt', '', '--load-smt', '', '--ports', '22810-22839',
+            '--server-smt', '', '--load-smt', '', '--ports', os.getenv('TRACKFIX_PORTS', '22810-22839'),
             '--candidate-binary', str(engine_binary(binary, engine, label))]
     (dest / 'command.json').write_text(json.dumps(dict(argv=argv, jobs=jobs), indent=2) + '\n')
     with (dest / 'gate.log').open('w') as log:
