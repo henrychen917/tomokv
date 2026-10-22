@@ -161,9 +161,9 @@ struct SaveClause {
 };
 
 inline constexpr uint64_t kProtoMinBulkLen = 1024ull * 1024;
-// Op argv Slices and the connection receive cursor are uint32_t. Reserve framing slack so a
-// maximum-size bulk plus its RESP envelope remains representable without growing either hot type.
-inline constexpr uint64_t kProtoMaxBulkLenSupported = UINT32_MAX - 64ull * 1024;
+// Redis's configuration range is signed long. The independent 32-bit receive-cursor
+// bound still rejects a frame that cannot be represented by this server's Slice ABI.
+inline constexpr uint64_t kProtoMaxBulkLenSupported = LONG_MAX;
 
 inline bool cfg_parse_save_schedule(const char* input, size_t length,
                                     std::vector<SaveClause>& out) {

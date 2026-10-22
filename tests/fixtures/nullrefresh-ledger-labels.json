@@ -136,6 +136,7 @@
     "NET1 inline + query cap (2s, epoll)",
     "netfix NT4.6 query-limit INFO parity",
     "netfix NT4.11 Unix pathname parity",
+    "netfix NT4.8 network CONFIG error parity",
     "RESP protocol error compatibility",
     "RESP resumable fragment (1s, epoll)",
     "RESP resumable fragment (1s, uring)",

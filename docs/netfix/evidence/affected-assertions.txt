@@ -1,0 +1,54 @@
+tests/netcmd.py:51:        before = c.cmd("CONFIG", "GET", "proto-max-bulk-len")[1]
+tests/netcmd.py:53:            require(c.cmd("CONFIG", "SET", "proto-max-bulk-len", 1048576) == b"OK", "runtime bulk limit set")
+tests/netcmd.py:54:            require(c.cmd("CONFIG", "GET", "proto-max-bulk-len")[1] == b"1048576", "runtime bulk limit confirmed")
+tests/netcmd.py:71:            require(c.cmd("CONFIG", "SET", "proto-max-bulk-len", before) == b"OK", "runtime bulk limit restored")
+tests/borrow_registry.py:4:# Boot: --shards 1 --zc-min 64 --client-output-buffer-limit normal 0 0 0 --enable-debug-command yes
+tests/flip_under_load.py:44:            "client_output_buffer_limit_disconnections", "flip_completed",
+tests/notify.py:206:        if not isinstance(result, RespError) or "Invalid argument" not in str(result):
+tests/config_parser_test.cc:178:                "appenddirname", "save", "user", "client-output-buffer-limit"}) {
+tests/netfix_config.py:11:    for name in ('maxclients', 'timeout', 'tcp-keepalive', 'proto-max-bulk-len',
+tests/netfix_config.py:21:    yield ('proto-max-bulk-len', '5gb')
+tests/netfix_config.py:24:        yield ('client-output-buffer-limit', value)
+tests/netfix_config.py:26:                        ('proto-max-bulk-len', '512mb'), ('client-query-buffer-limit', '1gb'),
+tests/netfix_config.py:27:                        ('protected-mode', 'no'), ('client-output-buffer-limit', 'normal 0 0 0')):
+tests/netfix_query_stats.py:7:FIELD = b'client_query_buffer_limit_disconnections'
+tests/netfix_query_stats.py:16:    assert keys[index + 1] == b'client_output_buffer_limit_disconnections', keys[index:index+2]
+tests/pubsub.py:664:    #    made `client-output-buffer-limit pubsub` -- Redis's own mechanism, with Redis's grammar --
+tests/pubsub.py:668:    saved_limits = admin.command("CONFIG", "GET", "client-output-buffer-limit")[1]
+tests/pubsub.py:669:    expect(admin.command("CONFIG", "SET", "client-output-buffer-limit", "pubsub 1048576 0 0"),
+tests/pubsub.py:675:    disconnects_before = int(info_stats(admin)["client_output_buffer_limit_disconnections"])
+tests/pubsub.py:684:        if int(info_stats(admin)["client_output_buffer_limit_disconnections"]) > disconnects_before:
+tests/pubsub.py:689:            "client-output-buffer-limit pubsub never fired: the publish path has no "
+tests/pubsub.py:693:    expect(admin.command("CONFIG", "SET", "client-output-buffer-limit", saved_limits.decode()),
+tests/limits.py:153:                     "client-output-buffer-limit", "zc-min")
+tests/limits.py:159:        expect(original["client-output-buffer-limit"], defaults, "COBL fresh defaults")
+tests/limits.py:163:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit", value),
+tests/limits.py:167:        expect(config_get(admin, "client-output-buffer-limit"), normalized,
+tests/limits.py:169:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:171:        merged = config_get(admin, "client-output-buffer-limit")
+tests/limits.py:185:            expect_error(admin.command("CONFIG", "SET", "client-output-buffer-limit", bad),
+tests/limits.py:186:                         "Invalid argument", f"COBL rejects {label}")
+tests/limits.py:187:            expect(config_get(admin, "client-output-buffer-limit"), before,
+tests/limits.py:195:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:355:        hard_before = int(stats(admin)["client_output_buffer_limit_disconnections"])
+tests/limits.py:356:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:364:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:366:        expect_stat(admin, "client_output_buffer_limit_disconnections", hard_before + 1,
+tests/limits.py:379:        expect_stat(admin, "client_output_buffer_limit_disconnections", hard_before + 2,
+tests/limits.py:383:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:388:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:395:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:431:        expect_stat(admin, "client_output_buffer_limit_disconnections", hard_before + 3,
+tests/limits.py:435:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:443:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:452:        expect_stat(admin, "client_output_buffer_limit_disconnections", hard_before + 4,
+tests/limits.py:466:            admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:467:                          original["client-output-buffer-limit"])
+tests/atomic_plain.py:306:                raise _lib.RespError("ERR parameter is immutable at runtime")
+tests/netcmd_config_unit.cc:272:            check(std::string(op.reply.data(), op.reply.size()) == "-ERR parameter is immutable at runtime\r\n",
+tests/netcmd_config_unit.cc:275:                  "-ERR parameter is immutable at runtime\r\n", "writeback handler rejects SET");
+tests/differ.py:5321:                    "client-output-buffer-limit", "notify-keyspace-events"]
+tests/debug.py:78:       "ERR parameter is immutable at runtime", "boot-only config")
+tests/respcompat.py:141:    # CONFIG below sets proto-max-bulk-len=1mb. Both boundaries must keep Redis's
+tests/respcompat.py:196:    fields = ("requirepass", "proto-max-bulk-len") if kind == "preauth" else (
+tests/respcompat.py:202:            assert admin.must("CONFIG", "SET", "proto-max-bulk-len", "1mb") == b"OK"

@@ -10,6 +10,7 @@
 #include "debug.h"
 #include "debug_sleep.h"
 #include "info_stats.h"
+#include "network_config.h"
 #include "hll.h"
 #include "scripting.h"
 #include "server_tail.h"
@@ -624,12 +625,12 @@ bool collect_config_updates(Op& op,
         // argument order (last value wins). The original TomoKV aliases allowed repetition.
         if ((item->kind == ConfigKind::Encoding && !legacy_compact) ||
             !std::strcmp(item->name, "aof-load-truncated") ||
-            !std::strcmp(item->name, "client-query-buffer-limit")) {
+            network_config_name(item->name)) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2) {
                 if (!eq_icase(op.arg(previous), requested.c_str())) continue;
                 if (!std::strcmp(item->name, "aof-load-truncated") ||
-                    encoding == EncodingConfig::SetIntsetEntries) {
+                    encoding == EncodingConfig::SetIntsetEntries || network_config_name(item->name)) {
                     std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
                     msg += requested;
                     msg += "') - duplicate parameter";
@@ -648,7 +649,13 @@ bool collect_config_updates(Op& op,
         }
         if (item->immutable || !std::strcmp(item->name, "dir") ||
             !std::strcmp(item->name, "dbfilename") || !std::strcmp(item->name, "tcp-backlog")) {
-            reply_err(op.sink(), "ERR parameter is immutable at runtime"); return false;
+            if (network_config_name(item->name)) {
+                std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
+                msg.append(op.arg(i).p, op.arg(i).n);
+                msg += "') - can't set immutable config";
+                reply_err(op.sink(), msg.c_str());
+            } else reply_err(op.sink(), "ERR parameter is immutable at runtime");
+            return false;
         }
         std::string value;
         bool normalized = false;
@@ -658,13 +665,16 @@ bool collect_config_updates(Op& op,
             const char* error = nullptr;
             normalized = parse_client_output_buffer_limit_slice(
                 op.arg(i + 1), obuf_scratch, parsed, error);
+            config_error = error;
             if (normalized) {
                 obuf_scratch = parsed;
                 value = cfg_client_output_buffer_limit_string(parsed);
             }
         } else {
             // The old TomoKV spelling accepted leading zeroes and bare bytes only.
-            normalized = normalize_config(*item, op.arg(i + 1), value, config_error, legacy_compact);
+            const int network = normalize_network_config(item->name, op.arg(i + 1), value, config_error);
+            normalized = network >= 0 ? network == 1 :
+                normalize_config(*item, op.arg(i + 1), value, config_error, legacy_compact);
         }
         if (!normalized) {
             if (config_error) {

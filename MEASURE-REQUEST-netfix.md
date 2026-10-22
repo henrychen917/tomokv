@@ -29,3 +29,13 @@ sockets in all four mode/engine legs; Redis replaces all three. POST matches
 Redis and retains the stale-socket, permissions, serve and exit-cleanup checks.
 `netfix_unix` fails on PRE and passes on POST; evidence in
 `docs/netfix/evidence/{pre,post}-unix/`. Adds DQ +1 / DF +1 before quick exit.
+
+NT4.8: exact oracle error payloads now cover network immutable names (including
+original request spelling), integer/memory/bool grammar and ranges, output-limit
+parser diagnostics, and duplicate parameters. The directed job runs TCP/TLS in
+both modes/engines, fails on PRE and passes on POST. proto-max-bulk-len's
+configuration range now matches Redis through LONG_MAX at boot and runtime;
+the independent uint32 receive/Slice frame bound remains enforced.
+Evidence: `docs/netfix/evidence/{pre,post}-config/`. DQ +1 / DF +1.
+Runtime bind/port machinery is deliberately not implemented: the handoff and
+rollback requirements are in `docs/netfix/runtime-bind-port.md`.

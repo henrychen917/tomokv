@@ -174,16 +174,22 @@ def main():
         print("  ok   COBL unmentioned classes retained", flush=True)
 
         before = merged
-        for bad, label in (("normal 0 0", "wrong group width"),
-                           ("master 0 0 0", "master class"),
-                           ("unknown 0 0 0", "unknown class"),
-                           ("normal 0 0 -1", "negative seconds"),
-                           ("normal 0 0 1x", "trailing seconds garbage"),
+        width = "Wrong number of arguments in buffer limit configuration."
+        client_class = "Invalid client class specified in buffer limit configuration."
+        setting = "Error in hard, soft or soft_seconds setting in buffer limit configuration."
+        for bad, label, detail in (("normal 0 0", "wrong group width", width),
+                           ("master 0 0 0", "master class", client_class),
+                           ("unknown 0 0 0", "unknown class", client_class),
+                           ("normal 0 0 -1", "negative seconds", setting),
+                           ("normal 0 0 1x", "trailing seconds garbage", setting),
                            ("normal 184467440737095516160wat 0 0",
-                            "overflow with garbage suffix"),
-                           ("normal 0 0 0 pubsub nope 0 0", "all-or-nothing")):
-            expect_error(admin.command("CONFIG", "SET", "client-output-buffer-limit", bad),
-                         "Invalid argument", f"COBL rejects {label}")
+                            "overflow with garbage suffix", setting),
+                           ("normal 0 0 0 pubsub nope 0 0", "all-or-nothing", setting)):
+            reply = admin.command("CONFIG", "SET", "client-output-buffer-limit", bad)
+            assert isinstance(reply, RespError), reply
+            # Exact Redis 7.4 oracle replies, retained by the netfix_config gate job.
+            expect(str(reply), "ERR CONFIG SET failed (possibly related to argument "
+                   "'client-output-buffer-limit') - " + detail, f"COBL rejects {label}")
             expect(config_get(admin, "client-output-buffer-limit"), before,
                    f"COBL rejection atomic: {label}")
 

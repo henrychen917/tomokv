@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; netfix NT4.8 network CONFIG error parity
+  netfix NT4.8 network CONFIG error parity             FAIL (see /home/user/Projects/cx-netfix/build/gate-run.H9lgYp/jobs/netfix_config/proof.log)
