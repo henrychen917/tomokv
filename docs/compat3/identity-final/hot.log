@@ -1,0 +1,7 @@
+Hot bodies: 1216; raw byte equal: 1188; bytes + resolved relocation targets equal: 1210
+DIFF db0/src/cmd/scripting.o 606 647 tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)
+DIFF db0/src/core/reorder.o 18480 18480 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF src/cmd/scripting.o 1990 2086 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+DIFF src/cmd/scripting.o 2799 2840 tomo::FlatStore::erase(unsigned long, tomo::Slice)
+DIFF src/core/rl2s.o 21239 21231 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+DIFF src/core/rl2s.o 21252 21203 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)

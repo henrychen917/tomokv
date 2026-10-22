@@ -1,0 +1,2310 @@
+[
+  {
+    "arm": "post",
+    "unit": "src/core/rl2s.o",
+    "budget": 162908,
+    "start_size": 111035,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162908.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162908",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162908.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162908"
+    ],
+    "score": [
+      6,
+      13,
+      22
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN4tomo16LateUnixListener4openEjRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEt",
+        "name": "tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, unsigned short)",
+        "direct": false,
+        "hot": false,
+        "pre": 5626,
+        "post": 5390
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop17flip_control_passILb1EEEjv",
+        "name": "unsigned int tomo::IoLoop::flip_control_pass<true>()",
+        "direct": false,
+        "hot": false,
+        "pre": 5393,
+        "post": 5361
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+        "direct": false,
+        "hot": true,
+        "pre": 21049,
+        "post": 20653
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "direct": false,
+        "hot": true,
+        "pre": 190,
+        "post": 195
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21239,
+        "post": 21231
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+        "direct": false,
+        "hot": true,
+        "pre": 21185,
+        "post": 20964
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "direct": false,
+        "hot": true,
+        "pre": 197,
+        "post": 202
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21252,
+        "post": 21203
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo::IoLoop::pubsub_home_publish(tomo::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3936,
+        "post": 4823
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo::IoLoop::pubsub_deliver_batch(std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop21ReadLocalDemotionPlan12post_currentERKNS_4TaskEj",
+        "name": "tomo::IoLoop::ReadLocalDemotionPlan::post_current(tomo::Task const&, unsigned int)",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 319
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD1Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD2Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE14aof_flush_passEv",
+        "name": "tomo::ExLoopT<true>::aof_flush_pass()",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 431
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+        "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4682,
+        "post": 4253
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo::PubSubDelivery& std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::emplace_back<tomo::PubSubDelivery>(tomo::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::_M_realloc_insert<tomo::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo::PubSubDelivery*, std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> > >, tomo::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/core/rl2s.o",
+    "budget": 162940,
+    "start_size": 111035,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162940.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162940",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162940.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162940"
+    ],
+    "score": [
+      6,
+      13,
+      22
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN4tomo16LateUnixListener4openEjRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEt",
+        "name": "tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, unsigned short)",
+        "direct": false,
+        "hot": false,
+        "pre": 5626,
+        "post": 5392
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop17flip_control_passILb1EEEjv",
+        "name": "unsigned int tomo::IoLoop::flip_control_pass<true>()",
+        "direct": false,
+        "hot": false,
+        "pre": 5393,
+        "post": 5361
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+        "direct": false,
+        "hot": true,
+        "pre": 21049,
+        "post": 20692
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "direct": false,
+        "hot": true,
+        "pre": 190,
+        "post": 198
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21239,
+        "post": 21231
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+        "direct": false,
+        "hot": true,
+        "pre": 21185,
+        "post": 20964
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "direct": false,
+        "hot": true,
+        "pre": 197,
+        "post": 202
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21252,
+        "post": 21203
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo::IoLoop::pubsub_home_publish(tomo::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3936,
+        "post": 4823
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo::IoLoop::pubsub_deliver_batch(std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop21ReadLocalDemotionPlan12post_currentERKNS_4TaskEj",
+        "name": "tomo::IoLoop::ReadLocalDemotionPlan::post_current(tomo::Task const&, unsigned int)",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 319
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD1Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD2Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE14aof_flush_passEv",
+        "name": "tomo::ExLoopT<true>::aof_flush_pass()",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 431
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+        "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4682,
+        "post": 4253
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo::PubSubDelivery& std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::emplace_back<tomo::PubSubDelivery>(tomo::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::_M_realloc_insert<tomo::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo::PubSubDelivery*, std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> > >, tomo::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/core/rl2s.o",
+    "budget": 162956,
+    "start_size": 111035,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162956.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162956",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162956.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162956"
+    ],
+    "score": [
+      4,
+      12,
+      21
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN4tomo16LateUnixListener4openEjRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEt",
+        "name": "tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, unsigned short)",
+        "direct": false,
+        "hot": false,
+        "pre": 5626,
+        "post": 5390
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop17flip_control_passILb0EEEjv",
+        "name": "unsigned int tomo::IoLoop::flip_control_pass<false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 5393,
+        "post": 5361
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop17flip_control_passILb1EEEjv",
+        "name": "unsigned int tomo::IoLoop::flip_control_pass<true>()",
+        "direct": false,
+        "hot": false,
+        "pre": 5393,
+        "post": 5361
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21239,
+        "post": 21231
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+        "direct": false,
+        "hot": true,
+        "pre": 21185,
+        "post": 20964
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "direct": false,
+        "hot": true,
+        "pre": 197,
+        "post": 202
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21252,
+        "post": 21203
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo::IoLoop::pubsub_home_publish(tomo::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3936,
+        "post": 4823
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo::IoLoop::pubsub_deliver_batch(std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop21ReadLocalDemotionPlan12post_currentERKNS_4TaskEj",
+        "name": "tomo::IoLoop::ReadLocalDemotionPlan::post_current(tomo::Task const&, unsigned int)",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 319
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD1Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD2Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE14aof_flush_passEv",
+        "name": "tomo::ExLoopT<true>::aof_flush_pass()",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 431
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+        "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4682,
+        "post": 4253
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo::PubSubDelivery& std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::emplace_back<tomo::PubSubDelivery>(tomo::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::_M_realloc_insert<tomo::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo::PubSubDelivery*, std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> > >, tomo::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/core/rl2s.o",
+    "budget": 162988,
+    "start_size": 111035,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162988.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162988",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162988.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-162988"
+    ],
+    "score": [
+      4,
+      13,
+      22
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN4tomo16LateUnixListener4openEjRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEt",
+        "name": "tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, unsigned short)",
+        "direct": false,
+        "hot": false,
+        "pre": 5626,
+        "post": 5392
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop17flip_control_passILb0EEEjv",
+        "name": "unsigned int tomo::IoLoop::flip_control_pass<false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 5393,
+        "post": 5361
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop17flip_control_passILb1EEEjv",
+        "name": "unsigned int tomo::IoLoop::flip_control_pass<true>()",
+        "direct": false,
+        "hot": false,
+        "pre": 5393,
+        "post": 5361
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21239,
+        "post": 21231
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+        "direct": false,
+        "hot": true,
+        "pre": 21185,
+        "post": 20964
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "direct": false,
+        "hot": true,
+        "pre": 197,
+        "post": 202
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21252,
+        "post": 21203
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo::IoLoop::pubsub_home_publish(tomo::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3936,
+        "post": 4823
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo::IoLoop::pubsub_deliver_batch(std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop21ReadLocalDemotionPlan12post_currentERKNS_4TaskEj",
+        "name": "tomo::IoLoop::ReadLocalDemotionPlan::post_current(tomo::Task const&, unsigned int)",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 319
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD1Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD2Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo6Server10flip_beginEjjjRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+        "name": "tomo::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+        "direct": false,
+        "hot": false,
+        "pre": 6382,
+        "post": 6366
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE14aof_flush_passEv",
+        "name": "tomo::ExLoopT<true>::aof_flush_pass()",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 431
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+        "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4682,
+        "post": 4253
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo::PubSubDelivery& std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::emplace_back<tomo::PubSubDelivery>(tomo::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::_M_realloc_insert<tomo::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo::PubSubDelivery*, std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> > >, tomo::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/core/rl2s.o",
+    "budget": 163004,
+    "start_size": 111035,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-163004.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=163004",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-163004.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-163004"
+    ],
+    "score": [
+      4,
+      11,
+      20
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN4tomo16LateUnixListener4openEjRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEt",
+        "name": "tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, unsigned short)",
+        "direct": false,
+        "hot": false,
+        "pre": 5626,
+        "post": 5392
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop17flip_control_passILb1EEEjv",
+        "name": "unsigned int tomo::IoLoop::flip_control_pass<true>()",
+        "direct": false,
+        "hot": false,
+        "pre": 5393,
+        "post": 5361
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21239,
+        "post": 21231
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+        "direct": false,
+        "hot": true,
+        "pre": 21185,
+        "post": 20995
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "direct": false,
+        "hot": true,
+        "pre": 197,
+        "post": 202
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21252,
+        "post": 21203
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo::IoLoop::pubsub_home_publish(tomo::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3936,
+        "post": 4823
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo::IoLoop::pubsub_deliver_batch(std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop21ReadLocalDemotionPlan12post_currentERKNS_4TaskEj",
+        "name": "tomo::IoLoop::ReadLocalDemotionPlan::post_current(tomo::Task const&, unsigned int)",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 319
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD1Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD2Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE14aof_flush_passEv",
+        "name": "tomo::ExLoopT<true>::aof_flush_pass()",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 431
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+        "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4682,
+        "post": 4253
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo::PubSubDelivery& std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::emplace_back<tomo::PubSubDelivery>(tomo::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::_M_realloc_insert<tomo::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo::PubSubDelivery*, std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> > >, tomo::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "src/core/rl2s.o",
+    "budget": 163036,
+    "start_size": 111035,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-163036.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=163036",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-163036.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/src_core_rl2s.o-post-163036"
+    ],
+    "score": [
+      2,
+      6,
+      15
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21239,
+        "post": 21231
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 21252,
+        "post": 21203
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo::IoLoop::pubsub_deliver_one(tomo::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo::IoLoop::pubsub_home_publish(tomo::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3936,
+        "post": 4823
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo::IoLoop::pubsub_deliver_batch(std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD1Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo6IoLoopD2Ev",
+        "name": "tomo::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE14aof_flush_passEv",
+        "name": "tomo::ExLoopT<true>::aof_flush_pass()",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 431
+      },
+      {
+        "symbol": "_ZN4tomo7ExLoopTILb1EE21snapshot_control_passILj32ELb0EEEjv",
+        "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4682,
+        "post": 4253
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo::PubSubDelivery& std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::emplace_back<tomo::PubSubDelivery>(tomo::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo14PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> >::_M_realloc_insert<tomo::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo::PubSubDelivery*, std::vector<tomo::PubSubDelivery, std::allocator<tomo::PubSubDelivery> > >, tomo::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN4tomo6IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo::IoLoop::PubSubOutbox, std::allocator<tomo::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/core/reorder.o",
+    "budget": 148936,
+    "start_size": 113898,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-148936.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=148936",
+      "--param",
+      "max-inline-insns-auto=14",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-148936.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-148936"
+    ],
+    "score": [
+      5,
+      13,
+      22
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN8tomo_db06IoLoop11r7_run_loopILb1ELb0ELb0ELb1ELb0EEEvv",
+        "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, false, true, false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4787,
+        "post": 4752
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop11r7_run_loopILb1ELb1ELb0ELb1ELb0EEEvv",
+        "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4851,
+        "post": 4816
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb0EEEjv",
+        "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4670,
+        "post": 4577
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb1EEEjv",
+        "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<true>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4670,
+        "post": 4577
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo_db0::IoLoop::pubsub_delete_event(tomo_db0::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo_db0::IoLoop::pubsub_home_publish(tomo_db0::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3246,
+        "post": 4067
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_batch(std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop21r7_parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 18480,
+        "post": 18480
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo_db0::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD1Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD2Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db07ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+        "direct": false,
+        "hot": true,
+        "pre": 4180,
+        "post": 4033
+      },
+      {
+        "symbol": "_ZN8tomo_db07ExLoopTILb1EE18r7_fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+        "direct": false,
+        "hot": true,
+        "pre": 4180,
+        "post": 4033
+      },
+      {
+        "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+        "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "direct": false,
+        "hot": true,
+        "pre": 3631,
+        "post": 3565
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_5Shard20lb_scan_bucket_bytesEjEUlPNS_5KvObjEE_EEjijRT_b",
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre": 964,
+        "post": 820
+      },
+      {
+        "symbol": "_ZNK8tomo_db06Server14flip_client_atEjj",
+        "name": "tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 83
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo_db0::PubSubDelivery& std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::emplace_back<tomo_db0::PubSubDelivery>(tomo_db0::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::_M_realloc_insert<tomo_db0::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo_db0::PubSubDelivery*, std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> > >, tomo_db0::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZZN8tomo_db08WbEngine14serve_tls_implILb1ELb1ELb1ELb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPbENKUlRNS_2OpEE_clES8_",
+        "name": "tomo_db0::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+        "direct": false,
+        "hot": true,
+        "pre": 1244,
+        "post": 1016
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/core/reorder.o",
+    "budget": 148968,
+    "start_size": 113898,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-148968.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=148968",
+      "--param",
+      "max-inline-insns-auto=14",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-148968.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-148968"
+    ],
+    "score": [
+      5,
+      11,
+      20
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb0EEEjv",
+        "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4670,
+        "post": 4577
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb1EEEjv",
+        "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<true>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4670,
+        "post": 4577
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "direct": false,
+        "hot": true,
+        "pre": 9794,
+        "post": 9810
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0.cold",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "direct": false,
+        "hot": true,
+        "pre": 166,
+        "post": 166
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo_db0::IoLoop::pubsub_delete_event(tomo_db0::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo_db0::IoLoop::pubsub_home_publish(tomo_db0::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3246,
+        "post": 4067
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_batch(std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo_db0::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD1Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD2Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db07ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+        "direct": false,
+        "hot": true,
+        "pre": 4180,
+        "post": 4033
+      },
+      {
+        "symbol": "_ZN8tomo_db07ExLoopTILb1EE18r7_fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+        "direct": false,
+        "hot": true,
+        "pre": 4180,
+        "post": 4033
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_5Shard20lb_scan_bucket_bytesEjEUlPNS_5KvObjEE_EEjijRT_b",
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre": 964,
+        "post": 820
+      },
+      {
+        "symbol": "_ZNK8tomo_db06Server14flip_client_atEjj",
+        "name": "tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 83
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo_db0::PubSubDelivery& std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::emplace_back<tomo_db0::PubSubDelivery>(tomo_db0::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::_M_realloc_insert<tomo_db0::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo_db0::PubSubDelivery*, std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> > >, tomo_db0::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZZN8tomo_db08WbEngine14serve_tls_implILb1ELb1ELb1ELb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPbENKUlRNS_2OpEE_clES8_",
+        "name": "tomo_db0::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+        "direct": false,
+        "hot": true,
+        "pre": 1244,
+        "post": 1016
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/core/reorder.o",
+    "budget": 148984,
+    "start_size": 113898,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-148984.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=148984",
+      "--param",
+      "max-inline-insns-auto=14",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-148984.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-148984"
+    ],
+    "score": [
+      3,
+      9,
+      18
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb0EEEjv",
+        "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4670,
+        "post": 4577
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb1EEEjv",
+        "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<true>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4670,
+        "post": 4577
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo_db0::IoLoop::pubsub_delete_event(tomo_db0::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo_db0::IoLoop::pubsub_home_publish(tomo_db0::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3246,
+        "post": 4067
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_batch(std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo_db0::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD1Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD2Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db07ExLoopTILb1EE18r7_fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+        "direct": false,
+        "hot": true,
+        "pre": 4180,
+        "post": 4033
+      },
+      {
+        "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+        "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "direct": false,
+        "hot": true,
+        "pre": 3631,
+        "post": 3565
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_5Shard20lb_scan_bucket_bytesEjEUlPNS_5KvObjEE_EEjijRT_b",
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre": 964,
+        "post": 820
+      },
+      {
+        "symbol": "_ZNK8tomo_db06Server14flip_client_atEjj",
+        "name": "tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 83
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo_db0::PubSubDelivery& std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::emplace_back<tomo_db0::PubSubDelivery>(tomo_db0::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::_M_realloc_insert<tomo_db0::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo_db0::PubSubDelivery*, std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> > >, tomo_db0::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZZN8tomo_db08WbEngine14serve_tls_implILb1ELb1ELb1ELb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPbENKUlRNS_2OpEE_clES8_",
+        "name": "tomo_db0::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+        "direct": false,
+        "hot": true,
+        "pre": 1244,
+        "post": 1016
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/core/reorder.o",
+    "budget": 149016,
+    "start_size": 113898,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149016.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=149016",
+      "--param",
+      "max-inline-insns-auto=14",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149016.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149016"
+    ],
+    "score": [
+      3,
+      9,
+      18
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb0EEEjv",
+        "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4670,
+        "post": 4577
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb1EEEjv",
+        "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<true>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4670,
+        "post": 4577
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo_db0::IoLoop::pubsub_delete_event(tomo_db0::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo_db0::IoLoop::pubsub_home_publish(tomo_db0::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3246,
+        "post": 4067
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_batch(std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop21r7_parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 18480,
+        "post": 18480
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo_db0::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD1Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD2Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+        "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "direct": false,
+        "hot": true,
+        "pre": 3631,
+        "post": 3565
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_5Shard20lb_scan_bucket_bytesEjEUlPNS_5KvObjEE_EEjijRT_b",
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre": 964,
+        "post": 820
+      },
+      {
+        "symbol": "_ZNK8tomo_db06Server14flip_client_atEjj",
+        "name": "tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 83
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo_db0::PubSubDelivery& std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::emplace_back<tomo_db0::PubSubDelivery>(tomo_db0::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::_M_realloc_insert<tomo_db0::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo_db0::PubSubDelivery*, std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> > >, tomo_db0::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZZN8tomo_db08WbEngine14serve_tls_implILb1ELb1ELb1ELb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPbENKUlRNS_2OpEE_clES8_",
+        "name": "tomo_db0::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+        "direct": false,
+        "hot": true,
+        "pre": 1244,
+        "post": 1016
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/core/reorder.o",
+    "budget": 149032,
+    "start_size": 113898,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149032.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=149032",
+      "--param",
+      "max-inline-insns-auto=14",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149032.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149032"
+    ],
+    "score": [
+      2,
+      5,
+      14
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN8tomo_db06IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo_db0::IoLoop::pubsub_delete_event(tomo_db0::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo_db0::IoLoop::pubsub_home_publish(tomo_db0::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3246,
+        "post": 4067
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_batch(std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop21r7_parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 18480,
+        "post": 18480
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo_db0::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD1Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD2Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_5Shard20lb_scan_bucket_bytesEjEUlPNS_5KvObjEE_EEjijRT_b",
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre": 964,
+        "post": 820
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo_db0::PubSubDelivery& std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::emplace_back<tomo_db0::PubSubDelivery>(tomo_db0::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::_M_realloc_insert<tomo_db0::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo_db0::PubSubDelivery*, std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> > >, tomo_db0::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZZN8tomo_db08WbEngine14serve_tls_implILb1ELb1ELb1ELb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPbENKUlRNS_2OpEE_clES8_",
+        "name": "tomo_db0::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+        "direct": false,
+        "hot": true,
+        "pre": 1244,
+        "post": 1016
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "unit": "db0/src/core/reorder.o",
+    "budget": 149064,
+    "start_size": 113898,
+    "object": "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149064.o",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=149064",
+      "--param",
+      "max-inline-insns-auto=14",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149064.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-compat3/build/compat3/budgets/db0_src_core_reorder.o-post-149064"
+    ],
+    "score": [
+      1,
+      7,
+      16
+    ],
+    "changed": [
+      {
+        "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb0EEEjv",
+        "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4670,
+        "post": 4577
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb1EEEjv",
+        "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<true>()",
+        "direct": false,
+        "hot": false,
+        "pre": 4670,
+        "post": 4577
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)",
+        "direct": true,
+        "hot": false,
+        "pre": 929,
+        "post": 929
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+        "name": "tomo_db0::IoLoop::pubsub_delete_event(tomo_db0::PubSubEvent*)",
+        "direct": true,
+        "hot": false,
+        "pre": 909,
+        "post": 909
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop19pubsub_home_publishERNS_11PubSubEventEb",
+        "name": "tomo_db0::IoLoop::pubsub_home_publish(tomo_db0::PubSubEvent&, bool)",
+        "direct": true,
+        "hot": false,
+        "pre": 3246,
+        "post": 4067
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop20pubsub_deliver_batchERSt6vectorINS_14PubSubDeliveryESaIS2_EE",
+        "name": "tomo_db0::IoLoop::pubsub_deliver_batch(std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >&)",
+        "direct": true,
+        "hot": false,
+        "pre": 1097,
+        "post": 1402
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop21r7_parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+        "direct": false,
+        "hot": true,
+        "pre": 18480,
+        "post": 18480
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoop22pubsub_shutdown_eventsEv",
+        "name": "tomo_db0::IoLoop::pubsub_shutdown_events()",
+        "direct": true,
+        "hot": false,
+        "pre": 1887,
+        "post": 1887
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD1Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db06IoLoopD2Ev",
+        "name": "tomo_db0::IoLoop::~IoLoop()",
+        "direct": false,
+        "hot": false,
+        "pre": 3440,
+        "post": 3440
+      },
+      {
+        "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_5Shard20lb_scan_bucket_bytesEjEUlPNS_5KvObjEE_EEjijRT_b",
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "direct": false,
+        "hot": false,
+        "pre": 964,
+        "post": 820
+      },
+      {
+        "symbol": "_ZNK8tomo_db06Server14flip_client_atEjj",
+        "name": "tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const",
+        "direct": false,
+        "hot": false,
+        "pre": 0,
+        "post": 83
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE12emplace_backIJS1_EEERS1_DpOT_.isra.0",
+        "name": "tomo_db0::PubSubDelivery& std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::emplace_back<tomo_db0::PubSubDelivery>(tomo_db0::PubSubDelivery&&) [clone .isra.0]",
+        "direct": true,
+        "hot": false,
+        "pre": 1202,
+        "post": 0
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db014PubSubDeliveryESaIS1_EE17_M_realloc_insertIJS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_",
+        "name": "void std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> >::_M_realloc_insert<tomo_db0::PubSubDelivery>(__gnu_cxx::__normal_iterator<tomo_db0::PubSubDelivery*, std::vector<tomo_db0::PubSubDelivery, std::allocator<tomo_db0::PubSubDelivery> > >, tomo_db0::PubSubDelivery&&)",
+        "direct": true,
+        "hot": false,
+        "pre": 0,
+        "post": 1325
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED1Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      },
+      {
+        "symbol": "_ZNSt6vectorIN8tomo_db06IoLoop12PubSubOutboxESaIS2_EED2Ev",
+        "name": "std::vector<tomo_db0::IoLoop::PubSubOutbox, std::allocator<tomo_db0::IoLoop::PubSubOutbox> >::~vector()",
+        "direct": true,
+        "hot": false,
+        "pre": 189,
+        "post": 189
+      }
+    ]
+  }
+]

@@ -1,0 +1,161 @@
+tests/contarity.py:88:    "    * ENTRIESREAD entries_read",
+tests/contarity.py:96:    "SETID <key> <groupname> <id|$> [ENTRIESREAD entries_read]",
+tests/multidb.py:264:        expect(subscriber.read(), [b"pmessage", b"__keyevent@*__:*", b"__keyevent@1__:set", b"md:event"], "notification DB")
+tests/compat3_pubsub.py:2:"""CC4.12: empty patterns retain pmessage framing in both RESP dialects."""
+tests/aclkeys_unit.cc:169:    // XREADGROUP exceeds Op's eight inline arguments, covering the heap view too.
+tests/aclkeys_unit.cc:170:    retired_reply(user, {"XREADGROUP", "GROUP", "group", "consumer", "BLOCK", "0",
+tests/aclkeys_unit.cc:185:        keys(user, {"XREADGROUP", "GROUP", "group", "consumer", "BLOCK", timeout,
+tests/notify.py:153:    if len(frame) == 4 and frame[0] == b"pmessage":
+tests/pubsub.py:396:        (b"pmessage", f"{token}:news:*".encode(), arm_channel.encode(), b"payload"),
+tests/pubsub.py:397:        (b"pmessage", f"{token}:*:42".encode(), arm_channel.encode(), b"payload"),
+tests/pubsub.py:629:    expect(resp3_sub.file.read(1), b">", "RESP3 pmessage push")
+tests/pubsub.py:630:    expect(resp3_sub.file.readline(), b"4\r\n", "RESP3 pmessage arity")
+tests/pubsub.py:632:           [b"pmessage", f"{token}:mix*".encode(), mixed.encode(), b"again"], "resp3 pmessage body")
+tests/aof.py:285:               "flags={'no-writes'}}\n")
+tests/compat3_streams.py:14:    rows = c.cmd("XPENDING", "s", "g", *args)
+tests/compat3_streams.py:27:            reply = c.cmd("XREADGROUP", "GROUP", "g", consumer, "COUNT", 1, "STREAMS", "s", ">")
+tests/compat3_streams.py:36:        new = c.cmd("XREADGROUP", "GROUP", "g", "c", "COUNT", 0, "STREAMS", "s", ">")
+tests/compat3_streams.py:41:            command = ["XREADGROUP", "GROUP", "g", "c"]
+tests/compat3_streams.py:45:        out["other"] = c.cmd("XREADGROUP", "GROUP", "g", "other", "COUNT", 0, "STREAMS", "s", "0")
+tests/compat3_streams.py:47:    # The two audited option sites: signed/clamped min-idle and canonical ENTRIESREAD.
+tests/compat3_streams.py:48:    c.cmd("XREADGROUP", "GROUP", "g", "c", "STREAMS", "s", ">")
+tests/compat3_streams.py:54:        out["claim:" + value] = c.cmd("XCLAIM", "s", "g", "c2", value, "1-0" if value.startswith("-") or value == "0" else "999-0", "JUSTID")
+tests/compat3_streams.py:55:        out["setid:" + value] = c.cmd("XGROUP", "SETID", "s", "g", "0", "ENTRIESREAD", value)
+tests/compat3_streams.py:57:        out["create:" + value] = c.cmd("XGROUP", "CREATE", "s", group, "0", "ENTRIESREAD", value)
+tests/perfio.py:218:                             ("xreadgroup", encode("XREADGROUP", "GROUP", "g", "c",
+tests/perfio.py:231:    # Fixed bounds on the 33 paired GET-after-XREADGROUP samples at 100k entries (maintainer
+tests/perfio.py:242:        failed.append(f"median GET after XREADGROUP {median / 1e6:.3f} ms is not below 3 ms")
+tests/perfio.py:244:        failed.append(f"slowest GET after XREADGROUP {peak / 1e6:.3f} ms is not below 12 ms")
+tests/perfio.py:259:        return c.must("XREADGROUP", "GROUP", "g", "c", "COUNT", count, "STREAMS", "x", ">")
+tests/perfio.py:267:        suffix = ["ENTRIESREAD", 40] if case == "entriesread" else []
+tests/perfio.py:276:        elif case == "xclaim": c.must("XCLAIM", "x", "g", "other", 0, "1-0", "LASTID", "4-0")
+tests/perfio.py:282:            c.must("XGROUP", "SETID", "x", "g", "2-0", "ENTRIESREAD", value)
+tests/xscript.py:530:                   "flags={'no-writes'}}\n")
+tests/compat3_functions.py:20:        return {str((pattern, code)): libraries(c.cmd("FUNCTION", "LIST", "LIBRARYNAME", pattern,
+tests/compat3_functions.py:26:        ("allowed", ["allow-oom"], "return redis.call(\"SET\", keys[1], args[1])"),
+tests/compat3_functions.py:27:        ("allowed_error", ["allow-oom"], "redis.call(\"SET\", keys[1], args[1]); error(\"after-write\")"),
+tests/compat3_functions.py:28:        ("read", ["no-writes"], "return redis.call(\"GET\", keys[1])"),
+tests/compat3_functions.py:29:        ("readonly_write", ["no-writes", "allow-oom"], "return redis.pcall(\"SET\", keys[1], args[1]).err"),
+tests/compat3_functions.py:30:        ("stale", ["allow-stale"], "return redis.call(\"SET\", keys[1], args[1])"),
+tests/compat3_functions.py:31:        ("stale_allowed", ["allow-stale", "allow-oom"], "return redis.call(\"SET\", keys[1], args[1])"),
+tests/streamgroups.py:112:note("XGROUP CREATE ENTRIESREAD seeds entries-read and lag",
+tests/streamgroups.py:114:               "ENTRIESREAD", "2") == b"OK" and
+tests/streamgroups.py:117:note("XGROUP SETID updates cursor and ENTRIESREAD",
+tests/streamgroups.py:119:               "ENTRIESREAD", "1") == b"OK" and
+tests/streamgroups.py:126:admin.cmd("XREADGROUP", "GROUP", "g", "departing", "COUNT", "2",
+tests/streamgroups.py:130:     admin.cmd("XPENDING", "group:delconsumer", "g")[0] == 0 and
+tests/streamgroups.py:139:first = admin.cmd("XREADGROUP", "GROUP", "g", "c1", "COUNT", "4",
+tests/streamgroups.py:141:second = admin.cmd("XREADGROUP", "GROUP", "g", "c2", "COUNT", "2",
+tests/streamgroups.py:146:note("new-entry delivery inserts six exact PEL records", admin.cmd("XPENDING", "sg", "g")[0] == 6)
+tests/streamgroups.py:150:     admin.cmd("XPENDING", "sg", "g")[0] == 4)
+tests/streamgroups.py:153:extended_c1 = admin.cmd("XPENDING", "sg", "g", "-", "+", "10", "c1")
+tests/streamgroups.py:154:note("XPENDING extended consumer filter fires",
+tests/streamgroups.py:157:exclusive_end = admin.cmd("XPENDING", "sg", "g", "-", "(4-0", "10", "c1")
+tests/streamgroups.py:158:note("XPENDING exclusive end bound excludes the matching ID",
+tests/streamgroups.py:160:idle_none = admin.cmd("XPENDING", "sg", "g", "IDLE", "999999", "-", "+", "10")
+tests/streamgroups.py:161:note("XPENDING IDLE negative control excludes fresh deliveries", idle_none == [])
+tests/streamgroups.py:164:history = admin.cmd("XREADGROUP", "GROUP", "g", "c1", "STREAMS", "sg", "0-0")
+tests/streamgroups.py:168:history_pending = admin.cmd("XPENDING", "sg", "g", "-", "+", "10", "c1")
+tests/streamgroups.py:172:claimed = admin.cmd("XCLAIM", "sg", "g", "c2", "0", "4-0", "JUSTID")
+tests/streamgroups.py:173:note("XCLAIM JUSTID transfers ownership without entry nesting", claimed == [b"4-0"])
+tests/streamgroups.py:174:note("XCLAIM min-idle negative control rejects a fresh pending ID",
+tests/streamgroups.py:175:     admin.cmd("XCLAIM", "sg", "g", "c2", "999999", "4-0", "JUSTID") == [])
+tests/streamgroups.py:176:configured_claim = admin.cmd("XCLAIM", "sg", "g", "c2", "0", "4-0", "IDLE", "50",
+tests/streamgroups.py:178:configured_pending = admin.cmd("XPENDING", "sg", "g", "-", "+", "10", "c2")
+tests/streamgroups.py:180:note("XCLAIM IDLE/RETRYCOUNT/LASTID options mutate exact PEL metadata",
+tests/streamgroups.py:187:     autoclaimed[2] == [b"2-0", b"5-0"] and admin.cmd("XPENDING", "sg", "g")[0] == 2)
+tests/streamgroups.py:189:before_noack = admin.cmd("XPENDING", "sg", "g")[0]
+tests/streamgroups.py:190:noack = admin.cmd("XREADGROUP", "GROUP", "g", "c3", "NOACK", "COUNT", "10",
+tests/streamgroups.py:194:     admin.cmd("XPENDING", "sg", "g")[0] == before_noack)
+tests/streamgroups.py:207:     admin.cmd("XPENDING", "sg", "g")[0] == 2)
+tests/streamgroups.py:211:     admin.cmd("XPENDING", "sg", "g")[0] == 0)
+tests/streamgroups.py:216:    "XREADGROUP", "GROUP", "g", "worker", "BLOCK", "2000", "STREAMS", "block:g", ">")
+tests/streamgroups.py:219:note("blocking XREADGROUP registers its consumer before parking",
+tests/streamgroups.py:226:note("blocking XREADGROUP waiter arms and wakes on XADD",
+tests/streamgroups.py:229:     admin.cmd("XPENDING", "block:g", "g")[0] == 1)
+tests/streamgroups.py:234:    "XREADGROUP", "GROUP", "g", "worker", "BLOCK", "2000", "NOACK",
+tests/streamgroups.py:241:     admin.cmd("XPENDING", "block:noack", "g")[0] == 0)
+tests/streamgroups.py:245:    admin.cmd("XREADGROUP", "GROUP", "missing", "c", "BLOCK", "10",
+tests/replyschema.py:640:            "redis.register_function{function_name='replyschema_ro', callback=function() return 8 end, flags={'no-writes'}}\n"),))
+tests/replyschema.py:644:            "redis.register_function{function_name='replyschema_ro', callback=function() return 8 end, flags={'no-writes'}}\n"),))
+tests/replyschema.py:984:PENDING = GROUP + (("XREADGROUP", "GROUP", "g", "c1", "COUNT", "1", "STREAMS", "{p}:x", ">"),)
+tests/replyschema.py:993:add("xclaim", "XCLAIM", "{p}:x", "g", "c2", "0", "1-0", "JUSTID", setup=PENDING, arm=0)
+tests/replyschema.py:994:add("xclaim", "XCLAIM", "{p}:x", "g", "c2", "0", "1-0", setup=PENDING, arm=1)
+tests/replyschema.py:997:add("xpending", "XPENDING", "{p}:x", "g", "-", "+", "10", setup=PENDING, arm=0)
+tests/replyschema.py:998:add("xpending", "XPENDING", "{p}:x", "g", setup=PENDING, arm=1)
+tests/replyschema.py:1003:add("xreadgroup", "XREADGROUP", "GROUP", "g", "c1", "STREAMS", "{p}:x", ">",
+tests/replyschema.py:1005:add("xreadgroup", "XREADGROUP", "GROUP", "g", "c1", "BLOCK", "1", "STREAMS", "{p}:x", ">",
+tests/replyschema.py:1006:    setup=GROUP + (("XREADGROUP", "GROUP", "g", "c1", "STREAMS", "{p}:x", ">"),), arm=0)
+tests/replyschema.py:1109:                 "callback=function() return 11 end, description='shape', flags={'no-writes'}}\n")
+tests/replyschema.py:1115:add("function|list", "FUNCTION", "LIST", "LIBRARYNAME", "replyschema_sub", "WITHCODE",
+tests/scriptsurf.py:174:            + "  flags={'no-writes'}, description='read only'}\n"
+tests/scriptsurf.py:177:            + "  flags={'no-writes'}}\n")
+tests/scriptsurf.py:311:        expected = b"-ERR Write commands are not allowed from read-only scripts."
+tests/scriptsurf.py:348:             b"-ERR Write commands are not allowed from read-only scripts."))
+tests/scriptsurf.py:355:         == b"ERR Write commands are not allowed from read-only scripts.")
+tests/scriptsurf.py:388:    with_code = c.cmd("FUNCTION", "LIST", "LIBRARYNAME", "sslib", "WITHCODE")
+tests/scriptsurf.py:392:    note("FUNCTION LIST LIBRARYNAME filters",
+tests/scriptsurf.py:393:         len(with_code) == 1 and c.cmd("FUNCTION", "LIST", "LIBRARYNAME", "nope") == [])
+tests/scriptsurf.py:398:         fns[b"ssro"][b"flags"] == [b"no-writes"] and fns[b"ssget"][b"flags"] == [])
+tests/scriptsurf.py:412:    note("FCALL_RO runs a no-writes function", c.cmd("FCALL_RO", "ssro", "1", fk) == b"fv")
+tests/scriptsurf.py:414:    note("FCALL_RO refuses a function without no-writes",
+tests/scriptsurf.py:419:    note("plain FCALL of a no-writes function is still read-only",
+tests/scriptsurf.py:421:             b"-ERR Write commands are not allowed from read-only scripts."))
+tests/scriptsurf.py:422:    note("the refused no-writes write did not land", c.cmd("GET", fk) == b"fv")
+tests/scriptsurf.py:488:         "callback=function() return 1 end, flags='no-writes'}"),
+tests/scriptsurf.py:506:    shape(c, "FUNCTION LIST LIBRARYNAME without value", "FUNCTION", "LIST", "LIBRARYNAME")
+tests/scriptsurf.py:517:    note("failed library registers nothing", c.cmd("FUNCTION", "LIST", "LIBRARYNAME", "ssr9") == [])
+tests/scriptsurf.py:553:         dict(zip(c.cmd("FUNCTION", "LIST", "LIBRARYNAME", "sslib", "WITHCODE")[0][0::2],
+tests/scriptsurf.py:554:                  c.cmd("FUNCTION", "LIST", "LIBRARYNAME", "sslib", "WITHCODE")[0][1::2]))
+tests/xacct.py:85:        delivered = admin.cmd("XREADGROUP", "GROUP", "g", "c", "COUNT", depth,
+tests/xacct.py:89:    pending = admin.cmd("XPENDING", "xacct:pel", "g")[0]
+tests/xacct.py:204:admin.cmd("XREADGROUP", "GROUP", "g", "a", "COUNT", "8", "STREAMS", target, ">")
+tests/xacct.py:207:admin.cmd("XCLAIM", target, "g", claim_consumer, "0", "1-0", "2-0")
+tests/xacct.py:218:pending_before = admin.cmd("XPENDING", target, "g")[0]
+tests/xacct.py:222:pending_after = admin.cmd("XPENDING", target, "g")[0]
+tests/aclkeys_wake_unit.cc:34:            kind == "XREADGROUP", "known witness scenario");
+tests/aclkeys_wake_unit.cc:120:    } else if (kind == "XREADGROUP") {
+tests/aclkeys_wake_unit.cc:123:        read = {"XREADGROUP", "GROUP", "group", "consumer", "BLOCK", "0", "STREAMS", key, ">"};
+tests/aclkeys_wake_unit.cc:211:    if (kind == "XREADGROUP" || unblock) {
+tests/globcase.py:140:            if isinstance(msg, list) and msg and msg[0] == b"pmessage":
+tests/netcmd.py:26:        for verb in (("XPENDING", b"absent\r\n:123\r\n", "g"),
+tests/netcmd.py:35:        c.raw(encode("XPENDING", "netcmd:stream", "g", "(18446744073709551615-18446744073709551615", "+", 1) +
+tests/netcmd.py:37:        require(c.read() == [] and c.read() == b"pending", "exclusive max XPENDING has an empty reply")
+tests/mdbstamp_checks.cc:198:    {"xreadgroup", {"XREADGROUP", "GROUP", "g", "c", "COUNT", "2", "STREAMS", "a", "b", ">", ">"}, {7,8}},
+tests/mdbstamp_checks.cc:237:        " XREAD XGROUP XREADGROUP XINFO MOVE KEYS SORT"
+tests/resp3.py:250:    # XPENDING and GEO are not registered in this tree. Their audited RESP3 invariance is recorded
+tests/resp3.py:332:    expect(event.kind == b">" and bulk(event.value[0]) == b"pmessage",
+tests/atomic_hazards.py:24:    xread_count == 0, so a localfast XREAD/XREADGROUP named no key.  It therefore never deferred
+tests/netcmd_stream_unit.cc:14:    tomo::Op op; args(op, {"XREADGROUP", "GROUP", "g", "c", "COUNT", "2", "STREAMS", "s", ">"});
+tests/netcmd_stream_unit.cc:26:    const std::string retry = execute(shard, {"XREADGROUP", "GROUP", "g", "c", "COUNT", "2", "STREAMS", "s", ">"});
+tests/aclfix.py:9:  streams-name  CC4.9   XREADGROUP with a group named STREAMS admits no outside stream
+tests/aclfix.py:13:  wake-scatter  AT4.6   a woken BLMOVE/BRPOPLPUSH/XREAD/XREADGROUP denial moves/delivers nothing
+tests/aclfix.py:170:        got = user.cmd("XREADGROUP", "GROUP", "STREAMS", "consumer", "STREAMS", "secret:stream", ">")
+tests/aclfix.py:171:        pending = admin.cmd("XPENDING", "secret:stream", "STREAMS")
+tests/aclfix.py:172:        print("XREADGROUP", repr(got), "pending", repr(pending), flush=True)
+tests/aclfix.py:293:                 ("XREADGROUP", ["XREADGROUP", "GROUP", "g", "c", "BLOCK", "0",
+tests/aclfix.py:302:            if name == "XREADGROUP":
+tests/aclfix.py:331:                pending = admin.cmd("XPENDING", "src", "g")[0] if name == "XREADGROUP" else 0
+tests/notify_order.py:36:        out += [[b'pmessage', b'__keyspace@0__:*', b'__keyspace@0__:' + key, event],
+tests/notify_order.py:37:                [b'pmessage', b'__keyevent@0__:*', b'__keyevent@0__:' + event, key]]
+tests/_differ_aclkeys.py:29:    rows.append((["XREADGROUP", "GROUP", "aclkeys-group", "consumer", "BLOCK", "0",
+tests/clientfix.py:232:        assert keep.read() == [b'pmessage', b'keep:*', b'keep:one', b'before']
+tests/clientfix.py:244:        assert count == 1 and frames == [[b'pmessage', b'keep:*', b'keep:one', b'after']]
+tests/differ.py:635:        ops.append(["XGROUP", "CREATE", key, "g", "0-0", "ENTRIESREAD", "0"])
+tests/differ.py:647:            ops.append(["XREADGROUP", "GROUP", "g", consumer, "COUNT",
+tests/differ.py:651:            ops.append(["XREADGROUP", "GROUP", "g", consumer, "COUNT", "3",
+tests/differ.py:657:            ops.append(["XPENDING", key, "g"])
+tests/differ.py:660:            ops.append(["XCLAIM", key, "g", consumer, "0"] + ids + ["JUSTID"])
+tests/differ.py:663:            ops.append(["XCLAIM", key, "g", consumer, "0", ident, "FORCE", "JUSTID"])
+tests/differ.py:677:                        "ENTRIESREAD", str(read)])
+tests/differ.py:683:            ops.append(["XPENDING", key, "g"])
+tests/differ.py:687:        ["XPENDING", keys[0], "missing"],
+tests/differ.py:2956:               "  flags={'no-writes'}, description='diff reader'}\n"
+tests/differ.py:2958:               "  callback=function(keys, args) return #args end, flags={'no-writes'}}\n")
+tests/differ.py:3021:            ops.append(["FUNCTION", "LIST", "LIBRARYNAME", rng.choice(["difflib", "difflib2",
+tests/differ.py:4347:    wanted_kinds = [b"message", b"pmessage", b"pmessage"]
+tests/differ.py:4553:    # covers the encode-once blob (one encoding serving '*' and '>' headers), the `pmessage` tail
+tests/differ.py:4589:    # pmessage frames for one publish is dictionary order on both servers and is not a contract.
+tests/differ.py:5249:            cmd = ["XREADGROUP", "GROUP", "g", "c", "COUNT", "2", "STREAMS"] + ks + [">"] * n
+tests/differ.py:5617:        ["XREADGROUP", "GROUP", "g", "c", "STREAMS", "a", "b", ">", ">"],
+tests/differ.py:6556:MONITOR_LIBRARY = "#!lua name=ifmonlib\nredis.register_function{function_name='ifmonget', callback=function(keys,args) return 7 end, flags={'no-writes'}}"
