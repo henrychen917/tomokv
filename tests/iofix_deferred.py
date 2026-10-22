@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """WB4.1: a real remote LPOS holds one FIFO entry; idle IO CPU must stay bounded."""
 import select
+import os
+from pathlib import Path
 import time
 from _iofix import arguments, Listener, emit, encode, cpu_times
 
@@ -36,6 +38,13 @@ def run(args):
                 raise AssertionError('could not place the connection away from its list owner')
             io_owner = c.cmd('DEBUG', 'IO-THREAD')
             before = cpu_times(server.process.pid)
+            cores = sorted(os.sched_getaffinity(server.process.pid))
+            def owner_tid(index):
+                found = [tid for tid in before if os.sched_getaffinity(tid) == {cores[index]}
+                         and not Path(f'/proc/{tid}/comm').read_text().startswith('iou-')]
+                assert len(found) == 1, ('worker affinity is ambiguous', index, found)
+                return found[0]
+            io_tid, list_tid = owner_tid(io_owner), owner_tid(owner)
             started = time.monotonic()
             held = 0
             for _ in range(16):
@@ -47,16 +56,19 @@ def run(args):
             cpu = sorted(((after[tid] - ns) / 1e9, tid) for tid, ns in before.items()
                          if tid in after)[::-1]
             # One owner must really have run the slow command; a missing deferral window is red.
-            assert cpu[0][0] > .10, ('LPOS window never opened', cpu)
+            io_cpu = (after[io_tid] - before[io_tid]) / 1e9
+            list_cpu = (after[list_tid] - before[list_tid]) / 1e9
+            assert list_cpu > .10, ('LPOS window never opened', list_cpu)
             if policy:
                 assert held > 0, 'no deferred prefix was witnessed'
             emit(arm=name, io_owner=io_owner, list_owner=owner, holds=held, wall_seconds=wall,
-                 top_cpu_seconds=cpu[:3], io_cpu_upper_bound=cpu[1][0])
-            # The only sustained CPU consumer may be LPOS's executor. All other threads together
-            # should be nearly idle. This catches PRE's second fully occupied core independently
-            # of thread names/placement and uses the kernel's CPU accounting, not loop counters.
-            if cpu[1][0] > wall * .15:
-                failures.append((name, 'deferred IO busy-spun', cpu[1][0], wall))
+                 top_cpu_seconds=cpu[:3], io_tid=io_tid, list_tid=list_tid,
+                 io_cpu_seconds=io_cpu, list_cpu_seconds=list_cpu,
+                 second_busy_cpu_seconds=cpu[1][0])
+            # Directly measure the proven connection owner. Retain the independent rank check:
+            # LPOS's owner must be the only sustained CPU consumer in this isolated workload.
+            if io_cpu > wall * .15 or cpu[1][0] > wall * .15:
+                failures.append((name, 'deferred IO busy-spun', io_cpu, cpu[1][0], wall))
             assert c.cmd('SET', 'iofix:after', name) == b'OK'
             assert c.cmd('GET', 'iofix:after') == name.encode()
     assert not failures, failures

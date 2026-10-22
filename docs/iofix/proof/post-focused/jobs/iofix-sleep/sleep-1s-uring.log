@@ -1,0 +1,52 @@
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "19801", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.GKD6EY/jobs/iofix-sleep/sleep-1s-uring/oracle", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes"], "pid": 1411608}
+{"reply": "b'OK'", "seconds": 9.335950016975403e-05, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 2.6979483664035797e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 7.847137749195099e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 2.0359642803668976e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 1.927930861711502e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 7.590930908918381e-05, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 0.002084706909954548, "sleep": ".002tail"}
+{"reply": "b'OK'", "seconds": 0.0020860573276877403, "sleep": " 0.002"}
+{"reply": "b'OK'", "seconds": 1.0103266322985291, "sleep": "1.01"}
+{"oracle": ["b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", ["b'OK'", "b'OK'", "b'OK'", "b'after'"], "b'PONG'"]}
+{"oracle": true, "signal_during_sleep_seconds": 0.11347834207117558}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/cx-iofix/build/tomokv", "--bind", "127.0.0.1", "--port", "19800", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.GKD6EY/jobs/iofix-sleep/sleep-1s-uring/target-0", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--shards", "16", "--thread-mode", "1s", "--net-io", "uring", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0"], "pid": 1411623}
+{"reply": "b'OK'", "seconds": 0.00013063009828329086, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 8.08611512184143e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 7.533002644777298e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 7.603969424962997e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 7.446017116308212e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 7.447041571140289e-05, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 0.00212295725941658, "sleep": ".002tail"}
+{"reply": "b'OK'", "seconds": 0.0021133068948984146, "sleep": " 0.002"}
+{"reply": "b'OK'", "seconds": 1.010170590132475, "sleep": "1.01"}
+{"owners": [5, 7, 4, 0, 2, 3, 6, 1], "tids": [1411624, 1411625, 1411626, 1411627, 1411628, 1411629, 1411630, 1411631], "transaction": false, "witness": "all workers paused"}
+{"owners": [0, 1, 5, 3, 6, 4, 2, 7], "tids": [1411624, 1411625, 1411626, 1411627, 1411628, 1411629, 1411630, 1411631], "transaction": true, "witness": "all workers paused"}
+{"oracle": false, "signal_during_sleep_seconds": 0.06339738797396421}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/cx-iofix/build/tomokv", "--bind", "127.0.0.1", "--port", "19800", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.GKD6EY/jobs/iofix-sleep/sleep-1s-uring/target-1", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--shards", "16", "--thread-mode", "1s", "--net-io", "uring", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--read-local", "1"], "pid": 1411699}
+{"reply": "b'OK'", "seconds": 0.00012571923434734344, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 8.230004459619522e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 7.541943341493607e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 7.572956383228302e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 7.35204666852951e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 7.626134902238846e-05, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 0.0021175267174839973, "sleep": ".002tail"}
+{"reply": "b'OK'", "seconds": 0.0021157069131731987, "sleep": " 0.002"}
+{"reply": "b'OK'", "seconds": 1.0101798009127378, "sleep": "1.01"}
+{"owners": [0, 7, 5, 1, 2, 4, 6, 3], "tids": [1411700, 1411701, 1411702, 1411703, 1411704, 1411705, 1411706, 1411707], "transaction": false, "witness": "all workers paused"}
+{"owners": [6, 0, 4, 1, 5, 7, 3, 2], "tids": [1411700, 1411701, 1411702, 1411703, 1411704, 1411705, 1411706, 1411707], "transaction": true, "witness": "all workers paused"}
+{"oracle": false, "signal_during_sleep_seconds": 0.06339212786406279}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/cx-iofix/build/tomokv", "--bind", "127.0.0.1", "--port", "19800", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.GKD6EY/jobs/iofix-sleep/sleep-1s-uring/target-2", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--shards", "16", "--thread-mode", "1s", "--net-io", "uring", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--read-local", "1", "--reorder", "1"], "pid": 1411719}
+{"reply": "b'OK'", "seconds": 0.00012552086263895035, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 8.148979395627975e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 7.626134902238846e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 7.511954754590988e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 7.406063377857208e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 7.490068674087524e-05, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 0.002121247351169586, "sleep": ".002tail"}
+{"reply": "b'OK'", "seconds": 0.002110907807946205, "sleep": " 0.002"}
+{"reply": "b'OK'", "seconds": 1.010176650248468, "sleep": "1.01"}
+{"owners": [0, 6, 4, 2, 3, 1, 5, 7], "tids": [1411720, 1411721, 1411722, 1411723, 1411724, 1411725, 1411726, 1411727], "transaction": false, "witness": "all workers paused"}
+{"owners": [2, 1, 5, 4, 0, 7, 6, 3], "tids": [1411720, 1411721, 1411722, 1411723, 1411724, 1411725, 1411726, 1411727], "transaction": true, "witness": "all workers paused"}
+{"oracle": false, "signal_during_sleep_seconds": 0.06339680776000023}
+{"engine": "uring", "mode": "1s", "result": "PASS IO4.10"}

@@ -1,0 +1,16 @@
+ok	0.000000	release build (+footprint locks)
+ok	26.720000	iofix WB4.1 deferred IO parks
+ok	24.100000	iofix IO4.9 Redis hz cron
+ok	31.850000	iofix IO4.10 global DEBUG SLEEP
+ok	18.910000	iofix IO4.17 immediate signal shutdown
+ok	0.870000	R7 generated envelope parity
+ok	0.870000	splitlocal template forwarding + old-argument controls
+ok	0.140000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.440000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	1.010000	FLIP close during FLIP (uring)
+ok	1.020000	FLIP close during FLIP (epoll)
+ok	0.500000	FLIP signal stop during FLIP + second SIGINT
+ok	0.520000	perfio stale epoll registration (epoll-flip)
+ok	11.200000	perfio stale epoll registration (epoll-lb)

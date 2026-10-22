@@ -11,7 +11,14 @@ import sys
 
 binary = os.environ['IOFIX_BINARY']
 args = sys.argv[1:]
+if args and args[0] in ('--version', '-v', '--help', '-h'):
+    os.execv(str(Path(binary).resolve()), [str(Path(binary).resolve()), *args])
 defaults = []
+if os.environ.get('IOFIX_FORCE_ENGINE') == '1':
+    if '--net-io' in args:
+        args[args.index('--net-io') + 1] = os.environ['IOFIX_ENGINE']
+    args = ['--net-io=' + os.environ['IOFIX_ENGINE'] if x.startswith('--net-io=') else x
+            for x in args]
 if not any(x == '--net-io' or x.startswith('--net-io=') for x in args):
     defaults += ['--net-io', os.environ.get('IOFIX_ENGINE', 'uring')]
 if os.environ.get('IOFIX_MODE') == '1s' and not any(
