@@ -8,5 +8,10 @@
     "path": "build/gate-run.S7BGou",
     "bytes_removed": 1549202475,
     "reason": "Completed gate archived; remove ephemeral databases"
+  },
+  {
+    "path": "build/gate-run.WWXPEZ",
+    "bytes_removed": 1504751774,
+    "reason": "Completed final gate archived; ephemeral databases removed"
   }
 ]
