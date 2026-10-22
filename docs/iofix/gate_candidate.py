@@ -33,6 +33,11 @@ offset = int(bool(args and not args[0].startswith('-')))
 args[offset:offset] = defaults
 command = [str(Path(binary).resolve()), *args]
 if os.environ.get('IOFIX_LAUNCH_LOG'):
-    with open(os.environ['IOFIX_LAUNCH_LOG'], 'a') as log:
-        log.write(json.dumps(dict(pid=os.getpid(), argv=command)) + '\n')
+    # Error-injection batteries inherit a small RLIMIT_FSIZE. A cumulative log can exceed
+    # that limit before exec, preventing the intended server failure from ever being tested.
+    # One short file per launch retains argv without changing the injected resource limit.
+    directory = Path(os.environ['IOFIX_LAUNCH_LOG'] + '.d')
+    directory.mkdir(exist_ok=True)
+    (directory / (str(os.getpid()) + '.json')).write_text(
+        json.dumps(dict(pid=os.getpid(), argv=command)) + '\n')
 os.execv(command[0], command)

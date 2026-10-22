@@ -1,0 +1,7 @@
+ok	0.020000	shutdown policy + signal handoff serverless
+ok	0.600000	shutdown persistence (1s, command)
+ok	0.210000	shutdown persistence (1s, sigterm)
+ok	0.210000	shutdown persistence (1s, sigint)
+ok	0.590000	shutdown persistence (2s, command)
+ok	0.210000	shutdown persistence (2s, sigterm)
+ok	0.220000	shutdown persistence (2s, sigint)

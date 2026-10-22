@@ -1,0 +1,9 @@
+ok	0.130000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.440000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	1.010000	FLIP close during FLIP (uring)
+ok	1.010000	FLIP close during FLIP (epoll)
+ok	0.530000	FLIP signal stop during FLIP + second SIGINT
+ok	0.540000	perfio stale epoll registration (epoll-flip)
+ok	18.200000	perfio stale epoll registration (epoll-lb)

@@ -2,3 +2,12 @@ START final-directed a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c
 {"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/final-directed", "files": 275, "bytes": 972245}
 DONE final-directed exit 0
 START final-uring a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/final-uring", "files": 2903, "bytes": 16938495}
+DONE final-uring exit 1
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-iofix/docs/iofix/run_proof.py", line 80, in <module>
+    run(group)
+  File "/home/user/Projects/cx-iofix/docs/iofix/run_proof.py", line 71, in run
+    assert rc == expected, (name, rc, expected)
+           ^^^^^^^^^^^^^^
+AssertionError: ('final-uring', 1, 0)

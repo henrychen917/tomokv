@@ -1,0 +1,4 @@
+START final-native-checks a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260
+{"destination": "/home/user/Projects/cx-iofix/docs/iofix/proof/final-native-checks", "files": 243, "bytes": 7686118}
+DONE final-native-checks exit 0
+START final-epoll a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260

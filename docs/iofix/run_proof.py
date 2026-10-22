@@ -15,6 +15,7 @@ STANDARD = 'differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-e
 GROUPS = [
     ('final-directed', 'iofix-deferred iofix-hz iofix-sleep iofix-signal wb_rule_units wbland_units splitlocal_units netcmd_units config_unit boot_grammar auth atomic_units reorder_sync', 'post', '', '', False, 0),
     ('final-uring', STANDARD + ' wb_policy debug-0 debug-1 climonfix flip_unit flipfix_units flip flipctl flip_saturated persistfix_units snapshot-uring snapshot-epoll aof-uring aof-epoll notify reorder_engagement reorder_identity', 'post', 'uring', '', False, 0),
+    ('final-native-checks', 'aof-uring reorder_identity', 'post', 'uring', '', False, 0),
     ('final-epoll', STANDARD + ' wb_policy debug-0 debug-1 auth flipctl flip_saturated notify', 'post', 'epoll', '', False, 0),
     ('final-forced-epoll', 'climonfix flip', 'post', 'epoll', '', True, 0),
     ('final-fused-uring', 'auth snapshot-uring snapshot-epoll notify', 'post', 'uring', '1s', False, 0),
@@ -47,9 +48,10 @@ def run(group):
     if engine: env['IOFIX_ENGINE'] = engine
     if mode: env['IOFIX_MODE'] = mode
     if force: env['IOFIX_FORCE_ENGINE'] = '1'
+    candidate = binary if name == 'final-native-checks' else OUT / 'gate_candidate.py'
     command = ['tests/gate.sh', 'full', '--server-cores', '80-87',
                '--load-cores', '88-95', '--ports', '19800-19899',
-               '--candidate-binary', str(OUT / 'gate_candidate.py')]
+               '--candidate-binary', str(candidate)]
     before = digest(binary)
     logfile = OUT / (name + '.log')
     assert not logfile.exists(), 'retain old evidence; choose a new group name before rerunning'

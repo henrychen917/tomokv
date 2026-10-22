@@ -244,3 +244,9 @@ diagnosis, not a wider noise allowance. No 25GbE claim follows from loopback.
   passes. An early PRE signal attempt failed on an oracle log-string mismatch
   before reaching the target; it is not used as a negative witness. Final
   proof is indexed by frozen binary hash.
+- The final `1H4VvA` batch passed all differential partitions but had two
+  adapter failures: an inherited 128 KiB file-size limit rejected the growing
+  launch log before AOF boot, and the R7 identity tool received the adapter
+  script instead of an ELF. Launch records now use one short file per process;
+  both affected jobs are rerun through the gate with the real, unchanged ELF.
+  The failed batch remains in the evidence and is not labelled all-green.
