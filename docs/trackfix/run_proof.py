@@ -1,5 +1,6 @@
 """Trackfix correctness receipts using the gate's own whole-job interface."""
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -96,7 +97,8 @@ def gate(label, binary, engine, jobs):
             '--server-cores', '96-104', '--load-cores', '105-111',
             '--server-smt', '', '--load-smt', '', '--ports', os.getenv('TRACKFIX_PORTS', '22810-22839'),
             '--candidate-binary', str(engine_binary(binary, engine, label))]
-    (dest / 'command.json').write_text(json.dumps(dict(argv=argv, jobs=jobs), indent=2) + '\n')
+    (dest / 'command.json').write_text(json.dumps(dict(argv=argv, jobs=jobs,
+        binary=str(binary), sha256=hashlib.sha256(binary.read_bytes()).hexdigest()), indent=2) + '\n')
     with (dest / 'gate.log').open('w') as log:
         rc = subprocess.run(argv, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT).returncode
     (dest / 'returncode').write_text(str(rc) + '\n')
@@ -113,6 +115,7 @@ def repeats(arm):
     dest = DOC / 'tracking-controls' / arm
     dest.mkdir(parents=True, exist_ok=False)
     binary = ROOT / ('build/tomokv-PRE' if arm.startswith('PRE') else 'build/tomokv')
+    digest = hashlib.sha256(binary.read_bytes()).hexdigest()
     rows = []
     count = int(os.getenv('TRACKFIX_CONTROL_COUNT', '20'))
     first = int(os.getenv('TRACKFIX_CONTROL_FIRST', '1'))
@@ -133,7 +136,7 @@ def repeats(arm):
                 duplicates = sum(line.startswith('    target:') and
                                  line.count('invalidate') > 1 for line in text.splitlines())
                 rows.append(dict(arm=arm, roll=roll, argv=argv, returncode=rc,
-                                 duplicate_comparisons=duplicates))
+                                 duplicate_comparisons=duplicates, sha256=digest))
                 (dest / 'results.json').write_text(json.dumps(rows, indent=2) + '\n')
                 print(label, rc, duplicates, flush=True)
 
@@ -143,5 +146,5 @@ if __name__ == '__main__':
         repeats(sys.argv[2])
     else:
         _, label, arm, engine, *jobs = sys.argv
-        binary = ROOT / ('build/tomokv-PRE' if arm == 'PRE' else 'build/tomokv')
+        binary = ROOT / ({'PRE': 'build/tomokv-PRE', 'PAD-A': 'build/tomokv-PAD-A'}.get(arm, 'build/tomokv'))
         raise SystemExit(gate(label, binary, engine, jobs))

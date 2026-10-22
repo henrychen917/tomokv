@@ -1,0 +1,13 @@
+{
+  "version_header": "#define REDIS_VERSION \"7.4.10\"\n#define REDIS_VERSION_NUM 0x0007040a\n",
+  "argv": [
+    "rg",
+    "-n",
+    "notify_events_(fired|dropped)",
+    "/home/user/Projects/redis/src/server.c",
+    "/home/user/Projects/redis/src/notify.c"
+  ],
+  "returncode": 1,
+  "stdout": "",
+  "stderr": ""
+}

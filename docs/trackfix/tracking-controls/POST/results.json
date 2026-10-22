@@ -359,5 +359,24 @@
     ],
     "returncode": 0,
     "duplicate_comparisons": 0
+  },
+  {
+    "arm": "POST",
+    "roll": 20,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0
   }
 ]

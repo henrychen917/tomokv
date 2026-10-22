@@ -1,1 +1,1 @@
-PAD-A: four trampoline entries and return targets verified; eight symbol aliases
+PAD-A: exact POST layout; two predicates count every record as PRE

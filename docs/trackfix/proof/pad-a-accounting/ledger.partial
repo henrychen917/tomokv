@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=trackfix_accounting; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+FAIL	60.880000	tracking-only delivery/drop accounting vs Redis 7.4

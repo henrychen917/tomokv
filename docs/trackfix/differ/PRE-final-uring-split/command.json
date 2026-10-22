@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "105-111",
+    "bash",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-trackfix/build/trackfix/server-PRE-final-uring-split",
+    "22852",
+    "22853",
+    "96-103",
+    "6:2"
+  ],
+  "engine": "uring",
+  "geometry": "split",
+  "arm": "PRE-final",
+  "binary": "/home/user/Projects/cx-trackfix/build/tomokv-PRE",
+  "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26"
+}

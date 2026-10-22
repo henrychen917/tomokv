@@ -1,5 +1,11 @@
 [
   {
+    "label": "pad-a-accounting",
+    "returncode": 1,
+    "passed": 1,
+    "failed": 1
+  },
+  {
     "label": "post-accounting",
     "returncode": 0,
     "passed": 2,
@@ -58,6 +64,12 @@
     "returncode": 0,
     "passed": 3,
     "failed": 0
+  },
+  {
+    "label": "post-v2-newrows-final",
+    "returncode": 1,
+    "passed": 2,
+    "failed": 1
   },
   {
     "label": "pre-accounting",

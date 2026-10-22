@@ -72,5 +72,5 @@ with gzip.open(dest / 'pad-differences.txt.gz', 'wt') as stream:
             dump_diff(stream, name, left, right)
 (dest / 'pad-summary.json').write_text(json.dumps(dict(
     total=len(set(pre.groups) | set(pad.groups)), changed=pad_rows,
-    scope='A: PRE behavior with POST aggregate text size; not every function address/size'), indent=2) + '\n')
+    scope='A: PRE drop-accounting behavior with exact POST layout; full PRE/PAD strict residuals retained'), indent=2) + '\n')
 print('POST', len(changed), 'changed groups; PAD-A', len(pad_rows), 'strict residual groups', flush=True)

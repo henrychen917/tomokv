@@ -1,5 +1,6 @@
 """Unmodified standard differential, both engines and both geometries."""
 from concurrent.futures import ThreadPoolExecutor
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -13,16 +14,17 @@ def run(spec):
     label = f'{arm}-{engine}-{geometry}'
     dest = DOC / 'differ' / label
     dest.mkdir(parents=True, exist_ok=False)
-    binary = ROOT / ('build/tomokv-PRE' if arm == 'PRE' else 'build/tomokv')
+    binary = ROOT / ('build/tomokv-PRE' if arm.startswith('PRE') else 'build/tomokv')
     wrapper = engine_binary(binary, engine, label)
     env = environment()
     env.update(GATE_DIFFER_OUT=str(BASE / 'differ' / label),
                GATE_DIFFER_GEOMETRY=geometry, GATE_RUN_ID='trackfix-standard')
-    port = (22850 if arm == 'PRE' else 22860) + index * 2
+    port = (22850 if arm.startswith('PRE') else 22860) + index * 2
     argv = ['taskset', '-c', '105-111', 'bash', 'tests/differ_gate.sh', str(wrapper),
             str(port), str(port + 1), '96-103', '6:2']
     (dest / 'command.json').write_text(json.dumps(dict(argv=argv, engine=engine,
-        geometry=geometry, arm=arm), indent=2) + '\n')
+        geometry=geometry, arm=arm, binary=str(binary),
+        sha256=hashlib.sha256(binary.read_bytes()).hexdigest()), indent=2) + '\n')
     with (dest / 'output.log').open('w') as log:
         rc = subprocess.run(argv, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT).returncode
     result = dict(arm=arm, engine=engine, geometry=geometry, returncode=rc)

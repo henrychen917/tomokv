@@ -17,7 +17,7 @@ def main():
     changed = [row for row in rows if not row['equal']]
     for row in changed:
         if 'notify_retire_batch_entry' in row['name']:
-            row['reason'] = 'CC4.4: tracking-only completion bypasses pub/sub reservation; count only publication records on reservation failure.'
+            row['reason'] = 'CC4.4: an empty tracking-only pub/sub chain counts no drop; count only publication records when reservation returns no chain.'
         elif 'NotifyRecordImpl' in row['name']:
             row['reason'] = 'Notification-record compiler instantiation changed after adding the pub/sub route count; compare strict normalized instructions.'
         else:

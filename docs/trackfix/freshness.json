@@ -1,158 +1,236 @@
 [
   {
     "target": "all",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/expire-notify-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/ktls-lifetime-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/moverfix-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/moverfix-db0-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/publishfix-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/at15-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/at15-db0-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/execabort-watch-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/execabort-watch-db0-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/core-concurrency-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/atomic-survivors-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/netcmd-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/encodingfix-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/netcap-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/waits-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/rehash-waits-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/multidb-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/multidb-boundary-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/storesize-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/respresume-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/respresume-migration",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/exbatch-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/exbatch-db0-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/wb-rule-units",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/wbland-units",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/rltopo-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/lbplanner-units",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/shutdown-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/persistfix-units",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/ktls-keyupdate",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/ktls-keyupdate-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/flushfix-units",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/splitlocal-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/reorder-engagement-unit",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/reorder-engagement-unit-db0",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/racefix-climon",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "build/aoforder-scheduled",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "",
+    "stderr": ""
   },
   {
     "target": "mdbqsbr-live-arms",
-    "returncode": 0
+    "returncode": 0,
+    "stdout": "make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all\nmake[1]: Entering directory '/home/user/Projects/cx-trackfix'\nmake[1]: Leaving directory '/home/user/Projects/cx-trackfix'\nmake BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all\nmake[1]: Entering directory '/home/user/Projects/cx-trackfix'\nmake[1]: Leaving directory '/home/user/Projects/cx-trackfix'\n",
+    "stderr": ""
   }
 ]

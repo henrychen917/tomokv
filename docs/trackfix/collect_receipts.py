@@ -41,8 +41,9 @@ def main():
         if match:
             source = Path(match[1])
             archive(source / 'jobs', dest / 'jobs.tar.gz', receipt_only=True)
-            if dest.name.endswith('newrows-final'):
-                for job in ('trackfix_order', 'trackfix_accounting'):
+            if dest.name.endswith('newrows-final') or dest.name == 'pad-a-accounting':
+                jobs = ('trackfix_accounting',) if dest.name == 'pad-a-accounting' else ('trackfix_order', 'trackfix_accounting')
+                for job in jobs:
                     rows = dest / 'rows' / job
                     rows.mkdir(parents=True, exist_ok=True)
                     original = source / 'jobs' / job
