@@ -1,0 +1,63 @@
+{
+  "baseline": "a7dfb9d23",
+  "production_commit": "96b42c520",
+  "directed_test_commit": "c360493c3",
+  "files": [
+    {
+      "path": "Makefile",
+      "sha256": "7a1386ac49752ad91eef308b6872d4c95832f4c9b489af0f0719aa1da1cf92ea"
+    },
+    {
+      "path": "src/cmd/functions.cc",
+      "sha256": "8f403cdfead4ba6645d837e43c4e41da5a493ba8fc91dc092ff3fda212f2516b"
+    },
+    {
+      "path": "src/cmd/scatter_engine.inc",
+      "sha256": "324ce15636300024024d0b05dee22483e20fe1838836e23926be14ec2a971042"
+    },
+    {
+      "path": "src/cmd/scripting.cc",
+      "sha256": "0e43213d36e708104fa9e70c34bc46c08bba77aa05eb3ced0390ea59a8bd2447"
+    },
+    {
+      "path": "src/cmd/scripting.h",
+      "sha256": "0b08040e235dbf726ddf5544c2d0ab1febe68bc9e990fa74cbb6df0dd99a0f3a"
+    },
+    {
+      "path": "src/cmd/t_stream_groups.cc",
+      "sha256": "a32bd768111d7ae8e9e7d252a766ccf34c3d06aabeae4af265c1910c7dc0a2eb"
+    },
+    {
+      "path": "src/core/pubsub.inc",
+      "sha256": "b84ad6b73962542bf59cb94a90f51a0c87d82dee20292d3938b0d6bb302b53e8"
+    },
+    {
+      "path": "src/core/pubsub_event.h",
+      "sha256": "5e56f76612deaadc3dcdd897d004c0f6902445ac19f8a0bdede69429281b9890"
+    },
+    {
+      "path": "src/store/flatstore.h",
+      "sha256": "d8a3121a9792258133263977db95d8237acdf02360def5c6b49949bb23ea90de"
+    },
+    {
+      "path": "tests/compat3_functions.py",
+      "sha256": "f1e94328e7e5722f66d7a893e7f6bf33f93beccb892d9a81cc5c3d29d575d496"
+    },
+    {
+      "path": "tests/compat3_lib.py",
+      "sha256": "c90c800c07be38d1954676b1fbc298337a8dd38ba0080f371bcdf9c948a3f967"
+    },
+    {
+      "path": "tests/compat3_pubsub.py",
+      "sha256": "f7a672490246ba2fd6d6c3e45463d26c65a52b18a7e05ad59b7c49d1f824c87c"
+    },
+    {
+      "path": "tests/compat3_streams.py",
+      "sha256": "d42b84e5b6bb14add067980fa4623aed90565f5c2b1eee34565bf5e85fec994a"
+    },
+    {
+      "path": "tests/gate.sh",
+      "sha256": "d1acca59c88862492645ef2dfb060dcc78752810477805c7999c2059c51633d1"
+    }
+  ]
+}
