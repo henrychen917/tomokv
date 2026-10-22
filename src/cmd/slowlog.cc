@@ -516,10 +516,11 @@ __attribute__((noipa)) static uint32_t slowlog_redactions(const Op& op) {
     return mask;
 }
 
-void slowlog_capture(const Op& op, SlowlogCapture& out, uint64_t client_id) {
+std::shared_ptr<const SlowlogIdentity> slowlog_capture(
+    const Op& op, SlowlogCapture& out, uint64_t client_id) {
     // Capture before the executor publishes Done: a younger SETNAME or a
     // disconnect may change the directory as soon as the reply retires.
-    out.identity = directory_lookup(client_id);
+    auto identity = directory_lookup(client_id);
     const uint32_t argc = op.argc();
     out.total_argc = argc;
     out.captured = 0;
@@ -539,6 +540,7 @@ void slowlog_capture(const Op& op, SlowlogCapture& out, uint64_t client_id) {
         out.captured++;
         out.used += take;
     }
+    return identity;
 }
 
 // The connection-local path. Safe to read argv directly: the IO loop stores Done only AFTER this
@@ -555,21 +557,20 @@ void slowlog_record(uint32_t thread_id, uint64_t client_id, const Op& op, uint64
     entry.exact = exact;
     if (wants_entry) {
         SlowlogCapture capture;
-        slowlog_capture(op, capture, client_id);
-        entry.identity = std::move(capture.identity);
+        entry.identity = slowlog_capture(op, capture, client_id);
         if (!build_argv(capture, entry.argv)) return;
     }
     slowlog_finish(thread_id, entry, duration_ns, now_ms, arm);
 }
 
 // The executor path, fed from a capture taken before execute().
-void slowlog_record_captured(uint32_t thread_id, uint64_t client_id, const SlowlogCapture& capture,
+void slowlog_record_captured(uint32_t thread_id, const std::shared_ptr<const SlowlogIdentity>& identity,
+                             const SlowlogCapture& capture,
                              uint64_t duration_ns, int64_t now_ms, const SlowlogArm& arm) {
     const uint64_t duration_us = duration_ns / 1000;
     SlowlogEntry entry;
     entry.unix_seconds = now_ms / 1000;
-    (void)client_id;
-    entry.identity = capture.identity;
+    entry.identity = identity;
     entry.duration_us = duration_us;
     entry.exact = true;
     if (arm.slowlog_us >= 0 && duration_us >= static_cast<uint64_t>(arm.slowlog_us) &&

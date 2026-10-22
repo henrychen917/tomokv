@@ -50,8 +50,6 @@ struct SlowlogCapture {
     uint32_t len[kSlowlogMaxArgs] = {};      // stored length, <= kSlowlogMaxArgBytes
     uint32_t full[kSlowlogMaxArgs] = {};     // original length, for the truncation marker
     char     bytes[kSlowlogMaxArgs * kSlowlogMaxArgBytes];
-    // Immutable directory version retained before Done permits rename/close.
-    std::shared_ptr<const SlowlogIdentity> identity;
 };
 
 // One executor's recorder state. Lives at the cold tail of ExLoop.
@@ -63,10 +61,13 @@ struct SlowlogExState {
 
 // Copies the argument bytes out of the op while they are still pinned. Cheap: bounded by 32
 // arguments of 128 bytes, and for an ordinary GET/SET it is two short memcpys.
-void slowlog_capture(const Op& op, SlowlogCapture& out, uint64_t client_id);
+// The caller retains this immutable directory version until recording finishes.
+std::shared_ptr<const SlowlogIdentity> slowlog_capture(
+    const Op& op, SlowlogCapture& out, uint64_t client_id);
 
 // The executor-side recorder, fed from a capture rather than from the (possibly retired) op.
-void slowlog_record_captured(uint32_t thread_id, uint64_t client_id, const SlowlogCapture& capture,
+void slowlog_record_captured(uint32_t thread_id, const std::shared_ptr<const SlowlogIdentity>& identity,
+                             const SlowlogCapture& capture,
                              uint64_t duration_ns, int64_t now_ms, const SlowlogArm& arm);
 
 // Records one completed operation. `duration_ns` is the measured span; `exact` says whether it is
