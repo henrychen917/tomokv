@@ -4,6 +4,7 @@ import argparse
 import concurrent.futures
 import json
 import re
+import shlex
 from pathlib import Path
 import subprocess
 import time
@@ -27,17 +28,21 @@ def main():
     work.mkdir(parents=True, exist_ok=True)
     out.mkdir(parents=True, exist_ok=True)
     source = args.unit.removeprefix('db0/').removesuffix('.o') + '.cc'
+    recipes = subprocess.check_output(['make', '-Bn', 'build/' + args.unit],
+                                      cwd=args.source_root, text=True).splitlines()
+    recipes = [shlex.split(line) for line in recipes if line.startswith('g++ ')]
+    command_template, = [cmd for cmd in recipes if '-c' in cmd and source in cmd and
+                         cmd[-1] == 'build/' + args.unit]
 
     def trial(value):
         obj = work / f'{value}.o'
-        command = ['taskset', '-c', '80-95', 'g++', '-std=c++20', '-O2', '-g0',
-                   '-Wall', '-Wextra', '-march=native', '-pthread', '-DTOMO_JEMALLOC',
-                   '--param', 'inline-unit-growth=0', '--param', f'large-unit-insns={value}', '-I.']
-        if args.unit.startswith('db0/'):
-            command += ['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0']
-        elif source == 'src/main.cc':
-            command += ['-DTOMO_DUAL_DATABASE']
-        command += [f'-fdump-ipa-inline={work / str(value)}.inline', '-c', source, '-o', str(obj)]
+        command = ['-g0' if x == '-g' else f'large-unit-insns={value}'
+                   if x.startswith('large-unit-insns=') else x for x in command_template]
+        if not any(x.startswith('large-unit-insns=') for x in command):
+            command += ['--param', 'inline-unit-growth=0', '--param', f'large-unit-insns={value}']
+        command[command.index('-o') + 1] = str(obj)
+        command = ['taskset', '-c', '80-95', *command,
+                   f'-fdump-ipa-inline={work / str(value)}.inline']
         start = time.monotonic()
         with (work / f'{value}.log').open('w') as log:
             subprocess.run(command, cwd=args.source_root, stdout=log, stderr=subprocess.STDOUT, check=True)

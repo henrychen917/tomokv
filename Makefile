@@ -324,10 +324,13 @@ $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inli
 # body spillover; the remaining differences are reported for merit review.
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): genthread compat2 +29 and
 # clockcut +128; rl2s clockcut +256. The wave-4 budget commit re-derives these values.
-$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=130241
-# iofix: the initial IPA unit grows 111026 -> 112026. Preserve that 1000-insn
-# headroom delta; compile-only trials restore PRE's read-local GET resolver bytes.
-# Receipts: docs/iofix/budgets/{pre,post,scan}; no performance claim follows.
+# iofix: +1042 initial-unit insns; 131500 is the first tested budget restoring
+# both the captured MGET resolver and the two ordinary execute specializations.
+$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=131500
+# iofix: the first changes grew the IPA unit 111026 -> 112026; +1000 restored
+# PRE's read-local GET resolver. The final signal code brings it to 112140;
+# rl-recheck confirms the selected budget still retains those exact bytes.
+# Receipts: docs/iofix/budgets/{pre,post,scan,rl-recheck}; no performance claim follows.
 $(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=163972
 # wave3: see the note above $(BUILD_ROOT)/src/main.o (first override of this object).
 # wave3 R7 round (7fa5cb0e0 regenerates rlfix's RL4.4 into the R7 envelope): units +82 / +80
@@ -343,7 +346,9 @@ $(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 
 # docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): db0 genthread compat2 +27
 # and clockcut +64; db0 reorder compat2 +39 and clockcut +128. Re-derived by the budget commit.
-$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=130360 -Wa,--defsym,tomo_rlfence_text_pad=16
+# +1033 initial-unit insns; 131400 is the tested value nearest preserved headroom
+# (131393), with PRE-identical captured MGET and ordinary execute bodies.
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=131400 -Wa,--defsym,tomo_rlfence_text_pad=16
 $(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162334
 # Keep PRE's first (rather than second) tombstone-compaction call inlined in the
 # R7 fused sweep; the cold miss body otherwise changes GCC's tied call ordering.

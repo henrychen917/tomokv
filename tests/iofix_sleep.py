@@ -135,12 +135,26 @@ def run(args):
     variants = [[], ['--read-local', '1']]
     if args.mode == '1s':
         variants.append(['--read-local', '1', '--reorder', '1'])
+    failures = []
     for index, extra in enumerate(variants):
-        with Listener(args, f'target-{index}', extra=extra) as server:
-            assert replies(server) == expected
-            witness(server, args.mode)
-            witness(server, args.mode, transaction=True)
-            signal_stop(server)
+        try:
+            with Listener(args, f'target-{index}', extra=extra) as server:
+                def check_replies():
+                    assert replies(server) == expected
+                phases = [('oracle replies', check_replies),
+                          ('direct pause', lambda: witness(server, args.mode)),
+                          ('EXEC pause', lambda: witness(server, args.mode, transaction=True)),
+                          ('signal during sleep', lambda: signal_stop(server))]
+                for name, check in phases:
+                    try:
+                        check()
+                    except Exception as error:
+                        emit(variant=index, phase=name, failure=repr(error))
+                        failures.append((index, name, repr(error)))
+        except Exception as error:
+            emit(variant=index, phase='listener', failure=repr(error))
+            failures.append((index, 'listener', repr(error)))
+    assert not failures, failures
     emit(result='PASS IO4.10', mode=args.mode, engine=args.net_io)
 
 
