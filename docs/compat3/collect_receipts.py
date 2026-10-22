@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Preserve completed gate job evidence; never launches a server or measurement."""
 import argparse, gzip, hashlib, json, re, tarfile
+from collections import defaultdict
+from contextlib import contextmanager
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 DOC=ROOT/"docs/compat3"
@@ -16,12 +18,21 @@ def digest(path):
 
 def size_guard(dest):
     if dest.stat().st_size<=1_000_000:return str(dest.relative_to(DOC))
-    retained=ROOT/"build/compat3/large-receipts"/dest.name
+    retained=ROOT/"build/compat3/large-receipts"/digest(dest)[:16]/dest.name
     retained.parent.mkdir(parents=True,exist_ok=True)
     large.append(dict(source=str(dest.relative_to(ROOT)),retained=str(retained.relative_to(ROOT)),
                       bytes=dest.stat().st_size,sha256=digest(dest),reason="archive exceeds 1 MB"))
     dest.replace(retained)
     return None
+
+@contextmanager
+def receipt_archive(path):
+    # Recollecting immutable evidence must not change its digest just because
+    # gzip otherwise records the wall clock in its header.
+    with path.open('wb') as raw:
+        with gzip.GzipFile(filename='',mode='wb',fileobj=raw,mtime=0,compresslevel=9) as compressed:
+            with tarfile.open(fileobj=compressed,mode='w') as archive:
+                yield archive
 
 index=[]
 for log in sorted(DOC.glob("*.log")):
@@ -43,7 +54,7 @@ for log in sorted(DOC.glob("*.log")):
                          failures=[x for x in output.splitlines() if " FAIL" in x]))
     dest=OUT/(log.stem+".tar.gz")
     selected=[]
-    with tarfile.open(dest,"w:gz",compresslevel=9) as archive:
+    with receipt_archive(dest) as archive:
         for p in sorted(run.rglob("*")):
             if not p.is_file() or p.is_symlink(): continue
             keep=(p.suffix in (".txt",".log",".json",".tsv",".sh",".rc",".timings") or
@@ -61,8 +72,23 @@ for log in sorted(DOC.glob("*.log")):
             archive.add(p,arcname=str(p.relative_to(run)),recursive=False)
     sha=digest(dest);size=dest.stat().st_size
     archive=size_guard(dest)
+    parts=[]
+    if archive is None:
+        # Preserve small component receipts even when their combined archive
+        # crosses the commit limit. Oversized individual files remain digests.
+        groups=defaultdict(list)
+        for name in selected:
+            path=Path(name)
+            group=path.parts[1] if path.parts[0]=='jobs' and len(path.parts)>2 else 'coordinator'
+            groups[group].append(name)
+        for group,names in sorted(groups.items()):
+            part=OUT/(log.stem+'--'+group+'.tar.gz')
+            with receipt_archive(part) as bundle:
+                for name in names:bundle.add(run/name,arcname=name,recursive=False)
+            part_sha=digest(part);part_bytes=part.stat().st_size
+            parts.append(dict(archive=size_guard(part),sha256=part_sha,bytes=part_bytes,files=len(names)))
     index.append(dict(log=str(log.relative_to(DOC)),run=str(run),archive=archive,
-                      sha256=sha,bytes=size,complete=complete,files=len(selected),jobs=jobs))
+                      sha256=sha,bytes=size,parts=parts,complete=complete,files=len(selected),jobs=jobs))
     print(log.stem,len(jobs),len(selected),size,"complete" if complete else "INTERRUPTED")
 (DOC/"gate-receipts.json").write_text(json.dumps(index,indent=2)+"\n")
 
@@ -73,7 +99,7 @@ for log in sorted(DOC.glob("gates-test*.log")):
         source=Path(name)
         if not source.is_dir():continue
         dest=OUT/(source.name+".tar.gz")
-        with tarfile.open(dest,"w:gz",compresslevel=9) as archive:
+        with receipt_archive(dest) as archive:
             archive.add(source,arcname=source.name)
         sha=digest(dest)
         failures.append(dict(log=log.name,source=str(source),archive=size_guard(dest),sha256=sha))

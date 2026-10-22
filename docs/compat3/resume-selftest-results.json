@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "108-111",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "returncode": 0,
+  "affinity": "108-111",
+  "fixture_port_guard": true
+}

@@ -3,8 +3,9 @@
     "log": "PAD-A-directed.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.D6kNSs",
     "archive": "receipts/PAD-A-directed.tar.gz",
-    "sha256": "f883860b31cbdc7a52e7083a65b0c6c0c959c9202df4f06db50c8662ee2ba56b",
-    "bytes": 134906,
+    "sha256": "87d0208a3cff11137f1cd48b8589adcd5e792fe7e598e07ccd3a43a6993a8ba2",
+    "bytes": 134887,
+    "parts": [],
     "complete": true,
     "files": 301,
     "jobs": [
@@ -33,8 +34,9 @@
     "log": "POST-auth-fused.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.A3EZDR",
     "archive": "receipts/POST-auth-fused.tar.gz",
-    "sha256": "9b929210f018b2ffdc174bc79e886f26be3009a2a11c326d034cbbac41c2b151",
-    "bytes": 24226,
+    "sha256": "d8dade5ef3235763dfc2c9043e370ff51745d7e52a2a99ab2595d5c78ce4f9f1",
+    "bytes": 24206,
+    "parts": [],
     "complete": true,
     "files": 22,
     "jobs": [
@@ -56,8 +58,220 @@
     "log": "POST-complete.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.vUdsCA",
     "archive": null,
-    "sha256": "f10ed9ad92e242c301d4b63dc139cb067dea721cd8aa917b25aa039e7a19efc8",
-    "bytes": 1180485,
+    "sha256": "63b70429fbc322911bb07d788b933fd3f07d80b30bea82983def7b5bcb49add6",
+    "bytes": 1180467,
+    "parts": [
+      {
+        "archive": "receipts/POST-complete--acl_recheck.tar.gz",
+        "sha256": "1e84efa923edb845e54cb5f21d5e2b51f5d570996266ec60a043b5f968828c6a",
+        "bytes": 3928,
+        "files": 8
+      },
+      {
+        "archive": "receipts/POST-complete--aclfix.tar.gz",
+        "sha256": "374f52241133e44edae87e6ebbd118a5e82647c230dac793a41d14b762fad185",
+        "bytes": 13657,
+        "files": 28
+      },
+      {
+        "archive": "receipts/POST-complete--aof-epoll.tar.gz",
+        "sha256": "4e61def84e7b09dce3be7bf10948b003fcc54fcbf14e90f2b85b792a9bf3dcbb",
+        "bytes": 303267,
+        "files": 213
+      },
+      {
+        "archive": "receipts/POST-complete--aof-uring.tar.gz",
+        "sha256": "3ac17bc0d34dc5f5200f4e6752ce00f6b588c3e246fa8334908da8155c5ebe67",
+        "bytes": 170424,
+        "files": 211
+      },
+      {
+        "archive": "receipts/POST-complete--atomic_batteries.tar.gz",
+        "sha256": "28c83ad32fb5b2b0d6c469093199d1cb708aec53516b599dfcfda372a40de43c",
+        "bytes": 4874,
+        "files": 8
+      },
+      {
+        "archive": "receipts/POST-complete--atomic_units.tar.gz",
+        "sha256": "10edbd7713dc59b781d1d1d1e1b35bfe19bca03a3b752486b46731df0ac339c1",
+        "bytes": 7465,
+        "files": 46
+      },
+      {
+        "archive": "receipts/POST-complete--auth.tar.gz",
+        "sha256": "77d2bf02ac15cb4a0b76ab768b9d0f6e045549b0baea57ae636ac102065c94c1",
+        "bytes": 16645,
+        "files": 14
+      },
+      {
+        "archive": "receipts/POST-complete--clientfix.tar.gz",
+        "sha256": "979b49fd22bc5d9f46d57381988fc2a1f1f70672cc28cb25afcea1db51073150",
+        "bytes": 2747,
+        "files": 18
+      },
+      {
+        "archive": "receipts/POST-complete--coordinator.tar.gz",
+        "sha256": "46aef6cf86a1bad5b25c6782d0357d9172278ca2642c0fdd82d385f401dc2053",
+        "bytes": 2218,
+        "files": 4
+      },
+      {
+        "archive": "receipts/POST-complete--debug-0.tar.gz",
+        "sha256": "b36c05824a6ed051d795a68255ebcba64aa9ed5672652331bc068005fe96ccc4",
+        "bytes": 9515,
+        "files": 19
+      },
+      {
+        "archive": "receipts/POST-complete--debug-1.tar.gz",
+        "sha256": "a40ba81bfcd63b20ed2ff0819654118dd859ff4b88bcc1e99e81b7be01acebb3",
+        "bytes": 9452,
+        "files": 19
+      },
+      {
+        "archive": "receipts/POST-complete--feature-armed-0.tar.gz",
+        "sha256": "03659948bd1366007e23f5fa030693ad2da279f664c223d902957b6e2fce1d7f",
+        "bytes": 19726,
+        "files": 45
+      },
+      {
+        "archive": "receipts/POST-complete--feature-armed-1.tar.gz",
+        "sha256": "4a2e180df0337ffed9d7cc86699a9b428a7e89b8090b0cf874a8d210db3ee5ae",
+        "bytes": 19768,
+        "files": 45
+      },
+      {
+        "archive": "receipts/POST-complete--feature-split-0.tar.gz",
+        "sha256": "f3b8f673321eb59a26b3cca3d945736925c2d39e9fa7959cbe14379ef4499276",
+        "bytes": 20101,
+        "files": 44
+      },
+      {
+        "archive": "receipts/POST-complete--feature-split-1.tar.gz",
+        "sha256": "8fa388d1fd9c5967436659d058fe305dca7cf831feeea6e820ffa602c409b1b4",
+        "bytes": 20173,
+        "files": 44
+      },
+      {
+        "archive": "receipts/POST-complete--globcase.tar.gz",
+        "sha256": "506fc2cd08eb2c8b15b75053b18c1544ea65666b049142cdee7c73ea9a89efe4",
+        "bytes": 3739,
+        "files": 7
+      },
+      {
+        "archive": "receipts/POST-complete--multidb-1s-0-0.tar.gz",
+        "sha256": "129b71c2d88e31de74d252cfc2892140867c8d518e9d929a1a0b505a0ab94629",
+        "bytes": 59693,
+        "files": 44
+      },
+      {
+        "archive": "receipts/POST-complete--multidb-1s-0-1.tar.gz",
+        "sha256": "f12fbf113e92d89b36e9fca7f3c3f4ecb5395c98a6b6ad57721b94184a334496",
+        "bytes": 58613,
+        "files": 44
+      },
+      {
+        "archive": "receipts/POST-complete--multidb-1s-1-0.tar.gz",
+        "sha256": "d194eaf52dfee3e130c24c2cdd3aa9d71fcb04259aeaf45ad923f9248a5de17d",
+        "bytes": 58761,
+        "files": 44
+      },
+      {
+        "archive": "receipts/POST-complete--multidb-1s-1-1.tar.gz",
+        "sha256": "d7ead9f4967e9b40ea1696d813c81f745109abb46e070263a8b81497f5cc9628",
+        "bytes": 58593,
+        "files": 44
+      },
+      {
+        "archive": "receipts/POST-complete--multidb-2s-0-0.tar.gz",
+        "sha256": "c9f498c4c8ced95495120b1ad6c5529645b5ff6f0ca51f27e9517f02dc117729",
+        "bytes": 57883,
+        "files": 44
+      },
+      {
+        "archive": "receipts/POST-complete--multidb-2s-0-1.tar.gz",
+        "sha256": "a44eab9c7f396d3ce1bc94acff083f1255513642617ffb8b37b49d9091e1d477",
+        "bytes": 57768,
+        "files": 44
+      },
+      {
+        "archive": "receipts/POST-complete--multidb-2s-1-0.tar.gz",
+        "sha256": "1b37514479657d7849ea682d3c705c7dd956b374b5fa00baad59792abda5b22e",
+        "bytes": 57569,
+        "files": 44
+      },
+      {
+        "archive": "receipts/POST-complete--multidb-2s-1-1.tar.gz",
+        "sha256": "6e9ecf6752f2e7d7ac642c2a031a02464f037ee71842f9028c5782b7a7fbbd28",
+        "bytes": 57496,
+        "files": 44
+      },
+      {
+        "archive": "receipts/POST-complete--netcmd_units.tar.gz",
+        "sha256": "6ea28e270d0d920814c39a81bd99cc9fea23518a5e16773996dc98743a2bdcfc",
+        "bytes": 2047,
+        "files": 19
+      },
+      {
+        "archive": "receipts/POST-complete--netio-1s.tar.gz",
+        "sha256": "9e6ff10ed3611961429b6eca0f41656b2c7777610bc6e3d016d2637c96db3e4d",
+        "bytes": 3908,
+        "files": 8
+      },
+      {
+        "archive": "receipts/POST-complete--netio-2s.tar.gz",
+        "sha256": "eeece48d70d490a493473e8e291516e12185b12048fb27fa0d14215b3774f72a",
+        "bytes": 3710,
+        "files": 8
+      },
+      {
+        "archive": "receipts/POST-complete--notify.tar.gz",
+        "sha256": "fdc8ad6c07f2756f69ae9316fd82c65789b8014b1740a4cb097a75cf54d61537",
+        "bytes": 5050,
+        "files": 10
+      },
+      {
+        "archive": "receipts/POST-complete--notify_aof.tar.gz",
+        "sha256": "9c4c01d842dd7f14ff85d70e165b6f87581d679f699aac0904bd1fc5ba48dd4c",
+        "bytes": 10856,
+        "files": 29
+      },
+      {
+        "archive": "receipts/POST-complete--notify_order.tar.gz",
+        "sha256": "ddbbb49a608ea23a94b2db6437af2fc8260525c2862af3cbd82ae57906341de0",
+        "bytes": 39584,
+        "files": 29
+      },
+      {
+        "archive": "receipts/POST-complete--perfio_stream.tar.gz",
+        "sha256": "e219d5587503e60d10dc2f8e1d6c41b2ca6df7a1b823f9ce9901d09cbc14769b",
+        "bytes": 6176,
+        "files": 10
+      },
+      {
+        "archive": "receipts/POST-complete--production_units.tar.gz",
+        "sha256": "cc59a22fea3d356ef1d7be2b41441e393ef6455e6c7de1aa03e09e8c902922cc",
+        "bytes": 13600,
+        "files": 6
+      },
+      {
+        "archive": "receipts/POST-complete--release.tar.gz",
+        "sha256": "286a2ef221b0c721d394617e4dfdffa2f13bbaab6742d4136fe44fc0404c6e2d",
+        "bytes": 404,
+        "files": 4
+      },
+      {
+        "archive": "receipts/POST-complete--script_bounds.tar.gz",
+        "sha256": "dcce8ee7b3f36552398522f56b78831a86c7c41aba05063954a3174a2bc32f64",
+        "bytes": 3858,
+        "files": 8
+      },
+      {
+        "archive": "receipts/POST-complete--scriptfix.tar.gz",
+        "sha256": "35380f24005f1b09d2e80f766eecafa49cd4ce9d87190579b2d1077dfb8462b8",
+        "bytes": 11283,
+        "files": 20
+      }
+    ],
     "complete": true,
     "files": 1276,
     "jobs": [
@@ -271,8 +485,9 @@
     "log": "POST-directed-complete.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.8uPBJf",
     "archive": "receipts/POST-directed-complete.tar.gz",
-    "sha256": "19ea569836b3d54b6b7a9a35c15d0705e70366481b5782a544b49c8ab5cf7710",
-    "bytes": 130730,
+    "sha256": "f075d779800c3ad2415aa68b71c5cabaeba3c13b616efa01b2719a3474e455bb",
+    "bytes": 130703,
+    "parts": [],
     "complete": true,
     "files": 301,
     "jobs": [
@@ -294,8 +509,9 @@
     "log": "POST-directed.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.KxComm",
     "archive": "receipts/POST-directed.tar.gz",
-    "sha256": "c80cd909264a984a2b256cd6fcc948cab2f1740e967527f65e6bede4fac6f808",
-    "bytes": 123127,
+    "sha256": "55a8af5c28ca64d166901081a923cb38fd55bbcd92828803edef535e6a22d114",
+    "bytes": 123109,
+    "parts": [],
     "complete": true,
     "files": 301,
     "jobs": [
@@ -319,8 +535,9 @@
     "log": "POST-eviction.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.UWb0NE",
     "archive": "receipts/POST-eviction.tar.gz",
-    "sha256": "69978a3eca3a1be154f2b602ab3290c28e1f7e22ca663396bff69eb75a599f79",
-    "bytes": 19390,
+    "sha256": "49d841f17deeb32a301cd0cbcaac245d45b0b613a3ccdfc17596a1ac4d674cdc",
+    "bytes": 19372,
+    "parts": [],
     "complete": true,
     "files": 56,
     "jobs": [
@@ -384,8 +601,9 @@
     "log": "PRE-complete.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.Lu7I67",
     "archive": "receipts/PRE-complete.tar.gz",
-    "sha256": "8755cf68e80dd4ee8d2b077af22718f31a84a54246f86f3f5559b913c47013ba",
-    "bytes": 139751,
+    "sha256": "c8959d02a885bb981140ed3630d0b8d7b3b248f27944f799eb3b76307f52b7f6",
+    "bytes": 139734,
+    "parts": [],
     "complete": true,
     "files": 301,
     "jobs": [
@@ -414,8 +632,9 @@
     "log": "PRE-directed.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.by8Xte",
     "archive": "receipts/PRE-directed.tar.gz",
-    "sha256": "995ff5d70d0340b0fb1c9312921a1cc4f46669425e22f1cbbf860e5b32af20dd",
-    "bytes": 125828,
+    "sha256": "dbcdd060f7040b9faded79cab58fd9868afc9c57691b26996cf75617f0f19e52",
+    "bytes": 125811,
+    "parts": [],
     "complete": true,
     "files": 301,
     "jobs": [
@@ -444,8 +663,9 @@
     "log": "PRE-final.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.SdsGO3",
     "archive": "receipts/PRE-final.tar.gz",
-    "sha256": "d88be9d182f5cb31fb68fe1f51fd137aeb51f1a57c228665abc6c77b4dad3f6f",
-    "bytes": 137730,
+    "sha256": "7f6da7c7b649807e0ef778a230ac93f4a3f40970183c5adc68a30587b740a6fe",
+    "bytes": 137716,
+    "parts": [],
     "complete": true,
     "files": 301,
     "jobs": [
@@ -474,8 +694,9 @@
     "log": "differ-epoll.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.V1vlM8",
     "archive": "receipts/differ-epoll.tar.gz",
-    "sha256": "4381ebb17a09f41f0286b093b77894162d5af2a42d6bf8a518f308e47dcfc0ab",
-    "bytes": 138985,
+    "sha256": "83376089e7ad612cdb4bd0601dff541f9df3656c71431e342f65edf0c9785f29",
+    "bytes": 138968,
+    "parts": [],
     "complete": false,
     "files": 1148,
     "jobs": [
@@ -509,8 +730,9 @@
     "log": "differ-uring.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.VxQ8Ji",
     "archive": "receipts/differ-uring.tar.gz",
-    "sha256": "8ee3443bcc78c3adb9a9af7498aae8da3f125d2e22da7fd294cddc665488b051",
-    "bytes": 348937,
+    "sha256": "7b677ee9f9940cc4b4f4ada1ae6aa25bde5d9b7679b51629fd1c194d3e484b07",
+    "bytes": 348920,
+    "parts": [],
     "complete": true,
     "files": 2108,
     "jobs": [
@@ -543,6 +765,124 @@
         "done": "0\t1\t0",
         "ledger": "ok\t528.610000\tRedis 7.4 differential part (split, atomic 1)\n",
         "failures": []
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "resume-PAD-A-final.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.3L8PRB",
+    "archive": "receipts/resume-PAD-A-final.tar.gz",
+    "sha256": "dc33ed59bf5eb3fbdbc92a76f67198199b181379d599884d3e61f1305a2e6a78",
+    "bytes": 140481,
+    "parts": [],
+    "complete": true,
+    "files": 301,
+    "jobs": [
+      {
+        "job": "compat3",
+        "done": "0\t0\t6",
+        "ledger": "FAIL\t33.700000\tcompat3 CC4.12 pubsub vs Redis 7.4\nFAIL\t33.650000\tcompat3 CC4.13 pending vs Redis 7.4\nFAIL\t33.480000\tcompat3 CC4.14 history vs Redis 7.4\nFAIL\t33.530000\tcompat3 CC4.16 grammar vs Redis 7.4\nFAIL\t33.660000\tcompat3 CC4.5 glob vs Redis 7.4\nFAIL\t33.570000\tcompat3 CC4.17 flags vs Redis 7.4\n",
+        "failures": [
+          "  compat3 CC4.12 pubsub vs Redis 7.4                   FAIL (see /home/user/Projects/cx-compat3/build/gate-run.3L8PRB/jobs/compat3/pubsub-*.log)",
+          "  compat3 CC4.13 pending vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.3L8PRB/jobs/compat3/pending-*.log)",
+          "  compat3 CC4.14 history vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.3L8PRB/jobs/compat3/history-*.log)",
+          "  compat3 CC4.16 grammar vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.3L8PRB/jobs/compat3/grammar-*.log)",
+          "  compat3 CC4.5 glob vs Redis 7.4                      FAIL (see /home/user/Projects/cx-compat3/build/gate-run.3L8PRB/jobs/compat3/glob-*.log)",
+          "  compat3 CC4.17 flags vs Redis 7.4                    FAIL (see /home/user/Projects/cx-compat3/build/gate-run.3L8PRB/jobs/compat3/flags-*.log)"
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.010000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "resume-POST-final.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.qQsKZT",
+    "archive": "receipts/resume-POST-final.tar.gz",
+    "sha256": "80cbcaa24d3f28152ce2f855c15062c87cf741cd058b5f635f43127fa6a1633a",
+    "bytes": 135758,
+    "parts": [],
+    "complete": true,
+    "files": 301,
+    "jobs": [
+      {
+        "job": "compat3",
+        "done": "0\t6\t0",
+        "ledger": "ok\t33.180000\tcompat3 CC4.12 pubsub vs Redis 7.4\nok\t33.480000\tcompat3 CC4.13 pending vs Redis 7.4\nok\t33.410000\tcompat3 CC4.14 history vs Redis 7.4\nok\t33.610000\tcompat3 CC4.16 grammar vs Redis 7.4\nok\t33.700000\tcompat3 CC4.5 glob vs Redis 7.4\nok\t33.540000\tcompat3 CC4.17 flags vs Redis 7.4\n",
+        "failures": []
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "resume-PRE-final-control.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.dSr2WV",
+    "archive": "receipts/resume-PRE-final-control.tar.gz",
+    "sha256": "0e1bf00b6710e5a5a7024b02bffeffc690acfd7212d265821d2376dbaf971072",
+    "bytes": 140871,
+    "parts": [],
+    "complete": true,
+    "files": 301,
+    "jobs": [
+      {
+        "job": "compat3",
+        "done": "0\t0\t6",
+        "ledger": "FAIL\t33.330000\tcompat3 CC4.12 pubsub vs Redis 7.4\nFAIL\t33.490000\tcompat3 CC4.13 pending vs Redis 7.4\nFAIL\t33.860000\tcompat3 CC4.14 history vs Redis 7.4\nFAIL\t34.090000\tcompat3 CC4.16 grammar vs Redis 7.4\nFAIL\t33.930000\tcompat3 CC4.5 glob vs Redis 7.4\nFAIL\t34.420000\tcompat3 CC4.17 flags vs Redis 7.4\n",
+        "failures": [
+          "  compat3 CC4.12 pubsub vs Redis 7.4                   FAIL (see /home/user/Projects/cx-compat3/build/gate-run.dSr2WV/jobs/compat3/pubsub-*.log)",
+          "  compat3 CC4.13 pending vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.dSr2WV/jobs/compat3/pending-*.log)",
+          "  compat3 CC4.14 history vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.dSr2WV/jobs/compat3/history-*.log)",
+          "  compat3 CC4.16 grammar vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.dSr2WV/jobs/compat3/grammar-*.log)",
+          "  compat3 CC4.5 glob vs Redis 7.4                      FAIL (see /home/user/Projects/cx-compat3/build/gate-run.dSr2WV/jobs/compat3/glob-*.log)",
+          "  compat3 CC4.17 flags vs Redis 7.4                    FAIL (see /home/user/Projects/cx-compat3/build/gate-run.dSr2WV/jobs/compat3/flags-*.log)"
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "resume-differ-epoll.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.NDD0iG",
+    "archive": "receipts/resume-differ-epoll.tar.gz",
+    "sha256": "99743a01c19f4b82248511fc85181dfe557cf1bae7589e22ef0da8a997cab180",
+    "bytes": 95766,
+    "parts": [],
+    "complete": false,
+    "files": 758,
+    "jobs": [
+      {
+        "job": "differ-split-0",
+        "done": "0\t1\t0",
+        "ledger": "ok\t528.210000\tRedis 7.4 differential part (split, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "differ-split-1",
+        "done": null,
+        "ledger": "",
+        "failures": [
+          "  Redis 7.4 differential part (split, atomic 1)        FAIL (family exited 130 before this row produced a verdict)"
+        ]
       },
       {
         "job": "release",

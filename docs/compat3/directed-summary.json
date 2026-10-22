@@ -80,5 +80,19 @@
     }
   },
   "pad_pre_observations_equal": 144,
-  "pad_pre_same_apply_witness_failure": 0
+  "pad_pre_same_apply_witness_failure": 0,
+  "provenance": {
+    "POST": {
+      "log": "resume-POST-final.log",
+      "run": "/home/user/Projects/cx-compat3/build/gate-run.qQsKZT"
+    },
+    "PRE": {
+      "log": "resume-PRE-final-control.log",
+      "run": "/home/user/Projects/cx-compat3/build/gate-run.dSr2WV"
+    },
+    "PAD-A": {
+      "log": "resume-PAD-A-final.log",
+      "run": "/home/user/Projects/cx-compat3/build/gate-run.3L8PRB"
+    }
+  }
 }

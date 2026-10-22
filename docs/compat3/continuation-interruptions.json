@@ -1,0 +1,12 @@
+[
+  {
+    "log": "differ-epoll.log",
+    "run": "build/gate-run.V1vlM8",
+    "reason": "Previous lane stopped on the reported model service capacity error; no gate completion record. Retained as interrupted evidence, not a pass."
+  },
+  {
+    "log": "resume-differ-epoll.log",
+    "run": "build/gate-run.NDD0iG",
+    "reason": "Continuation deliberately terminated its exact owned process group after discovering the inherited climon reader-control bind(..., 0). Superseded by both bounded-differ engine runs with the reserved-port guard; cancellation verdicts are not server regressions."
+  }
+]

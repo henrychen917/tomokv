@@ -1,0 +1,6 @@
+{
+  "retained": "build/compat3/large-receipts/final-directed-observations.json",
+  "bytes": 7267275,
+  "sha256": "565fe0bb53e42c0419516af62bb71ec8d8929a20da9dc73d222ce58417120752",
+  "reason": "Exact observations exceed 1 MB; per-leg logs are retained in the small gate receipt archives."
+}

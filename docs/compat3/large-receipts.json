@@ -13,9 +13,9 @@
   },
   {
     "source": "docs/compat3/receipts/POST-complete.tar.gz",
-    "retained": "build/compat3/large-receipts/POST-complete.tar.gz",
-    "bytes": 1180485,
-    "sha256": "f10ed9ad92e242c301d4b63dc139cb067dea721cd8aa917b25aa039e7a19efc8",
+    "retained": "build/compat3/large-receipts/63b70429fbc32291/POST-complete.tar.gz",
+    "bytes": 1180467,
+    "sha256": "63b70429fbc322911bb07d788b933fd3f07d80b30bea82983def7b5bcb49add6",
     "reason": "archive exceeds 1 MB"
   }
 ]
