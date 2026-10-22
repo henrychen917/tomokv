@@ -28,4 +28,12 @@ The large tests are `abbagate.test_real_null_collection_comparison_and_subset_co
 
 **Harness change:** the existing `row_begin` special-case block now assigns **1200 s** to this exact row and records `ROW_BASIS=abba-selftest-cx-compat2-851.44s-plus-40pct-rounded`. Calculation: 851.44 × 1.40 = 1192.016 s, rounded up to the next minute, 1200 s (40.94% actual margin). This also gives 300 s above the observed incomplete 900 s run. A longer fixed budget accounts for the observed landing scheduling spread; no assertion, cell, arm, row, EXPECT value or fixture is removed or relaxed. The wiring control now checks this budget and its basis for ordinary history, explicit plans and no-history inputs, and retains the original expectations for every other row.
 
-The final gate-owned `abba_selftest` receipt is recorded in the wave4c section of `MEASURE-REQUEST-wave4.md`.
+The final gate-owned `abba_selftest` passed in **636.54 s** with the explicit
+1200 s budget and recorded basis, using a fresh private history path. Its
+`gates_test.py` suite took 186.826 s; the entire `gateprod.py` suite took 1.833 s.
+All 15 suite commands passed, with the committed landing EXPECT/fixture state.
+The exact command, ledger and archived original output are in
+[../../wave4/proof/wave4c-abba](../../wave4/proof/wave4c-abba). The separate
+required `python3 tests/gates_test.py` invocation passed **67/67**, taking
+184.869 s wall time (184.768 s reported by unittest); its receipt is in
+[../../wave4/proof/wave4c-gates-test](../../wave4/proof/wave4c-gates-test).

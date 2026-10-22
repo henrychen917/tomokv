@@ -1,0 +1,24 @@
+{
+  "argv": [
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "cwd": "/home/user/Projects/cx-wave4",
+  "cpus": [
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103
+  ],
+  "env": {
+    "PATH": "/home/user/Projects/cx-wave4/build/wave4/bin:/home/user/.codex/packages/standalone/releases/0.153.4-x86_64-unknown-linux-musl/codex-path:/home/user/.cargo/bin:/home/user/.local/bin:/home/user/bin:/home/user/.codex/tmp/arg0/codex-arg0PhqOhk:/home/user/.codex/packages/standalone/releases/0.153.4-x86_64-unknown-linux-musl/codex-path:/home/user/.local/bin:/home/user/.local/bin:/home/user/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+    "PYTHONPATH": "/home/user/Projects/cx-wave4/docs/wave4/fixture_site",
+    "GATE_TEST_PORT": "26899",
+    "WAVE4_FIXTURE_PORT_LOG": "/home/user/Projects/cx-wave4/build/wave4/fixture-ports.log"
+  },
+  "source_sha256": "84cb96476c2eb47a6a165692914cfefcdf98d3aebb9e7e1d875f239932003432"
+}
