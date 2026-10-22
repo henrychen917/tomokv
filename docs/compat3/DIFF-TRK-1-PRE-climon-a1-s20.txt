@@ -1,0 +1,4 @@
+  DIFF invalidation round 21 mode 0
+    target: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:4\r\n>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:4\r\n'
+    oracle: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:4\r\n'
+DIFFER climon: 4318 ops, 1 diffs -> FAIL
