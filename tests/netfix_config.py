@@ -19,6 +19,7 @@ def cases():
             yield (name, value)
         yield (name.upper(), 'bad')
     yield ('proto-max-bulk-len', '5gb')
+    yield ('protected-mode', '1')
     for value in ('normal', 'bad 0 0 0', 'normal x 0 0', 'normal -1 0 0',
                   'normal 0 0 -1', 'normal 0 0 bad', 'normal 0 0 1kb',
                   'normal 0 0', 'master 0 0 0', 'unknown 0 0 0',
@@ -39,6 +40,19 @@ def test(a, port, certs, proc, oracle):
             # Preserve exactly the error payload, not its repr wrapper.
             replies.append([list(args), str(result) if isinstance(result, n._lib.RespError)
                             else result.decode()])
+        # A public limit above the uint32 frame representation must not make
+        # malformed decimal headers wrap into short valid payloads.
+        large = admin.cmd('CONFIG', 'SET', 'proto-max-bulk-len', '9223372036854775807')
+        replies.append([['proto-max-bulk-len', '9223372036854775807'], str(large)
+                        if isinstance(large, n._lib.RespError) else large.decode()])
+        with closing(n.connect(port, certs)) as frame:
+            frame.raw(b'*2\r\n$4\r\nECHO\r\n')
+            import time
+            time.sleep(.05)  # exercise both complete and resumed bulk-header decoding
+            frame.raw(b'$18446744073709551620\r\nabcd\r\n')
+            result = frame.read()
+            replies.append([['wrapped-bulk-header'], str(result)
+                            if isinstance(result, n._lib.RespError) else result.decode()])
     label = 'tls' if certs else 'tcp'
     path = a.output / ('oracle-' + label + '.json')
     if oracle:

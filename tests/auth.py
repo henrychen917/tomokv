@@ -91,10 +91,14 @@ if not isinstance(registry, list) or not registry:
 
 expect(admin.command("CONFIG", "GET", "protected-mode"),
        [b"protected-mode", b"yes"], "protected-mode default")
-expect(admin.command("CONFIG", "SET", "protected-mode", "0"), b"OK", "protected-mode live 0")
+for numeric in ("0", "1"):
+    expect(admin.command("CONFIG", "SET", "protected-mode", numeric),
+           "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - "
+           "argument must be 'yes' or 'no'", "protected-mode rejects numeric " + numeric)
+expect(admin.command("CONFIG", "SET", "protected-mode", "no"), b"OK", "protected-mode live no")
 expect(admin.command("CONFIG", "GET", "protected-mode"),
        [b"protected-mode", b"no"], "protected-mode normalized no")
-expect(admin.command("CONFIG", "SET", "protected-mode", "1"), b"OK", "protected-mode live 1")
+expect(admin.command("CONFIG", "SET", "protected-mode", "yes"), b"OK", "protected-mode live yes")
 expect(admin.command("PING"), b"PONG", "disabled PING")
 expect(admin.command("AUTH", "anything"),
        "ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?",

@@ -1,2 +1,2 @@
-  row budget: 900s; median=1.87s; correctness-plan-fallback; netfix NT4.8 network CONFIG error parity
+  row budget: 900s; median=1.83s; correctness-plan-fallback; netfix NT4.8 network CONFIG error parity
   netfix NT4.8 network CONFIG error parity             ok

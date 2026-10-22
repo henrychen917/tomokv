@@ -74,7 +74,7 @@ def test(a, port, certs, proc, oracle):
                 if attempt:
                     assert sock.session_reused, 'Redis default TLS session did not resume'
                 session = sock.session
-    reference = a.output / 'oracle-suites.json' 
+    reference = a.output / 'oracle-suites.json'
     if oracle:
         reference.write_text(json.dumps(results, indent=2))
         assert sum(row[0] for row in results.values()) >= 8, results

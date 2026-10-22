@@ -1,2 +1,2 @@
-  row budget: 900s; median=10.01s; correctness-plan-fallback; netfix NT4.7 TLS default cipher parity
-  netfix NT4.7 TLS default cipher parity               FAIL (see /home/user/Projects/cx-netfix/build/gate-run.qShCFm/jobs/netfix_tls/proof.log)
+  row budget: 900s; median=10.21s; correctness-plan-fallback; netfix NT4.7 TLS default cipher parity
+  netfix NT4.7 TLS default cipher parity               FAIL (see /home/user/Projects/cx-netfix/build/gate-run.T19UcB/jobs/netfix_tls/proof.log)

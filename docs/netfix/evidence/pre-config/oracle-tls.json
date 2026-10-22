@@ -491,6 +491,13 @@
   ],
   [
     [
+      "proto-max-bulk-len",
+      "5gb"
+    ],
+    "OK"
+  ],
+  [
+    [
       "client-output-buffer-limit",
       "normal"
     ],
@@ -535,6 +542,48 @@
     [
       "client-output-buffer-limit",
       "normal 0 0 1kb"
+    ],
+    "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+  ],
+  [
+    [
+      "client-output-buffer-limit",
+      "normal 0 0"
+    ],
+    "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."
+  ],
+  [
+    [
+      "client-output-buffer-limit",
+      "master 0 0 0"
+    ],
+    "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+  ],
+  [
+    [
+      "client-output-buffer-limit",
+      "unknown 0 0 0"
+    ],
+    "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+  ],
+  [
+    [
+      "client-output-buffer-limit",
+      "normal 0 0 1x"
+    ],
+    "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+  ],
+  [
+    [
+      "client-output-buffer-limit",
+      "normal 184467440737095516160wat 0 0"
+    ],
+    "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+  ],
+  [
+    [
+      "client-output-buffer-limit",
+      "normal 0 0 0 pubsub nope 0 0"
     ],
     "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
   ],

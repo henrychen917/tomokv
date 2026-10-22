@@ -1,10 +1,10 @@
-PASS oracle-oracle-tcp [[['tcp-backlog', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-backlog') - can't set immutable config"], [['TCP-BACKLOG', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'TCP-BACKLOG') - can't set immutable config"], [['unixsocket', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'unixsocket') - can't set immutable config"], [['UNIXSOCKET', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'UNIXSOCKET') - can't set immutable config"], [['unixsocketperm', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'unixsocketperm') - can't set immutable config"], [['UNIXSOCKETPERM', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'UNIXSOCKETPERM') - can't set immutable config"], [['maxclients', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '-1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument must be between 1 and 4294967295 inclusive"], [['maxclients', '0'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument must be between 1 and 4294967295 inclusive"], [['maxclients', '01'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '+1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '1 '], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['MAXCLIENTS', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['timeout', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '-1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument must be between 0 and 2147483647 inclusive"], [['timeout', '01'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '+1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '1 '], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['TIMEOUT', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['tcp-keepalive', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '-1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument must be between 0 and 2147483647 inclusive"], [['tcp-keepalive', '01'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '+1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '1 '], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['TCP-KEEPALIVE', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['proto-max-bulk-len', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '-1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '0'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '01'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '+1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '1 '], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['PROTO-MAX-BULK-LEN', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['client-query-buffer-limit', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '-1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '0'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '01'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '+1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '1 '], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['CLIENT-QUERY-BUFFER-LIMIT', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['protected-mode', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '-1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '0'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '01'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '+1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '1 '], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['PROTECTED-MODE', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['client-output-buffer-limit', 'normal'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."], [['client-output-buffer-limit', 'bad 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."], [['client-output-buffer-limit', 'normal x 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal -1 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 -1'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 bad'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 1kb'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['timeout', '0', 'TIMEOUT', '0'], "ERR CONFIG SET failed (possibly related to argument 'TIMEOUT') - duplicate parameter"], [['tcp-keepalive', '0', 'TCP-KEEPALIVE', '0'], "ERR CONFIG SET failed (possibly related to argument 'TCP-KEEPALIVE') - duplicate parameter"], [['maxclients', '20032', 'MAXCLIENTS', '20032'], "ERR CONFIG SET failed (possibly related to argument 'MAXCLIENTS') - duplicate parameter"], [['proto-max-bulk-len', '512mb', 'PROTO-MAX-BULK-LEN', '512mb'], "ERR CONFIG SET failed (possibly related to argument 'PROTO-MAX-BULK-LEN') - duplicate parameter"], [['client-query-buffer-limit', '1gb', 'CLIENT-QUERY-BUFFER-LIMIT', '1gb'], "ERR CONFIG SET failed (possibly related to argument 'CLIENT-QUERY-BUFFER-LIMIT') - duplicate parameter"], [['protected-mode', 'no', 'PROTECTED-MODE', 'no'], "ERR CONFIG SET failed (possibly related to argument 'PROTECTED-MODE') - duplicate parameter"], [['client-output-buffer-limit', 'normal 0 0 0', 'CLIENT-OUTPUT-BUFFER-LIMIT', 'normal 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"]]
-PASS oracle-oracle-tls [[['tcp-backlog', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-backlog') - can't set immutable config"], [['TCP-BACKLOG', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'TCP-BACKLOG') - can't set immutable config"], [['unixsocket', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'unixsocket') - can't set immutable config"], [['UNIXSOCKET', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'UNIXSOCKET') - can't set immutable config"], [['unixsocketperm', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'unixsocketperm') - can't set immutable config"], [['UNIXSOCKETPERM', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'UNIXSOCKETPERM') - can't set immutable config"], [['maxclients', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '-1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument must be between 1 and 4294967295 inclusive"], [['maxclients', '0'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument must be between 1 and 4294967295 inclusive"], [['maxclients', '01'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '+1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '1 '], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['MAXCLIENTS', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['timeout', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '-1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument must be between 0 and 2147483647 inclusive"], [['timeout', '01'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '+1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '1 '], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['TIMEOUT', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['tcp-keepalive', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '-1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument must be between 0 and 2147483647 inclusive"], [['tcp-keepalive', '01'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '+1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '1 '], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['TCP-KEEPALIVE', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['proto-max-bulk-len', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '-1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '0'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '01'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '+1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '1 '], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['PROTO-MAX-BULK-LEN', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['client-query-buffer-limit', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '-1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '0'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '01'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '+1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '1 '], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['CLIENT-QUERY-BUFFER-LIMIT', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['protected-mode', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '-1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '0'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '01'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '+1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '1 '], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['PROTECTED-MODE', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['client-output-buffer-limit', 'normal'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."], [['client-output-buffer-limit', 'bad 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."], [['client-output-buffer-limit', 'normal x 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal -1 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 -1'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 bad'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 1kb'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['timeout', '0', 'TIMEOUT', '0'], "ERR CONFIG SET failed (possibly related to argument 'TIMEOUT') - duplicate parameter"], [['tcp-keepalive', '0', 'TCP-KEEPALIVE', '0'], "ERR CONFIG SET failed (possibly related to argument 'TCP-KEEPALIVE') - duplicate parameter"], [['maxclients', '20032', 'MAXCLIENTS', '20032'], "ERR CONFIG SET failed (possibly related to argument 'MAXCLIENTS') - duplicate parameter"], [['proto-max-bulk-len', '512mb', 'PROTO-MAX-BULK-LEN', '512mb'], "ERR CONFIG SET failed (possibly related to argument 'PROTO-MAX-BULK-LEN') - duplicate parameter"], [['client-query-buffer-limit', '1gb', 'CLIENT-QUERY-BUFFER-LIMIT', '1gb'], "ERR CONFIG SET failed (possibly related to argument 'CLIENT-QUERY-BUFFER-LIMIT') - duplicate parameter"], [['protected-mode', 'no', 'PROTECTED-MODE', 'no'], "ERR CONFIG SET failed (possibly related to argument 'PROTECTED-MODE') - duplicate parameter"], [['client-output-buffer-limit', 'normal 0 0 0', 'CLIENT-OUTPUT-BUFFER-LIMIT', 'normal 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"]]
+PASS oracle-oracle-tcp [[['tcp-backlog', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-backlog') - can't set immutable config"], [['TCP-BACKLOG', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'TCP-BACKLOG') - can't set immutable config"], [['unixsocket', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'unixsocket') - can't set immutable config"], [['UNIXSOCKET', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'UNIXSOCKET') - can't set immutable config"], [['unixsocketperm', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'unixsocketperm') - can't set immutable config"], [['UNIXSOCKETPERM', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'UNIXSOCKETPERM') - can't set immutable config"], [['maxclients', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '-1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument must be between 1 and 4294967295 inclusive"], [['maxclients', '0'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument must be between 1 and 4294967295 inclusive"], [['maxclients', '01'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '+1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '1 '], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['MAXCLIENTS', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['timeout', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '-1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument must be between 0 and 2147483647 inclusive"], [['timeout', '01'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '+1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '1 '], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['TIMEOUT', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['tcp-keepalive', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '-1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument must be between 0 and 2147483647 inclusive"], [['tcp-keepalive', '01'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '+1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '1 '], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['TCP-KEEPALIVE', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['proto-max-bulk-len', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '-1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '0'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '01'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '+1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '1 '], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['PROTO-MAX-BULK-LEN', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['client-query-buffer-limit', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '-1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '0'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '01'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '+1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '1 '], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['CLIENT-QUERY-BUFFER-LIMIT', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['protected-mode', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '-1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '0'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '01'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '+1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '1 '], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['PROTECTED-MODE', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['proto-max-bulk-len', '5gb'], 'OK'], [['client-output-buffer-limit', 'normal'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."], [['client-output-buffer-limit', 'bad 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."], [['client-output-buffer-limit', 'normal x 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal -1 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 -1'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 bad'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 1kb'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."], [['client-output-buffer-limit', 'master 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."], [['client-output-buffer-limit', 'unknown 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 1x'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 184467440737095516160wat 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 0 pubsub nope 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['timeout', '0', 'TIMEOUT', '0'], "ERR CONFIG SET failed (possibly related to argument 'TIMEOUT') - duplicate parameter"], [['tcp-keepalive', '0', 'TCP-KEEPALIVE', '0'], "ERR CONFIG SET failed (possibly related to argument 'TCP-KEEPALIVE') - duplicate parameter"], [['maxclients', '20032', 'MAXCLIENTS', '20032'], "ERR CONFIG SET failed (possibly related to argument 'MAXCLIENTS') - duplicate parameter"], [['proto-max-bulk-len', '512mb', 'PROTO-MAX-BULK-LEN', '512mb'], "ERR CONFIG SET failed (possibly related to argument 'PROTO-MAX-BULK-LEN') - duplicate parameter"], [['client-query-buffer-limit', '1gb', 'CLIENT-QUERY-BUFFER-LIMIT', '1gb'], "ERR CONFIG SET failed (possibly related to argument 'CLIENT-QUERY-BUFFER-LIMIT') - duplicate parameter"], [['protected-mode', 'no', 'PROTECTED-MODE', 'no'], "ERR CONFIG SET failed (possibly related to argument 'PROTECTED-MODE') - duplicate parameter"], [['client-output-buffer-limit', 'normal 0 0 0', 'CLIENT-OUTPUT-BUFFER-LIMIT', 'normal 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"]]
+PASS oracle-oracle-tls [[['tcp-backlog', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-backlog') - can't set immutable config"], [['TCP-BACKLOG', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'TCP-BACKLOG') - can't set immutable config"], [['unixsocket', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'unixsocket') - can't set immutable config"], [['UNIXSOCKET', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'UNIXSOCKET') - can't set immutable config"], [['unixsocketperm', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'unixsocketperm') - can't set immutable config"], [['UNIXSOCKETPERM', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'UNIXSOCKETPERM') - can't set immutable config"], [['maxclients', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '-1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument must be between 1 and 4294967295 inclusive"], [['maxclients', '0'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument must be between 1 and 4294967295 inclusive"], [['maxclients', '01'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '+1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '1 '], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['maxclients', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['MAXCLIENTS', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'maxclients') - argument couldn't be parsed into an integer"], [['timeout', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '-1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument must be between 0 and 2147483647 inclusive"], [['timeout', '01'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '+1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '1 '], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['timeout', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['TIMEOUT', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'timeout') - argument couldn't be parsed into an integer"], [['tcp-keepalive', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '-1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument must be between 0 and 2147483647 inclusive"], [['tcp-keepalive', '01'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '+1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '1 '], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['tcp-keepalive', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['TCP-KEEPALIVE', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'tcp-keepalive') - argument couldn't be parsed into an integer"], [['proto-max-bulk-len', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '-1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '0'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '01'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '+1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '1 '], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['proto-max-bulk-len', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['proto-max-bulk-len', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['PROTO-MAX-BULK-LEN', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'proto-max-bulk-len') - argument must be a memory value"], [['client-query-buffer-limit', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '-1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '0'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '01'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '+1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '1 '], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['client-query-buffer-limit', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['client-query-buffer-limit', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive"], [['CLIENT-QUERY-BUFFER-LIMIT', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be a memory value"], [['protected-mode', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '-1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '0'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '01'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '+1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', ' 1'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '1 '], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '1kb'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '9223372036854775808'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['protected-mode', '18446744073709551615'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['PROTECTED-MODE', 'bad'], "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"], [['proto-max-bulk-len', '5gb'], 'OK'], [['client-output-buffer-limit', 'normal'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."], [['client-output-buffer-limit', 'bad 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."], [['client-output-buffer-limit', 'normal x 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal -1 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 -1'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 bad'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 1kb'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."], [['client-output-buffer-limit', 'master 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."], [['client-output-buffer-limit', 'unknown 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 1x'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 184467440737095516160wat 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['client-output-buffer-limit', 'normal 0 0 0 pubsub nope 0 0'], "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."], [['timeout', '0', 'TIMEOUT', '0'], "ERR CONFIG SET failed (possibly related to argument 'TIMEOUT') - duplicate parameter"], [['tcp-keepalive', '0', 'TCP-KEEPALIVE', '0'], "ERR CONFIG SET failed (possibly related to argument 'TCP-KEEPALIVE') - duplicate parameter"], [['maxclients', '20032', 'MAXCLIENTS', '20032'], "ERR CONFIG SET failed (possibly related to argument 'MAXCLIENTS') - duplicate parameter"], [['proto-max-bulk-len', '512mb', 'PROTO-MAX-BULK-LEN', '512mb'], "ERR CONFIG SET failed (possibly related to argument 'PROTO-MAX-BULK-LEN') - duplicate parameter"], [['client-query-buffer-limit', '1gb', 'CLIENT-QUERY-BUFFER-LIMIT', '1gb'], "ERR CONFIG SET failed (possibly related to argument 'CLIENT-QUERY-BUFFER-LIMIT') - duplicate parameter"], [['protected-mode', 'no', 'PROTECTED-MODE', 'no'], "ERR CONFIG SET failed (possibly related to argument 'PROTECTED-MODE') - duplicate parameter"], [['client-output-buffer-limit', 'normal 0 0 0', 'CLIENT-OUTPUT-BUFFER-LIMIT', 'normal 0 0 0'], "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"]]
 FAIL 1s-epoll-tcp Traceback (most recent call last):
-  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 114, in matrix
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 45, in test
+  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 49, in test
     assert not different, json.dumps(different, indent=2)
            ^^^^^^^^^^^^^
 AssertionError: [
@@ -955,6 +955,22 @@ AssertionError: [
   [
     [
       [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "ERR Invalid argument '5gb' for CONFIG SET 'proto-max-bulk-len'"
+    ]
+  ],
+  [
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -1062,6 +1078,102 @@ AssertionError: [
         "normal 0 0 1kb"
       ],
       "ERR Invalid argument 'normal 0 0 1kb' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR Invalid argument 'master 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR Invalid argument 'unknown 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR Invalid argument 'normal 0 0 1x' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR Invalid argument 'normal 184467440737095516160wat 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0 0 pubsub nope 0 0' for CONFIG SET 'client-output-buffer-limit'"
     ]
   ],
   [
@@ -1207,10 +1319,10 @@ AssertionError: [
 ]
 
 FAIL 1s-epoll-tls Traceback (most recent call last):
-  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 114, in matrix
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 45, in test
+  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 49, in test
     assert not different, json.dumps(different, indent=2)
            ^^^^^^^^^^^^^
 AssertionError: [
@@ -2161,6 +2273,22 @@ AssertionError: [
   [
     [
       [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "ERR Invalid argument '5gb' for CONFIG SET 'proto-max-bulk-len'"
+    ]
+  ],
+  [
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -2268,6 +2396,102 @@ AssertionError: [
         "normal 0 0 1kb"
       ],
       "ERR Invalid argument 'normal 0 0 1kb' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR Invalid argument 'master 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR Invalid argument 'unknown 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR Invalid argument 'normal 0 0 1x' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR Invalid argument 'normal 184467440737095516160wat 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0 0 pubsub nope 0 0' for CONFIG SET 'client-output-buffer-limit'"
     ]
   ],
   [
@@ -2413,10 +2637,10 @@ AssertionError: [
 ]
 
 FAIL 1s-uring-tcp Traceback (most recent call last):
-  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 114, in matrix
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 45, in test
+  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 49, in test
     assert not different, json.dumps(different, indent=2)
            ^^^^^^^^^^^^^
 AssertionError: [
@@ -3367,6 +3591,22 @@ AssertionError: [
   [
     [
       [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "ERR Invalid argument '5gb' for CONFIG SET 'proto-max-bulk-len'"
+    ]
+  ],
+  [
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -3474,6 +3714,102 @@ AssertionError: [
         "normal 0 0 1kb"
       ],
       "ERR Invalid argument 'normal 0 0 1kb' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR Invalid argument 'master 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR Invalid argument 'unknown 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR Invalid argument 'normal 0 0 1x' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR Invalid argument 'normal 184467440737095516160wat 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0 0 pubsub nope 0 0' for CONFIG SET 'client-output-buffer-limit'"
     ]
   ],
   [
@@ -3619,10 +3955,10 @@ AssertionError: [
 ]
 
 FAIL 1s-uring-tls Traceback (most recent call last):
-  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 114, in matrix
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 45, in test
+  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 49, in test
     assert not different, json.dumps(different, indent=2)
            ^^^^^^^^^^^^^
 AssertionError: [
@@ -4573,6 +4909,22 @@ AssertionError: [
   [
     [
       [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "ERR Invalid argument '5gb' for CONFIG SET 'proto-max-bulk-len'"
+    ]
+  ],
+  [
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -4680,6 +5032,102 @@ AssertionError: [
         "normal 0 0 1kb"
       ],
       "ERR Invalid argument 'normal 0 0 1kb' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR Invalid argument 'master 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR Invalid argument 'unknown 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR Invalid argument 'normal 0 0 1x' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR Invalid argument 'normal 184467440737095516160wat 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0 0 pubsub nope 0 0' for CONFIG SET 'client-output-buffer-limit'"
     ]
   ],
   [
@@ -4825,10 +5273,10 @@ AssertionError: [
 ]
 
 FAIL 2s-epoll-tcp Traceback (most recent call last):
-  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 114, in matrix
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 45, in test
+  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 49, in test
     assert not different, json.dumps(different, indent=2)
            ^^^^^^^^^^^^^
 AssertionError: [
@@ -5779,6 +6227,22 @@ AssertionError: [
   [
     [
       [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "ERR Invalid argument '5gb' for CONFIG SET 'proto-max-bulk-len'"
+    ]
+  ],
+  [
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -5886,6 +6350,102 @@ AssertionError: [
         "normal 0 0 1kb"
       ],
       "ERR Invalid argument 'normal 0 0 1kb' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR Invalid argument 'master 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR Invalid argument 'unknown 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR Invalid argument 'normal 0 0 1x' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR Invalid argument 'normal 184467440737095516160wat 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0 0 pubsub nope 0 0' for CONFIG SET 'client-output-buffer-limit'"
     ]
   ],
   [
@@ -6031,10 +6591,10 @@ AssertionError: [
 ]
 
 FAIL 2s-epoll-tls Traceback (most recent call last):
-  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 114, in matrix
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 45, in test
+  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 49, in test
     assert not different, json.dumps(different, indent=2)
            ^^^^^^^^^^^^^
 AssertionError: [
@@ -6985,6 +7545,22 @@ AssertionError: [
   [
     [
       [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "ERR Invalid argument '5gb' for CONFIG SET 'proto-max-bulk-len'"
+    ]
+  ],
+  [
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -7092,6 +7668,102 @@ AssertionError: [
         "normal 0 0 1kb"
       ],
       "ERR Invalid argument 'normal 0 0 1kb' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR Invalid argument 'master 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR Invalid argument 'unknown 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR Invalid argument 'normal 0 0 1x' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR Invalid argument 'normal 184467440737095516160wat 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0 0 pubsub nope 0 0' for CONFIG SET 'client-output-buffer-limit'"
     ]
   ],
   [
@@ -7237,10 +7909,10 @@ AssertionError: [
 ]
 
 FAIL 2s-uring-tcp Traceback (most recent call last):
-  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 114, in matrix
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 45, in test
+  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 49, in test
     assert not different, json.dumps(different, indent=2)
            ^^^^^^^^^^^^^
 AssertionError: [
@@ -8191,6 +8863,22 @@ AssertionError: [
   [
     [
       [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "ERR Invalid argument '5gb' for CONFIG SET 'proto-max-bulk-len'"
+    ]
+  ],
+  [
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -8298,6 +8986,102 @@ AssertionError: [
         "normal 0 0 1kb"
       ],
       "ERR Invalid argument 'normal 0 0 1kb' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR Invalid argument 'master 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR Invalid argument 'unknown 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR Invalid argument 'normal 0 0 1x' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR Invalid argument 'normal 184467440737095516160wat 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0 0 pubsub nope 0 0' for CONFIG SET 'client-output-buffer-limit'"
     ]
   ],
   [
@@ -8443,10 +9227,10 @@ AssertionError: [
 ]
 
 FAIL 2s-uring-tls Traceback (most recent call last):
-  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 114, in matrix
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 45, in test
+  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 49, in test
     assert not different, json.dumps(different, indent=2)
            ^^^^^^^^^^^^^
 AssertionError: [
@@ -9397,6 +10181,22 @@ AssertionError: [
   [
     [
       [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "5gb"
+      ],
+      "ERR Invalid argument '5gb' for CONFIG SET 'proto-max-bulk-len'"
+    ]
+  ],
+  [
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -9504,6 +10304,102 @@ AssertionError: [
         "normal 0 0 1kb"
       ],
       "ERR Invalid argument 'normal 0 0 1kb' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Wrong number of arguments in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "master 0 0 0"
+      ],
+      "ERR Invalid argument 'master 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Invalid client class specified in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "unknown 0 0 0"
+      ],
+      "ERR Invalid argument 'unknown 0 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 1x"
+      ],
+      "ERR Invalid argument 'normal 0 0 1x' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 184467440737095516160wat 0 0"
+      ],
+      "ERR Invalid argument 'normal 184467440737095516160wat 0 0' for CONFIG SET 'client-output-buffer-limit'"
+    ]
+  ],
+  [
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'client-output-buffer-limit') - Error in hard, soft or soft_seconds setting in buffer limit configuration."
+    ],
+    [
+      [
+        "client-output-buffer-limit",
+        "normal 0 0 0 pubsub nope 0 0"
+      ],
+      "ERR Invalid argument 'normal 0 0 0 pubsub nope 0 0' for CONFIG SET 'client-output-buffer-limit'"
     ]
   ],
   [
@@ -9649,9 +10545,9 @@ AssertionError: [
 ]
 
 Traceback (most recent call last):
-  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 50, in <module>
+  File "/home/user/Projects/cx-netfix/tests/netfix_config.py", line 54, in <module>
     n.matrix(n.arguments(), test)
-  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 122, in matrix
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 128, in matrix
     assert not failures, failures
            ^^^^^^^^^^^^
 AssertionError: ['1s-epoll-tcp', '1s-epoll-tls', '1s-uring-tcp', '1s-uring-tls', '2s-epoll-tcp', '2s-epoll-tls', '2s-uring-tcp', '2s-uring-tls']
