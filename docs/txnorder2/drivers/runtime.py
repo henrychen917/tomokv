@@ -19,7 +19,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / 'docs/txnorder2/runtime'
-DATA = ROOT / 'build/txnorder2/runtime-data-last'
+DATA = ROOT / 'build/txnorder2/runtime-data-wake'
 PRE = ROOT / 'build/txnorder2/pre-source/build/tomokv'
 POST = ROOT / 'build/txnorder2/post/tomokv'
 
@@ -35,8 +35,8 @@ def transform(value):
     if re.fullmatch(r'226\d\d', value): value = str(int(value) + 5200)
     value = value.replace(str(ROOT / 'build/txnorder/pre/tomokv'), str(PRE))
     value = value.replace(str(ROOT / 'build/tomokv'), str(POST))
-    value = value.replace('docs/txnorder/runtime-', 'docs/txnorder2/runtime/legacy-')
-    value = value.replace('build/txnorder/runtime-', 'build/txnorder2/runtime-data-last/legacy-')
+    value = value.replace('docs/txnorder/runtime-', 'docs/txnorder2/runtime/legacy-wake-')
+    value = value.replace('build/txnorder/runtime-', 'build/txnorder2/runtime-data-wake/legacy-')
     if value.endswith('pre-armed-server'): value = str(DATA / 'pre-armed-server')
     if value.endswith('post-armed-server'): value = str(DATA / 'post-armed-server')
     if '/proof-drivers/watchlive-' in value:
@@ -94,7 +94,7 @@ def run(index, original, suffix):
     logs=[]
     try:
         binary=PRE if row['arm']=='pre' else POST
-        if row['arm']=='barrier-off': binary=ROOT/'build/txnorder2/barrier-off-final/tomokv'
+        if row['arm']=='barrier-off': binary=Path(os.environ.get('TXNORDER_BARRIER_BINARY', str(ROOT/'build/txnorder2/barrier-off-final/tomokv')))
         if not binary.exists():
             result.update(status='NOT RUN',reason='missing required arm '+str(binary))
             return

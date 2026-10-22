@@ -16,7 +16,7 @@ arms += [(arm,binary,mode,db,engine) for arm,binary in [('pre',r.PRE),('post',r.
          for mode in ['1s','2s'] for db in [1,16] for engine in ['uring','epoll']]
 for arm,binary,mode,db,engine in arms:
     label=f'{arm}-{mode}-db{db}-{engine}';directory=ROOT/'build/txnorder2/watch-oracle'/label
-    directory.mkdir(parents=True,exist_ok=True);oracle=arm=='redis74';port=27891 if oracle else 27890
+    directory.mkdir(parents=True,exist_ok=True);oracle=arm=='redis74';port=27893 if oracle else 27892
     argv=['taskset','-c','84' if oracle else '72-79',str(binary),'--bind','127.0.0.1',
           '--port',str(port),'--save','','--appendonly','no','--dir',str(directory),'--databases',str(db)]
     if not oracle:argv+=['--thread-mode',mode,'--net-io',engine,'--shards','16','--ratio','6:2',

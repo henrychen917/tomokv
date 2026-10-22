@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a limited type-A aggregate-text-size control; never execute it."""
+"""Build a type-A PRE behaviour control with matched cold-tail and text sizes."""
 import hashlib
 import json
 from pathlib import Path
@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools"))
 from lbstall_artifacts import Elf
 
-PRE = ROOT / "build/txnorder2/pre-source/build/tomokv"
+PRE = ROOT / "build/txnorder2/pad-layout-source/build/tomokv"
 POST = ROOT / "build/tomokv"
 OUT = ROOT / "build/txnorder2/pad-a-size"
 DOCS = ROOT / "docs/txnorder2/pad-a-size"
@@ -28,7 +28,7 @@ def text_size(path):
 recipe = subprocess.check_output(["taskset", "-c", "64-95", "make", "-n", "-W",
                                   "build/src/main.o", "build/tomokv"], text=True)
 command = shlex.split(next(line for line in recipe.splitlines() if " -o build/tomokv " in line))
-command = [str(ROOT / "build/txnorder2/pre-source/build" / part[6:])
+command = [str(ROOT / "build/txnorder2/pad-layout-source/build" / part[6:])
            if part.startswith(("build/src/", "build/db0/src/")) and part.endswith(".o") else part
            for part in command]
 command[command.index("-o") + 1] = str(OUT / "tomokv")
@@ -52,8 +52,8 @@ for attempt in range(4):
     padding += target - actual
     assert padding > 0
 assert actual == target
-receipt = dict(kind="A: PRE behaviour with matched aggregate POST .text size",
-               limits="Diagnostic size control only. Internal function addresses and Server's cold tail are not matched; this is not a full layout twin.",
+receipt = dict(kind="A: PRE behaviour with POST cold Server allocation size and aggregate .text size",
+               limits="Existing Server offsets and total allocation size match POST. Aggregate .text size matches; individual function addresses and all other linked sections are not matched, so this is a size/allocation control, not exact code placement.",
                attempts=attempts, binaries={str(p.relative_to(ROOT)): dict(
                    sha256=hashlib.sha256(p.read_bytes()).hexdigest(), text_size=text_size(p))
                    for p in (PRE, POST, OUT / "tomokv")})

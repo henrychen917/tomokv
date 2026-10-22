@@ -957,6 +957,7 @@ job_body(){
     snapshot-*) job_snapshot "$name";;
     aof-*) job_aof "$name";;
     txnorder2) job_txnorder2;;
+    txnorder_wake) job_txnorder_wake;;
     txnorder-*) job_txnorder "$name";;
     debug-*) job_debug "$name";;
     fused-*) job_fused "$name";;
@@ -1117,7 +1118,7 @@ plan_jobs(){
               release_batteries atomic_batteries moverfix hexpread compat2 bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify notify_order notify_aof flip flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
-              txnorder2 txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
+              txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -2625,8 +2626,8 @@ job_txnorder(){
 # A' schedules, WATCH defects, RENAME join and busy-owner wake: seventeen rows before quick exit.
 # R12 also runs allocation and invariant/retirement falsifiers. The WATCH rows
 # aggregate both thread modes, both databases images and both network engines.
-job_txnorder2(){
-  local case_name label passed mode engine databases boot_fn unit unit_root log
+job_txnorder_wake(){
+  local label passed mode unit_root
   unit_root=$(dirname "$CANDIDATE_BINARY")
   label="txnorder2 busy owner inbox wake"
   row_begin "$label"
@@ -2635,6 +2636,11 @@ job_txnorder2(){
     taskset -c "$CORES" "$unit_root/txnorder-wake-unit" "$mode" >>"$TMPDIR/wake.log" 2>&1 || passed=0
   done
   [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/wake.log"
+}
+
+job_txnorder2(){
+  local case_name label passed mode engine databases boot_fn unit unit_root log
+  unit_root=$(dirname "$CANDIDATE_BINARY")
   for case_name in R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12; do
     label="txnorder2 writer episode $case_name"
     row_begin "$label"
@@ -4224,7 +4230,7 @@ job_dependencies(){
     tls|compat2) echo 'release production_units';;
     respresume-*) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*|fused-*|txn_group_*|txnorder2|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
+    debug-*|fused-*|txn_group_*|txnorder2|txnorder_wake|txnorder-*|aof_frame|aoforder|moverfix) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
@@ -4412,6 +4418,7 @@ collect_job sort
 for AT in 0 1; do collect_job "debug-$AT"; done
 collect_job txn_group_split
 collect_job txnorder2
+collect_job txnorder_wake
 for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done; done
 
 collect_job script_bounds

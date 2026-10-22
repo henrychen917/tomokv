@@ -343,8 +343,22 @@ def ryow_control(mode):
 
 
 # ---- 5. unarmed stress: the shape the contended box used to fail -----------------------------
-def stress_arm(mode, seconds=2.0, readers=4):
-    for key in KEYS:
+def stress_arm(mode, seconds=2.0, readers=4, attempt=0):
+    # A successful data run without a cut is not an armed proof. Re-roll the
+    # key placement and connections, bounded, without relaxing any data check.
+    keys = []
+    shards = set()
+    prefix = "execatomic:stress:%d:%d:" % (time.time_ns(), attempt)
+    for probe in range(5000):
+        key = prefix + str(probe)
+        shard = ADMIN.cmd("DEBUG", "SHARD", key)
+        if shard not in shards:
+            shards.add(shard)
+            keys.append(key)
+        if len(keys) == 8:
+            break
+    assert len(keys) == 8 and all(isinstance(s, int) for s in shards), shards
+    for key in keys:
         ADMIN.cmd("SET", key, "0")
     before_cuts = info_field("atomic_fanout_cuts") or 0
     stop = threading.Event()
@@ -360,8 +374,8 @@ def stress_arm(mode, seconds=2.0, readers=4):
         try:
             start.wait()
             while not stop.is_set():
-                reply = transaction(client, KEYS, str(seq))
-                if reply != [b"OK"] * len(KEYS):
+                reply = transaction(client, keys, str(seq))
+                if reply != [b"OK"] * len(keys):
                     raise AssertionError("bad EXEC %r" % (reply,))
                 with lock:
                     state["commits"] += 1
@@ -377,7 +391,7 @@ def stress_arm(mode, seconds=2.0, readers=4):
         try:
             start.wait()
             while not stop.is_set():
-                values = client.cmd("MGET", *KEYS)
+                values = client.cmd("MGET", *keys)
                 with lock:
                     state["reads"] += 1
                     if not values or any(v != values[0] for v in values[1:]):
@@ -403,6 +417,10 @@ def stress_arm(mode, seconds=2.0, readers=4):
     cuts = (info_field("atomic_fanout_cuts") or 0) - before_cuts
     ok = (not errors and not alive and state["torn"] == 0 and
           state["reads"] > 100 and state["commits"] > 10)
+    if mode == 0 and ok and cuts == 0 and attempt < 3:
+        print("  rearm atomic-0 stress: no cut on fresh attempt %d/4" % (attempt + 1))
+        stress_arm(mode, seconds, readers, attempt + 1)
+        return
     if mode == 0:
         # Proves the readers really went through the newly-guarded path during THIS arm.
         ok = ok and cuts > 0
