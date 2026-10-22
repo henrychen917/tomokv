@@ -871,3 +871,174 @@ Append actual results as MEASURE-RESULT. Active expiry/eviction versus read
 claims remains the design §6 owner decision. The read-only implementation has
 the existing MGET retained-version contract, not a stronger history guarantee
 for unversioned plain writes. Neither issue is hidden by the liveness blocker.
+
+
+## txnorder2
+
+The approved A′ writer episodes replace the unconditional writer-mark wait.
+D1–D10, including validation-time writer blocking, are retained. WATCH serves,
+FLUSH presence/expiry semantics and the final read-only EXEC dirty check are
+fixed. The busy fused-owner inbox hang is reproduced before `7b31fd15f` and
+passes after it. This supersedes the preceding txnorder section's pending A′
+decision; it does not assert performance acceptance.
+
+Base is merged `origin/cpp` **a7dfb9d23**, merged by `73e35f754`. Final production
+source is **9d6e99d0d**; subsequent commits preserve reports, harness inventory
+and receipts. Every command in this continuation uses CPUs **64–95**, builds
+`-j32`; correctness servers and Redis use ports **27800–27899**. The initial
+serverless socket-control port exception is recorded below. Correctness servers, Redis 7.4 and individual
+gate jobs were explicitly authorized. No performance benchmark or full gate
+iteration was run. No push.
+
+The step-by-step implementation and runtime proof is
+[docs/txnorder2/PROOF.md](docs/txnorder2/PROOF.md). Prior completed requirements
+are cited by commit and receipt there, rather than reclassified as new work.
+[RESUME-REVIEW.md](docs/txnorder2/RESUME-REVIEW.md) reviews all 14 saved paths in
+`397403586` and both paths in `bbcbb6252`: all were kept, with the runtime
+owner-data path additionally isolated per run. No later capacity-stop WIP
+commit existed at resume. The new gate wake label was added to the explicit
+source fixture; neither EXPECT constant was edited.
+
+| Requirement | Result / receipt |
+|---|---|
+| A′ and R1–R12 | One stamp per complete blocked episode/shard; full local key set, all-or-none failure cleanup, older placing units pass. `822d7f310`, `cc7813c32`; `controls/` and episode logs. PRE cycles, rank-only R3/R4 cycles, POST termination; invariant, allocation and leaked-mark falsifiers included. |
+| WATCH items 4–6 | `48029f52d`, `6a56c5cc6`; exact Redis 7.4.10 serve/FLUSH oracle, both modes, both engines, DB1/16; real held CAS/final-read window. `watch-oracle-final2c/`, `origin-serve/`, gate WATCH logs. |
+| Wake hang | Captured unconsumed inbox task with a clear summary bit while the fused owner remains busy. Exact `7b31fd15f^` fused control fails, split control passes; POST both pass. `wake-before-fix/` and `nx-progress-repro-owned-attach-third/3/`. The old `differ-hang-backtrace.log` is a failed attach, not a backtrace. |
+| Original 215-row plan | All rows accounted for: selected POST 155 PASS; merged-origin PRE 11 PASS / 45 FAIL; four barrier-off controls FAIL the required mechanism witness. [runtime-coverage.json](docs/txnorder2/runtime-coverage.json) binds every row to command, binary and receipt. These are multiple explicitly identified runs, not 215 passes on one final binary. |
+| Own gate-job proof | Final POST: 48 requested jobs / 51 with prerequisites, **355 PASS / 0 FAIL**, unchanged binary SHA. All 17 new rows and all 24 WATCH legs present. `gate-final2d/`, `resume/final-gate-coverage.json`. Exact-origin wake own-job control fails 1s and passes 2s as intended in `gate-wake-pre-final/`. |
+| Builds / harness | `make all`, every production-unit target and mdbqsbr live arms complete; **44/44 freshness checks** pass. Unchanged `gates_test.py`: **67/67 PASS** in the final port-constrained own-job run. The first run's two scheduler timeouts during compilation are retained. INFO-field controls: 10/10 PASS. |
+| Identity / layout | All locked sizes and old field offsets match in both namespaces. Every one of 727 differing bodies is listed with a reason/inference; 14 hot bodies differ. No checker weakening. [IDENTITY.md](docs/txnorder2/IDENTITY.md). |
+
+The separate **abba_selftest gate row remains FAIL**. All completed suites
+pass, including 121 ABBA decision tests and 67 gate tests; the source receipt
+preflight refuses at unchanged `EXPECT_FULL=702` versus 733 matching
+fixture/source labels. **NOT RUN:** the internal receipt controls beyond that
+preflight, pending the maintainer's protected-count update. See
+[harness-final-assessment.json](docs/txnorder2/resume/harness-final-assessment.json).
+
+A port-scope exception is retained: earlier standalone harness runs and the
+first additional own-job attempt used default ephemeral listening ports for
+socket controls. I stopped the own-job attempt and reran with
+`GATE_TEST_PORT=27899`; the final 67/67 result above is from that constrained
+run. Correctness servers/oracle used assigned ports throughout. The initial
+port numbers were not recorded; [the correction receipt](docs/txnorder2/resume/harness-port-correction.json)
+identifies the affected runs. No performance load ran in these harness jobs.
+
+The episode and readonly-window defects belong to the pre-amendment lane, so
+the meaningful negative baseline is **73e35f754**, with its observational
+stamp shim disclosed. The completed own-job PRE receipt in
+[gate-pre-complete/preserved.json](docs/txnorder2/gate-pre-complete/preserved.json)
+records all 16 scored failures and all declared legs. R8's retained D10 guard
+itself passes PRE; its full episode-contract assertion fails. Literal origin
+R-family/item-6 mechanism controls are **NOT RUN** because those mechanisms
+and the post-CAS write window do not exist there. Origin is the actual PRE for
+serve/FLUSH, wake, cost, identity and ordinary runtime controls. The PRE X1
+DEBUG-hook semantic control is **NOT RUN** because origin lacks the hook;
+unknown-command errors are not defect proof.
+
+Harness changes keep exact data/replies and held-window witnesses. Under D1,
+a writer blocked by a held unit must be released asynchronously with that
+unit; waiting for that writer before releasing the holder creates a test
+cycle. `execatomic.py` allows at most four fresh-state attempts only when the
+data is correct but the window was absent, then fails if it never opens.
+Missing PRE counters, interrupted ledgers and missing witnesses are explicitly
+distinguished from semantic defect failures.
+
+Instruction counts are in [COST.md](docs/txnorder2/COST.md), with every pair in
+[instruction-summary.json](docs/txnorder2/instruction-summary.json). They are
+serverless production-path debugger counts, not measured hardware performance.
+The EXEC region includes preparation, owner turns, decision and retirement,
+and excludes networking, prior command queueing and later reclamation. It
+follows library/indirect calls, but excludes the vDSO clock body (PRE 0 calls,
+POST 1) because single-stepping its sequence loop perturbs it; REP iterations
+are disclosed. Atomic=1, two INCRs, first EXEC after seeding, no competitor:
+
+| Namespace / mode | Single-shard steps/EXEC PRE → POST | Two-owner steps/EXEC PRE → POST |
+|---|---:|---:|
+| normal 1s | 21,945 → 26,705 | 22,640 → 27,972 |
+| normal 2s | 25,908 → 30,653 | 26,657 → 31,959 |
+| DB0 1s | 20,086 → 24,809 | 20,711 → 25,986 |
+| DB0 2s | 24,012 → 28,724 | 24,695 → 29,948 |
+
+Removed costs include eager clocks, redundant single-shard ARRIVE accounting,
+duplicate key scans/storage and the one-key duplicate preflight. The latter
+moves normal 2s named-routine counts 11,859 → 10,698 for one shard and
+12,731 → 11,629 for two owners. Admission age, claims, cross-owner ARRIVE,
+private versions and decision/lifetime joins remain required mechanisms;
+this does not label every generated instruction irreducible.
+
+Session-entry GET/SET is **202 → 202**, MGET/MSET **214 → 214**, in both modes
+and namespaces with a MultiSession but no unit in flight. DB0 MGET's extra
+instruction is removed: execute **322 → 322** over two fragments. DB0
+DEL/UNLINK are **462 → 462**, normal **452 → 450**. KEYS/RANDOMKEY's skipped
+scan-home helpers are canonical-identical, and caller totals fall.
+Universal ordinary-path zero overhead is **not established**: normal atomic
+MSET retains **+11 named instructions in 2s / +16 in 1s** in commit/completion
+handling; DB0 plain MSET execute retains +1 per fragment while its aggregate
+falls. These residuals and all compile-only budget trials remain visible for
+merit review, rather than being called unavoidable or hidden in helper splits.
+
+| Arm | Artifact | SHA-256 |
+|---|---|---|
+| PRE, a7dfb9d23 | `build/txnorder2/pre-source/build/tomokv` | `97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e` |
+| POST | `build/tomokv` | `5bfa95e74b42c78c0b70fa0e3983c89582b66dc8d4a1570262968ec84e5f447f` |
+| PAD **(A), behaviour twin** | `build/txnorder2/pad-a-size-final2c/tomokv` | `52a0b831841e5b0960b604069bfb190651ed23723d36fcdce19027da2a8aaaef` |
+
+PAD(A) preserves PRE behavior, adds an unused aligned 32,832-byte cold Server
+tail matching POST's size/old offsets, and adds unreachable text padding to
+match POST's **7,867,398-byte .text**. It is a limited aggregate size/allocation
+control; individual function positions and all other sections do not match.
+It cannot alone establish immunity to every layout/cache effect. No PAD(B)
+was built. Build recipes and exact hashes are in
+[final-artifacts.json](docs/txnorder2/resume/final-artifacts.json) and the PAD
+receipts. Build artifacts stay under ignored `build/`.
+
+Request the maintainer's quiet-box ABBA merit run with **PRE / POST / PAD(A)**:
+
+| Cells | Fixed shape / instrument | Deciding evidence |
+|---|---|---|
+| Main-command null | GET, SET, MGET-2, MSET-2, DEL-2, UNLINK-2, KEYS, RANDOMKEY; both modes, atomic 0/1, DB1/16, depths 1/16/128; same keyspace/values and offered load; eight server cores, 16 shards, split 6:2. Gate's own ABBA instrument. | Matched-load rate decides; retain cycles/op, instructions/op, IPC and latency. Include normal atomic MSET and scan cells explicitly. |
+| EXEC uncontended | `/home/user/Projects/calib/exec-merit.py` x2s/x1s × atomic 0/1 × unc; 64 connections, 16 client threads, pipeline 4, two INCRs/EXEC, private key pairs. Split: eight cores, 16 shards, ratio 6:2; fused: eight cores, 64 shards, read-local=1. DB1; balancing/flip off. | Completed EXEC/s and matched-load latency; hardware cycles/**EXEC**, instructions/**EXEC**, IPC; profiles for both arms explain the remaining overhead. Denominator is completed EXECs, not two INCR children or RESP command count. |
+| EXEC hot | Same four mode/atomic cells with two shared keys on different owners and four plain INCR clients; same 20-second blocks, three ABBA repetitions as the merit driver. | Exact data and bounded completion first; then matched-load rate/latency, cycles/EXEC, instructions/EXEC, IPC, attempts, wounds/retries, blind restarts and writer waits. |
+| PAD diagnosis | Repeat the same chosen cells with PRE/PAD(A) and POST, unchanged offered load. | POST movement with flat PAD supports a behavior effect within this control's stated limits; a PAD shift requires layout investigation. |
+
+The current EXEC merit driver reports fixed-concurrency throughput; it does
+not itself collect hardware counters or impose a matched offered-load cap.
+Keep that result labeled accordingly and collect the requested matched-load
+counter/latency profiles with the maintainer's instrument. The reproducible
+throughput command from this worktree is below (request only, **NOT RUN**):
+
+```sh
+taskset -c 64-95 python3 /home/user/Projects/calib/exec-merit.py \
+  --reference build/txnorder2/pre-source/build/tomokv \
+  --candidate build/tomokv --benchtxn build/benchtxn \
+  --output build/txnorder2/merit-post --cells all \
+  --server-cores 64-71 --load-cores 72-95 --port 27890 \
+  --conns 64 --threads 16 --blocks 3 --secs 20
+```
+
+For the type-A control, repeat with candidate
+`build/txnorder2/pad-a-size-final2c/tomokv` and output
+`build/txnorder2/merit-pad-a`. Driver/source/binary input hashes are in
+[merit-request-inputs.json](docs/txnorder2/resume/merit-request-inputs.json).
+
+Suggested allocation within this lane is server 64–71, clients 72–95 and port
+27890, only when scheduled by the maintainer. Hardware counts, throughput,
+full iteration and these merit cells are **NOT RUN**, reserved for that run.
+Append the measured verdict as MEASURE-RESULT; this report makes no throughput
+claim.
+
+Gate arithmetic is by collector line: txnorder2 at 4420 and txnorder_wake at
+4421 precede quick exit 4503. This continuation adds **17/17**; the complete
+unmerged lane adds **DQ=DF=31** over a7dfb9d23. Required counts: **716 quick /
+733 full**, from unchanged **685/702**. The source fixture matches all 733
+labels, including duplicates; its count check correctly refuses until the
+maintainer changes EXPECT. The four-owner txnorder stress explicitly uses
+split 4:4; ordinary batteries retain 6:2 and 16 shards.
+
+D3 blind restarts, finite older chains, monotonic-clock/FIFO assumptions and
+the existing MGET retained-version contract remain the approved limits.
+Active expiry/eviction versus read claims remains the design's owner decision;
+the live-version eviction guards do not prove a blanket read-claim pin.
+Artifact cleanup and final gate details are recorded in PROOF.md. No binary,
+objdump or file over 1 MB is committed in this continuation.

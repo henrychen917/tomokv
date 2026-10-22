@@ -3,5 +3,11 @@
   "pid": 495913,
   "signal": "SIGTERM",
   "time": 1792684880.5601687,
-  "receipt": "gate-harness-final/result.json"
+  "receipt": "gate-harness-final/result.json",
+  "earlier_standalone_runs": "resume/gates-test.log and resume/gates-test-rerun.log also had no GATE_TEST_PORT override. Their listener guards used ephemeral listening ports; retain their test results with this scope exception. The constrained own-job rerun includes gates_test.py again.",
+  "corrected_receipt": "gate-harness-port-final/result.json",
+  "fixed_environment": {
+    "GATE_TEST_PORT": "27899"
+  },
+  "port_numbers_from_initial_guards": "NOT RECORDED; do not infer an assigned ephemeral port from the configured candidate range."
 }

@@ -17,7 +17,7 @@ No later capacity-stop commit was present at resume.
 | 4: WATCH serves | `48029f52d`; production `blocking_run_direct` dirties the served key. Exact origin and Redis controls are in `origin-serve/` and `watch-oracle-final2c/`. |
 | 5: WATCH FLUSH | `48029f52d`; `Shard::watch_flush` captures existing/expired watched keys before tombstones/clear. SWAPDB, database isolation and both expiry timings are checked against Redis 7.4. |
 | 6: readonly WATCH | `48029f52d` / `6a56c5cc6`; finalizer rechecks dirty after the last fragment read. The owner-turn test proves the CAS/read window opened before the write and requires a null reply. |
-| 7: EXEC cost | Single-shard ARRIVE, redundant scans, one-key duplicate storage/preflight and eager clocks are removed. `bbcbb6252` single-key preflight is reviewed, not silently accepted. [COST.md](COST.md) gives instruction counts per EXEC, before/after optimization, scope and remaining costs. |
+| 7: EXEC cost | Redundant single-shard ARRIVE accounting, duplicate scans/storage, one-key duplicate preflight and eager clocks are removed. `bbcbb6252` single-key preflight is reviewed, not silently accepted. [COST.md](COST.md) gives instruction counts per EXEC, before/after optimization, scope and remaining costs. |
 | 8: main-path deltas | `9d6e99d0d` removes DB0 MGET's extra instruction per fragment; DEL/UNLINK match or improve. Scan-home helper bodies are identical. Residual MSET counts and all compiler spillover remain explicit in [COST.md](COST.md) and [IDENTITY.md](IDENTITY.md). |
 
 D1–D10 stay as approved, including validation claims blocking writers from
@@ -140,18 +140,62 @@ WATCH serve/FLUSH, the wake fix, cost, identity and ordinary runtime PRE.
 
 ## Gate jobs and finish checks
 
-Final selected gate-job run is in progress in `gate-final2d/`; it requests
-every job in `resume/scope.json` through `GATE_ONLY_JOBS`. Completion and exact
-counts will be recorded here after the dispatcher exits. It is a PARTIAL
-correctness ledger, never a full iteration/performance/source receipt.
+`gate-final2d/` completes all **48 requested jobs / 51 including prerequisites**
+through the gate's own dispatcher: **355 scored PASS, zero FAIL**, exit 0.
+The final binary remains SHA `5bfa95e7…` before and after. The four differential
+parts report 282 / 286 split checks and 277 / 281 armed fused checks, all with
+zero failures; their equivalence job also passes. Each part aggregates its
+internal comparisons into one public row. This is a **PARTIAL correctness
+ledger**, never a full iteration/performance/source receipt.
+
+`resume/final-gate-coverage.json`, checked by `drivers/check-final-gate.py`,
+requires all 17 new positive rows and every declared leg: 24 WATCH
+mode/engine/database logs, four real R8 handshake legs, both RENAME namespaces,
+all R12 exhaustive/falsifier markers and both wake modes. The served-key owner
+fixture additionally witnesses each of six blocking serve commands before its
+aggregate pass. `resume/touched-file-coverage.json` maps all 41 touched test
+files to these jobs or the original standalone runtime plan.
+
+`gate-wake-pre-final/` runs the **actual txnorder_wake job** against merged-origin
+headers and the origin candidate. Its scored wake row fails, with the exact
+missing-summary assertion in 1s and a pass in 2s; release qualification passes.
+This is the intended negative result, not a timeout or unknown command.
+`resume/wake-gate-pre-artifacts.json` binds both copied executables and the
+unchanged fixture to their SHA-256s.
+
+The additional own-job `abba_selftest` run in `gate-harness-port-final/`
+finishes with **one scored FAIL**. Its 121 ABBA tests, 67 `gates_test.py` tests
+and every other completed unittest summary pass. The receipt preflight alone
+refuses: **EXPECT_FULL=702, fixture=733, source declarations=733**, with no
+missing or extra labels. `resume/harness-final-assessment.json` records the
+suite summaries and exact refusal. This remains a failed gate row, not a pass.
+**NOT RUN:** `gate_receipt.py`'s internal controls after that preflight; it
+refuses before setup until the maintainer updates the protected count.
+The standalone INFO-field controls pass 10/10.
+
+**Port-scope correction:** the earlier standalone `gates_test.py` runs and the
+first additional harness run had no `GATE_TEST_PORT` override. Their socket
+controls therefore used kernel-assigned ephemeral listening ports outside the
+lane allocation; those port numbers were not recorded. The first own-job
+attempt was stopped (exit 130), preserved in `gate-harness-final/`, and rerun
+with **GATE_TEST_PORT=27899**. `gate-harness-port-final/result.json` records
+that environment; the repeated 67-test suite passes in this constrained run.
+`resume/harness-port-correction.json` preserves the exception, and the live
+`harness-affinity-snapshot.json` confirms its sampled threads stayed within
+CPUs 64–95. The TomoKV correctness servers and Redis oracle used assigned
+ports throughout. No performance load ran in either serverless harness job.
+
 
 `resume/build-final.json` records `make all -j32`, every production-unit target,
-the mdbqsbr live arms and make-q freshness. `resume/gates-test-rerun.json`
+the mdbqsbr live arms and **44/44 make-q freshness checks**. The final
+source/build/artifact recheck is in `resume/final-source-checks.json`. `resume/gates-test-rerun.json`
 records **67/67** harness tests passing unchanged. The first run's two scheduler
 fixture timeouts happened during compilation; that failed log is retained.
 The rerun used disjoint CPUs after compilation, without changing a deadline.
 
-All work uses CPUs 64–95 and ports 27800–27899. Existing gate batteries keep
+All CPU work uses CPUs 64–95. Correctness servers and the Redis oracle use
+ports 27800–27899. The initial serverless socket-control port exception and
+its correction are recorded below. Existing gate batteries keep
 16 shards and split 6:2. The four-owner a–d stress uses the design's explicit
 4:4 split override; fused tests arm read-local. New WATCH rows declare and run
 both network engines.
@@ -162,6 +206,17 @@ This continuation adds 17 rows; the whole unmerged lane adds **DQ=DF=31** over
 a7dfb9d23 (10 txnfix/txnfix2 + 4 txnorder + 17 txnorder2). Required maintainer
 counts are **716 quick / 733 full**, from 685/702. Protected EXPECT assignments
 remain unchanged.
+
+## Artifact retention
+
+`discarded-artifacts/index-01.json` and `index-02.json` account for **5,835
+removed generated files / 1,389,175,368 bytes**. Each removed file has its
+original path, size and SHA-256 in a small batch JSON. Large log summaries keep
+head/tail context; complete named/function counts, result records, compile
+recipes and annotated identity inventories remain. Raw objdumps, compressed
+traces, binaries and debugger step logs were deleted from this receipt tree.
+No remaining receipt exceeds 1 MB or contains binary data. PRE/POST/PAD
+executables remain under ignored `build/` for the maintainer.
 
 ## Limits retained for review
 
