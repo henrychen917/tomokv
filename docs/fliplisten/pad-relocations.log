@@ -1,0 +1,95 @@
+{
+  "status": "PASS",
+  "strict_identity": "8635/8641; six residuals retained",
+  "pre_sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+  "pad_sha256": "f9e60cb6c4d873ac28e298570f47417651fee15b33a9daf927279926f5cd74c5",
+  "padding_bytes": 137763,
+  "all_pre_text_function_addresses_and_sizes_equal": true,
+  "gnu_properties_equal": true,
+  "trampolines": [
+    {
+      "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "entry": "0x6a7c90",
+      "trampoline_offset": 56,
+      "return_address": "0x6a7cce"
+    },
+    {
+      "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "entry": "0x6ac280",
+      "trampoline_offset": 84,
+      "return_address": "0x6ac2be"
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "entry": "0x30c020",
+      "trampoline_offset": 0,
+      "return_address": "0x30c05e"
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "entry": "0x310630",
+      "trampoline_offset": 28,
+      "return_address": "0x31066e"
+    }
+  ],
+  "jump_tables": [
+    {
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "instruction_offset": "0x2c2",
+      "entries": 6,
+      "pre_table": "0x79b95c",
+      "pad_table": "0x7bd95c",
+      "targets": [
+        "0x19b989",
+        "0x19b838",
+        "0x19b9a1",
+        "0x19b9b9",
+        "0x19b9ad",
+        "0x19b995"
+      ]
+    },
+    {
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "instruction_offset": "0x317",
+      "entries": 6,
+      "pre_table": "0x79b974",
+      "pad_table": "0x7bd974",
+      "targets": [
+        "0x19b97d",
+        "0x19b8f6",
+        "0x19b9e9",
+        "0x19b9dd",
+        "0x19b9d1",
+        "0x19b9c5"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+      "instruction_offset": "0x16",
+      "entries": 18,
+      "pre_table": "0x7a5774",
+      "pad_table": "0x7c7774",
+      "targets": [
+        "0x6c57ae",
+        "0x6c57c0",
+        "0x6c57e0",
+        "0x6c5800",
+        "0x6c57ae",
+        "0x6c57a0",
+        "0x6c5840",
+        "0x6c5850",
+        "0x6c57ae",
+        "0x6c5870",
+        "0x6c5880",
+        "0x6c58a0",
+        "0x6c58f0",
+        "0x6c5930",
+        "0x6c5970",
+        "0x6c5a00",
+        "0x6c57ae",
+        "0x6c5a80"
+      ]
+    }
+  ],
+  "scope": "All six strict normalized-body differences explained; total text size matches POST, individual POST function layout is not reproduced."
+}

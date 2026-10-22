@@ -1,0 +1,28 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "48-63",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "48-55",
+    "--load-cores",
+    "56-63",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21810-21839",
+    "--candidate-binary",
+    "/home/user/Projects/cx-fliplisten/build/tomokv"
+  ],
+  "jobs": [
+    "fliplisten"
+  ],
+  "requested_jobs": [
+    "fliplisten"
+  ]
+}

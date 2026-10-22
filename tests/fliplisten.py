@@ -8,6 +8,7 @@ hook, modified binary, or substitute gate runner is used. Each row runs all four
 engine/atomic legs, even when an earlier leg fails on the frozen PRE control.
 """
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -90,16 +91,34 @@ def leg(args, engine, atomic):
     while listeners(args.port):
         assert time.monotonic() < deadline, 'allocated gate port is already in use'
         time.sleep(.05)
-    peers, clients, tls_peers = [], [], []
+    peers, clients, tls_peers, early_errors = [], [], [], {}
+    def first_ping(peer):
+        try: peer.send('PING')
+        except OSError as error: early_errors[peer] = repr(error)
     result = dict(engine=engine, atomic=atomic, direction=args.direction, outcome=args.outcome)
+    result['sha256'] = hashlib.sha256(args.binary.read_bytes()).hexdigest()
     pid = None
     with (out / 'server.log').open('w') as log:
         debugger = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=log, stderr=subprocess.STDOUT)
         try:
             admin = wait_ready('127.0.0.1', args.port, timeout=30)
             admin.sock.settimeout(8)
-            issuer = Conn('127.0.0.1', args.port, timeout=8)
-            clients += [admin, issuer]
+            clients.append(admin)
+            tls_context = context(str(args.output / 'certs'), client='good')
+            established_tls = from_socket(tls_context.wrap_socket(
+                socket.create_connection(('127.0.0.1', args.port + 1), timeout=8),
+                server_hostname='localhost'))
+            unix_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            unix_sock.settimeout(8)
+            unix_sock.connect(str(unix_path))
+            established_unix = from_socket(unix_sock)
+            clients += [established_tls, established_unix]
+            # The issuing client pins its IO owner in the existing protocol.
+            # Use that TLS client as issuer: an arbitrary established TLS client
+            # may correctly refuse a plan that tries to migrate its engine.
+            issuer = established_tls
+            assert established_tls.must('PING') == b'PONG'
+            assert established_unix.must('PING') == b'PONG'
             admin.must('SET', 'fliplisten:once', 0)
             before = int(info(admin, 'stats')['total_connections_received'])
             old = listeners(args.port)
@@ -120,7 +139,7 @@ def leg(args, engine, atomic):
             for _ in range(256):
                 peer = Conn('127.0.0.1', args.port, timeout=8)
                 peers.append(peer)
-                peer.send('PING')
+                first_ping(peer)
                 if len(peers) >= 24 and (engine == 'uring' or all(listeners(args.port).values())):
                     break
             queued = listeners(args.port)
@@ -128,17 +147,17 @@ def leg(args, engine, atomic):
                 assert set(queued) == set(during) and all(queued.values()), queued
             # A pending TLS handshake retains the listener's TLS identity. Send
             # ClientHello now (TCP_DEFER_ACCEPT), finish only after the FLIP.
-            tls_context = context(str(args.output / 'certs'), client='good')
             for _ in range(256):
                 raw = socket.create_connection(('127.0.0.1', args.port + 1), timeout=8)
                 sock = tls_context.wrap_socket(raw, server_hostname='localhost',
                                                do_handshake_on_connect=False)
-                sock.setblocking(False)
-                try: sock.do_handshake()
-                except ssl.SSLWantReadError: pass
                 peer = from_socket(sock)
                 peers.append(peer)
                 tls_peers.append(peer)
+                sock.setblocking(False)
+                try: sock.do_handshake()
+                except ssl.SSLWantReadError: pass
+                except OSError as error: early_errors[peer] = repr(error)
                 if len(tls_peers) >= 24 and (engine == 'uring' or all(listeners(args.port + 1).values())):
                     break
             tls_queued = listeners(args.port + 1)
@@ -150,8 +169,10 @@ def leg(args, engine, atomic):
                 sock.connect(str(unix_path))
                 peer = from_socket(sock)
                 peers.append(peer)
-                peer.send('PING')
+                first_ping(peer)
             admin.send('PING')
+            established_tls.send('PING')
+            established_unix.send('PING')
             released_at = time.monotonic()
             release.touch()
             flip_reply = issuer.read()
@@ -161,11 +182,14 @@ def leg(args, engine, atomic):
             else:
                 assert isinstance(flip_reply, RespError) and b'timed out' in flip_reply.message, repr(flip_reply)
             assert admin.read() == b'PONG'
+            assert established_tls.read() == b'PONG'
+            assert established_unix.read() == b'PONG'
             established_delay = time.monotonic() - quiesce_end
             assert established_delay < 1, ('established connection stalled after FLIP', established_delay)
             served, ids, counters, errors = 0, [], [], []
             for i, peer in enumerate(peers):
                 try:
+                    assert peer not in early_errors, ('lost during arrival', early_errors.get(peer))
                     if peer in tls_peers:
                         peer.sock.settimeout(8)
                         peer.sock.do_handshake()

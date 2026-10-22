@@ -598,7 +598,7 @@ private:
                 // A dropped accept re-arm means the server stops taking connections entirely, so it
                 // is retried every pass until it lands.
                 if constexpr (!kEp) {
-                    if (accept_pending_) fliplisten_retry_accept();
+                    if (accept_pending_) fliplisten_retry_accept(UrKind::Accept);
                     if constexpr (HasTls) if (tls_accept_pending_) arm_accept(UrKind::TlsAccept);
                     if constexpr (HasUnix)
                         if (unix_accept_pending_) arm_accept(UrKind::UnixAccept);
@@ -5233,7 +5233,7 @@ public:
     void fliplisten_install();
     bool fliplisten_finish(bool rollback);
     void fliplisten_resume();
-    void fliplisten_retry_accept();
+    void fliplisten_retry_accept(UrKind);
 
     // Cold config cache at the tail: established IO members retain their offsets.
     uint64_t client_query_buffer_limit_ = 1024ull * 1024 * 1024;

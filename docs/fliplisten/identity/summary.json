@@ -1,8 +1,8 @@
 {
   "pre": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
-  "post": "922be5e9d938b8ae94c5f775dbbb13d7daa36a3f90cb216eac1993812d01c973",
-  "bodies": 8725,
-  "changed": 583,
+  "post": "d6e4880f567e8b39da64d8e7caff3bbf102f74ad1a92e9b5669021fe58f48a6a",
+  "bodies": 8728,
+  "changed": 609,
   "hot_commands": [
     {
       "name": "tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)",
@@ -209,7 +209,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "auto tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}&&) const",
@@ -222,7 +222,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const",
@@ -235,7 +235,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(tomo_db0::Op const&)#1}&&) const",
@@ -248,7 +248,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]",
@@ -270,7 +270,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
     },
     {
       "name": "bool tomo::IoLoop::drive_tls<true, true>(tomo::Client*) [clone .isra.0]",
@@ -284,11 +284,11 @@
       "post_sizes": [
         1737,
         2023,
-        1956
+        1889
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
     },
     {
       "name": "bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]",
@@ -310,7 +310,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
     },
     {
       "name": "bool tomo_db0::IoLoop::drive_tls<true, true>(tomo_db0::Client*) [clone .isra.0]",
@@ -328,7 +328,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
     },
     {
       "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
@@ -343,7 +343,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
@@ -358,37 +358,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
-    },
-    {
-      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
-      "hot": true,
-      "command_hot": false,
-      "equal": false,
-      "headline_sizes": [
-        21049
-      ],
-      "post_sizes": [
-        21221
-      ],
-      "matches": [],
-      "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
-    },
-    {
-      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
-      "hot": true,
-      "command_hot": false,
-      "equal": false,
-      "headline_sizes": [
-        190
-      ],
-      "post_sizes": [
-        190
-      ],
-      "matches": [],
-      "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
@@ -399,11 +369,11 @@
         21239
       ],
       "post_sizes": [
-        21410
+        21239
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
@@ -417,13 +387,13 @@
       ],
       "post_sizes": [
         9922,
-        12084,
+        12232,
         9973,
         10378
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
@@ -443,7 +413,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
@@ -454,12 +424,12 @@
         21185
       ],
       "post_sizes": [
-        21442,
-        19292
+        21185,
+        19252
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
@@ -471,11 +441,11 @@
       ],
       "post_sizes": [
         197,
-        210
+        207
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
@@ -486,11 +456,11 @@
         21252
       ],
       "post_sizes": [
-        21372
+        21203
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)",
@@ -505,7 +475,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
@@ -518,14 +488,14 @@
         9794
       ],
       "post_sizes": [
-        10014,
+        9970,
         12450,
-        9794,
-        10951
+        9810,
+        10980
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
@@ -545,7 +515,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
@@ -557,11 +527,11 @@
       ],
       "post_sizes": [
         21385,
-        19907
+        19886
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
@@ -577,67 +547,22 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited template source; added cold admission instantiations and per-unit inlining budgets change clone multiplicity or generated instructions. No operation-path source change; residual retained for merit."
     },
     {
-      "name": "unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
       "hot": true,
       "command_hot": false,
       "equal": false,
       "headline_sizes": [
-        1412
+        796
       ],
       "post_sizes": [
-        1614
+        729
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
-    },
-    {
-      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
-      "hot": true,
-      "command_hot": false,
-      "equal": false,
-      "headline_sizes": [
-        2372
-      ],
-      "post_sizes": [
-        2628
-      ],
-      "matches": [],
-      "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
-    },
-    {
-      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
-      "hot": true,
-      "command_hot": false,
-      "equal": false,
-      "headline_sizes": [
-        2388
-      ],
-      "post_sizes": [
-        2628
-      ],
-      "matches": [],
-      "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
-    },
-    {
-      "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
-      "hot": true,
-      "command_hot": false,
-      "equal": false,
-      "headline_sizes": [
-        1066
-      ],
-      "post_sizes": [
-        1263
-      ],
-      "matches": [],
-      "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
     },
     {
       "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
@@ -652,7 +577,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+      "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
@@ -667,7 +592,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
@@ -682,7 +607,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
@@ -697,7 +622,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
@@ -712,7 +637,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
@@ -727,7 +652,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
@@ -742,7 +667,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
@@ -757,7 +682,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
@@ -772,7 +697,187 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5068
+      ],
+      "post_sizes": [
+        5068
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5006
+      ],
+      "post_sizes": [
+        5006
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5441
+      ],
+      "post_sizes": [
+        5441
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5114
+      ],
+      "post_sizes": [
+        5114
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5052
+      ],
+      "post_sizes": [
+        5052
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5487
+      ],
+      "post_sizes": [
+        5487
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5162
+      ],
+      "post_sizes": [
+        5162
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5116
+      ],
+      "post_sizes": [
+        5116
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5551
+      ],
+      "post_sizes": [
+        5551
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5221
+      ],
+      "post_sizes": [
+        5221
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5177
+      ],
+      "post_sizes": [
+        5177
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5612
+      ],
+      "post_sizes": [
+        5612
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
@@ -787,7 +892,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
@@ -802,7 +907,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
@@ -817,7 +922,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
@@ -832,7 +937,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
@@ -847,7 +952,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
@@ -862,7 +967,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
@@ -877,7 +982,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
@@ -892,7 +997,187 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+      "reason": "Existing paused/stale/default branches call the cold listener protocol. Normal admission body is preserved; compiler block layout/register choices and constant labels differ. Exact IO diffs retained."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4949
+      ],
+      "post_sizes": [
+        4949
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4860
+      ],
+      "post_sizes": [
+        4860
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5309
+      ],
+      "post_sizes": [
+        5309
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4981
+      ],
+      "post_sizes": [
+        4981
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4908
+      ],
+      "post_sizes": [
+        4908
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5357
+      ],
+      "post_sizes": [
+        5357
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5014
+      ],
+      "post_sizes": [
+        5014
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4956
+      ],
+      "post_sizes": [
+        4956
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5421
+      ],
+      "post_sizes": [
+        5421
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5078
+      ],
+      "post_sizes": [
+        5078
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        4998
+      ],
+      "post_sizes": [
+        4998
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, true>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5463
+      ],
+      "post_sizes": [
+        5463
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
     }
   ]
 }

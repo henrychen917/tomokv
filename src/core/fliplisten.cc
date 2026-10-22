@@ -389,11 +389,11 @@ void IoLoop::fliplisten_resume() {
     own.resumed.store(epoch, std::memory_order_release);
 }
 
-void IoLoop::fliplisten_retry_accept() {
+void IoLoop::fliplisten_retry_accept(UrKind kind) {
     // The pre-existing per-pass accept_pending_ branch is the only caller.
     // Keep arm_accept itself unchanged: even a cold call in its quiescing branch
     // made GCC save another register on every ordinary native accept rearm.
-    if (!accept_quiescing_) { arm_accept(UrKind::Accept); return; }
+    if (!accept_quiescing_) { arm_accept(kind); return; }
     if (!srv_->flip_listeners_ || self_->role() != Role::Ifid || accepts_paused()) return;
     accept_quiescing_ = false;
     bool pending = false;

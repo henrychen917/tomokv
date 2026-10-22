@@ -844,7 +844,7 @@ void IoLoop::r7_run_loop() {
             // A dropped accept re-arm means the server stops taking connections entirely, so it
             // is retried every pass until it lands.
             if constexpr (!kEp) {
-                if (accept_pending_) fliplisten_retry_accept();
+                if (accept_pending_) fliplisten_retry_accept(UrKind::Accept);
                 if constexpr (HasTls) if (tls_accept_pending_) arm_accept(UrKind::TlsAccept);
                 if constexpr (HasUnix)
                     if (unix_accept_pending_) arm_accept(UrKind::UnixAccept);

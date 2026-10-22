@@ -1,5 +1,5 @@
 """Own gate job interface, fixed lane resources, correctness only."""
-import importlib.util,json,os,subprocess,sys,tempfile
+import hashlib,json,os,subprocess,sys,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 BASE=ROOT/'build/fliplisten';DOC=ROOT/'docs/fliplisten';BIN=BASE/'bin';BIN.mkdir(exist_ok=True)
@@ -49,7 +49,9 @@ if __name__=='__main__':
        '--load-cores','56-63','--server-smt','','--load-smt','','--ports',
        os.environ.get('FLIPLISTEN_PROOF_PORTS','21810-21839'),
        '--candidate-binary',str(binary)]
- (dest/'command.json').write_text(json.dumps(dict(argv=argv,jobs=jobs,requested_jobs=requested_jobs),indent=2)+'\n')
+ (dest/'command.json').write_text(json.dumps(dict(argv=argv,jobs=jobs,requested_jobs=requested_jobs,
+      binary=str(server_source),sha256=hashlib.sha256(server_source.read_bytes()).hexdigest()),indent=2)+'\n')
  with (dest/'gate.log').open('w') as f:
     rc=subprocess.run(argv,cwd=ROOT,env=env,stdout=f,stderr=subprocess.STDOUT).returncode
  (dest/'returncode').write_text(str(rc)+'\n');print(label,rc,flush=True)
+ sys.exit(rc)
