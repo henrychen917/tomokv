@@ -1,0 +1,314 @@
+[
+  {
+    "object": "src/cmd/xshard.o"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o"
+  },
+  {
+    "object": "src/cmd/l4prebuild.o"
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128600
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128650
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128673
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128689
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128697
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128705
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128713
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128721
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128737
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128769
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 128900
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 129000
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 129008
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 129016
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 129032
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "budget": 129100
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127250
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127350
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127363
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127371
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127379
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127450
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127600
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127649
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127665
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127681
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127697
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127705
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127721
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127729
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127745
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127761
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127777
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127850
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10000,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10200,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10400,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10500,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10512,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10600,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10648,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10656,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10660,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10664,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10680,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10700,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 10800,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 11000,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 12000,
+    "growth": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "budget": 14000,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10000,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10200,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10400,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10500,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10512,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10600,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10648,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10656,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10660,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10664,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10680,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10700,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 10800,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 11000,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 12000,
+    "growth": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "budget": 14000,
+    "growth": 0
+  }
+]
