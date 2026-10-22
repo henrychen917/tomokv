@@ -7,13 +7,22 @@ merges are `2d276e45c` (compat2), `8bce7c3da` (moverfix), `4c692daf4`
 (clockcut), and `7c054dbad` (notifyorder), on headline `8656f9fa9`.
 `0350c7b33` retains the three clockcut labels. No push is requested.
 
+This is **not an unqualified green acceptance report**. The declared lane rows
+pass, but the sweep retains the pre-existing `cmdgap2` inventory contradiction,
+eight standalone ACL-wake scheduler-fixture failures, and the previously
+reported armed EXEC fan-out witness failure. The first epoll/armed differential
+matrix also reports a duplicate TRACKING invalidation. None is waived or weakened.
+
 The maintainer's compat2 EXPECT update and fixture sync remain intact.
 DQ=DF=+16 (+3 compat2, +8 moverfix, +3 clockcut, +2 notifyorder), all collected
 before the quick exit. Required landing counts are **685/702** from headline
 669/686. Current constants remain **672/689**; this lane does not edit them.
 
-Correctness uses CPUs 64–111 only and ports 26800–26899. Performance benchmarks,
-measurement load generators and the full iteration gate remain with the maintainer.
+The allocation is CPUs 64–111 and ports 26800–26899. All database servers use
+that allocation. The initial differential launcher omitted the Python socket
+fixture port fence, described below; its socket-reader control used an ephemeral
+listener outside the assigned range. Performance benchmarks, measurement load
+generators and the full iteration gate remain with the maintainer.
 
 ### Oracle and sweep
 
@@ -131,11 +140,33 @@ these are not missing declared legs.
 The main proof includes auth **7/7** (all three corrected rows), TLS **20/20**,
 R7 identity and negative controls, `perfex_live` **2/2**, storage/core/atomic/
 network/wait units, all four feature mode/atomic combinations, both fused
-batteries, and all eight multidb combinations. The keyspace-notification,
-hash-TTL, expiry, TRACKING, MULTI/EXEC, script, blocking, AOF and ACL batteries
-pass in both modes. Snapshot and AOF jobs retain both engines and all their
+batteries, and all eight multidb combinations. The feature-battery rows for
+keyspace notifications, hash-TTL, expiry, TRACKING, MULTI/EXEC, script,
+blocking, AOF and ACL pass in both modes. The additional armed MVCC proof's
+non-vacuity failure is recorded separately below. Snapshot and AOF jobs retain both engines and all their
 declared mode/atomic legs. TLS receipts show real kTLS 1.2 engagement and the
 TLS 1.3 userspace/key-update path; no TLS leg was silently skipped.
+
+Supplemental invocations of the **same gate-owned** `debug-0`, `debug-1` and
+`atomic_batteries` jobs complete in both fused postures:
+
+| Fused posture | PASS | FAIL | Receipt |
+|---|---:|---:|---|
+| read-local 0 | 33 | 0 | `docs/wave4/proof/fused-mvcc-rl0` |
+| read-local 1 | 31 | 2 | `docs/wave4/proof/fused-mvcc-rl1` |
+
+Both failing rows are `execatomic` (the atomic-0 and atomic-1 starting boots).
+The first invocation has one failing internal check: the atomic-0 deterministic
+MGET arm records zero fan-out cuts. The second has three failing internal
+checks: both deterministic MGET arms return some wholly new arrays instead of
+the expected old snapshot, and the atomic-0 concurrent arm observes zero cuts.
+The fixture labels those all-new deterministic responses `torn`; the concurrent
+checks report zero mixed generations. These are failures, not passing evidence
+of a pinned read cut. They reproduce the class of armed-witness limitation
+already retained in `docs/moverfix/final-supplement` and its PRE controls.
+No assertion, retry bound, tolerance or test ordering was changed. All other
+rows, including atomic torn/window, RYOW, owner hazards and shutdown invariants,
+pass in both fused postures.
 
 Independent serverless suites pass: `gates_test.py` **67/67**,
 `debug_load_test.py` **13/13**, `differ_test.py` **24/24**,
@@ -159,6 +190,25 @@ passes **16/16 mode-equivalence configurations**, with two boots per cell and
 "32 execution/knob combinations"; the retained result inventory makes clear
 that this is 16 configurations and 32 boots. Receipts:
 `docs/wave4/differ/{uring,epoll}-split` and `differ/split-summary.json`.
+
+The first armed-fused matrices complete with **466 PASS / 0 FAIL** on uring and
+**465 PASS / 1 FAIL** on epoll. The failure is `climon`, atomic 0, seed 19,
+round 21 mode 1: TomoKV sends two `ck:10` invalidation frames; Redis sends one.
+Its raw comparison is retained as
+`docs/wave4/differ/epoll-armed-fused/climon-a0-s19-failure.txt`. Passing a later
+run cannot erase this observed mismatch. TRACKING's source and the linked
+invalidation/broadcast bodies are unchanged from headline, which does not by
+itself establish the mismatch's cause or exclude a timing interaction.
+
+The initial differential launcher called the fixture setup function but did not
+use its returned environment. Thus `climon_reader_control` bound port 0 without
+the port fence (the machine's ephemeral range is 32768–60999). Its short-lived
+listener was outside the assigned range; the target and Redis listeners remained
+on 26860–26863. This is a launcher error, not a test assertion change. The driver
+now passes the fixture environment and records the bound ports. All four complete
+standard matrices are being replayed in four disjoint 12-CPU groups (eight server,
+one oracle, three client CPUs) on ports 26860–26867, with fixture listeners in
+26880–26898. Original receipts remain separate from the constrained replay.
 
 ### Sweep findings outside the gate inventory
 
