@@ -1,0 +1,55 @@
+{
+  "directed_commands": 30,
+  "initial_positive_control_failure": "post-expire_notify-2s-epoll",
+  "final_expiry_commands": 20,
+  "final_expected_results": true,
+  "control_commands": 20,
+  "arity": [
+    {
+      "mode": "1s",
+      "engine": "epoll",
+      "pre_diffs": 228,
+      "post_diffs": 0,
+      "comparisons": 1522,
+      "pre_pad_replies_equal": true
+    },
+    {
+      "mode": "1s",
+      "engine": "uring",
+      "pre_diffs": 228,
+      "post_diffs": 0,
+      "comparisons": 1522,
+      "pre_pad_replies_equal": true
+    },
+    {
+      "mode": "2s",
+      "engine": "epoll",
+      "pre_diffs": 228,
+      "post_diffs": 0,
+      "comparisons": 1522,
+      "pre_pad_replies_equal": true
+    },
+    {
+      "mode": "2s",
+      "engine": "uring",
+      "pre_diffs": 228,
+      "post_diffs": 0,
+      "comparisons": 1522,
+      "pre_pad_replies_equal": true
+    }
+  ],
+  "tls_window": [
+    {
+      "mode": "1s",
+      "pre": "mode=1s live=0 ktls=1 tls_closed=0 retained=1\nFAIL core concurrency: TLS gauges must reflect socket release before deferred Client reclamation\n",
+      "post": "mode=1s live=0 ktls=0 tls_closed=1 retained=1\nPASS kTLS socket lifetime accounting\n",
+      "pad": "mode=1s live=0 ktls=1 tls_closed=0 retained=1\nFAIL core concurrency: TLS gauges must reflect socket release before deferred Client reclamation\n"
+    },
+    {
+      "mode": "2s",
+      "pre": "mode=2s live=0 ktls=1 tls_closed=0 retained=1\nFAIL core concurrency: TLS gauges must reflect socket release before deferred Client reclamation\n",
+      "post": "mode=2s live=0 ktls=0 tls_closed=1 retained=1\nPASS kTLS socket lifetime accounting\n",
+      "pad": "mode=2s live=0 ktls=1 tls_closed=0 retained=1\nFAIL core concurrency: TLS gauges must reflect socket release before deferred Client reclamation\n"
+    }
+  ]
+}

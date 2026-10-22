@@ -196,15 +196,16 @@ bool command_validate_subcommand(Op& op, const char* container,
 // the complete unknown-subcommand or child-arity reply.
 bool command_validate_container_subcommand(Op& op, const CommandSpec& spec,
                                            int16_t& first_key);
-// The pre-ACL arity gate rejects a known child with a bad generated arity, but deliberately lets
-// an unknown child continue: Redis resolves that as an unknown command after arity lookup, so an
-// unauthenticated `XGROUP x` reaches NOAUTH.
+// This early gate rejects known children with bad generated arity. Unknown children continue
+// to the cold AUTH/ACL hook (or the normal container handler), which emits the lookup error
+// before checking authentication, matching Redis's processCommand order.
 bool command_reply_container_subcommand_arity(Op& op, const CommandSpec& spec);
 void command_reply_subcommand_wrong_args(Op& op, const char* container,
                                          const char* subcommand);
 // The outer registry still owns each container's broad bound so malformed requests fail before
 // ACL/MULTI handling. This rare-path hook replaces only that already-taken generic error.
-bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec);
+bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec,
+                                         bool unauthenticated);
 
 // Every family owns its table; the registry calls every type table plus the server/admin table.
 CommandTable string_command_table();

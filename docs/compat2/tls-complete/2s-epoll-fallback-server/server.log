@@ -1,0 +1,62 @@
+--net-io epoll: using syscall persistence (no io_uring ring)
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [64,65,66,67,68,69,70,71]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, epoll, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=64 L3=0 shards=0
+  thread t1: role=ifid cpu=65 L3=0 shards=0
+  thread t2: role=ifid cpu=66 L3=0 shards=0
+  thread t3: role=ifid cpu=67 L3=0 shards=0
+  thread t4: role=ifid cpu=68 L3=0 shards=0
+  thread t5: role=ifid cpu=69 L3=0 shards=0
+  thread t6: role=ex cpu=70 L3=0 shards=8
+  thread t7: role=ex cpu=71 L3=0 shards=8
+listening on 127.0.0.1:26820
+listening with TLS on 127.0.0.1:26821
+TLS client 2: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 3: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 4: TLS handshake failed (SSL error 1): error:0A000418:SSL routines::tlsv1 alert unknown ca
+TLS client 9: TLS read failed (SSL error 5)
+TLS client 10: TLS read failed (SSL error 5)
+TLS client 11: TLS read failed (SSL error 1): error:0A000126:SSL routines::unexpected eof while reading
+TLS client 20: TLS handshake failed (SSL error 1): error:0A00010B:SSL routines::wrong version number
+TLS client 22: TLS handshake failed (SSL error 5)
+TLS client 23: TLS handshake failed (SSL error 5)
+TLS client 24: TLS handshake failed (SSL error 5)
+TLS client 25: TLS handshake failed (SSL error 5)
+TLS client 26: TLS handshake failed (SSL error 5)
+TLS client 27: TLS handshake failed (SSL error 5)
+TLS client 28: TLS handshake failed (SSL error 5)
+TLS client 29: TLS handshake failed (SSL error 5)
+TLS client 30: TLS handshake failed (SSL error 5)
+TLS client 31: TLS handshake failed (SSL error 5)
+TLS client 32: TLS handshake failed (SSL error 5)
+TLS client 33: TLS handshake failed (SSL error 5)
+TLS client 34: TLS handshake failed (SSL error 5)
+TLS client 35: TLS handshake failed (SSL error 5)
+TLS client 36: TLS handshake failed (SSL error 5)
+TLS client 37: TLS handshake failed (SSL error 5)
+TLS client 38: TLS read failed (SSL error 5)
+persistence: enabled=0 posted=0 flushed=0 durable=0 refused=0 pending_chunks=0 producers_with_pending=0 drain_gave_up=0 failed=0
+
+thread role          ops      iters   busy_ms   idle_ms    cpu_ms   wake_tx  wake_rx
+t0     io              2        338       3.0   14841.5       8.3         1        4
+io_tenure t0/0 busy_ns=2980048 idle_ns=14841451296 entry_ns=4206688280745718 begin_ns=4206688280745768 end_ns=4206703125177112 exit_ns=4206703125177243 role_exit=0 stopped=1
+t1     io             29        694      35.6   14808.5      42.5         7        4
+io_tenure t1/0 busy_ns=35612983 idle_ns=14808541959 entry_ns=4206688281018720 begin_ns=4206688281018870 end_ns=4206703125173812 exit_ns=4206703125173943 role_exit=0 stopped=1
+t2     io            320       1193       6.1   14838.3       8.7         1      204
+io_tenure t2/0 busy_ns=6052273 idle_ns=14838269811 entry_ns=4206688280868489 begin_ns=4206688280868529 end_ns=4206703125190613 exit_ns=4206703125190643 role_exit=0 stopped=1
+t3     io             80        628       1.4   14843.0       4.0         1      144
+io_tenure t3/0 busy_ns=1357225 idle_ns=14843013100 entry_ns=4206688280806938 begin_ns=4206688280806978 end_ns=4206703125177303 exit_ns=4206703125177432 role_exit=0 stopped=1
+t4     io             80        638       1.7   14842.4       6.0         1      146
+io_tenure t4/0 busy_ns=1730606 idle_ns=14842373507 entry_ns=4206688281067260 begin_ns=4206688281067310 end_ns=4206703125171423 exit_ns=4206703125171552 role_exit=0 stopped=1
+t5     io            160        777       3.6   14840.6       8.6         0       10
+io_tenure t5/0 busy_ns=3571693 idle_ns=14840565439 entry_ns=4206688281035840 begin_ns=4206688281035880 end_ns=4206703125173012 exit_ns=4206703125173132 role_exit=0 stopped=1
+t6     ex            358     689636       7.0   14805.0     103.4       130        6
+t7     ex            322     690511       1.1   14810.7      97.6       126        5
+wb: retired=700 direct=644 sends=329/329 short=0 err=0 peer_aborts=0 bytes=45807 zc_sends=0 zc_bytes=0 zc_releases=0 serves=1495 empty=820
+tls: accepts=32 handshakes=14/32 failed=18 freed=31 want_read=2314 want_write=0 cipher_in=2734 plain_in=11438145 cipher_out=2760 plain_out=9986362 zc_suppressed=21 ktls_active=0 ktls_fallback=14
+stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0
+epoll: events=1110 recvs=329
+shutdown: dispatched=671 executed=680 accepts=38 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0
+shutdown_report {"schema":1,"thread_mode":"2s","work":{"kind":"split","dispatched":671,"executed":680},"threads":[{"tid":0,"role":"io","ops":2,"iterations":338,"busy_ns":2980048,"idle_ns":14841451296,"cpu_ns":8326182,"wake_tx":1,"wake_rx":4,"io_tenures":[{"entry_ns":4206688280745718,"begin_ns":4206688280745768,"end_ns":4206703125177112,"exit_ns":4206703125177243,"busy_ns":2980048,"idle_ns":14841451296,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":1,"role":"io","ops":29,"iterations":694,"busy_ns":35612983,"idle_ns":14808541959,"cpu_ns":42462794,"wake_tx":7,"wake_rx":4,"io_tenures":[{"entry_ns":4206688281018720,"begin_ns":4206688281018870,"end_ns":4206703125173812,"exit_ns":4206703125173943,"busy_ns":35612983,"idle_ns":14808541959,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":2,"role":"io","ops":320,"iterations":1193,"busy_ns":6052273,"idle_ns":14838269811,"cpu_ns":8702750,"wake_tx":1,"wake_rx":204,"io_tenures":[{"entry_ns":4206688280868489,"begin_ns":4206688280868529,"end_ns":4206703125190613,"exit_ns":4206703125190643,"busy_ns":6052273,"idle_ns":14838269811,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":3,"role":"io","ops":80,"iterations":628,"busy_ns":1357225,"idle_ns":14843013100,"cpu_ns":3980574,"wake_tx":1,"wake_rx":144,"io_tenures":[{"entry_ns":4206688280806938,"begin_ns":4206688280806978,"end_ns":4206703125177303,"exit_ns":4206703125177432,"busy_ns":1357225,"idle_ns":14843013100,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":4,"role":"io","ops":80,"iterations":638,"busy_ns":1730606,"idle_ns":14842373507,"cpu_ns":6042292,"wake_tx":1,"wake_rx":146,"io_tenures":[{"entry_ns":4206688281067260,"begin_ns":4206688281067310,"end_ns":4206703125171423,"exit_ns":4206703125171552,"busy_ns":1730606,"idle_ns":14842373507,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":5,"role":"io","ops":160,"iterations":777,"busy_ns":3571693,"idle_ns":14840565439,"cpu_ns":8631127,"wake_tx":0,"wake_rx":10,"io_tenures":[{"entry_ns":4206688281035840,"begin_ns":4206688281035880,"end_ns":4206703125173012,"exit_ns":4206703125173132,"busy_ns":3571693,"idle_ns":14840565439,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":6,"role":"ex","ops":358,"iterations":689636,"busy_ns":7021507,"idle_ns":14805021649,"cpu_ns":103421702,"wake_tx":130,"wake_rx":6,"io_tenures":[]},{"tid":7,"role":"ex","ops":322,"iterations":690511,"busy_ns":1144546,"idle_ns":14810689884,"cpu_ns":97631595,"wake_tx":126,"wake_rx":5,"io_tenures":[]}],"wb":{"retired":700,"direct":644,"sends_completed":329,"sends_submitted":329,"short_writes":0,"send_errors":0,"peer_aborts":0,"bytes_sent":45807,"zc_sends":0,"zc_bytes":0,"zc_releases":0,"serves":1495,"serves_empty":820},"tls":{"accepts":32,"handshakes_completed":14,"handshakes_started":32,"handshakes_failed":18,"connections_freed":31,"want_read":2314,"want_write":0,"ciphertext_input_bytes":2734,"plaintext_input_bytes":11438145,"ciphertext_output_bytes":2760,"plaintext_output_bytes":9986362,"zc_suppressed":21,"ktls_active":0,"ktls_fallback":14},"stuck":{"live_conns":0,"rob_not_quiesced":0,"unsent_bytes_pending":0,"slots_done":0,"slots_issued":0,"slots_free":0,"flag_set":0},"epoll":{"enabled":true,"events":1110,"recvs":329},"persistence":{"enabled":false,"recording":false,"failed":false,"drain_gave_up":false,"posted":0,"flushed":0,"durable":0,"refused":0,"pending_chunks":0,"records_written":0,"producers_with_pending":0,"producers_stopped":0,"producers_expected":0,"completions_pending":0},"accept":{"accepts":38,"accept_err":0,"rearm":0,"sqe_starved":0,"notify_drop":0}}

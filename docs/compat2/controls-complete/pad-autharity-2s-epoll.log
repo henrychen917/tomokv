@@ -1,0 +1,8 @@
+autharity: commands=245 comparisons=1522 failures=228
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-compat2/tests/autharity.py", line 128, in <module>
+    run(p.parse_args())
+  File "/home/user/Projects/cx-compat2/tests/autharity.py", line 120, in run
+    assert not failures, failures[:5]
+           ^^^^^^^^^^^^
+AssertionError: [{'command': 'acl', 'kind': 'right', 'argv': ['acl', 'compat2-invalid'], 'authenticated': False, 'restricted_user': False, 'target': b'-NOAUTH Authentication required.\r\n', 'oracle': b"-ERR unknown subcommand 'compat2-invalid'. Try ACL HELP.\r\n"}, {'command': 'acl|list', 'kind': 'wrong', 'argv': ['acl', 'list', 'compat2-invalid'], 'authenticated': False, 'restricted_user': False, 'target': b'-NOAUTH Authentication required.\r\n', 'oracle': b"-ERR wrong number of arguments for 'acl|list' command\r\n"}, {'command': 'acl|help', 'kind': 'wrong', 'argv': ['acl', 'help', 'compat2-invalid'], 'authenticated': False, 'restricted_user': False, 'target': b'-NOAUTH Authentication required.\r\n', 'oracle': b"-ERR wrong number of arguments for 'acl|help' command\r\n"}, {'command': 'acl|dryrun', 'kind': 'wrong', 'argv': ['acl', 'dryrun', 'compat2-invalid'], 'authenticated': False, 'restricted_user': False, 'target': b'-NOAUTH Authentication required.\r\n', 'oracle': b"-ERR wrong number of arguments for 'acl|dryrun' command\r\n"}, {'command': 'acl|dryrun', 'kind': 'wrong', 'argv': ['acl', 'dryrun', 'compat2-invalid'], 'authenticated': True, 'restricted_user': False, 'target': b"-ERR unknown subcommand 'dryrun'. Try ACL HELP.\r\n", 'oracle': b"-ERR wrong number of arguments for 'acl|dryrun' command\r\n"}]

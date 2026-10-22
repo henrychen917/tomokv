@@ -1,0 +1,119 @@
+[
+  {
+    "name": "gate-final",
+    "argv": [
+      "taskset",
+      "-c",
+      "64-79",
+      "python3",
+      "docs/compat2b/run_gate.py",
+      "post",
+      "--jobs",
+      "atomic_units abba_selftest respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring",
+      "--label",
+      "-final"
+    ],
+    "env": null,
+    "returncode": 2
+  },
+  {
+    "name": "uring-split",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-compat2/build/compat2/uring-server",
+      "26810",
+      "26811",
+      "64-71",
+      "6:2"
+    ],
+    "env": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_LOAD_CORES": "73-79",
+      "GATE_DIFFER_ORACLE_CORES": "72",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-compat2/docs/compat2b/differ/uring-split",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-compat2/docs/compat2b/differ/history",
+      "GATE_RUN_ID": "compat2-uring-split"
+    },
+    "returncode": 0
+  },
+  {
+    "name": "uring-armed-fused",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-compat2/build/compat2/uring-server",
+      "26810",
+      "26811",
+      "64-71",
+      "6:2"
+    ],
+    "env": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_LOAD_CORES": "73-79",
+      "GATE_DIFFER_ORACLE_CORES": "72",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-compat2/docs/compat2b/differ/uring-armed-fused",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-compat2/docs/compat2b/differ/history",
+      "GATE_RUN_ID": "compat2-uring-armed-fused"
+    },
+    "returncode": 0
+  },
+  {
+    "name": "epoll-split",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-compat2/build/compat2/epoll-server",
+      "26810",
+      "26811",
+      "64-71",
+      "6:2"
+    ],
+    "env": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_LOAD_CORES": "73-79",
+      "GATE_DIFFER_ORACLE_CORES": "72",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-compat2/docs/compat2b/differ/epoll-split",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-compat2/docs/compat2b/differ/history",
+      "GATE_RUN_ID": "compat2-epoll-split"
+    },
+    "returncode": 0
+  },
+  {
+    "name": "epoll-armed-fused",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-compat2/build/compat2/epoll-server",
+      "26810",
+      "26811",
+      "64-71",
+      "6:2"
+    ],
+    "env": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_LOAD_CORES": "73-79",
+      "GATE_DIFFER_ORACLE_CORES": "72",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-compat2/docs/compat2b/differ/epoll-armed-fused",
+      "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-compat2/docs/compat2b/differ/history",
+      "GATE_RUN_ID": "compat2-epoll-armed-fused"
+    },
+    "returncode": 0
+  }
+]

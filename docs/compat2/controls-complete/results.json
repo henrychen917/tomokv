@@ -1,0 +1,398 @@
+[
+  {
+    "name": "mset-pre-1s-epoll",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "/home/user/Projects/cx-compat2/build/compat2/mset-pre-v2/tomokv",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/mset-pre-1s-epoll",
+      "--mode",
+      "1s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--synthetic-mset"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "mset-post-1s-epoll",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "/home/user/Projects/cx-compat2/build/compat2/mset-post-complete/tomokv",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/mset-post-1s-epoll",
+      "--mode",
+      "1s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--synthetic-mset"
+    ],
+    "returncode": 0,
+    "expected": 0
+  },
+  {
+    "name": "pad-autharity-1s-epoll",
+    "command": [
+      "python3",
+      "tests/autharity.py",
+      "--binary",
+      "build/compat2/tomokv-pad-a",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/pad-autharity-1s-epoll",
+      "--mode",
+      "1s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--oracle",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--oracle-cores",
+      "72"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "pad-expire_notify-1s-epoll",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "build/compat2/tomokv-pad-a",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/pad-expire_notify-1s-epoll",
+      "--mode",
+      "1s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "mset-pre-1s-uring",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "/home/user/Projects/cx-compat2/build/compat2/mset-pre-v2/tomokv",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/mset-pre-1s-uring",
+      "--mode",
+      "1s",
+      "--engine",
+      "uring",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--synthetic-mset"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "mset-post-1s-uring",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "/home/user/Projects/cx-compat2/build/compat2/mset-post-complete/tomokv",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/mset-post-1s-uring",
+      "--mode",
+      "1s",
+      "--engine",
+      "uring",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--synthetic-mset"
+    ],
+    "returncode": 0,
+    "expected": 0
+  },
+  {
+    "name": "pad-autharity-1s-uring",
+    "command": [
+      "python3",
+      "tests/autharity.py",
+      "--binary",
+      "build/compat2/tomokv-pad-a",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/pad-autharity-1s-uring",
+      "--mode",
+      "1s",
+      "--engine",
+      "uring",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--oracle",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--oracle-cores",
+      "72"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "pad-expire_notify-1s-uring",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "build/compat2/tomokv-pad-a",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/pad-expire_notify-1s-uring",
+      "--mode",
+      "1s",
+      "--engine",
+      "uring",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "mset-pre-2s-epoll",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "/home/user/Projects/cx-compat2/build/compat2/mset-pre-v2/tomokv",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/mset-pre-2s-epoll",
+      "--mode",
+      "2s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--synthetic-mset"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "mset-post-2s-epoll",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "/home/user/Projects/cx-compat2/build/compat2/mset-post-complete/tomokv",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/mset-post-2s-epoll",
+      "--mode",
+      "2s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--synthetic-mset"
+    ],
+    "returncode": 0,
+    "expected": 0
+  },
+  {
+    "name": "pad-autharity-2s-epoll",
+    "command": [
+      "python3",
+      "tests/autharity.py",
+      "--binary",
+      "build/compat2/tomokv-pad-a",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/pad-autharity-2s-epoll",
+      "--mode",
+      "2s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--oracle",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--oracle-cores",
+      "72"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "pad-expire_notify-2s-epoll",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "build/compat2/tomokv-pad-a",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/pad-expire_notify-2s-epoll",
+      "--mode",
+      "2s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "mset-pre-2s-uring",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "/home/user/Projects/cx-compat2/build/compat2/mset-pre-v2/tomokv",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/mset-pre-2s-uring",
+      "--mode",
+      "2s",
+      "--engine",
+      "uring",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--synthetic-mset"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "mset-post-2s-uring",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "/home/user/Projects/cx-compat2/build/compat2/mset-post-complete/tomokv",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/mset-post-2s-uring",
+      "--mode",
+      "2s",
+      "--engine",
+      "uring",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--synthetic-mset"
+    ],
+    "returncode": 0,
+    "expected": 0
+  },
+  {
+    "name": "pad-autharity-2s-uring",
+    "command": [
+      "python3",
+      "tests/autharity.py",
+      "--binary",
+      "build/compat2/tomokv-pad-a",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/pad-autharity-2s-uring",
+      "--mode",
+      "2s",
+      "--engine",
+      "uring",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840",
+      "--oracle",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--oracle-cores",
+      "72"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "pad-expire_notify-2s-uring",
+    "command": [
+      "python3",
+      "tests/expire_notify.py",
+      "--binary",
+      "build/compat2/tomokv-pad-a",
+      "--output",
+      "/home/user/Projects/cx-compat2/docs/compat2/controls-complete/pad-expire_notify-2s-uring",
+      "--mode",
+      "2s",
+      "--engine",
+      "uring",
+      "--cores",
+      "64-71",
+      "--port",
+      "26840"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "ktls-pad-window-1s",
+    "command": [
+      "build/compat2/ktls-lifetime-pad-a",
+      "1s"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "ktls-post-window-1s",
+    "command": [
+      "build/ktls-lifetime-unit",
+      "1s"
+    ],
+    "returncode": 0,
+    "expected": 0
+  },
+  {
+    "name": "ktls-pad-window-2s",
+    "command": [
+      "build/compat2/ktls-lifetime-pad-a",
+      "2s"
+    ],
+    "returncode": 1,
+    "expected": 1
+  },
+  {
+    "name": "ktls-post-window-2s",
+    "command": [
+      "build/ktls-lifetime-unit",
+      "2s"
+    ],
+    "returncode": 0,
+    "expected": 0
+  }
+]

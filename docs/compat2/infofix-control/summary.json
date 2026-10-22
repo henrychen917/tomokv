@@ -1,0 +1,13 @@
+{
+  "cases": 16,
+  "pre_post_match": true,
+  "epoll": {
+    "pre_failures": 4,
+    "post_failures": 4,
+    "reason": "existing uncounted epoll input/output bytes; instantaneous_input_kbps remains 0"
+  },
+  "uring": {
+    "pre_passes": 4,
+    "post_passes": 4
+  }
+}

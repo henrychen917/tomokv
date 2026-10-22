@@ -1,0 +1,4 @@
+hot 1
+bodies 1
+linked 1
+{"changed_or_added": 394, "new_object_bodies": 14, "categories": {"compiler propagation": 232, "C1 direct": 60, "C3 direct": 28, "C1 new object": 14, "C2 direct": 52, "C3 caller": 8}}

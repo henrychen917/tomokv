@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; ABBA comparison + saturation negative controls
+  ABBA comparison + saturation negative controls       FAIL (see /home/user/Projects/cx-compat2/build/gate-run.8uN4dz/jobs/abba_selftest/gate-abbagate-unit.txt)

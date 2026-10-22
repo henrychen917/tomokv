@@ -1,0 +1,11 @@
+{
+  "full": 689,
+  "quick": 672,
+  "missing": {},
+  "extra": {},
+  "expect": [
+    "EXPECT_QUICK=669",
+    "EXPECT_FULL=686                 # ABBA reports only; self-test remains counted."
+  ],
+  "strict_checker": "tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=686, fixture=689, source declarations=689\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth."
+}

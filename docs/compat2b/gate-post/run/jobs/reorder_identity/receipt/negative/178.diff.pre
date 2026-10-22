@@ -1,0 +1,274 @@
+0000 [ 4] endbr64 | f3 0f 1e fa
+0004 [ 2] push %r15 | 41 57
+0006 [ 2] push %r14 | 41 56
+0008 [ 2] push %r13 | 41 55
+000a [ 2] push %r12 | 41 54
+000c [ 1] push %rbp | 55
+000d [ 1] push %rbx | 53
+000e [ 3] mov %rdi,%rbx | 48 89 fb
+0011 [ 4] sub $0x28,%rsp | 48 83 ec 28
+0015 [ 3] mov (%rdi),%rbp | 48 8b 2f
+0018 [ 9] mov %fs:0x28,%rax | 64 48 8b 04 25 28 00 00 00
+0021 [ 5] mov %rax,0x18(%rsp) | 48 89 44 24 18
+0026 [ 2] xor %eax,%eax | 31 c0
+0028 [ 7] cmpb $0x0,0x198(%rdi) | 80 bf 98 01 00 00 00
+002f [ 2] je <+0x4b> | 74 1a
+0031 [ 7] movzbl 0x13fd0(%rbp),%eax | 0f b6 85 d0 3f 01 00
+0038 [ 2] cmp $0x4,%al | 3c 04
+003a [ 6] je <+0x420> | 0f 84 e0 03 00 00
+0040 [ 2] cmp $0x1,%al | 3c 01
+0042 [ 6] je <+0x420> | 0f 84 d8 03 00 00
+0048 [ 3] mov (%rdi),%rbp | 48 8b 2f
+004b [ 3] mov %rsp,%rsi | 48 89 e6
+004e [ 2] xor %edi,%edi | 31 ff
+0050 [ 4] vpxor %xmm0,%xmm0,%xmm0 | c5 f9 ef c0
+0054 [ 7] mov 0x16d8(%rbx),%r12 | 4c 8b a3 d8 16 00 00
+005b [ 4] mov 0x8(%rbx),%r13 | 4c 8b 6b 08
+005f [ 5] vmovdqa %xmm0,(%rsp) | c5 f9 7f 04 24
+0064 [ 5] call <clock_gettime@plt> | e8 ?? ?? ?? ??
+0069 [ 5] mov 0x8(%rsp),%rcx | 48 8b 4c 24 08
+006e [ 8] imul $0x3e8,(%rsp),%rsi | 48 69 34 24 e8 03 00 00
+0076 [10] movabs $0x431bde82d7b634db,%rax | 48 b8 db 34 b6 d7 82 de 1b 43
+0080 [ 3] imul %rcx | 48 f7 e9
+0083 [ 4] sar $0x3f,%rcx | 48 c1 f9 3f
+0087 [ 4] sar $0x12,%rdx | 48 c1 fa 12
+008b [ 3] sub %rcx,%rdx | 48 29 ca
+008e [ 3] add %rdx,%rsi | 48 01 d6
+0091 [ 7] cmpb $0x0,0x19a(%rbx) | 80 bb 9a 01 00 00 00
+0098 [ 7] mov %rsi,0x158(%rbx) | 48 89 b3 58 01 00 00
+009f [ 6] jne <+0x290> | 0f 85 eb 01 00 00
+00a5 [ 8] cmpq $0x0,0x16d8(%rbx) | 48 83 bb d8 16 00 00 00
+00ad [ 6] je <+0x4c1> | 0f 84 0e 04 00 00
+00b3 [ 3] mov (%rbx),%rax | 48 8b 03
+00b6 [ 7] movzbl 0x11460(%rax),%eax | 0f b6 80 60 14 01 00
+00bd [ 2] test %al,%al | 84 c0
+00bf [ 6] je <+0x170> | 0f 84 ab 00 00 00
+00c5 [ 8] cmpq $0x0,0x16d8(%rbx) | 48 83 bb d8 16 00 00 00
+00cd [ 6] je <+0x410> | 0f 84 3d 03 00 00
+00d3 [ 3] mov %rbx,%rdi | 48 89 df
+00d6 [ 5] call <tomo_db0::ExLoopT<true>::compact_local_read_tombstones()> | e8 ?? ?? ?? ??
+00db [ 8] cmpq $0x0,0x16d8(%rbx) | 48 83 bb d8 16 00 00 00
+00e3 [ 6] je <+0x450> | 0f 84 67 03 00 00
+00e9 [ 5] mov $0xffffffff,%esi | be ff ff ff ff
+00ee [ 3] mov %rbx,%rdi | 48 89 df
+00f1 [ 5] call <unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)> | e8 ?? ?? ?? ??
+00f6 [ 3] mov %eax,%r15d | 41 89 c7
+00f9 [ 3] mov %rbx,%rdi | 48 89 df
+00fc [ 5] call <tomo_db0::ExLoopT<true>::compact_local_read_tombstones()> | e8 ?? ?? ?? ??
+0101 [ 3] mov %rbx,%rdi | 48 89 df
+0104 [ 5] call <unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, false>()> | e8 ?? ?? ?? ??
+0109 [ 3] add %eax,%r15d | 41 01 c7
+010c [ 7] mov 0x16d8(%rbx),%rdi | 48 8b bb d8 16 00 00
+0113 [ 3] test %rdi,%rdi | 48 85 ff
+0116 [ 2] je <+0x124> | 74 0c
+0118 [ 4] add $0x38,%rdi | 48 83 c7 38
+011c [ 5] call <tomo_db0::ReadLocalDeferredQueue::drain_ready()> | e8 ?? ?? ?? ??
+0121 [ 3] add %eax,%r15d | 41 01 c7
+0124 [ 3] test %r15d,%r15d | 45 85 ff
+0127 [ 2] je <+0x13c> | 74 13
+0129 [ 6] mov 0x110(%rbx),%eax | 8b 83 10 01 00 00
+012f [ 2] test %eax,%eax | 85 c0
+0131 [ 2] jns <+0x13c> | 79 09
+0133 [ 4] lea 0x10(%rbx),%rdi | 48 8d 7b 10
+0137 [ 5] call <io_uring_submit_and_get_events@plt> | e8 ?? ?? ?? ??
+013c [ 3] test %r12,%r12 | 4d 85 e4
+013f [ 6] jne <+0x250> | 0f 85 0b 01 00 00
+0145 [ 5] mov 0x18(%rsp),%rax | 48 8b 44 24 18
+014a [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+0153 [ 6] jne <+0x4de> | 0f 85 85 03 00 00
+0159 [ 4] add $0x28,%rsp | 48 83 c4 28
+015d [ 3] mov %r15d,%eax | 44 89 f8
+0160 [ 1] pop %rbx | 5b
+0161 [ 1] pop %rbp | 5d
+0162 [ 2] pop %r12 | 41 5c
+0164 [ 2] pop %r13 | 41 5d
+0166 [ 2] pop %r14 | 41 5e
+0168 [ 2] pop %r15 | 41 5f
+016a [ 1] ret | c3
+016b [ 5] nopl 0x0(%rax,%rax,1) | 0f 1f 44 00 00
+0170 [ 7] cmpb $0x0,0x198(%rbx) | 80 bb 98 01 00 00 00
+0177 [ 6] jne <+0x460> | 0f 85 e3 02 00 00
+017d [ 7] cmpb $0x0,0x1c0(%rbx) | 80 bb c0 01 00 00 00
+0184 [ 6] jne <+0xc5> | 0f 85 3b ff ff ff
+018a [ 7] mov 0x380(%rbx),%rax | 48 8b 83 80 03 00 00
+0191 [ 7] cmp %rax,0x3a0(%rbx) | 48 39 83 a0 03 00 00
+0198 [ 6] jne <+0xc5> | 0f 85 27 ff ff ff
+019e [ 7] mov 0x3d0(%rbx),%rax | 48 8b 83 d0 03 00 00
+01a5 [ 7] cmp %rax,0x3f0(%rbx) | 48 39 83 f0 03 00 00
+01ac [ 6] jne <+0xc5> | 0f 85 13 ff ff ff
+01b2 [ 7] mov 0x290(%rbx),%rax | 48 8b 83 90 02 00 00
+01b9 [ 7] cmp %rax,0x2b0(%rbx) | 48 39 83 b0 02 00 00
+01c0 [ 6] jne <+0xc5> | 0f 85 ff fe ff ff
+01c6 [ 7] mov 0x240(%rbx),%rax | 48 8b 83 40 02 00 00
+01cd [ 7] cmp %rax,0x260(%rbx) | 48 39 83 60 02 00 00
+01d4 [ 6] jne <+0xc5> | 0f 85 eb fe ff ff
+01da [ 7] mov 0x2e0(%rbx),%rax | 48 8b 83 e0 02 00 00
+01e1 [ 7] cmp %rax,0x300(%rbx) | 48 39 83 00 03 00 00
+01e8 [ 6] jne <+0xc5> | 0f 85 d7 fe ff ff
+01ee [ 7] mov 0x330(%rbx),%rax | 48 8b 83 30 03 00 00
+01f5 [ 7] cmp %rax,0x350(%rbx) | 48 39 83 50 03 00 00
+01fc [ 6] jne <+0xc5> | 0f 85 c3 fe ff ff
+0202 [ 3] mov %rbx,%rdi | 48 89 df
+0205 [ 5] call <tomo_db0::ExLoopT<true>::compact_local_read_tombstones()> | e8 ?? ?? ?? ??
+020a [ 7] mov 0x16d8(%rbx),%rax | 48 8b 83 d8 16 00 00
+0211 [ 3] test %rax,%rax | 48 85 c0
+0214 [ 6] je <+0x4c1> | 0f 84 a7 02 00 00
+021a [ 3] mov 0x18(%rax),%edx | 8b 50 18
+021d [ 2] test %edx,%edx | 85 d2
+021f [ 6] je <+0x480> | 0f 84 5b 02 00 00
+0225 [ 5] mov $0x20,%esi | be 20 00 00 00
+022a [ 3] mov %rbx,%rdi | 48 89 df
+022d [ 5] call <unsigned int tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)> | e8 ?? ?? ?? ??
+0232 [ 3] mov %rbx,%rdi | 48 89 df
+0235 [ 3] mov %eax,%r15d | 41 89 c7
+0238 [ 5] call <unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, true>()> | e8 ?? ?? ?? ??
+023d [ 5] jmp <+0x109> | e9 c7 fe ff ff
+0242 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+024d [ 3] nopl (%rax) | 0f 1f 00
+0250 [ 7] mov 0x175d8(%rbp),%rax | 48 8b 85 d8 75 01 00
+0257 [ 3] test %rax,%rax | 48 85 c0
+025a [ 6] je <+0x4c1> | 0f 84 61 02 00 00
+0260 [ 3] mov (%rax),%rax | 48 8b 00
+0263 [ 3] test %rax,%rax | 48 85 c0
+0266 [ 6] js <+0x4c1> | 0f 88 55 02 00 00
+026c [ 7] mov 0x560(%r13),%rdx | 49 8b 95 60 05 00 00
+0273 [ 3] test %rdx,%rdx | 48 85 d2
+0276 [ 6] je <+0x4c1> | 0f 84 45 02 00 00
+027c [ 3] xchg %rax,(%rdx) | 48 87 02
+027f [ 5] jmp <+0x145> | e9 c1 fe ff ff
+0284 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+028f [ 1] nop | 90
+0290 [ 7] mov 0x16d8(%rbx),%rcx | 48 8b 8b d8 16 00 00
+0297 [ 3] test %rcx,%rcx | 48 85 c9
+029a [ 6] je <+0x4c1> | 0f 84 21 02 00 00
+02a0 [ 8] cmpq $0x0,0x2a8(%rcx) | 48 83 b9 a8 02 00 00 00
+02a8 [ 4] mov 0x8(%rbx),%rax | 48 8b 43 08
+02ac [ 6] je <+0x4c1> | 0f 84 0f 02 00 00
+02b2 [ 7] mov 0x388(%rax),%rsi | 48 8b b0 88 03 00 00
+02b9 [ 7] mov 0x390(%rax),%r11 | 4c 8b 98 90 03 00 00
+02c0 [ 3] cmp %r11,%rsi | 4c 39 de
+02c3 [ 2] jne <+0x2dd> | 75 18
+02c5 [ 5] jmp <+0xb3> | e9 e9 fd ff ff
+02ca [ 6] nopw 0x0(%rax,%rax,1) | 66 0f 1f 44 00 00
+02d0 [ 4] add $0x8,%rsi | 48 83 c6 08
+02d4 [ 3] cmp %rsi,%r11 | 49 39 f3
+02d7 [ 6] je <+0xa5> | 0f 84 c8 fd ff ff
+02dd [ 3] mov (%rsi),%rdx | 48 8b 16
+02e0 [ 8] vmovdqu 0x2c8(%rcx),%xmm0 | c5 fa 6f 81 c8 02 00 00
+02e8 [ 7] mov 0x2b0(%rcx),%r10 | 4c 8b 91 b0 02 00 00
+02ef [ 7] mov 0x2b8(%rcx),%r8 | 4c 8b 81 b8 02 00 00
+02f6 [ 7] mov 0x2c0(%rcx),%rdi | 48 8b b9 c0 02 00 00
+02fd [ 7] cmpb $0x0,0x128(%rdx) | 80 ba 28 01 00 00 00
+0304 [ 6] je <+0x4c1> | 0f 84 b7 01 00 00
+030a [ 3] test %r8,%r8 | 4d 85 c0
+030d [ 6] je <+0x4c1> | 0f 84 ae 01 00 00
+0313 [ 3] test %rdi,%rdi | 48 85 ff
+0316 [ 6] je <+0x4c1> | 0f 84 a5 01 00 00
+031c [ 7] mov 0x100(%rdx),%rax | 48 8b 82 00 01 00 00
+0323 [ 3] test %rax,%rax | 48 85 c0
+0326 [ 6] je <+0x4c1> | 0f 84 95 01 00 00
+032c [ 7] cmpb $0x0,0x524(%rax) | 80 b8 24 05 00 00 00
+0333 [ 6] je <+0x4c1> | 0f 84 88 01 00 00
+0339 [ 7] mov 0x580(%rax),%r9d | 44 8b 88 80 05 00 00
+0340 [ 4] lea 0x1(%r9),%r14d | 45 8d 71 01
+0344 [ 7] mov %r14d,0x580(%rax) | 44 89 b0 80 05 00 00
+034b [ 3] test %r9d,%r9d | 45 85 c9
+034e [ 6] je <+0x490> | 0f 84 3c 01 00 00
+0354 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+035f [ 1] nop | 90
+0360 [ 8] vmovdqu %xmm0,0x568(%rax) | c5 fa 7f 80 68 05 00 00
+0368 [ 7] cmpb $0x0,0x128(%rdx) | 80 ba 28 01 00 00 00
+036f [ 7] mov %r10,0x550(%rax) | 4c 89 90 50 05 00 00
+0376 [ 7] mov %r8,0x558(%rax) | 4c 89 80 58 05 00 00
+037d [ 7] mov %rdi,0x560(%rax) | 48 89 b8 60 05 00 00
+0384 [ 7] mov 0x100(%rdx),%rax | 48 8b 82 00 01 00 00
+038b [ 6] je <+0x2d0> | 0f 84 3f ff ff ff
+0391 [ 3] test %rax,%rax | 48 85 c0
+0394 [ 6] je <+0x4c1> | 0f 84 27 01 00 00
+039a [ 7] cmpb $0x0,0x524(%rax) | 80 b8 24 05 00 00 00
+03a1 [ 6] je <+0x4c1> | 0f 84 1a 01 00 00
+03a7 [ 6] mov 0x580(%rax),%edx | 8b 90 80 05 00 00
+03ad [ 2] test %edx,%edx | 85 d2
+03af [ 6] je <+0x4c1> | 0f 84 0c 01 00 00
+03b5 [ 2] dec %edx | ff ca
+03b7 [ 6] mov %edx,0x580(%rax) | 89 90 80 05 00 00
+03bd [ 6] jne <+0x2d0> | 0f 85 0d ff ff ff
+03c3 [ 7] mov 0x548(%rax),%rdx | 48 8b 90 48 05 00 00
+03ca [ 3] test $0x1,%dl | f6 c2 01
+03cd [ 6] je <+0x4c1> | 0f 84 ee 00 00 00
+03d3 [ 3] mov %rdx,%r8 | 49 89 d0
+03d6 [10] movabs $0x3fffffffffffffff,%r9 | 49 b9 ff ff ff ff ff ff ff 3f
+03e0 [ 4] shr $0x2,%r8 | 49 c1 e8 02
+03e4 [ 3] cmp %r9,%r8 | 4d 39 c8
+03e7 [ 8] lea 0x4(,%r8,4),%rdi | 4a 8d 3c 85 04 00 00 00
+03ef [ 7] mov $0xfffffffffffffffc,%r8 | 49 c7 c0 fc ff ff ff
+03f6 [ 4] cmove %r8,%rdi | 49 0f 44 f8
+03fa [ 3] and $0x2,%edx | 83 e2 02
+03fd [ 3] or %rdi,%rdx | 48 09 fa
+0400 [ 7] mov %rdx,0x548(%rax) | 48 89 90 48 05 00 00
+0407 [ 5] jmp <+0x2d0> | e9 c4 fe ff ff
+040c [ 4] nopl 0x0(%rax) | 0f 1f 40 00
+0410 [ 3] xor %r15d,%r15d | 45 31 ff
+0413 [ 5] jmp <+0x101> | e9 e9 fc ff ff
+0418 [ 8] nopl 0x0(%rax,%rax,1) | 0f 1f 84 00 00 00 00 00
+0420 [ 5] mov 0x18(%rsp),%rax | 48 8b 44 24 18
+0425 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+042e [ 6] jne <+0x4de> | 0f 85 aa 00 00 00
+0434 [ 4] add $0x28,%rsp | 48 83 c4 28
+0438 [ 3] mov %rbx,%rdi | 48 89 df
+043b [ 1] pop %rbx | 5b
+043c [ 1] pop %rbp | 5d
+043d [ 2] pop %r12 | 41 5c
+043f [ 2] pop %r13 | 41 5d
+0441 [ 2] pop %r14 | 41 5e
+0443 [ 2] pop %r15 | 41 5f
+0445 [ 5] jmp <unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()> | e9 ?? ?? ?? ??
+044a [ 6] nopw 0x0(%rax,%rax,1) | 66 0f 1f 44 00 00
+0450 [ 3] xor %r15d,%r15d | 45 31 ff
+0453 [ 5] jmp <+0xf9> | e9 a1 fc ff ff
+0458 [ 8] nopl 0x0(%rax,%rax,1) | 0f 1f 84 00 00 00 00 00
+0460 [ 3] mov (%rbx),%rax | 48 8b 03
+0463 [ 7] movzbl 0x13fd0(%rax),%eax | 0f b6 80 d0 3f 01 00
+046a [ 2] cmp $0x4,%al | 3c 04
+046c [ 6] je <+0xc5> | 0f 84 53 fc ff ff
+0472 [ 2] cmp $0x1,%al | 3c 01
+0474 [ 6] jne <+0x17d> | 0f 85 03 fd ff ff
+047a [ 5] jmp <+0xc5> | e9 46 fc ff ff
+047f [ 1] nop | 90
+0480 [ 3] mov %rbx,%rdi | 48 89 df
+0483 [ 5] call <unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, false>()> | e8 ?? ?? ?? ??
+0488 [ 3] mov %eax,%r15d | 41 89 c7
+048b [ 5] jmp <+0x10c> | e9 7c fc ff ff
+0490 [ 7] mov 0x548(%rax),%r9 | 4c 8b 88 48 05 00 00
+0497 [ 4] test $0x1,%r9b | 41 f6 c1 01
+049b [ 2] jne <+0x4c1> | 75 24
+049d [ 4] or $0x1,%r9 | 49 83 c9 01
+04a1 [ 7] mov %r9,0x548(%rax) | 4c 89 88 48 05 00 00
+04a8 [ 7] mov 0x100(%rdx),%rax | 48 8b 82 00 01 00 00
+04af [ 3] test %rax,%rax | 48 85 c0
+04b2 [ 2] je <+0x4c1> | 74 0d
+04b4 [ 7] cmpb $0x0,0x524(%rax) | 80 b8 24 05 00 00 00
+04bb [ 6] jne <+0x360> | 0f 85 9f fe ff ff
+04c1 [ 5] call <abort@plt> | e8 ?? ?? ?? ??
+04c6 [ 3] test %r12,%r12 | 4d 85 e4
+04c9 [ 2] jne <+0x4ec> | 75 21
+04cb [ 3] vzeroupper | c5 f8 77
+04ce [ 5] mov 0x18(%rsp),%rax | 48 8b 44 24 18
+04d3 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+04dc [ 2] je <+0x50d> | 74 2f
+04de [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??
+04e3 [ 4] endbr64 | f3 0f 1e fa
+04e7 [ 3] mov %rax,%rbx | 48 89 c3
+04ea [ 2] jmp <+0x4c6> | eb da
+04ec [ 7] mov 0x175d8(%rbp),%rax | 48 8b 85 d8 75 01 00
+04f3 [ 3] test %rax,%rax | 48 85 c0
+04f6 [ 2] jne <+0x4fd> | 75 05
+04f8 [ 3] vzeroupper | c5 f8 77
+04fb [ 2] jmp <+0x4c1> | eb c4
+04fd [ 3] mov (%rax),%rsi | 48 8b 30
+0500 [ 3] mov %r13,%rdi | 4c 89 ef
+0503 [ 3] vzeroupper | c5 f8 77
+0506 [ 5] call <tomo_db0::ThreadCtx::publish_read_local_tick(unsigned long)> | e8 ?? ?? ?? ??
+050b [ 2] jmp <+0x4ce> | eb c1
+050d [ 3] mov %rbx,%rdi | 48 89 df
+0510 [ 5] call <_Unwind_Resume@plt> | e8 ?? ?? ?? ??

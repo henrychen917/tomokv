@@ -1,0 +1,11 @@
+  GEO-LFU target: initial=5 GEOADD/STORE/STOREDIST checked
+  GEO-LFU oracle: initial=5 GEOADD/STORE/STOREDIST checked
+  CD13b ACLCAT target: unknown=b'*0\r\n' STRING/StRiNg=22 commands
+  CD13b ACLCAT oracle: unknown=b'*0\r\n' STRING/StRiNg=22 commands
+  CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:0') route(sid,owner,migrations)=((5, 3, 1), (6, 2, 1)) after_route=((5, 3, 1), (6, 2, 1)) initial=5 before=31 after=31 store=b':2\r\n' freq=b':31\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((5, 3, 1), (12, 0, 1)) after_route=((5, 3, 1), (12, 0, 1)) initial=5 before=31 after=31 store=b':2\r\n' freq=b':31\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((0, 6, 1), (14, 2, 1)) after_route=((0, 6, 1), (14, 2, 1)) initial=5 before=31 after=31 store=b':2\r\n' freq=b':31\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO oracle STORE keys=('cd13b:oracle:STORE:0:source', 'cd13b:oracle:STORE:0:source:destination:0') route(sid,owner,migrations)=((12, 0, 1), (6, 2, 1)) after_route=((12, 0, 1), (6, 2, 1)) initial=5 before=39 after=39 store=b':2\r\n' freq=b':39\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO oracle STOREDIST keys=('cd13b:oracle:STOREDIST:0:source', 'cd13b:oracle:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((3, 3, 1), (13, 7, 1)) after_route=((3, 3, 1), (13, 7, 1)) initial=5 before=30 after=30 store=b':2\r\n' freq=b':30\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO oracle GEOSEARCHSTORE keys=('cd13b:oracle:GEOSEARCHSTORE:0:source', 'cd13b:oracle:GEOSEARCHSTORE:0:source:destination:3') route(sid,owner,migrations)=((15, 1, 1), (11, 2, 1)) after_route=((15, 1, 1), (11, 2, 1)) initial=5 before=33 after=33 store=b':2\r\n' freq=b':33\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+DIFFER geo: 4951 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS

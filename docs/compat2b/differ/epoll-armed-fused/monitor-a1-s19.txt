@@ -1,0 +1,1 @@
+DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS

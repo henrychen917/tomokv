@@ -1,0 +1,17 @@
+MODE EQUIVALENCE 1s-0-0-0 ok 1.29s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 1s-0-0-1 ok 1.29s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 1s-0-1-0 ok 1.28s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 1s-0-1-1 ok 1.29s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 1s-1-0-0 ok 1.29s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 1s-1-0-1 ok 1.29s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 1s-1-1-0 ok 1.29s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 1s-1-1-1 ok 1.29s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 2s-0-0-0 ok 1.28s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 2s-0-0-1 ok 1.29s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 2s-0-1-0 ok 1.28s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 2s-0-1-1 ok 1.28s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 2s-1-0-0 ok 1.28s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 2s-1-0-1 ok 1.29s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 2s-1-1-0 ok 1.29s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE 2s-1-1-1 ok 1.29s 6154 byte-identical replies; mechanisms witnessed
+MODE EQUIVALENCE: 16/16 cells, seed=24, 28 command types, 6154 replies per cell

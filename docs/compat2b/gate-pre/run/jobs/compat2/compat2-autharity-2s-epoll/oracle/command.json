@@ -1,0 +1,20 @@
+[
+  "taskset",
+  "-c",
+  "72",
+  "/home/user/Projects/redis74/src/redis-server",
+  "--bind",
+  "127.0.0.1",
+  "--port",
+  "26801",
+  "--dir",
+  "/home/user/Projects/cx-compat2/build/compat2b/headline-src/build/gate-run.EbYoxB/jobs/compat2/compat2-autharity-2s-epoll/oracle",
+  "--save",
+  "",
+  "--appendonly",
+  "no",
+  "--protected-mode",
+  "no",
+  "--enable-debug-command",
+  "yes"
+]

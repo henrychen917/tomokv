@@ -1,0 +1,147 @@
+[
+  {
+    "object": "db0/src/cmd/acl.o",
+    "changed": [],
+    "functions": 269
+  },
+  {
+    "object": "db0/src/cmd/climon.o",
+    "changed": [],
+    "functions": 226
+  },
+  {
+    "object": "db0/src/cmd/geo.o",
+    "changed": [],
+    "functions": 94
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "changed": [],
+    "functions": 232
+  },
+  {
+    "object": "db0/src/cmd/t_set.o",
+    "changed": [],
+    "functions": 203
+  },
+  {
+    "object": "db0/src/cmd/t_string.o",
+    "changed": [],
+    "functions": 145
+  },
+  {
+    "object": "db0/src/cmd/t_zset.o",
+    "changed": [],
+    "functions": 293
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "changed": [],
+    "functions": 878
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "changed": [],
+    "functions": 777
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "changed": [],
+    "functions": 841
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "changed": [],
+    "functions": 707
+  },
+  {
+    "object": "db0/src/main.o",
+    "changed": [],
+    "functions": 669
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "changed": [],
+    "functions": 329
+  },
+  {
+    "object": "db0/src/snapshot/snapshot.o",
+    "changed": [],
+    "functions": 130
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "changed": [],
+    "functions": 270
+  },
+  {
+    "object": "src/cmd/climon.o",
+    "changed": [],
+    "functions": 228
+  },
+  {
+    "object": "src/cmd/geo.o",
+    "changed": [],
+    "functions": 96
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "changed": [],
+    "functions": 194
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "changed": [],
+    "functions": 229
+  },
+  {
+    "object": "src/cmd/t_set.o",
+    "changed": [],
+    "functions": 206
+  },
+  {
+    "object": "src/cmd/t_string.o",
+    "changed": [],
+    "functions": 144
+  },
+  {
+    "object": "src/cmd/t_zset.o",
+    "changed": [],
+    "functions": 294
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "changed": [],
+    "functions": 885
+  },
+  {
+    "object": "src/core/genthread.o",
+    "changed": [],
+    "functions": 785
+  },
+  {
+    "object": "src/core/reorder.o",
+    "changed": [],
+    "functions": 853
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "changed": [],
+    "functions": 718
+  },
+  {
+    "object": "src/main.o",
+    "changed": [],
+    "functions": 673
+  },
+  {
+    "object": "src/persist/aof.o",
+    "changed": [],
+    "functions": 331
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "changed": [],
+    "functions": 128
+  }
+]

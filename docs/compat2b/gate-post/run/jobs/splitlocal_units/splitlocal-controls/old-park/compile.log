@@ -1,0 +1,28 @@
+make: Entering directory '/home/user/Projects/cx-compat2/build/gate-run.nUURCK/jobs/splitlocal_units/splitlocal-controls/old-park'
+g++ -std=c++20 -O2 -Wall -Wextra unit.cc -o unit
+unit.cc:45:42: error: static assertion failed: fifo: park/hot callback Fused policy mismatch
+   45 | static_assert(park<false,false,true,true>(), "fifo: park/hot callback Fused policy mismatch");
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+unit.cc:48:41: error: static assertion failed: fifo: park/hot callback Fused policy mismatch
+   48 | static_assert(park<false,true,true,true>(), "fifo: park/hot callback Fused policy mismatch");
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+unit.cc:51:41: error: static assertion failed: fifo: park/hot callback Fused policy mismatch
+   51 | static_assert(park<true,false,true,true>(), "fifo: park/hot callback Fused policy mismatch");
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+unit.cc:54:40: error: static assertion failed: fifo: park/hot callback Fused policy mismatch
+   54 | static_assert(park<true,true,true,true>(), "fifo: park/hot callback Fused policy mismatch");
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~^~
+unit.cc:96:42: error: static assertion failed: r7: park/hot callback Fused policy mismatch
+   96 | static_assert(park<false,false,true,true>(), "r7: park/hot callback Fused policy mismatch");
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+unit.cc:99:41: error: static assertion failed: r7: park/hot callback Fused policy mismatch
+   99 | static_assert(park<false,true,true,true>(), "r7: park/hot callback Fused policy mismatch");
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+unit.cc:102:41: error: static assertion failed: r7: park/hot callback Fused policy mismatch
+  102 | static_assert(park<true,false,true,true>(), "r7: park/hot callback Fused policy mismatch");
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+unit.cc:105:40: error: static assertion failed: r7: park/hot callback Fused policy mismatch
+  105 | static_assert(park<true,true,true,true>(), "r7: park/hot callback Fused policy mismatch");
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~~^~
+make: *** [Makefile:2: unit] Error 1
+make: Leaving directory '/home/user/Projects/cx-compat2/build/gate-run.nUURCK/jobs/splitlocal_units/splitlocal-controls/old-park'

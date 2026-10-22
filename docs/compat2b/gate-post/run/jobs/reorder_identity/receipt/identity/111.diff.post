@@ -1,0 +1,66 @@
+0000 [ 2] push %r13 | 41 55
+0002 [ 2] push %r12 | 41 54
+0004 [ 1] push %rbp | 55
+0005 [ 3] mov %r8d,%ebp | 44 89 c5
+0008 [ 1] push %rbx | 53
+0009 [ 3] mov %rdi,%rbx | 48 89 fb
+000c [ 4] sub $0x18,%rsp | 48 83 ec 18
+0010 [ 3] mov (%rdi),%rax | 48 8b 07
+0013 [ 4] mov 0x8(%rdi),%r13 | 4c 8b 6f 08
+0017 [ 3] cmpb $0x0,(%rax) | 80 38 00
+001a [ 2] jne <+0x70> | 75 54
+001c [ 4] mov 0x10(%rdi),%rax | 48 8b 47 10
+0020 [ 4] lea 0x38(%r13),%rdi | 49 8d 7d 38
+0024 [ 3] cmpb $0x0,(%rax) | 80 38 00
+0027 [ 2] jne <+0x60> | 75 37
+0029 [ 5] call <tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)> | e8 ?? ?? ?? ??
+002e [ 3] test %bpl,%bpl | 40 84 ed
+0031 [ 2] je <+0x47> | 74 14
+0033 [ 4] mov 0x8(%rbx),%rdx | 48 8b 53 08
+0037 [ 3] test %rax,%rax | 48 85 c0
+003a [ 6] je <+0xd0> | 0f 84 90 00 00 00
+0040 [ 7] incq 0x3f0(%rdx) | 48 ff 82 f0 03 00 00
+0047 [ 4] add $0x18,%rsp | 48 83 c4 18
+004b [ 1] pop %rbx | 5b
+004c [ 1] pop %rbp | 5d
+004d [ 2] pop %r12 | 41 5c
+004f [ 2] pop %r13 | 41 5d
+0051 [ 1] ret | c3
+0052 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+005d [ 3] nopl (%rax) | 0f 1f 00
+0060 [ 7] lea 0x538(%r13),%r8 | 4d 8d 85 38 05 00 00
+0067 [ 5] call <tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)> | e8 ?? ?? ?? ??
+006c [ 2] jmp <+0x2e> | eb c0
+006e [ 2] xchg %ax,%ax | 66 90
+0070 [ 7] mov 0xa0(%r13),%r8 | 4d 8b 85 a0 00 00 00
+0077 [ 4] lea 0x38(%r13),%r12 | 4d 8d 65 38
+007b [ 2] mov %ecx,%ecx | 89 c9
+007d [ 6] mov $0x1,%r9d | 41 b9 01 00 00 00
+0083 [ 3] mov %r12,%rdi | 4c 89 e7
+0086 [ 5] call <tomo_db0::FlatStore::atomic_resolve_internal(unsigned long, tomo_db0::Slice, unsigned long, bool)> | e8 ?? ?? ?? ??
+008b [ 8] cmpb $0x0,0x12a(%r13) | 41 80 bd 2a 01 00 00 00
+0093 [ 2] je <+0x2e> | 74 99
+0095 [ 3] test %rax,%rax | 48 85 c0
+0098 [ 2] je <+0xc0> | 74 26
+009a [ 3] mov %rax,%rsi | 48 89 c6
+009d [ 3] mov %r12,%rdi | 4c 89 e7
+00a0 [ 5] mov %rax,0x8(%rsp) | 48 89 44 24 08
+00a5 [ 5] call <tomo_db0::FlatStore::touch(tomo_db0::KvObj*)> | e8 ?? ?? ?? ??
+00aa [ 3] test %bpl,%bpl | 40 84 ed
+00ad [ 5] mov 0x8(%rsp),%rax | 48 8b 44 24 08
+00b2 [ 2] je <+0x47> | 74 93
+00b4 [ 4] mov 0x8(%rbx),%rdx | 48 8b 53 08
+00b8 [ 2] jmp <+0x40> | eb 86
+00ba [ 6] nopw 0x0(%rax,%rax,1) | 66 0f 1f 44 00 00
+00c0 [ 3] test %bpl,%bpl | 40 84 ed
+00c3 [ 2] je <+0xd7> | 74 12
+00c5 [ 4] mov 0x8(%rbx),%rdx | 48 8b 53 08
+00c9 [ 7] nopl 0x0(%rax) | 0f 1f 80 00 00 00 00
+00d0 [ 7] incq 0x3f8(%rdx) | 48 ff 82 f8 03 00 00
+00d7 [ 4] add $0x18,%rsp | 48 83 c4 18
+00db [ 2] xor %eax,%eax | 31 c0
+00dd [ 1] pop %rbx | 5b
+00de [ 1] pop %rbp | 5d
+00df [ 2] pop %r12 | 41 5c
+00e1 [ 2] pop %r13 | 41 5d
+00e3 [ 1] ret | c3

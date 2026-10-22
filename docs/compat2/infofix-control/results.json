@@ -1,0 +1,274 @@
+[
+  {
+    "name": "pre-1s-epoll-a0",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 1
+  },
+  {
+    "name": "pre-1s-epoll-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 1
+  },
+  {
+    "name": "pre-1s-uring-a0",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "pre-1s-uring-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "pre-2s-epoll-a0",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 1
+  },
+  {
+    "name": "pre-2s-epoll-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 1
+  },
+  {
+    "name": "pre-2s-uring-a0",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "pre-2s-uring-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "post-1s-epoll-a0",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 1
+  },
+  {
+    "name": "post-1s-epoll-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 1
+  },
+  {
+    "name": "post-1s-uring-a0",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "post-1s-uring-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "post-2s-epoll-a0",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 1
+  },
+  {
+    "name": "post-2s-epoll-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 1
+  },
+  {
+    "name": "post-2s-uring-a0",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "post-2s-uring-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "26870",
+      "127.0.0.1",
+      "26871",
+      "infofix",
+      "7"
+    ],
+    "returncode": 0
+  }
+]

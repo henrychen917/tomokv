@@ -1,0 +1,24 @@
+{
+  "compat2": {
+    "path": "/home/user/Projects/cx-compat2/build/compat2b/compat2/tomokv",
+    "sha256": "b8a21b0f8e880877b46a71b27e89a86ee5071c766da459417d773ba8a52c0596"
+  },
+  "headline": {
+    "path": "/home/user/Projects/cx-compat2/build/compat2b/headline-src/build/tomokv",
+    "sha256": "91ae41fd2fda0738a02ee0eed50021d772985654b19f55d1296812aaafaa6426"
+  },
+  "oracle": {
+    "path": "/home/user/Projects/redis74/src/redis-server",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+  },
+  "networking.c": {
+    "path": "/home/user/Projects/redis/src/networking.c",
+    "sha256": "0ed207f003c35589f97e6375bcf589c5fb22a1f905b3c2e9ec6a08d67984893c"
+  },
+  "server.c": {
+    "path": "/home/user/Projects/redis/src/server.c",
+    "sha256": "9d1f0f0bdc25ed6ebb2efcfce50bd4e678301567507ac6d6c67f1d85e0e6c58e"
+  },
+  "headline_commit": "8656f9fa924fc06aa128504fca8aa99436aa9e41",
+  "compat2_commit": "c7276898591179a2d05fdfd2ed678253a56f908a"
+}

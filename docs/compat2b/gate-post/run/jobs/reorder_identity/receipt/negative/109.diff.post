@@ -1,0 +1,90 @@
+0000 [ 7] mov -0x170(%rbp),%rbx | 48 8b 9d 90 fe ff ff
+0007 [ 3] vzeroupper | c5 f8 77
+000a [ 7] mov 0xc8(%rbx),%rdi | 48 8b bb c8 00 00 00
+0011 [ 5] call <tomo_db0::FlatStore::foreign_read_poison_close() [clone .isra.0]> | e8 ?? ?? ?? ??
+0016 [ 3] mov %r12,%rbx | 4c 89 e3
+0019 [ 3] dec %r13 | 49 ff cd
+001c [ 2] jne <+0x54> | 75 36
+001e [ 3] mov %rbx,%rdi | 48 89 df
+0021 [ 3] xor %r12d,%r12d | 45 31 e4
+0024 [ 5] call <__cxa_begin_catch@plt> | e8 ?? ?? ?? ??
+0029 [ 7] mov -0x160(%rbp),%rax | 48 8b 85 a0 fe ff ff
+0030 [ 4] movb $0x4,0x29(%rax) | c6 40 29 04
+0034 [ 5] call <__cxa_end_catch@plt> | e8 ?? ?? ?? ??
+0039 [ 5] jmp <tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)+0x7f2> | e9 ?? ?? ?? ??
+003e [ 3] test %rbx,%rbx | 48 85 db
+0041 [ 2] je <+0xbd> | 74 7a
+0043 [ 7] mov 0xc8(%rbx),%rdi | 48 8b bb c8 00 00 00
+004a [ 3] vzeroupper | c5 f8 77
+004d [ 5] call <tomo_db0::FlatStore::foreign_read_poison_close() [clone .isra.0]> | e8 ?? ?? ?? ??
+0052 [ 2] jmp <+0x16> | eb c2
+0054 [ 7] cmpb $0x0,-0x188(%rbp) | 80 bd 78 fe ff ff 00
+005b [ 2] je <+0x72> | 74 15
+005d [ 7] mov -0x170(%rbp),%rax | 48 8b 85 90 fe ff ff
+0064 [ 2] xor %ecx,%ecx | 31 c9
+0066 [ 8] movq $0xffffffffffffffff,0x68(%rax) | 48 c7 40 68 ff ff ff ff
+006e [ 4] mov %rcx,0x70(%rax) | 48 89 48 70
+0072 [ 8] cmpq $0x0,-0x180(%rbp) | 48 83 bd 80 fe ff ff 00
+007a [ 2] je <+0x95> | 74 19
+007c [ 7] mov -0x150(%rbp),%rax | 48 8b 85 b0 fe ff ff
+0083 [ 7] mov -0x190(%rbp),%rcx | 48 8b 8d 70 fe ff ff
+008a [ 4] mov %rcx,0x10(%rax) | 48 89 48 10
+008e [ 7] mov %rcx,0x1c0(%rax) | 48 89 88 c0 01 00 00
+0095 [ 7] lea -0xd0(%rbp),%rdi | 48 8d bd 30 ff ff ff
+009c [ 5] call <tomo_db0::NotifyExecutionScope::~NotifyExecutionScope()> | e8 ?? ?? ?? ??
+00a1 [ 4] mov -0x38(%rbp),%rax | 48 8b 45 c8
+00a5 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+00ae [ 2] jne <+0xb8> | 75 08
+00b0 [ 3] mov %rbx,%rdi | 48 89 df
+00b3 [ 5] call <_Unwind_Resume@plt> | e8 ?? ?? ?? ??
+00b8 [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??
+00bd [ 3] vzeroupper | c5 f8 77
+00c0 [ 5] jmp <+0x16> | e9 51 ff ff ff
+00c5 [ 3] mov %r12,%rdi | 4c 89 e7
+00c8 [ 3] vzeroupper | c5 f8 77
+00cb [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+00d0 [ 3] test %r14,%r14 | 4d 85 f6
+00d3 [ 6] je <+0x19> | 0f 84 40 ff ff ff
+00d9 [ 7] mov 0xc8(%r14),%rdi | 49 8b be c8 00 00 00
+00e0 [ 5] call <tomo_db0::FlatStore::foreign_read_poison_close() [clone .isra.0]> | e8 ?? ?? ?? ??
+00e5 [ 5] jmp <+0x19> | e9 2f ff ff ff
+00ea [ 7] lea -0xb0(%rbp),%rdi | 48 8d bd 50 ff ff ff
+00f1 [ 3] vzeroupper | c5 f8 77
+00f4 [ 5] call <tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::ScriptApplyPins::~ScriptApplyPins()> | e8 ?? ?? ?? ??
+00f9 [ 5] jmp <+0x19> | e9 1b ff ff ff
+00fe [ 5] call <abort@plt> | e8 ?? ?? ?? ??
+0103 [ 3] mov %r12,%rdi | 4c 89 e7
+0106 [ 3] vzeroupper | c5 f8 77
+0109 [ 3] mov %r13,%r12 | 4d 89 ec
+010c [ 3] mov %r14,%r13 | 4d 89 f5
+010f [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+0114 [ 3] test %rbx,%rbx | 48 85 db
+0117 [ 6] jne <+0xa> | 0f 85 ed fe ff ff
+011d [ 5] jmp <+0x16> | e9 f4 fe ff ff
+0122 [ 7] mov -0x170(%rbp),%r14 | 4c 8b b5 90 fe ff ff
+0129 [ 3] vzeroupper | c5 f8 77
+012c [ 2] jmp <+0xd9> | eb ab
+012e [ 3] mov %rbx,%rdi | 48 89 df
+0131 [ 3] vzeroupper | c5 f8 77
+0134 [ 5] call <pthread_mutex_unlock@plt> | e8 ?? ?? ?? ??
+0139 [ 5] jmp <+0x16> | e9 d8 fe ff ff
+013e [ 7] mov -0x1a0(%rbp),%rdi | 48 8b bd 60 fe ff ff
+0145 [ 3] vzeroupper | c5 f8 77
+0148 [ 5] call <tomo_db0::FlatStore::ForeignReadKeyGuard::~ForeignReadKeyGuard()> | e8 ?? ?? ?? ??
+014d [ 5] jmp <+0x19> | e9 c7 fe ff ff
+0152 [ 4] cmp $0x1,%rdx | 48 83 fa 01
+0156 [ 2] jne <+0x18d> | 75 35
+0158 [ 3] mov %rbx,%rdi | 48 89 df
+015b [ 3] vzeroupper | c5 f8 77
+015e [ 5] call <__cxa_begin_catch@plt> | e8 ?? ?? ?? ??
+0163 [ 7] mov -0x148(%rbp),%rax | 48 8b 85 b8 fe ff ff
+016a [ 7] mov 0x248(%rax),%rax | 48 8b 80 48 02 00 00
+0171 [ 5] movb $0x4,(%rax,%r13,1) | 42 c6 04 28 04
+0176 [ 5] call <__cxa_end_catch@plt> | e8 ?? ?? ?? ??
+017b [ 5] jmp <tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)+0x3a20> | e9 ?? ?? ?? ??
+0180 [ 3] vzeroupper | c5 f8 77
+0183 [ 5] call <tomo_db0::script_cross_access_end()> | e8 ?? ?? ?? ??
+0188 [ 5] jmp <+0x72> | e9 e5 fe ff ff
+018d [ 3] mov %rdx,%r13 | 49 89 d5
+0190 [ 3] vzeroupper | c5 f8 77
+0193 [ 5] jmp <+0x19> | e9 81 fe ff ff

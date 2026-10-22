@@ -385,8 +385,9 @@ say(){ :; }
                            text=True, capture_output=True, check=True, timeout=10)
             if kind == 'feature':
                 helpers = list(self.instrument_helpers)
-                if abba_rc:
-                    helpers = helpers[:helpers.index(abba_helper) + 1] if abba_helper else helpers[:1]
+                # Every independent control must run, including after a failure.
+                # The callers still require the aggregate row to fail for every
+                # nonzero helper result; later successes cannot erase it.
                 self.assertEqual((Path(directory) / 'controls').read_text().splitlines(), helpers)
             if kind == 'performance':
                 argv = (Path(directory) / 'argv').read_bytes().decode().rstrip('\0').split('\0')
@@ -1125,6 +1126,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
             arrays = '\n'.join([
                 f'GATE_SLOTS={count}',
+                f'ALL_BUILD_CORES={cpu_list}',
                 'CANONICAL=(' + ' '.join(map(shlex.quote, canonical)) + ')',
                 'COMPLETION_ORDER=(' + ' '.join(map(shlex.quote, order)) + ')',
                 'SLOT_CORES=(' + ' '.join(slot_cpus) + ')',

@@ -1,0 +1,1 @@
+DIFFER wiredump: 4200 ops, 0 diffs, 801 deadline-bounded TTL checks -> PASS

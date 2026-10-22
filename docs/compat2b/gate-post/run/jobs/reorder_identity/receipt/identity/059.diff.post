@@ -1,0 +1,2 @@
+0000 [ 4] endbr64 | f3 0f 1e fa
+0004 [ 5] jmp <void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)> | e9 ?? ?? ?? ??
