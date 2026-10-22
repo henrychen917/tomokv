@@ -13,5 +13,25 @@
     "path": "build/gate-run.WWXPEZ",
     "bytes_removed": 1504751774,
     "reason": "Completed final gate archived; ephemeral databases removed"
+  },
+  {
+    "path": "build/fliplisten/body-details",
+    "bytes_removed": 363777537,
+    "reason": "Completed text proofs/receipts retained; remove disassembly, probe objects or gate scratch"
+  },
+  {
+    "path": "build/fliplisten/pad-details",
+    "bytes_removed": 369625528,
+    "reason": "Completed text proofs/receipts retained; remove disassembly, probe objects or gate scratch"
+  },
+  {
+    "path": "build/fliplisten/arm-trials",
+    "bytes_removed": 35026639,
+    "reason": "Completed text proofs/receipts retained; remove disassembly, probe objects or gate scratch"
+  },
+  {
+    "path": "build/gate-run.fZUUpg",
+    "bytes_removed": 5239057,
+    "reason": "Completed text proofs/receipts retained; remove disassembly, probe objects or gate scratch"
   }
 ]
