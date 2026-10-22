@@ -2473,8 +2473,15 @@ job_bugs5(){
             >"$TMPDIR/$test-$mode-$engine-$atomic.log" 2>&1 || failed=1
         # Retain the established battery in every declared leg, even when the
         # new witness fails on PRE. A failed arm must not skip its controls.
-        py "tests/$battery.py" 127.0.0.1 "$PORT" \
-            >"$TMPDIR/$test-control-$mode-$engine-$atomic.log" 2>&1 || failed=1
+        # The threshold-zero identity witness leaves the per-owner slowlog
+        # escalation countdown armed. Its legacy battery needs fresh state to
+        # witness a NEW escalation, as it does in its original gate job.
+        stop
+        if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --atomic "$atomic" \
+            --read-local 1 --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0; then
+          py "tests/$battery.py" 127.0.0.1 "$PORT" \
+              >"$TMPDIR/$test-control-$mode-$engine-$atomic.log" 2>&1 || failed=1
+        else failed=1; fi
       else failed=1; fi
       stop
     done; done; done
