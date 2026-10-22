@@ -34,8 +34,11 @@ if __name__=='__main__':
  label,engine,*jobs=sys.argv[1:]
  binary=ROOT/'build/tomokv'
  if engine=='epoll':
-    binary=BASE/'tomokv-epoll'
-    binary.write_text('#!/bin/bash\nexec '+str(ROOT/'build/tomokv')+' --net-io epoll "$@"\n');binary.chmod(0o755)
+    binary=BASE/'tomokv-epoll-v2'
+    # A Redis-style configuration path must remain argv[1]. Insert the engine
+    # after it, before explicit later flags so a declared uring leg still wins.
+    binary.write_text('#!/usr/bin/python3\nimport os,sys\nargs=sys.argv[1:]\nfirst=[]\nif args and not args[0].startswith("-"):\n first=[args.pop(0)]\nserver='+repr(str(ROOT/'build/tomokv'))+'\nos.execv(server,[server,*first,"--net-io","epoll",*args])\n')
+    binary.chmod(0o755)
  dest=DOC/'proof'/label;dest.mkdir(parents=True,exist_ok=True)
  env=environment();env.update(GATE_ONLY_JOBS=' '.join(jobs),GATE_LEDGER=str(dest/'ledger'))
  argv=['taskset','-c','96-111','bash','tests/gate.sh','full','--server-cores','96-104',

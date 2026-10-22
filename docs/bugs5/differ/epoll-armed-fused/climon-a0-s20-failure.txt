@@ -1,0 +1,16 @@
+  DIFF invalidation round 0 mode 0
+    target: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:10\r\n>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:10\r\n'
+    oracle: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:10\r\n'
+  DIFF invalidation round 3 mode 0
+    target: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:3\r\n>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:3\r\n'
+    oracle: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:3\r\n'
+  DIFF invalidation round 15 mode 1
+    target: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:11\r\n>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:11\r\n'
+    oracle: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:11\r\n'
+  DIFF invalidation round 34 mode 1
+    target: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:10\r\n>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:10\r\n'
+    oracle: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:10\r\n'
+  DIFF invalidation round 39 mode 1
+    target: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:2\r\n>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:2\r\n'
+    oracle: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:2\r\n'
+DIFFER climon: 4318 ops, 5 diffs -> FAIL

@@ -17,9 +17,9 @@ for r in rows:
     elif 'cmd_hscan' in name:
         reason='CD4.2 compact full-iteration reply.'
     elif 'ExLoopT' in name and 'init(' in name:
-        reason='RL4.1 nonzero sampler seed; SV4.3 capture construction.'
+        reason='RL4.1 nonzero sampler seed; no loop layout change.'
     else:
-        reason='Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input.'
+        reason='Compiler/layout propagation from HSCAN, cold slowlog capture/signature, or LFU seed changes; merit input.'
     r['reason']=reason;changed.append(r)
 out=ROOT/'docs/bugs5/identity';out.mkdir(exist_ok=True)
 with gzip.open(out/'all-bodies.json.gz','wt') as f:json.dump(rows,f)

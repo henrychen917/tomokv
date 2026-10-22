@@ -196,8 +196,8 @@ sizes are unchanged. The discarded attempt to enlarge the capture was caught by
 the build's existing assertions and corrected to a cold stack reference.
 
 Per-unit IPA budget re-derivation was tried in both namespaces for t_hash,
-genthread, rl2s and main: eight baselines plus three derived candidates each,
-40 trials including the PRE/POST baselines. `docs/bugs5/budget-trials.json` records
+genthread, rl2s and main: 16 PRE/POST baselines plus three derived candidates for each of the eight units,
+40 trials total. `docs/bugs5/budget-trials.json` records
 every compile and identity result. Hash candidates worsened differences and
 introduced hot differences; main candidates tied; rl2s and genthread candidates
 sometimes reduced one non-command difference while others worsened. Existing

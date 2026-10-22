@@ -59,9 +59,9 @@ struct SlowlogExState {
     SlowlogCapture capture;
 };
 
-// Copies the argument bytes out of the op while they are still pinned. Cheap: bounded by 32
-// arguments of 128 bytes, and for an ordinary GET/SET it is two short memcpys.
-// The caller retains this immutable directory version until recording finishes.
+// Copies pinned arguments (at most 32 of 128 bytes) and snapshots the identity under the
+// directory shard lock. The returned shared reference keeps that version alive across Done;
+// the caller retains it until recording finishes. Used only by armed per-op timing.
 std::shared_ptr<const SlowlogIdentity> slowlog_capture(
     const Op& op, SlowlogCapture& out, uint64_t client_id);
 
@@ -92,8 +92,8 @@ uint64_t slowlog_escalations();
 uint64_t slowlog_batches_timed();
 uint64_t latency_events_recorded();
 
-// Addr/name directory. Connection lifecycle is cold; commands are not, so the slowlog entry
-// carries a client id and the address is resolved from this sharded directory at GET time.
+// Addr/name directory. Connection lifecycle publishes immutable versions; armed recording
+// retains a version in each entry, so later rename/disconnect cannot change SLOWLOG GET.
 void slowlog_note_client(uint64_t client_id, const char* addr);
 void slowlog_note_client_name(uint64_t client_id, const char* name, uint32_t name_len);
 void slowlog_forget_client(uint64_t client_id);
