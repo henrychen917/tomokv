@@ -82,9 +82,21 @@ def single():
                                          else None), 'group did not install on both shards')
                 assert not select.select([group.s], [], [], 0)[0], 'held group replied'
                 writer.send('SET', keys[victim], '9')
-                wait_for(lambda: admin.cmd('GET', keys[victim]) == b'9',
-                         'plain SET did not execute beneath the undecided group')
-                h.emit('armed', before=before, after=armed,
+                ordered = operation in ('MSETNX', 'RENAME') and 'atomic_txn_writer_waits' in before
+                if ordered:
+                    # D1/TO-B holds this writer until the admitted group decides.
+                    # Keep the installed, undecided-group witness above; waiting
+                    # for SET to run here would prevent the test releasing it.
+                    wait_for(lambda: stats(admin)['atomic_txn_writer_waits'] >
+                             before['atomic_txn_writer_waits'], 'writer never reached held unit')
+                    assert not select.select([writer.s], [], [], 0)[0], 'writer bypassed held unit'
+                    expected[victim] = b'9'
+                    # Redis 7.4 exact group-then-SET replies are recorded in
+                    # docs/txnorder2/oracle-sequencing/result.json.
+                else:
+                    wait_for(lambda: admin.cmd('GET', keys[victim]) == b'9',
+                             'plain SET did not execute beneath the undecided group')
+                h.emit('armed', before=before, after=armed, writer_ordered=ordered,
                        held_values=admin.cmd('MGET', *keys),
                        plain_reply_ready=bool(select.select([writer.s], [], [], 0)[0]))
             finally:

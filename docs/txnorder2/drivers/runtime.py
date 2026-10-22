@@ -19,7 +19,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / 'docs/txnorder2/runtime'
-DATA = ROOT / 'build/txnorder2/runtime-data'
+DATA = ROOT / 'build/txnorder2/runtime-data-final'
 PRE = ROOT / 'build/txnorder2/pre-source/build/tomokv'
 POST = ROOT / 'build/txnorder2/post/tomokv'
 
@@ -36,7 +36,7 @@ def transform(value):
     value = value.replace(str(ROOT / 'build/txnorder/pre/tomokv'), str(PRE))
     value = value.replace(str(ROOT / 'build/tomokv'), str(POST))
     value = value.replace('docs/txnorder/runtime-', 'docs/txnorder2/runtime/legacy-')
-    value = value.replace('build/txnorder/runtime-', 'build/txnorder2/runtime-data/legacy-')
+    value = value.replace('build/txnorder/runtime-', 'build/txnorder2/runtime-data-final/legacy-')
     if value.endswith('pre-armed-server'): value = str(DATA / 'pre-armed-server')
     if value.endswith('post-armed-server'): value = str(DATA / 'post-armed-server')
     if '/proof-drivers/watchlive-' in value:
@@ -77,7 +77,7 @@ def wrappers():
         p.chmod(0o755)
     for mode in ['1s','2s']:
         p=DATA/('watchlive-'+mode)
-        p.write_text('#!/bin/bash\nexec taskset -c 64-71 '+shlex.quote(str(POST))+' "$@" --thread-mode '+mode+' --databases 1 --read-local '+('1' if mode=='1s' else '0')+'\n')
+        p.write_text('#!/bin/bash\nexec taskset -c 64-71 '+shlex.quote(str(POST))+' "$@" --thread-mode '+mode+' --databases 1 --shards 16 --key-lb 0 --client-lb 0 --flip-auto 0 --read-local '+('1' if mode=='1s' else '0')+(' --ratio 6:2' if mode=='2s' else '')+'\n')
         p.chmod(0o755)
 
 def run(index, original, suffix):
@@ -94,7 +94,7 @@ def run(index, original, suffix):
     logs=[]
     try:
         binary=PRE if row['arm']=='pre' else POST
-        if row['arm']=='barrier-off': binary=ROOT/'build/txnorder2/barrier-off/tomokv'
+        if row['arm']=='barrier-off': binary=ROOT/'build/txnorder2/barrier-off-final/tomokv'
         if not binary.exists():
             result.update(status='NOT RUN',reason='missing required arm '+str(binary))
             return
@@ -105,6 +105,7 @@ def run(index, original, suffix):
             if arg.endswith('.json') and str(ROOT) in arg: Path(arg).parent.mkdir(parents=True,exist_ok=True)
         env=dict(os.environ,TXNFIX_PORT_RANGE='27800-27899',PYTHONUNBUFFERED='1')
         env.update(row.get('env',{}))
+        if 'tests/watchlive_gate.sh' in command: env['WATCHLIVE_OUT']=str(out/'boots')
         if 'server' in row:
             argv=row['server']
             argv[3]=str(binary)

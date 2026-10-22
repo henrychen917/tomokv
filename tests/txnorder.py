@@ -406,7 +406,11 @@ class OrderBattery(Battery):
             futures = [pool.submit(fn, *args) for fn, args in jobs]
             for future in futures:
                 future.result(timeout=36)
-        for key in keys + [k for pair in watch_pairs for k in pair]:
+        # Only `keys` carry increments recorded in counts. The watched churn
+        # keys deliberately receive SET markers and DEL; Redis returns those
+        # strings/null, never this nonexistent count (oracle-sequencing receipt).
+        # Their exact in-EXEC values were checked in every successful transaction.
+        for key in keys:
             assert self.admin.must("GET", key) == str(counts[key]).encode(), (key, counts[key])
         remaining = self.admin.must("LRANGE", source, 0, -1)
         destination_values = self.admin.must("LRANGE", destination, 0, -1)

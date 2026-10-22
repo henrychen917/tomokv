@@ -26,7 +26,7 @@ def assert_notification_delivery_not_acl_checked():
     # The fanout redesign split delivery into deliver_one/deliver_batch; the span still ends at
     # home_publish, so the whole delivery path stays inside the checked region.
     start = source.index("    void pubsub_deliver_one(")
-    end = source.index("\n    void pubsub_home_publish(", start)
+    end = source.index("\n    uint64_t pubsub_home_publish(", start)
     if "acl_" in source[start:end]:
         raise AssertionError("pubsub delivery must not apply ACL channel rules")
 

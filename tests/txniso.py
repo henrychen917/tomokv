@@ -287,6 +287,11 @@ class Battery:
         end = time.monotonic() + 20
         progress = [(-1, "start"), (-1, "start")]
         before = self.stats()
+        # Force opposite leading-key claims to coexist while both units are
+        # PLACING. SLEEP after EXEC's CAS only tests an Executing holder and need
+        # not cause a wound. The other 499 turns retain their original shape.
+        if not self.args.pre:
+            self.hook("TXN-PLACE-DEFER", 20000)
         def worker(index, watch, write):
             c = self.conn(timeout=5)
             try:
@@ -300,11 +305,13 @@ class Battery:
                     # One directed overlap proves the crossed reservation
                     # cycle. The other 499 turns are the specified stress
                     # shape, without 499 artificial all-owner sleep barriers.
-                    commands = ([("DEBUG", "SLEEP", ".2")] if i == 0 else [])
+                    commands = ([("DEBUG", "SLEEP", ".2")] if i == 0 and self.args.pre else [])
                     commands.append(("SET", write, i))
                     result = self.transaction(c, commands)
                     assert result is None or result == [b"OK"] * len(commands), result
                     progress[index] = (i, "complete")
+                    if i == 0 and index == 0 and not self.args.pre:
+                        self.hook("TXN-PLACE-DEFER", 0)
                     turn.wait(timeout=5)
             except BaseException:
                 turn.abort()
@@ -316,6 +323,7 @@ class Battery:
                     future.result(timeout=20)
             except BaseException:
                 after = self.stats()
+                if not self.args.pre: self.hook("TXN-PLACE-DEFER", 0)
                 print("crossed WATCH progress", progress, "counters", {
                     key: int(value) - int(before.get(key, 0)) for key, value in after.items()
                     if key.startswith("atomic_txn_")}, flush=True)
