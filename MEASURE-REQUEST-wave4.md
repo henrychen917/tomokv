@@ -106,6 +106,11 @@ Receipt: `docs/wave4/proof/r7-final` (`build/gate-run.bzQ8Hu`).
 `make -k -j32 all` plus every `job_production_units` file target (37), and
 `mdbqsbr-live-arms`, completed successfully. **39/39 `make -q` freshness checks**
 passed. Commands and individual statuses: `docs/wave4/production-build.json`.
+The final post-proof audit repeats all 39 freshness checks, confirms the delivered
+SHA is unchanged and that Makefile is the only production/test-tree diff since
+`cd1423c97`, and finds no candidate process or listener in the allocated port
+range. See `docs/wave4/final-build-audit.json` and the consolidated
+`docs/wave4/proof-index.json` (which retains failed runs as failures).
 
 The proof driver invokes the original `tests/gate.sh quick` with
 `GATE_ONLY_JOBS`; its ledgers remain PARTIAL and cannot earn a full receipt.
@@ -223,6 +228,14 @@ engine, the 16-configuration/32-boot equivalence proofs, and all commands and
 ports. The differential inventory observes 232 of 245 registered commands;
 the 13 unobserved names remain explicit in each coverage receipt. This passing
 replay does **not** clear the earlier duplicate invalidation.
+
+Bounded fresh-state controls then run the unchanged `climon` seed 19 on epoll,
+fused/read-local 1, atomic 0, databases 16: **3/3 headline and 3/3 POST** pass,
+4,318 comparisons per invocation. Their six fixture listeners are fenced too.
+Receipts and owned-server records: `docs/wave4/climon-controls`. The original
+full-matrix mismatch is **UNRESOLVED**: these controls establish neither a fix
+nor a headline reproduction. It remains an acceptance finding despite the
+passing constrained full replay.
 
 ### Sweep findings outside the gate inventory
 
