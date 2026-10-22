@@ -11,6 +11,7 @@ struct NotifyRecordImpl {
     uint32_t routes = 0;
     NotifyEventId event = NotifyEventId::Set;
     uint8_t db = 0;
+    bool physical = false;  // lazy deletion survives speculative abort/retry
     Slice key;
 };
 
@@ -104,7 +105,8 @@ const char* notify_event_name(NotifyEventId event) {
 
 uint32_t notify_event_priority(NotifyEventId event) {
     switch (event) {
-        case NotifyEventId::New: return 0;
+        case NotifyEventId::Expired: return 0;
+        case NotifyEventId::New: return 1;
         case NotifyEventId::Set:
         case NotifyEventId::Setrange:
         case NotifyEventId::Append:
@@ -166,7 +168,6 @@ uint32_t notify_event_priority(NotifyEventId event) {
         case NotifyEventId::Hexpire:
         case NotifyEventId::Hpersist: return 6;
         case NotifyEventId::Del: return 8;
-        case NotifyEventId::Expired:
         case NotifyEventId::Evicted:
         case NotifyEventId::Keymiss: return 4;
     }
@@ -237,6 +238,7 @@ struct NotifyBatch {
     uint32_t inline_size = 0;
     uint32_t total = 0;
     uint32_t next_sequence = 0;
+    uint32_t physical = 0;
     std::vector<NotifyRecordImpl> spill;
     std::deque<std::string> owned_keys;
 };
@@ -310,13 +312,23 @@ void notify_bind_flat_store(const FlatStore* store, FlatNotifySink* sink) {
     catch (const std::bad_alloc&) {}
 }
 
+namespace {
+void notify_flat_emit_unattributed(void*, uint32_t, NotifyEventId, Slice);
+}
+
 void notify_flat_store_emit(const FlatStore* store, uint32_t cls,
                             NotifyEventId event, Slice key) {
     for (const FlatStoreBinding& binding : g_notify_flat_stores) {
         if (binding.store != store) continue;
         FlatNotifySink* sink = binding.sink;
-        if (sink && sink->enabled && sink->enabled(sink->context, cls) && sink->emit)
-            sink->emit(sink->context, cls, event, key);
+        if (sink && sink->enabled && sink->enabled(sink->context, cls) && sink->emit) {
+            // Only the production sink has a Shard context. Preserve opaque
+            // custom observers (including serverless expiry witnesses).
+            if (sink->emit == notify_flat_emit)
+                notify_flat_emit_unattributed(sink->context, cls, event, key);
+            else
+                sink->emit(sink->context, cls, event, key);
+        }
         return;
     }
 }
@@ -384,6 +396,85 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
     return true;
 }
 
+namespace {
+
+enum class NotifyPhysicalResult { Nothing, Recorded, Fallback };
+
+// A by-name deletion is already physical. Allocation/cap failures use the old
+// keyless route without counting a drop or observing SAVE a second time.
+NotifyPhysicalResult notify_record_physical_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
+                        NotifyEventId event, Slice key) {
+    (void)cls;
+    Server* server = shard.server();
+    if (!server) return NotifyPhysicalResult::Nothing;
+    // Tracking invalidation has no pub/sub subscriber to require. When only the pub/sub routes
+    // are armed the original early-out is unchanged.
+    if (!server->pubsub_any_subscribers() && !(routes & NOTIFY_TRACKING)) return NotifyPhysicalResult::Nothing;
+    Op* carrier = shard.notify_carrier();
+    if (!carrier) carrier = &source;
+    NotifyBatch* batch;
+    try { batch = notify_get_or_create_batch(*carrier); }
+    catch (const std::bad_alloc&) { return NotifyPhysicalResult::Fallback; }
+    if (!batch) return NotifyPhysicalResult::Fallback;
+
+    std::lock_guard<std::mutex> lock(batch->mutex);
+    if (batch->total >= kNotifyBatchCap) return NotifyPhysicalResult::Fallback;
+    Slice stable = key;
+    bool pinned = false;
+    for (uint32_t i = 1; i < carrier->argc(); i++) {
+        if (carrier->arg(i).key_mem_eq(key)) { stable = carrier->arg(i); pinned = true; break; }
+    }
+    if (!pinned && carrier == &source) {
+        for (uint32_t i = 1; i < source.argc(); i++) {
+            if (source.arg(i).key_mem_eq(key)) { stable = source.arg(i); pinned = true; break; }
+        }
+    }
+    if (!pinned) {
+        try {
+            batch->owned_keys.emplace_back(key.p, key.n);
+            const std::string& owned = batch->owned_keys.back();
+            stable = Slice(owned.data(), static_cast<uint32_t>(owned.size()), key.ns);
+        } catch (const std::bad_alloc&) {
+            return NotifyPhysicalResult::Fallback;
+        }
+    }
+
+    NotifyRecordImpl record;
+    record.order = notify_key_arg_order(shard, source, key) + notify_event_priority(event);
+    record.sequence = batch->next_sequence++;
+    record.routes = routes;
+    if (!server->pubsub_any_subscribers())
+        record.routes &= ~(NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
+    record.event = event;
+    record.physical = true;
+    record.db = key.ns == source.physical_db ? source.db : source.target_db;
+    record.key = stable;
+    try {
+        if (batch->inline_size < 8) batch->inline_records[batch->inline_size++] = record;
+        else batch->spill.push_back(record);
+    } catch (const std::bad_alloc&) {
+        return NotifyPhysicalResult::Fallback;
+    }
+    batch->total++;
+    batch->physical++;
+    server->notify_event_fired();
+    return NotifyPhysicalResult::Recorded;
+}
+
+void notify_record_physical(Shard& shard, Op& source, uint32_t cls, Slice key) {
+    const uint32_t mask = shard.notify_mask();
+    const bool observed = (mask & NOTIFY_OBSERVERS) && (NOTIFY_ALL & cls);
+    if (!(mask & cls) && !observed) return;
+    if (observed && (mask & NOTIFY_SAVE)) shard.note_save_change();
+    const uint32_t routes = notify_routes_for_class(mask, cls);
+    if (!routes) return;
+    if (notify_record_physical_slow(shard, source, routes, cls, NotifyEventId::Expired, key)
+            == NotifyPhysicalResult::Fallback)
+        notify_record_keyless_slow(shard, routes, cls, NotifyEventId::Expired, key);
+}
+
+}  // namespace
+
 bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
                                 NotifyEventId event, Slice key) {
     (void)cls;
@@ -415,6 +506,13 @@ bool notify_record_keyless_slow(Shard& shard, uint32_t routes, uint32_t cls,
     shard.notify_output_created();
     server->notify_event_fired();
     return true;
+}
+
+void notify_overwrite_expiry(Shard& shard, uint64_t expired_before, Slice key) {
+    // NotPossible returns before memory admission can expire unrelated keys.
+    // Only the named lookup can advance this owner-local physical counter.
+    if (shard.stats().expired != expired_before)
+        notify_flat_emit(&shard, NOTIFY_EXPIRED, NotifyEventId::Expired, key);
 }
 
 bool notify_flat_enabled(void* context, uint32_t cls) {
@@ -461,7 +559,9 @@ bool notify_keymiss_read_lookup(const Op& source, Slice key) {
     return false;
 }
 
-void notify_flat_emit(void* context, uint32_t cls, NotifyEventId event, Slice key) {
+namespace {
+
+void notify_flat_emit_unattributed(void* context, uint32_t cls, NotifyEventId event, Slice key) {
     auto& shard = *static_cast<Shard*>(context);
     // Hexpired/Del raised by the active field-expire cycle have no originating command either, so
     // they take the same keyless route as key expiry rather than being dropped for want of a source.
@@ -475,6 +575,25 @@ void notify_flat_emit(void* context, uint32_t cls, NotifyEventId event, Slice ke
     if (event == NotifyEventId::Keymiss &&
         (!source || !notify_keymiss_read_lookup(*source, key))) return;
     if (source) notify_record(shard, *source, cls, event, key);
+}
+
+}  // namespace
+
+void notify_flat_emit(void* context, uint32_t cls, NotifyEventId event, Slice key) {
+    auto& shard = *static_cast<Shard*>(context);
+    // Only the by-name store sink reaches here. Maintenance/walk/eviction fire
+    // points call notify_flat_emit_unattributed, even inside a running command.
+    if (event == NotifyEventId::Expired) {
+        if (Op* source = shard.notify_source()) {
+            Op* carrier = shard.notify_carrier() ? shard.notify_carrier() : source;
+            // A blocked command can retire much later: preserve prompt expiry.
+            if (!carrier->has_blocking_state()) {
+                notify_record_physical(shard, *source, cls, key);
+                return;
+            }
+        }
+    }
+    notify_flat_emit_unattributed(context, cls, event, key);
 }
 
 uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
@@ -565,14 +684,43 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
     return work;
 }
 
+namespace {
+
+// Callers have joined the fragments before discarding. Compact without allocating
+// or moving owned strings: every surviving key slice keeps its original lifetime.
+NotifyBatch* notify_keep_physical(NotifyBatch* batch) {
+    if (!batch) return nullptr;
+    if (!batch->physical) { delete batch; return nullptr; }
+    std::lock_guard<std::mutex> lock(batch->mutex);
+    uint32_t kept = 0;
+    auto keep = [&](const NotifyRecordImpl& record) {
+        if (!record.physical) return;
+        if (kept < 8) batch->inline_records[kept] = record;
+        else batch->spill[kept - 8] = record;
+        ++kept;
+    };
+    for (uint32_t i = 0; i < batch->inline_size; ++i) keep(batch->inline_records[i]);
+    for (const auto& record : batch->spill) keep(record);
+    batch->inline_size = std::min(kept, 8u);
+    batch->spill.resize(kept > 8 ? kept - 8 : 0);
+    batch->total = kept;
+    return batch;
+}
+
+}  // namespace
+
+void notify_discard_speculative(std::atomic<NotifyBatch*>& slot) {
+    NotifyBatch* batch = slot.load(std::memory_order_acquire);
+    if (batch) slot.store(notify_keep_physical(batch), std::memory_order_release);
+}
+
 NotifyBatch* notify_take_batch(Op& op) {
     if (op.has_multi_state()) {
         auto* multi = static_cast<MultiExecState*>(op.multi_state());
         if (multi->decision.aborted.load(std::memory_order_acquire) ||
             multi->watch_failed.load(std::memory_order_acquire)) {
             NotifyBatch* discarded = multi->notify.exchange(nullptr, std::memory_order_acq_rel);
-            notify_discard_batch(discarded);
-            return nullptr;
+            return notify_keep_physical(discarded);
         }
     }
     if (op.has_scatter_state()) {
@@ -580,8 +728,7 @@ NotifyBatch* notify_take_batch(Op& op) {
         if ((scatter->atomic_write || scatter->atomic_apply || scatter->atomic_pop) &&
             scatter->aborted.load(std::memory_order_acquire)) {
             NotifyBatch* discarded = scatter->notify.exchange(nullptr, std::memory_order_acq_rel);
-            notify_discard_batch(discarded);
-            return nullptr;
+            return notify_keep_physical(discarded);
         }
     }
     if (auto* slot = notify_special_slot(op)) {

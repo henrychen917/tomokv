@@ -1,0 +1,2 @@
+ARMED flipfix-fingerprint: 20000 windows, 2310 reads consumed new windows
+PASS core concurrency flipfix-fingerprint (state assertions fired)

@@ -1,0 +1,90 @@
+{
+  "argv": [
+    "tests/gate_subset_test.py"
+  ],
+  "seconds": 0.06509368680417538,
+  "cpus": [
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111
+  ],
+  "tests": [
+    {
+      "test": "__main__.Subset.test_atomic_barrier_does_not_pull_in_unrequested_work",
+      "seconds": 0.005484585650265217
+    },
+    {
+      "test": "__main__.Subset.test_differ_alias_keeps_all_fold_children",
+      "seconds": 0.007237960584461689
+    },
+    {
+      "test": "__main__.Subset.test_disabled_selector_is_byte_identical",
+      "seconds": 0.004623953253030777
+    },
+    {
+      "test": "__main__.Subset.test_finalizer_failure_is_not_hidden_by_partial_collection",
+      "seconds": 0.003886250779032707
+    },
+    {
+      "test": "__main__.Subset.test_only_requested_jobs_and_transitive_builds",
+      "seconds": 0.013330047950148582
+    },
+    {
+      "test": "__main__.Subset.test_partial_ledger_cannot_be_a_receipt",
+      "seconds": 0.000456441193819046
+    },
+    {
+      "test": "__main__.Subset.test_unknown_empty_and_wrong_tier_fail_before_workers",
+      "seconds": 0.014553241431713104
+    },
+    {
+      "test": "__main__.Subset.test_unset_selector_defaults_to_complete_under_nounset",
+      "seconds": 0.004387373104691505
+    }
+  ]
+}

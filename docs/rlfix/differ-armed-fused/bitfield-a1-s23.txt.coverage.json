@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "commands": {
+    "APPEND": 97,
+    "BITFIELD": 2324,
+    "BITFIELD_RO": 177,
+    "DEL": 51,
+    "EXISTS": 1,
+    "GET": 67,
+    "GETBIT": 185,
+    "PTTL": 1,
+    "SADD": 1,
+    "SET": 88,
+    "SETBIT": 163,
+    "STRLEN": 71
+  },
+  "kinds": {
+    "APPEND": [
+      "reply"
+    ],
+    "BITFIELD": [
+      "reply"
+    ],
+    "BITFIELD_RO": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "GETBIT": [
+      "reply"
+    ],
+    "PTTL": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SETBIT": [
+      "reply"
+    ],
+    "STRLEN": [
+      "reply"
+    ]
+  }
+}

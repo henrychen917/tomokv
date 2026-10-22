@@ -1,0 +1,11 @@
+{"owner": 0, "pings": 21, "median_ms": 8.650464005768299, "max_ms": 87.8966860473156, "limit_ms": 1}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-respresume/tests/respresume.py", line 262, in <module>
+    if __name__ == '__main__': main()
+                               ^^^^^^
+  File "/home/user/Projects/cx-respresume/tests/respresume.py", line 259, in main
+    neighbour(args)
+  File "/home/user/Projects/cx-respresume/tests/respresume.py", line 225, in neighbour
+    assert median < args.median_ms, 'T12b neighbour median bound'
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: T12b neighbour median bound

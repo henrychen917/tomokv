@@ -1,0 +1,16 @@
+{
+  "total": 16439,
+  "identical": 16431,
+  "cold_changed": 8,
+  "selected_hot": 1208,
+  "selected_hot_identical": 1208,
+  "handlers": 1211,
+  "handlers_identical": 1210,
+  "changed_handler": "cmd_flush",
+  "production_source_files": [
+    "src/cmd/storesize.cc",
+    "src/store/flatstore.h"
+  ],
+  "raw_checker": "unchanged; exits 1 because its admitted cold-handler list omits FLUSH",
+  "comparison": "merged previous perfex POST (04a9a0cce production sources) versus perfex2"
+}

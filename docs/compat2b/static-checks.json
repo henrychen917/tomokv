@@ -1,0 +1,80 @@
+{
+  "python_ast": [
+    {
+      "path": "tests/gates_test.py",
+      "sha256": "900d1e6a6c89355f32f3c200f1dde8f8f6a5ebe0040e6a410391f266106abe85"
+    },
+    {
+      "path": "tests/gate_history.py",
+      "sha256": "24c1fc4a684a275ab2a4b32d8cb88a258563fe1a55d40a11370f1ac3bdd73337"
+    },
+    {
+      "path": "tests/abbagate.py",
+      "sha256": "bc02e588a92483dab36d3f8b58e07b2417d23e24062b9fecd801e1df808b6610"
+    },
+    {
+      "path": "tests/gate_quiet.py",
+      "sha256": "3986343dcf5b14793b2b21e84151ef25c0e8f27b42f484487556ac1113a92b7b"
+    },
+    {
+      "path": "docs/compat2b/abba_focus.py",
+      "sha256": "ba015e20f31336114f830c4e6887265d7a00f9b692f0edffeff0b1deb2b089f8"
+    },
+    {
+      "path": "docs/compat2b/budget.py",
+      "sha256": "ed25fac05bc551b23caba15bce2340748a5e7f999c59347a30fafe32401ecf83"
+    },
+    {
+      "path": "docs/compat2b/final_identity.py",
+      "sha256": "d661c62eef864f330a272ef6b1d1446a240172b633edebb370198dd5da83b5bb"
+    },
+    {
+      "path": "docs/compat2b/identity.py",
+      "sha256": "488dc4369381c826e91117a67363cb05bfa05b0ff6046e16520036fb3a5bb7d2"
+    },
+    {
+      "path": "docs/compat2b/production.py",
+      "sha256": "fbb154dd9f3b94189663e46a6e10fc008433db98404b73233c2523090dc22fa5"
+    },
+    {
+      "path": "docs/compat2b/run_gate.py",
+      "sha256": "b2315fa9bf0f12b261569e2d660765da645307d28666e718c94807699ceb8ecc"
+    },
+    {
+      "path": "docs/compat2b/select_budgets.py",
+      "sha256": "df49eccf3aca7614c077d8e95f65ccdbca89016874f90422ec3edd4463aa2acb"
+    },
+    {
+      "path": "docs/compat2b/supplement.py",
+      "sha256": "5460607625ebcf9b23695ff565070c6fa71b8bfe5194cab392e11a1720223e53"
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "bash",
+        "-n",
+        "tests/gate.sh"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "8656f9fa9",
+        "--",
+        "Makefile",
+        "src",
+        "tests",
+        "tools"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

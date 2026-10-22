@@ -1,0 +1,211 @@
+{
+  "schema": 1,
+  "commands": {
+    "APPEND": 128,
+    "COPY": 110,
+    "DECRBY": 19,
+    "DEL": 269,
+    "ECHO": 10,
+    "EXISTS": 23,
+    "GET": 264,
+    "GETDEL": 81,
+    "GETRANGE": 137,
+    "GETSET": 76,
+    "HDEL": 575,
+    "HGET": 83,
+    "HGETALL": 177,
+    "HLEN": 75,
+    "HSET": 696,
+    "HSTRLEN": 81,
+    "INCR": 19,
+    "LINSERT": 86,
+    "LLEN": 75,
+    "LMOVE": 12,
+    "LPOP": 88,
+    "LPUSH": 101,
+    "LRANGE": 264,
+    "LREM": 85,
+    "LSET": 80,
+    "MGET": 108,
+    "MSET": 11,
+    "MSETNX": 14,
+    "OBJECT": 324,
+    "PERSIST": 3,
+    "PING": 10,
+    "RENAME": 15,
+    "RPOPLPUSH": 12,
+    "RPUSH": 201,
+    "SADD": 414,
+    "SCARD": 111,
+    "SET": 176,
+    "SETRANGE": 105,
+    "SISMEMBER": 95,
+    "SMEMBERS": 222,
+    "SMOVE": 12,
+    "SREM": 212,
+    "STRLEN": 147,
+    "SUNIONSTORE": 12,
+    "UNLINK": 7,
+    "ZADD": 309,
+    "ZCARD": 94,
+    "ZRANGE": 177,
+    "ZREM": 198,
+    "ZREMRANGEBYRANK": 78,
+    "ZSCORE": 76
+  },
+  "kinds": {
+    "APPEND": [
+      "reply"
+    ],
+    "COPY": [
+      "reply"
+    ],
+    "DECRBY": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "ECHO": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "GETDEL": [
+      "reply"
+    ],
+    "GETRANGE": [
+      "reply"
+    ],
+    "GETSET": [
+      "reply"
+    ],
+    "HDEL": [
+      "reply"
+    ],
+    "HGET": [
+      "reply"
+    ],
+    "HGETALL": [
+      "reply"
+    ],
+    "HLEN": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "HSTRLEN": [
+      "reply"
+    ],
+    "INCR": [
+      "reply"
+    ],
+    "LINSERT": [
+      "reply"
+    ],
+    "LLEN": [
+      "reply"
+    ],
+    "LMOVE": [
+      "reply"
+    ],
+    "LPOP": [
+      "reply"
+    ],
+    "LPUSH": [
+      "reply"
+    ],
+    "LRANGE": [
+      "reply"
+    ],
+    "LREM": [
+      "reply"
+    ],
+    "LSET": [
+      "reply"
+    ],
+    "MGET": [
+      "reply"
+    ],
+    "MSET": [
+      "reply"
+    ],
+    "MSETNX": [
+      "reply"
+    ],
+    "OBJECT": [
+      "reply"
+    ],
+    "PERSIST": [
+      "reply"
+    ],
+    "PING": [
+      "reply"
+    ],
+    "RENAME": [
+      "reply"
+    ],
+    "RPOPLPUSH": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SCARD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SETRANGE": [
+      "reply"
+    ],
+    "SISMEMBER": [
+      "reply"
+    ],
+    "SMEMBERS": [
+      "reply"
+    ],
+    "SMOVE": [
+      "reply"
+    ],
+    "SREM": [
+      "reply"
+    ],
+    "STRLEN": [
+      "reply"
+    ],
+    "SUNIONSTORE": [
+      "reply"
+    ],
+    "UNLINK": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZCARD": [
+      "reply"
+    ],
+    "ZRANGE": [
+      "reply"
+    ],
+    "ZREM": [
+      "reply"
+    ],
+    "ZREMRANGEBYRANK": [
+      "reply"
+    ],
+    "ZSCORE": [
+      "reply"
+    ]
+  }
+}

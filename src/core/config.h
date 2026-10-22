@@ -382,7 +382,7 @@ struct Config {
     bool aof_load_truncated = true;     // boot recovery policy; CONFIG overrides the next live load
 
     // Logical databases share the sharded store; physical namespace IDs are one byte.
-    uint32_t databases = 1;
+    uint32_t databases = 16;
     // The live protocol bound applies to request bulk lengths (32-bit Slice ceiling).
     uint64_t proto_max_bulk_len = 512ull * 1024 * 1024;
 

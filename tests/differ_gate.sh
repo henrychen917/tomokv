@@ -43,6 +43,12 @@ PART_PLAN=${GATE_DIFFER_PLAN:-}
 # Both files contain one item per line; ordinary gate invocations leave them unset.
 PROOF_SUITES=${GATE_DIFFER_PROOF_SUITES:-}
 PROOF_SEEDS=${GATE_DIFFER_PROOF_SEEDS:-}
+# GATE_DIFFER_DRIVER (focused proofs only) substitutes a differ.py-compatible leg driver,
+# e.g. tests/respresume_differ_frag.py, which fragments every target write.
+if [ -n "${GATE_DIFFER_DRIVER:-}" ] && [ -z "$PROOF_SUITES$PROOF_SEEDS" ]; then
+  echo 'GATE_DIFFER_DRIVER requires a focused proof (suite and seed files)' >&2
+  exit 2
+fi
 if [ -n "$PROOF_SUITES$PROOF_SEEDS" ] &&
    { [ "$PART" != all ] || [ -z "$PROOF_SUITES" ] || [ -z "$PROOF_SEEDS" ]; }; then
   echo 'focused proof requires standalone part=all and both suite/seed files' >&2
@@ -281,7 +287,7 @@ sample_read_local(){
 run_differ_leg(){
   local suite=$1 seed=$2 logfile=$3 repeat=${4:-0} rc=0 verdict=ok
   GATE_DIFFER_COVERAGE="$logfile.coverage.json" \
-      taskset -c "$LOAD_CORES" timeout 900 python3 tests/differ.py \
+      taskset -c "$LOAD_CORES" timeout 900 python3 "${GATE_DIFFER_DRIVER:-tests/differ.py}" \
       127.0.0.1 "$TARGET_PORT" 127.0.0.1 "$ORACLE_PORT" "$suite" "$seed" \
       >"$logfile" 2>&1 || rc=$?
   if ! sample_read_local "${logfile##*/}"; then

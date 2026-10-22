@@ -1,0 +1,3 @@
+fragmented differ (tests/respresume_differ_frag.py), per leg "FRAGMENTED target writes=W pieces=P" summed:
+uring split: 376 legs, 599298 target writes cut into 3038198 pieces; DIFFER FOCUSED PROOF: pass=376 fail=0
+epoll armed-fused: 368 legs, 581530 target writes cut into 2955620 pieces; DIFFER FOCUSED PROOF: pass=362 fail=8 (the 8 infofix legs, tests/differ.py:6533, as unfragmented and on PRE)

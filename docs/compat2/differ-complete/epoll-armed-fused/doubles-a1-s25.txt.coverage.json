@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "commands": {
+    "BLPOP": 32,
+    "BRPOP": 47,
+    "BZPOPMAX": 48,
+    "BZPOPMIN": 36,
+    "DEL": 943,
+    "GEOADD": 96,
+    "GEORADIUSBYMEMBER_RO": 19,
+    "GEORADIUS_RO": 28,
+    "GEOSEARCH": 52,
+    "GEOSEARCHSTORE": 96,
+    "GET": 93,
+    "HGET": 103,
+    "HINCRBYFLOAT": 103,
+    "HSET": 103,
+    "INCRBYFLOAT": 93,
+    "LLEN": 79,
+    "LRANGE": 109,
+    "RPUSH": 188,
+    "SET": 93,
+    "ZADD": 744,
+    "ZCARD": 177,
+    "ZCOUNT": 92,
+    "ZINCRBY": 96,
+    "ZINTER": 47,
+    "ZINTERSTORE": 52,
+    "ZMSCORE": 283,
+    "ZRANGE": 200,
+    "ZRANGEBYSCORE": 95,
+    "ZRANGESTORE": 79,
+    "ZREMRANGEBYSCORE": 106,
+    "ZREVRANGEBYSCORE": 95,
+    "ZSCORE": 472,
+    "ZUNION": 58,
+    "ZUNIONSTORE": 43
+  },
+  "kinds": {
+    "BLPOP": [
+      "reply"
+    ],
+    "BRPOP": [
+      "reply"
+    ],
+    "BZPOPMAX": [
+      "reply"
+    ],
+    "BZPOPMIN": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "GEOADD": [
+      "reply"
+    ],
+    "GEORADIUSBYMEMBER_RO": [
+      "reply"
+    ],
+    "GEORADIUS_RO": [
+      "reply"
+    ],
+    "GEOSEARCH": [
+      "reply"
+    ],
+    "GEOSEARCHSTORE": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "HGET": [
+      "reply"
+    ],
+    "HINCRBYFLOAT": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "INCRBYFLOAT": [
+      "reply"
+    ],
+    "LLEN": [
+      "reply"
+    ],
+    "LRANGE": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZCARD": [
+      "reply"
+    ],
+    "ZCOUNT": [
+      "reply"
+    ],
+    "ZINCRBY": [
+      "reply"
+    ],
+    "ZINTER": [
+      "reply"
+    ],
+    "ZINTERSTORE": [
+      "reply"
+    ],
+    "ZMSCORE": [
+      "reply"
+    ],
+    "ZRANGE": [
+      "reply"
+    ],
+    "ZRANGEBYSCORE": [
+      "reply"
+    ],
+    "ZRANGESTORE": [
+      "reply"
+    ],
+    "ZREMRANGEBYSCORE": [
+      "reply"
+    ],
+    "ZREVRANGEBYSCORE": [
+      "reply"
+    ],
+    "ZSCORE": [
+      "reply"
+    ],
+    "ZUNION": [
+      "reply"
+    ],
+    "ZUNIONSTORE": [
+      "reply"
+    ]
+  }
+}

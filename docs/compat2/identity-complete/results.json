@@ -1,0 +1,48 @@
+[
+  {
+    "name": "hot",
+    "argv": [
+      "taskset",
+      "-c",
+      "64-79",
+      "python3",
+      "tools/lbstall_artifacts.py",
+      "compare",
+      "/home/user/Projects/cx-compat2/build/compat2/pre-source/build",
+      "/home/user/Projects/cx-compat2/build",
+      "/home/user/Projects/cx-compat2/docs/compat2/identity-complete/hot.json"
+    ],
+    "env": null,
+    "returncode": 1
+  },
+  {
+    "name": "bodies",
+    "argv": [
+      "taskset",
+      "-c",
+      "64-79",
+      "python3",
+      "tools/ccfix_audit.py",
+      "/home/user/Projects/cx-compat2/build/compat2/pre-source/build",
+      "/home/user/Projects/cx-compat2/build",
+      "/home/user/Projects/cx-compat2/docs/compat2/identity-complete/bodies"
+    ],
+    "env": null,
+    "returncode": 1
+  },
+  {
+    "name": "linked",
+    "argv": [
+      "taskset",
+      "-c",
+      "64-79",
+      "python3",
+      "docs/deadswitch/linked_bytes.py",
+      "/home/user/Projects/cx-compat2/build/compat2/pre-source/build/tomokv",
+      "/home/user/Projects/cx-compat2/build/tomokv",
+      "/home/user/Projects/cx-compat2/docs/compat2/identity-complete/linked.json"
+    ],
+    "env": null,
+    "returncode": 1
+  }
+]

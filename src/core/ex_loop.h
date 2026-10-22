@@ -596,7 +596,6 @@ public:
             if constexpr (Fused)
                 srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
 #endif
-            cached_now_ms_ = realtime_ms();
             const bool flip_frozen = srv_->flip_stage() >= FlipStage::ExDrain;
             const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
             const bool placement_frozen = flip_frozen || lb_frozen;
@@ -604,9 +603,6 @@ public:
             // those vectors after ExDrain acknowledgement, so a frozen executor must not even run
             // the otherwise-cold configuration refresh path.
             if (!placement_frozen) refresh_live_config();
-            if (maxmemory_enabled_)
-                cached_lru_clock_ = static_cast<uint8_t>(
-                    (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
             sig.iterations++;
 
             uint32_t did = 0;
@@ -615,12 +611,22 @@ public:
                 Server::ClientWorkScope client_work(*srv_, self_->id());
                 Span busy(pass_ns);
                 if (self_->sample_depth(busy.start_ns() / 1000)) {
+                    // Same 100us diagnostic beat as IO; the CPU clock can be a
+                    // syscall. Keep it out of ordinary passes and reply submission.
+                    sig.cpu_ns = thread_cpu_ns();
                     const uint32_t age_rate = srv_->effective_age_sample_rate();
                     if (age_rate != age_sample_rate_cached_) {
                         age_sample_rate_cached_ = age_rate;
                         self_->sig().configure_age_sampling(age_rate);
                     }
                 }
+                // The pass clock serves deferred work, local reads and housekeeping.
+                // Fresh inbox batches re-cut after dequeue: even a vDSO read can be
+                // followed by preemption before a newly arrived request is popped.
+                cached_now_ms_ = realtime_ms();
+                if (maxmemory_enabled_)
+                    cached_lru_clock_ = static_cast<uint8_t>(
+                        (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
                 if (placement_frozen) {
                     // Once ExDrain is acknowledged this loop is a hard safe point: no expiry,
                     // cleanup, waiter walk, or task can reacquire a moved FlatStore before FLIP
@@ -682,7 +688,6 @@ public:
             // MGET/MSET at 2:2 of 4: ex 97% "busy", three quarters of its passes empty; the model
             // read io = 0.73 of a 0.47 workload). One local and one branch per pass.
             if (did) sig.busy_ns += pass_ns; else sig.idle_ns += pass_ns;
-            sig.cpu_ns = thread_cpu_ns();
 
             // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
             // PREPARED during the work section but only reach the kernel on submit; taking
@@ -1103,7 +1108,7 @@ private:
                 }
                 if (flags & KvObjFlags::HasTtl) {
                     const int64_t deadline = object->read_local_expire_at_ms(flags);
-                    if (deadline >= 0 && deadline <= command_now_ms) {
+                    if (deadline >= 0 && deadline < command_now_ms) {  // Redis: now > at
                         read_local_clear_reply(op);
                         return {ReadLocalFallbackReason::Expired};
                     }
@@ -1178,9 +1183,17 @@ private:
         }
         if (result == FlatStore::ReadLocalProbeResult::Missing) {
             read_local_clear_reply(op);
-            return {ReadLocalFallbackReason::Missing};
-        }
-        if (result != FlatStore::ReadLocalProbeResult::Churn) {
+            // The same permission as local MGET: only the notify-aware owner may
+            // emit keymiss. Keep this check on the existing miss edge so GET hits
+            // do not pay another notification test. The per-pass bit is shared
+            // with MGET's parse-time ContextKeymissNotify gate.
+            if (read_local_keymiss_notify_armed())
+                return {ReadLocalFallbackReason::ContextKeymissNotify};
+            if (store.read_local_validate(probe_state)) {
+                reply_null(op.sink(), op.resp3());
+                return {ReadLocalFallbackReason::None, 0, 1};
+            }
+        } else if (result != FlatStore::ReadLocalProbeResult::Churn) {
             if (!object) std::abort();
             // Keep the observed word's address as part of the snapshot, but consume only the
             // decoded immutable object. Loading through slot here would chase a newer version.
@@ -1192,7 +1205,7 @@ private:
             }
             if (flags & KvObjFlags::HasTtl) {
                 const int64_t deadline = object->read_local_expire_at_ms(flags);
-                if (deadline >= 0 && deadline <= cached_now_ms_) {
+                if (deadline >= 0 && deadline < cached_now_ms_) {  // Redis: now > at
                     read_local_clear_reply(op);
                     return {ReadLocalFallbackReason::Expired};
                 }
@@ -1488,6 +1501,7 @@ private:
         if (now != expire_beat_ms_) {
             expire_beat_ms_ = now;
             work += active_expire_cycle();
+            if constexpr (kSingleDatabase) keyspace_sample_cycle();
         }
         if constexpr (Fused)
             if (read_local_enabled() && read_local_impl().deferred.resize_pending()) work++;
@@ -1714,6 +1728,32 @@ private:
         return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
     }
 
+    void refresh_command_clock() {
+        cached_now_ms_ = realtime_ms();
+        if (maxmemory_enabled_)
+            cached_lru_clock_ = static_cast<uint8_t>(
+                (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
+    }
+
+    // Monitoring is independent of active expiry and ordinary command batches.
+    // Bound both the cheap search and the expensive probes: inspect at most
+    // eight owned shards, sampling at most one volatile shard per owner beat.
+    // This numeric cursor names no shard-owned state and tolerates a new owner
+    // vector after migration; each store keeps its own expiry-index cursor.
+    __attribute__((noinline)) void keyspace_sample_cycle() {
+        if (snapshot_blocks_tasks()) return;
+        auto& shards = self_->shards();
+        const uint32_t visits = static_cast<uint32_t>(std::min<size_t>(shards.size(), 8));
+        for (uint32_t i = 0; i < visits; ++i) {
+            if (keyspace_shard_cursor_ >= shards.size()) keyspace_shard_cursor_ = 0;
+            Shard* shard = shards[keyspace_shard_cursor_++];
+            if (!shard->store().expire_count()) continue;
+            shard->set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            shard->store().publish_keyspace_sample();
+            break;
+        }
+    }
+
     uint32_t active_expire_cycle() {
         if (!srv_->active_expire_enabled()) return 0;
         if (snapshot_blocks_tasks()) return 0;
@@ -1777,11 +1817,16 @@ private:
     template <bool IofusedPrivateQueue = false>
     uint32_t drain_tasks_read_local_interleaved(bool unmasked,
                                                 bool& owner_work_remains) {
-        Task batch[kReadLocalOwnerTaskChunkOps];
+        // A byte array supplies implicit-lifetime array storage in C++20.
+        // Only received slots contain Tasks; their trivial lifetime may be
+        // replaced when a full batch is reused. Empty polls initialize nothing.
+        static_assert(std::is_trivially_copyable_v<Task> && std::is_trivially_destructible_v<Task>);
+        alignas(Task) std::byte storage[sizeof(Task) * kReadLocalOwnerTaskChunkOps];
+        auto& batch = *reinterpret_cast<Task (*)[kReadLocalOwnerTaskChunkOps]>(storage);
         uint32_t held = 0;
         uint32_t local_work = 0;
         auto take = [&](const Task& task) {
-            batch[held++] = task;
+            std::construct_at(&batch[held++], task);
             if (held != kReadLocalOwnerTaskChunkOps) return false;
             exec_batch<IofusedPrivateQueue>(batch, held);
             held = 0;
@@ -1820,10 +1865,12 @@ private:
     template <uint32_t BatchOps = kGenthreadExBatchOps,
               bool IofusedPrivateQueue = false>
     uint32_t drain_tasks(bool unmasked = false) {
-        Task batch[BatchOps];
+        static_assert(std::is_trivially_copyable_v<Task> && std::is_trivially_destructible_v<Task>);
+        alignas(Task) std::byte storage[sizeof(Task) * BatchOps];
+        auto& batch = *reinterpret_cast<Task (*)[BatchOps]>(storage);
         uint32_t held = 0;
         auto take = [&](const Task& t) {
-            batch[held++] = t;
+            std::construct_at(&batch[held++], t);
             if (held == BatchOps) {
                 exec_batch<IofusedPrivateQueue>(batch, held);
                 held = 0;
@@ -2131,6 +2178,7 @@ private:
               bool IofusedPrivateQueue = false>
     uint32_t drain_tasks_snapshot(bool unmasked = false) {
         auto take = [&](const Task& task) {
+            refresh_command_clock();
             schedule_snapshot_task<IofusedPrivateQueue>(task);
         };
         const uint32_t n = unmasked
@@ -2276,6 +2324,10 @@ private:
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
+        // All tasks in this batch were dequeued before this sample. Keep it
+        // fixed throughout each command/script; MULTI and scatter retain their
+        // operation-wide pins. Later local reads inherit this newer pass value.
+        refresh_command_clock();
         {
             // Completion notification is coalesced over this loop and flushed when the scope
             // closes -- before the publish and reclamation work below, so the io is not made to
@@ -2938,6 +2990,7 @@ private:
     uint32_t expire_beat_ms_ = 0; // existing alignment padding before snapshot_epoch_
     uint64_t snapshot_epoch_ = 0;
     bool snapshot_was_cancelled_ = false;
+    uint32_t keyspace_shard_cursor_ = 0; // existing padding before snapshot_prepare_cursor_
     size_t snapshot_prepare_cursor_ = 0;
     size_t snapshot_progress_cursor_ = 0;
     std::vector<uint8_t> snapshot_done_shards_;

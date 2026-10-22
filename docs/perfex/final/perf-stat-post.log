@@ -1,0 +1,1 @@
+{"binary": "/home/user/Projects/cx-perfex/build/tomokv", "sha256": "81b0b26dceaea4d78201fd26b84c3af9929613467549710a53c1915b8e759d54", "samples": {}, "status": "REFUSED_OR_FAILED", "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 16.360000s > 0.480000s per 20s"}

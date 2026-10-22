@@ -1,0 +1,348 @@
+{
+  "source": "/home/user/Projects/cx-wave4/build/wave4d/trace-pad-a",
+  "files": [
+    {
+      "path": "pad-a-1s-a0-p1/armed.json",
+      "bytes": 186,
+      "included": true,
+      "sha256": "3e3c30a7814408631a17805ef0fff60a5c11b7168a7c50015dcfc0715ef8013d"
+    },
+    {
+      "path": "pad-a-1s-a0-p1/client.json",
+      "bytes": 14,
+      "included": true,
+      "sha256": "b6c10a18f04e23b1299850e2520b007b2dc69ea8ad36dfe7bf341def44519e5c"
+    },
+    {
+      "path": "pad-a-1s-a0-p1/config.json",
+      "bytes": 233,
+      "included": true,
+      "sha256": "1e695bf56ef30e2a0f7d144c83ad51f3a81dddbcfd2fabc8e34fd7ddaf3d1c3b"
+    },
+    {
+      "path": "pad-a-1s-a0-p1/gdb.log",
+      "bytes": 9581,
+      "included": true,
+      "sha256": "1816bf701f6330a5119704539d8d71b0e185ffa2dc562c76169e6f871baec8b9"
+    },
+    {
+      "path": "pad-a-1s-a0-p1/go",
+      "bytes": 2,
+      "included": true,
+      "sha256": "4cd0e21a9a0795a14ec9aa5f0e7d1abff0492565770e43eafdf1e3e8afed1f33"
+    },
+    {
+      "path": "pad-a-1s-a0-p1/pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "69251795c736ad2d3948eefe32b9d02e206d88445e3e05c94bfa2d39872f5a2b"
+    },
+    {
+      "path": "pad-a-1s-a0-p1/result.json",
+      "bytes": 4964,
+      "included": true,
+      "sha256": "68197f36dbfdfdadb1097b334e567fd57fb717cfaf1a99f44c212001d0c268a9"
+    },
+    {
+      "path": "pad-a-1s-a0-p8/armed.json",
+      "bytes": 189,
+      "included": true,
+      "sha256": "a00ff50754b61e6acefa26d78f32ab4994b91ddaefb9f5625188c9db5b72eb1f"
+    },
+    {
+      "path": "pad-a-1s-a0-p8/client.json",
+      "bytes": 14,
+      "included": true,
+      "sha256": "8268fa06655332b6c009b3b221dd48f5c2711a8dc2588ffcb618288f5dbf4e1f"
+    },
+    {
+      "path": "pad-a-1s-a0-p8/config.json",
+      "bytes": 233,
+      "included": true,
+      "sha256": "edc9e1d77fe3bf30cfa47e17dbe21f2bec902ede5548e7b4c8e618e79fae9b12"
+    },
+    {
+      "path": "pad-a-1s-a0-p8/gdb.log",
+      "bytes": 67889,
+      "included": true,
+      "sha256": "0b86db64e3ea9cd1bc0ddbb74163ad007524e9047c4c826866b0a9c39be2a49f"
+    },
+    {
+      "path": "pad-a-1s-a0-p8/go",
+      "bytes": 2,
+      "included": true,
+      "sha256": "4cd0e21a9a0795a14ec9aa5f0e7d1abff0492565770e43eafdf1e3e8afed1f33"
+    },
+    {
+      "path": "pad-a-1s-a0-p8/pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "a4dfdd1bea77527dd2e063d4138274c2f32bc20837e9dfe17e5a488793410f03"
+    },
+    {
+      "path": "pad-a-1s-a0-p8/result.json",
+      "bytes": 31978,
+      "included": true,
+      "sha256": "2cec9ea96295fb1cabbf45e1ecc3943bf40cb0f2d1f4b003f33ff58db702e435"
+    },
+    {
+      "path": "pad-a-1s-a1-p1/armed.json",
+      "bytes": 188,
+      "included": true,
+      "sha256": "40adbea31ca6f0232d4c3373735d3bdd5bfc960480568156ef5b68bd858e209a"
+    },
+    {
+      "path": "pad-a-1s-a1-p1/client.json",
+      "bytes": 14,
+      "included": true,
+      "sha256": "b6c10a18f04e23b1299850e2520b007b2dc69ea8ad36dfe7bf341def44519e5c"
+    },
+    {
+      "path": "pad-a-1s-a1-p1/config.json",
+      "bytes": 233,
+      "included": true,
+      "sha256": "e95dbd73669007f123166d222e6028ba4e672d12219b3d54503cf94ec5f51259"
+    },
+    {
+      "path": "pad-a-1s-a1-p1/gdb.log",
+      "bytes": 9581,
+      "included": true,
+      "sha256": "a03106befecc2327c1d004fcf9a14d1e31912a1328c34c2a03cd4c7518a9b286"
+    },
+    {
+      "path": "pad-a-1s-a1-p1/go",
+      "bytes": 2,
+      "included": true,
+      "sha256": "4cd0e21a9a0795a14ec9aa5f0e7d1abff0492565770e43eafdf1e3e8afed1f33"
+    },
+    {
+      "path": "pad-a-1s-a1-p1/pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "6ee31a14e7a7298244d577718a863ccaf49d2adcce395fd36a197c54e60a2218"
+    },
+    {
+      "path": "pad-a-1s-a1-p1/result.json",
+      "bytes": 4970,
+      "included": true,
+      "sha256": "29f960cc1b3f968e448e0ecd30ce264c29ad7c9256b7bb0edfaa6e9611639be0"
+    },
+    {
+      "path": "pad-a-1s-a1-p8/armed.json",
+      "bytes": 186,
+      "included": true,
+      "sha256": "3a424dc97dffdc796e762832722c3165a3722b0acaf2fd70ccad61c1b5e44ca6"
+    },
+    {
+      "path": "pad-a-1s-a1-p8/client.json",
+      "bytes": 14,
+      "included": true,
+      "sha256": "8268fa06655332b6c009b3b221dd48f5c2711a8dc2588ffcb618288f5dbf4e1f"
+    },
+    {
+      "path": "pad-a-1s-a1-p8/config.json",
+      "bytes": 233,
+      "included": true,
+      "sha256": "a54a8493a4e4dcae8d4b4b7a791723d8e6e9b6c6fe9907958205dbfdf00c2c35"
+    },
+    {
+      "path": "pad-a-1s-a1-p8/gdb.log",
+      "bytes": 67889,
+      "included": true,
+      "sha256": "dd3d1568bc085befd25f4f35c200127c56d03e5504e343f75fa88f8043467e02"
+    },
+    {
+      "path": "pad-a-1s-a1-p8/go",
+      "bytes": 2,
+      "included": true,
+      "sha256": "4cd0e21a9a0795a14ec9aa5f0e7d1abff0492565770e43eafdf1e3e8afed1f33"
+    },
+    {
+      "path": "pad-a-1s-a1-p8/pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "6f0fa1b77610aee5efd2bc187cc31c397b4e53dd0b2b8c54c989909a7eb98819"
+    },
+    {
+      "path": "pad-a-1s-a1-p8/result.json",
+      "bytes": 31988,
+      "included": true,
+      "sha256": "811e3e912f9634deaff256b2cd832921bbe3a331e77e7f4e28a66932fce9f506"
+    },
+    {
+      "path": "pad-a-2s-a0-p1/armed.json",
+      "bytes": 188,
+      "included": true,
+      "sha256": "1cb3015a1b162c6bff9c04f0b51a019b0b6114f97aec3caaa26193076824e7b8"
+    },
+    {
+      "path": "pad-a-2s-a0-p1/client.json",
+      "bytes": 14,
+      "included": true,
+      "sha256": "b6c10a18f04e23b1299850e2520b007b2dc69ea8ad36dfe7bf341def44519e5c"
+    },
+    {
+      "path": "pad-a-2s-a0-p1/config.json",
+      "bytes": 233,
+      "included": true,
+      "sha256": "96df2dde0bbf9a3ea1a345700b92e826bace14109d99d92f0baec72ac07b46d9"
+    },
+    {
+      "path": "pad-a-2s-a0-p1/gdb.log",
+      "bytes": 9439,
+      "included": true,
+      "sha256": "de900fd66420f0bd80127dc2da9746ae666e6e0e5be61d84b34d9e4eb5fe2100"
+    },
+    {
+      "path": "pad-a-2s-a0-p1/go",
+      "bytes": 2,
+      "included": true,
+      "sha256": "4cd0e21a9a0795a14ec9aa5f0e7d1abff0492565770e43eafdf1e3e8afed1f33"
+    },
+    {
+      "path": "pad-a-2s-a0-p1/pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "82f80a1de7f766ff7bb497e54de1b5e11f4d14377d52e39e3bf6335da22f6ac5"
+    },
+    {
+      "path": "pad-a-2s-a0-p1/result.json",
+      "bytes": 4968,
+      "included": true,
+      "sha256": "6a601db517c6fe1706f949efd4d7313193521e3f4ec62298c35bd036a0c94c90"
+    },
+    {
+      "path": "pad-a-2s-a0-p8/armed.json",
+      "bytes": 187,
+      "included": true,
+      "sha256": "b41c0f3db72b8782b705b63da6a7c2052890ea23c04c9e153f04c6ee2e34f7dd"
+    },
+    {
+      "path": "pad-a-2s-a0-p8/client.json",
+      "bytes": 14,
+      "included": true,
+      "sha256": "8268fa06655332b6c009b3b221dd48f5c2711a8dc2588ffcb618288f5dbf4e1f"
+    },
+    {
+      "path": "pad-a-2s-a0-p8/config.json",
+      "bytes": 233,
+      "included": true,
+      "sha256": "e08affb3720ce64a5dff692535c226dda62bf70184cf7b88e448b1ade42e4d24"
+    },
+    {
+      "path": "pad-a-2s-a0-p8/gdb.log",
+      "bytes": 67621,
+      "included": true,
+      "sha256": "3b11364039d6b795630eb2b08035b13990d9fce8960fefc9f65ba30f219203c3"
+    },
+    {
+      "path": "pad-a-2s-a0-p8/go",
+      "bytes": 2,
+      "included": true,
+      "sha256": "4cd0e21a9a0795a14ec9aa5f0e7d1abff0492565770e43eafdf1e3e8afed1f33"
+    },
+    {
+      "path": "pad-a-2s-a0-p8/pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "2bd80c8aeb335ea8bf79f71e1b1b7c47d8dddceba7920391c6c0dcc69fcb729a"
+    },
+    {
+      "path": "pad-a-2s-a0-p8/result.json",
+      "bytes": 32078,
+      "included": true,
+      "sha256": "9ccf85528429f9481bad169abb1fb721801cf47957b0c421c7b2c6794d7f9edd"
+    },
+    {
+      "path": "pad-a-2s-a1-p1/armed.json",
+      "bytes": 186,
+      "included": true,
+      "sha256": "68085a38e995de08651898fda4d230f24aae624bfd61090685e3727a42a70a14"
+    },
+    {
+      "path": "pad-a-2s-a1-p1/client.json",
+      "bytes": 14,
+      "included": true,
+      "sha256": "b6c10a18f04e23b1299850e2520b007b2dc69ea8ad36dfe7bf341def44519e5c"
+    },
+    {
+      "path": "pad-a-2s-a1-p1/config.json",
+      "bytes": 233,
+      "included": true,
+      "sha256": "27a1e6f3f1f6e451321fa9802251011905a587d10f53f783167d1a9f605412bd"
+    },
+    {
+      "path": "pad-a-2s-a1-p1/gdb.log",
+      "bytes": 9439,
+      "included": true,
+      "sha256": "f15a6d8791fa0a68dd55c1ed44c3b5a61c1348c4d7898b56b27a1fd32a6fcac0"
+    },
+    {
+      "path": "pad-a-2s-a1-p1/go",
+      "bytes": 2,
+      "included": true,
+      "sha256": "4cd0e21a9a0795a14ec9aa5f0e7d1abff0492565770e43eafdf1e3e8afed1f33"
+    },
+    {
+      "path": "pad-a-2s-a1-p1/pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "6827249ffe6049e0ed75d90cd67256e72beacf5e96a444681687d1317f8067ac"
+    },
+    {
+      "path": "pad-a-2s-a1-p1/result.json",
+      "bytes": 4966,
+      "included": true,
+      "sha256": "8b95a0e2204d46d1b08b7e8dc9293cd9d52b66ab0fbb9e6f857744c0244938c1"
+    },
+    {
+      "path": "pad-a-2s-a1-p8/armed.json",
+      "bytes": 186,
+      "included": true,
+      "sha256": "139723f8ba2e798bd2307fc016c6a2fcb881c99b4e8b129b78c9d0cd3cfa6ac3"
+    },
+    {
+      "path": "pad-a-2s-a1-p8/client.json",
+      "bytes": 14,
+      "included": true,
+      "sha256": "8268fa06655332b6c009b3b221dd48f5c2711a8dc2588ffcb618288f5dbf4e1f"
+    },
+    {
+      "path": "pad-a-2s-a1-p8/config.json",
+      "bytes": 233,
+      "included": true,
+      "sha256": "769746165f1f86238748c55959d356ac9af3385327645e858ee3a44fcaf1080b"
+    },
+    {
+      "path": "pad-a-2s-a1-p8/gdb.log",
+      "bytes": 67621,
+      "included": true,
+      "sha256": "249370a14b69fe1b4086f967dca921aa6bdb61c55092df1efcf1f8a0dee5f518"
+    },
+    {
+      "path": "pad-a-2s-a1-p8/go",
+      "bytes": 2,
+      "included": true,
+      "sha256": "4cd0e21a9a0795a14ec9aa5f0e7d1abff0492565770e43eafdf1e3e8afed1f33"
+    },
+    {
+      "path": "pad-a-2s-a1-p8/pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "11efded651a5d0502a81a3b36e964564f443c3b520ef222731acb51bab1bcc59"
+    },
+    {
+      "path": "pad-a-2s-a1-p8/result.json",
+      "bytes": 32096,
+      "included": true,
+      "sha256": "d8b202e3db832b95c169b1e3a100ab890320a9b5c41ffdc875db763a19c578ab"
+    },
+    {
+      "path": "runs.json",
+      "bytes": 181641,
+      "included": true,
+      "sha256": "01e472b2f6f29473ad49935df00f4e9740c603073577af9a65be35aec00f021c"
+    }
+  ],
+  "archive_sha256": "0ed59df43606cfcc899dd85db052519c636fcb002174a14ba148ea2ab2842fff"
+}

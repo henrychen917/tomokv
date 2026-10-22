@@ -1,0 +1,8 @@
+{
+  "pre": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "resp_header_identical": true,
+  "resp_header_sha256": "31427e789495bb45cc4b93b48c861dba9cc9f9e2c94f94fa980bd73111d4dde0",
+  "observer_binary_sha256": "6ac3f23e890c6e943d13c57558e3f23011bbebb54a8b8e76471c3dcca19a491b",
+  "observer_patch_applies_to_current_source": true,
+  "scored_shape_geometry": "112-119 target, 16 shards; split 6:2 or fused read-local 0; 121-127 load; atomic 1; uring"
+}

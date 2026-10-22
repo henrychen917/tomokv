@@ -1,0 +1,12 @@
+821763:C 21 Oct 2026 05:38:04.528 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+821763:C 21 Oct 2026 05:38:04.528 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+821763:C 21 Oct 2026 05:38:04.528 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=821763, just started
+821763:C 21 Oct 2026 05:38:04.528 * Configuration loaded
+821763:M 21 Oct 2026 05:38:04.528 * monotonic clock: POSIX clock_gettime
+821763:M 21 Oct 2026 05:38:04.529 * Running mode=standalone, port=22802.
+821763:M 21 Oct 2026 05:38:04.529 * Server initialized
+821763:M 21 Oct 2026 05:38:04.529 * Ready to accept connections tcp
+821763:M 21 Oct 2026 05:38:05.827 # Closing client that reached max query buffer length: id=33 addr=127.0.0.1:37626 laddr=127.0.0.1:22802 fd=12 name= age=0 idle=0 flags=N db=0 sub=0 psub=0 ssub=0 multi=-1 watch=0 qbuf=1048577 qbuf-free=1572853 argv-mem=4 multi-mem=0 rbs=16384 rbp=0 obl=0 oll=0 omem=0 tot-mem=2638732 events=r cmd=NULL user=default redir=-1 resp=2 lib-name= lib-ver= (qbuf initial bytes: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+821763:signal-handler (1792532286) Received SIGTERM scheduling shutdown...
+821763:M 21 Oct 2026 05:38:06.138 * User requested shutdown...
+821763:M 21 Oct 2026 05:38:06.138 # Redis is now ready to exit, bye bye...

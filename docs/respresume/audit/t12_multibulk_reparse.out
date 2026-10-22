@@ -1,0 +1,6 @@
+redis N=  50000 bytes=  350011: one-write cpu=  0.00s | trickled 2KiB cpu=  0.00s wall= 0.10s reply=b"-ERR wrong number of arguments for 'ping' comman"
+redis N= 100000 bytes=  700012: one-write cpu=  0.00s | trickled 2KiB cpu=  0.01s wall= 0.19s reply=b"-ERR wrong number of arguments for 'ping' comman"
+redis N= 200000 bytes= 1400012: one-write cpu=  0.01s | trickled 2KiB cpu=  0.02s wall= 0.39s reply=b"-ERR wrong number of arguments for 'ping' comman"
+tomo  N=  50000 bytes=  350011: one-write cpu=  0.00s | trickled 2KiB cpu=  0.05s wall= 0.10s reply=b"-ERR wrong number of arguments for 'ping' comman"
+tomo  N= 100000 bytes=  700012: one-write cpu=  0.00s | trickled 2KiB cpu=  0.13s wall= 0.19s reply=b"-ERR wrong number of arguments for 'ping' comman"
+tomo  N= 200000 bytes= 1400012: one-write cpu=  0.02s | trickled 2KiB cpu=  0.35s wall= 0.38s reply=b"-ERR wrong number of arguments for 'ping' comman"

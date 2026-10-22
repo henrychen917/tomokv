@@ -1,0 +1,127 @@
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148220", "lane": 1, "hot": 5, "other": 5}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 3631 -> 3565 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+    HOT 1212 -> 984 tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+    HOT 1212 -> 984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148236", "lane": 1, "hot": 3, "other": 5}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    HOT 9554 -> 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+    HOT 1212 -> 984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148252", "lane": 1, "hot": 2, "other": 1}
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    HOT 1212 -> 984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148260", "lane": 1, "hot": 4, "other": 5}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 3631 -> 3565 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+    HOT 1212 -> 984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148268", "lane": 1, "hot": 3, "other": 5}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    HOT 9554 -> 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 3631 -> 3565 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148272", "lane": 1, "hot": 1, "other": 5}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148276", "lane": 1, "hot": 2, "other": 5}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    HOT 9554 -> 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148280", "lane": 1, "hot": 1, "other": 4}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148282", "lane": 1, "hot": 1, "other": 2}
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148284", "lane": 1, "hot": 1, "other": 2}
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148286", "lane": 1, "hot": 2, "other": 2}
+    HOT 9554 -> 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148288", "lane": 1, "hot": 2, "other": 2}
+    HOT 9554 -> 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148292", "lane": 1, "hot": 1, "other": 1}
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148296", "lane": 1, "hot": 1, "other": 3}
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148300", "lane": 1, "hot": 3, "other": 5}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 3631 -> 3565 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148308", "lane": 1, "hot": 2, "other": 5}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148316", "lane": 1, "hot": 2, "other": 4}
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<false>()
+    OTHER 4670 -> 4577 unsigned int tomo_db0::IoLoop::flip_control_pass<true>()
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 0 -> 83 tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148332", "lane": 1, "hot": 2, "other": 3}
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148348", "lane": 1, "hot": 3, "other": 3}
+    HOT 9554 -> 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 1195 -> 1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)

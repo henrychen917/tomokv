@@ -1,0 +1,12 @@
+[
+  {
+    "arm": "positive",
+    "returncode": 0,
+    "output": "ARMED flip-close db16: ERR FLIP connection ownership count is not conserved (FLIP 6 2, owned=1 live=2)\nARMED flip-close db1: ERR FLIP connection ownership count is not conserved (FLIP 6 2, owned=1 live=2)\nPASS core concurrency flip-close (state assertions fired)\n"
+  },
+  {
+    "arm": "negative",
+    "returncode": 1,
+    "output": "ARMED flip-close db16: ERR FLIP connection ownership count is not conserved (FLIP 6 2, owned=1 live=2)\nFAIL core concurrency: FLIP drain must wait for detached closing client\n"
+  }
+]

@@ -1,0 +1,437 @@
+[
+  {
+    "name": "1s-epoll-yes",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "yes",
+      "--plain-port",
+      "26820"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "1s-epoll-optional",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "optional",
+      "--plain-port",
+      "26820"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "1s-epoll-optional-tx",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate",
+      "127.0.0.1",
+      "26821",
+      "tx"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "1s-epoll-optional-userspace",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate",
+      "127.0.0.1",
+      "26821",
+      "userspace"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "1s-epoll-default",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "no",
+      "--plain-port",
+      "26820",
+      "--full",
+      "--expect-ktls",
+      "yes"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "1s-epoll-fallback",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "no",
+      "--plain-port",
+      "26820",
+      "--full",
+      "--expect-ktls",
+      "no"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "1s-uring-yes",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "yes",
+      "--plain-port",
+      "26820"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "1s-uring-optional",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "optional",
+      "--plain-port",
+      "26820"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "1s-uring-optional-tx",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate",
+      "127.0.0.1",
+      "26821",
+      "tx"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "1s-uring-optional-userspace",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate",
+      "127.0.0.1",
+      "26821",
+      "userspace"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "1s-uring-default",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "no",
+      "--plain-port",
+      "26820",
+      "--full",
+      "--expect-ktls",
+      "yes"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "1s-uring-fallback",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "no",
+      "--plain-port",
+      "26820",
+      "--full",
+      "--expect-ktls",
+      "no"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-epoll-yes",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "yes",
+      "--plain-port",
+      "26820"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-epoll-optional",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "optional",
+      "--plain-port",
+      "26820"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-epoll-optional-tx",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate",
+      "127.0.0.1",
+      "26821",
+      "tx"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-epoll-optional-userspace",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate",
+      "127.0.0.1",
+      "26821",
+      "userspace"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-epoll-default",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "no",
+      "--plain-port",
+      "26820",
+      "--full",
+      "--expect-ktls",
+      "yes"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-epoll-fallback",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "no",
+      "--plain-port",
+      "26820",
+      "--full",
+      "--expect-ktls",
+      "no"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-uring-yes",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "yes",
+      "--plain-port",
+      "26820"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-uring-optional",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "optional",
+      "--plain-port",
+      "26820"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-uring-optional-tx",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate",
+      "127.0.0.1",
+      "26821",
+      "tx"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-uring-optional-userspace",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate",
+      "127.0.0.1",
+      "26821",
+      "userspace"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-uring-default",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "no",
+      "--plain-port",
+      "26820",
+      "--full",
+      "--expect-ktls",
+      "yes"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "2s-uring-fallback",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/tls.py",
+      "127.0.0.1",
+      "26821",
+      "/home/user/Projects/cx-compat2/build/compat2/certs",
+      "no",
+      "--plain-port",
+      "26820",
+      "--full",
+      "--expect-ktls",
+      "no"
+    ],
+    "env": null,
+    "returncode": 0
+  },
+  {
+    "name": "keyupdate-unit",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "build/ktls-keyupdate-unit"
+    ],
+    "env": null,
+    "returncode": 1
+  }
+]

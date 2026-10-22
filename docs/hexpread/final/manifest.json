@@ -1,0 +1,33 @@
+{
+  "base": "991d48f651d3c6e1324c061bd9ea801ac085afe8",
+  "implementation_commit": "ab2dc7d28f0b40c91bd7fe210b37da203964ad52",
+  "binary_sha256": "b09bb31041e5400ebb68df32baf55abd39bc46e78921701acc86d208068a980d",
+  "gate_delta": {
+    "quick": 8,
+    "full": 8
+  },
+  "expected_constants_unchanged": {
+    "quick": 625,
+    "full": 642
+  },
+  "required_constants": {
+    "quick": 633,
+    "full": 650
+  },
+  "strict_opcode_scope_pass": false,
+  "changed_outside_read_scope": 54,
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "server_cores": "96-103",
+  "allowed_cores": "96-111",
+  "ratio": "6:2",
+  "shards": 16,
+  "source_tree": "b9c048212c4c33d10d318c943a43fe7f1c2d6e60",
+  "service_ports_only": [
+    25800,
+    25802,
+    25810,
+    25811,
+    25820
+  ],
+  "gates_test_port_exception": "Unmodified loopback TIME_WAIT fixture binds port 0; its OS-selected ephemeral listener port was not recorded."
+}

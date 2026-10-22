@@ -1,0 +1,86 @@
+[
+  {
+    "leg": "order-1s-epoll-a0-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "misses": 0
+  },
+  {
+    "leg": "order-1s-epoll-a0-rl1.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "misses": 0
+  },
+  {
+    "leg": "order-1s-epoll-a1-rl0.log",
+    "summary": "notifyorder: 22 cases passed; 1 failures",
+    "failures": [
+      "C7/0"
+    ],
+    "misses": 0
+  },
+  {
+    "leg": "order-1s-epoll-a1-rl1.log",
+    "summary": "notifyorder: 22 cases passed; 1 failures",
+    "failures": [
+      "C7/0"
+    ],
+    "misses": 0
+  },
+  {
+    "leg": "order-1s-uring-a0-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "misses": 0
+  },
+  {
+    "leg": "order-1s-uring-a0-rl1.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "misses": 0
+  },
+  {
+    "leg": "order-1s-uring-a1-rl0.log",
+    "summary": "notifyorder: 22 cases passed; 1 failures",
+    "failures": [
+      "C7/0"
+    ],
+    "misses": 0
+  },
+  {
+    "leg": "order-1s-uring-a1-rl1.log",
+    "summary": "notifyorder: 22 cases passed; 1 failures",
+    "failures": [
+      "C7/0"
+    ],
+    "misses": 1
+  },
+  {
+    "leg": "order-2s-epoll-a0-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "misses": 0
+  },
+  {
+    "leg": "order-2s-epoll-a1-rl0.log",
+    "summary": "notifyorder: 22 cases passed; 1 failures",
+    "failures": [
+      "C7/0"
+    ],
+    "misses": 2
+  },
+  {
+    "leg": "order-2s-uring-a0-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "misses": 0
+  },
+  {
+    "leg": "order-2s-uring-a1-rl0.log",
+    "summary": "notifyorder: 22 cases passed; 1 failures",
+    "failures": [
+      "C7/0"
+    ],
+    "misses": 0
+  }
+]

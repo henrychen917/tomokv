@@ -128,7 +128,16 @@ def placeholder_and_commandstats(c):
     check("unsupported delayed fsync row omitted", "aof_delayed_fsync" in persistence, False)
     check("db0 was emitted", "db0" in keyspace, True)
     ttl_members = dict(item.split("=", 1) for item in keyspace.get("db0", "").split(",") if "=" in item)
-    check("measured avg_ttl", int(ttl_members.get("avg_ttl", "0")), lambda value: 0 < value <= 60000)
+    avg_ttl = int(ttl_members.get("avg_ttl", "0"))
+    # Monitoring refreshes on the owner beat; SET/INFO can finish before that
+    # beat. A missing sampler must still fail after this bounded wait.
+    deadline = time.monotonic() + 1.0
+    while avg_ttl == 0 and time.monotonic() < deadline:
+        time.sleep(.01)
+        keyspace = info(c, "keyspace")
+        ttl_members = dict(item.split("=", 1) for item in keyspace.get("db0", "").split(",") if "=" in item)
+        avg_ttl = int(ttl_members.get("avg_ttl", "0"))
+    check("measured avg_ttl", avg_ttl, lambda value: 0 < value <= 60000)
 
     c.cmd("CONFIG", "RESETSTAT")
     for _ in range(4):
@@ -304,6 +313,29 @@ def wire_bytes_and_rate():
     check("ops/sec RESETSTAT control", idle_rate(), 0)
     c.close()
 
+
+if "--input-bytes-only" in sys.argv[3:]:
+    # N1: use deltas so the observer's INFO requests are counted exactly, without
+    # RESETSTAT, a sampled-rate deadline, or any load generator.
+    c = Conn()
+    try:
+        _, first_raw, first_body = c.send("INFO", "stats")
+        first = {line.split(":", 1)[0]: line.split(":", 1)[1]
+                 for line in first_body.split("\r\n") if ":" in line}
+        ping, pong_raw, pong = c.send("PING")
+        check("input-byte PING control", pong, "PONG")
+        second = info(c, "stats")
+        before = as_int(first, "total_net_input_bytes")
+        after = as_int(second, "total_net_input_bytes")
+        expected = len(ping) + len(encode("INFO", "stats"))
+        check("received bytes counted exactly once", after - before, expected)
+        output = as_int(second, "total_net_output_bytes") - as_int(first, "total_net_output_bytes")
+        check("sent bytes counted exactly once", output, len(first_raw) + len(pong_raw))
+        print("input bytes: delta=%d expected=%d" % (after - before, expected))
+        print("output bytes: delta=%d expected=%d" % (output, len(first_raw) + len(pong_raw)))
+    finally:
+        c.close()
+    raise SystemExit(bool(failures))
 
 main = Conn()
 try:

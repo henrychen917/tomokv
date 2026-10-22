@@ -1,0 +1,16 @@
+MISMATCH XGROUP advertised minimum reaches NOAUTH: got "ERR unknown subcommand 'x'. Try XGROUP HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH AUTH arity: got 'ERR syntax error', wanted "ERR wrong number of arguments for 'auth' command"
+MISMATCH pre-auth registry xgroup: got "ERR unknown subcommand 'x'. Try XGROUP HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry xinfo: got "ERR unknown subcommand 'x'. Try XINFO HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry acl: got "ERR unknown subcommand 'x'. Try ACL HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry pubsub: got "ERR unknown subcommand 'x'. Try PUBSUB HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry client: got "ERR unknown subcommand 'x'. Try CLIENT HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry config: got "ERR unknown subcommand 'x'. Try CONFIG HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry exec: got 'EXECABORT Transaction discarded because of: NOAUTH Authentication required.', wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry script: got "ERR unknown subcommand 'x'. Try SCRIPT HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry function: got "ERR unknown subcommand 'x'. Try FUNCTION HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry object: got "ERR unknown subcommand 'x'. Try OBJECT HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry memory: got "ERR unknown subcommand 'x'. Try MEMORY HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry slowlog: got "ERR unknown subcommand 'x'. Try SLOWLOG HELP.", wanted 'NOAUTH Authentication required.'
+MISMATCH pre-auth registry latency: got "ERR unknown subcommand 'x'. Try LATENCY HELP.", wanted 'NOAUTH Authentication required.'
+auth: PASS (registry gate, SHA auth, HELLO ordering, latching, limits, counters)

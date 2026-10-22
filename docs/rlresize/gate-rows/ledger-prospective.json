@@ -1,0 +1,14 @@
+{
+  "kind": "in-memory prospective check, NOT a raw checker pass",
+  "source_declared": 645,
+  "fixture": 645,
+  "expect_full_in_tree": 642,
+  "prospective_expect_full": 645,
+  "missing": [],
+  "extra": [],
+  "new_labels": {
+    "storage flush-prepared-capacity regression": 1,
+    "armed resize retirement: atomic-growth": 1,
+    "armed resize retirement: flush-prepared": 1
+  }
+}

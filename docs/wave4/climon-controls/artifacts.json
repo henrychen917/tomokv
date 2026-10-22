@@ -1,0 +1,300 @@
+{
+  "source": "build/wave4/climon-controls",
+  "files": [
+    {
+      "path": "fixture-ports.log",
+      "bytes": 78,
+      "included": true,
+      "sha256": "e8da66b0dace4abaed75ea4d91eec44f6825c723f8a180e668af9d14b9207e39"
+    },
+    {
+      "path": "headline-1-oracle/command.json",
+      "bytes": 334,
+      "included": true,
+      "sha256": "caf53a0efbeb4f33e47e1a56b7a3b8dbfdf594ae29baf1adbf9f65fe98117ee3"
+    },
+    {
+      "path": "headline-1-oracle/pre-stop-ps.txt",
+      "bytes": 102,
+      "included": true,
+      "sha256": "e941edafd32fdcf0d6e08ddb26068b1b07f2988eee07bda5c6df666e0faf65f3"
+    },
+    {
+      "path": "headline-1-oracle/server.log",
+      "bytes": 1191,
+      "included": true,
+      "sha256": "e9309f15fbb72e31ac432ef368df1e1d5e65473ff61298c5ed8ce6ba9a2b0a2d"
+    },
+    {
+      "path": "headline-1-oracle/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "995aae6214778c5c4a1a76dd67834c5f2b290bbc31149f35f834d5646546ac04"
+    },
+    {
+      "path": "headline-1-target/command.json",
+      "bytes": 497,
+      "included": true,
+      "sha256": "ed8422dc00dcd1827bc905fd928df4c126b6a75e1bf863b2e67ddd8d7050e38e"
+    },
+    {
+      "path": "headline-1-target/pre-stop-ps.txt",
+      "bytes": 368,
+      "included": true,
+      "sha256": "1081fd499a9afca8b957ab0cf0e9206fba41776eb9fc85ab168d631f9b59d595"
+    },
+    {
+      "path": "headline-1-target/server.log",
+      "bytes": 7786,
+      "included": true,
+      "sha256": "09ec5b4b40c1f6fbfd1d1980eca257fe7da0693f39ca6bc21db3d6c6f8ccfe79"
+    },
+    {
+      "path": "headline-1-target/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "56b162f1d10c4eabb5920e679fa63c634d16433614d49f497bd9119f32bc225e"
+    },
+    {
+      "path": "headline-2-oracle/command.json",
+      "bytes": 334,
+      "included": true,
+      "sha256": "63e12881b948711fd1f80f56fca048992a8c2146295f9db2626e58371fdd4857"
+    },
+    {
+      "path": "headline-2-oracle/pre-stop-ps.txt",
+      "bytes": 102,
+      "included": true,
+      "sha256": "17b130d25f58d48778f2c3ed603e8a273563f3c7f11e744a5e66a1f1e280ccdd"
+    },
+    {
+      "path": "headline-2-oracle/server.log",
+      "bytes": 1191,
+      "included": true,
+      "sha256": "8d29b85ca8212f21edc0118c7e97cdd8f194bcfe60dade673c482d6dae873268"
+    },
+    {
+      "path": "headline-2-oracle/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "bd3b3f3772c72987f28eb9e46852d83b6c8aaa3aa159554672b401a27bcd48c5"
+    },
+    {
+      "path": "headline-2-target/command.json",
+      "bytes": 497,
+      "included": true,
+      "sha256": "132625e721f65aba24d72028f4acd6cb2adb8bf379b704f7e93a85a1d9ddf752"
+    },
+    {
+      "path": "headline-2-target/pre-stop-ps.txt",
+      "bytes": 368,
+      "included": true,
+      "sha256": "de59bdb26ef335d3d5245cb7fb28c77606caa7a0904c8044aa5f24dd15f56ebb"
+    },
+    {
+      "path": "headline-2-target/server.log",
+      "bytes": 7776,
+      "included": true,
+      "sha256": "cba0f66fc6e6631857eee115201debb9f34a3f187fa3907240e61e34f7708b43"
+    },
+    {
+      "path": "headline-2-target/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "f68ad4d304071e959702bc6b0f6a676a42584bfa9fc6ff3ab3cd75337c27ed88"
+    },
+    {
+      "path": "headline-3-oracle/command.json",
+      "bytes": 334,
+      "included": true,
+      "sha256": "53fa3957c758303390669fff16eb66c7a686960e7a8c607f9ba4e52247676104"
+    },
+    {
+      "path": "headline-3-oracle/pre-stop-ps.txt",
+      "bytes": 102,
+      "included": true,
+      "sha256": "5fc2d55d5ba5553b19285adb2238159912b9bc948149885c7b5c62827ad4a436"
+    },
+    {
+      "path": "headline-3-oracle/server.log",
+      "bytes": 1191,
+      "included": true,
+      "sha256": "fe6be59b4cf7ff8f576c2cee94408f9499830165006df7eecd2f3899c447f251"
+    },
+    {
+      "path": "headline-3-oracle/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "5a3a6b05fdc846687a5a4c2c1558471aeb92c6c0b252de60c44b0bc00d597b9c"
+    },
+    {
+      "path": "headline-3-target/command.json",
+      "bytes": 497,
+      "included": true,
+      "sha256": "4fa92f8bad1fa23a2416fbf867b05e66e3115ea2a3e92969b09789239769c27b"
+    },
+    {
+      "path": "headline-3-target/pre-stop-ps.txt",
+      "bytes": 368,
+      "included": true,
+      "sha256": "6b225b57d14eb45399956fa1cd5ce2e37c6b0f56a192ee51475b03134b4f1e3d"
+    },
+    {
+      "path": "headline-3-target/server.log",
+      "bytes": 7777,
+      "included": true,
+      "sha256": "3e7e9872063c0e87add4baa42e5c6aced5e830b50679e461ff5be4da0bb97913"
+    },
+    {
+      "path": "headline-3-target/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "ff8ad9617352bb192c66abcf796b45f70e23bb88be7d5319b0e79a49ecdf2725"
+    },
+    {
+      "path": "post-1-oracle/command.json",
+      "bytes": 330,
+      "included": true,
+      "sha256": "57367c9ba6e977cc2e7771b08fada8dabd8413671a0b66983c7c2c48d4192b1d"
+    },
+    {
+      "path": "post-1-oracle/pre-stop-ps.txt",
+      "bytes": 102,
+      "included": true,
+      "sha256": "9918aa1e76367735593c13184d1345cac8534094ddc80c82371f86e7f11170c1"
+    },
+    {
+      "path": "post-1-oracle/server.log",
+      "bytes": 1191,
+      "included": true,
+      "sha256": "1760b46c031c5296acea54032de9e3b6e31870c27dbeaac59ef36d125416f198"
+    },
+    {
+      "path": "post-1-oracle/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "782d273207d3ed8eb601aaa426e503ddbf5f175faf36f6f3c61226f80325312a"
+    },
+    {
+      "path": "post-1-target/command.json",
+      "bytes": 478,
+      "included": true,
+      "sha256": "744f96f6a8fa12c51911b0ee0af90dca36017603d16c20c6cba54e88a0b1122c"
+    },
+    {
+      "path": "post-1-target/pre-stop-ps.txt",
+      "bytes": 349,
+      "included": true,
+      "sha256": "1461aeee21e76762949e2281bf3497ced622a00dfc2c899843aaf3824bafd5b5"
+    },
+    {
+      "path": "post-1-target/server.log",
+      "bytes": 7806,
+      "included": true,
+      "sha256": "1ccdc1e62006588eca99dfcb9e513c7dd859bbdfaec6a04aa71c7d4c3464587f"
+    },
+    {
+      "path": "post-1-target/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "6ed59a2b4a4576c531b2a730a5cede5cf8d7b549c14edaec55f71a3553648820"
+    },
+    {
+      "path": "post-2-oracle/command.json",
+      "bytes": 330,
+      "included": true,
+      "sha256": "6893382c974b5183f7a9094d30f93544bbdc1b36f46e682246ecf698690f43fa"
+    },
+    {
+      "path": "post-2-oracle/pre-stop-ps.txt",
+      "bytes": 102,
+      "included": true,
+      "sha256": "e5492a2bcd6b3a081f55fadd84198d2facaf14e2fa90ab5b4cd288418ebd8ccc"
+    },
+    {
+      "path": "post-2-oracle/server.log",
+      "bytes": 1191,
+      "included": true,
+      "sha256": "d338bbb01a4af341afaccaf7ca67a8bf83acbeb32669283591127308c319edf9"
+    },
+    {
+      "path": "post-2-oracle/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "c02fbecbda38b3ff1a512d62af1f8a36fdf33f020fe0fca02618d07d62dc6d69"
+    },
+    {
+      "path": "post-2-target/command.json",
+      "bytes": 478,
+      "included": true,
+      "sha256": "bddfe421aa5b3e8d115d7ec62017de7f24a4803d219dcf8245c85b3796f3c8f9"
+    },
+    {
+      "path": "post-2-target/pre-stop-ps.txt",
+      "bytes": 349,
+      "included": true,
+      "sha256": "99d857cf51d360995a7664c479f061f2a79acbf4ef3bbfda2fdca8ca45c82298"
+    },
+    {
+      "path": "post-2-target/server.log",
+      "bytes": 7797,
+      "included": true,
+      "sha256": "d5c59b9299c78a814930d75a557705234dd295bc46159d8911bea1bffc97351a"
+    },
+    {
+      "path": "post-2-target/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "8ba1f2feeb70fb8166caaf33f80ed8fe93fee07b5cc2832e4a68ee935f8e723e"
+    },
+    {
+      "path": "post-3-oracle/command.json",
+      "bytes": 330,
+      "included": true,
+      "sha256": "c7d9dbc93899e046960eaed5db44d5fba26f3ce67986b33d027b015a6e0fca9f"
+    },
+    {
+      "path": "post-3-oracle/pre-stop-ps.txt",
+      "bytes": 102,
+      "included": true,
+      "sha256": "0206b48dbd4113e4d6cb0fdc90674d33ab10426dc915f6070d634388d93178dc"
+    },
+    {
+      "path": "post-3-oracle/server.log",
+      "bytes": 1191,
+      "included": true,
+      "sha256": "38559006c35b589ea31eb04886b70a144e7ea1f6237540e132f97150cc77692c"
+    },
+    {
+      "path": "post-3-oracle/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "0330b218edaf17810d83a91990294ebd4c2b708005a1606c670d68377525f224"
+    },
+    {
+      "path": "post-3-target/command.json",
+      "bytes": 478,
+      "included": true,
+      "sha256": "9dadbf6b52836e50bd1d15058cd9a38551599142fa5834a1c7d37d095fa21ac5"
+    },
+    {
+      "path": "post-3-target/pre-stop-ps.txt",
+      "bytes": 349,
+      "included": true,
+      "sha256": "39e264aaf6cf1b4ebe1c57a8f370db3e611cfebf8aa8cc2ea0e32f0cd2064904"
+    },
+    {
+      "path": "post-3-target/server.log",
+      "bytes": 7801,
+      "included": true,
+      "sha256": "a30e53294ebe898bde89ccb4d3e5b8bd4e5e56eee0e1a7aeff1c870deb83132c"
+    },
+    {
+      "path": "post-3-target/server.pid",
+      "bytes": 7,
+      "included": true,
+      "sha256": "c8a0540f50dc9a3d07883745425ab6edaa5768a8ac8b8930080819f4f7aa6668"
+    }
+  ],
+  "archive_sha256": "b07825cca688860fd5dec38235d9f6c070cf94ee86f8236d01a09b46adccbda0"
+}

@@ -1,0 +1,9 @@
+MISMATCH %R rule rejected: got b'OK', wanted "ERR Error in ACL SETUSER modifier '%R~cache:*': Read/write key patterns are not supported until command key specifications are available"
+MISMATCH first-arg rule rejected: got b'OK', wanted "ERR Error in ACL SETUSER modifier '+select|0': Allowing first-arg of a subcommand is not supported"
+MISMATCH ACL command bit: got "NOPERM User alice has no permissions to run the 'acl|whoami' command", wanted "NOPERM User alice has no permissions to run the 'acl' command"
+MISMATCH Lua v1 deny: got b'A', wanted "NOPERM User alice has no permissions to run the 'eval' command"
+Traceback (most recent call last):
+  File "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/oracle/auth/tree/tests/acl_collect.py", line 305, in <module>
+    killed_before = stats(admin)[b"acl_pubsub_clients_killed"]
+                    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: b'acl_pubsub_clients_killed'

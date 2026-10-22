@@ -1,0 +1,1294 @@
+[
+  {
+    "object": "src/core/genthread.o",
+    "budget": 129471,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 102613,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129471",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.15941e6230277655.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.15941e6230277655"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.15941e6230277655.o",
+    "sha256": "dacbae175a86ed67313d36f93082f883537b94dd5686379fd0a7736709231736",
+    "counts": {
+      "lane": 2,
+      "hot": 2,
+      "other": 6
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()",
+        "pre": 2881,
+        "post": 2572
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 3010,
+        "post": 3065
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]",
+        "pre": 1957,
+        "post": 2035
+      },
+      {
+        "kind": "hot",
+        "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+        "pre": 5149,
+        "post": 5177
+      },
+      {
+        "kind": "other",
+        "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+        "pre": 3090,
+        "post": 3119
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 1401,
+        "post": 1481
+      },
+      {
+        "kind": "other",
+        "name": "tomo::ThreadCtx::publish_read_local_parked(unsigned long)",
+        "pre": 36,
+        "post": 0
+      },
+      {
+        "kind": "other",
+        "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+        "pre": 4551,
+        "post": 4573
+      },
+      {
+        "kind": "other",
+        "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+        "pre": 332,
+        "post": 332
+      }
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "budget": 129483,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 102613,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129483",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.2dd7a2538299f5f2.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.2dd7a2538299f5f2"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.2dd7a2538299f5f2.o",
+    "sha256": "d833bb8fbc2421d62ec0d640f41109292f27d7dac92faf2ad8be792ef7c1db40",
+    "counts": {
+      "lane": 2,
+      "hot": 0,
+      "other": 1
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 3010,
+        "post": 3065
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 1401,
+        "post": 1481
+      }
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "budget": 129487,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 102613,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129487",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.c122eb6ae214f52e.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.c122eb6ae214f52e"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.c122eb6ae214f52e.o",
+    "sha256": "285ec9e93f50b05d87d228b286cff176231e55c8fbbaff8c1c1a68f869f72aa1",
+    "counts": {
+      "lane": 2,
+      "hot": 0,
+      "other": 1
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 3010,
+        "post": 3065
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 1401,
+        "post": 1481
+      }
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "budget": 129499,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 102613,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129499",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.876156d583fe53c0.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.876156d583fe53c0"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.876156d583fe53c0.o",
+    "sha256": "f702deeef0d5e466ea93b69c668a475bd800ea18873fec6b4c055a62429c17d1",
+    "counts": {
+      "lane": 2,
+      "hot": 1,
+      "other": 5
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 3010,
+        "post": 3065
+      },
+      {
+        "kind": "hot",
+        "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+        "pre": 5149,
+        "post": 5177
+      },
+      {
+        "kind": "other",
+        "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+        "pre": 3090,
+        "post": 3119
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 1401,
+        "post": 1481
+      },
+      {
+        "kind": "other",
+        "name": "tomo::ThreadCtx::publish_read_local_parked(unsigned long)",
+        "pre": 36,
+        "post": 0
+      },
+      {
+        "kind": "other",
+        "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+        "pre": 4551,
+        "post": 4573
+      },
+      {
+        "kind": "other",
+        "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+        "pre": 332,
+        "post": 332
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "budget": 129728,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 101835,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129728",
+      "-Wa,--defsym,tomo_rlfence_text_pad=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.34b34e403826ac81.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.34b34e403826ac81"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.34b34e403826ac81.o",
+    "sha256": "a82def855015011893f2d49d3f6f3020c4b535ff4084427c28653d114e07d990",
+    "counts": {
+      "lane": 2,
+      "hot": 3,
+      "other": 3
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 3662,
+        "post": 3715
+      },
+      {
+        "kind": "hot",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 9906,
+        "post": 9954
+      },
+      {
+        "kind": "hot",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 117,
+        "post": 117
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::pubsub_start_numpat(tomo_db0::Client*, tomo_db0::Op&)",
+        "pre": 1117,
+        "post": 1282
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+        "pre": 4632,
+        "post": 4744
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::ExLoopT<true>::on_cqe(io_uring_cqe*)",
+        "pre": 114,
+        "post": 0
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 1656,
+        "post": 1720
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "budget": 129740,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 101835,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129740",
+      "-Wa,--defsym,tomo_rlfence_text_pad=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.56f754e7d1c3b3b8.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.56f754e7d1c3b3b8"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.56f754e7d1c3b3b8.o",
+    "sha256": "3b6c7933e118a54c20824c6b30b5fcea40ef915f592e29f07dfeacc50edbaee1",
+    "counts": {
+      "lane": 2,
+      "hot": 2,
+      "other": 1
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 3662,
+        "post": 3715
+      },
+      {
+        "kind": "hot",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 9906,
+        "post": 9890
+      },
+      {
+        "kind": "hot",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 117,
+        "post": 117
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 1656,
+        "post": 1720
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "budget": 129744,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 101835,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129744",
+      "-Wa,--defsym,tomo_rlfence_text_pad=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.b5eb21a1a8ddc6df.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.b5eb21a1a8ddc6df"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.b5eb21a1a8ddc6df.o",
+    "sha256": "f4ad9334fc770a8c856100f7c1f1d137c6629ed369764360f6b3d84fd6f3a822",
+    "counts": {
+      "lane": 2,
+      "hot": 0,
+      "other": 1
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 3662,
+        "post": 3715
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 1656,
+        "post": 1720
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "budget": 129756,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 101835,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=129756",
+      "-Wa,--defsym,tomo_rlfence_text_pad=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/genthread.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.009f9c63c31a814f.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.009f9c63c31a814f"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_genthread.o.009f9c63c31a814f.o",
+    "sha256": "f591bc094ff1cdec31be386136a2913a7a66d60c020652fda2a5aa5576596e69",
+    "counts": {
+      "lane": 2,
+      "hot": 3,
+      "other": 2
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 3662,
+        "post": 3715
+      },
+      {
+        "kind": "hot",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 9906,
+        "post": 9890
+      },
+      {
+        "kind": "hot",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 117,
+        "post": 117
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+        "pre": 4632,
+        "post": 4744
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::ExLoopT<true>::on_cqe(io_uring_cqe*)",
+        "pre": 114,
+        "post": 0
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 1656,
+        "post": 1720
+      }
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "budget": 162329,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 110675,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162329",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.57ed62102c4d5aa2.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.57ed62102c4d5aa2"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.57ed62102c4d5aa2.o",
+    "sha256": "e8fc2664c1b99802a4937c63c3a1b54b16d4e7dcd6a2c6f4f97f8c457e33b054",
+    "counts": {
+      "lane": 2,
+      "hot": 2,
+      "other": 1
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 4317,
+        "post": 4373
+      },
+      {
+        "kind": "hot",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "pre": 21207,
+        "post": 21084
+      },
+      {
+        "kind": "hot",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "pre": 21112,
+        "post": 21049
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 2069,
+        "post": 2149
+      }
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "budget": 162341,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 110675,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162341",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.d3bf4298ef2f8c33.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.d3bf4298ef2f8c33"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.d3bf4298ef2f8c33.o",
+    "sha256": "a6776e3a431a645486f9b056339af8e7779ccdf64ec29308a6110cc9877954c9",
+    "counts": {
+      "lane": 2,
+      "hot": 2,
+      "other": 1
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 4317,
+        "post": 4373
+      },
+      {
+        "kind": "hot",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "pre": 21207,
+        "post": 21138
+      },
+      {
+        "kind": "hot",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "pre": 21112,
+        "post": 21049
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 2069,
+        "post": 2149
+      }
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "budget": 162345,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 110675,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162345",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.1bccb0961f9d8e89.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.1bccb0961f9d8e89"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.1bccb0961f9d8e89.o",
+    "sha256": "0e9b43135fdba85dabbf22e47325e20ad7c9d1b957ebd52f8335d86eb44af3f3",
+    "counts": {
+      "lane": 2,
+      "hot": 2,
+      "other": 1
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 4317,
+        "post": 4373
+      },
+      {
+        "kind": "hot",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "pre": 21207,
+        "post": 21138
+      },
+      {
+        "kind": "hot",
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "pre": 21112,
+        "post": 21048
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 2069,
+        "post": 2149
+      }
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "budget": 162357,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 110675,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=162357",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/core/rl2s.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.e594e582047db245.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.e594e582047db245"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_rl2s.o.e594e582047db245.o",
+    "sha256": "f85704a4f1762c3a17b8d35de0b6e68ea1630ed5d25a14b09f632ef1adec264b",
+    "counts": {
+      "lane": 2,
+      "hot": 0,
+      "other": 1
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "pre": 4317,
+        "post": 4373
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+        "pre": 2069,
+        "post": 2149
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "budget": 148382,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 113471,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=148382",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.69bace92bf2d66fc.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.69bace92bf2d66fc"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.69bace92bf2d66fc.o",
+    "sha256": "0de13431ebfa26abbdaa64ff6111bbe8b3204d7cd18d709662ba1c01ed49d051",
+    "counts": {
+      "lane": 2,
+      "hot": 5,
+      "other": 6
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()",
+        "pre": 4816,
+        "post": 4851
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 3911,
+        "post": 3972
+      },
+      {
+        "kind": "hot",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 9698,
+        "post": 9746
+      },
+      {
+        "kind": "hot",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 117,
+        "post": 117
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+        "pre": 4180,
+        "post": 4033
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+        "pre": 796,
+        "post": 729
+      },
+      {
+        "kind": "hot",
+        "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 3631,
+        "post": 3565
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 1848,
+        "post": 1944
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)",
+        "pre": 1011,
+        "post": 1011
+      },
+      {
+        "kind": "other",
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "pre": 820,
+        "post": 964
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::Rob<64u>::quiesced() const",
+        "pre": 0,
+        "post": 22
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::flip_io_drained() const",
+        "pre": 708,
+        "post": 704
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "budget": 148394,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 113471,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=148394",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.53553837247cad78.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.53553837247cad78"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.53553837247cad78.o",
+    "sha256": "9800a4a67c9bed6759161f71f6569405c20dafcf7ebbc51587007053e3c98eba",
+    "counts": {
+      "lane": 2,
+      "hot": 4,
+      "other": 5
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 3911,
+        "post": 3972
+      },
+      {
+        "kind": "hot",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "pre": 9698,
+        "post": 9746
+      },
+      {
+        "kind": "hot",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "pre": 117,
+        "post": 117
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+        "pre": 796,
+        "post": 729
+      },
+      {
+        "kind": "hot",
+        "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 3631,
+        "post": 3565
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 1848,
+        "post": 1944
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)",
+        "pre": 1011,
+        "post": 1011
+      },
+      {
+        "kind": "other",
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "pre": 820,
+        "post": 964
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::Rob<64u>::quiesced() const",
+        "pre": 0,
+        "post": 22
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::flip_io_drained() const",
+        "pre": 708,
+        "post": 704
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "budget": 148398,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 113471,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=148398",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.351109036952a1d4.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.351109036952a1d4"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.351109036952a1d4.o",
+    "sha256": "dcfed53af5384f327d7a5508ad03e5cb93e98f8146dbcaf9016d8aaf574b3a83",
+    "counts": {
+      "lane": 2,
+      "hot": 1,
+      "other": 5
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 3911,
+        "post": 3972
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+        "pre": 796,
+        "post": 729
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 1848,
+        "post": 1944
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)",
+        "pre": 1011,
+        "post": 1011
+      },
+      {
+        "kind": "other",
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "pre": 820,
+        "post": 964
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::Rob<64u>::quiesced() const",
+        "pre": 0,
+        "post": 22
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::flip_io_drained() const",
+        "pre": 708,
+        "post": 704
+      }
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "budget": 148410,
+    "tree": "post",
+    "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+    "unit": 113471,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=148410",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/core/reorder.cc",
+      "-o",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.4b6a3974b250dacb.o",
+      "-fdump-ipa-inline",
+      "-dumpbase",
+      "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.4b6a3974b250dacb"
+    ],
+    "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.4b6a3974b250dacb.o",
+    "sha256": "b868030c412064d66c65b3ac9ace14aa2f6e174a20a0c3e0918fb5d3f89f5c3a",
+    "counts": {
+      "lane": 2,
+      "hot": 3,
+      "other": 6
+    },
+    "changes": [
+      {
+        "kind": "lane",
+        "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+        "pre": 717,
+        "post": 733
+      },
+      {
+        "kind": "other",
+        "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()",
+        "pre": 4816,
+        "post": 4851
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "pre": 3911,
+        "post": 3972
+      },
+      {
+        "kind": "hot",
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+        "pre": 18345,
+        "post": 18394
+      },
+      {
+        "kind": "hot",
+        "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+        "pre": 796,
+        "post": 729
+      },
+      {
+        "kind": "hot",
+        "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+        "pre": 3631,
+        "post": 3565
+      },
+      {
+        "kind": "lane",
+        "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+        "pre": 1848,
+        "post": 1944
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)",
+        "pre": 1011,
+        "post": 1011
+      },
+      {
+        "kind": "other",
+        "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+        "pre": 820,
+        "post": 964
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::Rob<64u>::quiesced() const",
+        "pre": 0,
+        "post": 22
+      },
+      {
+        "kind": "other",
+        "name": "tomo_db0::IoLoop::flip_io_drained() const",
+        "pre": 708,
+        "post": 704
+      }
+    ]
+  }
+]

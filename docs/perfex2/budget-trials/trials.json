@@ -1,0 +1,2717 @@
+[
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31727,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31727",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/31727.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1813,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31728,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31728",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/31728.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1813,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31729,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31729",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/31729.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1813,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31730,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31730",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/31730.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 7347,
+        "post_size": 7393,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1813,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 7347,
+        "post_size": 7393,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31733,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31733",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/31733.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1813,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 608,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 608,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31741,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31741",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/31741.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 7347,
+        "post_size": 7393,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1813,
+        "cold_clear": true
+      },
+      {
+        "name": "void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [clone .isra.0]",
+        "pre_size": 360,
+        "post_size": 593,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 576,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 7347,
+        "post_size": 7393,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [clone .isra.0]",
+        "pre_size": 360,
+        "post_size": 593,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 576,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31749,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31749",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/31749.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 663,
+        "post_size": 653,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1813,
+        "cold_clear": true
+      },
+      {
+        "name": "void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [clone .isra.0]",
+        "pre_size": 360,
+        "post_size": 593,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 663,
+        "post_size": 653,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [clone .isra.0]",
+        "pre_size": 360,
+        "post_size": 593,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31757,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31757",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/31757.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 663,
+        "post_size": 653,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1813,
+        "cold_clear": true
+      },
+      {
+        "name": "void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [clone .isra.0]",
+        "pre_size": 360,
+        "post_size": 593,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 624,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 663,
+        "post_size": 653,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [clone .isra.0]",
+        "pre_size": 360,
+        "post_size": 593,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 624,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31725,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31725",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/inline/31725.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1834,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 608,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "ab514c6db9f2ccd5bc3e545adcad39a96a6ef46994995ab60bf45bc1429d6ca1",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 608,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31729,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31729",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/inline/31729.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1834,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 624,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "ab514c6db9f2ccd5bc3e545adcad39a96a6ef46994995ab60bf45bc1429d6ca1",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 624,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31733,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31733",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/inline/31733.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 7347,
+        "post_size": 7393,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1834,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 624,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "ab514c6db9f2ccd5bc3e545adcad39a96a6ef46994995ab60bf45bc1429d6ca1",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 7347,
+        "post_size": 7393,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 16644,
+        "post_size": 16383,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "pre_size": 340,
+        "post_size": 346,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 624,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::Server::shard_owner_count() const",
+        "pre_size": 0,
+        "post_size": 204,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31737,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31737",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/inline/31737.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1834,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "ab514c6db9f2ccd5bc3e545adcad39a96a6ef46994995ab60bf45bc1429d6ca1",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31725,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31725",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/noexcept/31725.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1813,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "b2bc6121ce20a4f51292dc0c8dbf4a5f6ae6bcd9f8709978770157fe5b6c8162",
+      "src/cmd/storesize.cc": "e5af12de5f599e07b2149b02afa8093ba25734ed6e87db9d81913f5892131eb2"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "noexcept"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "value": 31729,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=31729",
+      "--param",
+      "max-inline-insns-auto=16",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/t_server.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_t_server.o/noexcept/31729.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+        "pre_size": 1802,
+        "post_size": 1813,
+        "cold_clear": true
+      },
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "b2bc6121ce20a4f51292dc0c8dbf4a5f6ae6bcd9f8709978770157fe5b6c8162",
+      "src/cmd/storesize.cc": "e5af12de5f599e07b2149b02afa8093ba25734ed6e87db9d81913f5892131eb2"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+        "pre_size": 1482,
+        "post_size": 1447,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+        "pre_size": 608,
+        "post_size": 592,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "noexcept"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "value": 126486,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126486",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_xshard.o/inline/126486.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)",
+        "pre_size": 6055,
+        "post_size": 6023,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "371342d8a33842e582ac57cd719198a9351bdbb7679a86d2a5111924d01bbdad",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)",
+        "pre_size": 6055,
+        "post_size": 6023,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "value": 126488,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126488",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_xshard.o/inline/126488.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
+        "pre_size": 383,
+        "post_size": 351,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+        "pre_size": 947,
+        "post_size": 979,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+        "pre_size": 1072,
+        "post_size": 1072,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      },
+      {
+        "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+        "pre_size": 371,
+        "post_size": 352,
+        "cold_clear": false
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "371342d8a33842e582ac57cd719198a9351bdbb7679a86d2a5111924d01bbdad",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
+        "pre_size": 383,
+        "post_size": 351,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+        "pre_size": 947,
+        "post_size": 979,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+        "pre_size": 1072,
+        "post_size": 1072,
+        "cold_clear": false
+      },
+      {
+        "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+        "pre_size": 371,
+        "post_size": 352,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "value": 126490,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126490",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_xshard.o/inline/126490.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
+        "pre_size": 383,
+        "post_size": 351,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+        "pre_size": 947,
+        "post_size": 979,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+        "pre_size": 1072,
+        "post_size": 1072,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      },
+      {
+        "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+        "pre_size": 371,
+        "post_size": 352,
+        "cold_clear": false
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "371342d8a33842e582ac57cd719198a9351bdbb7679a86d2a5111924d01bbdad",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
+        "pre_size": 383,
+        "post_size": 351,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+        "pre_size": 947,
+        "post_size": 979,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+        "pre_size": 1072,
+        "post_size": 1072,
+        "cold_clear": false
+      },
+      {
+        "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+        "pre_size": 371,
+        "post_size": 352,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "value": 126492,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126492",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_cmd_xshard.o/inline/126492.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "371342d8a33842e582ac57cd719198a9351bdbb7679a86d2a5111924d01bbdad",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34802,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34802",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/34802.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34803,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34803",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/34803.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34804,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34804",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/34804.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34805,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34805",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/34805.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34808,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34808",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/34808.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1451,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1451,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1451,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1451,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34816,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34816",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/34816.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1483,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1483,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1483,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1483,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34824,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34824",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/34824.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1515,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1515,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1515,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1515,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34832,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34832",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/34832.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1869,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1869,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "call"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34800,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34800",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/inline/34800.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1698,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "ab514c6db9f2ccd5bc3e545adcad39a96a6ef46994995ab60bf45bc1429d6ca1",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1698,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34802,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34802",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/inline/34802.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1698,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "ab514c6db9f2ccd5bc3e545adcad39a96a6ef46994995ab60bf45bc1429d6ca1",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1698,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34804,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34804",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/inline/34804.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1698,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)",
+        "pre_size": 682,
+        "post_size": 682,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "ab514c6db9f2ccd5bc3e545adcad39a96a6ef46994995ab60bf45bc1429d6ca1",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1698,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)",
+        "pre_size": 682,
+        "post_size": 682,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34806,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34806",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/inline/34806.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1698,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 856,
+        "cold_clear": true
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "ab514c6db9f2ccd5bc3e545adcad39a96a6ef46994995ab60bf45bc1429d6ca1",
+      "src/cmd/storesize.cc": "63c0e9239408f750dbc0a651d18ada78daf8295f0eb46ab8dae6b26f8b1a92d3"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1698,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "inline"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34800,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34800",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/noexcept/34800.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::debug_ack_window(unsigned int, tomo_db0::Ring&)",
+        "pre_size": 780,
+        "post_size": 796,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "b2bc6121ce20a4f51292dc0c8dbf4a5f6ae6bcd9f8709978770157fe5b6c8162",
+      "src/cmd/storesize.cc": "e5af12de5f599e07b2149b02afa8093ba25734ed6e87db9d81913f5892131eb2"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::debug_ack_window(unsigned int, tomo_db0::Ring&)",
+        "pre_size": 780,
+        "post_size": 796,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1403,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "noexcept"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "value": 34802,
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g0",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=34802",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/persist/aof.cc",
+      "-o",
+      "/home/user/Projects/cx-perfex/build/perfex2/budgets/db0_src_persist_aof.o/noexcept/34802.o"
+    ],
+    "changed": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::clear()",
+        "pre_size": 840,
+        "post_size": 843,
+        "cold_clear": true
+      }
+    ],
+    "source_sha256": {
+      "src/store/flatstore.h": "b2bc6121ce20a4f51292dc0c8dbf4a5f6ae6bcd9f8709978770157fe5b6c8162",
+      "src/cmd/storesize.cc": "e5af12de5f599e07b2149b02afa8093ba25734ed6e87db9d81913f5892131eb2"
+    },
+    "unexpected": [
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::AofManager::~AofManager()",
+        "pre_size": 1435,
+        "post_size": 1435,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+        "pre_size": 1698,
+        "post_size": 1666,
+        "cold_clear": false
+      },
+      {
+        "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+        "pre_size": 898,
+        "post_size": 898,
+        "cold_clear": false
+      }
+    ],
+    "experiment": "noexcept"
+  }
+]

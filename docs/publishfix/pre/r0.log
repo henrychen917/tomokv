@@ -1,0 +1,16 @@
+CURRENT committers=2: states=102 safety_violations=0 orphaned_final_states=2 final(safe,seq)=[(1, 2), (2, 2)]
+  example ORPHAN safe=1 seq=2
+     C1:inflight++
+     C1:draw t=1
+     C1:store epoch[1]
+     C1:drawn=seq(1)
+     C0:inflight++
+     C0:draw t=2
+     C0:store epoch[2]
+     C0:drawn=seq(2)
+     C0:inflight-- (was 2)
+     C1:inflight-- (was 1)
+     C1:safe=max(safe,1)
+CURRENT committers=3: states=2387 safety_violations=0 orphaned_final_states=36 final(safe,seq)=[(1, 3), (2, 3), (3, 3)]
+FIXED committers=2: states=178 safety_violations=0 orphaned_final_states=0 final(safe,seq)=[(2, 2)]
+FIXED committers=3: states=7703 safety_violations=0 orphaned_final_states=0 final(safe,seq)=[(3, 3)]

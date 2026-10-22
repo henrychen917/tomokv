@@ -1,0 +1,488 @@
+[
+  {
+    "server": "redis",
+    "binary": "/home/user/Projects/redis74/src/redis-server",
+    "argv": [
+      "taskset",
+      "-c",
+      "72",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "25430",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-respresume/build/rr-runs/t12x/redis"
+    ],
+    "n": 50000,
+    "bytes": 350011,
+    "one_write_cpu_s": [
+      0.00261268,
+      0.00207872,
+      0.0021348,
+      0.002034629,
+      0.001984722
+    ],
+    "trickled_cpu_s": [
+      0.003426809,
+      0.003213404,
+      0.003135339,
+      0.003230637,
+      0.003152592
+    ],
+    "idle_window_cpu_s": [
+      0.0001579,
+      0.000162371,
+      0.00015578,
+      0.00016208,
+      0.00015682
+    ],
+    "trickle_wall_s": [
+      0.09517281409353018,
+      0.0952492943033576,
+      0.09523417381569743,
+      0.09521683398634195,
+      0.09518732409924269
+    ],
+    "median_one_write": 0.00207872,
+    "median_trickled": 0.003213404,
+    "median_idle_window": 0.0001579,
+    "ratio_to_redis": 1.0
+  },
+  {
+    "server": "redis",
+    "binary": "/home/user/Projects/redis74/src/redis-server",
+    "argv": [
+      "taskset",
+      "-c",
+      "72",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "25430",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-respresume/build/rr-runs/t12x/redis"
+    ],
+    "n": 100000,
+    "bytes": 700012,
+    "one_write_cpu_s": [
+      0.004402518,
+      0.004348,
+      0.00472522,
+      0.00388208,
+      0.00423486
+    ],
+    "trickled_cpu_s": [
+      0.006911053,
+      0.00626058,
+      0.00729967,
+      0.00671411,
+      0.0067081
+    ],
+    "idle_window_cpu_s": [
+      0.00015932,
+      0.00029556,
+      0.00030071,
+      0.00030901,
+      0.00031633
+    ],
+    "trickle_wall_s": [
+      0.1908538700081408,
+      0.1908067688345909,
+      0.19083705032244325,
+      0.1908849491737783,
+      0.1908386698924005
+    ],
+    "median_one_write": 0.004348,
+    "median_trickled": 0.00671411,
+    "median_idle_window": 0.00030071,
+    "ratio_to_redis": 1.0
+  },
+  {
+    "server": "redis",
+    "binary": "/home/user/Projects/redis74/src/redis-server",
+    "argv": [
+      "taskset",
+      "-c",
+      "72",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "25430",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-respresume/build/rr-runs/t12x/redis"
+    ],
+    "n": 200000,
+    "bytes": 1400012,
+    "one_write_cpu_s": [
+      0.00850246,
+      0.00767714,
+      0.00767119,
+      0.00772881,
+      0.00757612
+    ],
+    "trickled_cpu_s": [
+      0.01287849,
+      0.01239942,
+      0.01464995,
+      0.01251522,
+      0.01448392
+    ],
+    "idle_window_cpu_s": [
+      0.00060711,
+      0.00063533,
+      0.00063435,
+      0.00064387,
+      0.00048398
+    ],
+    "trickle_wall_s": [
+      0.3820837209932506,
+      0.3820919501595199,
+      0.38222224172204733,
+      0.3821586910635233,
+      0.3821212910115719
+    ],
+    "median_one_write": 0.00767714,
+    "median_trickled": 0.01287849,
+    "median_idle_window": 0.00063435,
+    "ratio_to_redis": 1.0
+  },
+  {
+    "server": "pre",
+    "binary": "build/tomokv-respresume-pre",
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "/home/user/Projects/cx-respresume/build/tomokv-respresume-pre",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "25430",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-respresume/build/rr-runs/t12x/pre"
+    ],
+    "n": 50000,
+    "bytes": 350011,
+    "one_write_cpu_s": [
+      0.00205471,
+      0.00215709,
+      0.00150303,
+      0.00126435,
+      0.00116417
+    ],
+    "trickled_cpu_s": [
+      0.03768284,
+      0.03851765,
+      0.03893042,
+      0.03812156,
+      0.03774153
+    ],
+    "idle_window_cpu_s": [
+      0.00523091,
+      0.0052852,
+      0.00528888,
+      0.005299,
+      0.00529086
+    ],
+    "trickle_wall_s": [
+      0.09558548498898745,
+      0.09569011582061648,
+      0.09566252585500479,
+      0.09538599383085966,
+      0.09560210583731532
+    ],
+    "median_one_write": 0.00150303,
+    "median_trickled": 0.03812156,
+    "median_idle_window": 0.00528888,
+    "ratio_to_redis": 11.863295122555396
+  },
+  {
+    "server": "pre",
+    "binary": "build/tomokv-respresume-pre",
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "/home/user/Projects/cx-respresume/build/tomokv-respresume-pre",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "25430",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-respresume/build/rr-runs/t12x/pre"
+    ],
+    "n": 100000,
+    "bytes": 700012,
+    "one_write_cpu_s": [
+      0.0033975,
+      0.00434666,
+      0.004482989,
+      0.002624902,
+      0.004487102
+    ],
+    "trickled_cpu_s": [
+      0.128570469,
+      0.131010359,
+      0.130966276,
+      0.127668666,
+      0.130484427
+    ],
+    "idle_window_cpu_s": [
+      0.010693429,
+      0.010718154,
+      0.010487193,
+      0.010679316,
+      0.010752222
+    ],
+    "trickle_wall_s": [
+      0.19141494343057275,
+      0.19163979310542345,
+      0.19122469192370772,
+      0.19122943095862865,
+      0.1911329599097371
+    ],
+    "median_one_write": 0.00434666,
+    "median_trickled": 0.130484427,
+    "median_idle_window": 0.010693429,
+    "ratio_to_redis": 19.434359431108515
+  },
+  {
+    "server": "pre",
+    "binary": "build/tomokv-respresume-pre",
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "/home/user/Projects/cx-respresume/build/tomokv-respresume-pre",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "25430",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-respresume/build/rr-runs/t12x/pre"
+    ],
+    "n": 200000,
+    "bytes": 1400012,
+    "one_write_cpu_s": [
+      0.011395,
+      0.01000719,
+      0.00887544,
+      0.00621406,
+      0.00772058
+    ],
+    "trickled_cpu_s": [
+      0.331977742,
+      0.33128409,
+      0.32994475,
+      0.32967594,
+      0.33166791
+    ],
+    "idle_window_cpu_s": [
+      0.01874354,
+      0.01881514,
+      0.02147034,
+      0.02146038,
+      0.01884979
+    ],
+    "trickle_wall_s": [
+      0.38161632884293795,
+      0.38197383005172014,
+      0.38280414370819926,
+      0.3826909540221095,
+      0.38182680029422045
+    ],
+    "median_one_write": 0.00887544,
+    "median_trickled": 0.33128409,
+    "median_idle_window": 0.01884979,
+    "ratio_to_redis": 25.723830200590285
+  },
+  {
+    "server": "post",
+    "binary": "build/tomokv-respresume-post",
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "/home/user/Projects/cx-respresume/build/tomokv-respresume-post",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "25430",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-respresume/build/rr-runs/t12x/post"
+    ],
+    "n": 50000,
+    "bytes": 350011,
+    "one_write_cpu_s": [
+      0.00144894,
+      0.0015515,
+      0.00100025,
+      0.00106727,
+      0.00089395
+    ],
+    "trickled_cpu_s": [
+      0.0080594,
+      0.00857879,
+      0.00813204,
+      0.00776437,
+      0.00777653
+    ],
+    "idle_window_cpu_s": [
+      0.00517375,
+      0.00520335,
+      0.00517359,
+      0.0052159,
+      0.00521219
+    ],
+    "trickle_wall_s": [
+      0.09581853682175279,
+      0.09597896691411734,
+      0.09584133606404066,
+      0.09578163595870137,
+      0.09579602582380176
+    ],
+    "median_one_write": 0.00106727,
+    "median_trickled": 0.0080594,
+    "median_idle_window": 0.00520335,
+    "ratio_to_redis": 2.508056876757482
+  },
+  {
+    "server": "post",
+    "binary": "build/tomokv-respresume-post",
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "/home/user/Projects/cx-respresume/build/tomokv-respresume-post",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "25430",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-respresume/build/rr-runs/t12x/post"
+    ],
+    "n": 100000,
+    "bytes": 700012,
+    "one_write_cpu_s": [
+      0.0024412,
+      0.00160696,
+      0.00163598,
+      0.0019258,
+      0.00163593
+    ],
+    "trickled_cpu_s": [
+      0.01419159,
+      0.01727795,
+      0.0170451,
+      0.01312305,
+      0.01592823
+    ],
+    "idle_window_cpu_s": [
+      0.01041548,
+      0.0103706,
+      0.00997441,
+      0.01037225,
+      0.010339929
+    ],
+    "trickle_wall_s": [
+      0.19233341608196497,
+      0.19228131603449583,
+      0.19213041616603732,
+      0.1914034322835505,
+      0.19083181908354163
+    ],
+    "median_one_write": 0.00163598,
+    "median_trickled": 0.01592823,
+    "median_idle_window": 0.0103706,
+    "ratio_to_redis": 2.372351659415768
+  },
+  {
+    "server": "post",
+    "binary": "build/tomokv-respresume-post",
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "/home/user/Projects/cx-respresume/build/tomokv-respresume-post",
+      "--bind",
+      "127.0.0.1",
+      "--port",
+      "25430",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-respresume/build/rr-runs/t12x/post"
+    ],
+    "n": 200000,
+    "bytes": 1400012,
+    "one_write_cpu_s": [
+      0.004414818,
+      0.003702878,
+      0.00450052,
+      0.00494989,
+      0.00289953
+    ],
+    "trickled_cpu_s": [
+      0.028871397,
+      0.031877894,
+      0.033577679,
+      0.03091623,
+      0.02926337
+    ],
+    "idle_window_cpu_s": [
+      0.02067679,
+      0.018197233,
+      0.01825664,
+      0.02078607,
+      0.02070438
+    ],
+    "trickle_wall_s": [
+      0.3823334816843271,
+      0.382126550655812,
+      0.38414683006703854,
+      0.38319740630686283,
+      0.3828524542041123
+    ],
+    "median_one_write": 0.004414818,
+    "median_trickled": 0.03091623,
+    "median_idle_window": 0.02067679,
+    "ratio_to_redis": 2.400609854105567
+  }
+]

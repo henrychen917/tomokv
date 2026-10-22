@@ -1,0 +1,36 @@
+{"command": ["make", "-k", "-j16", "build/at15-db0-unit", "build/at15-unit", "build/atomic-survivors-unit", "build/core-concurrency-unit", "build/encodingfix-unit", "build/exbatch-db0-unit", "build/exbatch-unit", "build/execabort-watch-db0-unit", "build/execabort-watch-unit", "build/flushfix-units", "build/ktls-keyupdate", "build/ktls-keyupdate-unit", "build/lbplanner-units", "build/multidb-boundary-unit", "build/multidb-unit", "build/netcap-unit", "build/netcmd-unit", "build/persistfix-units", "build/racefix-climon", "build/rehash-waits-unit", "build/reorder-engagement-unit", "build/reorder-engagement-unit-db0", "build/respresume-migration", "build/respresume-unit", "build/rltopo-unit", "build/shutdown-unit", "build/splitlocal-unit", "build/storesize-unit", "build/waits-unit", "build/wb-rule-units", "build/wbland-units"], "returncode": 0}
+{"command": ["make", "-q", "all"], "returncode": 0}
+{"command": ["make", "-q", "build/at15-db0-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/at15-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/atomic-survivors-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/core-concurrency-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/encodingfix-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/exbatch-db0-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/exbatch-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/execabort-watch-db0-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/execabort-watch-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/flushfix-units"], "returncode": 0}
+{"command": ["make", "-q", "build/ktls-keyupdate"], "returncode": 0}
+{"command": ["make", "-q", "build/ktls-keyupdate-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/lbplanner-units"], "returncode": 0}
+{"command": ["make", "-q", "build/multidb-boundary-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/multidb-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/netcap-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/netcmd-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/persistfix-units"], "returncode": 0}
+{"command": ["make", "-q", "build/racefix-climon"], "returncode": 0}
+{"command": ["make", "-q", "build/rehash-waits-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/reorder-engagement-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/reorder-engagement-unit-db0"], "returncode": 0}
+{"command": ["make", "-q", "build/respresume-migration"], "returncode": 0}
+{"command": ["make", "-q", "build/respresume-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/rltopo-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/shutdown-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/splitlocal-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/storesize-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/waits-unit"], "returncode": 0}
+{"command": ["make", "-q", "build/wb-rule-units"], "returncode": 0}
+{"command": ["make", "-q", "build/wbland-units"], "returncode": 0}
+{"command": ["make", "-j16", "mdbqsbr-live-arms"], "returncode": 0}
+{"command": ["make", "-q", "BUILD_ROOT=build/mdbqsbr2-park", "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK", "all"], "returncode": 0}
+{"command": ["make", "-q", "BUILD_ROOT=build/mdbqsbr2-no-wake", "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE", "all"], "returncode": 0}

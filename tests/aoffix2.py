@@ -126,7 +126,7 @@ class Server:
         self.stopped = False
         assert not self.listening(), f'port {ARGS.port} occupied'
         argv = ['taskset', '-c', ARGS.cores, str(ARGS.binary), '--bind', '127.0.0.1',
-                '--port', str(ARGS.port), '--save', '', '--appendonly', 'no',
+                '--port', str(ARGS.port), '--databases', '1', '--save', '', '--appendonly', 'no',
                 '--dir', str(self.data), '--protected-mode', 'no']
         if not ARGS.oracle and not defaults:
             argv += ['--shards', '16', '--thread-mode', ARGS.mode, '--net-io', ARGS.engine,

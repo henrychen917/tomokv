@@ -1,0 +1,29 @@
+  ok   geometry A/B shard=6 owner=6 cells=870/2037; P/C shard=10 owner=2 cells=732/2290; reader-thread=0
+  ok   get seed A
+  ok   get seed B
+  ok   get seed P
+  ok   get seed C
+  ok   get arm commit hold
+  ok   get disarm future commit holds
+  ok   get group is installed and held before epoch publication
+  ok   GET unrelated B serves the old value locally
+  ok   GET touched A falls back at its pinned old cut
+  ok   get held MSET committed
+  ok   get all 6 commit-window witnesses drained valid replies
+  ok   GET A sees committed value after filter drain
+  ok   GET P sees committed value after filter drain
+  ok   GET B remained unchanged
+  ok   GET C remained unchanged
+  ok   mget seed A
+  ok   mget seed B
+  ok   mget seed P
+  ok   mget seed C
+  ok   mget arm commit hold
+  ok   mget disarm future commit holds
+  ok   mget group is installed and held before epoch publication
+  ok   MGET B/C spans pending shards and serves locally
+  ok   last-key-touched MGET falls back as one all-old command
+  ok   mget held MSET committed
+  ok   mget all 6 commit-window witnesses drained valid replies
+  ok   MGET sees committed group after filter drain
+BPLUS PASS: negative-cell GET/MGET stayed local; touched GET/MGET fell back

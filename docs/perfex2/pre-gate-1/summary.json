@@ -1,0 +1,39 @@
+[
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/home/user/Projects/cx-perfex/tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "112-119",
+      "--load-cores",
+      "120-127",
+      "--load-smt",
+      "",
+      "--ports",
+      "25100-25124",
+      "--candidate-binary",
+      "/home/user/Projects/cx-perfex/build/perfex2/previous-post/tomokv"
+    ],
+    "environment": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-perfex/docs/perfex2/pre-gate-1/run-1.ledger",
+      "REDIS74_ROOT": "/tmp/claude-1000/redis74"
+    },
+    "exit_code": 1,
+    "seconds": 322.3031893800944,
+    "log": "docs/perfex2/pre-gate-1/run-1.log",
+    "infofix": {
+      "0": {
+        "passed": true,
+        "log": "docs/perfex2/pre-gate-1/run-1-infofix-0.txt"
+      },
+      "1": {
+        "passed": false,
+        "log": "docs/perfex2/pre-gate-1/run-1-infofix-1.txt"
+      }
+    }
+  }
+]

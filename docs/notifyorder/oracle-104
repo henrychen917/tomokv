@@ -1,0 +1,2 @@
+#!/bin/bash
+exec taskset -c 104 /home/user/Projects/redis74/src/redis-server "$@"

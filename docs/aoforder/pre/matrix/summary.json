@@ -1,0 +1,1578 @@
+[
+  {
+    "label": "single-1s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/single-1s-everysec-db1",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            7,
+            [
+              "aoforder:0",
+              7
+            ]
+          ],
+          [
+            1,
+            [
+              "aoforder:2",
+              9
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/single-1s-everysec-db1"
+  },
+  {
+    "label": "crossing-1s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-scheduled-v2/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/crossing-1s-everysec-db1",
+      "--case",
+      "crossing",
+      "--mode",
+      "1s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            5,
+            [
+              "aoforder:0",
+              13
+            ]
+          ],
+          [
+            2,
+            [
+              "aoforder:1",
+              10
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/crossing-1s-everysec-db1"
+  },
+  {
+    "label": "single-1s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/single-1s-everysec-db16",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            3,
+            [
+              "aoforder:0",
+              3
+            ]
+          ],
+          [
+            0,
+            [
+              "aoforder:1",
+              8
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/single-1s-everysec-db16"
+  },
+  {
+    "label": "crossing-1s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-scheduled-v2/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/crossing-1s-everysec-db16",
+      "--case",
+      "crossing",
+      "--mode",
+      "1s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            7,
+            [
+              "aoforder:0",
+              7
+            ]
+          ],
+          [
+            3,
+            [
+              "aoforder:1",
+              11
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/crossing-1s-everysec-db16"
+  },
+  {
+    "label": "single-1s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/single-1s-always-db1",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            2,
+            [
+              "aoforder:0",
+              10
+            ]
+          ],
+          [
+            3,
+            [
+              "aoforder:2",
+              3
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/single-1s-always-db1"
+  },
+  {
+    "label": "crossing-1s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-scheduled-v2/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/crossing-1s-always-db1",
+      "--case",
+      "crossing",
+      "--mode",
+      "1s",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            2,
+            [
+              "aoforder:0",
+              10
+            ]
+          ],
+          [
+            1,
+            [
+              "aoforder:1",
+              9
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/crossing-1s-always-db1"
+  },
+  {
+    "label": "single-1s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/single-1s-always-db16",
+      "--case",
+      "single",
+      "--mode",
+      "1s",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            7,
+            [
+              "aoforder:0",
+              7
+            ]
+          ],
+          [
+            6,
+            [
+              "aoforder:1",
+              14
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/single-1s-always-db16"
+  },
+  {
+    "label": "crossing-1s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-scheduled-v2/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/crossing-1s-always-db16",
+      "--case",
+      "crossing",
+      "--mode",
+      "1s",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            4,
+            [
+              "aoforder:0",
+              4
+            ]
+          ],
+          [
+            6,
+            [
+              "aoforder:1",
+              6
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/crossing-1s-always-db16"
+  },
+  {
+    "label": "single-2s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/single-2s-everysec-db1",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            6,
+            [
+              "aoforder:0",
+              12
+            ]
+          ],
+          [
+            7,
+            [
+              "aoforder:2",
+              5
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/single-2s-everysec-db1"
+  },
+  {
+    "label": "crossing-2s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-scheduled-v2/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/crossing-2s-everysec-db1",
+      "--case",
+      "crossing",
+      "--mode",
+      "2s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            6,
+            [
+              "aoforder:0",
+              4
+            ]
+          ],
+          [
+            7,
+            [
+              "aoforder:2",
+              15
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/crossing-2s-everysec-db1"
+  },
+  {
+    "label": "single-2s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/single-2s-everysec-db16",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            7,
+            [
+              "aoforder:0",
+              7
+            ]
+          ],
+          [
+            6,
+            [
+              "aoforder:1",
+              4
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/single-2s-everysec-db16"
+  },
+  {
+    "label": "crossing-2s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-scheduled-v2/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/crossing-2s-everysec-db16",
+      "--case",
+      "crossing",
+      "--mode",
+      "2s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            7,
+            [
+              "aoforder:0",
+              9
+            ]
+          ],
+          [
+            6,
+            [
+              "aoforder:3",
+              2
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/crossing-2s-everysec-db16"
+  },
+  {
+    "label": "single-2s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/single-2s-always-db1",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            7,
+            [
+              "aoforder:0",
+              1
+            ]
+          ],
+          [
+            6,
+            [
+              "aoforder:2",
+              8
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/single-2s-always-db1"
+  },
+  {
+    "label": "crossing-2s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-scheduled-v2/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/crossing-2s-always-db1",
+      "--case",
+      "crossing",
+      "--mode",
+      "2s",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            7,
+            [
+              "aoforder:0",
+              5
+            ]
+          ],
+          [
+            6,
+            [
+              "aoforder:1",
+              10
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group1",
+          "aoforder-group1"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/crossing-2s-always-db1"
+  },
+  {
+    "label": "single-2s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/single-2s-always-db16",
+      "--case",
+      "single",
+      "--mode",
+      "2s",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            6,
+            [
+              "aoforder:0",
+              4
+            ]
+          ],
+          [
+            7,
+            [
+              "aoforder:1",
+              13
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/single-2s-always-db16"
+  },
+  {
+    "label": "crossing-2s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-scheduled-v2/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-matrix-final/crossing-2s-always-db16",
+      "--case",
+      "crossing",
+      "--mode",
+      "2s",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "geometry",
+        "keys": [
+          [
+            6,
+            [
+              "aoforder:0",
+              8
+            ]
+          ],
+          [
+            7,
+            [
+              "aoforder:3",
+              7
+            ]
+          ]
+        ]
+      },
+      {
+        "event": "loadaof",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "reloaded": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "aoforder-group2",
+          "aoforder-group2"
+        ],
+        "restarted": [
+          "aoforder-group2",
+          "aoforder-group1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/crossing-2s-always-db16"
+  },
+  {
+    "label": "rewrite-1s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-rewrite-final/rewrite-1s-everysec-db1",
+      "--case",
+      "rewrite",
+      "--mode",
+      "1s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/rewrite-1s-everysec-db1"
+  },
+  {
+    "label": "rewrite-1s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-rewrite-final/rewrite-1s-everysec-db16",
+      "--case",
+      "rewrite",
+      "--mode",
+      "1s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/rewrite-1s-everysec-db16"
+  },
+  {
+    "label": "rewrite-1s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-rewrite-final/rewrite-1s-always-db1",
+      "--case",
+      "rewrite",
+      "--mode",
+      "1s",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/rewrite-1s-always-db1"
+  },
+  {
+    "label": "rewrite-1s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-rewrite-final/rewrite-1s-always-db16",
+      "--case",
+      "rewrite",
+      "--mode",
+      "1s",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/rewrite-1s-always-db16"
+  },
+  {
+    "label": "rewrite-2s-everysec-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-rewrite-final/rewrite-2s-everysec-db1",
+      "--case",
+      "rewrite",
+      "--mode",
+      "2s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/rewrite-2s-everysec-db1"
+  },
+  {
+    "label": "rewrite-2s-everysec-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-rewrite-final/rewrite-2s-everysec-db16",
+      "--case",
+      "rewrite",
+      "--mode",
+      "2s",
+      "--policy",
+      "everysec",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/rewrite-2s-everysec-db16"
+  },
+  {
+    "label": "rewrite-2s-always-db1",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-rewrite-final/rewrite-2s-always-db1",
+      "--case",
+      "rewrite",
+      "--mode",
+      "2s",
+      "--policy",
+      "always",
+      "--databases",
+      "1",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/rewrite-2s-always-db1"
+  },
+  {
+    "label": "rewrite-2s-always-db16",
+    "command": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/aoforder.py",
+      "--binary",
+      "build/aoforder/pre/tomokv",
+      "--artifacts",
+      "/home/user/Projects/cx-aoforder/build/aoforder/pre-rewrite-final/rewrite-2s-always-db16",
+      "--case",
+      "rewrite",
+      "--mode",
+      "2s",
+      "--policy",
+      "always",
+      "--databases",
+      "16",
+      "--port",
+      "25710"
+    ],
+    "rc": 1,
+    "f3_witnessed": true,
+    "observations": [
+      {
+        "event": "loadaof",
+        "live": [
+          "1",
+          "1"
+        ],
+        "reloaded": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      },
+      {
+        "event": "restart",
+        "live": [
+          "1",
+          "1"
+        ],
+        "restarted": [
+          "9",
+          "1"
+        ],
+        "equal": false
+      }
+    ],
+    "receipt": "docs/aoforder/pre/matrix/rewrite-2s-always-db16"
+  }
+]

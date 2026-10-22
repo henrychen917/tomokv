@@ -1,0 +1,103 @@
+{
+  "subset": "full",
+  "count": 32,
+  "ids": [
+    "h17",
+    "h18",
+    "h21",
+    "h22",
+    "h25",
+    "h26",
+    "h29",
+    "h30",
+    "h49",
+    "h50",
+    "h57",
+    "h58",
+    "df_1s_l0_o0_mget32",
+    "df_1s_l0_o0_mset32",
+    "df_1s_l0_o1_mget32",
+    "df_1s_l0_o1_mset32",
+    "df_1s_l1_o0_mget32",
+    "df_1s_l1_o0_mset32",
+    "df_1s_l1_o1_mget32",
+    "df_1s_l1_o1_mset32",
+    "df_2s_l0_o0_mget32",
+    "df_2s_l0_o0_mset32",
+    "df_2s_l0_o1_mget32",
+    "df_2s_l0_o1_mset32",
+    "df_2s_l1_o0_mget32",
+    "df_2s_l1_o0_mset32",
+    "df_2s_l1_o1_mget32",
+    "df_2s_l1_o1_mset32",
+    "df_1s_l1_o0_mix8_128",
+    "df_1s_l1_o1_mix8_128",
+    "df_2s_l1_o0_mix8_128",
+    "df_2s_l1_o1_mix8_128"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "MGET",
+    "MIX8",
+    "MSET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "MGET",
+    "MSET",
+    "SET"
+  ],
+  "depths": [
+    1,
+    32,
+    128
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "latency_ms",
+    "rate"
+  ],
+  "pending_pins": [
+    "h17",
+    "h18",
+    "h21",
+    "h22",
+    "h25",
+    "h26",
+    "h29",
+    "h30",
+    "df_1s_l0_o0_mget32",
+    "df_1s_l0_o0_mset32",
+    "df_1s_l0_o1_mget32",
+    "df_1s_l0_o1_mset32",
+    "df_1s_l1_o0_mget32",
+    "df_1s_l1_o0_mset32",
+    "df_1s_l1_o1_mget32",
+    "df_1s_l1_o1_mset32",
+    "df_2s_l0_o0_mget32",
+    "df_2s_l0_o0_mset32",
+    "df_2s_l0_o1_mget32",
+    "df_2s_l0_o1_mset32",
+    "df_2s_l1_o0_mget32",
+    "df_2s_l1_o0_mset32",
+    "df_2s_l1_o1_mget32",
+    "df_2s_l1_o1_mset32",
+    "df_1s_l1_o0_mix8_128",
+    "df_1s_l1_o1_mix8_128",
+    "df_2s_l1_o0_mix8_128",
+    "df_2s_l1_o1_mix8_128"
+  ]
+}

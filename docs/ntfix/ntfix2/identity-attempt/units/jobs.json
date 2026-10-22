@@ -1,0 +1,34 @@
+[
+  {
+    "object": "src/core/genthread.o",
+    "tree": "pre"
+  },
+  {
+    "object": "src/core/genthread.o",
+    "tree": "post"
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "tree": "pre"
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "tree": "post"
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "tree": "pre"
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "tree": "post"
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "tree": "pre"
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "tree": "post"
+  }
+]

@@ -36,7 +36,7 @@ THE TEST.  Two phases against one anchored controller.
   negative phase also asserts the policy's own hold path.
 
 Boot the server separately, in split mode, with the controller on, e.g.:
-  taskset -c <cores> ./build/tomokv --port <port> --save '' --ratio 2:2 --shards 64 --atomic 1 \
+  taskset -c <cores> ./build/tomokv --databases 1 --port <port> --save '' --ratio 2:2 --shards 64 --atomic 1 \
       --flip-auto 1 --enable-debug-command yes
 """
 

@@ -1,0 +1,369 @@
+{
+  "commit": "69d275888d85c487bab55b7065f57954909fd1df",
+  "binary": "/home/user/Projects/cx-wave4/build/wave4c/tomokv-pre",
+  "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+  "production_source_commit": "0d9950d7b",
+  "cpus": "64-111",
+  "ports": "26800-26899",
+  "baseline_summary": {
+    "function_groups": 8649,
+    "unchanged": 7932,
+    "changed": 717,
+    "lane_equal": 604,
+    "residual": 113,
+    "hot_groups": 489,
+    "hot_headline": 394,
+    "hot_lane": 78,
+    "command_hot_groups": 12,
+    "command_hot_headline": 6,
+    "command_hot_lane": 6,
+    "hot_residual": [
+      {
+        "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          2249
+        ],
+        "post_sizes": [
+          2249
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          812
+        ],
+        "post_sizes": [
+          737
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent) [clone .isra.0]",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          1420,
+          737,
+          625,
+          673
+        ],
+        "post_sizes": [
+          1292,
+          737,
+          625,
+          673
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          846
+        ],
+        "post_sizes": [
+          772
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          21010
+        ],
+        "post_sizes": [
+          21049
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          190
+        ],
+        "post_sizes": [
+          190
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          21305
+        ],
+        "post_sizes": [
+          21270
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          21260
+        ],
+        "post_sizes": [
+          21241
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          933
+        ],
+        "post_sizes": [
+          869
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          942
+        ],
+        "post_sizes": [
+          890
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          9982,
+          12418,
+          9778
+        ],
+        "post_sizes": [
+          10014,
+          12450,
+          9810
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          166,
+          170,
+          166
+        ],
+        "post_sizes": [
+          166,
+          170,
+          166
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut"
+        ],
+        "reason": "Composition of compat2, clockcut; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          865
+        ],
+        "post_sizes": [
+          865
+        ],
+        "matches": [],
+        "changed_lanes": [],
+        "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+      },
+      {
+        "name": "void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          459
+        ],
+        "post_sizes": [
+          459
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "notifyorder"
+        ],
+        "reason": "Composition of compat2, notifyorder; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          459
+        ],
+        "post_sizes": [
+          459
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut",
+          "notifyorder"
+        ],
+        "reason": "Composition of compat2, clockcut, notifyorder; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          1223
+        ],
+        "post_sizes": [
+          1223
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut",
+          "notifyorder"
+        ],
+        "reason": "Composition of compat2, clockcut, notifyorder; residual instructions/layout require merit review."
+      },
+      {
+        "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+        "hot": true,
+        "command_hot": false,
+        "equal": false,
+        "headline_sizes": [
+          891
+        ],
+        "post_sizes": [
+          891
+        ],
+        "matches": [],
+        "changed_lanes": [
+          "compat2",
+          "clockcut",
+          "notifyorder"
+        ],
+        "reason": "Composition of compat2, clockcut, notifyorder; residual instructions/layout require merit review."
+      }
+    ],
+    "references": {
+      "headline": {
+        "path": "/home/user/Projects/bench-bins/tomokv-headline-8656f9fa9",
+        "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0"
+      },
+      "compat2": {
+        "path": "/home/user/Projects/bins/compat2b-d611f499",
+        "sha256": "d611f49909f254fa94e9096283c5ec4921593e8de24b549453e884c0a8a5b8c0"
+      },
+      "moverfix": {
+        "path": "/home/user/Projects/bins/moverfix-post-82a44439",
+        "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f"
+      },
+      "clockcut": {
+        "path": "/home/user/Projects/bins/clockcut-post-bc0f6361",
+        "sha256": "bc0f63619139fdee1b08f7fb3a3e2a47648f2d2f49b5379c9b24f4339ba1fa76"
+      },
+      "notifyorder": {
+        "path": "/home/user/Projects/bins/notifyorder-post-704b8fd4",
+        "sha256": "704b8fd4a5362a096269764df7cc546f87676df33c9aca0aff40c5382c4a8e7c"
+      }
+    },
+    "post": {
+      "path": "/home/user/Projects/cx-wave4/build/tomokv",
+      "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5"
+    }
+  }
+}

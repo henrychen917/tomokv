@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "commands": {
+    "ASKING": 491,
+    "CMDGAP-NOSUCH": 381,
+    "DEL": 337,
+    "GET": 321,
+    "READONLY": 483,
+    "READWRITE": 440,
+    "RESTORE-ASKING": 1760
+  },
+  "kinds": {
+    "ASKING": [
+      "reply"
+    ],
+    "CMDGAP-NOSUCH": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "READONLY": [
+      "reply"
+    ],
+    "READWRITE": [
+      "reply"
+    ],
+    "RESTORE-ASKING": [
+      "reply"
+    ]
+  }
+}

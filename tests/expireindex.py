@@ -34,7 +34,7 @@ if len(ARGS) != 2:
 HOST, PORT = ARGS[0], int(ARGS[1])
 
 # The two timing legs need ONE expire index under test, so they need a single-shard boot:
-#   taskset -c <cores> ./build/tomokv --port P --shards 1 --ratio 1:1 --enable-debug-command yes
+#   taskset -c <cores> ./build/tomokv --databases 1 --port P --shards 1 --ratio 1:1 --enable-debug-command yes
 # With more shards the volatile population splits and no single index reaches a predictable growth
 # trigger, which would make the legs measure nothing while still reporting PASS.
 

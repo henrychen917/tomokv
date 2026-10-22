@@ -1,0 +1,74 @@
+[
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "python3",
+      "docs/hexpread/repro/probe.py",
+      "--binary",
+      "build/hexpread-pre/tomokv",
+      "--artifacts",
+      "docs/hexpread/pre-1s-aof-no",
+      "--mode",
+      "1s",
+      "--appendonly",
+      "no"
+    ],
+    "exit_code": 1
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "python3",
+      "docs/hexpread/repro/probe.py",
+      "--binary",
+      "build/hexpread-pre/tomokv",
+      "--artifacts",
+      "docs/hexpread/pre-1s-aof-yes",
+      "--mode",
+      "1s",
+      "--appendonly",
+      "yes"
+    ],
+    "exit_code": 1
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "python3",
+      "docs/hexpread/repro/probe.py",
+      "--binary",
+      "build/hexpread-pre/tomokv",
+      "--artifacts",
+      "docs/hexpread/pre-2s-aof-no",
+      "--mode",
+      "2s",
+      "--appendonly",
+      "no"
+    ],
+    "exit_code": 1
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "python3",
+      "docs/hexpread/repro/probe.py",
+      "--binary",
+      "build/hexpread-pre/tomokv",
+      "--artifacts",
+      "docs/hexpread/pre-2s-aof-yes",
+      "--mode",
+      "2s",
+      "--appendonly",
+      "yes"
+    ],
+    "exit_code": 1
+  }
+]

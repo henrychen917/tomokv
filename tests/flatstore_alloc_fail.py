@@ -3,7 +3,7 @@
 
 Boot a dedicated empty server with one shard and the DEBUG surface enabled, for example:
 
-  taskset -c 32,33 ./build/tomokv --port 7953 --shards 1 --ratio 1:1 \
+  taskset -c 32,33 ./build/tomokv --databases 1 --port 7953 --shards 1 --ratio 1:1 \
       --save "" --enable-debug-command yes
   python3 tests/flatstore_alloc_fail.py 127.0.0.1 7953
 

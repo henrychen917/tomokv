@@ -1,0 +1,2 @@
+  row budget: 900s; median=0.05s; correctness-plan-fallback; AOF publication/shutdown witnesses + negative controls
+  AOF publication/shutdown witnesses + negative controls ok

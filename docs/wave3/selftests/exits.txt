@@ -1,0 +1,9 @@
+gates_test rc=0 seconds=90
+abbagate_selftest rc=0 seconds=171
+gate_receipt_selftest rc=1 seconds=1
+abba_instrument_selftest rc=0 seconds=1
+nullpublish4_test rc=0 seconds=38
+nullpublish_refreeze_test rc=0 seconds=7
+nullrefresh_test rc=0 seconds=53
+abba-chain-tree FAILED AT: tests/gate_receipt.py --self-test
+abba-chain-expect-664-681 chain PASS

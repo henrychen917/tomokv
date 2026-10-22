@@ -1,0 +1,1598 @@
+{
+  "candidate_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+  "gate_runs": [
+    {
+      "proof": "docs/wave4/proof/wave4c-main",
+      "run_directory": "/home/user/Projects/cx-wave4/build/gate-run.A4zykb",
+      "returncode": 0,
+      "counts": {
+        "ok": 198,
+        "FAIL": 0
+      },
+      "actual_candidate": "build/tomokv",
+      "actual_candidate_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.48,
+          "label": "s6 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.08,
+          "label": "multi_exec battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.54,
+          "label": "blocking battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.49,
+          "label": "blockmulti battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.5,
+          "label": "stream battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "streamgroups battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.89,
+          "label": "pubsub battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "lua_scripting battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.05,
+          "label": "scriptsurf battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 14.87,
+          "label": "limits battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "resp3 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "bitfield battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.06,
+          "label": "dumprestore battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.05,
+          "label": "zsetops battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "geo battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.11,
+          "label": "climon battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.32,
+          "label": "climon2 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 13.21,
+          "label": "tracking battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.05,
+          "label": "hexpire battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.44,
+          "label": "servertail battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.16,
+          "label": "lcs battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.78,
+          "label": "concur battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.67,
+          "label": "edgeproto battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.34,
+          "label": "edgeenc battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.6,
+          "label": "edgetime battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.02,
+          "label": "arity battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "contarity battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "cmdgap battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "aclsel battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 54.13,
+          "label": "expwide battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 4.19,
+          "label": "infofix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.94,
+          "label": "pushtear battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "netcmd battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.02,
+          "label": "feature shutdown invariants (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.26,
+          "label": "fused+armed boot line (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.16,
+          "label": "fused+armed s6 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.07,
+          "label": "fused+armed multi_exec battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.43,
+          "label": "fused+armed blocking battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.48,
+          "label": "fused+armed blockmulti battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.51,
+          "label": "fused+armed stream battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed streamgroups battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.88,
+          "label": "fused+armed pubsub battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed lua_scripting battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed scriptsurf battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 15.11,
+          "label": "fused+armed limits battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed resp3 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed bitfield battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.06,
+          "label": "fused+armed dumprestore battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed zsetops battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed geo battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.12,
+          "label": "fused+armed climon battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.32,
+          "label": "fused+armed climon2 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 13.31,
+          "label": "fused+armed tracking battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.05,
+          "label": "fused+armed hexpire battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.55,
+          "label": "fused+armed servertail battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.16,
+          "label": "fused+armed lcs battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.8,
+          "label": "fused+armed concur battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.74,
+          "label": "fused+armed edgeproto battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.36,
+          "label": "fused+armed edgeenc battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.77,
+          "label": "fused+armed edgetime battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed arity battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed contarity battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed cmdgap battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed aclsel battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 43.05,
+          "label": "fused+armed expwide battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 4.2,
+          "label": "fused+armed infofix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.93,
+          "label": "fused+armed pushtear battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed netcmd battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.18,
+          "label": "fused+armed shutdown report + lane fired (hits=N, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.49,
+          "label": "s6 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.08,
+          "label": "multi_exec battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.47,
+          "label": "blocking battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.53,
+          "label": "blockmulti battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.5,
+          "label": "stream battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "streamgroups battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.88,
+          "label": "pubsub battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "lua_scripting battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.05,
+          "label": "scriptsurf battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 14.82,
+          "label": "limits battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "resp3 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "bitfield battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.06,
+          "label": "dumprestore battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "zsetops battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.02,
+          "label": "geo battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.13,
+          "label": "climon battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.32,
+          "label": "climon2 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 13.21,
+          "label": "tracking battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.29,
+          "label": "hexpire battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.54,
+          "label": "servertail battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.15,
+          "label": "lcs battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.8,
+          "label": "concur battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.63,
+          "label": "edgeproto battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.34,
+          "label": "edgeenc battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.93,
+          "label": "edgetime battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "arity battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.02,
+          "label": "contarity battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.02,
+          "label": "cmdgap battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "aclsel battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 55.09,
+          "label": "expwide battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 4.2,
+          "label": "infofix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.93,
+          "label": "pushtear battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "netcmd battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.02,
+          "label": "feature shutdown invariants (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.28,
+          "label": "fused+armed boot line (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.17,
+          "label": "fused+armed s6 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.07,
+          "label": "fused+armed multi_exec battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.42,
+          "label": "fused+armed blocking battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.49,
+          "label": "fused+armed blockmulti battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.48,
+          "label": "fused+armed stream battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed streamgroups battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.89,
+          "label": "fused+armed pubsub battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed lua_scripting battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed scriptsurf battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 14.91,
+          "label": "fused+armed limits battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed resp3 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed bitfield battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.07,
+          "label": "fused+armed dumprestore battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.05,
+          "label": "fused+armed zsetops battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.02,
+          "label": "fused+armed geo battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.12,
+          "label": "fused+armed climon battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.32,
+          "label": "fused+armed climon2 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 13.26,
+          "label": "fused+armed tracking battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.05,
+          "label": "fused+armed hexpire battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.56,
+          "label": "fused+armed servertail battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.16,
+          "label": "fused+armed lcs battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.8,
+          "label": "fused+armed concur battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.74,
+          "label": "fused+armed edgeproto battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.38,
+          "label": "fused+armed edgeenc battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.78,
+          "label": "fused+armed edgetime battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed arity battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed contarity battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed cmdgap battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed aclsel battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 50.3,
+          "label": "fused+armed expwide battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 4.2,
+          "label": "fused+armed infofix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.93,
+          "label": "fused+armed pushtear battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.03,
+          "label": "fused+armed netcmd battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.18,
+          "label": "fused+armed shutdown report + lane fired (hits=N, atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 9.16,
+          "label": "plain-write lost updates (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.17,
+          "label": "lbsignals battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.49,
+          "label": "slowlog battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "atomfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "scriptatomic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 14.46,
+          "label": "execatomic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 11.86,
+          "label": "execiso battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.43,
+          "label": "execfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.1,
+          "label": "multires battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.63,
+          "label": "multirace battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 30.49,
+          "label": "session_monotonic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.31,
+          "label": "xacct battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.28,
+          "label": "xmove battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.87,
+          "label": "xscript battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 6.16,
+          "label": "plain-write lost updates (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.17,
+          "label": "lbsignals battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.48,
+          "label": "slowlog battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "atomfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "scriptatomic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 14.46,
+          "label": "execatomic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 11.85,
+          "label": "execiso battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.43,
+          "label": "execfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.1,
+          "label": "multires battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.63,
+          "label": "multirace battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 30.48,
+          "label": "session_monotonic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.31,
+          "label": "xacct battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.27,
+          "label": "xmove battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.87,
+          "label": "xscript battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 97.36,
+          "label": "R7 FIFO twin off-path identity + negative controls"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.22,
+          "label": "NT-new-4 command clock after dequeue (2s)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.22,
+          "label": "NT-new-4 command clock after dequeue (1s)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.18,
+          "label": "NT-new-4 command clock after dequeue (2s, epoll)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.93,
+          "label": "moverfix conservation (1s, uring, databases 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.86,
+          "label": "moverfix conservation (1s, uring, databases 16, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.94,
+          "label": "moverfix conservation (1s, epoll, databases 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.96,
+          "label": "moverfix conservation (1s, epoll, databases 16, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.78,
+          "label": "moverfix conservation (2s, uring, databases 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.73,
+          "label": "moverfix conservation (2s, uring, databases 16, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.73,
+          "label": "moverfix conservation (2s, epoll, databases 1, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.77,
+          "label": "moverfix conservation (2s, epoll, databases 16, atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.68,
+          "label": "compat2 autharity"
+        },
+        {
+          "status": "ok",
+          "seconds": 6.87,
+          "label": "compat2 expire_notify"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.82,
+          "label": "compat2 ktls_lifetime"
+        },
+        {
+          "status": "ok",
+          "seconds": 65.39,
+          "label": "keyspace lazy-expiry order vs Redis 7.4"
+        },
+        {
+          "status": "ok",
+          "seconds": 11.7,
+          "label": "local script notification AOF vs Redis 7.4"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.26,
+          "label": "fused boot line (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.16,
+          "label": "fused s6 battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.07,
+          "label": "fused multi_exec battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.74,
+          "label": "fused edgeproto battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "fused atomfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.23,
+          "label": "fused spinprobe battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.18,
+          "label": "fused shutdown report (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.26,
+          "label": "fused boot line (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.16,
+          "label": "fused s6 battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.07,
+          "label": "fused multi_exec battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.74,
+          "label": "fused edgeproto battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "fused atomfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.23,
+          "label": "fused spinprobe battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.17,
+          "label": "fused shutdown report (atomic 1)"
+        }
+      ],
+      "ledger_metadata": [
+        {
+          "status": "PARTIAL",
+          "seconds": 0.0,
+          "label": "GATE_ONLY_JOBS=reorder_identity compat2 moverfix ntnew4_live notify_order notify_aof feature-split-0 feature-split-1 fused-0 fused-1 feature-armed-0 feature-armed-1 debug-0 debug-1; NOT A RECEIPT"
+        }
+      ]
+    },
+    {
+      "proof": "docs/wave4/proof/wave4c-abba",
+      "run_directory": "/home/user/Projects/cx-wave4/build/gate-run.4XVZqu",
+      "returncode": 0,
+      "counts": {
+        "ok": 1,
+        "FAIL": 0
+      },
+      "actual_candidate": "build/tomokv",
+      "actual_candidate_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": 636.54,
+          "label": "ABBA comparison + saturation negative controls"
+        }
+      ],
+      "ledger_metadata": [
+        {
+          "status": "PARTIAL",
+          "seconds": 0.0,
+          "label": "GATE_ONLY_JOBS=abba_selftest; NOT A RECEIPT"
+        }
+      ]
+    },
+    {
+      "proof": "docs/wave4/proof/wave4c-fused-debug-rl0",
+      "run_directory": "/home/user/Projects/cx-wave4/build/gate-run.4j5KWS",
+      "returncode": 0,
+      "counts": {
+        "ok": 29,
+        "FAIL": 0
+      },
+      "actual_candidate": "build/tomokv",
+      "actual_candidate_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "status": "ok",
+          "seconds": 9.17,
+          "label": "plain-write lost updates (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.17,
+          "label": "lbsignals battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.49,
+          "label": "slowlog battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "atomfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "scriptatomic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 14.47,
+          "label": "execatomic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 11.86,
+          "label": "execiso battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.46,
+          "label": "execfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.12,
+          "label": "multires battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.63,
+          "label": "multirace battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 30.56,
+          "label": "session_monotonic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.3,
+          "label": "xacct battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.27,
+          "label": "xmove battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.87,
+          "label": "xscript battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 8.16,
+          "label": "plain-write lost updates (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.16,
+          "label": "lbsignals battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.48,
+          "label": "slowlog battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "atomfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "scriptatomic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 14.46,
+          "label": "execatomic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 11.86,
+          "label": "execiso battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.47,
+          "label": "execfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.12,
+          "label": "multires battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.68,
+          "label": "multirace battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 30.55,
+          "label": "session_monotonic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.31,
+          "label": "xacct battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.28,
+          "label": "xmove battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.88,
+          "label": "xscript battery (atomic 1)"
+        }
+      ],
+      "wrapper": "docs/wave4/fused_candidate.py",
+      "read_local": 0,
+      "failure_lines": [],
+      "ledger_metadata": [
+        {
+          "status": "PARTIAL",
+          "seconds": 0.0,
+          "label": "GATE_ONLY_JOBS=debug-0 debug-1; NOT A RECEIPT"
+        }
+      ]
+    },
+    {
+      "proof": "docs/wave4/proof/wave4c-fused-debug-rl1",
+      "run_directory": "/home/user/Projects/cx-wave4/build/gate-run.JxeBpn",
+      "returncode": 1,
+      "counts": {
+        "ok": 27,
+        "FAIL": 2
+      },
+      "actual_candidate": "build/tomokv",
+      "actual_candidate_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "status": "ok",
+          "seconds": 10.17,
+          "label": "plain-write lost updates (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.17,
+          "label": "lbsignals battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.48,
+          "label": "slowlog battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "atomfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.05,
+          "label": "scriptatomic battery (atomic 0)"
+        },
+        {
+          "status": "FAIL",
+          "seconds": 14.47,
+          "label": "execatomic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 11.86,
+          "label": "execiso battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.46,
+          "label": "execfix battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.12,
+          "label": "multires battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.67,
+          "label": "multirace battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 30.5,
+          "label": "session_monotonic battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.3,
+          "label": "xacct battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.27,
+          "label": "xmove battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.87,
+          "label": "xscript battery (atomic 0)"
+        },
+        {
+          "status": "ok",
+          "seconds": 6.16,
+          "label": "plain-write lost updates (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.17,
+          "label": "lbsignals battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.49,
+          "label": "slowlog battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.04,
+          "label": "atomfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.05,
+          "label": "scriptatomic battery (atomic 1)"
+        },
+        {
+          "status": "FAIL",
+          "seconds": 14.47,
+          "label": "execatomic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 11.86,
+          "label": "execiso battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.46,
+          "label": "execfix battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.12,
+          "label": "multires battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.62,
+          "label": "multirace battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 30.48,
+          "label": "session_monotonic battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.3,
+          "label": "xacct battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.27,
+          "label": "xmove battery (atomic 1)"
+        },
+        {
+          "status": "ok",
+          "seconds": 1.87,
+          "label": "xscript battery (atomic 1)"
+        }
+      ],
+      "wrapper": "docs/wave4/fused_candidate.py",
+      "read_local": 1,
+      "failure_lines": [
+        {
+          "path": "jobs/debug-0/gate-execatomic-0.txt",
+          "line": "  FAIL deterministic EXEC straddle: MGET (atomic 0) rounds=4 torn=0 windows_opened=4 fanout_cuts=+0 []"
+        },
+        {
+          "path": "jobs/debug-0/gate-execatomic-0.txt",
+          "line": "1 EXEC fan-out checks failed"
+        },
+        {
+          "path": "jobs/debug-1/gate-execatomic-1.txt",
+          "line": "  FAIL deterministic EXEC straddle: MGET (atomic 0) rounds=4 torn=1 windows_opened=4 fanout_cuts=+0 [\"round 3 saw [b'g3-new', b'g3-new', b'g3-new', b'g3-new', b'g3-new', b'g3-new', b'g3-new', b'g3-new']\"]"
+        },
+        {
+          "path": "jobs/debug-1/gate-execatomic-1.txt",
+          "line": "  FAIL concurrent MGET never straddles a transaction (atomic 0) reads=80988 commits=1928 torn=0 fanout_cuts=+0 errors=[] []"
+        },
+        {
+          "path": "jobs/debug-1/gate-execatomic-1.txt",
+          "line": "2 EXEC fan-out checks failed"
+        }
+      ],
+      "ledger_metadata": [
+        {
+          "status": "PARTIAL",
+          "seconds": 0.0,
+          "label": "GATE_ONLY_JOBS=debug-0 debug-1; NOT A RECEIPT"
+        }
+      ]
+    },
+    {
+      "proof": "docs/wave4/proof/wave4c-atomic-units",
+      "run_directory": "/home/user/Projects/cx-wave4/build/gate-run.s83uCH",
+      "returncode": 0,
+      "counts": {
+        "ok": 28,
+        "FAIL": 0
+      },
+      "actual_candidate": "build/tomokv",
+      "actual_candidate_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": 0.0,
+          "label": "release build (+footprint locks)"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic commit publication catches up at quiescence"
+        },
+        {
+          "status": "ok",
+          "seconds": 2.3,
+          "label": "flushfix flush witnesses"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.06,
+          "label": "flushfix headers witnesses"
+        },
+        {
+          "status": "ok",
+          "seconds": 3.33,
+          "label": "multidb serverless owners"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.05,
+          "label": "multidb global namespace boundary"
+        },
+        {
+          "status": "ok",
+          "seconds": 9.93,
+          "label": "storesize published monitoring"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.21,
+          "label": "MULTI admin command replies"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.07,
+          "label": "EXECABORT releases WATCH reservation"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.0,
+          "label": "atomic survivors unit build"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: admission"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: closure"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: script_keys"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: rename_overlay"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: write_latest"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: script_apply"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: post_apply_probe"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: lua_conversion"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.0,
+          "label": "atomic survivor: watch_parent"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.0,
+          "label": "atomic survivor: watch_cycle"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.0,
+          "label": "atomic survivor: mset_arity"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: watch_oom"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: lua_lines"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: library_limit"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: stage_flag"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "atomic survivor: instruction_limit"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "armed resize retirement: atomic-growth"
+        },
+        {
+          "status": "ok",
+          "seconds": 0.01,
+          "label": "armed resize retirement: flush-prepared"
+        }
+      ],
+      "ledger_metadata": [
+        {
+          "status": "PARTIAL",
+          "seconds": 0.0,
+          "label": "GATE_ONLY_JOBS=atomic_units; NOT A RECEIPT"
+        }
+      ]
+    }
+  ],
+  "r7": {
+    "strict_noop": true,
+    "expected_bodies": {
+      "tomo": 146,
+      "tomo_db0": 147
+    },
+    "compared_bodies": 293,
+    "negative_control_receipt": "normalizer self-checks PASS\nstrict_noop=True: 293/293 identical bodies\nPASS missing policy symbol, missing split-local parser and changed opcode fail strict identity\n"
+  },
+  "standalone_gates_test": {
+    "argv": [
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "cwd": "/home/user/Projects/cx-wave4",
+    "cpus": [
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103
+    ],
+    "env": {
+      "PATH": "/home/user/Projects/cx-wave4/build/wave4/bin:/home/user/.codex/packages/standalone/releases/0.153.4-x86_64-unknown-linux-musl/codex-path:/home/user/.cargo/bin:/home/user/.local/bin:/home/user/bin:/home/user/.codex/tmp/arg0/codex-arg0PhqOhk:/home/user/.codex/packages/standalone/releases/0.153.4-x86_64-unknown-linux-musl/codex-path:/home/user/.local/bin:/home/user/.local/bin:/home/user/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin",
+      "PYTHONPATH": "/home/user/Projects/cx-wave4/docs/wave4/fixture_site",
+      "GATE_TEST_PORT": "26899",
+      "WAVE4_FIXTURE_PORT_LOG": "/home/user/Projects/cx-wave4/build/wave4/fixture-ports.log"
+    },
+    "source_sha256": "84cb96476c2eb47a6a165692914cfefcdf98d3aebb9e7e1d875f239932003432",
+    "returncode": 0,
+    "seconds": 184.8688926100731
+  },
+  "build": "docs/wave4c/production-build.json",
+  "freshness": "docs/wave4c/final-freshness.json",
+  "totals": {
+    "ok": 283,
+    "FAIL": 2
+  }
+}

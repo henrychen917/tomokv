@@ -122,6 +122,27 @@ public:
             (fallback_count && intersect_command) ||
             (intersect_filter_miss && !intersect_command)) std::abort();
         Rob<kRobWindow>& rob = client->rob();
+        // RL4.4: the variadic registry routes even one-key DEL/UNLINK here,
+        // after mark_current_write() staged a conservative generation. Refine
+        // this already-taken broad-write edge before either early-out: younger
+        // reads need the point hash even when there are no pending older reads.
+        // Ordinary GET/SET never enter this classification. The executor/scatter
+        // route remains unchanged (xshard_prepare already handles argc==2).
+        if (reason == ReadLocalFallbackReason::InflightWrite &&
+            !require_hash_match && reserve_shard < 0 &&
+            !fallback_count && !intersect_command) {
+            Op& write = rob.at(rob.dispatch_id());
+            if (write.spec && (write.spec->flags & CmdFlags::MultiShard) &&
+                write.argc() == 2 &&
+                (write.cmd_name().eq_icase("del") ||
+                 write.cmd_name().eq_icase("unlink")) &&
+                loop.fused_executor_->read_local_point_writes_precise()) {
+                hash = FlatStore::hash_key(write.arg(1));
+                (void)rob.refine_current_write_hash(hash);
+                write.mark_read_local_precise_write();
+                require_hash_match = true;
+            }
+        }
         const bool reserve_current =
             reserve_current_without_reads && reserve_shard >= 0;
         // A caller that already walked a complete precise keyset may pass its authoritative
@@ -2008,16 +2029,20 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
         // +83 instr/op lesson behind this split.
         bool security_check = auth_required && !conn.authenticated();
         ParseResult pr;
-        if (__builtin_expect(pos < pass_rlen && pass_rbuf[pos] != '*', false)) {
+        if (__builtin_expect(conn.multibulk_pending(), false)) {
+            pr = conn.resume_multibulk(pos, *op, &err,
+                security_check ? 10 : 1024 * 1024, security_check ? 16384 : pass_max_bulk_len);
+        } else if (__builtin_expect(pos < pass_rlen && pass_rbuf[pos] != '*', false)) {
             pr = resp_parse_inline(pass_rbuf, pass_rlen, pos, *op, &err, conn.inline_scanned());
         } else if (__builtin_expect(security_check, false)) {
-            pr = resp_parse_limited(
-                pass_rbuf, pass_rlen, pos, *op, &err, 10, 16384);
+            pr = resp_parse_t<true, true>(
+                pass_rbuf, pass_rlen, pos, *op, &err, 10, 16384, &conn.multibulk_frontier());
         } else if (__builtin_expect(default_bulk_limit, true)) {
-            pr = resp_parse(pass_rbuf, pass_rlen, pos, *op, &err);
+            pr = resp_parse_t<false, true>(pass_rbuf, pass_rlen, pos, *op, &err,
+                                     0, 0, &conn.multibulk_frontier());
         } else {
-            pr = resp_parse_limited(pass_rbuf, pass_rlen, pos, *op, &err,
-                                    1024 * 1024, pass_max_bulk_len);
+            pr = resp_parse_t<true, true>(pass_rbuf, pass_rlen, pos, *op, &err,
+                                    1024 * 1024, pass_max_bulk_len, &conn.multibulk_frontier());
         }
         security_check |= acl_active;
 
@@ -2026,6 +2051,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             continue;
         }
         if (pr == ParseResult::Incomplete) {
+            if (pos < pass_rlen && pass_rbuf[pos] == '*') conn.suspend_multibulk();
             if (pass_rlen == UINT32_MAX) {
                 finish_locally(c, *op, "ERR command exceeds receive buffer limit");
                 conn.advance_parse(pass_rlen - conn.rpos());
@@ -2040,7 +2066,11 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
         }
         if (pr == ParseResult::Error) {
             if (op->reply.size()) finish_prebuilt(c, *op);
-            else finish_locally(c, *op, err ? err : "ERR protocol error");
+            else {
+                if (auth_required && !conn.authenticated())
+                    err = resp_preauth_error(pass_rbuf, pass_rlen, conn.rpos(), pass_max_bulk_len, err);
+                finish_locally(c, *op, err ? err : "ERR protocol error");
+            }
             conn.advance_parse(pass_rlen - conn.rpos());
             c->mark_closing();
             result = DispatchResult::Error;
@@ -2086,7 +2116,8 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             // Routed containers and SLOWLOG keep a broad container bound in the registry so
             // malformed requests are rejected before ACL and MULTI. On this already-taken
             // cold error path, recover Redis's more specific subcommand name/grammar.
-            const bool container_reply = command_reply_container_outer_arity(*op, *spec);
+            const bool container_reply = command_reply_container_outer_arity(
+                *op, *spec, auth_required && !conn.authenticated());
             conn.advance_parse(consumed);
             if (container_reply) {
                 finish_prebuilt(c, *op);
@@ -2107,8 +2138,8 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
         if ((spec->flags & CmdFlags::SubcmdRoute) &&
             command_reply_container_subcommand_arity(*op, *spec)) {
             // A known child has its own generated arity and Redis checks that before ACL and
-            // MULTI. Unknown children deliberately continue: on an unauthenticated connection
-            // XGROUP x is parent-arity-valid and must reach NOAUTH.
+            // MULTI. Unknown children continue to the cold AUTH/ACL hook or container
+            // handler, where lookup errors precede authentication checks.
             conn.advance_parse(consumed);
             finish_prebuilt(c, *op);
             continue;

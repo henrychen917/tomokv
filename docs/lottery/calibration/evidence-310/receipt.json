@@ -1,0 +1,14 @@
+{
+  "completed": true,
+  "counters": {
+    "W6.left": 0,
+    "W6.right": 1
+  },
+  "evidence_complete": true,
+  "nonce": "4cff201d3bc94dd98f907cf8395902a9",
+  "passed": false,
+  "row": "310",
+  "server_pids": [
+    3113273
+  ]
+}

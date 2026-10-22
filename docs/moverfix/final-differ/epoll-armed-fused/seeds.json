@@ -1,0 +1,19 @@
+{
+  "run": "moverfix-final-standard",
+  "permanent": [
+    7,
+    19,
+    20,
+    23
+  ],
+  "failed": [],
+  "rotating": 21,
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    21
+  ],
+  "history": "/home/user/Projects/cx-moverfix/.gate-history/moverfix-differ"
+}

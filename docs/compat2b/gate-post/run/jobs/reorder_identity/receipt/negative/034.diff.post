@@ -1,0 +1,36 @@
+0000 [ 7] mov -0x798(%rbp),%r8 | 4c 8b 85 68 f8 ff ff
+0007 [ 3] mov 0x8(%rbx),%edx | 8b 53 08
+000a [ 7] mov -0x7e8(%rbp),%rcx | 48 8b 8d 18 f8 ff ff
+0011 [ 6] mov -0x7b8(%rbp),%esi | 8b b5 48 f8 ff ff
+0017 [ 7] mov -0x7e0(%rbp),%rdi | 48 8b bd 20 f8 ff ff
+001e [ 5] call <tomo::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)> | e8 ?? ?? ?? ??
+0023 [ 7] mov %rax,-0x798(%rbp) | 48 89 85 68 f8 ff ff
+002a [ 5] jmp <tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]+0x1e9b> | e9 ?? ?? ?? ??
+002f [ 6] mov $0x1,%r13d | 41 bd 01 00 00 00
+0035 [ 6] mov $0x4000,%r9d | 41 b9 00 40 00 00
+003b [ 6] mov $0xa,%r8d | 41 b8 0a 00 00 00
+0041 [ 7] lea -0x798(%rbp),%rcx | 48 8d 8d 68 f8 ff ff
+0048 [ 7] lea -0x7a4(%rbp),%rsi | 48 8d b5 5c f8 ff ff
+004f [ 3] mov %rbx,%rdi | 48 89 df
+0052 [ 3] vzeroupper | c5 f8 77
+0055 [ 5] call <tomo::Client::resume_multibulk(unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)> | e8 ?? ?? ?? ??
+005a [ 7] or -0x7f1(%rbp),%r13b | 44 0a ad 0f f8 ff ff
+0061 [ 7] mov %r13b,-0x7f0(%rbp) | 44 88 ad 10 f8 ff ff
+0068 [ 5] jmp <tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]+0x3f4> | e9 ?? ?? ?? ??
+006d [ 3] mov %r13,%rdi | 4c 89 ef
+0070 [ 3] vzeroupper | c5 f8 77
+0073 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+0078 [ 7] lea -0x6d0(%rbp),%rdi | 48 8d bd 30 f9 ff ff
+007f [ 5] call <tomo::IoLoop::ReadLocalDemotionPlan::cancel()> | e8 ?? ?? ?? ??
+0084 [ 7] lea -0x6c0(%rbp),%rdi | 48 8d bd 40 f9 ff ff
+008b [ 5] call <std::unique_ptr<tomo::IoLoop::ReadLocalDemotionPlan::Storage, std::default_delete<tomo::IoLoop::ReadLocalDemotionPlan::Storage> >::~unique_ptr()> | e8 ?? ?? ?? ??
+0090 [ 4] mov -0x38(%rbp),%rax | 48 8b 45 c8
+0094 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+009d [ 2] jne <+0xa7> | 75 08
+009f [ 3] mov %rbx,%rdi | 48 89 df
+00a2 [ 5] call <_Unwind_Resume@plt> | e8 ?? ?? ?? ??
+00a7 [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??
+00ac [ 7] mov -0x7e8(%rbp),%r9 | 4c 8b 8d 18 f8 ff ff
+00b3 [ 3] xor %r13d,%r13d | 45 31 ed
+00b6 [ 6] mov $0x100000,%r8d | 41 b8 00 00 10 00
+00bc [ 2] jmp <+0x41> | eb 83

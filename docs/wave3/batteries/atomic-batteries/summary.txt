@@ -1,0 +1,10 @@
+1s atomic_torn.py rc=0
+1s atomic_ryow.py rc=0
+1s atomic_hazards.py rc=0
+1s server-exit rc=0
+1s shutdown-clean rc=0
+2s atomic_torn.py rc=0
+2s atomic_ryow.py rc=0
+2s atomic_hazards.py rc=0
+2s server-exit rc=0
+2s shutdown-clean rc=0

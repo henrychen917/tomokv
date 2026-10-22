@@ -1,0 +1,73 @@
+Hot bodies: 1210; raw byte equal: 1122; bytes + resolved relocation targets equal: 1138
+DIFF db0/src/cmd/server_tail.o 1887 1887 tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*) [clone .isra.0]
+DIFF db0/src/cmd/server_tail.o 1017 1118 tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)
+DIFF db0/src/cmd/server_tail.o 1784 999 tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)
+DIFF db0/src/core/genthread.o 9714 9906 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/genthread.o 44 117 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]
+DIFF db0/src/core/genthread.o 451 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/genthread.o 451 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#2}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/genthread.o 1675 2249 tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)
+DIFF db0/src/core/genthread.o 18330 18655 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/genthread.o 18193 18401 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 9554 9698 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/reorder.o 44 117 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]
+DIFF db0/src/core/reorder.o 451 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 451 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#2}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 1675 2249 tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)
+DIFF db0/src/core/reorder.o 18286 18569 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 18106 18394 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 18148 18443 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 18014 18274 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/rl2s.o 12061 12326 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 48 121 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]
+DIFF db0/src/core/rl2s.o 21192 21304 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 63 143 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]
+DIFF db0/src/core/rl2s.o 21076 21259 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 63 143 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]
+DIFF db0/src/core/rl2s.o 451 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/rl2s.o 451 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#2}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/rl2s.o 1848 2530 tomo_db0::ExLoopT<true>::prepare_local_read(tomo_db0::Op&, tomo_db0::FlatStore*, bool, tomo_db0::FlatStore::ReadLocalPrefetchCapture const*)
+DIFF db0/src/core/rl2s.o 21218 21346 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+DIFF db0/src/core/rl2s.o 21058 21344 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+DIFF db0/src/main.o 451 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/main.o 451 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#2}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/main.o 12113 12381 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)
+DIFF db0/src/main.o 12258 12526 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)
+DIFF src/cmd/server_tail.o 1684 0 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*) [clone .isra.0]
+DIFF src/cmd/server_tail.o 553 1644 tomo::FlatStore::find(unsigned long, tomo::Slice)
+DIFF src/cmd/server_tail.o 1033 569 tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)
+DIFF src/cmd/t_hash_ttl.o 1544 1420 tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent) [clone .isra.0]
+DIFF src/cmd/t_hash_ttl.o 2469 2293 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+DIFF src/cmd/t_hash_ttl.o 1314 1207 tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+DIFF src/cmd/t_hash_ttl.o 1312 1177 tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)
+DIFF src/core/genthread.o 9698 9870 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/genthread.o 44 117 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]
+DIFF src/core/genthread.o 451 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#1}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/genthread.o 451 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#2}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/genthread.o 1675 2249 tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)
+DIFF src/core/genthread.o 18299 18610 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+DIFF src/core/genthread.o 18304 18530 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 9784 9925 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/reorder.o 44 117 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]
+DIFF src/core/reorder.o 451 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#1}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/reorder.o 451 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#2}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/reorder.o 1675 2249 tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)
+DIFF src/core/reorder.o 18137 18373 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 18152 18389 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 18173 18386 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 18281 18465 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+DIFF src/core/rl2s.o 12093 12148 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 44 117 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]
+DIFF src/core/rl2s.o 21099 21142 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 63 136 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]
+DIFF src/core/rl2s.o 21003 20994 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 63 143 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]
+DIFF src/core/rl2s.o 451 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#1}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/rl2s.o 451 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#2}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/rl2s.o 1848 2530 tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)
+DIFF src/core/rl2s.o 21058 21191 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+DIFF src/core/rl2s.o 21006 21120 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+DIFF src/main.o 451 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#1}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/main.o 451 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#2}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/main.o 12293 12606 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)
+DIFF src/main.o 12408 12750 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)

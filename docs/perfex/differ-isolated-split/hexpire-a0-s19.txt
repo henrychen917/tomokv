@@ -1,0 +1,25 @@
+  TTL DEADLINE FAIL side=target command=['HPTTL', 'hx1', 'FIELDS', '3', 'f2', 'f6', 'f8'] reply=108343648898 deadline_ns=(1900000000001000000, 1900000000001000000) window_ns=(1791656351108000000, 1791656351113205490)
+  DIFF op 495 ['HPTTL', 'hx1', 'FIELDS', '3']
+    target: b'*3\r\n:-2\r\n:108343648898\r\n:-2\r\n'
+    oracle: b'*3\r\n:-2\r\n:108343648892\r\n:-2\r\n'
+  TTL DEADLINE FAIL side=target command=['HPTTL', 'hx7', 'FIELDS', '2', 'f7', 'f6'] reply=108430048877 deadline_ns=(1900086400000000000, 1900086400000000000) window_ns=(1791656351129000000, 1791656351141450384)
+  DIFF op 624 ['HPTTL', 'hx7', 'FIELDS', '2']
+    target: b'*2\r\n:108430048877\r\n:108430048877\r\n'
+    oracle: b'*2\r\n:108430048867\r\n:108430048867\r\n'
+  TTL DEADLINE FAIL side=target command=['HPTTL', 'hx4', 'FIELDS', '2', 'f4', 'f9'] reply=108347248846 deadline_ns=(1900003600000000000, 1900003600000000000) window_ns=(1791656351157000000, 1791656351171599963)
+  DIFF op 753 ['HPTTL', 'hx4', 'FIELDS', '2']
+    target: b'*2\r\n:-2\r\n:108347248846\r\n'
+    oracle: b'*2\r\n:-2\r\n:108347248843\r\n'
+  TTL DEADLINE FAIL side=target command=['HPTTL', 'hx4', 'FIELDS', '2', 'f2', 'f6'] reply=108430048804 deadline_ns=(1900086400000000000, 1900086400000000000) window_ns=(1791656351198000000, 1791656351212747273)
+  DIFF op 900 ['HPTTL', 'hx4', 'FIELDS', '2']
+    target: b'*2\r\n:-1\r\n:108430048804\r\n'
+    oracle: b'*2\r\n:-1\r\n:108430048801\r\n'
+  TTL DEADLINE FAIL side=target command=['HPTTL', 'hx3', 'FIELDS', '3', 'f6', 'f8', 'f2'] reply=108347248680 deadline_ns=(1900003600000000000, 1900003600000000000) window_ns=(1791656351326000000, 1791656351342097080)
+  DIFF op 1564 ['HPTTL', 'hx3', 'FIELDS', '3']
+    target: b'*3\r\n:-2\r\n:108347248680\r\n:-1\r\n'
+    oracle: b'*3\r\n:-2\r\n:108347248674\r\n:-1\r\n'
+  TTL DEADLINE FAIL side=target command=['HPTTL', 'hx8', 'FIELDS', '3', 'f3', 'f1', 'f8'] reply=108347248469 deadline_ns=(1900003600000000000, 1900003600000000000) window_ns=(1791656351537000000, 1791656351556341835)
+  DIFF op 2622 ['HPTTL', 'hx8', 'FIELDS', '3']
+    target: b'*3\r\n:-2\r\n:108347248469\r\n:-2\r\n'
+    oracle: b'*3\r\n:-2\r\n:108347248463\r\n:-2\r\n'
+DIFFER hexpire: 4288 ops, 6 diffs, 291 deadline-bounded TTL checks -> FAIL

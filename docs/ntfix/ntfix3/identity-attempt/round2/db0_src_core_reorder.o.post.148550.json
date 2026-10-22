@@ -1,0 +1,209 @@
+{
+  "object": "db0/src/core/reorder.o",
+  "budget": 148550,
+  "tree": "post",
+  "source_sha256": "8fd4775241cff31cae5d77574b694fea292ed4be9e78290aa37ce43a4edd2c26",
+  "unit": 113603,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=148550",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_reorder.o.3f1a0852556395da.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_reorder.o.3f1a0852556395da"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix3/trials/db0_src_core_reorder.o.3f1a0852556395da.o",
+  "sha256": "9f4f24385e96ddecd7f207d6a3da7ab19a4b66427063d189184f6114c85a4d03",
+  "counts": {
+    "lane": 12,
+    "hot": 1,
+    "other": 15
+  },
+  "changes": [
+    {
+      "kind": "other",
+      "name": "tomo_db0::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)",
+      "pre": 0,
+      "post": 375
+    },
+    {
+      "kind": "lane",
+      "name": "tomo_db0::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0]",
+      "pre": 337,
+      "post": 371
+    },
+    {
+      "kind": "lane",
+      "name": "tomo_db0::Client::read_space(unsigned long, unsigned long&, bool, unsigned long, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+      "pre": 0,
+      "post": 38
+    },
+    {
+      "kind": "lane",
+      "name": "tomo_db0::Client::read_space_refined(unsigned long, unsigned long&, bool, unsigned long, unsigned long)",
+      "pre": 0,
+      "post": 299
+    },
+    {
+      "kind": "lane",
+      "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+      "pre": 717,
+      "post": 574
+    },
+    {
+      "kind": "other",
+      "name": "void tomo_db0::IoLoop::r7_on_recv<false, false, true>(tomo_db0::Client*, int)",
+      "pre": 560,
+      "post": 638
+    },
+    {
+      "kind": "other",
+      "name": "void tomo_db0::IoLoop::r7_on_recv<false, true, true>(tomo_db0::Client*, int)",
+      "pre": 560,
+      "post": 638
+    },
+    {
+      "kind": "other",
+      "name": "void tomo_db0::IoLoop::r7_on_recv<true, false, true>(tomo_db0::Client*, int)",
+      "pre": 560,
+      "post": 635
+    },
+    {
+      "kind": "other",
+      "name": "void tomo_db0::IoLoop::r7_on_recv<true, true, true>(tomo_db0::Client*, int)",
+      "pre": 560,
+      "post": 635
+    },
+    {
+      "kind": "other",
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()",
+      "pre": 4816,
+      "post": 4851
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+      "pre": 3911,
+      "post": 3972
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()",
+      "pre": 4577,
+      "post": 4670
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<true>()",
+      "pre": 4577,
+      "post": 4670
+    },
+    {
+      "kind": "lane",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "pre": 18553,
+      "post": 18630
+    },
+    {
+      "kind": "lane",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "pre": 9698,
+      "post": 9778
+    },
+    {
+      "kind": "lane",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "pre": 117,
+      "post": 166
+    },
+    {
+      "kind": "lane",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "pre": 18443,
+      "post": 18502
+    },
+    {
+      "kind": "lane",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+      "pre": 18345,
+      "post": 18448
+    },
+    {
+      "kind": "lane",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "pre": 18258,
+      "post": 18385
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "pre": 796,
+      "post": 729
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::WbEngine::pump_epoll(tomo_db0::Client&)",
+      "pre": 1424,
+      "post": 1488
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+      "pre": 1848,
+      "post": 1944
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo_db0::WbEngine::pump_tls<true, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+      "pre": 2067,
+      "post": 2099
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "pre": 820,
+      "post": 964
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::Rob<64u>::quiesced() const",
+      "pre": 0,
+      "post": 22
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::IoLoop::flip_io_drained() const",
+      "pre": 708,
+      "post": 704
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::IoLoop::query_buffer_exceeded(tomo_db0::Client const&) const",
+      "pre": 158,
+      "post": 165
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::Server::flip_client_at(unsigned int, unsigned int) const",
+      "pre": 83,
+      "post": 0
+    }
+  ]
+}

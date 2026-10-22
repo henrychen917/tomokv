@@ -1,0 +1,13 @@
+{"check": "frozen clock non-vacuity", "actual": 1000000, "expected": 1000000, "ok": true}
+{"mode": "2s", "owner": 6, "shard": 0, "probe_thread": 3, "targets": [70, 71], "t0": 1792589525644, "t1": 1792589525694}
+{"check": "stall non-vacuity", "actual": 0, "expected": 2, "ok": false}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 328, in <module>
+    main()
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 324, in main
+    clock_check(args)
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 270, in clock_check
+    require(observe("stall non-vacuity", get(24), len(targets)), "window did not open")
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 101, in require
+    raise AssertionError(why)
+AssertionError: window did not open

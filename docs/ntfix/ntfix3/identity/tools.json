@@ -1,0 +1,15 @@
+{
+  "tools_unchanged": true,
+  "returncodes": {
+    "ccfix_audit": 1,
+    "lbstall_artifacts": 1,
+    "linked_bytes": 1
+  },
+  "strict_identity_pass": false,
+  "post_sha256": "2a102311d91b99bcff78af38742c1176bec5634ae9f1875af8cb74e645d9075b",
+  "logs": {
+    "ccfix_audit": "docs/ntfix/ntfix3/identity/full.log",
+    "lbstall_artifacts": "docs/ntfix/ntfix3/identity/hot.log",
+    "linked_bytes": "docs/ntfix/ntfix3/identity/linked.log"
+  }
+}

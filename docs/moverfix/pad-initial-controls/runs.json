@@ -1,0 +1,22 @@
+[
+  {
+    "mode": "2s",
+    "databases": 1,
+    "rc": 1
+  },
+  {
+    "mode": "2s",
+    "databases": 16,
+    "rc": 1
+  },
+  {
+    "mode": "1s",
+    "databases": 1,
+    "rc": 1
+  },
+  {
+    "mode": "1s",
+    "databases": 16,
+    "rc": 1
+  }
+]

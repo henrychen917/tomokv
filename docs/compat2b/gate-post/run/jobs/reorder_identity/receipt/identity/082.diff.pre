@@ -1,0 +1,36 @@
+0000 [ 7] mov -0x798(%rbp),%r8 | 4c 8b 85 68 f8 ff ff
+0007 [ 3] mov 0x8(%rbx),%edx | 8b 53 08
+000a [ 7] mov -0x7e8(%rbp),%rcx | 48 8b 8d 18 f8 ff ff
+0011 [ 6] mov -0x7b8(%rbp),%esi | 8b b5 48 f8 ff ff
+0017 [ 7] mov -0x7e0(%rbp),%rdi | 48 8b bd 20 f8 ff ff
+001e [ 5] call <tomo_db0::resp_preauth_error(char const*, unsigned int, unsigned int, unsigned long, char const*)> | e8 ?? ?? ?? ??
+0023 [ 7] mov %rax,-0x798(%rbp) | 48 89 85 68 f8 ff ff
+002a [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]+0x1e3b> | e9 ?? ?? ?? ??
+002f [ 6] mov $0x1,%r14d | 41 be 01 00 00 00
+0035 [ 6] mov $0x4000,%r9d | 41 b9 00 40 00 00
+003b [ 6] mov $0xa,%r8d | 41 b8 0a 00 00 00
+0041 [ 7] lea -0x798(%rbp),%rcx | 48 8d 8d 68 f8 ff ff
+0048 [ 7] lea -0x7a4(%rbp),%rsi | 48 8d b5 5c f8 ff ff
+004f [ 3] mov %rbx,%rdi | 48 89 df
+0052 [ 3] vzeroupper | c5 f8 77
+0055 [ 5] call <tomo_db0::Client::resume_multibulk(unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)> | e8 ?? ?? ?? ??
+005a [ 7] or -0x7f1(%rbp),%r14b | 44 0a b5 0f f8 ff ff
+0061 [ 7] mov %r14b,-0x7f0(%rbp) | 44 88 b5 10 f8 ff ff
+0068 [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]+0x3f4> | e9 ?? ?? ?? ??
+006d [ 7] mov -0x7e8(%rbp),%r9 | 4c 8b 8d 18 f8 ff ff
+0074 [ 3] xor %r14d,%r14d | 45 31 f6
+0077 [ 6] mov $0x100000,%r8d | 41 b8 00 00 10 00
+007d [ 2] jmp <+0x41> | eb c2
+007f [ 3] mov %r13,%rdi | 4c 89 ef
+0082 [ 3] vzeroupper | c5 f8 77
+0085 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+008a [ 7] lea -0x6d0(%rbp),%rdi | 48 8d bd 30 f9 ff ff
+0091 [ 5] call <tomo_db0::IoLoop::ReadLocalDemotionPlan::cancel()> | e8 ?? ?? ?? ??
+0096 [ 7] lea -0x6c0(%rbp),%rdi | 48 8d bd 40 f9 ff ff
+009d [ 5] call <std::unique_ptr<tomo_db0::IoLoop::ReadLocalDemotionPlan::Storage, std::default_delete<tomo_db0::IoLoop::ReadLocalDemotionPlan::Storage> >::~unique_ptr()> | e8 ?? ?? ?? ??
+00a2 [ 4] mov -0x38(%rbp),%rax | 48 8b 45 c8
+00a6 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+00af [ 2] jne <+0xb9> | 75 08
+00b1 [ 3] mov %rbx,%rdi | 48 89 df
+00b4 [ 5] call <_Unwind_Resume@plt> | e8 ?? ?? ?? ??
+00b9 [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??

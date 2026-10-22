@@ -1,0 +1,338 @@
+{
+  "checks": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "all"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/at15-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/at15-db0-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/execabort-watch-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/execabort-watch-db0-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/core-concurrency-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/atomic-survivors-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/netcmd-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/encodingfix-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/netcap-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/waits-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/rehash-waits-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/multidb-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/multidb-boundary-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/storesize-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/exbatch-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/exbatch-db0-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/wb-rule-units"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/wbland-units"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/rltopo-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/lbplanner-units"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/shutdown-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/persistfix-units"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/ktls-keyupdate"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/ktls-keyupdate-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/flushfix-units"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/splitlocal-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/reorder-engagement-unit"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-q",
+        "build/reorder-engagement-unit-db0"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "arms": {
+    "PRE": {
+      "binary": "build/perfex/pre/tomokv",
+      "sha256": "bafacf2dc91dc3e16e53724bcd7733f6119be9447636d7d5094b85d1b809e48e"
+    },
+    "POST": {
+      "binary": "build/tomokv",
+      "sha256": "81b0b26dceaea4d78201fd26b84c3af9929613467549710a53c1915b8e759d54"
+    },
+    "PAD_B": {
+      "binary": "build/perfex/pad-b/tomokv",
+      "sha256": "1e15bc3ef66baf627c2e3fc1410db2d1597059f83872bafa860fa1e799f0dcf7"
+    }
+  },
+  "owned_server_load_compiler_processes": []
+}

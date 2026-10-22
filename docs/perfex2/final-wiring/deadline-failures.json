@@ -1,0 +1,42 @@
+{
+  "tests_run": 66,
+  "failure_records": [
+    {
+      "test": "test_empty_fragment_and_explicit_failure_cannot_turn_green (__main__.SchedulerWiring.test_empty_fragment_and_explicit_failure_cannot_turn_green) (behavior='empty')",
+      "exit_code": 124,
+      "deadline_seconds": 45,
+      "artifact": "/home/user/Projects/cx-perfex/build/scheduler-failure-iq4dvac6"
+    },
+    {
+      "test": "test_empty_fragment_and_explicit_failure_cannot_turn_green (__main__.SchedulerWiring.test_empty_fragment_and_explicit_failure_cannot_turn_green) (behavior='red')",
+      "exit_code": 124,
+      "deadline_seconds": 45,
+      "artifact": "/home/user/Projects/cx-perfex/build/scheduler-failure-n0_jbdyl"
+    },
+    {
+      "test": "test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment (__main__.SchedulerWiring.test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment)",
+      "exit_code": 124,
+      "deadline_seconds": 45,
+      "artifact": "/home/user/Projects/cx-perfex/build/scheduler-failure-eqg60cdv"
+    },
+    {
+      "test": "test_one_slot_uses_the_same_queue_without_losing_coverage (__main__.SchedulerWiring.test_one_slot_uses_the_same_queue_without_losing_coverage)",
+      "exit_code": 124,
+      "deadline_seconds": 45,
+      "artifact": "/home/user/Projects/cx-perfex/build/scheduler-failure-sy7ovaac"
+    },
+    {
+      "test": "test_opposite_completion_orders_have_byte_identical_canonical_ledgers (__main__.SchedulerWiring.test_opposite_completion_orders_have_byte_identical_canonical_ledgers)",
+      "exit_code": 124,
+      "deadline_seconds": 45,
+      "artifact": "/home/user/Projects/cx-perfex/build/scheduler-failure-skkn_k6k"
+    },
+    {
+      "test": "test_worker_exit_before_done_is_a_failure (__main__.SchedulerWiring.test_worker_exit_before_done_is_a_failure)",
+      "exit_code": 124,
+      "deadline_seconds": 45,
+      "artifact": "/home/user/Projects/cx-perfex/build/scheduler-failure-7lp38f5h"
+    }
+  ],
+  "classification": "all six are unchanged 45-second scheduler fixture deadlines; no outcome assertion failed"
+}

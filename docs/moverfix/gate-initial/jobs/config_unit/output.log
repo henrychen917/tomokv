@@ -1,0 +1,6 @@
+  row budget: 900s; median=-s; no-history-conservative-default; configuration docs match parser
+  configuration docs match parser                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; Redis config quoting + mid-value #
+PASS documented config example: parser, defaults, 6:2 placement, 16 shards
+boot presentation: 256 resolved cells, eight placement witnesses each
+  Redis config quoting + mid-value #                   ok

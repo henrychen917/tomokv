@@ -1,0 +1,4 @@
+  row budget: 900s; median=0.125s; correctness-plan-fallback; perfex clock binary regression
+  perfex clock binary regression                       ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; perfex batch binary regression
+  perfex batch binary regression                       ok

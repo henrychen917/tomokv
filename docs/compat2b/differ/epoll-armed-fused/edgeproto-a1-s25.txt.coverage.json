@@ -1,0 +1,511 @@
+{
+  "schema": 1,
+  "commands": {
+    "": 5,
+    "APPEND": 7,
+    "BITCOUNT": 66,
+    "BITFIELD": 159,
+    "BITFIELD_RO": 7,
+    "BITOP": 8,
+    "BITPOS": 96,
+    "BLMOVE": 1,
+    "BLMPOP": 1,
+    "BLPOP": 1,
+    "BRPOPLPUSH": 1,
+    "BZMPOP": 1,
+    "BZPOPMIN": 1,
+    "COPY": 83,
+    "DECRBY": 61,
+    "DEL": 35,
+    "DUMP": 1,
+    "ECHO": 2,
+    "EXISTS": 3,
+    "EXPIRE": 98,
+    "EXPIREAT": 76,
+    "GEOADD": 23,
+    "GEODIST": 6,
+    "GEOHASH": 9,
+    "GEOPOS": 12,
+    "GEORADIUS": 4,
+    "GEORADIUSBYMEMBER": 4,
+    "GEOSEARCH": 18,
+    "GET": 15,
+    "GETBIT": 67,
+    "GETDEL": 1,
+    "GETEX": 74,
+    "GETRANGE": 82,
+    "GETSET": 2,
+    "HGET": 3,
+    "HGETALL": 1,
+    "HINCRBY": 80,
+    "HINCRBYFLOAT": 2,
+    "HMGET": 1,
+    "HMSET": 2,
+    "HRANDFIELD": 81,
+    "HSCAN": 84,
+    "HSET": 8,
+    "HSETNX": 2,
+    "HSTRLEN": 1,
+    "INCR": 7,
+    "INCRBY": 77,
+    "INCRBYFLOAT": 4,
+    "LCS": 92,
+    "LINDEX": 73,
+    "LINSERT": 70,
+    "LMOVE": 4,
+    "LMPOP": 13,
+    "LPOP": 73,
+    "LPOS": 234,
+    "LPUSH": 8,
+    "LRANGE": 139,
+    "LREM": 67,
+    "LSET": 62,
+    "LTRIM": 71,
+    "MGET": 7,
+    "MSET": 7,
+    "MSETNX": 5,
+    "NOSUCHCOMMAND": 13,
+    "OBJECT": 5,
+    "PEXPIRE": 69,
+    "PEXPIREAT": 74,
+    "PFADD": 9,
+    "PFCOUNT": 11,
+    "PFMERGE": 3,
+    "PSETEX": 62,
+    "RENAME": 7,
+    "RESTORE": 80,
+    "RPOP": 71,
+    "RPOPLPUSH": 1,
+    "RPUSH": 2,
+    "SADD": 6,
+    "SCAN": 75,
+    "SCARD": 1,
+    "SET": 269,
+    "SETBIT": 72,
+    "SETEX": 82,
+    "SETRANGE": 76,
+    "SINTER": 1,
+    "SINTERCARD": 157,
+    "SISMEMBER": 1,
+    "SLOWLOG": 69,
+    "SMEMBERS": 1,
+    "SMOVE": 5,
+    "SORT": 11,
+    "SORT_RO": 2,
+    "SPOP": 68,
+    "SRANDMEMBER": 66,
+    "SSCAN": 77,
+    "STRLEN": 3,
+    "SUBSTR": 1,
+    "TYPE": 7,
+    "WAIT": 153,
+    "XADD": 15,
+    "XAUTOCLAIM": 80,
+    "XGROUP": 20,
+    "XINFO": 12,
+    "XRANGE": 75,
+    "XREAD": 15,
+    "XREVRANGE": 78,
+    "XSETID": 12,
+    "XTRIM": 82,
+    "ZADD": 64,
+    "ZDIFF": 2,
+    "ZINCRBY": 34,
+    "ZINTERCARD": 71,
+    "ZMPOP": 7,
+    "ZMSCORE": 1,
+    "ZPOPMAX": 78,
+    "ZPOPMIN": 73,
+    "ZRANDMEMBER": 64,
+    "ZRANGE": 130,
+    "ZRANGEBYLEX": 6,
+    "ZRANGEBYSCORE": 1,
+    "ZRANGESTORE": 80,
+    "ZRANK": 4,
+    "ZREMRANGEBYRANK": 70,
+    "ZREVRANK": 1,
+    "ZSCAN": 79,
+    "ZSCORE": 34,
+    "ZUNIONSTORE": 94
+  },
+  "kinds": {
+    "": [
+      "reply"
+    ],
+    "APPEND": [
+      "reply"
+    ],
+    "BITCOUNT": [
+      "reply"
+    ],
+    "BITFIELD": [
+      "reply"
+    ],
+    "BITFIELD_RO": [
+      "reply"
+    ],
+    "BITOP": [
+      "reply"
+    ],
+    "BITPOS": [
+      "reply"
+    ],
+    "BLMOVE": [
+      "reply"
+    ],
+    "BLMPOP": [
+      "reply"
+    ],
+    "BLPOP": [
+      "reply"
+    ],
+    "BRPOPLPUSH": [
+      "reply"
+    ],
+    "BZMPOP": [
+      "reply"
+    ],
+    "BZPOPMIN": [
+      "reply"
+    ],
+    "COPY": [
+      "reply"
+    ],
+    "DECRBY": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "DUMP": [
+      "reply"
+    ],
+    "ECHO": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "EXPIRE": [
+      "reply"
+    ],
+    "EXPIREAT": [
+      "reply"
+    ],
+    "GEOADD": [
+      "reply"
+    ],
+    "GEODIST": [
+      "reply"
+    ],
+    "GEOHASH": [
+      "reply"
+    ],
+    "GEOPOS": [
+      "reply"
+    ],
+    "GEORADIUS": [
+      "reply"
+    ],
+    "GEORADIUSBYMEMBER": [
+      "reply"
+    ],
+    "GEOSEARCH": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "GETBIT": [
+      "reply"
+    ],
+    "GETDEL": [
+      "reply"
+    ],
+    "GETEX": [
+      "reply"
+    ],
+    "GETRANGE": [
+      "reply"
+    ],
+    "GETSET": [
+      "reply"
+    ],
+    "HGET": [
+      "reply"
+    ],
+    "HGETALL": [
+      "reply"
+    ],
+    "HINCRBY": [
+      "reply"
+    ],
+    "HINCRBYFLOAT": [
+      "reply"
+    ],
+    "HMGET": [
+      "reply"
+    ],
+    "HMSET": [
+      "reply"
+    ],
+    "HRANDFIELD": [
+      "reply"
+    ],
+    "HSCAN": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "HSETNX": [
+      "reply"
+    ],
+    "HSTRLEN": [
+      "reply"
+    ],
+    "INCR": [
+      "reply"
+    ],
+    "INCRBY": [
+      "reply"
+    ],
+    "INCRBYFLOAT": [
+      "reply"
+    ],
+    "LCS": [
+      "reply"
+    ],
+    "LINDEX": [
+      "reply"
+    ],
+    "LINSERT": [
+      "reply"
+    ],
+    "LMOVE": [
+      "reply"
+    ],
+    "LMPOP": [
+      "reply"
+    ],
+    "LPOP": [
+      "reply"
+    ],
+    "LPOS": [
+      "reply"
+    ],
+    "LPUSH": [
+      "reply"
+    ],
+    "LRANGE": [
+      "reply"
+    ],
+    "LREM": [
+      "reply"
+    ],
+    "LSET": [
+      "reply"
+    ],
+    "LTRIM": [
+      "reply"
+    ],
+    "MGET": [
+      "reply"
+    ],
+    "MSET": [
+      "reply"
+    ],
+    "MSETNX": [
+      "reply"
+    ],
+    "NOSUCHCOMMAND": [
+      "reply"
+    ],
+    "OBJECT": [
+      "reply"
+    ],
+    "PEXPIRE": [
+      "reply"
+    ],
+    "PEXPIREAT": [
+      "reply"
+    ],
+    "PFADD": [
+      "reply"
+    ],
+    "PFCOUNT": [
+      "reply"
+    ],
+    "PFMERGE": [
+      "reply"
+    ],
+    "PSETEX": [
+      "reply"
+    ],
+    "RENAME": [
+      "reply"
+    ],
+    "RESTORE": [
+      "reply"
+    ],
+    "RPOP": [
+      "reply"
+    ],
+    "RPOPLPUSH": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SCAN": [
+      "reply"
+    ],
+    "SCARD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SETBIT": [
+      "reply"
+    ],
+    "SETEX": [
+      "reply"
+    ],
+    "SETRANGE": [
+      "reply"
+    ],
+    "SINTER": [
+      "reply"
+    ],
+    "SINTERCARD": [
+      "reply"
+    ],
+    "SISMEMBER": [
+      "reply"
+    ],
+    "SLOWLOG": [
+      "reply"
+    ],
+    "SMEMBERS": [
+      "reply"
+    ],
+    "SMOVE": [
+      "reply"
+    ],
+    "SORT": [
+      "reply"
+    ],
+    "SORT_RO": [
+      "reply"
+    ],
+    "SPOP": [
+      "reply"
+    ],
+    "SRANDMEMBER": [
+      "reply"
+    ],
+    "SSCAN": [
+      "reply"
+    ],
+    "STRLEN": [
+      "reply"
+    ],
+    "SUBSTR": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ],
+    "WAIT": [
+      "reply"
+    ],
+    "XADD": [
+      "reply"
+    ],
+    "XAUTOCLAIM": [
+      "reply"
+    ],
+    "XGROUP": [
+      "reply"
+    ],
+    "XINFO": [
+      "reply"
+    ],
+    "XRANGE": [
+      "reply"
+    ],
+    "XREAD": [
+      "reply"
+    ],
+    "XREVRANGE": [
+      "reply"
+    ],
+    "XSETID": [
+      "reply"
+    ],
+    "XTRIM": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZDIFF": [
+      "reply"
+    ],
+    "ZINCRBY": [
+      "reply"
+    ],
+    "ZINTERCARD": [
+      "reply"
+    ],
+    "ZMPOP": [
+      "reply"
+    ],
+    "ZMSCORE": [
+      "reply"
+    ],
+    "ZPOPMAX": [
+      "reply"
+    ],
+    "ZPOPMIN": [
+      "reply"
+    ],
+    "ZRANDMEMBER": [
+      "reply"
+    ],
+    "ZRANGE": [
+      "reply"
+    ],
+    "ZRANGEBYLEX": [
+      "reply"
+    ],
+    "ZRANGEBYSCORE": [
+      "reply"
+    ],
+    "ZRANGESTORE": [
+      "reply"
+    ],
+    "ZRANK": [
+      "reply"
+    ],
+    "ZREMRANGEBYRANK": [
+      "reply"
+    ],
+    "ZREVRANK": [
+      "reply"
+    ],
+    "ZSCAN": [
+      "reply"
+    ],
+    "ZSCORE": [
+      "reply"
+    ],
+    "ZUNIONSTORE": [
+      "reply"
+    ]
+  }
+}

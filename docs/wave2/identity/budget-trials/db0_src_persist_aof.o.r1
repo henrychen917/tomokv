@@ -1,0 +1,25 @@
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34800", "unit": 26389, "changed": 6, "hot_changed": 0, "A": 1, "B": 4, "C": 1, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_persist_aof.o.56069bd4676e.o"}
+    C T=new code 898->834 lanes=- eq=- tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34813", "unit": 26389, "changed": 8, "hot_changed": 1, "A": 1, "B": 4, "C": 3, "D": 0, "Chot": 1, "Dhot": 0, "bad_hot": 1, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_persist_aof.o.eb0c720fbe6a.o"}
+    HOT C T=new code 543->479 lanes=- eq=- tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)
+    C T=PRE code 898->898 lanes=- eq=- tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
+    C T=new added 0->67 lanes=- eq=- tomo_db0::FlatStore::maybe_start_shrink()
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34820", "unit": 26389, "changed": 6, "hot_changed": 0, "A": 1, "B": 4, "C": 1, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_persist_aof.o.08df68269c70.o"}
+    C T=PRE code 898->898 lanes=- eq=- tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34830", "unit": 26389, "changed": 7, "hot_changed": 0, "A": 1, "B": 4, "C": 2, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_persist_aof.o.726947eb8832.o"}
+    C T=new code 780->796 lanes=- eq=- tomo_db0::AofManager::debug_ack_window(unsigned int, tomo_db0::Ring&)
+    C T=PRE code 898->898 lanes=- eq=- tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34837", "unit": 26389, "changed": 7, "hot_changed": 0, "A": 1, "B": 4, "C": 2, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_persist_aof.o.defed93d20f0.o"}
+    C T=new code 682->698 lanes=- eq=- tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)
+    C T=PRE code 898->898 lanes=- eq=- tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34844", "unit": 26389, "changed": 7, "hot_changed": 0, "A": 1, "B": 4, "C": 2, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_persist_aof.o.f0f2a4da2849.o"}
+    C T=new code 682->682 lanes=- eq=- tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)
+    C T=PRE code 898->898 lanes=- eq=- tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34850", "unit": 26389, "changed": 6, "hot_changed": 0, "A": 0, "B": 4, "C": 1, "D": 1, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_persist_aof.o.b716ff657d60.o"}
+    C T=PRE code 898->898 lanes=- eq=- tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
+    D T=PRE code 3034->3119 lanes=rlresize eq=- tomo_db0::FlatStore::clear_read_local()
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34860", "unit": 26389, "changed": 6, "hot_changed": 0, "A": 1, "B": 4, "C": 1, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_persist_aof.o.83e7cdf4083c.o"}
+    C T=PRE code 898->898 lanes=- eq=- tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
+{"object": "db0/src/persist/aof.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=34880", "unit": 26389, "changed": 7, "hot_changed": 0, "A": 1, "B": 4, "C": 2, "D": 0, "Chot": 0, "Dhot": 0, "bad_hot": 0, "intended_off": 0, "path": "/home/user/Projects/cx-wave2/build/wave2/trials/post/db0_src_persist_aof.o.f123ae28ca46.o"}
+    C T=new code 682->698 lanes=- eq=- tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)
+    C T=PRE code 898->898 lanes=- eq=- tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)

@@ -1,0 +1,18 @@
+== build/tomokv-asan (make asan: -O1 -fsanitize=address,undefined, JE=0) 2s uring: fragment, cpu, neighbour
+{"fragment_trials": 4692, "seeds": [7, 19, 20, 23], "result": "PASS"}
+{"cpu_seconds": [0.14999999999999858, 0.15000000000000213, 0.16000000000000014], "median": 0.15000000000000213, "limit": 999.0}
+{"owner": 5, "pings": 391, "median_ms": 0.028990209102630615, "max_ms": 95.52068496122956, "limit_ms": 999.0}
+rc=0
+server log: AddressSanitizer/UBSan/LeakSanitizer reports=0 clean shutdown_report=1
+== build/tomokv-asan 1s (fused, read-local 1, reorder 1 = R7 parser) epoll: fragment, cpu, neighbour
+{"fragment_trials": 4692, "seeds": [7, 19, 20, 23], "result": "PASS"}
+{"cpu_seconds": [0.08999999999999986, 0.08999999999999986, 0.08999999999999986], "median": 0.08999999999999986, "limit": 999.0}
+{"owner": 1, "pings": 388, "median_ms": 0.031014904379844666, "max_ms": 96.95525467395782, "limit_ms": 999.0}
+rc=0
+server log: AddressSanitizer/UBSan/LeakSanitizer reports=0 clean shutdown_report=1
+== build/tomokv-asan 2s uring: live FLIP witness (tests/respresume_flip.py)
+{'tag': 'grow', 'target': [7, 1], 'transfers': 34, 'parked': 51, 'moved_while_parked': 26, 'over_1mi_moved': 1}
+{'tag': 'shrink', 'target': [6, 2], 'transfers': 29, 'parked': 51, 'moved_while_parked': 21, 'over_1mi_moved': 1}
+PASS respresume FLIP: parked partial frames completed after owner transfer
+rc=0
+server log: AddressSanitizer/UBSan/LeakSanitizer reports=0 clean shutdown_report=1

@@ -1,0 +1,3 @@
+LB stationary owners: mode=2s clients=[0, 1, 2, 3, 4, 5] shards=16
+LB stationary window armed: attempt 1, hold 30s
+PASS stationary LB: no key/client moves; gathers reported separately

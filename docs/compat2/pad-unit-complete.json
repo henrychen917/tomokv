@@ -1,0 +1,25 @@
+{
+  "kind": "A: PRE behavior in POST layout",
+  "counts": {
+    "arity": 0,
+    "noauth": 0,
+    "notification": 0,
+    "tls": 1,
+    "acl_name": 0,
+    "acl_exec": 0,
+    "quit": 0
+  },
+  "changed_bytes": 5,
+  "patches": [
+    {
+      "address": "0x4f03a",
+      "offset": 323642,
+      "before": "e8a13cfeff",
+      "after": "9090909090",
+      "reason": "TLS: retain sidecar until reap_dead",
+      "symbol": "tomo::IoLoop::close_client(tomo::Client*, bool)"
+    }
+  ],
+  "post_sha256": "64667501a108e2560599048e162d69610a143a33e2ee0eb7f49f8a566934f666",
+  "pad_sha256": "01ddc63a35df2546b1b94cfb090a40a835b6c87ea7fd60e013af6fd7a202c331"
+}

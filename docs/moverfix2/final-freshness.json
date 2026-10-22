@@ -1,0 +1,168 @@
+[
+  {
+    "target": "all",
+    "rc": 0
+  },
+  {
+    "target": "build/moverfix-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/moverfix-db0-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/publishfix-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/at15-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/at15-db0-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/execabort-watch-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/execabort-watch-db0-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/core-concurrency-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/atomic-survivors-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/netcmd-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/encodingfix-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/netcap-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/waits-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/rehash-waits-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/multidb-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/multidb-boundary-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/storesize-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/respresume-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/respresume-migration",
+    "rc": 0
+  },
+  {
+    "target": "build/exbatch-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/exbatch-db0-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/wb-rule-units",
+    "rc": 0
+  },
+  {
+    "target": "build/wbland-units",
+    "rc": 0
+  },
+  {
+    "target": "build/rltopo-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/lbplanner-units",
+    "rc": 0
+  },
+  {
+    "target": "build/shutdown-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/persistfix-units",
+    "rc": 0
+  },
+  {
+    "target": "build/ktls-keyupdate",
+    "rc": 0
+  },
+  {
+    "target": "build/ktls-keyupdate-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/flushfix-units",
+    "rc": 0
+  },
+  {
+    "target": "build/splitlocal-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/reorder-engagement-unit",
+    "rc": 0
+  },
+  {
+    "target": "build/reorder-engagement-unit-db0",
+    "rc": 0
+  },
+  {
+    "target": "build/racefix-climon",
+    "rc": 0
+  },
+  {
+    "target": "build/aoforder-scheduled",
+    "rc": 0
+  },
+  {
+    "target": "mdbqsbr2-park",
+    "argv": [
+      "make",
+      "-q",
+      "BUILD_ROOT=build/mdbqsbr2-park",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+      "all"
+    ],
+    "rc": 0
+  },
+  {
+    "target": "mdbqsbr2-no-wake",
+    "argv": [
+      "make",
+      "-q",
+      "BUILD_ROOT=build/mdbqsbr2-no-wake",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE",
+      "all"
+    ],
+    "rc": 0
+  }
+]

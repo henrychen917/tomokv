@@ -1,0 +1,66 @@
+[
+  {
+    "engine": "uring",
+    "geometry": "split",
+    "argv": [
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-moverfix/build/moverfix/uring/tomokv",
+      "23820",
+      "23821",
+      "80-87",
+      "6:2"
+    ],
+    "rc": 0,
+    "underlying_binary": "/home/user/Projects/cx-moverfix/build/tomokv",
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "wrapper_sha256": "4bfa91c415a4efc6f683328c078384405850c83941e5b53862cc2f16f7989574"
+  },
+  {
+    "engine": "uring",
+    "geometry": "armed-fused",
+    "argv": [
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-moverfix/build/moverfix/uring/tomokv",
+      "23820",
+      "23821",
+      "80-87",
+      "6:2"
+    ],
+    "rc": 0,
+    "underlying_binary": "/home/user/Projects/cx-moverfix/build/tomokv",
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "wrapper_sha256": "4bfa91c415a4efc6f683328c078384405850c83941e5b53862cc2f16f7989574"
+  },
+  {
+    "engine": "epoll",
+    "geometry": "split",
+    "argv": [
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-moverfix/build/moverfix/epoll/tomokv",
+      "23820",
+      "23821",
+      "80-87",
+      "6:2"
+    ],
+    "rc": 0,
+    "underlying_binary": "/home/user/Projects/cx-moverfix/build/tomokv",
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "wrapper_sha256": "41d2c11203d49111302509638a7f1c5f384b3b7e0e77480ba1fad22cce8665cd"
+  },
+  {
+    "engine": "epoll",
+    "geometry": "armed-fused",
+    "argv": [
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-moverfix/build/moverfix/epoll/tomokv",
+      "23820",
+      "23821",
+      "80-87",
+      "6:2"
+    ],
+    "rc": 0,
+    "underlying_binary": "/home/user/Projects/cx-moverfix/build/tomokv",
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "wrapper_sha256": "41d2c11203d49111302509638a7f1c5f384b3b7e0e77480ba1fad22cce8665cd"
+  }
+]

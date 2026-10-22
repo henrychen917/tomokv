@@ -1,0 +1,29 @@
+0000 [ 4] endbr64 | f3 0f 1e fa
+0004 [ 3] mov (%rdi),%rax | 48 8b 07
+0007 [ 4] mov 0x8(%rdi),%rdi | 48 8b 7f 08
+000b [ 6] mov 0x18c(%rax),%ecx | 8b 88 8c 01 00 00
+0011 [ 2] test %ecx,%ecx | 85 c9
+0013 [ 2] je <+0x50> | 74 3b
+0015 [ 6] mov 0x190(%rax),%edx | 8b 90 90 01 00 00
+001b [ 2] dec %edx | ff ca
+001d [ 2] je <+0x30> | 74 11
+001f [ 6] mov %edx,0x190(%rax) | 89 90 90 01 00 00
+0025 [ 1] ret | c3
+0026 [10] cs nopw 0x0(%rax,%rax,1) | 66 2e 0f 1f 84 00 00 00 00 00
+0030 [ 6] mov %ecx,0x190(%rax) | 89 88 90 01 00 00
+0036 [ 7] mov 0x578(%rdi),%rax | 48 8b 87 78 05 00 00
+003d [ 6] and $0x3fff,%esi | 81 e6 ff 3f 00 00
+0043 [ 3] test %rax,%rax | 48 85 c0
+0046 [ 2] je <+0x50> | 74 08
+0048 [ 4] movzwl 0x4(%rdi),%edx | 0f b7 57 04
+004c [ 2] cmp %edx,%esi | 39 d6
+004e [ 2] jae <+0x60> | 73 10
+0050 [ 1] ret | c3
+0051 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+005c [ 4] nopl 0x0(%rax) | 0f 1f 40 00
+0060 [ 4] movzwl 0x6(%rdi),%edi | 0f b7 7f 06
+0064 [ 2] cmp %edi,%esi | 39 fe
+0066 [ 2] jae <+0x50> | 73 e8
+0068 [ 2] sub %edx,%esi | 29 d6
+006a [ 3] add %ecx,(%rax,%rsi,4) | 01 0c b0
+006d [ 1] ret | c3

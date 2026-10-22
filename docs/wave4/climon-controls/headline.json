@@ -1,0 +1,63 @@
+{
+  "binary": "/home/user/Projects/bench-bins/tomokv-headline-8656f9fa9",
+  "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+  "allocation": [
+    "64-71",
+    "72",
+    "73-75",
+    26860
+  ],
+  "rows": [
+    {
+      "roll": 1,
+      "argv": [
+        "taskset",
+        "-c",
+        "73-75",
+        "python3",
+        "tests/differ.py",
+        "127.0.0.1",
+        "26860",
+        "127.0.0.1",
+        "26861",
+        "climon",
+        "19"
+      ],
+      "returncode": 0
+    },
+    {
+      "roll": 2,
+      "argv": [
+        "taskset",
+        "-c",
+        "73-75",
+        "python3",
+        "tests/differ.py",
+        "127.0.0.1",
+        "26860",
+        "127.0.0.1",
+        "26861",
+        "climon",
+        "19"
+      ],
+      "returncode": 0
+    },
+    {
+      "roll": 3,
+      "argv": [
+        "taskset",
+        "-c",
+        "73-75",
+        "python3",
+        "tests/differ.py",
+        "127.0.0.1",
+        "26860",
+        "127.0.0.1",
+        "26861",
+        "climon",
+        "19"
+      ],
+      "returncode": 0
+    }
+  ]
+}

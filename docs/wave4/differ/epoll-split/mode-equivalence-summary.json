@@ -1,0 +1,29 @@
+{
+  "cells": 16,
+  "verdicts": [
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok",
+    "ok"
+  ],
+  "all_reached": true,
+  "compared_replies_per_cell": [
+    6137
+  ],
+  "reply_hashes": [
+    "b3ebffe797b6bec31cdb8c9ece8f573b3ab2f826eff8bc07ac5019d26acc9cb4"
+  ],
+  "actual_boots": 32
+}

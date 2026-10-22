@@ -206,7 +206,8 @@ struct CoreConcurrencyTest {
         if (state == "external") value = std::string(513, 'x') + "\r\n";
         if (state == "empty") value.clear();
         if (state == "integer") value = "-9223372036854775808";
-        const int64_t deadline = state == "expired" ? 1000 : state == "ttl-live" ? 1001 : -1;
+        // Fixture now is 1000; a key is expired only once now > deadline (Redis keyIsExpired).
+        const int64_t deadline = state == "expired" ? 999 : state == "ttl-live" ? 1001 : -1;
         KvObj* object = state == "integer"
             ? kvobj_new_int(slice(f.key), INT64_MIN)
             : kvobj_new_string(slice(f.key), slice(value), deadline, state == "persisted");
@@ -264,7 +265,7 @@ struct CoreConcurrencyTest {
         ReadLocalFallbackReason reason = ReadLocalFallbackReason::None;
         if (state == "typed" || state == "encoding") reason = ReadLocalFallbackReason::Typed;
         if (state == "expired") reason = ReadLocalFallbackReason::Expired;
-        if (state == "missing" && !mget) reason = ReadLocalFallbackReason::Missing;
+        // RL4.3: a validated GET miss is served by the lane (nil, one keyspace miss).
         if (state == "pending" || state == "tail-pending" || state == "churn-pending")
             reason = ReadLocalFallbackReason::AtomicPending;
         if (state == "churn") reason = ReadLocalFallbackReason::SeqChurn;
@@ -283,7 +284,7 @@ struct CoreConcurrencyTest {
               "reply code and borrowed state cleared");
         const bool success = reason == ReadLocalFallbackReason::None;
         check(result.keyspace_hits == (success && state != "missing" ? (mget ? 2u : 1u) : 0u) &&
-                  result.keyspace_misses == (success && state == "missing" ? 2u : 0u),
+                  result.keyspace_misses == (success && state == "missing" ? (mget ? 2u : 1u) : 0u),
               "exact accepted hit and miss counts");
         if (state != "missing" && state != "encoding") {
             // MGET records each accepted value before its outer window closes. GET records

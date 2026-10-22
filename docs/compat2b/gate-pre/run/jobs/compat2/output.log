@@ -1,0 +1,6 @@
+  row budget: 900s; median=-s; no-history-conservative-default; compat2 autharity
+  compat2 autharity                                    FAIL (see /home/user/Projects/cx-compat2/build/compat2b/headline-src/build/gate-run.EbYoxB/jobs/compat2/compat2-autharity-*.log)
+  row budget: 900s; median=-s; no-history-conservative-default; compat2 expire_notify
+  compat2 expire_notify                                FAIL (see /home/user/Projects/cx-compat2/build/compat2b/headline-src/build/gate-run.EbYoxB/jobs/compat2/compat2-expire_notify-*.log)
+  row budget: 900s; median=-s; no-history-conservative-default; compat2 ktls_lifetime
+  compat2 ktls_lifetime                                FAIL (see /home/user/Projects/cx-compat2/build/compat2b/headline-src/build/gate-run.EbYoxB/jobs/compat2/compat2-ktls_lifetime-*.log)

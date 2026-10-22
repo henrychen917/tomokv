@@ -1,0 +1,4 @@
+make: 'build/climon-mask-unit' is up to date.
+make: 'build/climon-mask-old-unit' is up to date.
+climon mask tracking: PASS (64 owner pairs, both disarm directions)
+climon mask monitor: PASS (64 owner pairs, both disarm directions)

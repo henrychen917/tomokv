@@ -1,0 +1,39 @@
+{
+  "subset": "full",
+  "count": 6,
+  "ids": [
+    "t05",
+    "t06",
+    "l9_8",
+    "l9_32",
+    "l9_8_on",
+    "l9_32_on"
+  ],
+  "modes": [
+    "1s"
+  ],
+  "operations": [
+    "REORDER"
+  ],
+  "commands": [
+    "BITCOUNT",
+    "GET"
+  ],
+  "depths": [
+    8,
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "p999_ms"
+  ],
+  "pending_pins": []
+}

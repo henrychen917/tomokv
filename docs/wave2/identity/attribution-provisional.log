@@ -1,0 +1,101 @@
+db0/src/cmd/acl.o: 265 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/aclkeys.o: 3 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/blocking_debug.o: 3 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/climon.o: 222 bodies, 0 changed {}, hot 4/4 changed-hot {}
+db0/src/cmd/cmdgap.o: 4 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/cmdmeta.o: 35 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/commands.o: 28 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/functions.o: 80 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/geo.o: 94 bodies, 0 changed {}, hot 2/2 changed-hot {}
+db0/src/cmd/geo_store.o: 6 bodies, 0 changed {}, hot 1/1 changed-hot {}
+db0/src/cmd/glob.o: 2 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/hll.o: 24 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/info_stats.o: 22 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/l4prebuild.o: 62 bodies, 0 changed {}, hot 10/10 changed-hot {}
+db0/src/cmd/lbsignals.o: 15 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/lcs.o: 14 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/multi_admin.o: 8 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/multidb.o: 82 bodies, 0 changed {}, hot 3/3 changed-hot {}
+db0/src/cmd/pfdebug.o: 34 bodies, 0 changed {}, hot 4/4 changed-hot {}
+db0/src/cmd/scripting.o: 139 bodies, 0 changed {}, hot 4/4 changed-hot {}
+db0/src/cmd/serialize.o: 105 bodies, 0 changed {}, hot 10/10 changed-hot {}
+db0/src/cmd/server_tail.o: 92 bodies, 0 changed {}, hot 4/4 changed-hot {}
+db0/src/cmd/slowlog.o: 73 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/storesize.o: 19 bodies, 2 changed {'A': 2}, hot 1/1 changed-hot {}
+db0/src/cmd/t_hash.o: 232 bodies, 0 changed {}, hot 11/11 changed-hot {}
+db0/src/cmd/t_hash_ttl.o: 96 bodies, 0 changed {}, hot 9/9 changed-hot {}
+db0/src/cmd/t_list.o: 195 bodies, 0 changed {}, hot 12/12 changed-hot {}
+db0/src/cmd/t_server.o: 232 bodies, 5 changed {'A': 3, 'B': 2}, hot 1/1 changed-hot {}
+db0/src/cmd/t_set.o: 202 bodies, 0 changed {}, hot 12/12 changed-hot {}
+db0/src/cmd/t_sort.o: 22 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/t_stream.o: 249 bodies, 0 changed {}, hot 10/10 changed-hot {}
+db0/src/cmd/t_stream_groups.o: 161 bodies, 23 changed {'A': 23}, hot 4/4 changed-hot {}
+db0/src/cmd/t_string.o: 145 bodies, 0 changed {}, hot 11/11 changed-hot {}
+db0/src/cmd/t_string_notify.o: 171 bodies, 0 changed {}, hot 13/13 changed-hot {}
+db0/src/cmd/t_zset.o: 292 bodies, 0 changed {}, hot 12/12 changed-hot {}
+db0/src/cmd/t_zset_ops.o: 1 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/tracking.o: 76 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/cmd/xshard.o: 875 bodies, 5 changed {'A': 3, 'C': 1, 'B': 1}, hot 12/12 changed-hot {}
+db0/src/core/flipctl.o: 73 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/core/genthread.o: 767 bodies, 16 changed {'A': 15, 'B': 1}, hot 111/114 changed-hot {'A': 3}
+db0/src/core/lbplanner.o: 73 bodies, 1 changed {'A': 1}, hot 0/0 changed-hot {}
+db0/src/core/lbstall.o: 12 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/core/reorder.o: 830 bodies, 17 changed {'A': 16, 'B': 1}, hot 128/132 changed-hot {'A': 4}
+db0/src/core/rl2s.o: 695 bodies, 9 changed {'A': 9}, hot 124/127 changed-hot {'A': 3}
+db0/src/core/version.o: 1 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/main.o: 660 bodies, 12 changed {'A': 12}, hot 67/69 changed-hot {'A': 2}
+db0/src/net/tls.o: 38 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/persist/aof.o: 316 bodies, 8 changed {'B': 4, 'C': 3, 'A': 1}, hot 8/9 changed-hot {'C': 1}
+db0/src/persist/aof_frame_debug.o: 6 bodies, 0 changed {}, hot 0/0 changed-hot {}
+db0/src/snapshot/snapshot.o: 130 bodies, 0 changed {}, hot 7/7 changed-hot {}
+src/cmd/acl.o: 265 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/aclkeys.o: 3 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/blocking_debug.o: 3 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/climon.o: 221 bodies, 0 changed {}, hot 4/4 changed-hot {}
+src/cmd/cmdgap.o: 4 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/cmdmeta.o: 35 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/commands.o: 28 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/functions.o: 79 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/geo.o: 96 bodies, 0 changed {}, hot 2/2 changed-hot {}
+src/cmd/geo_store.o: 6 bodies, 0 changed {}, hot 1/1 changed-hot {}
+src/cmd/glob.o: 2 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/hll.o: 24 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/info_stats.o: 22 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/l4prebuild.o: 66 bodies, 0 changed {}, hot 10/10 changed-hot {}
+src/cmd/lbsignals.o: 15 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/lcs.o: 14 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/multi_admin.o: 9 bodies, 0 changed {}, hot 1/1 changed-hot {}
+src/cmd/multidb.o: 97 bodies, 0 changed {}, hot 3/3 changed-hot {}
+src/cmd/pfdebug.o: 34 bodies, 0 changed {}, hot 4/4 changed-hot {}
+src/cmd/scripting.o: 572 bodies, 0 changed {}, hot 4/4 changed-hot {}
+src/cmd/serialize.o: 105 bodies, 0 changed {}, hot 10/10 changed-hot {}
+src/cmd/server_tail.o: 92 bodies, 0 changed {}, hot 4/4 changed-hot {}
+src/cmd/slowlog.o: 73 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/storesize.o: 20 bodies, 1 changed {'A': 1}, hot 1/1 changed-hot {}
+src/cmd/t_hash.o: 233 bodies, 0 changed {}, hot 11/11 changed-hot {}
+src/cmd/t_hash_ttl.o: 94 bodies, 0 changed {}, hot 9/9 changed-hot {}
+src/cmd/t_list.o: 193 bodies, 0 changed {}, hot 12/12 changed-hot {}
+src/cmd/t_server.o: 229 bodies, 4 changed {'A': 4}, hot 1/1 changed-hot {}
+src/cmd/t_set.o: 205 bodies, 0 changed {}, hot 12/12 changed-hot {}
+src/cmd/t_sort.o: 22 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/t_stream.o: 251 bodies, 0 changed {}, hot 10/10 changed-hot {}
+src/cmd/t_stream_groups.o: 162 bodies, 24 changed {'A': 24}, hot 4/4 changed-hot {}
+src/cmd/t_string.o: 144 bodies, 0 changed {}, hot 11/11 changed-hot {}
+src/cmd/t_string_notify.o: 173 bodies, 0 changed {}, hot 13/13 changed-hot {}
+src/cmd/t_zset.o: 293 bodies, 0 changed {}, hot 12/12 changed-hot {}
+src/cmd/t_zset_ops.o: 1 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/tracking.o: 76 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/cmd/xshard.o: 882 bodies, 9 changed {'A': 9}, hot 12/12 changed-hot {}
+src/core/flipctl.o: 73 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/core/genthread.o: 775 bodies, 12 changed {'A': 9, 'B': 1, 'D': 2}, hot 112/114 changed-hot {'A': 2}
+src/core/lbplanner.o: 73 bodies, 1 changed {'A': 1}, hot 0/0 changed-hot {}
+src/core/lbstall.o: 12 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/core/reorder.o: 843 bodies, 13 changed {'A': 10, 'B': 3}, hot 129/131 changed-hot {'A': 2}
+src/core/rl2s.o: 705 bodies, 10 changed {'B': 1, 'D': 1, 'A': 8}, hot 121/126 changed-hot {'D': 1, 'A': 4}
+src/core/version.o: 0 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/main.o: 662 bodies, 9 changed {'A': 9}, hot 66/68 changed-hot {'A': 2}
+src/net/tls.o: 38 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/persist/aof.o: 317 bodies, 4 changed {'A': 4}, hot 9/9 changed-hot {}
+src/persist/aof_frame_debug.o: 6 bodies, 0 changed {}, hot 0/0 changed-hot {}
+src/snapshot/snapshot.o: 128 bodies, 0 changed {}, hot 7/7 changed-hot {}
+{"objects": 100, "bodies": 16456, "equal": 16271, "changed": 185, "hot": 1214, "hot_equal": 1190, "classes": {"A": 164, "B": 14, "C": 4, "D": 3}, "hot_classes": {"A": 22, "C": 1, "D": 1}}

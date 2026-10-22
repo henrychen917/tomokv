@@ -161,6 +161,36 @@ __attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(
     return ParseResult::Error;
 }
 
+// N3: the pre-AUTH fast bound deliberately uses 10 / 16384. On its error exit,
+// distinguish a valid-but-unauthenticated length from invalid syntax/overflow
+// or the configured bulk ceiling, which Redis checks first. Reuse the strict
+// decoder on at most ten headers; completed payloads are only stepped over.
+// Ordinary parsing and the resumable frontier keep their calling conventions.
+[[gnu::cold, gnu::noinline]] inline const char* resp_preauth_error(
+        const char* buf, uint32_t len, uint32_t start, uint64_t max_bulk,
+        const char* original) {
+    if (start >= len || buf[start] != '*') return original;
+    uint32_t p = start + 1;
+    uint64_t count = 0;
+    const char* error = original;
+    auto result = resp_length_slow(buf, len, p, INT32_MAX, count, true, &error);
+    if (result == ParseResult::Error) return error;
+    if (result != ParseResult::Ok) return original;
+    if (count > 10) return "ERR Protocol error: unauthenticated multibulk length";
+    for (uint64_t a = 0; a < count; ++a) {
+        if (p >= len || buf[p] != '$') return original;
+        ++p;
+        uint64_t bulk = 0;
+        result = resp_length_slow(buf, len, p, max_bulk, bulk, false, &error);
+        if (result == ParseResult::Error) return error;
+        if (result != ParseResult::Ok) return original;
+        if (bulk > 16384) return "ERR Protocol error: unauthenticated bulk length";
+        if (uint64_t(p) + bulk + 2 > len) return original;
+        p += static_cast<uint32_t>(bulk) + 2;
+    }
+    return original;
+}
+
 // An exceptional header finishes the entire request here, never returning into
 // the ordinary parser's argument loop. The already parsed argv prefix is kept:
 // resetting Op would discard the connection flags captured by ROB acquisition.
@@ -237,6 +267,150 @@ inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos,
     return ParseResult::Incomplete;
 }
 
+// NT4.2: only incomplete multibulks own an argv frontier. All positions are
+// relative to the unconsumed frame, including saved arguments: neither realloc
+// nor quiescent compaction nor an IO-owner transfer can invalidate them. The
+// active bit shares Client's inline cursor; its existing consume store resets
+// both protocols, without adding stores to complete-frame dispatch.
+inline constexpr uint32_t kRespMultibulkPending = uint32_t{1} << 31;
+struct RespFrontier {
+    struct Arg { uint32_t offset, length; };
+    Arg* args = nullptr;
+    uint32_t capacity = 0;
+    uint32_t expected = 0;
+    uint32_t completed = 0;
+    uint32_t next = 0;
+    uint64_t bulk = UINT64_MAX; // known length: next names its payload, else '$'
+
+    ~RespFrontier() { std::free(args); }
+    bool push(uint32_t offset, uint32_t length) {
+        if (completed == capacity) {
+            const uint32_t cap = capacity ? capacity * 2 : 16;
+            auto* grown = static_cast<Arg*>(std::realloc(args, size_t(cap) * sizeof(Arg)));
+            if (!grown) return false;
+            args = grown; capacity = cap;
+        }
+        args[completed++] = {offset, length};
+        return true;
+    }
+    void finish() {
+        expected = completed = next = 0;
+        bulk = UINT64_MAX;
+        // As with Op::shrink, release burst argv growth at completion/close.
+        if (capacity > 512) { std::free(args); args = nullptr; capacity = 0; }
+    }
+};
+static_assert(sizeof(RespFrontier) == 32);
+
+[[gnu::cold, gnu::noinline]] inline ParseResult resp_suspend(
+        RespFrontier& saved, const char* frame, Op& op, const char** err,
+        uint32_t expected, uint32_t next, uint64_t bulk = UINT64_MAX) {
+    saved.expected = expected;
+    saved.completed = 0;
+    saved.next = next;
+    saved.bulk = bulk;
+    for (uint32_t a = 0; a < op.argc(); ++a) {
+        const Slice arg = op.arg(a);
+        if (!saved.push(static_cast<uint32_t>(arg.p - frame), arg.n)) {
+            *err = "ERR out of memory parsing command";
+            return ParseResult::Error;
+        }
+    }
+    return ParseResult::Incomplete;
+}
+
+// Exceptional headers continue at the current argument, never replaying the
+// prefix. Complete frames still build Op directly and never touch the frontier.
+[[gnu::cold, gnu::noinline]] inline ParseResult resp_parse_tail(
+        const char* buf, uint32_t len, uint32_t& pos, Op& op, const char** err,
+        uint64_t max_bulk, RespFrontier& saved, uint32_t nargs, uint32_t p) {
+    while (op.argc() < nargs) {
+        const uint32_t header = p;
+        uint64_t bulk = 0;
+        auto r = ParseResult::Incomplete;
+        if (p < len) {
+            if (buf[p] != '$') r = resp_bulk_prefix_error(buf, len, p, op, err);
+            else {
+                ++p;
+                r = parse_len_crlf(buf, len, p, max_bulk, bulk);
+                if (r == ParseResult::Error)
+                    r = resp_length_slow(buf, len, p, max_bulk, bulk, false, err);
+            }
+        }
+        if (r == ParseResult::Error) return r;
+        if (r == ParseResult::Incomplete)
+            return resp_suspend(saved, buf + pos, op, err, nargs, header - pos);
+        if (uint64_t(p) + bulk + 2 > len)
+            return resp_suspend(saved, buf + pos, op, err, nargs, p - pos, bulk);
+        if (!op.push_arg(Slice(buf + p, static_cast<uint32_t>(bulk)))) {
+            *err = "ERR out of memory parsing command";
+            return ParseResult::Error;
+        }
+        p += static_cast<uint32_t>(bulk) + 2;
+    }
+    pos = p;
+    return ParseResult::Ok;
+}
+
+[[gnu::cold, gnu::noinline]] inline ParseResult resp_parse_start(
+        const char* buf, uint32_t len, uint32_t& pos, Op& op, const char** err,
+        uint64_t max_multibulk, uint64_t max_bulk, RespFrontier& saved) {
+    uint32_t p = pos + 1;
+    uint64_t nargs = 0;
+    const auto r = resp_length_slow(buf, len, p, max_multibulk, nargs, true, err);
+    if (r == ParseResult::Incomplete)
+        return resp_suspend(saved, buf + pos, op, err, 0, 0);
+    if (r == ParseResult::Error) return r;
+    if (!nargs) { pos = p; return ParseResult::Empty; }
+    return resp_parse_tail(buf, len, pos, op, err, max_bulk, saved,
+                           static_cast<uint32_t>(nargs), p);
+}
+
+[[gnu::cold, gnu::noinline]] inline ParseResult resp_resume(
+        const char* buf, uint32_t len, uint32_t& pos, Op& op, const char** err,
+        uint64_t max_multibulk, uint64_t max_bulk, RespFrontier& saved) {
+    if (!saved.expected)
+        return resp_parse_start(buf, len, pos, op, err, max_multibulk, max_bulk, saved);
+    const char* frame = buf + pos;
+    const uint32_t available = len - pos;
+    while (saved.completed < saved.expected) {
+        uint32_t p = saved.next;
+        if (saved.bulk == UINT64_MAX) {
+            if (p == available) return ParseResult::Incomplete;
+            ParseResult r;
+            uint64_t bulk = 0;
+            if (frame[p] != '$') r = resp_bulk_prefix_error(frame, available, p, op, err);
+            else {
+                ++p;
+                r = parse_len_crlf(frame, available, p, max_bulk, bulk);
+                if (r == ParseResult::Error)
+                    r = resp_length_slow(frame, available, p, max_bulk, bulk, false, err);
+            }
+            if (r != ParseResult::Ok) return r;
+            saved.next = p;
+            saved.bulk = bulk;
+        }
+        if (uint64_t(p) + saved.bulk + 2 > available) return ParseResult::Incomplete;
+        if (!saved.push(p, static_cast<uint32_t>(saved.bulk))) {
+            *err = "ERR out of memory parsing command";
+            return ParseResult::Error;
+        }
+        saved.next = p + static_cast<uint32_t>(saved.bulk) + 2;
+        saved.bulk = UINT64_MAX;
+    }
+    // ROB acquire reset the scratch Op. Materialize each saved slice only once,
+    // when the whole frame is available and the receive allocation is pinned.
+    for (uint32_t a = 0; a < saved.completed; ++a) {
+        const auto arg = saved.args[a];
+        if (!op.push_arg(Slice(frame + arg.offset, arg.length))) {
+            *err = "ERR out of memory parsing command";
+            return ParseResult::Error;
+        }
+    }
+    pos += saved.next;
+    return ParseResult::Ok;
+}
+
 // Scans one command from buf[pos, len). On Ok, fills `op` and advances `pos` past the command.
 // On Incomplete, leaves pos untouched — more bytes are needed.
 //
@@ -246,9 +420,10 @@ inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos,
 // register-carried limits defeat the immediate-folding the comparisons had always compiled to.
 // The unlimited instantiation folds the constants exactly as the original code did; only the
 // pre-AUTH path (predicted-false at the call site) pays for real arguments.
-template <bool kLimited>
+template <bool kLimited, bool kResume = false>
 inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op& op,
-                                const char** err, uint64_t max_multibulk, uint64_t max_bulk) {
+                                const char** err, uint64_t max_multibulk, uint64_t max_bulk,
+                                RespFrontier* saved = nullptr) {
     if constexpr (!kLimited) {
         max_multibulk = 1024 * 1024;
         max_bulk = 512ull * 1024 * 1024;
@@ -256,7 +431,7 @@ inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op
     const uint32_t start = pos;
     if (pos >= len) return ParseResult::Incomplete;
 
-    if (buf[pos] != '*') {
+    if constexpr (!kResume) if (buf[pos] != '*') {
         uint32_t scanned = 0; // Stateless callers; IoLoop supplies Client's saved cursor.
         return resp_parse_inline(buf, len, pos, op, err, scanned);
     }
@@ -264,15 +439,26 @@ inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op
     uint32_t p = pos + 1;                      // past '*'
     uint64_t nargs = 0;
     ParseResult r = parse_len_crlf(buf, len, p, max_multibulk, nargs);
-    if (r == ParseResult::Incomplete) return ParseResult::Incomplete;
+    if (r == ParseResult::Incomplete) {
+        if constexpr (kResume) return resp_suspend(*saved, buf + start, op, err, 0, 0);
+        return ParseResult::Incomplete;
+    }
     if (r == ParseResult::Error) {
+        if constexpr (kResume)
+            return resp_parse_start(buf, len, pos, op, err, max_multibulk, max_bulk, *saved);
         if constexpr (!kLimited) return resp_parse_unlimited_slow(buf, len, pos, op, err);
         else return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
     }
 
     for (uint64_t a = 0; a < nargs; a++) {
-        if (p >= len) { pos = start; return ParseResult::Incomplete; }
+        if (p >= len) {
+            if constexpr (kResume)
+                return resp_suspend(*saved, buf + start, op, err, nargs, p - start);
+            pos = start; return ParseResult::Incomplete;
+        }
         if (buf[p] != '$') {
+            if constexpr (kResume)
+                return resp_parse_tail(buf, len, pos, op, err, max_bulk, *saved, nargs, p);
             if constexpr (!kLimited) return resp_parse_unlimited_slow(buf, len, pos, op, err);
             else return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
         }
@@ -282,12 +468,22 @@ inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op
         // signed, overflow-checked cold decoder once this small bound is crossed.
         r = parse_len_crlf(buf, len, p, max_bulk < 512ull * 1024 * 1024
                                       ? max_bulk : 512ull * 1024 * 1024, blen);
-        if (r == ParseResult::Incomplete) { pos = start; return ParseResult::Incomplete; }
+        if (r == ParseResult::Incomplete) {
+            if constexpr (kResume)
+                return resp_suspend(*saved, buf + start, op, err, nargs, p - 1 - start);
+            pos = start; return ParseResult::Incomplete;
+        }
         if (r == ParseResult::Error) {
+            if constexpr (kResume)
+                return resp_parse_tail(buf, len, pos, op, err, max_bulk, *saved, nargs, p - 1);
             if constexpr (!kLimited) return resp_parse_unlimited_slow(buf, len, pos, op, err);
             else return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
         }
-        if (p + blen + 2 > len) { pos = start; return ParseResult::Incomplete; }
+        if (p + blen + 2 > len) {
+            if constexpr (kResume)
+                return resp_suspend(*saved, buf + start, op, err, nargs, p - start, blen);
+            pos = start; return ParseResult::Incomplete;
+        }
         if (!op.push_arg(Slice(buf + p, static_cast<uint32_t>(blen)))) {
             *err = "ERR out of memory parsing command";
             return ParseResult::Error;

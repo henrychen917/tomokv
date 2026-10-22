@@ -1,0 +1,529 @@
+[
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-k",
+      "-j16",
+      "build/at15-unit",
+      "build/at15-db0-unit",
+      "build/execabort-watch-unit",
+      "build/execabort-watch-db0-unit",
+      "build/core-concurrency-unit",
+      "build/atomic-survivors-unit",
+      "build/netcmd-unit",
+      "build/encodingfix-unit",
+      "build/netcap-unit",
+      "build/waits-unit",
+      "build/rehash-waits-unit",
+      "build/multidb-unit",
+      "build/multidb-boundary-unit",
+      "build/storesize-unit",
+      "build/exbatch-unit",
+      "build/exbatch-db0-unit",
+      "build/wb-rule-units",
+      "build/wbland-units",
+      "build/rltopo-unit",
+      "build/lbplanner-units",
+      "build/shutdown-unit",
+      "build/persistfix-units",
+      "build/ktls-keyupdate",
+      "build/ktls-keyupdate-unit",
+      "build/flushfix-units",
+      "build/splitlocal-unit",
+      "build/reorder-engagement-unit",
+      "build/reorder-engagement-unit-db0",
+      "build/racefix-climon"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 245.46459796093404,
+    "log": "docs/perfex2/final-units/production-units-build.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-j16",
+      "mdbqsbr-live-arms"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 46.07668764796108,
+    "log": "docs/perfex2/final-units/mdbqsbr-live-arms-build.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/at15-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.02260052179917693,
+    "log": "docs/perfex2/final-units/at15-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/at15-db0-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.026741659734398127,
+    "log": "docs/perfex2/final-units/at15-db0-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/execabort-watch-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.02168022794649005,
+    "log": "docs/perfex2/final-units/execabort-watch-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/execabort-watch-db0-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.027168672997504473,
+    "log": "docs/perfex2/final-units/execabort-watch-db0-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/core-concurrency-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.01816486194729805,
+    "log": "docs/perfex2/final-units/core-concurrency-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/atomic-survivors-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.022259299643337727,
+    "log": "docs/perfex2/final-units/atomic-survivors-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/netcmd-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.02215025993064046,
+    "log": "docs/perfex2/final-units/netcmd-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/encodingfix-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.021144206169992685,
+    "log": "docs/perfex2/final-units/encodingfix-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/netcap-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.021557508036494255,
+    "log": "docs/perfex2/final-units/netcap-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/waits-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.011745673138648272,
+    "log": "docs/perfex2/final-units/waits-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/rehash-waits-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.02238494111225009,
+    "log": "docs/perfex2/final-units/rehash-waits-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/multidb-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.030567077919840813,
+    "log": "docs/perfex2/final-units/multidb-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/multidb-boundary-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.0224591507576406,
+    "log": "docs/perfex2/final-units/multidb-boundary-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/storesize-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.02742792386561632,
+    "log": "docs/perfex2/final-units/storesize-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/exbatch-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.021362605970352888,
+    "log": "docs/perfex2/final-units/exbatch-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/exbatch-db0-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.02699616178870201,
+    "log": "docs/perfex2/final-units/exbatch-db0-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/wb-rule-units"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.027773465029895306,
+    "log": "docs/perfex2/final-units/wb-rule-units-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/wbland-units"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.029266982339322567,
+    "log": "docs/perfex2/final-units/wbland-units-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/rltopo-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.0170773072168231,
+    "log": "docs/perfex2/final-units/rltopo-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/lbplanner-units"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.02447022031992674,
+    "log": "docs/perfex2/final-units/lbplanner-units-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/shutdown-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.02180094923824072,
+    "log": "docs/perfex2/final-units/shutdown-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/persistfix-units"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.02288475399836898,
+    "log": "docs/perfex2/final-units/persistfix-units-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/ktls-keyupdate"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.010992928873747587,
+    "log": "docs/perfex2/final-units/ktls-keyupdate-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/ktls-keyupdate-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.010980159975588322,
+    "log": "docs/perfex2/final-units/ktls-keyupdate-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/flushfix-units"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.027548605110496283,
+    "log": "docs/perfex2/final-units/flushfix-units-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/splitlocal-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.011559352744370699,
+    "log": "docs/perfex2/final-units/splitlocal-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/reorder-engagement-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.022170010022819042,
+    "log": "docs/perfex2/final-units/reorder-engagement-unit-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/reorder-engagement-unit-db0"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.027675884775817394,
+    "log": "docs/perfex2/final-units/reorder-engagement-unit-db0-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/racefix-climon"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.014345854986459017,
+    "log": "docs/perfex2/final-units/racefix-climon-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "all"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.028026567306369543,
+    "log": "docs/perfex2/final-units/all-fresh.log"
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "/usr/bin/python3",
+      "tests/storesize_checks.py",
+      "check-all",
+      "build/storesize-unit"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 10.311457093805075,
+    "log": "docs/perfex2/final-units/storesize.log"
+  },
+  {
+    "argv": [
+      "make",
+      "-B",
+      "BUILD_ROOT=build/mdbqsbr2-park",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+      "build/mdbqsbr2-park/db0/src/cmd/xshard.o"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 40.93039519991726,
+    "log": "docs/perfex2/final-units/park-budget-rebuild-final.log"
+  },
+  {
+    "argv": [
+      "make",
+      "-j16",
+      "mdbqsbr-live-arms"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 2.1186732538044453,
+    "log": "docs/perfex2/final-units/live-arms-relink.log"
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "all"
+    ],
+    "environment": {},
+    "exit_code": 0,
+    "seconds": 0.040794657077640295,
+    "log": "docs/perfex2/final-units/final-all-fresh.log"
+  }
+]

@@ -1,0 +1,4 @@
+LB fresh-state re-arm 1/3: unarmed owner
+LB fresh-state re-arm 2/3: unarmed owner
+LB fresh-state re-arm 3/3: unarmed owner
+PASS stationary LB move and unentered-window controls

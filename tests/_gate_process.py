@@ -150,7 +150,7 @@ def quiesce_connections(conn, process, timeout=8):
 
 
 @contextlib.contextmanager
-def server(binary, server_cpus, port, directory, args):
+def server(binary, server_cpus, port, directory, args, *, databases=1):
     directory = Path(directory).resolve()
     directory.mkdir(parents=True, exist_ok=False)
     data = directory / 'data'
@@ -163,6 +163,9 @@ def server(binary, server_cpus, port, directory, args):
         ['ss', '-H', '-ltnp', f'sport = :{port}'], stderr=subprocess.STDOUT, text=True)
     (directory / 'port-guard.txt').write_text(listeners)
     require(not listeners.strip(), f'port {port} already has a live listener: {listeners.strip()}')
+    args = list(map(str, args))
+    if databases is not None and not any(arg == '--databases' or arg.startswith('--databases=') for arg in args):
+        args = ['--databases', str(databases), *args]
     argv = ['taskset', '-c', server_cpus, str(Path(binary).resolve()), '--port', str(port),
             '--bind', '127.0.0.1', '--dir', str(data), '--save', '', '--appendonly', 'no',
             '--enable-debug-command', 'yes', *map(str, args)]

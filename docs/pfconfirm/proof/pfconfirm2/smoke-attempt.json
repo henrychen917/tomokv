@@ -1,0 +1,19 @@
+{
+  "command": "taskset -c 112-127 docs/pfconfirm/run.sh --smoke --output build/pfconfirm-smoke-2",
+  "driver_commit": "dbf82bdd5e2c6b644cabe5f85ca6b168c7c1e4cc",
+  "exit_code": 3,
+  "verdict": "REFUSED",
+  "smoke_attempts": 1,
+  "server_boots": 0,
+  "load_generators": 0,
+  "sample_count": 0,
+  "quiet_retry": false,
+  "full_bench_runs": 0,
+  "preflight_cpu_seconds": 0.86,
+  "preflight_cap_cpu_seconds": 0.48,
+  "limitation": "The strict quiet screen refused before any executable was staged or started; no live trigger or performance sample was exercised.",
+  "preregistration_sha256": "b9aae476a56c144cc721a0e2861a314f1ceb3ebb55c43514d82d5a57bd1e853b",
+  "driver_sha256": "f9da779e1ace4c3b9ef526d4f8c93752d47486bac3e5677c1ae5d562b4b2cf95",
+  "cells_sha256": "21ed0c9f496d37fedad9a2110de2120bd4e90f1fc0449db8f1398c851ccf3929",
+  "guards_sha256": "47e781582fb08b7247b02a824f865267051892e1f03d77f3c318306991a72c4d"
+}

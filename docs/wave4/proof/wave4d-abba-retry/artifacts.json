@@ -1,0 +1,24 @@
+{
+  "source": "/home/user/Projects/cx-wave4/build/gate-run.pIHhdC",
+  "files": [
+    {
+      "path": "phases.tsv",
+      "bytes": 27,
+      "included": true,
+      "sha256": "ef4d6f48cc161832995d35e59884ebc1faad077381716c307e7190058fb46333"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1180,
+      "included": true,
+      "sha256": "cb1b73cc06170930c11fcdd689510528e60caa872aefdb8725299073ebc34b9d"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 191,
+      "included": true,
+      "sha256": "0748b87efc79c88978c8fb40d7228bc51bf1bd8e2f0e45d2254d5ad924cd17ca"
+    }
+  ],
+  "archive_sha256": "22372318275ff69d4b8d93e2d164c7f48e8726887861101dffde01c739f9c745"
+}

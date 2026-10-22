@@ -1,0 +1,11 @@
+Hot bodies: 603; raw byte equal: 589; bytes + resolved relocation targets equal: 593
+DIFF core/genthread.o 625 565 unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)
+DIFF core/genthread.o 1195 1066 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+DIFF core/reorder.o 3250 3085 unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)
+DIFF core/reorder.o 1195 1263 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+DIFF core/reorder.o 4290 4440 unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+DIFF core/reorder.o 4290 4440 unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+DIFF core/reorder.o 796 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+DIFF core/rl2s.o 625 565 unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)
+DIFF core/rl2s.o 1623 1477 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+DIFF main.o 289 1467 unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)

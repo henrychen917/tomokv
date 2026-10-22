@@ -1,0 +1,168 @@
+{
+  "build_argv": [
+    "taskset",
+    "-c",
+    "32-47",
+    "make",
+    "-k",
+    "-j16",
+    "all",
+    "build/at15-unit",
+    "build/at15-db0-unit",
+    "build/execabort-watch-unit",
+    "build/execabort-watch-db0-unit",
+    "build/core-concurrency-unit",
+    "build/atomic-survivors-unit",
+    "build/netcmd-unit",
+    "build/encodingfix-unit",
+    "build/netcap-unit",
+    "build/waits-unit",
+    "build/rehash-waits-unit",
+    "build/multidb-unit",
+    "build/multidb-boundary-unit",
+    "build/storesize-unit",
+    "build/wb-rule-units",
+    "build/wbland-units",
+    "build/rltopo-unit",
+    "build/lbplanner-units",
+    "build/shutdown-unit",
+    "build/persistfix-units",
+    "build/exbatch-unit",
+    "build/exbatch-db0-unit",
+    "build/ktls-keyupdate",
+    "build/ktls-keyupdate-unit",
+    "build/flushfix-units",
+    "build/splitlocal-unit",
+    "build/reorder-engagement-unit",
+    "build/reorder-engagement-unit-db0",
+    "build/racefix-climon"
+  ],
+  "build_exit": 0,
+  "targets": [
+    {
+      "target": "build/at15-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/netcmd-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/netcap-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/waits-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/multidb-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/storesize-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/wb-rule-units",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/wbland-units",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/rltopo-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/lbplanner-units",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/shutdown-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/persistfix-units",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/exbatch-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/flushfix-units",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "fresh_exit": 0
+    },
+    {
+      "target": "build/racefix-climon",
+      "fresh_exit": 0
+    }
+  ],
+  "mdbqsbr_argv": [
+    "taskset",
+    "-c",
+    "32-47",
+    "make",
+    "-j16",
+    "mdbqsbr-live-arms"
+  ],
+  "mdbqsbr_exit": 0
+}

@@ -1,0 +1,15 @@
+PARTIAL	0	GATE_ONLY_JOBS=auth notify; NOT A RECEIPT
+ok	0.010000	release build (+footprint locks)
+ok	0.030000	reject bad protected-mode
+ok	0.030000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	0.040000	ACL battery (atomic off)
+ok	0.040000	ACL battery (atomic on)
+ok	0.980000	DEBUG toggle/reload battery
+ok	0.130000	typed snapshot round-trip incl stream
+ok	2.080000	MULTI feature battery
+ok	1.440000	blocking feature battery
+ok	0.890000	pubsub feature battery
+ok	0.030000	Lua feature battery
+ok	22.730000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants

@@ -1,0 +1,1433 @@
+[
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)>",
+    "offset": "013f",
+    "address": "0x1471cf",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2770 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)>",
+    "offset": "07ea",
+    "address": "0x14787a",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2860"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)>",
+    "offset": "08c0",
+    "address": "0x147950",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2576 (discriminator 1)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2769 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::execute_atomic_apply(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .isra.0]>",
+    "offset": "0d30",
+    "address": "0x147dc0",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2867"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::KvObj::str_value() const>",
+    "offset": "0edc",
+    "address": "0x147f6c",
+    "frames": [
+      {
+        "function": "tomo_db0::kvobj_string_value(tomo_db0::KvObj const*, tomo_db0::KvObjRawReadBuffer&)",
+        "source": "/home/user/Projects/cx-final/src/cmd/../store/kvobj.h:779"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3054"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)>",
+    "offset": "1140",
+    "address": "0x1481d0",
+    "frames": [
+      {
+        "function": "execute_script_phase",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2677 (discriminator 2)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2769 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::serialize_object(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::ObjectImage&)>",
+    "offset": "115e",
+    "address": "0x1481ee",
+    "frames": [
+      {
+        "function": "execute_script_phase",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2678"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2769"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)>",
+    "offset": "13a4",
+    "address": "0x148434",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2915 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)>",
+    "offset": "1533",
+    "address": "0x1485c3",
+    "frames": [
+      {
+        "function": "execute_script_phase",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2613 (discriminator 2)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2769 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::serialize_object(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::ObjectImage&)>",
+    "offset": "1555",
+    "address": "0x1485e5",
+    "frames": [
+      {
+        "function": "execute_script_phase",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2614"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2769"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::serialize_object(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::ObjectImage&)>",
+    "offset": "1b90",
+    "address": "0x148c20",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3577"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::ensure_result(tomo_db0::ScatterState&)>",
+    "offset": "1be2",
+    "address": "0x148c72",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3586"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::KvObj::str_value() const>",
+    "offset": "1f82",
+    "address": "0x149012",
+    "frames": [
+      {
+        "function": "tomo_db0::kvobj_string_value(tomo_db0::KvObj const*, tomo_db0::KvObjRawReadBuffer&)",
+        "source": "/home/user/Projects/cx-final/src/cmd/../store/kvobj.h:779"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3538"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::xshard_make_string(tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)>",
+    "offset": "1fd8",
+    "address": "0x149068",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3538 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::atomic_needs_version(unsigned long, tomo_db0::Slice) const>",
+    "offset": "26f0",
+    "address": "0x149780",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3443 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::begin_plain_version(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, unsigned long, unsigned long) [clone .constprop.0]>",
+    "offset": "2757",
+    "address": "0x1497e7",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3444"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::atomic_needs_version(unsigned long, tomo_db0::Slice) const>",
+    "offset": "2b6b",
+    "address": "0x149bfb",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3408 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::begin_plain_version(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, unsigned long, unsigned long) [clone .constprop.0]>",
+    "offset": "2bd2",
+    "address": "0x149c62",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3409"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)>",
+    "offset": "3215",
+    "address": "0x14a2a5",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2976 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::xshard_remove_list_element(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, tomo_db0::Slice)>",
+    "offset": "3d90",
+    "address": "0x14ae20",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3260 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::atomic_needs_version(unsigned long, tomo_db0::Slice) const>",
+    "offset": "3e88",
+    "address": "0x14af18",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3237 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::begin_plain_version(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, unsigned long, unsigned long) [clone .constprop.0]>",
+    "offset": "3ef9",
+    "address": "0x14af89",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3238"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::ensure_result(tomo_db0::ScatterState&)>",
+    "offset": "42de",
+    "address": "0x14b36e",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3179"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::execute_atomic_apply(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .isra.0]>",
+    "offset": "43ac",
+    "address": "0x14b43c",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:2865"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::xshard_remove_set_element(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice)>",
+    "offset": "48d1",
+    "address": "0x14b961",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3252 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::xshard_push_list_element(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, tomo_db0::Slice)>",
+    "offset": "4990",
+    "address": "0x14ba20",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3262 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::ForeignReadKeyGuard::ForeignReadKeyGuard(tomo_db0::FlatStore&, unsigned long)>",
+    "offset": "4c37",
+    "address": "0x14bcc7",
+    "frames": [
+      {
+        "function": "tomo_db0::FlatStore::foreign_read_key_guard(unsigned long)",
+        "source": "/home/user/Projects/cx-final/src/cmd/../store/flatstore.h:820"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3200"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::atomic_needs_version(unsigned long, tomo_db0::Slice) const>",
+    "offset": "4c7b",
+    "address": "0x14bd0b",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3203 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::begin_plain_version(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, unsigned long, unsigned long) [clone .constprop.0]>",
+    "offset": "4cd5",
+    "address": "0x14bd65",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3204"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::ensure_result(tomo_db0::ScatterState&)>",
+    "offset": "4cec",
+    "address": "0x14bd7c",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3213"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::ForeignReadKeyGuard::~ForeignReadKeyGuard()>",
+    "offset": "4d2f",
+    "address": "0x14bdbf",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3232"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::xshard_insert_set_element(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice)>",
+    "offset": "4dae",
+    "address": "0x14be3e",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3254 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::xshard_pop_zset(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, unsigned long, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<double, std::allocator<double> >&)>",
+    "offset": "4e8c",
+    "address": "0x14bf1c",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3222 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::ensure_result(tomo_db0::ScatterState&)>",
+    "offset": "4edd",
+    "address": "0x14bf6d",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3213"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::serialize_object(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::ObjectImage&)>",
+    "offset": "5329",
+    "address": "0x14c3b9",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3527"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::xshard_pop_list(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, unsigned long, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&)>",
+    "offset": "5398",
+    "address": "0x14c428",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3220 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<mallocx@plt>",
+    "offset": "547d",
+    "address": "0x14c50d",
+    "frames": [
+      {
+        "function": "tomo_db0::alloc_raw(unsigned long)",
+        "source": "/home/user/Projects/cx-final/src/cmd/../store/../base/alloc.h:70 (discriminator 1)"
+      },
+      {
+        "function": "tomo_db0::kvobj_new_int(tomo_db0::Slice, long, long, bool)",
+        "source": "/home/user/Projects/cx-final/src/cmd/../store/kvobj.h:871 (discriminator 1)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3536 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::kvobj_init_int(void*, tomo_db0::Slice, long, long, bool) [clone .isra.0]>",
+    "offset": "54a8",
+    "address": "0x14c538",
+    "frames": [
+      {
+        "function": "tomo_db0::kvobj_new_int(tomo_db0::Slice, long, long, bool)",
+        "source": "/home/user/Projects/cx-final/src/cmd/../store/kvobj.h:874"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3536"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<__stack_chk_fail@plt>",
+    "offset": "58c0",
+    "address": "0x14c950",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3609"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<pthread_mutex_lock@plt>",
+    "offset": "58fe",
+    "address": "0x14c98e",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:749"
+      },
+      {
+        "function": "std::mutex::lock()",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:113"
+      },
+      {
+        "function": "std::lock_guard<std::mutex>::lock_guard(std::mutex&)",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:249"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3378"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<_ZSt20__throw_system_errori@plt>",
+    "offset": "59b4",
+    "address": "0x14ca44",
+    "frames": [
+      {
+        "function": "std::mutex::lock()",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:117"
+      },
+      {
+        "function": "std::lock_guard<std::mutex>::lock_guard(std::mutex&)",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:249"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3378"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<__stack_chk_fail@plt>",
+    "offset": "59c1",
+    "address": "0x14ca51",
+    "frames": [
+      {
+        "function": "std::mutex::lock()",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:117"
+      },
+      {
+        "function": "std::lock_guard<std::mutex>::lock_guard(std::mutex&)",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:249"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3378"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+    "target": "<tomo_db0::FlatStore::ForeignReadKeyGuard::~ForeignReadKeyGuard()>",
+    "offset": "0148",
+    "address": "0x232ae",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-final/src/cmd/xshard.cc:3232"
+      }
+    ]
+  },
+  {
+    "arm": "headline",
+    "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+    "target": "<tomo::FlatStore::deadline(unsigned long, tomo::KvObj const*) const [clone .isra.0]>",
+    "offset": "0489",
+    "address": "0x725ca9",
+    "frames": [
+      {
+        "function": "tomo::FlatStore::deadline_elapsed(unsigned long, tomo::KvObj const*, long) const",
+        "source": "/home/user/Projects/cx-final/src/cmd/../store/flatstore.h:1461"
+      },
+      {
+        "function": "tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent)",
+        "source": "/home/user/Projects/cx-final/src/cmd/../store/flatstore.h:1752"
+      },
+      {
+        "function": "bool tomo::Shard::store_erase<true>(unsigned long, tomo::Slice, tomo::FlatStore::EraseEvent)",
+        "source": "/home/user/Projects/cx-final/src/cmd/../core/shard.h:225"
+      },
+      {
+        "function": "cmd_set_prebuilt<true>",
+        "source": "/home/user/Projects/cx-final/src/cmd/l4prebuild.cc:98"
+      }
+    ]
+  },
+  {
+    "arm": "moverfix",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<pthread_mutex_lock@plt>",
+    "offset": "5859",
+    "address": "0x14d549",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:749"
+      },
+      {
+        "function": "std::mutex::lock()",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:113"
+      },
+      {
+        "function": "std::lock_guard<std::mutex>::lock_guard(std::mutex&)",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:249"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-moverfix/src/cmd/xshard.cc:3326"
+      }
+    ]
+  },
+  {
+    "arm": "moverfix",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<__stack_chk_fail@plt>",
+    "offset": "58c7",
+    "address": "0x14d5b7",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-moverfix/src/cmd/xshard.cc:3557"
+      }
+    ]
+  },
+  {
+    "arm": "moverfix",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<_ZSt20__throw_system_errori@plt>",
+    "offset": "59a8",
+    "address": "0x14d698",
+    "frames": [
+      {
+        "function": "std::mutex::lock()",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:117"
+      },
+      {
+        "function": "std::lock_guard<std::mutex>::lock_guard(std::mutex&)",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:249"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-moverfix/src/cmd/xshard.cc:3326"
+      }
+    ]
+  },
+  {
+    "arm": "moverfix",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<__stack_chk_fail@plt>",
+    "offset": "59e2",
+    "address": "0x14d6d2",
+    "frames": [
+      {
+        "function": "std::mutex::lock()",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:117"
+      },
+      {
+        "function": "std::lock_guard<std::mutex>::lock_guard(std::mutex&)",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:249"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-moverfix/src/cmd/xshard.cc:3326"
+      }
+    ]
+  },
+  {
+    "arm": "moverfix",
+    "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+    "target": "<tomo::FlatStore::deadline(unsigned long, tomo::KvObj const*) const [clone .isra.0]>",
+    "offset": "0489",
+    "address": "0x726e79",
+    "frames": [
+      {
+        "function": "tomo::FlatStore::deadline_elapsed(unsigned long, tomo::KvObj const*, long) const",
+        "source": "/home/user/Projects/cx-moverfix/src/cmd/../store/flatstore.h:1461"
+      },
+      {
+        "function": "tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent)",
+        "source": "/home/user/Projects/cx-moverfix/src/cmd/../store/flatstore.h:1752"
+      },
+      {
+        "function": "bool tomo::Shard::store_erase<true>(unsigned long, tomo::Slice, tomo::FlatStore::EraseEvent)",
+        "source": "/home/user/Projects/cx-moverfix/src/cmd/../core/shard.h:225"
+      },
+      {
+        "function": "cmd_set_prebuilt<true>",
+        "source": "/home/user/Projects/cx-moverfix/src/cmd/l4prebuild.cc:98"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)>",
+    "offset": "0138",
+    "address": "0x148738",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2772 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)>",
+    "offset": "07d6",
+    "address": "0x148dd6",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/atomics_glue.inc:87 (discriminator 1)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2862 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)>",
+    "offset": "0855",
+    "address": "0x148e55",
+    "frames": [
+      {
+        "function": "execute_atomic_direct_rename",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/atomics_glue.inc:101 (discriminator 2)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2862 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::KvObj::str_value() const>",
+    "offset": "08d0",
+    "address": "0x148ed0",
+    "frames": [
+      {
+        "function": "tomo_db0::kvobj_string_value(tomo_db0::KvObj const*, tomo_db0::KvObjRawReadBuffer&)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/kvobj.h:779"
+      },
+      {
+        "function": "execute_atomic_direct_rename",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/atomics_glue.inc:120"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2862"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::xshard_make_string(tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)>",
+    "offset": "0917",
+    "address": "0x148f17",
+    "frames": [
+      {
+        "function": "execute_atomic_direct_rename",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/atomics_glue.inc:120 (discriminator 2)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2862 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::execute_atomic_apply(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .isra.0]>",
+    "offset": "096d",
+    "address": "0x148f6d",
+    "frames": [
+      {
+        "function": "execute_atomic_direct_rename",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/atomics_glue.inc:145"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2862"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)>",
+    "offset": "09d0",
+    "address": "0x148fd0",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2578 (discriminator 1)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2771 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::execute_atomic_apply(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .isra.0]>",
+    "offset": "0ad2",
+    "address": "0x1490d2",
+    "frames": [
+      {
+        "function": "execute_atomic_direct_rename",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/atomics_glue.inc:97"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2862"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::execute_atomic_apply(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .isra.0]>",
+    "offset": "0ea0",
+    "address": "0x1494a0",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2869"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::KvObj::str_value() const>",
+    "offset": "10bc",
+    "address": "0x1496bc",
+    "frames": [
+      {
+        "function": "tomo_db0::kvobj_string_value(tomo_db0::KvObj const*, tomo_db0::KvObjRawReadBuffer&)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/kvobj.h:779"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3056"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)>",
+    "offset": "1320",
+    "address": "0x149920",
+    "frames": [
+      {
+        "function": "execute_script_phase",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2679 (discriminator 2)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2771 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::serialize_object(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::ObjectImage&)>",
+    "offset": "133e",
+    "address": "0x14993e",
+    "frames": [
+      {
+        "function": "execute_script_phase",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2680"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2771"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)>",
+    "offset": "1594",
+    "address": "0x149b94",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2917 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)>",
+    "offset": "1643",
+    "address": "0x149c43",
+    "frames": [
+      {
+        "function": "execute_script_phase",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2615 (discriminator 2)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2771 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::serialize_object(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::ObjectImage&)>",
+    "offset": "1665",
+    "address": "0x149c65",
+    "frames": [
+      {
+        "function": "execute_script_phase",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2616"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2771"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::serialize_object(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::ObjectImage&)>",
+    "offset": "1d53",
+    "address": "0x14a353",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3525"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::ensure_result(tomo_db0::ScatterState&)>",
+    "offset": "1da5",
+    "address": "0x14a3a5",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3534"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::KvObj::str_value() const>",
+    "offset": "214c",
+    "address": "0x14a74c",
+    "frames": [
+      {
+        "function": "tomo_db0::kvobj_string_value(tomo_db0::KvObj const*, tomo_db0::KvObjRawReadBuffer&)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/kvobj.h:779"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3486"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::xshard_make_string(tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)>",
+    "offset": "21a5",
+    "address": "0x14a7a5",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3486 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::atomic_needs_version(unsigned long, tomo_db0::Slice) const>",
+    "offset": "28d0",
+    "address": "0x14aed0",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3391 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::begin_plain_version(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, unsigned long, unsigned long) [clone .constprop.0]>",
+    "offset": "2937",
+    "address": "0x14af37",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3392"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::atomic_needs_version(unsigned long, tomo_db0::Slice) const>",
+    "offset": "2b1b",
+    "address": "0x14b11b",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3356 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::begin_plain_version(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, unsigned long, unsigned long) [clone .constprop.0]>",
+    "offset": "2b82",
+    "address": "0x14b182",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3357"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)>",
+    "offset": "3405",
+    "address": "0x14ba05",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2978 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::serialize_object(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::ObjectImage&)>",
+    "offset": "35e7",
+    "address": "0x14bbe7",
+    "frames": [
+      {
+        "function": "execute_atomic_direct_rename",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/atomics_glue.inc:125"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2862"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]>",
+    "offset": "3606",
+    "address": "0x14bc06",
+    "frames": [
+      {
+        "function": "tomo_db0::kvobj_free(tomo_db0::KvObj*)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/kvobj.h:1147"
+      },
+      {
+        "function": "execute_atomic_direct_rename",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/atomics_glue.inc:136"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2862"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::FlatStore::atomic_needs_version(unsigned long, tomo_db0::Slice) const>",
+    "offset": "3fa2",
+    "address": "0x14c5a2",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3203 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::begin_plain_version(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, unsigned long, unsigned long) [clone .constprop.0]>",
+    "offset": "4013",
+    "address": "0x14c613",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3204"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::ensure_result(tomo_db0::ScatterState&)>",
+    "offset": "451e",
+    "address": "0x14cb1e",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3181"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::execute_atomic_apply(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .isra.0]>",
+    "offset": "465c",
+    "address": "0x14cc5c",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2867"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::load_object_image(tomo_db0::Slice, tomo_db0::(anonymous namespace)::ObjectImage const&, tomo_db0::TypeLimits const&, tomo_db0::KvObj*&)>",
+    "offset": "4891",
+    "address": "0x14ce91",
+    "frames": [
+      {
+        "function": "execute_atomic_direct_rename",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/atomics_glue.inc:128 (discriminator 2)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2862 (discriminator 2)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<mallocx@plt>",
+    "offset": "4a46",
+    "address": "0x14d046",
+    "frames": [
+      {
+        "function": "tomo_db0::alloc_raw(unsigned long)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/../base/alloc.h:70 (discriminator 1)"
+      },
+      {
+        "function": "tomo_db0::kvobj_new_int(tomo_db0::Slice, long, long, bool)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/kvobj.h:871 (discriminator 1)"
+      },
+      {
+        "function": "execute_atomic_direct_rename",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/atomics_glue.inc:118 (discriminator 1)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2862 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::kvobj_init_int(void*, tomo_db0::Slice, long, long, bool) [clone .isra.0]>",
+    "offset": "4a77",
+    "address": "0x14d077",
+    "frames": [
+      {
+        "function": "tomo_db0::kvobj_new_int(tomo_db0::Slice, long, long, bool)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/kvobj.h:874"
+      },
+      {
+        "function": "execute_atomic_direct_rename",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/atomics_glue.inc:118"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:2862"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::execute_live_pop(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .isra.0]>",
+    "offset": "4f27",
+    "address": "0x14d527",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3196"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::execute_plain_element_mover(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .isra.0]>",
+    "offset": "5204",
+    "address": "0x14d804",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3198"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::(anonymous namespace)::serialize_object(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::ObjectImage&)>",
+    "offset": "544e",
+    "address": "0x14da4e",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3475"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<mallocx@plt>",
+    "offset": "5503",
+    "address": "0x14db03",
+    "frames": [
+      {
+        "function": "tomo_db0::alloc_raw(unsigned long)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/../base/alloc.h:70 (discriminator 1)"
+      },
+      {
+        "function": "tomo_db0::kvobj_new_int(tomo_db0::Slice, long, long, bool)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/kvobj.h:871 (discriminator 1)"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3484 (discriminator 1)"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<tomo_db0::kvobj_init_int(void*, tomo_db0::Slice, long, long, bool) [clone .isra.0]>",
+    "offset": "552a",
+    "address": "0x14db2a",
+    "frames": [
+      {
+        "function": "tomo_db0::kvobj_new_int(tomo_db0::Slice, long, long, bool)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/kvobj.h:874"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3484"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<std::mutex::lock()>",
+    "offset": "5859",
+    "address": "0x14de59",
+    "frames": [
+      {
+        "function": "std::lock_guard<std::mutex>::lock_guard(std::mutex&)",
+        "source": "/usr/include/c++/13/bits/std_mutex.h:249"
+      },
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3326"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "target": "<__stack_chk_fail@plt>",
+    "offset": "58ba",
+    "address": "0x14deba",
+    "frames": [
+      {
+        "function": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/xshard.cc:3557"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "target": "<tomo_db0::KvObj::key() const>",
+    "offset": "052c",
+    "address": "0x38c76c",
+    "frames": [
+      {
+        "function": "tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/flatstore.h:1762"
+      },
+      {
+        "function": "bool tomo_db0::Shard::store_erase<true>(unsigned long, tomo_db0::Slice, tomo_db0::FlatStore::EraseEvent)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../core/shard.h:225"
+      },
+      {
+        "function": "cmd_set_prebuilt<true>",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/l4prebuild.cc:98"
+      }
+    ]
+  },
+  {
+    "arm": "merged",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "target": "<tomo_db0::KvObj::key() const>",
+    "offset": "0ce0",
+    "address": "0x38cf20",
+    "frames": [
+      {
+        "function": "tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../store/flatstore.h:1764"
+      },
+      {
+        "function": "bool tomo_db0::Shard::store_erase<true>(unsigned long, tomo_db0::Slice, tomo_db0::FlatStore::EraseEvent)",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/../core/shard.h:225"
+      },
+      {
+        "function": "cmd_set_prebuilt<true>",
+        "source": "/home/user/Projects/cx-wave4/src/cmd/l4prebuild.cc:98"
+      }
+    ]
+  }
+]

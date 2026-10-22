@@ -2,7 +2,7 @@
 """Directed test of the FLIP controller's COST GATE and OUTCOME LOOP (src/core/flip_policy.h).
 
 Boot the server separately at the WRONG split, in split mode, with the controller on, e.g.:
-  taskset -c <cores> ./build/tomokv --port <port> --save '' --ratio 3:1 --shards 64 \\
+  taskset -c <cores> ./build/tomokv --databases 1 --port <port> --save '' --ratio 3:1 --shards 64 \\
       --flip-auto 1 --enable-debug-command yes
 
 The load is BITCOUNT over 4 MB bitmaps from a handful of closed-loop connections: pure executor

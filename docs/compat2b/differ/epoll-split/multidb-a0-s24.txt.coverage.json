@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "commands": {
+    "COPY": 276,
+    "DBSIZE": 318,
+    "EXEC": 286,
+    "FLUSHALL": 3,
+    "FLUSHDB": 315,
+    "GET": 890,
+    "INFO": 3,
+    "KEYS": 288,
+    "MOVE": 319,
+    "MULTI": 286,
+    "SELECT": 1197,
+    "SET": 890,
+    "SWAPDB": 302
+  },
+  "kinds": {
+    "COPY": [
+      "reply"
+    ],
+    "DBSIZE": [
+      "bounded batch-publication property",
+      "final publication reference",
+      "reply"
+    ],
+    "EXEC": [
+      "reply"
+    ],
+    "FLUSHALL": [
+      "reply"
+    ],
+    "FLUSHDB": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "INFO": [
+      "reply"
+    ],
+    "KEYS": [
+      "reply"
+    ],
+    "MOVE": [
+      "reply"
+    ],
+    "MULTI": [
+      "reply"
+    ],
+    "SELECT": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SWAPDB": [
+      "reply"
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+== build/publishfix/pre/unit/publishfix-unit a07bf44c05733de5
+FAIL publishfix: a quiescent bracket publishes every drawn ticket
+committers=2 safe=1 drawn=2 windows=1
+committers=3 safe=1 drawn=3 windows=2
+handoff safe=2 drawn=2 windows=1
+exit=1
+== build/publishfix-unit a81c294734e2dd1c
+committers=2 safe=2 drawn=2 windows=1
+committers=3 safe=3 drawn=3 windows=2
+handoff safe=2 drawn=2 windows=1
+PASS publishfix
+exit=0
+== build/publishfix/unit-pad-a c909ebcb39b20573
+FAIL publishfix: a quiescent bracket publishes every drawn ticket
+committers=2 safe=1 drawn=2 windows=1
+committers=3 safe=1 drawn=3 windows=2
+handoff safe=2 drawn=2 windows=1
+exit=1

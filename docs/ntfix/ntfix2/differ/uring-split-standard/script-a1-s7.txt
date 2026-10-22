@@ -1,0 +1,2 @@
+  script mechanism generated_cross=3302 deltas={'script_stage_owner_tasks': 14058, 'script_run_attempts': 3213, 'script_validate_owner_tasks': 677, 'script_apply_owner_tasks': 592, 'script_crossshard_activations': 3213, 'script_group_commits': 592, 'script_staged_bytes_total': 895973, 'script_keys_armed': 15391} live=0
+DIFFER script: 5061 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS

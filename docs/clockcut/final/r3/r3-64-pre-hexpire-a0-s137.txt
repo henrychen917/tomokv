@@ -1,0 +1,3 @@
+  TTL DEADLINE FAIL side=target command=['HPTTL', 'hx3', 'FIELDS', '2', 'bin\x00fld', 'f2'] reply=107402606117 deadline_ns=(1900000000000000000, 1900000000000000000) window_ns=(1792597393884000000, 1792597393887860998)
+  DIFF op 1848 ['HPTTL', 'hx3', 'FIELDS', '2']
+DIFFER hexpire: 4288 ops, 1 diffs, 286 deadline-bounded TTL checks -> FAIL

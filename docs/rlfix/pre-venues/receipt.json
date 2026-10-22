@@ -1,0 +1,41 @@
+{
+  "binary": "/home/user/Projects/cx-rlfix/build/rlfix/pre/tomokv",
+  "sources": {
+    "rl4lib.py": "63dc8f4791b52847ea5066bba9334ea1c2392c448fc9d819a0c064e80a5f634f",
+    "t02_miss_type_expiry.py": "40d2546e3e3dbf28297a48f09c04142cc56f3d847add2f9cb1ea1a9f690ab06d",
+    "t04b_write_precision_matrix.py": "3aa56466bc26405bd3d6aeab39ecf0290b1f230ba9f678055c385267580789bc",
+    "t04c_del_demotes_older_reads.py": "9e55c2f004a24cdb2289868cb261b40f69b47119b1c30c226055239c95b45124"
+  },
+  "runs": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "57-63",
+        "/usr/bin/python3",
+        "/home/user/Projects/cx-rlfix/docs/rlfix/pre-venues/source/t02_miss_type_expiry.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "57-63",
+        "/usr/bin/python3",
+        "/home/user/Projects/cx-rlfix/docs/rlfix/pre-venues/source/t04b_write_precision_matrix.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "57-63",
+        "/usr/bin/python3",
+        "/home/user/Projects/cx-rlfix/docs/rlfix/pre-venues/source/t04c_del_demotes_older_reads.py"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

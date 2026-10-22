@@ -1,0 +1,22 @@
+{
+  "source": 688,
+  "fixture": 688,
+  "missing": [],
+  "extra": [],
+  "ordered_equal": false,
+  "row_lines": [
+    4125,
+    4126
+  ],
+  "quick_exit_line": 4191,
+  "DQ": 2,
+  "DF": 2,
+  "unchanged_constants": {
+    "quick": 669,
+    "full": 686
+  },
+  "required_constants": {
+    "quick": 671,
+    "full": 688
+  }
+}

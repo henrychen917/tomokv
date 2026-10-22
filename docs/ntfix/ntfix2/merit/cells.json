@@ -1,0 +1,62 @@
+[
+  {
+    "file": "docs/ntfix/ntfix2/merit/generic14.cells.txt",
+    "sha256": "ac3719760fcd07f05a090bcba536162c4d713cdbef3f24e52d886e8d83880311",
+    "count": 14,
+    "ids": [
+      "h05",
+      "h06",
+      "p8g",
+      "p8s",
+      "d1g_l0",
+      "d1s_l0",
+      "m8g_l0",
+      "v1g_l0",
+      "d128g_l0",
+      "d32g_l1",
+      "d8s_l1",
+      "d32s_l1",
+      "x9_32_l1",
+      "x9_32_l0"
+    ]
+  },
+  {
+    "file": "docs/ntfix/ntfix2/merit/epoll32.cells.txt",
+    "sha256": "83e3b258157cf40a963dfb2db301e0cc05ee98ce8ccf71dcf59697a9379909eb",
+    "count": 32,
+    "ids": [
+      "h01-epoll",
+      "h02-epoll",
+      "h03-epoll",
+      "h04-epoll",
+      "h05-epoll",
+      "h06-epoll",
+      "h07-epoll",
+      "h08-epoll",
+      "h09-epoll",
+      "h10-epoll",
+      "h11-epoll",
+      "h12-epoll",
+      "h13-epoll",
+      "h14-epoll",
+      "h15-epoll",
+      "h16-epoll",
+      "h17-epoll",
+      "h18-epoll",
+      "h19-epoll",
+      "h20-epoll",
+      "h21-epoll",
+      "h22-epoll",
+      "h23-epoll",
+      "h24-epoll",
+      "h25-epoll",
+      "h26-epoll",
+      "h27-epoll",
+      "h28-epoll",
+      "h29-epoll",
+      "h30-epoll",
+      "h31-epoll",
+      "h32-epoll"
+    ]
+  }
+]

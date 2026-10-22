@@ -1,0 +1,3 @@
+75980:Deciding on inlining of small functions.  Starting with size 114487.
+139443:New minimal size reached: 105722
+1181

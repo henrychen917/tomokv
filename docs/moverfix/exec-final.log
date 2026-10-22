@@ -1,0 +1,2 @@
+{'mode': '2s', 'sha256': '82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f', 'argv': ['python3', 'tests/moverfix.py', '127.0.0.1', '23810', '--only', 'EXEC'], 'rc': 1}
+{'mode': '1s', 'sha256': '82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f', 'argv': ['python3', 'tests/moverfix.py', '127.0.0.1', '23810', '--only', 'EXEC'], 'rc': 1}

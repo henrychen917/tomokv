@@ -9,7 +9,7 @@ import concurrent.futures
 import threading
 
 import _lib
-from txniso import Battery
+from moverfix import Battery
 
 
 def move(b, name, left="RIGHT", to="LEFT", count=2000):

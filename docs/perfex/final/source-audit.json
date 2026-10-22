@@ -1,0 +1,53 @@
+{
+  "changed_production_sources": [
+    "src/cmd/storesize.cc",
+    "src/core/ex_loop.h"
+  ],
+  "untouched_sha256": {
+    "src/core/thread.h": "8922cc64961d6aa6548841881c25e14352e64a7c91cc0e8509d5070d4df8bad5",
+    "src/core/signal.h": "7b76aaa76845d96d4ef5e511ca9e8dae9774e1ac486317b60d0e077075e46f3b",
+    "src/cmd/scatter_engine.inc": "493e0ccd2c7ab9d5ae370daeeca4f0409c324bb9e8d587795da0e5592b074b0c"
+  },
+  "protected_regions": {
+    "capture/shutdown admission": {
+      "pre_lines": [
+        1864,
+        2110
+      ],
+      "unchanged": true
+    },
+    "AOF init hook": {
+      "pre_lines": [
+        172,
+        172
+      ],
+      "unchanged": true
+    },
+    "AOF owner hooks": {
+      "pre_lines": [
+        1688,
+        1705
+      ],
+      "unchanged": true
+    },
+    "AOF execute hooks": {
+      "pre_lines": [
+        2367,
+        2379
+      ],
+      "unchanged": true
+    }
+  },
+  "owner_counts": {
+    "EXPECT_QUICK": {
+      "unchanged": 511,
+      "delta": 4,
+      "required": 515
+    },
+    "EXPECT_FULL": {
+      "unchanged": 528,
+      "delta": 4,
+      "required": 532
+    }
+  }
+}

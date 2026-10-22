@@ -1,0 +1,4 @@
+  FAIL received bytes counted exactly once            got=0
+  FAIL sent bytes counted exactly once                got=0
+input bytes: delta=0 expected=39
+output bytes: delta=0 expected=5635

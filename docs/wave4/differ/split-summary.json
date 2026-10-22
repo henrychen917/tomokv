@@ -1,0 +1,112 @@
+[
+  {
+    "matrix": "uring-split",
+    "returncode": 0,
+    "summary": "DIFFER GATE: pass=475 fail=0 runtime=17m58s",
+    "seeds": {
+      "run": "wave4b-final-standard",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-wave4/.gate-history/differ"
+    },
+    "mode_equivalence": {
+      "cells": 16,
+      "verdicts": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "all_reached": true,
+      "compared_replies_per_cell": [
+        6137
+      ],
+      "reply_hashes": [
+        "b3ebffe797b6bec31cdb8c9ece8f573b3ab2f826eff8bc07ac5019d26acc9cb4"
+      ],
+      "actual_boots": 32
+    },
+    "coverage": "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2145299 recorded comparison witnesses, 474 legs)",
+    "unobserved": "not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE"
+  },
+  {
+    "matrix": "epoll-split",
+    "returncode": 0,
+    "summary": "DIFFER GATE: pass=475 fail=0 runtime=17m55s",
+    "seeds": {
+      "run": "wave4b-final-standard",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [],
+      "rotating": 21,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        21
+      ],
+      "history": "/home/user/Projects/cx-wave4/.gate-history/differ"
+    },
+    "mode_equivalence": {
+      "cells": 16,
+      "verdicts": [
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok",
+        "ok"
+      ],
+      "all_reached": true,
+      "compared_replies_per_cell": [
+        6137
+      ],
+      "reply_hashes": [
+        "b3ebffe797b6bec31cdb8c9ece8f573b3ab2f826eff8bc07ac5019d26acc9cb4"
+      ],
+      "actual_boots": 32
+    },
+    "coverage": "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2145053 recorded comparison witnesses, 474 legs)",
+    "unobserved": "not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE"
+  }
+]

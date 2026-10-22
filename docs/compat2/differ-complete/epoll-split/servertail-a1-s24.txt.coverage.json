@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "commands": {
+    "APPEND": 1,
+    "COMMAND": 19,
+    "DEL": 6,
+    "FAILOVER": 1,
+    "HSET": 700,
+    "LCS": 2506,
+    "MEMORY": 4,
+    "OBJECT": 16,
+    "PFSELFTEST": 1,
+    "ROLE": 1,
+    "RPUSH": 304,
+    "SADD": 321,
+    "SET": 806,
+    "SORT_RO": 6,
+    "SUBSTR": 339,
+    "TYPE": 5,
+    "WAIT": 2,
+    "XADD": 1,
+    "ZADD": 300
+  },
+  "kinds": {
+    "APPEND": [
+      "reply"
+    ],
+    "COMMAND": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "FAILOVER": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "LCS": [
+      "reply"
+    ],
+    "MEMORY": [
+      "reply"
+    ],
+    "OBJECT": [
+      "reply"
+    ],
+    "PFSELFTEST": [
+      "reply"
+    ],
+    "ROLE": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SORT_RO": [
+      "reply"
+    ],
+    "SUBSTR": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ],
+    "WAIT": [
+      "reply"
+    ],
+    "XADD": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ]
+  }
+}

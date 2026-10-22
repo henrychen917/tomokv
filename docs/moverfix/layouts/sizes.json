@@ -1,0 +1,158 @@
+[
+  {
+    "arm": "pre",
+    "namespace": "tomo",
+    "types": [
+      "Op",
+      "Client",
+      "ThreadCtx",
+      "Shard",
+      "FlatStore",
+      "Rob<64>",
+      "AtomicEntry",
+      "Config",
+      "ScatterState"
+    ],
+    "sizes": [
+      336,
+      1984,
+      1408,
+      1440,
+      944,
+      192,
+      144,
+      624,
+      896
+    ],
+    "expected": [
+      336,
+      1984,
+      1408,
+      1440,
+      944,
+      192,
+      144,
+      624,
+      896
+    ],
+    "rc": 0,
+    "match": true
+  },
+  {
+    "arm": "pre",
+    "namespace": "tomo_db0",
+    "types": [
+      "Op",
+      "Client",
+      "ThreadCtx",
+      "Shard",
+      "FlatStore",
+      "Rob<64>",
+      "AtomicEntry",
+      "Config",
+      "ScatterState"
+    ],
+    "sizes": [
+      336,
+      1984,
+      1408,
+      1440,
+      944,
+      192,
+      144,
+      624,
+      896
+    ],
+    "expected": [
+      336,
+      1984,
+      1408,
+      1440,
+      944,
+      192,
+      144,
+      624,
+      896
+    ],
+    "rc": 0,
+    "match": true
+  },
+  {
+    "arm": "post",
+    "namespace": "tomo",
+    "types": [
+      "Op",
+      "Client",
+      "ThreadCtx",
+      "Shard",
+      "FlatStore",
+      "Rob<64>",
+      "AtomicEntry",
+      "Config",
+      "ScatterState"
+    ],
+    "sizes": [
+      336,
+      1984,
+      1408,
+      1440,
+      944,
+      192,
+      144,
+      624,
+      896
+    ],
+    "expected": [
+      336,
+      1984,
+      1408,
+      1440,
+      944,
+      192,
+      144,
+      624,
+      896
+    ],
+    "rc": 0,
+    "match": true
+  },
+  {
+    "arm": "post",
+    "namespace": "tomo_db0",
+    "types": [
+      "Op",
+      "Client",
+      "ThreadCtx",
+      "Shard",
+      "FlatStore",
+      "Rob<64>",
+      "AtomicEntry",
+      "Config",
+      "ScatterState"
+    ],
+    "sizes": [
+      336,
+      1984,
+      1408,
+      1440,
+      944,
+      192,
+      144,
+      624,
+      896
+    ],
+    "expected": [
+      336,
+      1984,
+      1408,
+      1440,
+      944,
+      192,
+      144,
+      624,
+      896
+    ],
+    "rc": 0,
+    "match": true
+  }
+]

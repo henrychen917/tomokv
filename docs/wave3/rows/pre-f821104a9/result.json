@@ -1,0 +1,1 @@
+{"jobs": "respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-fragment-2s-uring bplus aoforder hexpread", "candidate": "/home/user/Projects/cx-wave3/build/wave3/refs/pre-src/build/tomokv", "exit_code": 1, "seconds": 73, "run_dir": "/home/user/Projects/cx-wave3/build/gate-run.8Ut7S7"}

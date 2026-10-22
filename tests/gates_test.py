@@ -280,8 +280,11 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
 '''
         with tempfile.TemporaryDirectory(dir=root / 'build') as tmp:
             for label, context in cases:
-                for basis, limit, expected in (('own-row-history', 456, 900), ('fixture', 1800, 1800)):
+                for basis, limit, expected in (('own-row-history', 456, 900), ('fixture', 1800, 1800),
+                                               ('no-history-conservative-default', 900, 900)):
                     with self.subTest(label=label, context=context, basis=basis):
+                        if label == 'ABBA comparison + saturation negative controls':
+                            expected = 1200
                         plan = dict(schema=1, defaults=dict(fallback_seconds=900), rows={label: dict(
                             timeout_seconds=limit, median_seconds=114, basis=basis)})
                         (Path(tmp) / 'plan.json').write_text(json.dumps(plan))
@@ -290,6 +293,9 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
                             text=True, capture_output=True, timeout=5)
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                         self.assertIn(f'WATCH\t{expected}\t', result.stdout)
+                        if label == 'ABBA comparison + saturation negative controls':
+                            self.assertIn('WATCH\t1200\tabba-selftest-cx-compat2-851.44s-plus-40pct-rounded',
+                                          result.stdout)
 
 
 class LedgerWiring(unittest.TestCase):
@@ -385,8 +391,9 @@ say(){ :; }
                            text=True, capture_output=True, check=True, timeout=10)
             if kind == 'feature':
                 helpers = list(self.instrument_helpers)
-                if abba_rc:
-                    helpers = helpers[:helpers.index(abba_helper) + 1] if abba_helper else helpers[:1]
+                # Every independent control must run, including after a failure.
+                # The callers still require the aggregate row to fail for every
+                # nonzero helper result; later successes cannot erase it.
                 self.assertEqual((Path(directory) / 'controls').read_text().splitlines(), helpers)
             if kind == 'performance':
                 argv = (Path(directory) / 'argv').read_bytes().decode().rstrip('\0').split('\0')
@@ -1125,6 +1132,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
             arrays = '\n'.join([
                 f'GATE_SLOTS={count}',
+                f'ALL_BUILD_CORES={cpu_list}',
                 'CANONICAL=(' + ' '.join(map(shlex.quote, canonical)) + ')',
                 'COMPLETION_ORDER=(' + ' '.join(map(shlex.quote, order)) + ')',
                 'SLOT_CORES=(' + ' '.join(slot_cpus) + ')',
@@ -1464,7 +1472,7 @@ class PersistfixWiring(unittest.TestCase):
         # active-close teardown. The plain-bind control must witness TIME_WAIT.
         with socket.socket() as listener:
             listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            listener.bind(('127.0.0.1', 0))
+            listener.bind(('127.0.0.1', int(os.environ.get('GATE_TEST_PORT', '0'))))
             listener.listen(1)
             listener.settimeout(2)
             port = listener.getsockname()[1]
@@ -1877,7 +1885,7 @@ class ShutdownBootWiring(unittest.TestCase):
         # an empty seq suppresses the readiness loop, so there is no listener or socket access.
         with tempfile.TemporaryDirectory(dir=root / 'build') as directory:
             for boot in ('boot', 'boot_fused'):
-                for extra in ('', "--save '3600 1'"):
+                for extra in ('', "--save '3600 1'", "--databases 16"):
                     script = '''
 quiet_wait(){ :; }
 guard_port(){ :; }
@@ -1891,15 +1899,66 @@ CORES=112-127; PORT=17991; GATE_RATIO=6:2
                     self.assertEqual(result.returncode, 0, result.stderr)
                     argv = (Path(directory) / 'argv').read_bytes().decode().strip('\0').split('\0')
                     saves = [argv[i + 1] for i, word in enumerate(argv) if word == '--save']
-                    self.assertEqual(saves, ['', '3600 1'] if extra else [''],
+                    self.assertEqual(saves, ['', '3600 1'] if '--save' in extra else [''],
                                      'generic boot disables save before row overrides')
                     self.assertEqual('--ratio' in argv, boot == 'boot')
+                    databases = [argv[i + 1] for i, word in enumerate(argv) if word == '--databases']
+                    self.assertEqual(databases, ['16'] if '--databases' in extra else ['1'])
         for name in ('tlsboot', 'zcboot', 'reject_boot'):
             body = gate[gate.index(name + '(){'):].split('\n}', 1)[0]
             self.assertIn("--save ''", body, name + ' must also disable shutdown snapshots')
         for name in ('aof_rewrite_matrix.sh', 'aof_rewrite_trigger_matrix.sh'):
             body = (root / 'tests' / name).read_text().split('boot_server() {', 1)[1].split('\n}', 1)[0]
             self.assertIn("--save ''", body, 'AOF recovery proof must disable shutdown snapshots')
+
+
+class TlsBootGeometry(unittest.TestCase):
+    def test_ratio_follows_thread_mode_value_and_preserves_other_arguments(self):
+        root = Path(__file__).resolve().parents[1]
+        gate = (root / 'tests/gate.sh').read_text()
+        helper = gate[gate.index('tlsboot(){'):].split('\n}', 1)[0] + '\n}\n'
+        cases = [
+            (['yes'], True),
+            (['optional'], True),
+            (['no', '--tls-protocols', 'TLSv1.2 TLSv1.3', '--tls-ciphers',
+              'ECDHE-RSA-AES256-SHA384', '--tls-ciphersuites', 'TLS_AES_256_GCM_SHA384',
+              '--tls-prefer-server-ciphers', 'yes'], True),
+            (['no', '--requirepass', 'fused'], True),
+            (['no', '--requirepass', '1s'], True),
+            (['no', '--thread-mode', 'fused', '--thread-mode', '2s'], True),
+        ]
+        for mode in ('fused', '1s', '2s', 'split'):
+            for engine in ('uring', 'epoll'):
+                cases.append((['no', '--net-io', engine, '--thread-mode', mode,
+                               '--read-local', '1'], mode in ('2s', 'split')))
+        # Capture the real helper's argv without starting a server or opening sockets.
+        with tempfile.TemporaryDirectory(dir=root / 'build') as directory:
+            for args, split in cases:
+                with self.subTest(args=args):
+                    script = '''
+quiet_wait(){ :; }
+guard_port(){ :; }
+seq(){ :; }
+taskset(){ printf '%s\\0' "$@" > "$TMPDIR/argv"; }
+CORES=80-87; PORT=22800; TLS_PORT=22801; GATE_RATIO=6:2
+CANDIDATE_BINARY=/unused/tomokv; TLS_DIR=/unused/tls
+''' + helper + '\ntlsboot "$@"\nwait "$SRV"\n'
+                    result = subprocess.run(['bash', '-c', script, 'tlsboot', *args],
+                                            capture_output=True, text=True, timeout=5,
+                                            env=dict(os.environ, TMPDIR=directory))
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    argv = (Path(directory) / 'argv').read_bytes().split(b'\0')[:-1]
+                    expected = ['-c', '80-87', '/unused/tomokv', '--databases', '1',
+                                '--port', '22800', '--tls-port', '22801', '--bind',
+                                '127.0.0.1', '--shards', '16']
+                    if split:
+                        expected += ['--ratio', '6:2']
+                    expected += ['--protected-mode', 'no', '--dir', '/unused/tls',
+                                 '--save', '', '--tls-cert-file', '/unused/tls/server.crt',
+                                 '--tls-key-file', '/unused/tls/server.key',
+                                 '--tls-ca-cert-file', '/unused/tls/ca.crt',
+                                 '--tls-auth-clients', args[0], *args[1:]]
+                    self.assertEqual(argv, [word.encode() for word in expected])
 
 
 class EarlyGateDispatch(unittest.TestCase):

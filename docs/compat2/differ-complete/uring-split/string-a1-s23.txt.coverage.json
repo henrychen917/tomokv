@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "commands": {
+    "APPEND": 206,
+    "DECR": 191,
+    "DECRBY": 211,
+    "DEL": 210,
+    "EXISTS": 199,
+    "EXPIRE": 207,
+    "GET": 208,
+    "GETDEL": 225,
+    "GETRANGE": 194,
+    "GETSET": 207,
+    "INCR": 177,
+    "INCRBY": 188,
+    "INCRBYFLOAT": 204,
+    "PERSIST": 188,
+    "PSETEX": 1,
+    "SET": 414,
+    "SETEX": 1,
+    "SETNX": 198,
+    "SETRANGE": 214,
+    "STRLEN": 195,
+    "TTL": 195
+  },
+  "kinds": {
+    "APPEND": [
+      "reply"
+    ],
+    "DECR": [
+      "reply"
+    ],
+    "DECRBY": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "EXPIRE": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "GETDEL": [
+      "reply"
+    ],
+    "GETRANGE": [
+      "reply"
+    ],
+    "GETSET": [
+      "reply"
+    ],
+    "INCR": [
+      "reply"
+    ],
+    "INCRBY": [
+      "reply"
+    ],
+    "INCRBYFLOAT": [
+      "reply"
+    ],
+    "PERSIST": [
+      "reply"
+    ],
+    "PSETEX": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SETEX": [
+      "reply"
+    ],
+    "SETNX": [
+      "reply"
+    ],
+    "SETRANGE": [
+      "reply"
+    ],
+    "STRLEN": [
+      "reply"
+    ],
+    "TTL": [
+      "reply"
+    ]
+  }
+}

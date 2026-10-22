@@ -1,0 +1,3 @@
+ops verified: 9600   flips applied: 1   flips refused: 0   BUSY retries: 0
+server counters over the run: total_connections_received +9  rejected_connections +0  client_output_buffer_limit_disconnections +0  flip_completed +1  flip_clients_transferred +8  flip_last_transfers -57  flip_in_progress +0  connected_clients 2->2
+ok: no wrong values, no generation regressions, no dropped connections

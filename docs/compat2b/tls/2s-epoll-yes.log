@@ -1,0 +1,5 @@
+  ok   yes rejects missing client cert
+  ok   yes rejects untrusted client cert
+  ok   yes accepts trusted client cert
+  ok   client rejects untrusted server certificate
+TLS PASS (yes)

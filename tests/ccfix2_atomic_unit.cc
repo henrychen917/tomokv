@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
     require(argc == 2 || argc == 3, "ccfix2-atomic-unit armed|no-arm [1s|2s]");
     const bool arm = std::string(argv[1]) == "armed";
     require(command_registry_init(false), "registry");
-    Config cfg;
+    Config cfg; cfg.databases = 1;
     cfg.thread_mode = argc == 3 && std::string(argv[2]) == "1s"
         ? ThreadMode::Fused : ThreadMode::Split;
     cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;

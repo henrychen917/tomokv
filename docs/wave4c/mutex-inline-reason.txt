@@ -1,0 +1,11 @@
+IPA function summary for tomo_db0::ScatterTaskResult tomo_db0::xshard_execute(const Task&, Shard&, Op&, uint32_t)/8406 inlinable
+    void std::mutex::lock()/102 function not considered for inlining
+      freq:0.00 loop depth: 0 size: 2 time: 11 callee size: 5 stack: 0
+    unsigned char __atomic_load_1(const volatile void*, int)/26172 function body not available
+      freq:0.00 loop depth: 0 size: 4 time: 13
+
+IPA function summary for tomo_db0::ScatterTaskResult tomo_db0::xshard_execute(const Task&, Shard&, Op&, uint32_t)/8406 inlinable
+    void std::mutex::lock()/102 call is unlikely and code size would grow
+      freq:0.00 loop depth: 0 size: 2 time: 11 callee size: 5 stack: 0
+    unsigned char __atomic_load_1(const volatile void*, int)/26172 function body not available
+      freq:0.00 loop depth: 0 size: 4 time: 13

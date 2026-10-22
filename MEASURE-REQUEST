@@ -1,16 +1,47 @@
-aclkeys3: missed XREAD notification fixed; live acceptance pending.
+ntfix4 integration handoff — current ntfix artifact
 
-Lane lbosc3 (decision group 10): see MEASURE-REQUEST-lbosc3.md.
-Status UNTUNED: serverless proof and frozen arms only; no live measurements run.
-Run >=6 key-skew rounds per arm per mode, PRE/PAD-A(type A)/POST, then pooled judge.
-Maintainer owns measurements, 14-cell null, live LB/stationary-hold rows and gate.
-Rows +0/+0. Do not land without the measured pooled-move/accuracy/rate/p99 bars.
+See MEASURE-REQUEST-ntfix.md, section ntfix4, for the completed correctness
+matrix, all body differences and the 669/686 row inventory (EXPECT untouched).
+Merged headline: bce4eb0aa6ab5b855903e201f6f19b321e09cba0.
+POST: /home/user/Projects/cx-ntfix/build/tomokv
+SHA-256: db07cacf524e03f9907ac7c42c1c79b668792c322f9d73e3d127b2d07b18afae
+Headline reference: build/ntfix4/headline-src/build/tomokv
+SHA-256: 247bb68cf027485c61269762216c73fc81de6cdb968b84c28b44f7ad1da87ca5
+Maintainer runs the merged/headline null and landing gate using the existing
+instrument and acceptance rules. No performance measurement or push by this lane.
+This supersedes the ntfix3 POST path/hash below; prior requests are retained as history.
 
-encodingfix: mainline measurements pending.
+Lane ntfix2: correctness candidate and maintainer merit request.
 
-See MEASURE-REQUEST-aclkeys3.md for the original-protocol failure, 528/528 directed serverless cases, negative controls, PRE/POST SHA-256, body/layout audit, quiet refusals, gate recipe blockers, and the requested mainline 14-cell null.
+The full request, correctness results, changed-body inventory, gate row accounting,
+and reproducible build receipts are in MEASURE-REQUEST-ntfix.md, section "ntfix2".
+Read that section's outstanding/failing proof disclosures before gating or merging.
+The standard io_uring matrix has one unresolved one-millisecond HPTTL deadline
+failure; focused repeats are green but do not erase it. The default-cipher epoll
+kTLS gauge/lifecycle finding also reproduces on PRE. This is not an all-green
+correctness sign-off.
 
-Six loaded gate runs and idle/loaded loss rates remain unrun. The strict emitted-body audit retains one discarded weak-copy difference; its selected executable copy is identical. No server or load generator was started.
+PRE:   build/ntfix-pre/tomokv
+       5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5
+POST:  build/tomokv
+       d6876ec3e8ff9a1d6df911ffac8e0f93cf609c1ecbb82a9014d12780bc280c01
+PAD A: build/tomokv-ntfix-pad-a
+       fa5564d4e9f6b65eddb17016168a8b8ee520609a19a4820f68cbb02e8ab89a3f
+
+PAD A is a behaviour twin: frozen PRE behavior plus 2672 unreachable NOP bytes,
+matching POST's aggregate .text size. PRE function addresses/sizes, GNU properties,
+and PLT layout are preserved. It does not reproduce POST internal placement.
+
+Use the gate's unchanged ABBA instrument and qualified quiet-box load plans:
+  docs/ntfix/ntfix2/merit/generic14.cells.txt (14 existing generic cells)
+  docs/ntfix/ntfix2/merit/epoll32.cells.txt   (32 existing epoll twin cells)
+Run PRE/PRE null, PRE/POST, and PRE/PAD A with contemporary same-binary nulls.
+Judge every cell by its existing matched-load rate or p1-latency score; report
+cycles/op, IPC, and instructions/op for explanation. No averaging away regressions.
+Use epoll's own qualified floors/null. Unresolved nulls do not establish a pass.
+
+This lane ran correctness only. Full gate, ABBA, and throughput measurements
+remain NOT RUN and maintainer-owned. No push.
 
 wbknobs — 2026-10-09
 
@@ -28,3 +59,14 @@ Use tools/wbknobs_measure.py on the scheduled quiet box. The report specifies
 PMU diagnostics are separate --profile 1 runs, not acceptance evidence.
 No server, benchmark or gate was run by the lane. Gate inventory is +2/+2,
 504 quick / 521 full. Append measurements as MEASURE-RESULT.
+
+mkfix2 — three measured multi-key leads, committed parts ready for maintainer merit.
+See MEASURE-REQUEST-mkfix.md, section mkfix2, for 288 finite count boots, full
+focused correctness proof, the exact 52-cell request, PRE/A/AB/ABC SHA-256, and
+A-PAD (kind A: PRE behaviour with A's exact linked text layout). A still batches
+less than plain MSET; 40 hot-body differences are explicitly retained for merit.
+B/C clear arena overflow frees and abandoned prepares in the POST census.
+All layout locks and GET/SET handler bodies hold. DQ +0 / DF +0; 625 / 642 unchanged.
+Use CPUs 32-47 and ports 25500-25599. The current standalone ABBA catalog lacks
+the requested 8-core/16-shard shape; register/select the geometry before measuring.
+No throughput claims, full gate or push. Append quiet-box merit to MEASURE-RESULT.

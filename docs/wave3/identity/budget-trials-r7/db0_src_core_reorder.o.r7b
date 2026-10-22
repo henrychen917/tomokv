@@ -1,0 +1,106 @@
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148773 --param max-inline-insns-auto=14", "unit": 113661, "changed": 7, "edited": 1, "hot_unedited": 1, "unedited": 6, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.23211fdc0aed.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    HOT    code 18394->18345 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148774 --param max-inline-insns-auto=14", "unit": 113661, "changed": 7, "edited": 1, "hot_unedited": 1, "unedited": 6, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.e978286e63b2.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    HOT    code 18394->18345 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148775 --param max-inline-insns-auto=14", "unit": 113661, "changed": 9, "edited": 1, "hot_unedited": 3, "unedited": 8, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.78fe454e3ea7.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    HOT    code 9698->9746 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    HOT    code 117->117 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    HOT    code 18394->18345 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148776 --param max-inline-insns-auto=14", "unit": 113661, "changed": 9, "edited": 1, "hot_unedited": 3, "unedited": 8, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.f7da0ba6d9c4.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    HOT    code 9698->9746 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    HOT    code 117->117 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    HOT    code 18394->18345 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148777 --param max-inline-insns-auto=14", "unit": 113661, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.3dc9c73b5db9.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148778 --param max-inline-insns-auto=14", "unit": 113661, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.050785ce7967.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148779 --param max-inline-insns-auto=14", "unit": 113661, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.16148b50efca.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148780 --param max-inline-insns-auto=14", "unit": 113661, "changed": 6, "edited": 1, "hot_unedited": 0, "unedited": 5, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.dfe39e5dd0a3.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148781 --param max-inline-insns-auto=14", "unit": 113661, "changed": 8, "edited": 1, "hot_unedited": 2, "unedited": 7, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.9260f75540ff.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    HOT    code 9698->9746 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    HOT    code 117->117 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148782 --param max-inline-insns-auto=14", "unit": 113661, "changed": 8, "edited": 1, "hot_unedited": 2, "unedited": 7, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.f8905ae74a9e.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    HOT    code 9698->9746 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    HOT    code 117->117 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148783 --param max-inline-insns-auto=14", "unit": 113661, "changed": 11, "edited": 1, "hot_unedited": 1, "unedited": 10, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.8b166287cc9c.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    other  code 3728->3933 tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+    HOT    code 18394->18345 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+    other  removed 232->0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string
+    other  removed 232->0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string
+    other  code 2942->3130 tomo_db0::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned i
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148784 --param max-inline-insns-auto=14", "unit": 113661, "changed": 11, "edited": 1, "hot_unedited": 1, "unedited": 10, "path": "/home/user/Projects/cx-wave3/build/wave3/trials-r7/post/db0_src_core_reorder.o.1827d1e7ff85.o"}
+    other  added 0->435 tomo_db0::read_local_commands_overlap(tomo_db0::Op const&, tomo_db0::Op const&) [clone .part.0]
+    other  code 6582->6146 tomo_db0::IoLoop::ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo_db
+    other  code 3728->3933 tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+    HOT    code 18394->18345 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+    EDITED code 6128->6146 tomo_db0::IoLoop::r7_ReadLocalDemotionPlan::prepare(tomo_db0::IoLoop&, tomo_db0::Client*, unsigned long, bool, int, tomo
+    other  code 1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    other  code 663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    other  code 964->861 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj
+    other  removed 232->0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string
+    other  removed 232->0 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::__cxx11::basic_string
+    other  code 2942->3130 tomo_db0::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned i

@@ -1,0 +1,12 @@
+{
+  "headline_pass": 3,
+  "post_pass": 3,
+  "seed": 19,
+  "atomic": 0,
+  "geometry": "armed-fused",
+  "engine": "epoll",
+  "fixture_binds": 6,
+  "fixture_port_min": 26880,
+  "fixture_port_max": 26881,
+  "interpretation": "Original full-matrix mismatch remains unresolved. Neither a fix nor a baseline reproduction was established."
+}

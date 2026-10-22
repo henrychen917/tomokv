@@ -1,0 +1,1305 @@
+{
+  "binary": "/home/user/Projects/cx-wave2/build/tomokv",
+  "sha256": "f7e597bf67e7d768ccf1f3d226f998def8bbea794b72e4a29d9529ad1991f5fa",
+  "rounds": 20,
+  "cells": {
+    "a0": {
+      "atomic": 0,
+      "pairs": 20,
+      "failures": 0,
+      "avg_ttl_failures": [],
+      "server_alive_at_end": true,
+      "commands": [
+        {
+          "round": 1,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 50.782,
+          "log": "build/wave2/infofix-direct/a0/expwide-1.log"
+        },
+        {
+          "round": 1,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.169,
+          "log": "build/wave2/infofix-direct/a0/infofix-1.log"
+        },
+        {
+          "round": 2,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 55.438,
+          "log": "build/wave2/infofix-direct/a0/expwide-2.log"
+        },
+        {
+          "round": 2,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.22,
+          "log": "build/wave2/infofix-direct/a0/infofix-2.log"
+        },
+        {
+          "round": 3,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 55.339,
+          "log": "build/wave2/infofix-direct/a0/expwide-3.log"
+        },
+        {
+          "round": 3,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.22,
+          "log": "build/wave2/infofix-direct/a0/infofix-3.log"
+        },
+        {
+          "round": 4,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 51.284,
+          "log": "build/wave2/infofix-direct/a0/expwide-4.log"
+        },
+        {
+          "round": 4,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.169,
+          "log": "build/wave2/infofix-direct/a0/infofix-4.log"
+        },
+        {
+          "round": 5,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 49.483,
+          "log": "build/wave2/infofix-direct/a0/expwide-5.log"
+        },
+        {
+          "round": 5,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.27,
+          "log": "build/wave2/infofix-direct/a0/infofix-5.log"
+        },
+        {
+          "round": 6,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 53.289,
+          "log": "build/wave2/infofix-direct/a0/expwide-6.log"
+        },
+        {
+          "round": 6,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a0/infofix-6.log"
+        },
+        {
+          "round": 7,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 50.385,
+          "log": "build/wave2/infofix-direct/a0/expwide-7.log"
+        },
+        {
+          "round": 7,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a0/infofix-7.log"
+        },
+        {
+          "round": 8,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 51.385,
+          "log": "build/wave2/infofix-direct/a0/expwide-8.log"
+        },
+        {
+          "round": 8,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.22,
+          "log": "build/wave2/infofix-direct/a0/infofix-8.log"
+        },
+        {
+          "round": 9,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 53.286,
+          "log": "build/wave2/infofix-direct/a0/expwide-9.log"
+        },
+        {
+          "round": 9,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a0/infofix-9.log"
+        },
+        {
+          "round": 10,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 54.888,
+          "log": "build/wave2/infofix-direct/a0/expwide-10.log"
+        },
+        {
+          "round": 10,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a0/infofix-10.log"
+        },
+        {
+          "round": 11,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 55.489,
+          "log": "build/wave2/infofix-direct/a0/expwide-11.log"
+        },
+        {
+          "round": 11,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a0/infofix-11.log"
+        },
+        {
+          "round": 12,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 57.041,
+          "log": "build/wave2/infofix-direct/a0/expwide-12.log"
+        },
+        {
+          "round": 12,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.169,
+          "log": "build/wave2/infofix-direct/a0/infofix-12.log"
+        },
+        {
+          "round": 13,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 48.83,
+          "log": "build/wave2/infofix-direct/a0/expwide-13.log"
+        },
+        {
+          "round": 13,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.22,
+          "log": "build/wave2/infofix-direct/a0/infofix-13.log"
+        },
+        {
+          "round": 14,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 56.39,
+          "log": "build/wave2/infofix-direct/a0/expwide-14.log"
+        },
+        {
+          "round": 14,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a0/infofix-14.log"
+        },
+        {
+          "round": 15,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 56.64,
+          "log": "build/wave2/infofix-direct/a0/expwide-15.log"
+        },
+        {
+          "round": 15,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.22,
+          "log": "build/wave2/infofix-direct/a0/infofix-15.log"
+        },
+        {
+          "round": 16,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 49.38,
+          "log": "build/wave2/infofix-direct/a0/expwide-16.log"
+        },
+        {
+          "round": 16,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a0/infofix-16.log"
+        },
+        {
+          "round": 17,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 52.134,
+          "log": "build/wave2/infofix-direct/a0/expwide-17.log"
+        },
+        {
+          "round": 17,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.169,
+          "log": "build/wave2/infofix-direct/a0/infofix-17.log"
+        },
+        {
+          "round": 18,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 56.187,
+          "log": "build/wave2/infofix-direct/a0/expwide-18.log"
+        },
+        {
+          "round": 18,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.169,
+          "log": "build/wave2/infofix-direct/a0/infofix-18.log"
+        },
+        {
+          "round": 19,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 48.928,
+          "log": "build/wave2/infofix-direct/a0/expwide-19.log"
+        },
+        {
+          "round": 19,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.169,
+          "log": "build/wave2/infofix-direct/a0/infofix-19.log"
+        },
+        {
+          "round": 20,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 54.688,
+          "log": "build/wave2/infofix-direct/a0/expwide-20.log"
+        },
+        {
+          "round": 20,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.169,
+          "log": "build/wave2/infofix-direct/a0/infofix-20.log"
+        }
+      ]
+    },
+    "a1": {
+      "atomic": 1,
+      "pairs": 20,
+      "failures": 0,
+      "avg_ttl_failures": [],
+      "server_alive_at_end": true,
+      "commands": [
+        {
+          "round": 1,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 51.535,
+          "log": "build/wave2/infofix-direct/a1/expwide-1.log"
+        },
+        {
+          "round": 1,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.27,
+          "log": "build/wave2/infofix-direct/a1/infofix-1.log"
+        },
+        {
+          "round": 2,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 50.783,
+          "log": "build/wave2/infofix-direct/a1/expwide-2.log"
+        },
+        {
+          "round": 2,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-2.log"
+        },
+        {
+          "round": 3,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 46.18,
+          "log": "build/wave2/infofix-direct/a1/expwide-3.log"
+        },
+        {
+          "round": 3,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.169,
+          "log": "build/wave2/infofix-direct/a1/infofix-3.log"
+        },
+        {
+          "round": 4,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 46.627,
+          "log": "build/wave2/infofix-direct/a1/expwide-4.log"
+        },
+        {
+          "round": 4,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-4.log"
+        },
+        {
+          "round": 5,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 49.082,
+          "log": "build/wave2/infofix-direct/a1/expwide-5.log"
+        },
+        {
+          "round": 5,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-5.log"
+        },
+        {
+          "round": 6,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 51.533,
+          "log": "build/wave2/infofix-direct/a1/expwide-6.log"
+        },
+        {
+          "round": 6,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-6.log"
+        },
+        {
+          "round": 7,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 54.038,
+          "log": "build/wave2/infofix-direct/a1/expwide-7.log"
+        },
+        {
+          "round": 7,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-7.log"
+        },
+        {
+          "round": 8,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 56.839,
+          "log": "build/wave2/infofix-direct/a1/expwide-8.log"
+        },
+        {
+          "round": 8,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.169,
+          "log": "build/wave2/infofix-direct/a1/infofix-8.log"
+        },
+        {
+          "round": 9,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 49.13,
+          "log": "build/wave2/infofix-direct/a1/expwide-9.log"
+        },
+        {
+          "round": 9,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-9.log"
+        },
+        {
+          "round": 10,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 52.484,
+          "log": "build/wave2/infofix-direct/a1/expwide-10.log"
+        },
+        {
+          "round": 10,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-10.log"
+        },
+        {
+          "round": 11,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 50.532,
+          "log": "build/wave2/infofix-direct/a1/expwide-11.log"
+        },
+        {
+          "round": 11,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.27,
+          "log": "build/wave2/infofix-direct/a1/infofix-11.log"
+        },
+        {
+          "round": 12,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 51.482,
+          "log": "build/wave2/infofix-direct/a1/expwide-12.log"
+        },
+        {
+          "round": 12,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-12.log"
+        },
+        {
+          "round": 13,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 49.48,
+          "log": "build/wave2/infofix-direct/a1/expwide-13.log"
+        },
+        {
+          "round": 13,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.169,
+          "log": "build/wave2/infofix-direct/a1/infofix-13.log"
+        },
+        {
+          "round": 14,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 50.381,
+          "log": "build/wave2/infofix-direct/a1/expwide-14.log"
+        },
+        {
+          "round": 14,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-14.log"
+        },
+        {
+          "round": 15,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 49.78,
+          "log": "build/wave2/infofix-direct/a1/expwide-15.log"
+        },
+        {
+          "round": 15,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-15.log"
+        },
+        {
+          "round": 16,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 48.579,
+          "log": "build/wave2/infofix-direct/a1/expwide-16.log"
+        },
+        {
+          "round": 16,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.169,
+          "log": "build/wave2/infofix-direct/a1/infofix-16.log"
+        },
+        {
+          "round": 17,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 52.734,
+          "log": "build/wave2/infofix-direct/a1/expwide-17.log"
+        },
+        {
+          "round": 17,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-17.log"
+        },
+        {
+          "round": 18,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 55.988,
+          "log": "build/wave2/infofix-direct/a1/expwide-18.log"
+        },
+        {
+          "round": 18,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-18.log"
+        },
+        {
+          "round": 19,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 59.945,
+          "log": "build/wave2/infofix-direct/a1/expwide-19.log"
+        },
+        {
+          "round": 19,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.219,
+          "log": "build/wave2/infofix-direct/a1/infofix-19.log"
+        },
+        {
+          "round": 20,
+          "battery": "expwide",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/expwide.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 52.385,
+          "log": "build/wave2/infofix-direct/a1/expwide-20.log"
+        },
+        {
+          "round": 20,
+          "battery": "infofix",
+          "exit_code": 0,
+          "argv": [
+            "taskset",
+            "-c",
+            "89-95",
+            "/usr/bin/python3",
+            "/home/user/Projects/cx-wave2/tests/infofix.py",
+            "127.0.0.1",
+            "22810"
+          ],
+          "seconds": 4.119,
+          "log": "build/wave2/infofix-direct/a1/infofix-20.log"
+        }
+      ]
+    }
+  }
+}

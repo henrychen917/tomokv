@@ -1,0 +1,172 @@
+[
+  {
+    "anchor": "register",
+    "path": "/home/user/Projects/round4-read/REGISTER.md",
+    "sha256": "c27b2c4cda579256e7785509efb6e6dce6af0859856819e767eeadf3be1c8884",
+    "lines": [
+      {
+        "line": 380,
+        "text": "**Addendum 2026-10-12 01:47 (hexpread result):** HX-1 (hash read reaps a parked predecessor and erases an undecided MSET candidate by key: torn atomic group) FIXED in cx-hexpread b27ed98a1/25d5e4b33/ab2dc7d28 (+6 rows). HX-2 NEW + FIXED (6085b4ce9, +2 rows): OBJECT IDLETIME/FREQ raw no-touch lookup could live_or_expire the physical foreign candidate (GET returns old, OBJECT nil, expired_keys 0->1). HX-3 NEW, OPEN (mark): FlatStore::find_notify checks the physical candidate's deadline before its version-aware find, so an expired foreign candidate can raise an 'expired' notification while the returned predecessor is live (notification-only; not reproduced). Audit of other lazy-expiry reads (GET-family, MGET, RANDOMKEY, SCAN/KEYS, active expiry, set/zset/list/stream readers, SORT BY hash fields, read-local probes, PFCOUNT): no further candidate erasure."
+      },
+      {
+        "line": 390,
+        "text": "**Addendum 2026-10-20 20:48 (ntfix2 result):** NT-new-1 (epoll received bytes) FIXED + sibling NT-new-1b (epoll OUTPUT bytes never counted) FIXED; NT-new-2 (TLS on io_uring did not close after QUIT / protocol error) FIXED; NT-new-3 (pre-AUTH length error texts) FIXED byte-exact; respresume F4 (pre-AUTH 1 MiB accounting counted consumed prefixes) FIXED per networking.c. NEW marks: NT-new-4 HPTTL computed from a clock cut 1 ms before the request window (io_uring differential, hexpire a0 s7, 1 in ~500 legs; not reproduced in 48 repeats; unattributed); NT-new-5 default-cipher kTLS gauge/lifecycle: tls_ktls_active stays 1 after a graceful TLS1.2 close while TLS1.3 falls back (pre-existing, 5/5 PRE); NT-new-6 pre-AUTH AUTH-vs-arity error precedence differs from Redis (ten-argument PING). Merit pending (cx-ntfix b2ad3f3c7)."
+      },
+      {
+        "line": 398,
+        "text": "**Addendum 2026-10-21 08:45 (WAVE 3 LANDED bce4eb0aa):** CLOSED by landing: NT4.2, NT4.3 (respresume); RL4.3, RL4.4 (rlfix, with the R7 copy regenerated); multi-key collapse fixes mkfix2 A + B (C and C2 deprecated by merit); F3 (aoforder); HX-1, HX-2 (hexpread); AT-PUB1 (publishfix). Gate 682 rows, EXPECT 665/682. OPEN from this wave: LAYOUT-1, HX-3, NT-new-4/5/6 (ntfix pending landing for NT-new-1..3 + F4)."
+      }
+    ]
+  },
+  {
+    "anchor": "ntfix",
+    "path": "/home/user/Projects/cx-ntfix/MEASURE-REQUEST-ntfix.md",
+    "sha256": "7699b511a4a691ad073f50077853659eb93f055a235094ad8aba297716c27e0a",
+    "lines": [
+      {
+        "line": 360,
+        "text": "| Existing RESP/netcap/TLS batteries | **PASS**, 12/12 battery legs across both modes and engines with the gate's declared boot settings; [ledger](docs/ntfix/ntfix2/post/batteries-gate-profile.log). Initial boot-contract and optional default-cipher failures are retained and explained below. |"
+      },
+      {
+        "line": 371,
+        "text": "AUTH-versus-arity error-precedence difference; that is not a length-limit"
+      },
+      {
+        "line": 386,
+        "text": "fragment receipts retain their original default-client-balancing/default-cipher"
+      },
+      {
+        "line": 388,
+        "text": "POST default-cipher controls are retained under"
+      },
+      {
+        "line": 391,
+        "text": "Fresh uninstrumented default-cipher controls passed on PRE in both modes and"
+      },
+      {
+        "line": 398,
+        "text": "TLS1.2 probe. This is a pre-existing default-cipher kTLS gauge/lifecycle"
+      },
+      {
+        "line": 426,
+        "text": "The AUTH-versus-arity difference is directly reproduced on frozen PRE and"
+      },
+      {
+        "line": 635,
+        "text": "HPTTL finding, default-cipher kTLS gauge finding, and AUTH-versus-arity difference"
+      }
+    ]
+  },
+  {
+    "anchor": "hexpread",
+    "path": "/home/user/Projects/cx-compat2/MEASURE-REQUEST-hexpread.md",
+    "sha256": "563a83d6447f9c709c890ebbe7a2a92caf4cb6f7bb9d1ec65edaff9d2f06a11b",
+    "lines": [
+      {
+        "line": 66,
+        "text": "One adjacent notification concern remains visible in the source audit: `find_notify` inspects the physical candidate's deadline before its version-aware `find`. It can therefore consider an expired foreign candidate for an `expired` notification even when the returned predecessor is live. That is a notification-only concern, not another confirmed physical deletion; it was not claimed fixed or dynamically proved in this lane."
+      }
+    ]
+  },
+  {
+    "anchor": "oracle-order",
+    "path": "/home/user/Projects/redis/src/server.c",
+    "sha256": "9d1f0f0bdc25ed6ebb2efcfce50bd4e678301567507ac6d6c67f1d85e0e6c58e",
+    "lines": [
+      {
+        "line": 1891,
+        "text": "        \"-NOAUTH Authentication required.\\r\\n\"));"
+      },
+      {
+        "line": 3826,
+        "text": "        *err = sdscatprintf(*err, \"unknown command '%.128s', with args beginning with: %s\","
+      },
+      {
+        "line": 3839,
+        "text": "    if ((c->cmd->arity > 0 && c->cmd->arity != c->argc) ||"
+      },
+      {
+        "line": 3840,
+        "text": "        (c->argc < -c->cmd->arity))"
+      },
+      {
+        "line": 3877,
+        "text": "int processCommand(client *c) {"
+      },
+      {
+        "line": 3913,
+        "text": "     * such as wrong arity, bad command name and so forth."
+      },
+      {
+        "line": 4972,
+        "text": "        addReplyLongLong(c, cmd->arity);"
+      },
+      {
+        "line": 5068,
+        "text": "    } else if ((cmd->arity > 0 && cmd->arity != c->argc-2) ||"
+      },
+      {
+        "line": 5069,
+        "text": "               ((c->argc-2) < -cmd->arity))"
+      }
+    ]
+  },
+  {
+    "anchor": "read-predicate",
+    "path": "/home/user/Projects/cx-compat2/src/store/flatstore.h",
+    "sha256": "efdc22218e71dcce474898ff2d5da446816611a7b5ff3c91d8aa6ee5099bd598",
+    "lines": [
+      {
+        "line": 1246,
+        "text": "    KvObj* find(uint64_t h, Slice key) {"
+      },
+      {
+        "line": 1251,
+        "text": "            __builtin_expect(atomic_pending_->live != 0, false)) {"
+      },
+      {
+        "line": 1272,
+        "text": "        if (expired && !notify_read_resolves_versions() && read_retirement_available())"
+      },
+      {
+        "line": 1283,
+        "text": "    __attribute__((noinline)) bool notify_read_resolves_versions() const {"
+      },
+      {
+        "line": 1284,
+        "text": "        return atomic_pending_ && atomic_pending_->live != 0;"
+      }
+    ]
+  },
+  {
+    "anchor": "tls-release",
+    "path": "/home/user/Projects/cx-compat2/src/core/io_loop.h",
+    "sha256": "40250bce540f5ee8f306928e22d6cc3e465065e869d58be7258583ccee9f388d",
+    "lines": [
+      {
+        "line": 157,
+        "text": "            ::close(c->fd());"
+      },
+      {
+        "line": 1401,
+        "text": "    __attribute__((noinline)) void release_tls(Client* c) {"
+      },
+      {
+        "line": 4925,
+        "text": "        ::close(c->fd());"
+      },
+      {
+        "line": 4930,
+        "text": "        release_tls(c);"
+      },
+      {
+        "line": 4987,
+        "text": "            release_tls(c);"
+      }
+    ]
+  },
+  {
+    "anchor": "oracle-version",
+    "output": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746"
+  }
+]

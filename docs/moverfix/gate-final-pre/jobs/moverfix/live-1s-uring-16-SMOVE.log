@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-moverfix/tests/txn_movers.py", line 120, in <module>
+    main()
+  File "/home/user/Projects/cx-moverfix/tests/txn_movers.py", line 114, in main
+    smove(b)
+  File "/home/user/Projects/cx-moverfix/tests/txn_movers.py", line 86, in smove
+    assert sorted(replies) == [0, 0, 0, 1], ("multiple SMOVE winners", replies)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('multiple SMOVE winners', [1, 1, 1, 1])

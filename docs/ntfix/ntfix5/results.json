@@ -1,0 +1,452 @@
+{
+  "post": {
+    "tls_rows": 20,
+    "tls_pass": 20,
+    "tls_fail": 0,
+    "partial_pass": 21,
+    "partial_fail": 0,
+    "gate_returncode": 0,
+    "boot_logs": [
+      {
+        "file": "post/tls/gate-tls-srv.2cPDGq.gz",
+        "mode": "1s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.3iyRFb.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.7Izv6M.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.CHalxP.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.DrP2F2.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.Emz1nI.gz",
+        "mode": "1s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.NbjpEr.gz",
+        "mode": "1s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.T8mJLd.gz",
+        "mode": "2s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.TvH8vm.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.ULBQIT.gz",
+        "mode": "1s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.WKXflT.gz",
+        "mode": "1s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.Z4mTEv.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.aY9yd3.gz",
+        "mode": "1s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.hglFJI.gz",
+        "mode": "2s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "post/tls/gate-tls-srv.zyyhVF.gz",
+        "mode": "2s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      }
+    ],
+    "legs": [
+      {
+        "defect": "close",
+        "mode": "1s",
+        "engine": "uring",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-close-1s-uring.txt"
+      },
+      {
+        "defect": "close",
+        "mode": "1s",
+        "engine": "epoll",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-close-1s-epoll.txt"
+      },
+      {
+        "defect": "close",
+        "mode": "2s",
+        "engine": "uring",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-close-2s-uring.txt"
+      },
+      {
+        "defect": "close",
+        "mode": "2s",
+        "engine": "epoll",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-close-2s-epoll.txt"
+      },
+      {
+        "defect": "preauth",
+        "mode": "1s",
+        "engine": "uring",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-preauth-1s-uring.txt"
+      },
+      {
+        "defect": "preauth",
+        "mode": "1s",
+        "engine": "epoll",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-preauth-1s-epoll.txt"
+      },
+      {
+        "defect": "preauth",
+        "mode": "2s",
+        "engine": "uring",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-preauth-2s-uring.txt"
+      },
+      {
+        "defect": "preauth",
+        "mode": "2s",
+        "engine": "epoll",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-preauth-2s-epoll.txt"
+      },
+      {
+        "defect": "frontier",
+        "mode": "1s",
+        "engine": "uring",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-frontier-1s-uring.txt"
+      },
+      {
+        "defect": "frontier",
+        "mode": "1s",
+        "engine": "epoll",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-frontier-1s-epoll.txt"
+      },
+      {
+        "defect": "frontier",
+        "mode": "2s",
+        "engine": "uring",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-frontier-2s-uring.txt"
+      },
+      {
+        "defect": "frontier",
+        "mode": "2s",
+        "engine": "epoll",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "post/tls/ntfix-frontier-2s-epoll.txt"
+      }
+    ],
+    "post_transport_legs": 24,
+    "frontier_unit": "current worktree unit; not bound to candidate binary"
+  },
+  "pre": {
+    "tls_rows": 20,
+    "tls_pass": 17,
+    "tls_fail": 3,
+    "partial_pass": 18,
+    "partial_fail": 3,
+    "gate_returncode": 1,
+    "boot_logs": [
+      {
+        "file": "pre/tls/gate-tls-srv.47MtWv.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.4xxSXM.gz",
+        "mode": "1s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.5Fn4UW.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.FrdyYr.gz",
+        "mode": "1s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.GEWoWW.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.Im3FY4.gz",
+        "mode": "2s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.NomOcT.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.O5loUJ.gz",
+        "mode": "2s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.WtxX0R.gz",
+        "mode": "1s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.X9uwdx.gz",
+        "mode": "2s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.ZvOaNr.gz",
+        "mode": "1s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.j5QAUu.gz",
+        "mode": "1s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.lp4IET.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.tsrYLD.gz",
+        "mode": "2s",
+        "engine": "uring",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      },
+      {
+        "file": "pre/tls/gate-tls-srv.zAY9m5.gz",
+        "mode": "1s",
+        "engine": "epoll",
+        "tcp_listener": 22800,
+        "tls_listener": 22801
+      }
+    ],
+    "legs": [
+      {
+        "defect": "close",
+        "mode": "1s",
+        "engine": "uring",
+        "passed": false,
+        "witness": "TLS reply completed; waiting for EOF times out",
+        "log": "pre/tls/ntfix-close-1s-uring.txt"
+      },
+      {
+        "defect": "close",
+        "mode": "1s",
+        "engine": "epoll",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "pre/tls/ntfix-close-1s-epoll.txt"
+      },
+      {
+        "defect": "close",
+        "mode": "2s",
+        "engine": "uring",
+        "passed": false,
+        "witness": "TLS reply completed; waiting for EOF times out",
+        "log": "pre/tls/ntfix-close-2s-uring.txt"
+      },
+      {
+        "defect": "close",
+        "mode": "2s",
+        "engine": "epoll",
+        "passed": true,
+        "witness": "TCP and TLS pass",
+        "log": "pre/tls/ntfix-close-2s-epoll.txt"
+      },
+      {
+        "defect": "preauth",
+        "mode": "1s",
+        "engine": "uring",
+        "passed": false,
+        "witness": "TCP returns invalid multibulk length instead of unauthenticated length",
+        "log": "pre/tls/ntfix-preauth-1s-uring.txt"
+      },
+      {
+        "defect": "preauth",
+        "mode": "1s",
+        "engine": "epoll",
+        "passed": false,
+        "witness": "TCP returns invalid multibulk length instead of unauthenticated length",
+        "log": "pre/tls/ntfix-preauth-1s-epoll.txt"
+      },
+      {
+        "defect": "preauth",
+        "mode": "2s",
+        "engine": "uring",
+        "passed": false,
+        "witness": "TCP returns invalid multibulk length instead of unauthenticated length",
+        "log": "pre/tls/ntfix-preauth-2s-uring.txt"
+      },
+      {
+        "defect": "preauth",
+        "mode": "2s",
+        "engine": "epoll",
+        "passed": false,
+        "witness": "TCP returns invalid multibulk length instead of unauthenticated length",
+        "log": "pre/tls/ntfix-preauth-2s-epoll.txt"
+      },
+      {
+        "defect": "frontier",
+        "mode": "1s",
+        "engine": "uring",
+        "passed": false,
+        "witness": "TCP closes before unconsumed input exceeds its limit",
+        "log": "pre/tls/ntfix-frontier-1s-uring.txt"
+      },
+      {
+        "defect": "frontier",
+        "mode": "1s",
+        "engine": "epoll",
+        "passed": false,
+        "witness": "TCP closes before unconsumed input exceeds its limit",
+        "log": "pre/tls/ntfix-frontier-1s-epoll.txt"
+      },
+      {
+        "defect": "frontier",
+        "mode": "2s",
+        "engine": "uring",
+        "passed": false,
+        "witness": "TCP closes before unconsumed input exceeds its limit",
+        "log": "pre/tls/ntfix-frontier-2s-uring.txt"
+      },
+      {
+        "defect": "frontier",
+        "mode": "2s",
+        "engine": "epoll",
+        "passed": false,
+        "witness": "TCP closes before unconsumed input exceeds its limit",
+        "log": "pre/tls/ntfix-frontier-2s-epoll.txt"
+      }
+    ],
+    "post_transport_legs": null,
+    "frontier_unit": "current worktree unit; not bound to candidate binary"
+  },
+  "binaries": {
+    "post": {
+      "path": "build/tomokv",
+      "sha256": "db07cacf524e03f9907ac7c42c1c79b668792c322f9d73e3d127b2d07b18afae"
+    },
+    "pre_bce4eb0aa": {
+      "path": "build/ntfix4/headline-src/build/tomokv",
+      "sha256": "247bb68cf027485c61269762216c73fc81de6cdb968b84c28b44f7ad1da87ca5"
+    }
+  },
+  "expect": {
+    "quick": 669,
+    "full": 686,
+    "unchanged": true
+  },
+  "source_sha256": {
+    "tests/gate.sh": "13b5069565ef9ae2dff3b41cf164159795641e9a5ea95a881b3151bcadee9044",
+    "tests/gates_test.py": "db840226aa07d79c8fbe1e47b4db05cec91502db97a904ebb8d3ced7aa6c700b",
+    "tests/persistfix.py": "41e49982c91ac5c47048955f12e27f08cb2d23c31abab5d4474f8c714790f626"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "source": "/home/user/Projects/cx-wave4/build/wave4/landing-sim/build/gate-run.yUtYSH",
+  "files": [
+    {
+      "path": "families.tsv",
+      "bytes": 58,
+      "included": true,
+      "sha256": "2c4e7c48420a0b9f5b82131b6978a0d3a2ddcf923ddf49766ee71399c8cece02"
+    },
+    {
+      "path": "jobs/abba_selftest/done",
+      "bytes": 6,
+      "included": true,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/abba_selftest/family.tsv",
+      "bytes": 58,
+      "included": true,
+      "sha256": "2c4e7c48420a0b9f5b82131b6978a0d3a2ddcf923ddf49766ee71399c8cece02"
+    },
+    {
+      "path": "jobs/abba_selftest/gate-abbagate-unit.txt",
+      "bytes": 157000,
+      "included": true,
+      "sha256": "11efd9d62c578482aaa689588739f06311cea7cd8b27f2ea021739d758d76710"
+    },
+    {
+      "path": "jobs/abba_selftest/ledger",
+      "bytes": 61,
+      "included": true,
+      "sha256": "4f538deba0f2e114980c328a8838a566b491fa040d99fce0a4e67b3b286f76c2"
+    },
+    {
+      "path": "jobs/abba_selftest/output.log",
+      "bytes": 169,
+      "included": true,
+      "sha256": "969c1b49eef9b6f49bfcf0b95e39abb359e85c30cf5c041f8a4c2465cea57942"
+    },
+    {
+      "path": "jobs/abba_selftest/row-timeout-3951678.3951678.429642715.1.cancel",
+      "bytes": 63,
+      "included": true,
+      "sha256": "8d7d1405dbc6a4eefd2c76859286ca96f254b346232f324c931146776db2106b"
+    },
+    {
+      "path": "jobs/abba_selftest/timings",
+      "bytes": 61,
+      "included": true,
+      "sha256": "4f538deba0f2e114980c328a8838a566b491fa040d99fce0a4e67b3b286f76c2"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "included": true,
+      "sha256": "a4c23d437f86075752a2b98c615c617806af53b50930edc290b1619af0eca9b0"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1172,
+      "included": true,
+      "sha256": "9bf5c4c56772f2911090e4c75ceed592d27c61da444069c0269adbd89f962a60"
+    },
+    {
+      "path": "queue.lock",
+      "bytes": 0,
+      "included": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 190,
+      "included": true,
+      "sha256": "2ac08d32ef2f6eaff0024ef453a4fea59d29fc6a0ab7e70199700602be370b76"
+    }
+  ],
+  "archive_sha256": "68dd05cd0fed391c7738d78a6848965f0f8e11c2ffb52b92ac9686f9edfa01b8"
+}

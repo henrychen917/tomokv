@@ -1,0 +1,47 @@
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31379", "unit": 24369, "changed": 4, "hot_changed": 0, "A": 2, "B": 2, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.d69bca54419b.o"}
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31402", "unit": 24369, "changed": 8, "hot_changed": 0, "A": 2, "B": 2, "C": 4, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.1d3747317fff.o"}
+    C T=new code 16917->16649 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    C T=new code 346->338 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+    C T=new added 0->204 lanes=- eq=- tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31370", "unit": 24369, "changed": 4, "hot_changed": 0, "A": 2, "B": 2, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.8f0edd0d8920.o"}
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31374", "unit": 24369, "changed": 3, "hot_changed": 0, "A": 1, "B": 2, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.0b008cda22c6.o"}
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31378", "unit": 24369, "changed": 4, "hot_changed": 0, "A": 2, "B": 2, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.f0825e058865.o"}
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31382", "unit": 24369, "changed": 3, "hot_changed": 0, "A": 1, "B": 2, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.4094f3c1a68d.o"}
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31386", "unit": 24369, "changed": 3, "hot_changed": 0, "A": 2, "B": 1, "C": 0, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.aab9cc0f7856.o"}
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31390", "unit": 24369, "changed": 4, "hot_changed": 0, "A": 2, "B": 1, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.f77808933ab9.o"}
+    C T=new code 1027->1043 lanes=- eq=- tomo::(anonymous namespace)::snapshot_command(tomo::Op&, bool)
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31394", "unit": 24369, "changed": 8, "hot_changed": 0, "A": 2, "B": 2, "C": 4, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.683f95e3ae66.o"}
+    C T=new code 16917->16649 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    C T=new code 346->338 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+    C T=new added 0->204 lanes=- eq=- tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31398", "unit": 24369, "changed": 7, "hot_changed": 0, "A": 1, "B": 2, "C": 4, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.dad36ee3014d.o"}
+    C T=new code 16917->16649 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    C T=new code 346->338 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+    C T=new added 0->204 lanes=- eq=- tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31406", "unit": 24369, "changed": 7, "hot_changed": 0, "A": 1, "B": 2, "C": 4, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.14e4d25b17ae.o"}
+    C T=new code 16917->16649 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    C T=new code 346->338 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+    C T=new added 0->204 lanes=- eq=- tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31410", "unit": 24369, "changed": 7, "hot_changed": 0, "A": 2, "B": 1, "C": 4, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.4a5b4cdd5253.o"}
+    C T=new code 16917->16649 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+    C T=new code 346->338 lanes=- eq=- tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+    C T=new added 0->204 lanes=- eq=- tomo::Server::shard_owner_count() const
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31414", "unit": 24369, "changed": 5, "hot_changed": 0, "A": 2, "B": 2, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.1b39bb9cd8ce.o"}
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31418", "unit": 24369, "changed": 5, "hot_changed": 0, "A": 2, "B": 2, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.487272a1bb78.o"}
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31422", "unit": 24369, "changed": 5, "hot_changed": 0, "A": 2, "B": 2, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.17308ab877fc.o"}
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31426", "unit": 24369, "changed": 5, "hot_changed": 0, "A": 2, "B": 2, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.dfc7c24f405b.o"}
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31430", "unit": 24369, "changed": 4, "hot_changed": 0, "A": 2, "B": 1, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.a25aec105295.o"}
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31434", "unit": 24369, "changed": 3, "hot_changed": 0, "A": 1, "B": 1, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.3a82cddcf3cb.o"}
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()
+{"object": "src/cmd/t_server.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=31438", "unit": 24369, "changed": 5, "hot_changed": 0, "A": 2, "B": 2, "C": 1, "D": 0, "hotA": 0, "hotB": 0, "hotCD": 0, "path": "/home/user/Projects/cx-wave3/build/wave3/trials/post/src_cmd_t_server.o.d61a9b926d67.o"}
+    C T=new code 3269->3413 lanes=- eq=- tomo::FlatStore::random_live()

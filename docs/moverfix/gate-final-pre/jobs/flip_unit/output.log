@@ -1,0 +1,2 @@
+  row budget: 900s; median=4.715s; correctness-plan-fallback; flip controller model unit
+  flip controller model unit                           ok

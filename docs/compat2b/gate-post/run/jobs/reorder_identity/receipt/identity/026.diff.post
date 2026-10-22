@@ -1,0 +1,17 @@
+0000 [ 5] call <abort@plt> | e8 ?? ?? ?? ??
+0005 [ 3] test %rbp,%rbp | 48 85 ed
+0008 [ 2] je <+0x38> | 74 2e
+000a [ 3] mov %r12,%rdi | 4c 89 e7
+000d [ 3] vzeroupper | c5 f8 77
+0010 [ 5] call <tomo::Server::read_local_epoch() const> | e8 ?? ?? ?? ??
+0015 [ 3] mov %r13,%rdi | 4c 89 ef
+0018 [ 3] mov %rax,%rsi | 48 89 c6
+001b [ 5] call <tomo::ThreadCtx::publish_read_local_tick(unsigned long)> | e8 ?? ?? ?? ??
+0020 [ 5] mov 0x18(%rsp),%rax | 48 8b 44 24 18
+0025 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+002e [ 2] jne <+0x3d> | 75 0d
+0030 [ 3] mov %rbx,%rdi | 48 89 df
+0033 [ 5] call <_Unwind_Resume@plt> | e8 ?? ?? ?? ??
+0038 [ 3] vzeroupper | c5 f8 77
+003b [ 2] jmp <+0x20> | eb e3
+003d [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??

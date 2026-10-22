@@ -1,0 +1,16 @@
+{
+  "control": "S disabled: return null instead of salvaging physical records",
+  "limitation": "Short-lived negative control leaks the discarded batch; never a production or merit arm",
+  "source": "build/netcmd-unit",
+  "output": "build/notifyorder/netcmd-unit-no-salvage-final",
+  "sha256": "057134a65ca51ebe84ca4610d0530495bc002d39c20a4b201390c1d0a697c887",
+  "source_sha256": "0dbe8fe4aeffb8009eb6646694a818aa2859d9779001267de2885d7147e8cac7",
+  "patches": [
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE",
+      "offset": 357056,
+      "before": "4885ff",
+      "after": "31c0c3"
+    }
+  ]
+}

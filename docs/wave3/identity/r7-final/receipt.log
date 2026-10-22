@@ -1,0 +1,7 @@
+normalizer self-checks PASS
+strict_noop=True: 292/292 identical bodies
+PASS missing policy symbol, missing split-local parser and changed opcode fail strict identity
+
+real	1m32.783s
+user	1m29.145s
+sys	0m3.874s

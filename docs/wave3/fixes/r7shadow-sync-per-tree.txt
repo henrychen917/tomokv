@@ -1,0 +1,7 @@
+pre r7shadow_sync rc=0
+base991 r7shadow_sync rc=0
+respresume r7shadow_sync rc=0
+rlfix r7shadow_sync rc=1
+mkfix r7shadow_sync rc=0
+aoforder r7shadow_sync rc=0
+hexpread r7shadow_sync rc=0

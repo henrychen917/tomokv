@@ -1,0 +1,6 @@
+test_watchdogs_use_fixed_or_explicit_budgets_including_contextual_rows (gates_test.CorrectnessBudgetWiring.test_watchdogs_use_fixed_or_explicit_budgets_including_contextual_rows) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.058s
+
+OK

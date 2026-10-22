@@ -36,7 +36,8 @@ ScatterTaskResult execute_plain_element_mover(const Task& task, Shard& shard, Op
         auto foreign_read_scope = shard.store().foreign_read_key_guard(key.hash);
         bool plain_active = false;
         WorkError error = WorkError::None;
-        if (shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
+        if (!state.multi_child &&
+            shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
             error = begin_plain_version(*state.server, shard, op.arg(key.arg), key.hash,
                                         UINT64_MAX, state.origin_conn_id);
             plain_active = error == WorkError::None;

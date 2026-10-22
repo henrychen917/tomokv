@@ -1,0 +1,43 @@
+  ok   DEBUG SHARD/LBSIGNALS geometry resolved same_shard=11 source_owner=3 destination_owner=7
+  ok   OFF control exposes torn MSET-8 torn=42295 reads=42321 errors=[] threads_still_alive=False
+  ok   ON MSET-8/MGET-8 torn-free torn=0 reads=2488 errors=[] threads_still_alive=False
+  ok   ON commit-delay window held a read cut delta=1864
+  ok   ON exercised predecessor resolution delta=19880
+  ok   ON exercised promotion delta=9952
+  SKIP ON promotion drains within release budget requires --release-build; promotion-drain=0.000s holds=1864 predecessors=19880 promotions=9952
+  ok   atomic_inflight returns to idle value=0
+  ok   same-owner atomic MSET-2 localfast is torn-free keys=('at:geometry:0000', 'at:geometry:0012') torn=0 reads=91089 localfast=46011 errors=[] threads_still_alive=False
+  ok   overlapping atomic writers never mix torn=0 reads=93429 errors=[] threads_still_alive=False
+  ok   promotion leaves one exact final group final=b'at:overlap:w0:18470' completed=36884 threads_still_alive=False
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001335 witness_s=0.0012902370654046535 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=137103 final=True errors=[] threads_still_alive=False hold_s=0.001288 witness_s=0.0012345458380877972 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes impossible SINTERSTORE image invalid=168 reads=35406 errors=[] threads_still_alive=False
+  ok   ON SINTERSTORE image matches one source cut invalid=0 reads=28643 final=True errors=[] threads_still_alive=False
+  ok   OFF LMPOP racers preserve element accounting popped=2048 remaining=0 errors=[] threads_still_alive=False
+  ok   ON LMPOP racers pop every element exactly once popped=2048 remaining=0 errors=[] threads_still_alive=False
+  ok   OFF control exposes RENAMENX losing race anomalies=4 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+  ok   OFF control exposes COPY losing race anomalies=4 errors=[] threads_still_alive=False
+  ok   ON COPY loser is invisible anomalies=0 errors=[] threads_still_alive=False
+  note atomic-window window attempt=1/4 outcome=armed limit=256 groups=640 peak=256 held_stalls=10 stalls=19 carried=0 held_replies=0 arm_s=0.006 held_replies/s=0.0 released=True replies=640/640 resume_s=0.006 resume_replies/s=115673.0
+  ok   derived atomic window stalls and resumes window attempt=1/4 outcome=armed limit=256 groups=640 peak=256 held_stalls=10 stalls=19 carried=0 held_replies=0 arm_s=0.006 held_replies/s=0.0 released=True replies=640/640 resume_s=0.006 resume_replies/s=115673.0 credits=256 observed_attempts=1/1
+  note atomic-window reconfigure attempt=1/4 outcome=armed limit=256 groups=641 peak=256 held_stalls=12 stalls=12 carried=1 held_replies=409 arm_s=0.006 held_replies/s=66313.5 released=True replies=641/641 resume_s=9.996 resume_replies/s=7.4 lease_pool=255 lease_reclaims=0
+  ok   atomic reconfiguration preserves derived bound and reclaims leases reconfigure attempt=1/4 outcome=armed limit=256 groups=641 peak=256 held_stalls=12 stalls=12 carried=1 held_replies=409 arm_s=0.006 held_replies/s=66313.5 released=True replies=641/641 resume_s=9.996 resume_replies/s=7.4 lease_pool=255 lease_reclaims=0 credits=256 observed_attempts=1/1
+  ok   CONFIG SET atomic flip under load errors=[] final=b'flip:final'
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-rlresize/build/rlresize/pre-src/tests/atomic_torn.py", line 1055, in <module>
+    churn_after = stats()
+                  ^^^^^^^
+  File "/home/user/Projects/cx-rlresize/build/rlresize/pre-src/tests/atomic_torn.py", line 123, in stats
+    body = c.cmd("INFO", "STATS").decode()
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-rlresize/build/rlresize/pre-src/tests/atomic_torn.py", line 99, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-rlresize/build/rlresize/pre-src/tests/atomic_torn.py", line 72, in read
+    line = self.file.readline()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer

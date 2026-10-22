@@ -1,0 +1,120 @@
+0000 [ 2] xor %edi,%edi | 31 ff
+0002 [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+0009 [ 7] mov %rdi,-0x598(%rbp) | 48 89 bd 68 fa ff ff
+0010 [ 3] vzeroupper | c5 f8 77
+0013 [ 3] mov %r13,%rdi | 4c 89 ef
+0016 [ 5] call <std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >::~vector()> | e8 ?? ?? ?? ??
+001b [ 7] mov -0x560(%rbp),%rdi | 48 8b bd a0 fa ff ff
+0022 [ 3] test %rdi,%rdi | 48 85 ff
+0025 [ 2] je <+0x2c> | 74 05
+0027 [ 5] call <std::default_delete<tomo::SnapshotLoadPlan>::operator()(tomo::SnapshotLoadPlan*) const [clone .part.0]> | e8 ?? ?? ?? ??
+002c [ 8] cmpq $0x0,-0x598(%rbp) | 48 83 bd 68 fa ff ff 00
+0034 [ 2] je <+0x42> | 74 0c
+0036 [ 7] mov -0x598(%rbp),%rdi | 48 8b bd 68 fa ff ff
+003d [ 5] call <std::default_delete<tomo::SnapshotLoadPlan>::operator()(tomo::SnapshotLoadPlan*) const [clone .part.0]> | e8 ?? ?? ?? ??
+0042 [ 7] cmpb $0x0,-0x590(%rbp) | 80 bd 70 fa ff ff 00
+0049 [ 2] je <+0xba> | 74 6f
+004b [ 7] mov -0x5d8(%rbp),%rcx | 48 8b 8d 28 fa ff ff
+0052 [ 3] or $0xffffffff,%eax | 83 c8 ff
+0055 [ 8] lock xadd %eax,0x14b70(%rcx) | f0 0f c1 81 70 4b 01 00
+005d [ 2] test %eax,%eax | 85 c0
+005f [ 2] jne <+0xba> | 75 59
+0061 [ 5] call <abort@plt> | e8 ?? ?? ?? ??
+0066 [ 3] xor %r8d,%r8d | 45 31 c0
+0069 [ 7] movb $0x0,-0x590(%rbp) | c6 85 70 fa ff ff 00
+0070 [ 7] mov %r8,-0x598(%rbp) | 4c 89 85 68 fa ff ff
+0077 [ 7] lea -0x400(%rbp),%rdi | 48 8d bd 00 fc ff ff
+007e [ 7] mov %rax,-0x588(%rbp) | 48 89 85 78 fa ff ff
+0085 [ 3] vzeroupper | c5 f8 77
+0088 [ 5] call <std::vector<unsigned int, std::allocator<unsigned int> >::~vector()> | e8 ?? ?? ?? ??
+008d [ 7] mov -0x588(%rbp),%rbx | 48 8b 9d 78 fa ff ff
+0094 [ 7] lea -0x4e0(%rbp),%rax | 48 8d 85 20 fb ff ff
+009b [ 7] mov %rax,-0x5e8(%rbp) | 48 89 85 18 fa ff ff
+00a2 [ 7] mov -0x5e8(%rbp),%rdi | 48 8b bd 18 fa ff ff
+00a9 [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+00b0 [ 5] call <std::_Vector_base<double, std::allocator<double> >::~_Vector_base()> | e8 ?? ?? ?? ??
+00b5 [ 5] jmp <+0x13> | e9 59 ff ff ff
+00ba [ 4] mov -0x38(%rbp),%rax | 48 8b 45 c8
+00be [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+00c7 [ 2] jne <+0xd1> | 75 08
+00c9 [ 3] mov %rbx,%rdi | 48 89 df
+00cc [ 5] call <_Unwind_Resume@plt> | e8 ?? ?? ?? ??
+00d1 [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??
+00d6 [ 7] mov -0x5e8(%rbp),%rdi | 48 8b bd 18 fa ff ff
+00dd [ 3] vzeroupper | c5 f8 77
+00e0 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+00e5 [ 7] mov -0x5f0(%rbp),%rdi | 48 8b bd 10 fa ff ff
+00ec [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+00f3 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+00f8 [ 3] xor %r10d,%r10d | 45 31 d2
+00fb [ 7] mov %r10,-0x598(%rbp) | 4c 89 95 68 fa ff ff
+0102 [ 5] jmp <+0x13> | e9 0c ff ff ff
+0107 [ 3] mov %r14,%rdi | 4c 89 f7
+010a [ 3] vzeroupper | c5 f8 77
+010d [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+0112 [ 2] jmp <+0xe5> | eb d1
+0114 [ 2] xor %esi,%esi | 31 f6
+0116 [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+011d [ 7] mov %rsi,-0x598(%rbp) | 48 89 b5 68 fa ff ff
+0124 [ 3] vzeroupper | c5 f8 77
+0127 [ 5] jmp <+0x13> | e9 e7 fe ff ff
+012c [ 3] xor %r13d,%r13d | 45 31 ed
+012f [ 7] mov %r13,-0x598(%rbp) | 4c 89 ad 68 fa ff ff
+0136 [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+013d [ 3] vzeroupper | c5 f8 77
+0140 [ 5] jmp <+0x13> | e9 ce fe ff ff
+0145 [ 3] xor %r8d,%r8d | 45 31 c0
+0148 [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+014f [ 7] mov %r8,-0x598(%rbp) | 4c 89 85 68 fa ff ff
+0156 [ 3] vzeroupper | c5 f8 77
+0159 [ 5] jmp <+0x13> | e9 b5 fe ff ff
+015e [ 3] xor %r14d,%r14d | 45 31 f6
+0161 [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+0168 [ 7] mov %r14,-0x598(%rbp) | 4c 89 b5 68 fa ff ff
+016f [ 3] vzeroupper | c5 f8 77
+0172 [ 5] jmp <+0x13> | e9 9c fe ff ff
+0177 [ 3] xor %r15d,%r15d | 45 31 ff
+017a [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+0181 [ 7] mov %r15,-0x598(%rbp) | 4c 89 bd 68 fa ff ff
+0188 [ 3] vzeroupper | c5 f8 77
+018b [ 5] jmp <+0x13> | e9 83 fe ff ff
+0190 [ 3] xor %r12d,%r12d | 45 31 e4
+0193 [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+019a [ 7] mov %r12,-0x598(%rbp) | 4c 89 a5 68 fa ff ff
+01a1 [ 3] vzeroupper | c5 f8 77
+01a4 [ 5] jmp <+0x13> | e9 6a fe ff ff
+01a9 [ 3] mov %r14,%rdi | 4c 89 f7
+01ac [ 3] vzeroupper | c5 f8 77
+01af [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+01b4 [ 7] mov -0x5e8(%rbp),%rdi | 48 8b bd 18 fa ff ff
+01bb [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+01c0 [ 5] jmp <+0xe5> | e9 20 ff ff ff
+01c5 [ 3] mov %r14,%rdi | 4c 89 f7
+01c8 [ 3] vzeroupper | c5 f8 77
+01cb [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+01d0 [ 7] mov -0x5e8(%rbp),%rdi | 48 8b bd 18 fa ff ff
+01d7 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+01dc [ 3] xor %r9d,%r9d | 45 31 c9
+01df [ 7] mov %r9,-0x598(%rbp) | 4c 89 8d 68 fa ff ff
+01e6 [ 5] jmp <+0x13> | e9 28 fe ff ff
+01eb [ 3] xor %r9d,%r9d | 45 31 c9
+01ee [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+01f5 [ 7] mov %r9,-0x598(%rbp) | 4c 89 8d 68 fa ff ff
+01fc [ 3] vzeroupper | c5 f8 77
+01ff [ 5] jmp <+0x13> | e9 0f fe ff ff
+0204 [ 7] movb $0x0,-0x590(%rbp) | c6 85 70 fa ff ff 00
+020b [ 5] jmp <+0x77> | e9 67 fe ff ff
+0210 [ 3] xor %r10d,%r10d | 45 31 d2
+0213 [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+021a [ 7] mov %r10,-0x598(%rbp) | 4c 89 95 68 fa ff ff
+0221 [ 3] vzeroupper | c5 f8 77
+0224 [ 5] jmp <+0x13> | e9 ea fd ff ff
+0229 [ 3] mov %r14,%rdi | 4c 89 f7
+022c [ 3] vzeroupper | c5 f8 77
+022f [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()> | e8 ?? ?? ?? ??
+0234 [ 5] jmp <+0xe5> | e9 ac fe ff ff
+0239 [ 3] xor %r11d,%r11d | 45 31 db
+023c [ 7] lea -0x500(%rbp),%r13 | 4c 8d ad 00 fb ff ff
+0243 [ 7] mov %r11,-0x598(%rbp) | 4c 89 9d 68 fa ff ff
+024a [ 3] vzeroupper | c5 f8 77
+024d [ 5] jmp <+0x13> | e9 c1 fd ff ff

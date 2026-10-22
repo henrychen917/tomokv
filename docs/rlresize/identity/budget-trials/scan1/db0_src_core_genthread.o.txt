@@ -1,0 +1,111 @@
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129602", "lane": 1, "hot": 1, "other": 5}
+    HOT 9714 -> 9762 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 1219 -> 1201 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 931 -> 867 tomo_db0::FlatStore::random_volatile_candidate()
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129618", "lane": 1, "hot": 1, "other": 3}
+    HOT 9714 -> 9762 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129634", "lane": 1, "hot": 1, "other": 4}
+    HOT 9714 -> 9762 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129642", "lane": 1, "hot": 1, "other": 5}
+    HOT 9714 -> 9762 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 1219 -> 1201 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129650", "lane": 1, "hot": 1, "other": 5}
+    HOT 9714 -> 9762 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 1219 -> 929 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129654", "lane": 1, "hot": 0, "other": 5}
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+    OTHER 2262 -> 2519 void std::deque<tomo_db0::PubSubEvent*, std::allocator<tomo_db0::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEve
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129658", "lane": 1, "hot": 1, "other": 5}
+    HOT 9714 -> 9762 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+    OTHER 2262 -> 2519 void std::deque<tomo_db0::PubSubEvent*, std::allocator<tomo_db0::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEve
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129662", "lane": 1, "hot": 1, "other": 5}
+    HOT 9714 -> 9794 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+    OTHER 2262 -> 2519 void std::deque<tomo_db0::PubSubEvent*, std::allocator<tomo_db0::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEve
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129664", "lane": 1, "hot": 1, "other": 6}
+    HOT 9714 -> 9762 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 1219 -> 1201 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+    OTHER 2262 -> 2519 void std::deque<tomo_db0::PubSubEvent*, std::allocator<tomo_db0::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEve
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129666", "lane": 1, "hot": 1, "other": 6}
+    HOT 9714 -> 9762 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 1219 -> 1201 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+    OTHER 2262 -> 2519 void std::deque<tomo_db0::PubSubEvent*, std::allocator<tomo_db0::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEve
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129668", "lane": 1, "hot": 0, "other": 5}
+    OTHER 1324 -> 1532 tomo_db0::IoLoop::pubsub_append_ack(tomo_db0::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129670", "lane": 1, "hot": 0, "other": 4}
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 4701 -> 5266 tomo_db0::Server::flip_build_client_plan(tomo_db0::Client*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)
+    OTHER 1173 -> 886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129674", "lane": 1, "hot": 0, "other": 2}
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129678", "lane": 1, "hot": 1, "other": 2}
+    HOT 9714 -> 9762 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129682", "lane": 1, "hot": 1, "other": 2}
+    HOT 9714 -> 9794 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129690", "lane": 1, "hot": 1, "other": 4}
+    HOT 9714 -> 9794 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 1219 -> 1201 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    OTHER 3713 -> 3777 tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129698", "lane": 1, "hot": 1, "other": 3}
+    HOT 9714 -> 9794 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129714", "lane": 1, "hot": 0, "other": 4}
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+    OTHER 2262 -> 2519 void std::deque<tomo_db0::PubSubEvent*, std::allocator<tomo_db0::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEve
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129730", "lane": 1, "hot": 0, "other": 4}
+    OTHER 1324 -> 1532 tomo_db0::IoLoop::pubsub_append_ack(tomo_db0::Op::Sink&, bool, bool, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const
+    OTHER 1817 -> 1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    OTHER 677 -> 664 tomo_db0::IoLoop::quiesce_accepts_for_conversion()
+    OTHER 781 -> 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]

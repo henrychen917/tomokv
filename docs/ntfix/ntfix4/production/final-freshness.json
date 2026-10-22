@@ -1,0 +1,438 @@
+[
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "all"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/aoforder-scheduled"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/at15-db0-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/at15-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/atomic-survivors-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/core-concurrency-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/encodingfix-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/exbatch-db0-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/exbatch-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/execabort-watch-db0-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/execabort-watch-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/flushfix-units"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/ktls-keyupdate"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/ktls-keyupdate-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/lbplanner-units"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/multidb-boundary-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/multidb-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/netcap-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/netcmd-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/persistfix-units"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/publishfix-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/racefix-climon"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/rehash-waits-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/reorder-engagement-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/reorder-engagement-unit-db0"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/respresume-migration"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/respresume-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/rltopo-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/shutdown-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/splitlocal-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/storesize-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/waits-unit"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/wb-rule-units"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "build/wbland-units"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "BUILD_ROOT=build/mdbqsbr2-park",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+      "all"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-q",
+      "BUILD_ROOT=build/mdbqsbr2-no-wake",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE",
+      "all"
+    ],
+    "returncode": 0,
+    "output": ""
+  }
+]

@@ -1,0 +1,506 @@
+[
+  {
+    "defect": "N1",
+    "server": "candidate",
+    "delta": 39,
+    "expected": 39
+  },
+  {
+    "defect": "N2",
+    "server": "candidate",
+    "tls": false,
+    "case": "protocol error",
+    "reply": "-ERR Protocol error: invalid multibulk length\r\n",
+    "closed": true
+  },
+  {
+    "defect": "N2",
+    "server": "candidate",
+    "tls": false,
+    "case": "QUIT",
+    "reply": "+OK\r\n",
+    "closed": true
+  },
+  {
+    "defect": "N2",
+    "server": "candidate",
+    "tls": false,
+    "case": "PING control",
+    "reply": "+PONG\r\n",
+    "closed": false
+  },
+  {
+    "defect": "N4",
+    "server": "candidate",
+    "tls": false,
+    "group": "qbuf",
+    "case": "many completed args then over limit",
+    "closed": true,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "candidate",
+    "tls": false,
+    "group": "qbuf",
+    "case": "decoded header, payload crosses limit",
+    "closed": true,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "candidate",
+    "tls": false,
+    "group": "qbuf",
+    "case": "partial header crosses limit",
+    "closed": true,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "candidate",
+    "tls": false,
+    "group": "qbuf",
+    "case": "frame exactly at limit then completes",
+    "closed": false,
+    "reply_bytes": 1048012,
+    "reply_sha256": "7e554ba8810707f40f7d2b8c9f37ffe75f8873035caccb8d4e8a8ff23e369c51",
+    "reply_prefix": "$1048000\r\nyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+  },
+  {
+    "defect": "N3",
+    "server": "candidate",
+    "tls": false,
+    "group": "preauth",
+    "case": "count 11 split",
+    "closed": true,
+    "reply_bytes": 47,
+    "reply_sha256": "7ce310af99488e41d26400b697b9a1b04b8db30ea6366ee6fd4b936af8a7c549",
+    "reply_prefix": "-ERR Protocol error: invalid multibulk length\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "candidate",
+    "tls": false,
+    "group": "preauth",
+    "case": "count 10 then bulk 16385 split",
+    "closed": true,
+    "reply_bytes": 42,
+    "reply_sha256": "c00aaedf3ee34dcdcde104a06124abae704f30c28f02ea58616b23572742e815",
+    "reply_prefix": "-ERR Protocol error: invalid bulk length\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "candidate",
+    "tls": false,
+    "group": "preauth",
+    "case": "MSET 4 pairs of 16384-byte bulks split mid payload",
+    "closed": false,
+    "reply_bytes": 34,
+    "reply_sha256": "687fe317d52ae737ff6c8e08cf67a473bc0f71a3a6279129fd77c8de85eeb730",
+    "reply_prefix": "-NOAUTH Authentication required.\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "candidate",
+    "tls": false,
+    "group": "preauth",
+    "case": "pending AUTH frame completes",
+    "closed": false,
+    "reply_bytes": 5,
+    "reply_sha256": "4fe64db76d55e725725c37bcdb91df3266f059510ec44c342a31c426fdd01c5f",
+    "reply_prefix": "+OK\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "candidate",
+    "tls": false,
+    "group": "preauth",
+    "case": "inline 1 MiB without newline",
+    "closed": true,
+    "reply_bytes": 45,
+    "reply_sha256": "2d8eb778dde84c8e2002c7bb12056eb9ce49838d1b3caf859241497def1ff1e9",
+    "reply_prefix": "-ERR Protocol error: too big inline request\r\n"
+  },
+  {
+    "defect": "N2",
+    "server": "candidate",
+    "tls": true,
+    "case": "protocol error",
+    "reply": "-ERR Protocol error: invalid multibulk length\r\n",
+    "closed": false
+  },
+  {
+    "defect": "N2",
+    "server": "candidate",
+    "tls": true,
+    "case": "QUIT",
+    "reply": "+OK\r\n",
+    "closed": false
+  },
+  {
+    "defect": "N2",
+    "server": "candidate",
+    "tls": true,
+    "case": "PING control",
+    "reply": "+PONG\r\n",
+    "closed": false
+  },
+  {
+    "defect": "N4",
+    "server": "candidate",
+    "tls": true,
+    "group": "qbuf",
+    "case": "many completed args then over limit",
+    "closed": true,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "candidate",
+    "tls": true,
+    "group": "qbuf",
+    "case": "decoded header, payload crosses limit",
+    "closed": true,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "candidate",
+    "tls": true,
+    "group": "qbuf",
+    "case": "partial header crosses limit",
+    "closed": true,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "candidate",
+    "tls": true,
+    "group": "qbuf",
+    "case": "frame exactly at limit then completes",
+    "closed": false,
+    "reply_bytes": 1048012,
+    "reply_sha256": "7e554ba8810707f40f7d2b8c9f37ffe75f8873035caccb8d4e8a8ff23e369c51",
+    "reply_prefix": "$1048000\r\nyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+  },
+  {
+    "defect": "N3",
+    "server": "candidate",
+    "tls": true,
+    "group": "preauth",
+    "case": "count 11 split",
+    "closed": false,
+    "reply_bytes": 47,
+    "reply_sha256": "7ce310af99488e41d26400b697b9a1b04b8db30ea6366ee6fd4b936af8a7c549",
+    "reply_prefix": "-ERR Protocol error: invalid multibulk length\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "candidate",
+    "tls": true,
+    "group": "preauth",
+    "case": "count 10 then bulk 16385 split",
+    "closed": false,
+    "reply_bytes": 42,
+    "reply_sha256": "c00aaedf3ee34dcdcde104a06124abae704f30c28f02ea58616b23572742e815",
+    "reply_prefix": "-ERR Protocol error: invalid bulk length\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "candidate",
+    "tls": true,
+    "group": "preauth",
+    "case": "MSET 4 pairs of 16384-byte bulks split mid payload",
+    "closed": false,
+    "reply_bytes": 34,
+    "reply_sha256": "687fe317d52ae737ff6c8e08cf67a473bc0f71a3a6279129fd77c8de85eeb730",
+    "reply_prefix": "-NOAUTH Authentication required.\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "candidate",
+    "tls": true,
+    "group": "preauth",
+    "case": "pending AUTH frame completes",
+    "closed": false,
+    "reply_bytes": 5,
+    "reply_sha256": "4fe64db76d55e725725c37bcdb91df3266f059510ec44c342a31c426fdd01c5f",
+    "reply_prefix": "+OK\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "candidate",
+    "tls": true,
+    "group": "preauth",
+    "case": "inline 1 MiB without newline",
+    "closed": true,
+    "reply_bytes": 45,
+    "reply_sha256": "2d8eb778dde84c8e2002c7bb12056eb9ce49838d1b3caf859241497def1ff1e9",
+    "reply_prefix": "-ERR Protocol error: too big inline request\r\n"
+  },
+  {
+    "defect": "N1",
+    "server": "redis",
+    "delta": 39,
+    "expected": 39
+  },
+  {
+    "defect": "N2",
+    "server": "redis",
+    "tls": false,
+    "case": "protocol error",
+    "reply": "-ERR Protocol error: invalid multibulk length\r\n",
+    "closed": true
+  },
+  {
+    "defect": "N2",
+    "server": "redis",
+    "tls": false,
+    "case": "QUIT",
+    "reply": "+OK\r\n",
+    "closed": true
+  },
+  {
+    "defect": "N2",
+    "server": "redis",
+    "tls": false,
+    "case": "PING control",
+    "reply": "+PONG\r\n",
+    "closed": false
+  },
+  {
+    "defect": "N4",
+    "server": "redis",
+    "tls": false,
+    "group": "qbuf",
+    "case": "many completed args then over limit",
+    "closed": false,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "redis",
+    "tls": false,
+    "group": "qbuf",
+    "case": "decoded header, payload crosses limit",
+    "closed": true,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "redis",
+    "tls": false,
+    "group": "qbuf",
+    "case": "partial header crosses limit",
+    "closed": false,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "redis",
+    "tls": false,
+    "group": "qbuf",
+    "case": "frame exactly at limit then completes",
+    "closed": false,
+    "reply_bytes": 1048012,
+    "reply_sha256": "7e554ba8810707f40f7d2b8c9f37ffe75f8873035caccb8d4e8a8ff23e369c51",
+    "reply_prefix": "$1048000\r\nyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+  },
+  {
+    "defect": "N3",
+    "server": "redis",
+    "tls": false,
+    "group": "preauth",
+    "case": "count 11 split",
+    "closed": true,
+    "reply_bytes": 55,
+    "reply_sha256": "81a3a1a072ae331f034b46e3302f39ef761fffbe005570a223878e666031ffb0",
+    "reply_prefix": "-ERR Protocol error: unauthenticated multibulk length\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "redis",
+    "tls": false,
+    "group": "preauth",
+    "case": "count 10 then bulk 16385 split",
+    "closed": true,
+    "reply_bytes": 50,
+    "reply_sha256": "9b001661d873a3836e20944c653bda974f977a2c41c9ec362e3636085da5c95c",
+    "reply_prefix": "-ERR Protocol error: unauthenticated bulk length\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "redis",
+    "tls": false,
+    "group": "preauth",
+    "case": "MSET 4 pairs of 16384-byte bulks split mid payload",
+    "closed": false,
+    "reply_bytes": 34,
+    "reply_sha256": "687fe317d52ae737ff6c8e08cf67a473bc0f71a3a6279129fd77c8de85eeb730",
+    "reply_prefix": "-NOAUTH Authentication required.\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "redis",
+    "tls": false,
+    "group": "preauth",
+    "case": "pending AUTH frame completes",
+    "closed": false,
+    "reply_bytes": 5,
+    "reply_sha256": "4fe64db76d55e725725c37bcdb91df3266f059510ec44c342a31c426fdd01c5f",
+    "reply_prefix": "+OK\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "redis",
+    "tls": false,
+    "group": "preauth",
+    "case": "inline 1 MiB without newline",
+    "closed": true,
+    "reply_bytes": 45,
+    "reply_sha256": "2d8eb778dde84c8e2002c7bb12056eb9ce49838d1b3caf859241497def1ff1e9",
+    "reply_prefix": "-ERR Protocol error: too big inline request\r\n"
+  },
+  {
+    "defect": "N2",
+    "server": "redis",
+    "tls": true,
+    "case": "protocol error",
+    "reply": "-ERR Protocol error: invalid multibulk length\r\n",
+    "closed": true
+  },
+  {
+    "defect": "N2",
+    "server": "redis",
+    "tls": true,
+    "case": "QUIT",
+    "reply": "+OK\r\n",
+    "closed": true
+  },
+  {
+    "defect": "N2",
+    "server": "redis",
+    "tls": true,
+    "case": "PING control",
+    "reply": "+PONG\r\n",
+    "closed": false
+  },
+  {
+    "defect": "N4",
+    "server": "redis",
+    "tls": true,
+    "group": "qbuf",
+    "case": "many completed args then over limit",
+    "closed": false,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "redis",
+    "tls": true,
+    "group": "qbuf",
+    "case": "decoded header, payload crosses limit",
+    "closed": true,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "redis",
+    "tls": true,
+    "group": "qbuf",
+    "case": "partial header crosses limit",
+    "closed": false,
+    "reply_bytes": 0,
+    "reply_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reply_prefix": ""
+  },
+  {
+    "defect": "N4",
+    "server": "redis",
+    "tls": true,
+    "group": "qbuf",
+    "case": "frame exactly at limit then completes",
+    "closed": false,
+    "reply_bytes": 1048012,
+    "reply_sha256": "7e554ba8810707f40f7d2b8c9f37ffe75f8873035caccb8d4e8a8ff23e369c51",
+    "reply_prefix": "$1048000\r\nyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+  },
+  {
+    "defect": "N3",
+    "server": "redis",
+    "tls": true,
+    "group": "preauth",
+    "case": "count 11 split",
+    "closed": true,
+    "reply_bytes": 55,
+    "reply_sha256": "81a3a1a072ae331f034b46e3302f39ef761fffbe005570a223878e666031ffb0",
+    "reply_prefix": "-ERR Protocol error: unauthenticated multibulk length\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "redis",
+    "tls": true,
+    "group": "preauth",
+    "case": "count 10 then bulk 16385 split",
+    "closed": true,
+    "reply_bytes": 50,
+    "reply_sha256": "9b001661d873a3836e20944c653bda974f977a2c41c9ec362e3636085da5c95c",
+    "reply_prefix": "-ERR Protocol error: unauthenticated bulk length\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "redis",
+    "tls": true,
+    "group": "preauth",
+    "case": "MSET 4 pairs of 16384-byte bulks split mid payload",
+    "closed": false,
+    "reply_bytes": 34,
+    "reply_sha256": "687fe317d52ae737ff6c8e08cf67a473bc0f71a3a6279129fd77c8de85eeb730",
+    "reply_prefix": "-NOAUTH Authentication required.\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "redis",
+    "tls": true,
+    "group": "preauth",
+    "case": "pending AUTH frame completes",
+    "closed": false,
+    "reply_bytes": 5,
+    "reply_sha256": "4fe64db76d55e725725c37bcdb91df3266f059510ec44c342a31c426fdd01c5f",
+    "reply_prefix": "+OK\r\n"
+  },
+  {
+    "defect": "N3",
+    "server": "redis",
+    "tls": true,
+    "group": "preauth",
+    "case": "inline 1 MiB without newline",
+    "closed": true,
+    "reply_bytes": 45,
+    "reply_sha256": "2d8eb778dde84c8e2002c7bb12056eb9ce49838d1b3caf859241497def1ff1e9",
+    "reply_prefix": "-ERR Protocol error: too big inline request\r\n"
+  }
+]

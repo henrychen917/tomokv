@@ -1,0 +1,6 @@
+329,330c329,330
+< EXPECT_QUICK=637
+< EXPECT_FULL=654                 # ABBA reports only; self-test remains counted.
+---
+> EXPECT_QUICK=664
+> EXPECT_FULL=681                 # ABBA reports only; self-test remains counted.

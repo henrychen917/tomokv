@@ -1,0 +1,8 @@
+gate-verified-post.log 3 rows; 0 non-green; 20 directed legs
+gate-verified-pre.log 3 rows; 2 non-green; 20 directed legs
+gate-verified-pad-a.log 3 rows; 1 non-green; 20 directed legs
+gate-verified-no-salvage.log 2 rows; 1 non-green; 12 directed legs
+gate-serverless-post.log 98 rows; 0 non-green; 0 directed legs
+gate-unit-post-early.log 17 rows; 0 non-green; 0 directed legs
+gate-broad-post.log 659 rows; 1 non-green; 0 directed legs
+differ-post-uring.log 6 rows; 0 non-green; 0 directed legs

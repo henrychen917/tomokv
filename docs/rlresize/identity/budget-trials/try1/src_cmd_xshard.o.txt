@@ -1,0 +1,7 @@
+{"object": "src/cmd/xshard.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=127943", "lane": 3, "hot": 0, "other": 6}
+    OTHER 1314 -> 1390 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 118 -> 129 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<ch
+    OTHER 3308 -> 3326 tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)
+    OTHER 1552 -> 1091 std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<ch
+    OTHER 3670 -> 3686 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato
+    OTHER 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operato

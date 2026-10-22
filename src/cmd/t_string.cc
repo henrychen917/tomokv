@@ -187,11 +187,17 @@ StoreResult store_string_notify(Shard& sh, Slice key, uint64_t hash, Slice value
         return map_insert_notify(sh, hash, replacement);
     }
     if (expire_at_ms < 0 && !reserve_ttl_slot) {
+        // The overwrite probe uses find_without_touch and can physically reap an
+        // expired value before insert_notify sees it. Observe its physical count
+        // only on NotPossible: Updated/OOM can expire other keys during admission.
+        // The original probe retains its lookup and eviction-policy touch count.
+        const uint64_t expired_before = sh.stats().expired;
         const FlatStore::OverwriteResult overwritten =
             sh.store_try_overwrite<true>(hash, key, value);
         if (overwritten == FlatStore::OverwriteResult::Updated) return StoreResult::Stored;
         if (overwritten == FlatStore::OverwriteResult::MaxmemoryOom)
             return StoreResult::MaxmemoryOom;
+        notify_overwrite_expiry(sh, expired_before, key);
     }
     KvObj* replacement = sh.store().make_set_string(
         key, value, expire_at_ms, reserve_ttl_slot);
@@ -470,10 +476,10 @@ void cmd_set(Shard& sh, Op& op) {
     int64_t expire = options.expire_at_ms;
     const bool reserve_ttl_slot = options.keep_ttl && old && old->has_ttl_slot();
     if (options.keep_ttl && old) expire = sh.store().deadline(op.hash, old);
-    // Redis treats an already elapsed absolute SET deadline as set-then-expire: the old value is
+    // Redis treats an already elapsed (now > at) SET deadline as set-then-expire: the old value is
     // removed, no dead replacement is left for DBSIZE/active expiry, and GET (if requested) keeps
-    // the reply copied above. Relative EX/PX cannot reach here with a non-future deadline.
-    if (expire >= 0 && expire <= sh.now_ms()) {
+    // the reply copied above (never EX/PX). A deadline equal to now stays live until the next ms.
+    if (expire >= 0 && expire < sh.now_ms()) {
         if (old) sh.store_erase<kNotify>(op.hash, op.key());
         else if constexpr (kNotify)
             notify_record(sh, op, NOTIFY_GENERIC, NotifyEventId::Del, op.key());
@@ -522,7 +528,7 @@ void cmd_set<false>(Shard& sh, Op& op) {
     int64_t expire = options.expire_at_ms;
     const bool reserve_ttl_slot = options.keep_ttl && old && old->has_ttl_slot();
     if (options.keep_ttl && old) expire = sh.store().deadline(op.hash, old);
-    if (expire >= 0 && expire <= sh.now_ms()) {
+    if (expire >= 0 && expire < sh.now_ms()) {  // elapsed only: Redis serves at now == at
         if (old) sh.store().erase(op.hash, op.key());
         if (!options.get) reply_ok(op.sink());
         return;

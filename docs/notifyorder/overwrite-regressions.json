@@ -1,0 +1,16 @@
+{
+  "extra_lookup": {
+    "gate": "build/gate-run.2Mb0n9",
+    "result": "FAIL: expiry observer does not count a live key as another eviction-policy access"
+  },
+  "full_SET": {
+    "gate": "build/gate-run.QFaGzm",
+    "result": "FAIL: one armed SET overwrite counts exactly one LFU access"
+  },
+  "physical_counter_proof": {
+    "NotPossible": "Every exit precedes memory admission (flatstore.h:1283-1297); only by-name find_without_touch can physically expire",
+    "read_local": "try_overwrite_read_local unconditionally returns NotPossible (flatstore.h:2766-2769)",
+    "Updated_or_MaxmemoryOom": "Not attributed: make_room_for can expire unrelated keys (flatstore.h:1301-1303)"
+  },
+  "interrupted_proof": "Old POST differential run JmtxnH uses a superseded implementation; its archived receipts are historical only and are not final proof."
+}

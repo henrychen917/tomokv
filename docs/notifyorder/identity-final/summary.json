@@ -1,0 +1,24 @@
+{
+  "objects": 104,
+  "functions": 16706,
+  "changed": 179,
+  "hot": 1346,
+  "hot_equal": 1346,
+  "hot_raw_equal": 1342,
+  "changed_objects": {
+    "db0/src/cmd/t_string_notify.o": 32,
+    "db0/src/cmd/xshard.o": 52,
+    "db0/src/persist/aof.o": 6,
+    "src/cmd/t_string_notify.o": 36,
+    "src/cmd/xshard.o": 49,
+    "src/persist/aof.o": 4
+  },
+  "PRE": {
+    "sha256": "a2cc6aaa0d9604b25c128e1d103177af060670587937c851d9ae46fac114ee2d",
+    "text_bytes": 7735985
+  },
+  "POST": {
+    "sha256": "704b8fd4a5362a096269764df7cc546f87676df33c9aca0aff40c5382c4a8e7c",
+    "text_bytes": 7740753
+  }
+}

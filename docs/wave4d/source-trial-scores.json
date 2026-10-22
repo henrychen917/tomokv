@@ -1,0 +1,5733 @@
+[
+  {
+    "label": "keep-cold",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "build/db0/src/main.o",
+      "build/db0/src/net/tls.o",
+      "build/db0/src/cmd/commands.o",
+      "build/db0/src/cmd/glob.o",
+      "build/wave4d/trials/keep-cold/db0xshard.o",
+      "build/db0/src/cmd/acl.o",
+      "build/db0/src/cmd/hll.o",
+      "build/db0/src/cmd/t_server.o",
+      "build/db0/src/cmd/t_string.o",
+      "build/db0/src/cmd/t_string_notify.o",
+      "build/db0/src/cmd/t_hash.o",
+      "build/db0/src/cmd/t_hash_ttl.o",
+      "build/db0/src/cmd/t_list.o",
+      "build/db0/src/cmd/t_set.o",
+      "build/db0/src/cmd/t_zset.o",
+      "build/db0/src/cmd/t_zset_ops.o",
+      "build/db0/src/cmd/geo.o",
+      "build/db0/src/cmd/t_stream.o",
+      "build/db0/src/cmd/t_stream_groups.o",
+      "build/db0/src/cmd/scripting.o",
+      "build/db0/src/cmd/functions.o",
+      "build/db0/src/cmd/serialize.o",
+      "build/db0/src/snapshot/snapshot.o",
+      "build/db0/src/persist/aof.o",
+      "build/db0/src/cmd/climon.o",
+      "build/db0/src/cmd/tracking.o",
+      "build/db0/src/cmd/server_tail.o",
+      "build/db0/src/cmd/slowlog.o",
+      "build/db0/src/cmd/lcs.o",
+      "build/db0/src/cmd/info_stats.o",
+      "build/db0/src/cmd/lbsignals.o",
+      "build/db0/src/core/flipctl.o",
+      "build/db0/src/core/genthread.o",
+      "build/db0/src/core/rl2s.o",
+      "build/db0/src/core/lbstall.o",
+      "build/db0/src/core/lbplanner.o",
+      "build/db0/src/cmd/l4prebuild.o",
+      "build/db0/src/cmd/cmdgap.o",
+      "build/db0/src/cmd/pfdebug.o",
+      "build/db0/src/cmd/cmdmeta.o",
+      "build/db0/src/cmd/t_sort.o",
+      "build/db0/src/cmd/multidb.o",
+      "build/db0/src/cmd/storesize.o",
+      "build/db0/src/cmd/multi_admin.o",
+      "build/db0/src/core/reorder.o",
+      "build/db0/src/cmd/geo_store.o",
+      "build/db0/src/persist/aof_frame_debug.o",
+      "build/db0/src/cmd/aclkeys.o",
+      "build/db0/src/cmd/blocking_debug.o",
+      "build/db0/src/cmd/objectpread.o",
+      "build/db0/src/cmd/hexpread.o",
+      "build/db0/src/cmd/autharity.o",
+      "build/db0/src/core/version.o",
+      "build/src/main.o",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/wave4d/trials/keep-cold/xshard.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-wave4/build/wave4d/trials/keep-cold/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "sha256": "06d36895d913c5d736c67c94e69115d5d9a06382788a2096d49b508cf1503eb7",
+    "comparisons": [
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            3192
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            4279
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            23329
+          ],
+          [
+            22924
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            23221
+          ],
+          [
+            22924
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            23183
+          ],
+          [
+            22924
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            408
+          ],
+          [
+            381
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            383
+          ],
+          [
+            381
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            380
+          ],
+          [
+            381
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "label": "record-cold",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "build/db0/src/main.o",
+      "build/db0/src/net/tls.o",
+      "build/db0/src/cmd/commands.o",
+      "build/db0/src/cmd/glob.o",
+      "build/wave4d/trials/record-cold/db0xshard.o",
+      "build/db0/src/cmd/acl.o",
+      "build/db0/src/cmd/hll.o",
+      "build/db0/src/cmd/t_server.o",
+      "build/db0/src/cmd/t_string.o",
+      "build/db0/src/cmd/t_string_notify.o",
+      "build/db0/src/cmd/t_hash.o",
+      "build/db0/src/cmd/t_hash_ttl.o",
+      "build/db0/src/cmd/t_list.o",
+      "build/db0/src/cmd/t_set.o",
+      "build/db0/src/cmd/t_zset.o",
+      "build/db0/src/cmd/t_zset_ops.o",
+      "build/db0/src/cmd/geo.o",
+      "build/db0/src/cmd/t_stream.o",
+      "build/db0/src/cmd/t_stream_groups.o",
+      "build/db0/src/cmd/scripting.o",
+      "build/db0/src/cmd/functions.o",
+      "build/db0/src/cmd/serialize.o",
+      "build/db0/src/snapshot/snapshot.o",
+      "build/db0/src/persist/aof.o",
+      "build/db0/src/cmd/climon.o",
+      "build/db0/src/cmd/tracking.o",
+      "build/db0/src/cmd/server_tail.o",
+      "build/db0/src/cmd/slowlog.o",
+      "build/db0/src/cmd/lcs.o",
+      "build/db0/src/cmd/info_stats.o",
+      "build/db0/src/cmd/lbsignals.o",
+      "build/db0/src/core/flipctl.o",
+      "build/db0/src/core/genthread.o",
+      "build/db0/src/core/rl2s.o",
+      "build/db0/src/core/lbstall.o",
+      "build/db0/src/core/lbplanner.o",
+      "build/db0/src/cmd/l4prebuild.o",
+      "build/db0/src/cmd/cmdgap.o",
+      "build/db0/src/cmd/pfdebug.o",
+      "build/db0/src/cmd/cmdmeta.o",
+      "build/db0/src/cmd/t_sort.o",
+      "build/db0/src/cmd/multidb.o",
+      "build/db0/src/cmd/storesize.o",
+      "build/db0/src/cmd/multi_admin.o",
+      "build/db0/src/core/reorder.o",
+      "build/db0/src/cmd/geo_store.o",
+      "build/db0/src/persist/aof_frame_debug.o",
+      "build/db0/src/cmd/aclkeys.o",
+      "build/db0/src/cmd/blocking_debug.o",
+      "build/db0/src/cmd/objectpread.o",
+      "build/db0/src/cmd/hexpread.o",
+      "build/db0/src/cmd/autharity.o",
+      "build/db0/src/core/version.o",
+      "build/src/main.o",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/wave4d/trials/record-cold/xshard.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-wave4/build/wave4d/trials/record-cold/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "sha256": "be77032f2f06d6e77798ef5ee6bb00eacb096d2a1dafa790dc7388069a603842",
+    "comparisons": [
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            3192
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            4279
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            23329
+          ],
+          [
+            22924
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            23221
+          ],
+          [
+            22924
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            23183
+          ],
+          [
+            22924
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            408
+          ],
+          [
+            381
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            383
+          ],
+          [
+            381
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            380
+          ],
+          [
+            381
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "label": "both-cold",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "build/db0/src/main.o",
+      "build/db0/src/net/tls.o",
+      "build/db0/src/cmd/commands.o",
+      "build/db0/src/cmd/glob.o",
+      "build/wave4d/trials/both-cold/db0xshard.o",
+      "build/db0/src/cmd/acl.o",
+      "build/db0/src/cmd/hll.o",
+      "build/db0/src/cmd/t_server.o",
+      "build/db0/src/cmd/t_string.o",
+      "build/db0/src/cmd/t_string_notify.o",
+      "build/db0/src/cmd/t_hash.o",
+      "build/db0/src/cmd/t_hash_ttl.o",
+      "build/db0/src/cmd/t_list.o",
+      "build/db0/src/cmd/t_set.o",
+      "build/db0/src/cmd/t_zset.o",
+      "build/db0/src/cmd/t_zset_ops.o",
+      "build/db0/src/cmd/geo.o",
+      "build/db0/src/cmd/t_stream.o",
+      "build/db0/src/cmd/t_stream_groups.o",
+      "build/db0/src/cmd/scripting.o",
+      "build/db0/src/cmd/functions.o",
+      "build/db0/src/cmd/serialize.o",
+      "build/db0/src/snapshot/snapshot.o",
+      "build/db0/src/persist/aof.o",
+      "build/db0/src/cmd/climon.o",
+      "build/db0/src/cmd/tracking.o",
+      "build/db0/src/cmd/server_tail.o",
+      "build/db0/src/cmd/slowlog.o",
+      "build/db0/src/cmd/lcs.o",
+      "build/db0/src/cmd/info_stats.o",
+      "build/db0/src/cmd/lbsignals.o",
+      "build/db0/src/core/flipctl.o",
+      "build/db0/src/core/genthread.o",
+      "build/db0/src/core/rl2s.o",
+      "build/db0/src/core/lbstall.o",
+      "build/db0/src/core/lbplanner.o",
+      "build/db0/src/cmd/l4prebuild.o",
+      "build/db0/src/cmd/cmdgap.o",
+      "build/db0/src/cmd/pfdebug.o",
+      "build/db0/src/cmd/cmdmeta.o",
+      "build/db0/src/cmd/t_sort.o",
+      "build/db0/src/cmd/multidb.o",
+      "build/db0/src/cmd/storesize.o",
+      "build/db0/src/cmd/multi_admin.o",
+      "build/db0/src/core/reorder.o",
+      "build/db0/src/cmd/geo_store.o",
+      "build/db0/src/persist/aof_frame_debug.o",
+      "build/db0/src/cmd/aclkeys.o",
+      "build/db0/src/cmd/blocking_debug.o",
+      "build/db0/src/cmd/objectpread.o",
+      "build/db0/src/cmd/hexpread.o",
+      "build/db0/src/cmd/autharity.o",
+      "build/db0/src/core/version.o",
+      "build/src/main.o",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/wave4d/trials/both-cold/xshard.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-wave4/build/wave4d/trials/both-cold/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "sha256": "01bbba38eeac74c6ee263ccfe4d9467c5ac04c3dbbd83f3c5f6c634d735dab47",
+    "comparisons": [
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            3192
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            4279
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            23329
+          ],
+          [
+            23084
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            23221
+          ],
+          [
+            23084
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            23183
+          ],
+          [
+            23084
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            408
+          ],
+          [
+            384
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            383
+          ],
+          [
+            384
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            380
+          ],
+          [
+            384
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "label": "swap-inline",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "build/db0/src/main.o",
+      "build/db0/src/net/tls.o",
+      "build/db0/src/cmd/commands.o",
+      "build/db0/src/cmd/glob.o",
+      "build/wave4d/trials/swap-inline/db0xshard.o",
+      "build/db0/src/cmd/acl.o",
+      "build/db0/src/cmd/hll.o",
+      "build/db0/src/cmd/t_server.o",
+      "build/db0/src/cmd/t_string.o",
+      "build/db0/src/cmd/t_string_notify.o",
+      "build/db0/src/cmd/t_hash.o",
+      "build/db0/src/cmd/t_hash_ttl.o",
+      "build/db0/src/cmd/t_list.o",
+      "build/db0/src/cmd/t_set.o",
+      "build/db0/src/cmd/t_zset.o",
+      "build/db0/src/cmd/t_zset_ops.o",
+      "build/db0/src/cmd/geo.o",
+      "build/db0/src/cmd/t_stream.o",
+      "build/db0/src/cmd/t_stream_groups.o",
+      "build/db0/src/cmd/scripting.o",
+      "build/db0/src/cmd/functions.o",
+      "build/db0/src/cmd/serialize.o",
+      "build/db0/src/snapshot/snapshot.o",
+      "build/db0/src/persist/aof.o",
+      "build/db0/src/cmd/climon.o",
+      "build/db0/src/cmd/tracking.o",
+      "build/db0/src/cmd/server_tail.o",
+      "build/db0/src/cmd/slowlog.o",
+      "build/db0/src/cmd/lcs.o",
+      "build/db0/src/cmd/info_stats.o",
+      "build/db0/src/cmd/lbsignals.o",
+      "build/db0/src/core/flipctl.o",
+      "build/db0/src/core/genthread.o",
+      "build/db0/src/core/rl2s.o",
+      "build/db0/src/core/lbstall.o",
+      "build/db0/src/core/lbplanner.o",
+      "build/db0/src/cmd/l4prebuild.o",
+      "build/db0/src/cmd/cmdgap.o",
+      "build/db0/src/cmd/pfdebug.o",
+      "build/db0/src/cmd/cmdmeta.o",
+      "build/db0/src/cmd/t_sort.o",
+      "build/db0/src/cmd/multidb.o",
+      "build/db0/src/cmd/storesize.o",
+      "build/db0/src/cmd/multi_admin.o",
+      "build/db0/src/core/reorder.o",
+      "build/db0/src/cmd/geo_store.o",
+      "build/db0/src/persist/aof_frame_debug.o",
+      "build/db0/src/cmd/aclkeys.o",
+      "build/db0/src/cmd/blocking_debug.o",
+      "build/db0/src/cmd/objectpread.o",
+      "build/db0/src/cmd/hexpread.o",
+      "build/db0/src/cmd/autharity.o",
+      "build/db0/src/core/version.o",
+      "build/src/main.o",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/wave4d/trials/swap-inline/xshard.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-wave4/build/wave4d/trials/swap-inline/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "sha256": "02bd2b168c40cbbc81942821cecfb9a3a819df8c4e82e3fa620967b56d62f07d",
+    "comparisons": [
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            3192
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            4279
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            23329
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            23221
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            23183
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            408
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            383
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            380
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "label": "keep-noinline",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "build/db0/src/main.o",
+      "build/db0/src/net/tls.o",
+      "build/db0/src/cmd/commands.o",
+      "build/db0/src/cmd/glob.o",
+      "build/wave4d/trials/keep-noinline/db0xshard.o",
+      "build/db0/src/cmd/acl.o",
+      "build/db0/src/cmd/hll.o",
+      "build/db0/src/cmd/t_server.o",
+      "build/db0/src/cmd/t_string.o",
+      "build/db0/src/cmd/t_string_notify.o",
+      "build/db0/src/cmd/t_hash.o",
+      "build/db0/src/cmd/t_hash_ttl.o",
+      "build/db0/src/cmd/t_list.o",
+      "build/db0/src/cmd/t_set.o",
+      "build/db0/src/cmd/t_zset.o",
+      "build/db0/src/cmd/t_zset_ops.o",
+      "build/db0/src/cmd/geo.o",
+      "build/db0/src/cmd/t_stream.o",
+      "build/db0/src/cmd/t_stream_groups.o",
+      "build/db0/src/cmd/scripting.o",
+      "build/db0/src/cmd/functions.o",
+      "build/db0/src/cmd/serialize.o",
+      "build/db0/src/snapshot/snapshot.o",
+      "build/db0/src/persist/aof.o",
+      "build/db0/src/cmd/climon.o",
+      "build/db0/src/cmd/tracking.o",
+      "build/db0/src/cmd/server_tail.o",
+      "build/db0/src/cmd/slowlog.o",
+      "build/db0/src/cmd/lcs.o",
+      "build/db0/src/cmd/info_stats.o",
+      "build/db0/src/cmd/lbsignals.o",
+      "build/db0/src/core/flipctl.o",
+      "build/db0/src/core/genthread.o",
+      "build/db0/src/core/rl2s.o",
+      "build/db0/src/core/lbstall.o",
+      "build/db0/src/core/lbplanner.o",
+      "build/db0/src/cmd/l4prebuild.o",
+      "build/db0/src/cmd/cmdgap.o",
+      "build/db0/src/cmd/pfdebug.o",
+      "build/db0/src/cmd/cmdmeta.o",
+      "build/db0/src/cmd/t_sort.o",
+      "build/db0/src/cmd/multidb.o",
+      "build/db0/src/cmd/storesize.o",
+      "build/db0/src/cmd/multi_admin.o",
+      "build/db0/src/core/reorder.o",
+      "build/db0/src/cmd/geo_store.o",
+      "build/db0/src/persist/aof_frame_debug.o",
+      "build/db0/src/cmd/aclkeys.o",
+      "build/db0/src/cmd/blocking_debug.o",
+      "build/db0/src/cmd/objectpread.o",
+      "build/db0/src/cmd/hexpread.o",
+      "build/db0/src/cmd/autharity.o",
+      "build/db0/src/core/version.o",
+      "build/src/main.o",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/wave4d/trials/keep-noinline/xshard.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-wave4/build/wave4d/trials/keep-noinline/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "sha256": "02422db5ddbb1c93a5ca46553c3f2abba66da1ada76cde52942b1db7e93af075",
+    "comparisons": [
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            3192
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            4279
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            23329
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            23221
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            23183
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            408
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            383
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            380
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "label": "record-noinline",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "build/db0/src/main.o",
+      "build/db0/src/net/tls.o",
+      "build/db0/src/cmd/commands.o",
+      "build/db0/src/cmd/glob.o",
+      "build/wave4d/trials/record-noinline/db0xshard.o",
+      "build/db0/src/cmd/acl.o",
+      "build/db0/src/cmd/hll.o",
+      "build/db0/src/cmd/t_server.o",
+      "build/db0/src/cmd/t_string.o",
+      "build/db0/src/cmd/t_string_notify.o",
+      "build/db0/src/cmd/t_hash.o",
+      "build/db0/src/cmd/t_hash_ttl.o",
+      "build/db0/src/cmd/t_list.o",
+      "build/db0/src/cmd/t_set.o",
+      "build/db0/src/cmd/t_zset.o",
+      "build/db0/src/cmd/t_zset_ops.o",
+      "build/db0/src/cmd/geo.o",
+      "build/db0/src/cmd/t_stream.o",
+      "build/db0/src/cmd/t_stream_groups.o",
+      "build/db0/src/cmd/scripting.o",
+      "build/db0/src/cmd/functions.o",
+      "build/db0/src/cmd/serialize.o",
+      "build/db0/src/snapshot/snapshot.o",
+      "build/db0/src/persist/aof.o",
+      "build/db0/src/cmd/climon.o",
+      "build/db0/src/cmd/tracking.o",
+      "build/db0/src/cmd/server_tail.o",
+      "build/db0/src/cmd/slowlog.o",
+      "build/db0/src/cmd/lcs.o",
+      "build/db0/src/cmd/info_stats.o",
+      "build/db0/src/cmd/lbsignals.o",
+      "build/db0/src/core/flipctl.o",
+      "build/db0/src/core/genthread.o",
+      "build/db0/src/core/rl2s.o",
+      "build/db0/src/core/lbstall.o",
+      "build/db0/src/core/lbplanner.o",
+      "build/db0/src/cmd/l4prebuild.o",
+      "build/db0/src/cmd/cmdgap.o",
+      "build/db0/src/cmd/pfdebug.o",
+      "build/db0/src/cmd/cmdmeta.o",
+      "build/db0/src/cmd/t_sort.o",
+      "build/db0/src/cmd/multidb.o",
+      "build/db0/src/cmd/storesize.o",
+      "build/db0/src/cmd/multi_admin.o",
+      "build/db0/src/core/reorder.o",
+      "build/db0/src/cmd/geo_store.o",
+      "build/db0/src/persist/aof_frame_debug.o",
+      "build/db0/src/cmd/aclkeys.o",
+      "build/db0/src/cmd/blocking_debug.o",
+      "build/db0/src/cmd/objectpread.o",
+      "build/db0/src/cmd/hexpread.o",
+      "build/db0/src/cmd/autharity.o",
+      "build/db0/src/core/version.o",
+      "build/src/main.o",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/wave4d/trials/record-noinline/xshard.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-wave4/build/wave4d/trials/record-noinline/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "sha256": "bf51eb93dcbb9b385c915fad093fbd2641acfb6e8994b2b74beee38b4b2c160b",
+    "comparisons": [
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            3192
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            4279
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            23329
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            23221
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            23183
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            408
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            383
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            380
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "label": "physical-noinline",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "build/db0/src/main.o",
+      "build/db0/src/net/tls.o",
+      "build/db0/src/cmd/commands.o",
+      "build/db0/src/cmd/glob.o",
+      "build/wave4d/trials/physical-noinline/db0xshard.o",
+      "build/db0/src/cmd/acl.o",
+      "build/db0/src/cmd/hll.o",
+      "build/db0/src/cmd/t_server.o",
+      "build/db0/src/cmd/t_string.o",
+      "build/db0/src/cmd/t_string_notify.o",
+      "build/db0/src/cmd/t_hash.o",
+      "build/db0/src/cmd/t_hash_ttl.o",
+      "build/db0/src/cmd/t_list.o",
+      "build/db0/src/cmd/t_set.o",
+      "build/db0/src/cmd/t_zset.o",
+      "build/db0/src/cmd/t_zset_ops.o",
+      "build/db0/src/cmd/geo.o",
+      "build/db0/src/cmd/t_stream.o",
+      "build/db0/src/cmd/t_stream_groups.o",
+      "build/db0/src/cmd/scripting.o",
+      "build/db0/src/cmd/functions.o",
+      "build/db0/src/cmd/serialize.o",
+      "build/db0/src/snapshot/snapshot.o",
+      "build/db0/src/persist/aof.o",
+      "build/db0/src/cmd/climon.o",
+      "build/db0/src/cmd/tracking.o",
+      "build/db0/src/cmd/server_tail.o",
+      "build/db0/src/cmd/slowlog.o",
+      "build/db0/src/cmd/lcs.o",
+      "build/db0/src/cmd/info_stats.o",
+      "build/db0/src/cmd/lbsignals.o",
+      "build/db0/src/core/flipctl.o",
+      "build/db0/src/core/genthread.o",
+      "build/db0/src/core/rl2s.o",
+      "build/db0/src/core/lbstall.o",
+      "build/db0/src/core/lbplanner.o",
+      "build/db0/src/cmd/l4prebuild.o",
+      "build/db0/src/cmd/cmdgap.o",
+      "build/db0/src/cmd/pfdebug.o",
+      "build/db0/src/cmd/cmdmeta.o",
+      "build/db0/src/cmd/t_sort.o",
+      "build/db0/src/cmd/multidb.o",
+      "build/db0/src/cmd/storesize.o",
+      "build/db0/src/cmd/multi_admin.o",
+      "build/db0/src/core/reorder.o",
+      "build/db0/src/cmd/geo_store.o",
+      "build/db0/src/persist/aof_frame_debug.o",
+      "build/db0/src/cmd/aclkeys.o",
+      "build/db0/src/cmd/blocking_debug.o",
+      "build/db0/src/cmd/objectpread.o",
+      "build/db0/src/cmd/hexpread.o",
+      "build/db0/src/cmd/autharity.o",
+      "build/db0/src/core/version.o",
+      "build/src/main.o",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/wave4d/trials/physical-noinline/xshard.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-wave4/build/wave4d/trials/physical-noinline/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "sha256": "4047b26ba4e076fe0cf2654f5a5188b6ad0a36fd3adec5c638eb106f05a4af11",
+    "comparisons": [
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            3192
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            4279
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            23329
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            23221
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            23183
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            408
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            383
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            380
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "label": "take-noinline",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "build/db0/src/main.o",
+      "build/db0/src/net/tls.o",
+      "build/db0/src/cmd/commands.o",
+      "build/db0/src/cmd/glob.o",
+      "build/wave4d/trials/take-noinline/db0xshard.o",
+      "build/db0/src/cmd/acl.o",
+      "build/db0/src/cmd/hll.o",
+      "build/db0/src/cmd/t_server.o",
+      "build/db0/src/cmd/t_string.o",
+      "build/db0/src/cmd/t_string_notify.o",
+      "build/db0/src/cmd/t_hash.o",
+      "build/db0/src/cmd/t_hash_ttl.o",
+      "build/db0/src/cmd/t_list.o",
+      "build/db0/src/cmd/t_set.o",
+      "build/db0/src/cmd/t_zset.o",
+      "build/db0/src/cmd/t_zset_ops.o",
+      "build/db0/src/cmd/geo.o",
+      "build/db0/src/cmd/t_stream.o",
+      "build/db0/src/cmd/t_stream_groups.o",
+      "build/db0/src/cmd/scripting.o",
+      "build/db0/src/cmd/functions.o",
+      "build/db0/src/cmd/serialize.o",
+      "build/db0/src/snapshot/snapshot.o",
+      "build/db0/src/persist/aof.o",
+      "build/db0/src/cmd/climon.o",
+      "build/db0/src/cmd/tracking.o",
+      "build/db0/src/cmd/server_tail.o",
+      "build/db0/src/cmd/slowlog.o",
+      "build/db0/src/cmd/lcs.o",
+      "build/db0/src/cmd/info_stats.o",
+      "build/db0/src/cmd/lbsignals.o",
+      "build/db0/src/core/flipctl.o",
+      "build/db0/src/core/genthread.o",
+      "build/db0/src/core/rl2s.o",
+      "build/db0/src/core/lbstall.o",
+      "build/db0/src/core/lbplanner.o",
+      "build/db0/src/cmd/l4prebuild.o",
+      "build/db0/src/cmd/cmdgap.o",
+      "build/db0/src/cmd/pfdebug.o",
+      "build/db0/src/cmd/cmdmeta.o",
+      "build/db0/src/cmd/t_sort.o",
+      "build/db0/src/cmd/multidb.o",
+      "build/db0/src/cmd/storesize.o",
+      "build/db0/src/cmd/multi_admin.o",
+      "build/db0/src/core/reorder.o",
+      "build/db0/src/cmd/geo_store.o",
+      "build/db0/src/persist/aof_frame_debug.o",
+      "build/db0/src/cmd/aclkeys.o",
+      "build/db0/src/cmd/blocking_debug.o",
+      "build/db0/src/cmd/objectpread.o",
+      "build/db0/src/cmd/hexpread.o",
+      "build/db0/src/cmd/autharity.o",
+      "build/db0/src/core/version.o",
+      "build/src/main.o",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/wave4d/trials/take-noinline/xshard.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-wave4/build/wave4d/trials/take-noinline/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "sha256": "0e80af6c65b1a1b44a76a2161be0f15baad0bff4039b6f9dbe2a2766e3c85db1",
+    "comparisons": [
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            3192
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            4279
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            23329
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            23221
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            23183
+          ],
+          [
+            23183
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            408
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            383
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            380
+          ],
+          [
+            380
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "label": "forget-flatten",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "build/db0/src/main.o",
+      "build/db0/src/net/tls.o",
+      "build/db0/src/cmd/commands.o",
+      "build/db0/src/cmd/glob.o",
+      "build/wave4d/trials/forget-flatten/db0xshard.o",
+      "build/db0/src/cmd/acl.o",
+      "build/db0/src/cmd/hll.o",
+      "build/db0/src/cmd/t_server.o",
+      "build/db0/src/cmd/t_string.o",
+      "build/db0/src/cmd/t_string_notify.o",
+      "build/db0/src/cmd/t_hash.o",
+      "build/db0/src/cmd/t_hash_ttl.o",
+      "build/db0/src/cmd/t_list.o",
+      "build/db0/src/cmd/t_set.o",
+      "build/db0/src/cmd/t_zset.o",
+      "build/db0/src/cmd/t_zset_ops.o",
+      "build/db0/src/cmd/geo.o",
+      "build/db0/src/cmd/t_stream.o",
+      "build/db0/src/cmd/t_stream_groups.o",
+      "build/db0/src/cmd/scripting.o",
+      "build/db0/src/cmd/functions.o",
+      "build/db0/src/cmd/serialize.o",
+      "build/db0/src/snapshot/snapshot.o",
+      "build/db0/src/persist/aof.o",
+      "build/db0/src/cmd/climon.o",
+      "build/db0/src/cmd/tracking.o",
+      "build/db0/src/cmd/server_tail.o",
+      "build/db0/src/cmd/slowlog.o",
+      "build/db0/src/cmd/lcs.o",
+      "build/db0/src/cmd/info_stats.o",
+      "build/db0/src/cmd/lbsignals.o",
+      "build/db0/src/core/flipctl.o",
+      "build/db0/src/core/genthread.o",
+      "build/db0/src/core/rl2s.o",
+      "build/db0/src/core/lbstall.o",
+      "build/db0/src/core/lbplanner.o",
+      "build/db0/src/cmd/l4prebuild.o",
+      "build/db0/src/cmd/cmdgap.o",
+      "build/db0/src/cmd/pfdebug.o",
+      "build/db0/src/cmd/cmdmeta.o",
+      "build/db0/src/cmd/t_sort.o",
+      "build/db0/src/cmd/multidb.o",
+      "build/db0/src/cmd/storesize.o",
+      "build/db0/src/cmd/multi_admin.o",
+      "build/db0/src/core/reorder.o",
+      "build/db0/src/cmd/geo_store.o",
+      "build/db0/src/persist/aof_frame_debug.o",
+      "build/db0/src/cmd/aclkeys.o",
+      "build/db0/src/cmd/blocking_debug.o",
+      "build/db0/src/cmd/objectpread.o",
+      "build/db0/src/cmd/hexpread.o",
+      "build/db0/src/cmd/autharity.o",
+      "build/db0/src/core/version.o",
+      "build/src/main.o",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/src/cmd/xshard.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-wave4/build/wave4d/trials/forget-flatten/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "sha256": "419cdccbfa74587b53226bdefb993c48dc97ca33dbb3e53072413d27516a1adb",
+    "comparisons": [
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            3192
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            4279
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            23329
+          ],
+          [
+            23221
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "moverfix",
+        "equal": true,
+        "sizes": [
+          [
+            23221
+          ],
+          [
+            23221
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            23183
+          ],
+          [
+            23221
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            408
+          ],
+          [
+            383
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "moverfix",
+        "equal": true,
+        "sizes": [
+          [
+            383
+          ],
+          [
+            383
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            380
+          ],
+          [
+            383
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "label": "forget-flatten-only",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "build/db0/src/main.o",
+      "build/db0/src/net/tls.o",
+      "build/db0/src/cmd/commands.o",
+      "build/db0/src/cmd/glob.o",
+      "build/wave4d/trials/forget-flatten-only/db0xshard.o",
+      "build/db0/src/cmd/acl.o",
+      "build/db0/src/cmd/hll.o",
+      "build/db0/src/cmd/t_server.o",
+      "build/db0/src/cmd/t_string.o",
+      "build/db0/src/cmd/t_string_notify.o",
+      "build/db0/src/cmd/t_hash.o",
+      "build/db0/src/cmd/t_hash_ttl.o",
+      "build/db0/src/cmd/t_list.o",
+      "build/db0/src/cmd/t_set.o",
+      "build/db0/src/cmd/t_zset.o",
+      "build/db0/src/cmd/t_zset_ops.o",
+      "build/db0/src/cmd/geo.o",
+      "build/db0/src/cmd/t_stream.o",
+      "build/db0/src/cmd/t_stream_groups.o",
+      "build/db0/src/cmd/scripting.o",
+      "build/db0/src/cmd/functions.o",
+      "build/db0/src/cmd/serialize.o",
+      "build/db0/src/snapshot/snapshot.o",
+      "build/db0/src/persist/aof.o",
+      "build/db0/src/cmd/climon.o",
+      "build/db0/src/cmd/tracking.o",
+      "build/db0/src/cmd/server_tail.o",
+      "build/db0/src/cmd/slowlog.o",
+      "build/db0/src/cmd/lcs.o",
+      "build/db0/src/cmd/info_stats.o",
+      "build/db0/src/cmd/lbsignals.o",
+      "build/db0/src/core/flipctl.o",
+      "build/db0/src/core/genthread.o",
+      "build/db0/src/core/rl2s.o",
+      "build/db0/src/core/lbstall.o",
+      "build/db0/src/core/lbplanner.o",
+      "build/db0/src/cmd/l4prebuild.o",
+      "build/db0/src/cmd/cmdgap.o",
+      "build/db0/src/cmd/pfdebug.o",
+      "build/db0/src/cmd/cmdmeta.o",
+      "build/db0/src/cmd/t_sort.o",
+      "build/db0/src/cmd/multidb.o",
+      "build/db0/src/cmd/storesize.o",
+      "build/db0/src/cmd/multi_admin.o",
+      "build/db0/src/core/reorder.o",
+      "build/db0/src/cmd/geo_store.o",
+      "build/db0/src/persist/aof_frame_debug.o",
+      "build/db0/src/cmd/aclkeys.o",
+      "build/db0/src/cmd/blocking_debug.o",
+      "build/db0/src/cmd/objectpread.o",
+      "build/db0/src/cmd/hexpread.o",
+      "build/db0/src/cmd/autharity.o",
+      "build/db0/src/core/version.o",
+      "build/src/main.o",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/src/cmd/xshard.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-wave4/build/wave4d/trials/forget-flatten-only/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "sha256": "deb143cd8d6407e049b93687357e80416ddeadfb26bee43839f7a2f048cc1f7d",
+    "comparisons": [
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            3192
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            4279
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            23329
+          ],
+          [
+            23221
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "moverfix",
+        "equal": true,
+        "sizes": [
+          [
+            23221
+          ],
+          [
+            23221
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            23183
+          ],
+          [
+            23221
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            408
+          ],
+          [
+            383
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "moverfix",
+        "equal": true,
+        "sizes": [
+          [
+            383
+          ],
+          [
+            383
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            380
+          ],
+          [
+            383
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "label": "forget-noinline",
+    "command": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "build/db0/src/main.o",
+      "build/db0/src/net/tls.o",
+      "build/db0/src/cmd/commands.o",
+      "build/db0/src/cmd/glob.o",
+      "build/wave4d/trials/forget-noinline/db0xshard.o",
+      "build/db0/src/cmd/acl.o",
+      "build/db0/src/cmd/hll.o",
+      "build/db0/src/cmd/t_server.o",
+      "build/db0/src/cmd/t_string.o",
+      "build/db0/src/cmd/t_string_notify.o",
+      "build/db0/src/cmd/t_hash.o",
+      "build/db0/src/cmd/t_hash_ttl.o",
+      "build/db0/src/cmd/t_list.o",
+      "build/db0/src/cmd/t_set.o",
+      "build/db0/src/cmd/t_zset.o",
+      "build/db0/src/cmd/t_zset_ops.o",
+      "build/db0/src/cmd/geo.o",
+      "build/db0/src/cmd/t_stream.o",
+      "build/db0/src/cmd/t_stream_groups.o",
+      "build/db0/src/cmd/scripting.o",
+      "build/db0/src/cmd/functions.o",
+      "build/db0/src/cmd/serialize.o",
+      "build/db0/src/snapshot/snapshot.o",
+      "build/db0/src/persist/aof.o",
+      "build/db0/src/cmd/climon.o",
+      "build/db0/src/cmd/tracking.o",
+      "build/db0/src/cmd/server_tail.o",
+      "build/db0/src/cmd/slowlog.o",
+      "build/db0/src/cmd/lcs.o",
+      "build/db0/src/cmd/info_stats.o",
+      "build/db0/src/cmd/lbsignals.o",
+      "build/db0/src/core/flipctl.o",
+      "build/db0/src/core/genthread.o",
+      "build/db0/src/core/rl2s.o",
+      "build/db0/src/core/lbstall.o",
+      "build/db0/src/core/lbplanner.o",
+      "build/db0/src/cmd/l4prebuild.o",
+      "build/db0/src/cmd/cmdgap.o",
+      "build/db0/src/cmd/pfdebug.o",
+      "build/db0/src/cmd/cmdmeta.o",
+      "build/db0/src/cmd/t_sort.o",
+      "build/db0/src/cmd/multidb.o",
+      "build/db0/src/cmd/storesize.o",
+      "build/db0/src/cmd/multi_admin.o",
+      "build/db0/src/core/reorder.o",
+      "build/db0/src/cmd/geo_store.o",
+      "build/db0/src/persist/aof_frame_debug.o",
+      "build/db0/src/cmd/aclkeys.o",
+      "build/db0/src/cmd/blocking_debug.o",
+      "build/db0/src/cmd/objectpread.o",
+      "build/db0/src/cmd/hexpread.o",
+      "build/db0/src/cmd/autharity.o",
+      "build/db0/src/core/version.o",
+      "build/src/main.o",
+      "build/src/net/tls.o",
+      "build/src/cmd/commands.o",
+      "build/src/cmd/glob.o",
+      "build/src/cmd/xshard.o",
+      "build/src/cmd/acl.o",
+      "build/src/cmd/hll.o",
+      "build/src/cmd/t_server.o",
+      "build/src/cmd/t_string.o",
+      "build/src/cmd/t_string_notify.o",
+      "build/src/cmd/t_hash.o",
+      "build/src/cmd/t_hash_ttl.o",
+      "build/src/cmd/t_list.o",
+      "build/src/cmd/t_set.o",
+      "build/src/cmd/t_zset.o",
+      "build/src/cmd/t_zset_ops.o",
+      "build/src/cmd/geo.o",
+      "build/src/cmd/t_stream.o",
+      "build/src/cmd/t_stream_groups.o",
+      "build/src/cmd/scripting.o",
+      "build/src/cmd/functions.o",
+      "build/src/cmd/serialize.o",
+      "build/src/snapshot/snapshot.o",
+      "build/src/persist/aof.o",
+      "build/src/cmd/climon.o",
+      "build/src/cmd/tracking.o",
+      "build/src/cmd/server_tail.o",
+      "build/src/cmd/slowlog.o",
+      "build/src/cmd/lcs.o",
+      "build/src/cmd/info_stats.o",
+      "build/src/cmd/lbsignals.o",
+      "build/src/core/flipctl.o",
+      "build/src/core/genthread.o",
+      "build/src/core/rl2s.o",
+      "build/src/core/lbstall.o",
+      "build/src/core/lbplanner.o",
+      "build/src/cmd/l4prebuild.o",
+      "build/src/cmd/cmdgap.o",
+      "build/src/cmd/pfdebug.o",
+      "build/src/cmd/cmdmeta.o",
+      "build/src/cmd/t_sort.o",
+      "build/src/cmd/multidb.o",
+      "build/src/cmd/storesize.o",
+      "build/src/cmd/multi_admin.o",
+      "build/src/core/reorder.o",
+      "build/src/cmd/geo_store.o",
+      "build/src/persist/aof_frame_debug.o",
+      "build/src/cmd/aclkeys.o",
+      "build/src/cmd/blocking_debug.o",
+      "build/src/cmd/objectpread.o",
+      "build/src/cmd/hexpread.o",
+      "build/src/cmd/autharity.o",
+      "build/src/core/version.o",
+      "-o",
+      "/home/user/Projects/cx-wave4/build/wave4d/trials/forget-noinline/tomokv",
+      "-Wl,--wrap=main",
+      "-ljemalloc",
+      "-luring",
+      "-pthread",
+      "-lssl",
+      "-lcrypto",
+      "-lm"
+    ],
+    "sha256": "94c3dd89258ae691329081be40562a1b42147d387ad3d93cf4a9acef1e1c1510",
+    "comparisons": [
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            3064
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            3192
+          ],
+          [
+            3192
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15981
+          ],
+          [
+            15981
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17097
+          ],
+          [
+            17097
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            4399
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            4279
+          ],
+          [
+            4279
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+        "reference": "merged",
+        "equal": true,
+        "sizes": [
+          [
+            181
+          ],
+          [
+            181
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            23329
+          ],
+          [
+            23221
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "moverfix",
+        "equal": true,
+        "sizes": [
+          [
+            23221
+          ],
+          [
+            23221
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            23183
+          ],
+          [
+            23221
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            408
+          ],
+          [
+            383
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "moverfix",
+        "equal": true,
+        "sizes": [
+          [
+            383
+          ],
+          [
+            383
+          ]
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            380
+          ],
+          [
+            383
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            15739
+          ],
+          [
+            15739
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "headline",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "moverfix",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      },
+      {
+        "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "reference": "merged",
+        "equal": false,
+        "sizes": [
+          [
+            17145
+          ],
+          [
+            17145
+          ]
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "source": 702,
+  "fixture": 702,
+  "match": true,
+  "expected_current": {
+    "quick": 672,
+    "full": 689
+  },
+  "expected_landing": {
+    "quick": 685,
+    "full": 702
+  },
+  "collection_lines": {
+    "collect_job compat2": [
+      4189
+    ],
+    "collect_job moverfix": [
+      4184
+    ],
+    "collect_job ntnew4_live": [
+      4124
+    ],
+    "collect_job notify_order": [
+      4237
+    ],
+    "collect_job notify_aof": [
+      4238
+    ],
+    "if [ \"$TIER\" = quick ]": [
+      4303
+    ]
+  },
+  "headline_source": 686,
+  "added": {
+    "NT-new-4 command clock after dequeue (2s)": 1,
+    "NT-new-4 command clock after dequeue (1s)": 1,
+    "NT-new-4 command clock after dequeue (2s, epoll)": 1,
+    "moverfix conservation (1s, uring, databases 1, atomic 0)": 1,
+    "moverfix conservation (1s, uring, databases 16, atomic 0)": 1,
+    "moverfix conservation (1s, epoll, databases 1, atomic 0)": 1,
+    "moverfix conservation (1s, epoll, databases 16, atomic 0)": 1,
+    "moverfix conservation (2s, uring, databases 1, atomic 0)": 1,
+    "moverfix conservation (2s, uring, databases 16, atomic 0)": 1,
+    "moverfix conservation (2s, epoll, databases 1, atomic 0)": 1,
+    "moverfix conservation (2s, epoll, databases 16, atomic 0)": 1,
+    "compat2 autharity": 1,
+    "compat2 expire_notify": 1,
+    "compat2 ktls_lifetime": 1,
+    "keyspace lazy-expiry order vs Redis 7.4": 1,
+    "local script notification AOF vs Redis 7.4": 1
+  },
+  "removed": {}
+}

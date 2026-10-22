@@ -1,0 +1,36 @@
+[
+  {
+    "attempts": 2,
+    "bound_assumption": "independent, stationary witnessed attempts; per row",
+    "bound_fixed_k": false,
+    "errors": 0,
+    "estimated_attempts_for_k": null,
+    "estimated_seconds_for_k": null,
+    "failures": 0,
+    "hit_failures": 0,
+    "hit_rate": 0.0,
+    "hits": 0,
+    "incomplete": 0,
+    "mean_attempt_seconds": 67.83203163952567,
+    "row": {
+      "family": "expwide",
+      "id": "159",
+      "job": "feature-split-0",
+      "name": "expwide battery (atomic 0)",
+      "observable": "witness",
+      "primitives": [
+        "W4"
+      ],
+      "requires": [
+        "W4"
+      ]
+    },
+    "seconds": 135.66406327905133,
+    "target_hits": 20,
+    "upper_95": null,
+    "verdict": "INSUFFICIENT",
+    "witness_attempts": {
+      "W4": 0
+    }
+  }
+]

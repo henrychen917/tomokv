@@ -1,0 +1,248 @@
+0000 [ 4] endbr64 | f3 0f 1e fa
+0004 [ 2] push %r15 | 41 57
+0006 [ 2] push %r14 | 41 56
+0008 [ 2] push %r13 | 41 55
+000a [ 2] push %r12 | 41 54
+000c [ 1] push %rbp | 55
+000d [ 1] push %rbx | 53
+000e [ 3] mov %rdi,%r12 | 49 89 fc
+0011 [ 4] sub $0x48,%rsp | 48 83 ec 48
+0015 [ 3] mov %rsi,%rbp | 48 89 f5
+0018 [ 9] mov %fs:0x28,%rax | 64 48 8b 04 25 28 00 00 00
+0021 [ 5] mov %rax,0x38(%rsp) | 48 89 44 24 38
+0026 [ 2] xor %eax,%eax | 31 c0
+0028 [ 7] cmpl $0x1,0xcc(%rsi) | 83 be cc 00 00 00 01
+002f [ 6] jbe <+0x150> | 0f 86 1b 01 00 00
+0035 [ 7] mov 0xc0(%rsi),%rdx | 48 8b 96 c0 00 00 00
+003c [ 7] lea 0xe0(%rsi),%rax | 48 8d 86 e0 00 00 00
+0043 [ 4] lea 0x10(%rdx),%rcx | 48 8d 4a 10
+0047 [ 3] test %rdx,%rdx | 48 85 d2
+004a [ 4] cmovne %rcx,%rax | 48 0f 45 c1
+004e [ 3] mov (%rax),%rdx | 48 8b 10
+0051 [ 3] mov 0x8(%rax),%ecx | 8b 48 08
+0054 [ 4] mov 0x10(%rbp),%rsi | 48 8b 75 10
+0058 [ 5] lea 0x38(%r12),%r13 | 4d 8d 6c 24 38
+005d [ 3] mov %r13,%rdi | 4c 89 ef
+0060 [ 5] call <tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)> | e8 ?? ?? ?? ??
+0065 [ 3] mov %rax,%rsi | 48 89 c6
+0068 [ 3] test %rax,%rax | 48 85 c0
+006b [ 6] je <+0x160> | 0f 84 ef 00 00 00
+0071 [ 8] incq 0x3f0(%r12) | 49 ff 84 24 f0 03 00 00
+0079 [ 3] cmpb $0x0,(%rax) | 80 38 00
+007c [ 4] mov %rbp,(%rsp) | 48 89 2c 24
+0080 [ 5] movb $0x0,0x8(%rsp) | c6 44 24 08 00
+0085 [ 2] je <+0xc0> | 74 39
+0087 [ 3] mov %rsp,%rdi | 48 89 e7
+008a [ 5] mov $0x44,%edx | ba 44 00 00 00
+008f [ 7] lea <rip>(%rip),%rsi # <literal-string-2d57524f4e4754595045204f7065726174696f6e20616761696e73742061206b657920686f6c64696e67207468652077726f6e67206b696e64206f662076616c75650d0a00> | 48 8d 35 ?? ?? ?? ??
+0096 [ 5] call <tomo_db0::Op::Sink::append(char const*, unsigned long)> | e8 ?? ?? ?? ??
+009b [ 5] mov 0x38(%rsp),%rax | 48 8b 44 24 38
+00a0 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+00a9 [ 6] jne <+0x42b> | 0f 85 7c 03 00 00
+00af [ 4] add $0x48,%rsp | 48 83 c4 48
+00b3 [ 1] pop %rbx | 5b
+00b4 [ 1] pop %rbp | 5d
+00b5 [ 2] pop %r12 | 41 5c
+00b7 [ 2] pop %r13 | 41 5d
+00b9 [ 2] pop %r14 | 41 5e
+00bb [ 2] pop %r15 | 41 5f
+00bd [ 1] ret | c3
+00be [ 2] xchg %ax,%ax | 66 90
+00c0 [ 4] movzbl 0x1(%rax),%eax | 0f b6 40 01
+00c4 [ 2] cmp $0x1,%al | 3c 01
+00c6 [ 6] je <+0x270> | 0f 84 a4 01 00 00
+00cc [ 2] cmp $0x2,%al | 3c 02
+00ce [ 6] je <+0x1d0> | 0f 84 fc 00 00 00
+00d4 [ 4] mov 0x4(%rsi),%r14d | 44 8b 76 04
+00d8 [ 4] movzbl 0x2(%rsi),%eax | 0f b6 46 02
+00dc [ 4] movzbl 0x2(%rsi),%edx | 0f b6 56 02
+00e0 [ 2] shr $1,%al | d0 e8
+00e2 [ 8] lea 0x0(,%rdx,8),%rdx | 48 8d 14 d5 00 00 00 00
+00ea [ 8] lea 0x0(,%rax,4),%rax | 48 8d 04 85 00 00 00 00
+00f2 [ 3] and $0x8,%edx | 83 e2 08
+00f5 [ 3] and $0x4,%eax | 83 e0 04
+00f8 [ 3] add %rdx,%rax | 48 01 d0
+00fb [ 4] movzbl 0x2(%rsi),%edx | 0f b6 56 02
+00ff [ 3] and $0x2,%edx | 83 e2 02
+0102 [ 6] jne <+0x2a0> | 0f 85 98 01 00 00
+0108 [ 4] movzbl 0x3(%rsi),%edx | 0f b6 56 03
+010c [ 5] lea 0x8(%rax,%rdx,1),%rax | 48 8d 44 10 08
+0111 [ 4] lea (%rsi,%rax,1),%rbx | 48 8d 1c 06
+0115 [ 5] mov 0xc(%r12),%eax | 41 8b 44 24 0c
+011a [ 5] lea 0x10(%rsp),%rdi | 48 8d 7c 24 10
+011f [ 5] mov %rbp,0x10(%rsp) | 48 89 6c 24 10
+0124 [ 5] movb $0x0,0x18(%rsp) | c6 44 24 18 00
+0129 [ 2] test %eax,%eax | 85 c0
+012b [ 2] je <+0x136> | 74 09
+012d [ 3] cmp %eax,%r14d | 41 39 c6
+0130 [ 6] jae <+0x2b0> | 0f 83 7a 01 00 00
+0136 [ 3] mov %r14d,%edx | 44 89 f2
+0139 [ 3] mov %rbx,%rsi | 48 89 de
+013c [ 5] call <void tomo_db0::reply_bulk<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice) [clone .isra.0]> | e8 ?? ?? ?? ??
+0141 [ 5] jmp <+0x9b> | e9 55 ff ff ff
+0146 [10] cs nopw 0x0(%rax,%rax,1) | 66 2e 0f 1f 84 00 00 00 00 00
+0150 [ 2] xor %ecx,%ecx | 31 c9
+0152 [ 2] xor %edx,%edx | 31 d2
+0154 [ 5] jmp <+0x54> | e9 fb fe ff ff
+0159 [ 7] nopl 0x0(%rax) | 0f 1f 80 00 00 00 00
+0160 [ 8] incq 0x3f8(%r12) | 49 ff 84 24 f8 03 00 00
+0168 [ 5] mov %rbp,0x10(%rsp) | 48 89 6c 24 10
+016d [ 5] movb $0x0,0x18(%rsp) | c6 44 24 18 00
+0172 [ 4] testb $0x4,0x1c(%rbp) | f6 45 1c 04
+0176 [ 6] je <+0x220> | 0f 84 a4 00 00 00
+017c [ 4] cmpb $0x0,0x1e(%rbp) | 80 7d 1e 00
+0180 [ 6] je <+0x3a0> | 0f 84 1a 02 00 00
+0186 [ 4] cmpb $0x0,0x1d(%rbp) | 80 7d 1d 00
+018a [ 6] jne <+0x3a0> | 0f 85 10 02 00 00
+0190 [ 6] mov 0xa4(%rbp),%eax | 8b 85 a4 00 00 00
+0196 [ 2] test %eax,%eax | 85 c0
+0198 [ 6] jne <+0x3a0> | 0f 85 02 02 00 00
+019e [ 5] cmpq $0x0,0x28(%rbp) | 48 83 7d 28 00
+01a3 [ 6] jne <+0x3a0> | 0f 85 f7 01 00 00
+01a9 [ 4] movb $0x6,0x1d(%rbp) | c6 45 1d 06
+01ad [10] movl $0x0,0xbc(%rbp) | c7 85 bc 00 00 00 00 00 00 00
+01b7 [11] movq $0x0,0x98(%rbp) | 48 c7 85 98 00 00 00 00 00 00 00
+01c2 [ 5] jmp <+0x9b> | e9 d4 fe ff ff
+01c7 [ 9] nopw 0x0(%rax,%rax,1) | 66 0f 1f 84 00 00 00 00 00
+01d0 [ 4] movzbl 0x2(%rsi),%eax | 0f b6 46 02
+01d4 [ 4] movzbl 0x2(%rsi),%edx | 0f b6 56 02
+01d8 [ 2] shr $1,%al | d0 e8
+01da [ 8] lea 0x0(,%rdx,8),%rdx | 48 8d 14 d5 00 00 00 00
+01e2 [ 8] lea 0x0(,%rax,4),%rax | 48 8d 04 85 00 00 00 00
+01ea [ 3] and $0x8,%edx | 83 e2 08
+01ed [ 3] and $0x4,%eax | 83 e0 04
+01f0 [ 3] add %rdx,%rax | 48 01 d0
+01f3 [ 4] movzbl 0x2(%rsi),%edx | 0f b6 56 02
+01f7 [ 3] and $0x2,%edx | 83 e2 02
+01fa [ 6] jne <+0x3c0> | 0f 85 c0 01 00 00
+0200 [ 4] movzbl 0x3(%rsi),%edx | 0f b6 56 03
+0204 [ 3] add %rsi,%rax | 48 01 f0
+0207 [ 4] mov 0x4(%rsi),%r14d | 44 8b 76 04
+020b [ 5] mov 0x8(%rdx,%rax,1),%rbx | 48 8b 5c 02 08
+0210 [ 5] jmp <+0x115> | e9 00 ff ff ff
+0215 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+0220 [ 4] cmpb $0x0,0x1e(%rbp) | 80 7d 1e 00
+0224 [ 6] je <+0x3e0> | 0f 84 b6 01 00 00
+022a [ 4] cmpb $0x0,0x1d(%rbp) | 80 7d 1d 00
+022e [ 6] jne <+0x3e0> | 0f 85 ac 01 00 00
+0234 [ 6] mov 0xa4(%rbp),%edx | 8b 95 a4 00 00 00
+023a [ 2] test %edx,%edx | 85 d2
+023c [ 6] jne <+0x3e0> | 0f 85 9e 01 00 00
+0242 [ 5] cmpq $0x0,0x28(%rbp) | 48 83 7d 28 00
+0247 [ 6] jne <+0x3e0> | 0f 85 93 01 00 00
+024d [ 4] movb $0x2,0x1d(%rbp) | c6 45 1d 02
+0251 [10] movl $0x0,0xbc(%rbp) | c7 85 bc 00 00 00 00 00 00 00
+025b [11] movq $0x0,0x98(%rbp) | 48 c7 85 98 00 00 00 00 00 00 00
+0266 [ 5] jmp <+0x9b> | e9 30 fe ff ff
+026b [ 5] nopl 0x0(%rax,%rax,1) | 0f 1f 44 00 00
+0270 [ 5] mov 0x38(%rsp),%rax | 48 8b 44 24 38
+0275 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+027e [ 6] jne <+0x42b> | 0f 85 a7 01 00 00
+0284 [ 4] add $0x48,%rsp | 48 83 c4 48
+0288 [ 3] mov %rbp,%rdi | 48 89 ef
+028b [ 1] pop %rbx | 5b
+028c [ 1] pop %rbp | 5d
+028d [ 2] pop %r12 | 41 5c
+028f [ 2] pop %r13 | 41 5d
+0291 [ 2] pop %r14 | 41 5e
+0293 [ 2] pop %r15 | 41 5f
+0295 [ 5] jmp <tomo_db0::(anonymous namespace)::reply_string_bulk(tomo_db0::Op&, tomo_db0::KvObj const*)> | e9 ?? ?? ?? ??
+029a [ 6] nopw 0x0(%rax,%rax,1) | 66 0f 1f 44 00 00
+02a0 [ 3] mov 0x8(%rsi),%edx | 8b 56 08
+02a3 [ 5] jmp <+0x10c> | e9 64 fe ff ff
+02a8 [ 8] nopl 0x0(%rax,%rax,1) | 0f 1f 84 00 00 00 00 00
+02b0 [ 5] mov $0x18,%esi | be 18 00 00 00
+02b5 [ 5] call <tomo_db0::Op::Sink::reserve(unsigned long)> | e8 ?? ?? ?? ??
+02ba [ 3] mov %r14d,%ecx | 44 89 f1
+02bd [ 5] lea 0x20(%rsp),%rdi | 48 8d 7c 24 20
+02c2 [ 2] xor %esi,%esi | 31 f6
+02c4 [ 3] mov %rax,%r10 | 49 89 c2
+02c7 [ 4] lea 0x1(%rax),%r8 | 4c 8d 40 01
+02cb [10] movabs $0xcccccccccccccccd,%r11 | 49 bb cd cc cc cc cc cc cc cc
+02d5 [ 3] movb $0x24,(%rax) | c6 00 24
+02d8 [ 8] nopl 0x0(%rax,%rax,1) | 0f 1f 84 00 00 00 00 00
+02e0 [ 3] mov %rcx,%rax | 48 89 c8
+02e3 [ 3] mov %esi,%r9d | 41 89 f1
+02e6 [ 3] inc %rdi | 48 ff c7
+02e9 [ 2] inc %esi | ff c6
+02eb [ 3] mul %r11 | 49 f7 e3
+02ee [ 3] mov %rcx,%rax | 48 89 c8
+02f1 [ 4] shr $0x3,%rdx | 48 c1 ea 03
+02f5 [ 4] lea (%rdx,%rdx,4),%r15 | 4c 8d 3c 92
+02f9 [ 3] add %r15,%r15 | 4d 01 ff
+02fc [ 3] sub %r15,%rax | 4c 29 f8
+02ff [ 3] add $0x30,%eax | 83 c0 30
+0302 [ 3] mov %al,-0x1(%rdi) | 88 47 ff
+0305 [ 3] mov %rcx,%rax | 48 89 c8
+0308 [ 3] mov %rdx,%rcx | 48 89 d1
+030b [ 4] cmp $0x9,%rax | 48 83 f8 09
+030f [ 2] ja <+0x2e0> | 77 cf
+0311 [ 4] lea (%r8,%rsi,1),%rdi | 49 8d 3c 30
+0315 [ 3] mov %r8,%rax | 4c 89 c0
+0318 [ 4] lea (%r9,%r8,1),%ecx | 43 8d 0c 01
+031c [ 4] nopl 0x0(%rax) | 0f 1f 40 00
+0320 [ 2] mov %ecx,%edx | 89 ca
+0322 [ 2] sub %eax,%edx | 29 c2
+0324 [ 3] inc %rax | 48 ff c0
+0327 [ 5] movzbl 0x20(%rsp,%rdx,1),%edx | 0f b6 54 14 20
+032c [ 3] mov %dl,-0x1(%rax) | 88 50 ff
+032f [ 3] cmp %rax,%rdi | 48 39 c7
+0332 [ 2] jne <+0x320> | 75 ec
+0334 [ 3] add %rsi,%r8 | 49 01 f0
+0337 [ 5] mov 0x10(%rsp),%rax | 48 8b 44 24 10
+033c [ 6] movw $0xa0d,(%r8) | 66 41 c7 00 0d 0a
+0342 [ 4] add $0x2,%r8 | 49 83 c0 02
+0346 [ 3] sub %r10,%r8 | 4d 29 d0
+0349 [ 5] cmpb $0x0,0x18(%rsp) | 80 7c 24 18 00
+034e [ 6] jne <+0x3d0> | 0f 85 7c 00 00 00
+0354 [ 4] add %r8,0x28(%rax) | 4c 01 40 28
+0358 [ 7] mov %r14d,0xb0(%rbp) | 44 89 b5 b0 00 00 00
+035f [ 4] mov (%r12),%eax | 41 8b 04 24
+0363 [ 7] mov %rbx,0xa8(%rbp) | 48 89 9d a8 00 00 00
+036a [ 6] mov %eax,0xb4(%rbp) | 89 85 b4 00 00 00
+0370 [ 5] mov 0x38(%rsp),%rax | 48 8b 44 24 38
+0375 [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+037e [ 6] jne <+0x42b> | 0f 85 a7 00 00 00
+0384 [ 4] add $0x48,%rsp | 48 83 c4 48
+0388 [ 3] mov %rbx,%rsi | 48 89 de
+038b [ 3] mov %r13,%rdi | 4c 89 ef
+038e [ 1] pop %rbx | 5b
+038f [ 1] pop %rbp | 5d
+0390 [ 2] pop %r12 | 41 5c
+0392 [ 2] pop %r13 | 41 5d
+0394 [ 2] pop %r14 | 41 5e
+0396 [ 2] pop %r15 | 41 5f
+0398 [ 5] jmp <tomo_db0::FlatStore::borrow(char const*)> | e9 ?? ?? ?? ??
+039d [ 3] nopl (%rax) | 0f 1f 00
+03a0 [ 5] lea 0x10(%rsp),%rdi | 48 8d 7c 24 10
+03a5 [ 5] mov $0x3,%edx | ba 03 00 00 00
+03aa [ 7] lea <rip>(%rip),%rsi # <literal-string-5f0d0a00> | 48 8d 35 ?? ?? ?? ??
+03b1 [ 5] call <tomo_db0::Op::Sink::append(char const*, unsigned long)> | e8 ?? ?? ?? ??
+03b6 [ 5] jmp <+0x9b> | e9 e0 fc ff ff
+03bb [ 5] nopl 0x0(%rax,%rax,1) | 0f 1f 44 00 00
+03c0 [ 3] mov 0x8(%rsi),%edx | 8b 56 08
+03c3 [ 5] jmp <+0x204> | e9 3c fe ff ff
+03c8 [ 8] nopl 0x0(%rax,%rax,1) | 0f 1f 84 00 00 00 00 00
+03d0 [ 7] add %r8d,0xa4(%rax) | 44 01 80 a4 00 00 00
+03d7 [ 5] jmp <+0x358> | e9 7c ff ff ff
+03dc [ 4] nopl 0x0(%rax) | 0f 1f 40 00
+03e0 [ 5] lea 0x10(%rsp),%rdi | 48 8d 7c 24 10
+03e5 [ 5] mov $0x5,%esi | be 05 00 00 00
+03ea [ 5] call <tomo_db0::Op::Sink::reserve(unsigned long)> | e8 ?? ?? ?? ??
+03ef [ 6] movl $0xd312d24,(%rax) | c7 00 24 2d 31 0d
+03f5 [ 4] movb $0xa,0x4(%rax) | c6 40 04 0a
+03f9 [ 5] mov 0x38(%rsp),%rax | 48 8b 44 24 38
+03fe [ 9] sub %fs:0x28,%rax | 64 48 2b 04 25 28 00 00 00
+0407 [ 2] jne <+0x42b> | 75 22
+0409 [ 5] movzbl 0x18(%rsp),%esi | 0f b6 74 24 18
+040e [ 5] mov 0x10(%rsp),%rdi | 48 8b 7c 24 10
+0413 [ 4] add $0x48,%rsp | 48 83 c4 48
+0417 [ 5] mov $0x5,%edx | ba 05 00 00 00
+041c [ 1] pop %rbx | 5b
+041d [ 1] pop %rbp | 5d
+041e [ 2] pop %r12 | 41 5c
+0420 [ 2] pop %r13 | 41 5d
+0422 [ 2] pop %r14 | 41 5e
+0424 [ 2] pop %r15 | 41 5f
+0426 [ 5] jmp <tomo_db0::Op::Sink::advance(unsigned long) [clone .isra.0]> | e9 ?? ?? ?? ??
+042b [ 5] call <__stack_chk_fail@plt> | e8 ?? ?? ?? ??

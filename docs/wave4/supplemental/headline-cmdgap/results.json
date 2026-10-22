@@ -1,0 +1,119 @@
+{
+  "binary": "/home/user/Projects/bench-bins/tomokv-headline-8656f9fa9",
+  "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+  "tests_unchanged_since_headline": true,
+  "rows": [
+    {
+      "name": "1s-epoll-a0",
+      "argv": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tests/cmdgap2.py",
+        "127.0.0.1",
+        "26864"
+      ],
+      "returncode": 1,
+      "identical_to_post": true
+    },
+    {
+      "name": "1s-epoll-a1",
+      "argv": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tests/cmdgap2.py",
+        "127.0.0.1",
+        "26864"
+      ],
+      "returncode": 1,
+      "identical_to_post": true
+    },
+    {
+      "name": "1s-uring-a0",
+      "argv": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tests/cmdgap2.py",
+        "127.0.0.1",
+        "26864"
+      ],
+      "returncode": 1,
+      "identical_to_post": true
+    },
+    {
+      "name": "1s-uring-a1",
+      "argv": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tests/cmdgap2.py",
+        "127.0.0.1",
+        "26864"
+      ],
+      "returncode": 1,
+      "identical_to_post": true
+    },
+    {
+      "name": "2s-epoll-a0",
+      "argv": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tests/cmdgap2.py",
+        "127.0.0.1",
+        "26864"
+      ],
+      "returncode": 1,
+      "identical_to_post": true
+    },
+    {
+      "name": "2s-epoll-a1",
+      "argv": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tests/cmdgap2.py",
+        "127.0.0.1",
+        "26864"
+      ],
+      "returncode": 1,
+      "identical_to_post": true
+    },
+    {
+      "name": "2s-uring-a0",
+      "argv": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tests/cmdgap2.py",
+        "127.0.0.1",
+        "26864"
+      ],
+      "returncode": 1,
+      "identical_to_post": true
+    },
+    {
+      "name": "2s-uring-a1",
+      "argv": [
+        "taskset",
+        "-c",
+        "89-95",
+        "python3",
+        "tests/cmdgap2.py",
+        "127.0.0.1",
+        "26864"
+      ],
+      "returncode": 1,
+      "identical_to_post": true
+    }
+  ]
+}

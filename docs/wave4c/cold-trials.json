@@ -1,0 +1,57 @@
+[
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713,
+    "size": 1
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713,
+    "size": 2
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713,
+    "size": 3
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713,
+    "size": 4
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713,
+    "size": 5
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713,
+    "size": 8
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713,
+    "size": 10
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713,
+    "early": 4
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713,
+    "early": 5
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713,
+    "early": 7
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "budget": 127713,
+    "early": 8
+  }
+]

@@ -3349,7 +3349,7 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
         const uint8_t logical = server_ ? server_->databases().logical(key.ns) : key.ns;
         for (const WatchEntry& entry : watched->second)
             if (entry.client == client && entry.generation == generation && entry.db == logical &&
-                entry.expire_at_ms >= 0 && entry.expire_at_ms <= now) {
+                entry.expire_at_ms >= 0 && entry.expire_at_ms < now) {
                 client->set_watch_dirty();
                 break;
             }
@@ -3508,7 +3508,7 @@ bool Shard::watch_database_swap(uint8_t first, uint8_t second, uint8_t physical_
         for (const WatchEntry& entry : entries)
             if ((entry.db == first || entry.db == second) && entry.client &&
                 entry.client->watch_generation() == entry.generation &&
-                (present || (entry.expire_at_ms >= 0 && entry.expire_at_ms <= now_ms_))) {
+                (present || (entry.expire_at_ms >= 0 && entry.expire_at_ms < now_ms_))) {
                 if (deferred) {
                     try { deferred->emplace_back(entry.client, entry.generation); }
                     catch (const std::bad_alloc&) { return false; }

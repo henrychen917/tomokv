@@ -1,0 +1,6 @@
+  row budget: 900s; median=-s; no-history-conservative-default; read-local write ring + arming transient unit
+  read-local write ring + arming transient unit        ok
+  row budget: 900s; median=-s; no-history-conservative-default; climon 128-owner delivery mask
+  climon 128-owner delivery mask                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local MGET fence symmetry unit
+  read-local MGET fence symmetry unit                  ok

@@ -1,0 +1,29 @@
+{
+  "kind": "A: behaviour twin",
+  "source": "build/publishfix/sched-post-final/tomokv",
+  "output": "build/publishfix/pad-a-parked/tomokv",
+  "source_sha256": "5e5205e1bc7f80ade96105f061136321f7a5d7d72c169e5be4b98492a653d062",
+  "output_sha256": "6762def250c5f7f65c6982dee03d593b572a4c62c26259f21e63214d357e5414",
+  "changes": [
+    {
+      "function": "00000000000833c0 <_ZN8tomo_db06Server21atomic_commit_publishEv>:",
+      "location": "/home/user/Projects/cx-publishfix/build/publishfix/sched-post-final/source/src/core/server.h:2614",
+      "address": "0x8344a",
+      "offset": 537674,
+      "before": "7224",
+      "after": "9090",
+      "instruction": "8344a:\t72 24                \tjb     83470 <_ZN8tomo_db06Server21atomic_commit_publishEv+0xb0>"
+    },
+    {
+      "function": "000000000040f900 <_ZN4tomo6Server21atomic_commit_publishEv>:",
+      "location": "/home/user/Projects/cx-publishfix/build/publishfix/sched-post-final/source/src/core/server.h:2614",
+      "address": "0x40f98a",
+      "offset": 4258186,
+      "before": "7224",
+      "after": "9090",
+      "instruction": "40f98a:\t72 24                \tjb     40f9b0 <_ZN4tomo6Server21atomic_commit_publishEv+0xb0>"
+    }
+  ],
+  "sections_and_symbols_identical": true,
+  "residual_work": "POST sequence recheck load and comparison remain; catch-up disabled"
+}

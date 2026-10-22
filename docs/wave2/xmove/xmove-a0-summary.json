@@ -1,0 +1,503 @@
+{
+  "binary": "/home/user/Projects/cx-wave2/build/tomokv",
+  "sha256": "f7e597bf67e7d768ccf1f3d226f998def8bbea794b72e4a29d9529ad1991f5fa",
+  "runs": 30,
+  "atomics": [
+    0
+  ],
+  "contend": false,
+  "serial": [
+    {
+      "atomic": 0,
+      "cell": "control",
+      "order": "push after hop two",
+      "got": "(b'moved', 2, [b'keep', b'control'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 2, [b'keep', b'control'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 0,
+      "cell": "control",
+      "order": "push before hop one",
+      "got": "(b'moved', 3, [b'keep', b'control'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 3, [b'keep', b'control'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 0,
+      "cell": "forced",
+      "order": "push after hop two",
+      "got": "(b'moved', 2, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 2, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 0,
+      "cell": "forced",
+      "order": "push before hop one",
+      "got": "(b'moved', 3, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 3, [b'keep', b'concurrent'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 0,
+      "cell": "same_edge",
+      "order": "push after hop two",
+      "got": "(b'moved', 2, [b'new-edge', b'keep'], [b'dest', b'moved'])",
+      "wanted": "(b'moved', 2, [b'new-edge', b'keep'], [b'dest', b'moved'])",
+      "matches": true
+    },
+    {
+      "atomic": 0,
+      "cell": "same_edge",
+      "order": "push before hop one",
+      "got": "(b'new-edge', 3, [b'moved', b'keep'], [b'dest', b'new-edge'])",
+      "wanted": "(b'new-edge', 3, [b'moved', b'keep'], [b'dest', b'new-edge'])",
+      "matches": true
+    }
+  ],
+  "repetitions": {
+    "fixed-a0": {
+      "runs": 30,
+      "passed": 30,
+      "retried_orders": [],
+      "retry_count": 0,
+      "rows": [
+        {
+          "run": 1,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 2,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 3,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 4,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 5,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 6,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 7,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 8,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 9,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 10,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 11,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 12,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 13,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 14,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 15,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 16,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 17,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 18,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 19,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 20,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 21,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 22,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 23,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 24,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 25,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 26,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 27,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 28,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 29,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 30,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        }
+      ]
+    },
+    "pre-fix-a0": {
+      "runs": 30,
+      "passed": 28,
+      "retried_orders": [],
+      "retry_count": 0,
+      "rows": [
+        {
+          "run": 1,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 2,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 3,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 4,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 5,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 6,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 7,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 8,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 9,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 10,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 11,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 12,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 13,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 14,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 15,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 16,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 17,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 18,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 19,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(\"destination hold did not open the inter-hop window\")",
+            "AssertionError: destination hold did not open the inter-hop window"
+          ]
+        },
+        {
+          "run": 20,
+          "exit_code": 1,
+          "passed": false,
+          "retried_orders": [],
+          "failure": [
+            "    raise AssertionError(\"destination hold did not open the inter-hop window\")",
+            "AssertionError: destination hold did not open the inter-hop window"
+          ]
+        },
+        {
+          "run": 21,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 22,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 23,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 24,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 25,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 26,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 27,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 28,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 29,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        },
+        {
+          "run": 30,
+          "exit_code": 0,
+          "passed": true,
+          "retried_orders": [],
+          "failure": []
+        }
+      ]
+    }
+  }
+}

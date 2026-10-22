@@ -1,0 +1,145 @@
+[
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_flushERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1802,
+    "post_size": 1834,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db032command_client_migration_extractEPNS_6ClientE",
+    "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 608,
+    "post_size": 592,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db09FlatStore5clearEv",
+    "name": "tomo_db0::FlatStore::clear()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 840,
+    "post_size": 856,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db010kvobj_freeEPNS_5KvObjE.part.0",
+    "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 383,
+    "post_size": 351,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+    "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 947,
+    "post_size": 979,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+    "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": true,
+    "pre_size": 1072,
+    "post_size": 1072,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db09FlatStore15atomic_collapseEmm",
+    "name": "tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 6055,
+    "post_size": 6023,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db09FlatStore5clearEv",
+    "name": "tomo_db0::FlatStore::clear()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 840,
+    "post_size": 856,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZNSt6vectorIjSaIjEE12emplace_backIJjEEERjDpOT_.isra.0",
+    "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 371,
+    "post_size": 352,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db010AofManagerD1Ev",
+    "name": "tomo_db0::AofManager::~AofManager()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1435,
+    "post_size": 1403,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db010AofManagerD2Ev",
+    "name": "tomo_db0::AofManager::~AofManager()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1435,
+    "post_size": 1403,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_113manifest_nameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+    "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1698,
+    "post_size": 1698,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db09FlatStore5clearEv",
+    "name": "tomo_db0::FlatStore::clear()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 840,
+    "post_size": 856,
+    "classification": "other"
+  }
+]

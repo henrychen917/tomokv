@@ -1,0 +1,101 @@
+{
+  "object": "db0/src/core/reorder.o",
+  "budget": 148406,
+  "tree": "post",
+  "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+  "unit": 113471,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=148406",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.e837c44fe60e45f9.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.e837c44fe60e45f9"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/db0_src_core_reorder.o.e837c44fe60e45f9.o",
+  "sha256": "a3923888d6184c34995679ddfff1fd1e34652a229e3acd68b513a661fed0e339",
+  "counts": {
+    "lane": 2,
+    "hot": 2,
+    "other": 6
+  },
+  "changes": [
+    {
+      "kind": "lane",
+      "name": "tomo_db0::IoLoop::epoll_recv(tomo_db0::Client*)",
+      "pre": 717,
+      "post": 733
+    },
+    {
+      "kind": "other",
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()",
+      "pre": 4816,
+      "post": 4851
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+      "pre": 3911,
+      "post": 3972
+    },
+    {
+      "kind": "hot",
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "pre": 796,
+      "post": 729
+    },
+    {
+      "kind": "hot",
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+      "pre": 3631,
+      "post": 3565
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo_db0::WbEngine::pump_tls<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&)",
+      "pre": 1848,
+      "post": 1944
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)",
+      "pre": 1011,
+      "post": 1011
+    },
+    {
+      "kind": "other",
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "pre": 820,
+      "post": 964
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::Rob<64u>::quiesced() const",
+      "pre": 0,
+      "post": 22
+    },
+    {
+      "kind": "other",
+      "name": "tomo_db0::IoLoop::flip_io_drained() const",
+      "pre": 708,
+      "post": 704
+    }
+  ]
+}

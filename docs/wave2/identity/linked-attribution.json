@@ -1,0 +1,1927 @@
+{
+ "summary": {
+  "changed_object_bodies": 172,
+  "reaching_binary": 104,
+  "discarded_copies": 58,
+  "removed": 10,
+  "reaching_by_class": {
+   "A": 97,
+   "B": 6,
+   "C": 0,
+   "D": 1
+  },
+  "maps": {
+   "pre": "build/wave2/maps/pre.map",
+   "post": "build/wave2/maps/post.map"
+  }
+ },
+ "bodies": [
+  {
+   "object": "db0/src/cmd/storesize.o",
+   "name": "tomo_db0::Shard::publish_size()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/storesize.o",
+   "name": "tomo_db0::FlatStore::publish_keyspace_sample() const",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_server.o",
+   "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_server.o",
+   "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/cmd/t_server.o",
+   "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+   "cls": "B",
+   "lanes": [
+    "perfex",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_server.o",
+   "name": "tomo_db0::FlatStore::clear_read_local()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/cmd/t_server.o",
+   "name": "tomo_db0::FlatStore::clear()",
+   "cls": "B",
+   "lanes": [
+    "perfex",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "void tomo_db0::(anonymous namespace)::cmd_xclaim<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "void tomo_db0::(anonymous namespace)::cmd_xclaim<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "void tomo_db0::(anonymous namespace)::cmd_xpending<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "void tomo_db0::(anonymous namespace)::cmd_xpending<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "void tomo_db0::(anonymous namespace)::cmd_xpending<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "void tomo_db0::(anonymous namespace)::cmd_xpending<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::(anonymous namespace)::reply_group_info(tomo_db0::Op&, tomo_db0::KvObj*, tomo_db0::StreamHeader const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo_db0::(anonymous namespace)::StreamGroup const&, bool, unsigned long)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::(anonymous namespace)::reply_group_info(tomo_db0::Op&, tomo_db0::KvObj*, tomo_db0::StreamHeader const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo_db0::(anonymous namespace)::StreamGroup const&, bool, unsigned long) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "absent"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::(anonymous namespace)::tombstones_after(tomo_db0::StreamVal const&, tomo_db0::StreamID const&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::(anonymous namespace)::infer_entries_read(tomo_db0::KvObj*, tomo_db0::StreamID const&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "absent"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::(anonymous namespace)::infer_entries_read(tomo_db0::KvObj*, tomo_db0::StreamID const&) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "absent"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::(anonymous namespace)::infer_entries_read(tomo_db0::StreamVal const&, tomo_db0::StreamID const&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::(anonymous namespace)::reply_nogroup_subcommand(tomo_db0::Op&, tomo_db0::Slice, tomo_db0::Slice) [clone .isra.0]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "void tomo_db0::(anonymous namespace)::cmd_xinfo<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "void tomo_db0::(anonymous namespace)::cmd_xinfo<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::stream_xreadgroup_execute(tomo_db0::Shard&, tomo_db0::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::stream_xreadgroup_execute(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "std::pair<std::_Rb_tree_iterator<std::pair<tomo_db0::StreamID const, tomo_db0::(anonymous namespace)::StreamPending> >, bool> std::map<tomo_db0::StreamID, tomo_db0::(anonymous namespace)::StreamPending, tomo_db0::(anonymous namespace)::IdLess, std::allocator<std::pair<tomo_db0::StreamID const, tomo_db0::(anonymous namespace)::StreamPending> > >::emplace<tomo_db0::StreamID&, tomo_db0::(anonymous namespace)::StreamPending>(tomo_db0::StreamID&, tomo_db0::(anonymous namespace)::StreamPending&&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "std::pair<std::_Rb_tree_iterator<std::pair<tomo_db0::StreamID const, tomo_db0::(anonymous namespace)::StreamPending> >, bool> std::map<tomo_db0::StreamID, tomo_db0::(anonymous namespace)::StreamPending, tomo_db0::(anonymous namespace)::IdLess, std::allocator<std::pair<tomo_db0::StreamID const, tomo_db0::(anonymous namespace)::StreamPending> > >::emplace<tomo_db0::StreamID const&, tomo_db0::(anonymous namespace)::StreamPending>(tomo_db0::StreamID const&, tomo_db0::(anonymous namespace)::StreamPending&&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::(anonymous namespace)::cmd_xautoclaim<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::(anonymous namespace)::cmd_xautoclaim<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::(anonymous namespace)::cmd_xautoclaim<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/t_stream_groups.o",
+   "name": "tomo_db0::(anonymous namespace)::cmd_xautoclaim<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/xshard.o",
+   "name": "tomo_db0::FlatStore::clear_read_local()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/cmd/xshard.o",
+   "name": "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/cmd/xshard.o",
+   "name": "tomo_db0::FlatStore::clear()",
+   "cls": "B",
+   "lanes": [
+    "perfex",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "bool tomo_db0::IoLoop::commit_client_transfer<true>(tomo_db0::Client*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "tomo_db0::ExLoopT<true>::owner_control_tail()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "tomo_db0::ExLoopT<true>::keyspace_sample_cycle()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "tomo_db0::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "tomo_db0::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "tomo_db0::FlatStore::maybe_start_shrink()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "tomo_db0::FlatStore::prepare_resize_retirement() [clone .isra.0]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "tomo_db0::FlatStore::prepare_resize_retirement() [clone .isra.0] [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/genthread.o",
+   "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+   "cls": "B",
+   "lanes": [
+    "perfio",
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/lbplanner.o",
+   "name": "bool tomo_db0::IoLoop::commit_client_transfer<true>(tomo_db0::Client*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "bool tomo_db0::IoLoop::commit_client_transfer<true>(tomo_db0::Client*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::ExLoopT<true>::owner_control_tail()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::ExLoopT<true>::keyspace_sample_cycle()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "unsigned int tomo_db0::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)",
+   "cls": "B",
+   "lanes": [
+    "perfio",
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::FlatStore::maybe_start_shrink()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::FlatStore::prepare_resize_retirement() [clone .isra.0]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::FlatStore::prepare_resize_retirement() [clone .isra.0] [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/reorder.o",
+   "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/rl2s.o",
+   "name": "bool tomo_db0::IoLoop::commit_client_transfer<true>(tomo_db0::Client*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/rl2s.o",
+   "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/rl2s.o",
+   "name": "tomo_db0::ExLoopT<true>::owner_control_tail()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/rl2s.o",
+   "name": "tomo_db0::ExLoopT<true>::keyspace_sample_cycle()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/rl2s.o",
+   "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/rl2s.o",
+   "name": "tomo_db0::ExLoopT<true>::run()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/rl2s.o",
+   "name": "tomo_db0::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/core/rl2s.o",
+   "name": "tomo_db0::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/core/rl2s.o",
+   "name": "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "tomo_db0::Config::Config()",
+   "cls": "A",
+   "lanes": [
+    "dbdefault"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "tomo_db0::Config::Config()",
+   "cls": "A",
+   "lanes": [
+    "dbdefault"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "bool tomo_db0::IoLoop::commit_client_transfer<true>(tomo_db0::Client*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "void tomo_db0::ExLoopT<false>::exec_batch<false, 32ul>(tomo_db0::Task (&) [32ul], unsigned int)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "absent"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "tomo_db0::ExLoopT<false>::keyspace_sample_cycle()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "tomo_db0::ExLoopT<false>::run()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "tomo_db0::ExLoopT<false>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "absent"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "tomo_db0::ExLoopT<false>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "absent"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "main",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/main.o",
+   "name": "main.cold",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/persist/aof.o",
+   "name": "tomo_db0::AofManager::~AofManager()",
+   "cls": "B",
+   "lanes": [
+    "perfex",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/persist/aof.o",
+   "name": "tomo_db0::AofManager::~AofManager()",
+   "cls": "B",
+   "lanes": [
+    "perfex",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/persist/aof.o",
+   "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+   "cls": "B",
+   "lanes": [
+    "perfex",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "db0/src/persist/aof.o",
+   "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+   "cls": "C",
+   "lanes": [],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/persist/aof.o",
+   "name": "tomo_db0::FlatStore::clear_read_local()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "db0/src/persist/aof.o",
+   "name": "tomo_db0::FlatStore::clear()",
+   "cls": "B",
+   "lanes": [
+    "perfex",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/cmd/storesize.o",
+   "name": "tomo::FlatStore::publish_keyspace_sample() const",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_server.o",
+   "name": "tomo::kvobj_external_bytes(tomo::KvObj const*)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/cmd/t_server.o",
+   "name": "tomo::command_client_migration_extract(tomo::Client*)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_server.o",
+   "name": "tomo::FlatStore::clear_read_local()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/cmd/t_server.o",
+   "name": "tomo::FlatStore::clear()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "void tomo::(anonymous namespace)::cmd_xclaim<false>(tomo::Shard&, tomo::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "void tomo::(anonymous namespace)::cmd_xclaim<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "void tomo::(anonymous namespace)::cmd_xpending<false>(tomo::Shard&, tomo::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "void tomo::(anonymous namespace)::cmd_xpending<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "void tomo::(anonymous namespace)::cmd_xpending<true>(tomo::Shard&, tomo::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "void tomo::(anonymous namespace)::cmd_xpending<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::(anonymous namespace)::reply_group_info(tomo::Op&, tomo::KvObj*, tomo::StreamHeader const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo::(anonymous namespace)::StreamGroup const&, bool, unsigned long)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::(anonymous namespace)::reply_group_info(tomo::Op&, tomo::KvObj*, tomo::StreamHeader const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, tomo::(anonymous namespace)::StreamGroup const&, bool, unsigned long) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "absent"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::(anonymous namespace)::tombstones_after(tomo::StreamVal const&, tomo::StreamID const&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::(anonymous namespace)::infer_entries_read(tomo::KvObj*, tomo::StreamID const&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "absent"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::(anonymous namespace)::infer_entries_read(tomo::KvObj*, tomo::StreamID const&) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "absent"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::(anonymous namespace)::infer_entries_read(tomo::StreamVal const&, tomo::StreamID const&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "void tomo::(anonymous namespace)::cmd_xinfo<false>(tomo::Shard&, tomo::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "void tomo::(anonymous namespace)::cmd_xinfo<true>(tomo::Shard&, tomo::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::stream_xreadgroup_execute(tomo::Shard&, tomo::Op&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::stream_xreadgroup_execute(tomo::Shard&, tomo::Op&) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::stream_group_prepare_waiter(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, tomo::Slice)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::stream_group_prepare_waiter(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, tomo::Slice) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "std::pair<std::_Rb_tree_iterator<std::pair<tomo::StreamID const, tomo::(anonymous namespace)::StreamPending> >, bool> std::map<tomo::StreamID, tomo::(anonymous namespace)::StreamPending, tomo::(anonymous namespace)::IdLess, std::allocator<std::pair<tomo::StreamID const, tomo::(anonymous namespace)::StreamPending> > >::emplace<tomo::StreamID&, tomo::(anonymous namespace)::StreamPending>(tomo::StreamID&, tomo::(anonymous namespace)::StreamPending&&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "std::pair<std::_Rb_tree_iterator<std::pair<tomo::StreamID const, tomo::(anonymous namespace)::StreamPending> >, bool> std::map<tomo::StreamID, tomo::(anonymous namespace)::StreamPending, tomo::(anonymous namespace)::IdLess, std::allocator<std::pair<tomo::StreamID const, tomo::(anonymous namespace)::StreamPending> > >::emplace<tomo::StreamID const&, tomo::(anonymous namespace)::StreamPending>(tomo::StreamID const&, tomo::(anonymous namespace)::StreamPending&&)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::(anonymous namespace)::cmd_xautoclaim<false>(tomo::Shard&, tomo::Op&)::{lambda(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::(anonymous namespace)::cmd_xautoclaim<false>(tomo::Shard&, tomo::Op&)::{lambda(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::(anonymous namespace)::cmd_xautoclaim<true>(tomo::Shard&, tomo::Op&)::{lambda(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/t_stream_groups.o",
+   "name": "tomo::(anonymous namespace)::cmd_xautoclaim<true>(tomo::Shard&, tomo::Op&)::{lambda(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/xshard.o",
+   "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/xshard.o",
+   "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/xshard.o",
+   "name": "tomo::FlatStore::clear_read_local()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/xshard.o",
+   "name": "tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/cmd/xshard.o",
+   "name": "tomo::FlatStore::clear()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/xshard.o",
+   "name": "std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::insert(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/cmd/xshard.o",
+   "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/xshard.o",
+   "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/cmd/xshard.o",
+   "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0] [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/genthread.o",
+   "name": "tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)",
+   "cls": "B",
+   "lanes": [
+    "perfex",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/genthread.o",
+   "name": "bool tomo::IoLoop::commit_client_transfer<true>(tomo::Client*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/genthread.o",
+   "name": "unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/genthread.o",
+   "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+   "cls": "D",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/genthread.o",
+   "name": "unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/genthread.o",
+   "name": "tomo::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/genthread.o",
+   "name": "tomo::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/genthread.o",
+   "name": "tomo::FlatStore::maybe_start_shrink()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/genthread.o",
+   "name": "tomo::FlatStore::prepare_resize_retirement() [clone .isra.0]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/genthread.o",
+   "name": "tomo::FlatStore::prepare_resize_retirement() [clone .isra.0] [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/genthread.o",
+   "name": "tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+   "cls": "D",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/lbplanner.o",
+   "name": "bool tomo::IoLoop::commit_client_transfer<true>(tomo::Client*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "bool tomo::IoLoop::commit_client_transfer<true>(tomo::Client*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "tomo::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "tomo::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
+   "cls": "B",
+   "lanes": [
+    "perfio",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "tomo::FlatStore::maybe_start_shrink()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "tomo::FlatStore::snapshot_prepare_write(unsigned long, tomo::Slice)",
+   "cls": "B",
+   "lanes": [
+    "perfio",
+    "perfex",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "tomo::FlatStore::prepare_resize_retirement() [clone .isra.0]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "tomo::FlatStore::prepare_resize_retirement() [clone .isra.0] [clone .cold]",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "absent",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)",
+   "cls": "B",
+   "lanes": [
+    "perfio",
+    "perfex",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/reorder.o",
+   "name": "tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/rl2s.o",
+   "name": "unsigned int tomo::IoLoop::flip_control_pass<true>()",
+   "cls": "B",
+   "lanes": [
+    "perfio",
+    "perfex",
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/rl2s.o",
+   "name": "bool tomo::IoLoop::commit_client_transfer<true>(tomo::Client*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/rl2s.o",
+   "name": "unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/rl2s.o",
+   "name": "unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/rl2s.o",
+   "name": "tomo::ExLoopT<true>::run()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/rl2s.o",
+   "name": "tomo::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/core/rl2s.o",
+   "name": "tomo::ExLoopT<true>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/core/rl2s.o",
+   "name": "tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/main.o",
+   "name": "tomo::Config::Config()",
+   "cls": "A",
+   "lanes": [
+    "dbdefault"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/main.o",
+   "name": "tomo::Config::Config()",
+   "cls": "A",
+   "lanes": [
+    "dbdefault"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/main.o",
+   "name": "bool tomo::IoLoop::commit_client_transfer<true>(tomo::Client*)",
+   "cls": "A",
+   "lanes": [
+    "perfio"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/main.o",
+   "name": "void tomo::ExLoopT<false>::exec_batch<false, 32ul>(tomo::Task (&) [32ul], unsigned int)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "absent"
+  },
+  {
+   "object": "src/main.o",
+   "name": "unsigned int tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/main.o",
+   "name": "tomo::ExLoopT<false>::run()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": true,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/main.o",
+   "name": "tomo::ExLoopT<false>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/main.o",
+   "name": "tomo::ExLoopT<false>::ExLoopT()",
+   "cls": "A",
+   "lanes": [
+    "perfex"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/main.o",
+   "name": "tomo::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/persist/aof.o",
+   "name": "tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "linked",
+   "post": "linked"
+  },
+  {
+   "object": "src/persist/aof.o",
+   "name": "tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/persist/aof.o",
+   "name": "tomo::FlatStore::clear_read_local()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  },
+  {
+   "object": "src/persist/aof.o",
+   "name": "tomo::FlatStore::clear()",
+   "cls": "A",
+   "lanes": [
+    "rlresize"
+   ],
+   "hot": false,
+   "pre": "discarded (another object's COMDAT copy is linked)",
+   "post": "discarded (another object's COMDAT copy is linked)"
+  }
+ ]
+}

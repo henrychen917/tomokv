@@ -1,0 +1,66 @@
+{
+  "subset": "full",
+  "count": 16,
+  "ids": [
+    "ao01",
+    "ao02",
+    "ao03",
+    "ao04",
+    "ao05",
+    "ao06",
+    "ao07",
+    "ao08",
+    "ao09",
+    "ao10",
+    "ao11",
+    "ao12",
+    "ao13",
+    "ao14",
+    "ao15",
+    "ao16"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "MGET",
+    "MSET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "MGET",
+    "MSET",
+    "SET"
+  ],
+  "depths": [
+    1,
+    8,
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "latency_ms",
+    "rate"
+  ],
+  "pending_pins": [
+    "ao02",
+    "ao04",
+    "ao06",
+    "ao08",
+    "ao10",
+    "ao12",
+    "ao14",
+    "ao16"
+  ]
+}

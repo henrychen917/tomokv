@@ -1,0 +1,39 @@
+{
+  "binary": "build/tomokv",
+  "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+  "pre_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+  "all": {
+    "groups": 8649,
+    "headline_identical": 7932,
+    "lane_identical": 604,
+    "residual": 113
+  },
+  "historical_hot": {
+    "groups": 489,
+    "headline_identical": 394,
+    "lane_identical": 78,
+    "residual": 17
+  },
+  "command_path": {
+    "groups": 77,
+    "headline_identical": 50,
+    "lane_identical": 17,
+    "residual": 10
+  },
+  "previously_matching_unchanged": 8536,
+  "regenerated": {
+    "all-bodies.json.gz": {
+      "regenerated_payload_equals_incoming": true,
+      "uncompressed_sha256": "914adde7d5687aaada32d036f9bee9de765a8448ac07928cc32c04443a2e6903"
+    },
+    "residual-diffs.json.gz": {
+      "regenerated_payload_equals_incoming": true,
+      "uncompressed_sha256": "53f2d761100f5c8a8f9446ec22f7ada2630d03b953041d58f548bc136742ecfe"
+    }
+  },
+  "commands": [
+    "python3 docs/wave4/identity.py",
+    "python3 docs/wave4/residuals.py"
+  ],
+  "identity_normalizer_changed": false
+}

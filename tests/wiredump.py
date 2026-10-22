@@ -238,7 +238,7 @@ def boot_pair(args):
         for label, command in (
             ("target", ["taskset", "-c", "112-115", args.target_bin,
                         "--port", str(args.target_port), "--bind", args.host,
-                        "--shards", "2", "--no-pin", "--atomic", str(args.atomic)]),
+                        "--databases", "1", "--shards", "2", "--no-pin", "--atomic", str(args.atomic)]),
             ("oracle", ["taskset", "-c", "116-119", args.oracle_bin,
                         "--port", str(args.oracle_port), "--bind", args.host,
                         "--protected-mode", "no", "--save", "", "--appendonly", "no"]),

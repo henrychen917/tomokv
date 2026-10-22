@@ -1,0 +1,57 @@
+{
+  "object": "src/core/genthread.o",
+  "budget": 129483,
+  "tree": "post",
+  "source_sha256": "096d6c444628fcbb1c9189f528ae064c7cdba88372293eeaa3b97f4d4e1341cf",
+  "unit": 102613,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=129483",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/genthread.cc",
+    "-o",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.2dd7a2538299f5f2.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.2dd7a2538299f5f2"
+  ],
+  "output": "/home/user/Projects/cx-ntfix/build/ntfix2/trials/src_core_genthread.o.2dd7a2538299f5f2.o",
+  "sha256": "d833bb8fbc2421d62ec0d640f41109292f27d7dac92faf2ad8be792ef7c1db40",
+  "counts": {
+    "lane": 2,
+    "hot": 0,
+    "other": 1
+  },
+  "changes": [
+    {
+      "kind": "lane",
+      "name": "tomo::IoLoop::epoll_recv(tomo::Client*)",
+      "pre": 717,
+      "post": 733
+    },
+    {
+      "kind": "other",
+      "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+      "pre": 3010,
+      "post": 3065
+    },
+    {
+      "kind": "lane",
+      "name": "bool tomo::WbEngine::pump_tls<false, false>(tomo::Client&, tomo::TlsConn&)",
+      "pre": 1401,
+      "post": 1481
+    }
+  ]
+}

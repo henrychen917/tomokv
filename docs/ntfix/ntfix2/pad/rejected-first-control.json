@@ -1,0 +1,19 @@
+{
+  "kind": "A: PRE behaviour, POST aggregate text size",
+  "text_functions": 8982,
+  "same_pre_function_addresses_and_sizes": false,
+  "limitation": "PRE internal text placement is preserved; POST internal placement is not reproduced.",
+  "changed_function_placements": 8982,
+  "example": {
+    "symbol": "Arith",
+    "pre": [
+      6238800,
+      643
+    ],
+    "pad": [
+      6233856,
+      643
+    ]
+  },
+  "reason": "Assembly padding omitted .note.gnu.property, dropping IBT/SHSTK and .plt.sec. This first control is rejected."
+}

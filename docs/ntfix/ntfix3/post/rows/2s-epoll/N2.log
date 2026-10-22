@@ -1,0 +1,8 @@
+  ok   TLS protocol error reply then EOF
+  ok   TLS QUIT reply then EOF
+  ok   TLS pipeline then QUIT reply then EOF
+  ok   TLS PING remains open
+  ok   TCP protocol error reply then EOF
+  ok   TCP QUIT reply then EOF
+  ok   TCP pipeline then QUIT reply then EOF
+  ok   TCP PING remains open

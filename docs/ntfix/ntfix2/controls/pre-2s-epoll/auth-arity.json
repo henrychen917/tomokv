@@ -1,0 +1,12 @@
+[
+  {
+    "server": "candidate",
+    "reply": "-ERR wrong number of arguments for 'ping' command\r\n",
+    "closed": false
+  },
+  {
+    "server": "oracle",
+    "reply": "-NOAUTH Authentication required.\r\n",
+    "closed": false
+  }
+]

@@ -1,0 +1,727 @@
+[
+  {
+    "label": "differ-2s",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",
+      "25510",
+      "25511",
+      "32-39",
+      "6:2"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/differ-2s.log"
+  },
+  {
+    "label": "differ-1s",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/fused-rl0",
+      "25510",
+      "25511",
+      "32-39",
+      "6:2"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/differ-1s.log"
+  },
+  {
+    "label": "atomic-plain-self-test",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/atomic_plain.py",
+      "--self-test"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/atomic-plain-self-test.log"
+  },
+  {
+    "label": "plain-unit-0",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "build/atomic-survivors-unit",
+      "plain_0"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/plain-unit-0.log"
+  },
+  {
+    "label": "plain-unit-1",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "build/atomic-survivors-unit",
+      "plain_1"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/plain-unit-1.log"
+  },
+  {
+    "label": "2s-atomic_torn-a1-boot",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",
+      "--port",
+      "25520",
+      "--bind",
+      "127.0.0.1",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/2s-atomic_torn-a1",
+      "--ratio",
+      "6:2"
+    ],
+    "log": "build/mkfix2/proof/2s-atomic_torn-a1/server.log",
+    "pid": 2285092
+  },
+  {
+    "label": "2s-atomic_torn-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/atomic_torn.py",
+      "127.0.0.1",
+      "25520",
+      "--release-build"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/2s-atomic_torn-a1.log"
+  },
+  {
+    "label": "2s-atomic_torn-a1-shutdown",
+    "exit": 0
+  },
+  {
+    "label": "2s-atomic_torn-a1-clean",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/shutdown_report.py",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/2s-atomic_torn-a1/server.log",
+      "clean"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/2s-atomic_torn-a1-clean.log"
+  },
+  {
+    "label": "2s-atomic_ryow-a1-boot",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",
+      "--port",
+      "25520",
+      "--bind",
+      "127.0.0.1",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/2s-atomic_ryow-a1",
+      "--ratio",
+      "6:2"
+    ],
+    "log": "build/mkfix2/proof/2s-atomic_ryow-a1/server.log",
+    "pid": 2287797
+  },
+  {
+    "label": "2s-atomic_ryow-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/atomic_ryow.py",
+      "127.0.0.1",
+      "25520"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/2s-atomic_ryow-a1.log"
+  },
+  {
+    "label": "2s-atomic_ryow-a1-shutdown",
+    "exit": 0
+  },
+  {
+    "label": "2s-atomic_ryow-a1-clean",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/shutdown_report.py",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/2s-atomic_ryow-a1/server.log",
+      "clean"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/2s-atomic_ryow-a1-clean.log"
+  },
+  {
+    "label": "2s-atomic_hazards-a1-boot",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",
+      "--port",
+      "25520",
+      "--bind",
+      "127.0.0.1",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/2s-atomic_hazards-a1",
+      "--ratio",
+      "6:2"
+    ],
+    "log": "build/mkfix2/proof/2s-atomic_hazards-a1/server.log",
+    "pid": 2287994
+  },
+  {
+    "label": "2s-atomic_hazards-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/atomic_hazards.py",
+      "127.0.0.1",
+      "25520"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/2s-atomic_hazards-a1.log"
+  },
+  {
+    "label": "2s-atomic_hazards-a1-shutdown",
+    "exit": 0
+  },
+  {
+    "label": "2s-atomic_hazards-a1-clean",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/shutdown_report.py",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/2s-atomic_hazards-a1/server.log",
+      "clean"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/2s-atomic_hazards-a1-clean.log"
+  },
+  {
+    "label": "2s-atomic_plain-a0-boot",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",
+      "--port",
+      "25520",
+      "--bind",
+      "127.0.0.1",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--read-local",
+      "0",
+      "--atomic",
+      "0",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/2s-atomic_plain-a0",
+      "--ratio",
+      "6:2",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "log": "build/mkfix2/proof/2s-atomic_plain-a0/server.log",
+    "pid": 2288113
+  },
+  {
+    "label": "2s-atomic_plain-a0",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/atomic_plain.py",
+      "127.0.0.1",
+      "25520",
+      "--atomic",
+      "0"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/2s-atomic_plain-a0.log"
+  },
+  {
+    "label": "2s-atomic_plain-a0-shutdown",
+    "exit": 0
+  },
+  {
+    "label": "2s-atomic_plain-a0-clean",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/shutdown_report.py",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/2s-atomic_plain-a0/server.log",
+      "clean"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/2s-atomic_plain-a0-clean.log"
+  },
+  {
+    "label": "2s-atomic_plain-a1-boot",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",
+      "--port",
+      "25520",
+      "--bind",
+      "127.0.0.1",
+      "--thread-mode",
+      "2s",
+      "--shards",
+      "16",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/2s-atomic_plain-a1",
+      "--ratio",
+      "6:2",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "log": "build/mkfix2/proof/2s-atomic_plain-a1/server.log",
+    "pid": 2289856
+  },
+  {
+    "label": "2s-atomic_plain-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/atomic_plain.py",
+      "127.0.0.1",
+      "25520",
+      "--atomic",
+      "1"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/2s-atomic_plain-a1.log"
+  },
+  {
+    "label": "2s-atomic_plain-a1-shutdown",
+    "exit": 0
+  },
+  {
+    "label": "2s-atomic_plain-a1-clean",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/shutdown_report.py",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/2s-atomic_plain-a1/server.log",
+      "clean"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/2s-atomic_plain-a1-clean.log"
+  },
+  {
+    "label": "1s-atomic_torn-a1-boot",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",
+      "--port",
+      "25520",
+      "--bind",
+      "127.0.0.1",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/1s-atomic_torn-a1"
+    ],
+    "log": "build/mkfix2/proof/1s-atomic_torn-a1/server.log",
+    "pid": 2290004
+  },
+  {
+    "label": "1s-atomic_torn-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/atomic_torn.py",
+      "127.0.0.1",
+      "25520",
+      "--release-build"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/1s-atomic_torn-a1.log"
+  },
+  {
+    "label": "1s-atomic_torn-a1-shutdown",
+    "exit": 0
+  },
+  {
+    "label": "1s-atomic_torn-a1-clean",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/shutdown_report.py",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/1s-atomic_torn-a1/server.log",
+      "clean"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/1s-atomic_torn-a1-clean.log"
+  },
+  {
+    "label": "1s-atomic_ryow-a1-boot",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",
+      "--port",
+      "25520",
+      "--bind",
+      "127.0.0.1",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/1s-atomic_ryow-a1"
+    ],
+    "log": "build/mkfix2/proof/1s-atomic_ryow-a1/server.log",
+    "pid": 2292494
+  },
+  {
+    "label": "1s-atomic_ryow-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/atomic_ryow.py",
+      "127.0.0.1",
+      "25520"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/1s-atomic_ryow-a1.log"
+  },
+  {
+    "label": "1s-atomic_ryow-a1-shutdown",
+    "exit": 0
+  },
+  {
+    "label": "1s-atomic_ryow-a1-clean",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/shutdown_report.py",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/1s-atomic_ryow-a1/server.log",
+      "clean"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/1s-atomic_ryow-a1-clean.log"
+  },
+  {
+    "label": "1s-atomic_hazards-a1-boot",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",
+      "--port",
+      "25520",
+      "--bind",
+      "127.0.0.1",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/1s-atomic_hazards-a1"
+    ],
+    "log": "build/mkfix2/proof/1s-atomic_hazards-a1/server.log",
+    "pid": 2292615
+  },
+  {
+    "label": "1s-atomic_hazards-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/atomic_hazards.py",
+      "127.0.0.1",
+      "25520"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/1s-atomic_hazards-a1.log"
+  },
+  {
+    "label": "1s-atomic_hazards-a1-shutdown",
+    "exit": 0
+  },
+  {
+    "label": "1s-atomic_hazards-a1-clean",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/shutdown_report.py",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/1s-atomic_hazards-a1/server.log",
+      "clean"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/1s-atomic_hazards-a1-clean.log"
+  },
+  {
+    "label": "1s-atomic_plain-a0-boot",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",
+      "--port",
+      "25520",
+      "--bind",
+      "127.0.0.1",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--read-local",
+      "0",
+      "--atomic",
+      "0",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/1s-atomic_plain-a0",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "log": "build/mkfix2/proof/1s-atomic_plain-a0/server.log",
+    "pid": 2294568
+  },
+  {
+    "label": "1s-atomic_plain-a0",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/atomic_plain.py",
+      "127.0.0.1",
+      "25520",
+      "--atomic",
+      "0"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/1s-atomic_plain-a0.log"
+  },
+  {
+    "label": "1s-atomic_plain-a0-shutdown",
+    "exit": 0
+  },
+  {
+    "label": "1s-atomic_plain-a0-clean",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/shutdown_report.py",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/1s-atomic_plain-a0/server.log",
+      "clean"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/1s-atomic_plain-a0-clean.log"
+  },
+  {
+    "label": "1s-atomic_plain-a1-boot",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-39",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/abc/tomokv",
+      "--port",
+      "25520",
+      "--bind",
+      "127.0.0.1",
+      "--thread-mode",
+      "1s",
+      "--shards",
+      "16",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/1s-atomic_plain-a1",
+      "--key-lb",
+      "0",
+      "--client-lb",
+      "0",
+      "--flip-auto",
+      "0"
+    ],
+    "log": "build/mkfix2/proof/1s-atomic_plain-a1/server.log",
+    "pid": 2295040
+  },
+  {
+    "label": "1s-atomic_plain-a1",
+    "argv": [
+      "taskset",
+      "-c",
+      "40-47",
+      "python3",
+      "tests/atomic_plain.py",
+      "127.0.0.1",
+      "25520",
+      "--atomic",
+      "1"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/1s-atomic_plain-a1.log"
+  },
+  {
+    "label": "1s-atomic_plain-a1-shutdown",
+    "exit": 0
+  },
+  {
+    "label": "1s-atomic_plain-a1-clean",
+    "argv": [
+      "taskset",
+      "-c",
+      "32-47",
+      "python3",
+      "tests/shutdown_report.py",
+      "/home/user/Projects/cx-mkfix/build/mkfix2/proof/1s-atomic_plain-a1/server.log",
+      "clean"
+    ],
+    "exit": 0,
+    "log": "build/mkfix2/proof/1s-atomic_plain-a1-clean.log"
+  }
+]

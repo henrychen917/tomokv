@@ -1,0 +1,658 @@
+{
+  "base": "8656f9fa924fc06aa128504fca8aa99436aa9e41",
+  "purpose": "Current assertions, original PRE production implementation; no candidate feature code",
+  "source_assertions": {
+    "tests/netcmd_unit.cc": "544a96b66b840d27daee90eac7c4272ef9bf33f460e251c8673cdf2e403015a8",
+    "tests/netcmd_unit.h": "30e811008090dceb2fb12fbdaccca82b7d3414519d85c29ee0a1952e2bb950ec",
+    "tests/notify_order_checks.inc": "82c02904cb2d1d288771f8a4fe427c6588bba1b183aea3400f24d6fac044453d"
+  },
+  "compile": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-Wno-mismatched-new-delete",
+    "-I/home/user/Projects/cx-notifyorder/build/notifyorder",
+    "-I/home/user/Projects/cx-notifyorder",
+    "-MMD",
+    "-MF",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre-new-assertions/netcmd_unit.d",
+    "-c",
+    "/home/user/Projects/cx-notifyorder/tests/netcmd_unit.cc",
+    "-o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre-new-assertions/netcmd_unit.o"
+  ],
+  "link": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre-new-assertions/netcmd_unit.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/preunit/tests/netcmd_stream_unit.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/preunit/tests/netcmd_zset_unit.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/preunit/tests/netcmd_config_unit.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/net/tls.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/commands.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/glob.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/acl.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/hll.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/t_server.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/t_string.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/t_string_notify.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/t_hash.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/t_hash_ttl.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/t_list.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/t_set.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/t_zset_ops.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/geo.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/t_stream.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/scripting.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/functions.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/serialize.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/snapshot/snapshot.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/persist/aof.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/climon.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/tracking.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/slowlog.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/lcs.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/info_stats.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/lbsignals.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/core/flipctl.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/core/genthread.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/core/rl2s.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/core/lbstall.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/core/lbplanner.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/l4prebuild.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/cmdgap.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/pfdebug.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/cmdmeta.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/t_sort.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/multidb.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/storesize.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/multi_admin.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/core/reorder.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/geo_store.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/persist/aof_frame_debug.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/aclkeys.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/blocking_debug.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/objectpread.o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre/src/cmd/hexpread.o",
+    "-o",
+    "/home/user/Projects/cx-notifyorder/build/notifyorder/pre-new-assertions/netcmd-unit",
+    "-ljemalloc",
+    "-luring",
+    "-pthread",
+    "-lssl",
+    "-lcrypto",
+    "-lm",
+    "-Wl,--wrap=mkstemp",
+    "-Wl,--wrap=fopen"
+  ],
+  "objects": [
+    {
+      "path": "build/notifyorder/preunit/tests/netcmd_stream_unit.o",
+      "sha256": "f4acbfba880f126eb85b344769b2ff6ccc7050d5918b040844e85a3a39910a8a"
+    },
+    {
+      "path": "build/notifyorder/preunit/tests/netcmd_zset_unit.o",
+      "sha256": "10762a72b8e1d79ce65123f544c37d7c12932d4d98837ddf3334f16109601a64"
+    },
+    {
+      "path": "build/notifyorder/preunit/tests/netcmd_config_unit.o",
+      "sha256": "584f5d36008ade813151b801271134ff791fe4c06c0eb9a92ca48d59d91c2661"
+    },
+    {
+      "path": "build/notifyorder/pre/src/net/tls.o",
+      "sha256": "697010db3b241f68100a2613ad6172dde6582beab0f4dca4474fb554034df7c8"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/commands.o",
+      "sha256": "b84dd3440864fca22913a1f59585797e8021a8976d1e6532fea6bd10449a9244"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/glob.o",
+      "sha256": "817b4ee3c168ef6da1453f8d51c355c8aabba59850cd540eca67d7b9e14f584a"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/acl.o",
+      "sha256": "d1aa1c84ddc47f4106dfe629db5e008c6d5e8132c04eb95f2373530a9f4832d4"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/hll.o",
+      "sha256": "2e3d7d73c30e29516a3e5cffeaeea5401e7b8167511265fd6c4be823b47e9426"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/t_server.o",
+      "sha256": "5b34d627e6ac92810ee16ae16ff2fe3c3db91a4e949979fe6dc357b90f9da6b3"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/t_string.o",
+      "sha256": "33665e03d983c95587a9b87ce8e6a0971e3a157dc77db31e11b419aedb0caf4c"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/t_string_notify.o",
+      "sha256": "149df08a645ed67649ace0d422020349719f3c087448b91452d65eb50906dae2"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/t_hash.o",
+      "sha256": "f260c51e4fd34c66a42ba60b8676a79a947a6c84f5601bd404eabe1f2370e613"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/t_hash_ttl.o",
+      "sha256": "b666f27e4a90e6e83abd512e347b5a6af3687207ef4706263b07534500b61bce"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/t_list.o",
+      "sha256": "6552eb9834699c00af2aa1bc761f5d12d833bcf110cdbcba1689712327dffb5f"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/t_set.o",
+      "sha256": "be54faf77ea83a24e1b6900a09ba808942a4318c395362e699f8b451a6d217b6"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/t_zset_ops.o",
+      "sha256": "27057c7dea82bdbe59da863f7f42531cdc18b5dd26bd84109349526b10aa0856"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/geo.o",
+      "sha256": "0878ee627af82136710b75239b8a254241d52dc2832ecb7f31c1218d8b39fd1a"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/t_stream.o",
+      "sha256": "5d46664b1e51ede7b52eb29a9a0881bdb3dff74d7db8384ed555cd5dffc6a7de"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/scripting.o",
+      "sha256": "975b9a35d85e70ed51fb2897ed798a7b2a9bd442c68154bb503bdafc732018ec"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/functions.o",
+      "sha256": "4c147c54997160c38004e753664a414b7046095707febc68f6e3aea4705c4f02"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/serialize.o",
+      "sha256": "f81cd82c9558dfbed2ddbd33ba49f64da8a79cc698bcd47c7caf419ed84566e3"
+    },
+    {
+      "path": "build/notifyorder/pre/src/snapshot/snapshot.o",
+      "sha256": "c360cfa6e508dd0261c2bc226d27d91639557c1343f91556584196648530bf51"
+    },
+    {
+      "path": "build/notifyorder/pre/src/persist/aof.o",
+      "sha256": "4d9e843f7694ae479213977be2dbabd0c0925a3aa289f067e914c395c5a654c4"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/climon.o",
+      "sha256": "a4e9b7bb490acbaefbb18679170dc1e38518f9a4403d25c84bbe5b12627a4ebe"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/tracking.o",
+      "sha256": "75a04e6b44b20ac333da699903a3ab1129297e2358f6d7f7c5e6551085b73030"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/slowlog.o",
+      "sha256": "95e5784fbcd00a7fcef94ca23498d885cc4cedfafac5a4331dd29ea41bb2605a"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/lcs.o",
+      "sha256": "9ba502dcb11c3c9ee048068585a762cff5c3421cacb10458032c70e214a44cc7"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/info_stats.o",
+      "sha256": "d7dcb101bd5351d4e9f62c88b9ded3876ae0bd50d6828a328a1dfbffdc343bee"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/lbsignals.o",
+      "sha256": "6b0c8cda1e4db416f8198490437d79e4beca3332d1b23923bbccac91d532b09d"
+    },
+    {
+      "path": "build/notifyorder/pre/src/core/flipctl.o",
+      "sha256": "0f835e9b6b8e5c349e8e5692dfe793720bc066589425cf9314e37f799c98a9ec"
+    },
+    {
+      "path": "build/notifyorder/pre/src/core/genthread.o",
+      "sha256": "056a3f132cc4e2e592d215da22ed51b2dd86adda06d2531d132c0ba6cbce1d32"
+    },
+    {
+      "path": "build/notifyorder/pre/src/core/rl2s.o",
+      "sha256": "fb7d3a0aeac6a1d1b08ddc20f7ada9be9c5c9076e1558f91211d0834a6d305de"
+    },
+    {
+      "path": "build/notifyorder/pre/src/core/lbstall.o",
+      "sha256": "1d96a77b84fee48f568879496d6dc023276a4d58a2fed2f945a927605192534c"
+    },
+    {
+      "path": "build/notifyorder/pre/src/core/lbplanner.o",
+      "sha256": "8edde23e2eb3c4e362bd12727d1440907ddbee29f70e088147da5ab5957230d3"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/l4prebuild.o",
+      "sha256": "c7c2e2ae6e743d19c4baba4468ffdb731ce8469880855c8088a0f6b230fa60f5"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/cmdgap.o",
+      "sha256": "56d585c1feebdcc0c3bce67c03b57a50c9e8404066d33bba18178019107e646e"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/pfdebug.o",
+      "sha256": "bd2ce7d83dd3d2524ff06d37d11b8941764b2c8db00d6043e06d7b3d2f7e2916"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/cmdmeta.o",
+      "sha256": "9d825f4ab62bc0f55ba2ca330c07482eae50145984d41db3a5a215ea575b5892"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/t_sort.o",
+      "sha256": "49a7bec7e4b58b7a40de7af1af57053ddd7413b71052d394ba7b30d6989dbdad"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/multidb.o",
+      "sha256": "a64c9fd114eb4b4561e108d746fb302b9cd710cb9175948a095ecc42afa4c0a4"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/storesize.o",
+      "sha256": "ebf140145bc7a1e9aa864b2e56c8d455d89ba87613881cdad2e347f030718a5d"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/multi_admin.o",
+      "sha256": "3a4bc96b4cbd287816a065c811c91e6dc5e93ba1032c2af9c4d7a4b69321a9fd"
+    },
+    {
+      "path": "build/notifyorder/pre/src/core/reorder.o",
+      "sha256": "8682d1f2bf87eaa7577031c541127becde9a1df51be34b01367990b1455da35f"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/geo_store.o",
+      "sha256": "eac747af875537e7e7386242b7799302e91e473765d8b6b950a27e5547f640fe"
+    },
+    {
+      "path": "build/notifyorder/pre/src/persist/aof_frame_debug.o",
+      "sha256": "ffcf60391b52791aee50d4a6256b4c313949b0f533a3e8fca55c63d607458645"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/aclkeys.o",
+      "sha256": "823a2a219326559f6c6bc284ed77aaad096ab79b4de82a9d5f19198f13df3416"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/blocking_debug.o",
+      "sha256": "2e123c0215c7b48dbf711df53d8fa91037476b267fb438a0f8f7e99ca12b1411"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/objectpread.o",
+      "sha256": "12e6c8fe1d87b327f18d8f6bb11128ef1ee0aeb88352aa6f33cf6659a22a7561"
+    },
+    {
+      "path": "build/notifyorder/pre/src/cmd/hexpread.o",
+      "sha256": "18b44321abe57a61e02678369f87cd676e5e870b7f8ba7370bc422961b6cb5ea"
+    }
+  ],
+  "output": "build/notifyorder/pre-new-assertions/netcmd-unit",
+  "sha256": "05cb2bc4ccd2fea737df34f0f1d57bf1a514c6a8429a371fe985e99c614d4ef0",
+  "production_dependencies": [
+    {
+      "path": "build/notifyorder/src/base/alloc.h",
+      "sha256": "968c62b8f9657c283075d06b9d2acb8fc3c68d3c5d1f503bcafce4c05bd5a0dc"
+    },
+    {
+      "path": "build/notifyorder/src/base/database_variant.h",
+      "sha256": "28a08af2298dd965d9049165c2cff31e933a229bc68860ed6333115633698415"
+    },
+    {
+      "path": "build/notifyorder/src/base/exbatch_control.h",
+      "sha256": "74eddeea019c0227d6c609b7a1d3b8f6f981eb2fe699dde8500cfffd036dfca6"
+    },
+    {
+      "path": "build/notifyorder/src/base/numeric.h",
+      "sha256": "adb7f989848003a6b66b6014560ec3922286266207c29d0d9fd6da0d3bed74ef"
+    },
+    {
+      "path": "build/notifyorder/src/base/slice.h",
+      "sha256": "eb10162652b2552f0a9a9847a958977cf4f6c11db2e01b3a023fea69f305fa14"
+    },
+    {
+      "path": "build/notifyorder/src/base/topology.h",
+      "sha256": "2a0755bea9363a7e9250f00294ea40680965e7a97743c6a7b20b57157e10e7dc"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/acl.h",
+      "sha256": "851dabb1a21933e689a55ec367fc479a9699b04afe81365803e0ce331b1a9155"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/atomics_glue.inc",
+      "sha256": "1f3a5e93c38eda1bbfad7054bdadb94ac2a19458195c31890f2950ddb0c673cd"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/auth.h",
+      "sha256": "45d50c13369d5a524c1d2acbd24b262b1663f11dd651738c16f6544668e6e1c8"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/auth.inc",
+      "sha256": "6c24dba74dcfcdd69a9b38cdad5947bc58d6519512b200eb36f8dee51db4075b"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/bitfield.inc",
+      "sha256": "a0d362f3bc77de07dac480f2433af0e0faca82d22b9ac5627347c80809aaf18c"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/blocking.h",
+      "sha256": "3c44630cb071ef8c91c199ff0c908c1510b222cfe7bfd868636fa13db5d36823"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/blocking.inc",
+      "sha256": "057fd92b20be9f46034e71444d75d71508bf6d8a7703c99ad61125cd5f5e1df7"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/climon.inc",
+      "sha256": "fe3de26db645f05e7dc1dea21e6406acbbc7d22b0b392bfbb21c318711197d10"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/cmdmeta.h",
+      "sha256": "d1327a6daa4a5af5f665117de6fa08db034c2a6ea44552d838735443397e809b"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/command.h",
+      "sha256": "7aca40c86ff3894ebf257432a061375ecd872e1cb5a3966a76b7edabe62bfbb6"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/debug.h",
+      "sha256": "d9cf9b6c1b5314ffc5aceee5c18ea6e7f388db2977a95ba1007b8dcd944ae4e2"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/debug_sleep.h",
+      "sha256": "5ece09ac4c74eb1e75bb5f1e6c324bdb0a420c19ba7c0aea6482e92b579b94f6"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/geo.h",
+      "sha256": "996855c7e6a384c5eb31ac59ee3664680c8eb0293534c655b6fb5f906faf775d"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/hll.h",
+      "sha256": "bd99d2f60f498e192b258964ba9a7a6ccbe6478a4f7a416fda8e99ebe610102f"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/lcs.h",
+      "sha256": "b756f5148166a5f367700400692d2c0f49d2f1b25daf33831c2534326695bd37"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/multi.h",
+      "sha256": "3ea1699a96f453e9feace9e2fcd9d3bd82039b22524023e4be441d0c03b7ce8c"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/multi.inc",
+      "sha256": "dadd8a5ca62dbb7b0fdb072ca6015693e4d4d8bebba2f6b4d84edac4f5cffe3a"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/multidb.h",
+      "sha256": "bc195e7b0bb25860d5f2cc6b459787a325af78faf06175d6e72d3169d1a00f67"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/notify.h",
+      "sha256": "5a934b5fe063cb129eaafb2a88ed08b21572db9fd0eab901327cf3e509b66ee4"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/notify.inc",
+      "sha256": "eeca14e3f0bd7bd2d476889369abb7efedb726a42e5188543cab1916f8f03605"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/scatter_engine.inc",
+      "sha256": "c185630f7901f1e1a2cc91ab1b249dab8a206e4746979f5ae1c9f459e92dfa76"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/scripting.h",
+      "sha256": "b57d7315db8fbec246f3eaecc26a01a8738f7a8ebdd6309f88b9dcce4c3a6a23"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/server_tail.h",
+      "sha256": "2d398a8b5d99aa391e455c9795a9e62b3d0b7b2e1f748bda797f32634dafe77e"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/slowlog.h",
+      "sha256": "6d850fcf16450d785d80b1a0a5d2935ff8bc2b9323985e56b0a871c6ebba7827"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/t_hash_ttl.h",
+      "sha256": "6255a89a5fd8e9608b08b636d0a9aeb545a16abbb681dc17a3f7526c0cea3cac"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/t_sort.h",
+      "sha256": "534c38b3df00e105471d6651a9db0834924d30cc8c0c12f6e9c4c6a87a458467"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/t_stream.h",
+      "sha256": "006c036d94f14f92e1dca9e8f1158ec3f790ded946bd3f29b7a52672dc00bfed"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/t_zset.h",
+      "sha256": "d9718d4577168c5a5ce564c4678cc72d2b51b0fbb20ff0f70d417643b1812fd7"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/xshard.cc",
+      "sha256": "0d31662906470600a850a09f1857c5be41a065268db5d4f5707d67af2d622587"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/xshard.h",
+      "sha256": "8be37367abcff6734abbc9199ee06cdea7f682e440c4bf2fe125998f36d7a7c4"
+    },
+    {
+      "path": "build/notifyorder/src/cmd/xshard_commands.inc",
+      "sha256": "9e535a65b1d1f8f8718c38b5bec18ef78df182dac1cbd054a1692a1548cbcfbe"
+    },
+    {
+      "path": "build/notifyorder/src/core/atomic_admission.h",
+      "sha256": "d730d0300b54a51fc827301e269f2e1663e21871d69df19218433f26d0c5a065"
+    },
+    {
+      "path": "build/notifyorder/src/core/atomic_tripwire.h",
+      "sha256": "684bd78db3b7a4d378ae59dc5d40d4b09fec5c9174de4ffca472981b9f5884f4"
+    },
+    {
+      "path": "build/notifyorder/src/core/climon_mask.h",
+      "sha256": "be646e7530a7675da75bd857b3edea73cdb13f89670013bc54528519508f1ea3"
+    },
+    {
+      "path": "build/notifyorder/src/core/config.h",
+      "sha256": "66f18db8b6725a53aecc9c168150d4ddbc1036ae486c8b93ad1f3d5c4638bd32"
+    },
+    {
+      "path": "build/notifyorder/src/core/connreset.h",
+      "sha256": "ab8673cc9f4abdb6fc7a6b42709fb5d6d558c44c1cfa21d845b96dae8ce32174"
+    },
+    {
+      "path": "build/notifyorder/src/core/ex_loop.h",
+      "sha256": "79ce567b958472ae3be32e226511e9a5423102d56f8bf2ad595f4b16fb250f6d"
+    },
+    {
+      "path": "build/notifyorder/src/core/flip_policy.h",
+      "sha256": "f173d758c55e76bf1c77296959282c474d0f90dfcf02b1131c48c0c4b066abac"
+    },
+    {
+      "path": "build/notifyorder/src/core/flipctl.h",
+      "sha256": "8b75b12fff4f830b81c0002f15221e9bf93c4e600bd3074553603e06caf46a5c"
+    },
+    {
+      "path": "build/notifyorder/src/core/genthread_pipeline.h",
+      "sha256": "ac0761d0b67bc63f8dca5f89467e1bf6f7f7bf2351e398e9061274c2b5e7a568"
+    },
+    {
+      "path": "build/notifyorder/src/core/io_loop.h",
+      "sha256": "092f362d99050e86ad5278fc83cda3b66b3a07837836dd1e6b5b7661d7f2b2a3"
+    },
+    {
+      "path": "build/notifyorder/src/core/lbstall.h",
+      "sha256": "e319e77b2084142dc79e72aeec66c0685f24226a10dcff9d921408fd46b44468"
+    },
+    {
+      "path": "build/notifyorder/src/core/live_config.h",
+      "sha256": "b6da80fbe07ca4486cd2e5c14a87fe199ca9e8ff975bb36249c778baa0ca12e6"
+    },
+    {
+      "path": "build/notifyorder/src/core/orthog.h",
+      "sha256": "978c70f5e128cf1a3c5a5b277b8b20486e1b990cc5fe02cbe6b41862c9609860"
+    },
+    {
+      "path": "build/notifyorder/src/core/placement.h",
+      "sha256": "bdf621652e98ba257b278022dc235b4488a21d931e7bfecdab312f807c582fc8"
+    },
+    {
+      "path": "build/notifyorder/src/core/pubsub.inc",
+      "sha256": "00b82ee9374f1c9ce8d4ab660590ab8e4fb09b26c8d25ed3e66d42442234030b"
+    },
+    {
+      "path": "build/notifyorder/src/core/pubsub_event.h",
+      "sha256": "67eaef9c887fe197434728a2f9b07098dd1e3fed7d9de7804186f4c2c091f1bb"
+    },
+    {
+      "path": "build/notifyorder/src/core/read_local.h",
+      "sha256": "8c324024bfd797fc74d7a69d8afdae96d62b23abb57b2d8e3d55dcfdc16bd38c"
+    },
+    {
+      "path": "build/notifyorder/src/core/read_local_parse.inc",
+      "sha256": "0a5d2e4bb54612cb0e347f265b4af7f92a947938b621f44141f4ae23e6f211e6"
+    },
+    {
+      "path": "build/notifyorder/src/core/server.h",
+      "sha256": "b6b3b13a4a9f5676518327c85663d4964002ca897afc59d1f663d10d8a1b39e5"
+    },
+    {
+      "path": "build/notifyorder/src/core/shard.h",
+      "sha256": "e95e589a7314b05d2901fc9ae1df3dff737682a51e54b794ebabce89bbc805b4"
+    },
+    {
+      "path": "build/notifyorder/src/core/signal.h",
+      "sha256": "4ee640490883f1482b28f71820b4bf9cf00dfd19168becac0c78f9c4287a3e68"
+    },
+    {
+      "path": "build/notifyorder/src/core/signal_doorbell.h",
+      "sha256": "6eee544831e3d558cfdaa24e0e6eb495f753f979d9ca1d665c1f20e373ac1c67"
+    },
+    {
+      "path": "build/notifyorder/src/core/signalacct.h",
+      "sha256": "03e2bec2cf955f06328505b57249a3a6b29ae15996a63c0cc112a15c79c12500"
+    },
+    {
+      "path": "build/notifyorder/src/core/thread.h",
+      "sha256": "c67c4be83589ee44d2784ca77a2b259f2bc642e7b727283862ba555dd485237f"
+    },
+    {
+      "path": "build/notifyorder/src/core/wb_rule.h",
+      "sha256": "b679d6ca61db30c24303af7e058e7b3873a19ee9722b814b2805b15fe693052c"
+    },
+    {
+      "path": "build/notifyorder/src/core/weighted_lb.h",
+      "sha256": "fea0c789aa276dcd7f35d940b9c674d77d656ca336ee79abb13792756bb76478"
+    },
+    {
+      "path": "build/notifyorder/src/exec/exqueue.h",
+      "sha256": "bb4684b31f99dda4511c7e5275619daa874a3f2d6f639161e0465936f3a08c51"
+    },
+    {
+      "path": "build/notifyorder/src/exec/masked_queue.h",
+      "sha256": "26ace924331eaf68f5fcc713cedc94c747866774ec35613e01bf47cf8ef427bc"
+    },
+    {
+      "path": "build/notifyorder/src/exec/op.h",
+      "sha256": "04866c8b69854e551ba49e3e5a7c730e6a1716e1fbd7b6c7b5153ff45098efa9"
+    },
+    {
+      "path": "build/notifyorder/src/net/conn.h",
+      "sha256": "f4d82c01fdd8a9a0f807327f65b9dfa7de6b26a27cda94d5a55dfe09672a2a50"
+    },
+    {
+      "path": "build/notifyorder/src/net/epoll.h",
+      "sha256": "e2c5162b562a523ec344f5f596bc30ea5e618f619693f8c523fd39aadc9c050e"
+    },
+    {
+      "path": "build/notifyorder/src/net/resp.h",
+      "sha256": "63e5644ba32b35a943218f9ca23d4965f3af62d337a63db97599b31479139569"
+    },
+    {
+      "path": "build/notifyorder/src/net/resp3.h",
+      "sha256": "13cac2c55b156a9bcd96b39647d322c404121c15ab5ab2f2a4a07bf2dfb572d6"
+    },
+    {
+      "path": "build/notifyorder/src/net/rob.h",
+      "sha256": "1715dddace8076159cbd9889cf9372dcf1d8fa8c8a6db66fa469c6065ab17785"
+    },
+    {
+      "path": "build/notifyorder/src/net/tls.h",
+      "sha256": "a8af64944a59437303e46c823d773c36ae61be8fb734d6d98dc0398e3e874624"
+    },
+    {
+      "path": "build/notifyorder/src/net/uring.h",
+      "sha256": "8b9ff0e203246f082e2d3660b971634ebd36c84c0c77dbdad0791fe21c39e0f1"
+    },
+    {
+      "path": "build/notifyorder/src/net/wb.h",
+      "sha256": "05961e5cc98cb24f2f086eb06ce7eb14da71bfcf4540896f8466e4a49c0b590b"
+    },
+    {
+      "path": "build/notifyorder/src/persist/aof.h",
+      "sha256": "59c68c0055b0304b1e0362a42598af187ed19cd1dacaf7f18ab6e82bb0f523e5"
+    },
+    {
+      "path": "build/notifyorder/src/persist/aof_stream_owner.h",
+      "sha256": "a92af2ea1e73bbe38db411085261c940d672ab66f7626f97bc2f6d97ff841979"
+    },
+    {
+      "path": "build/notifyorder/src/snapshot/format.h",
+      "sha256": "889c6431d4fc2d7de4f3e8c2e63b037ea66e4950dee4ed8f72ba15ae2e89d2d8"
+    },
+    {
+      "path": "build/notifyorder/src/snapshot/snapshot.h",
+      "sha256": "a772c191484d76b511e9d32b3c69014015655b3616ea5ced4525af7712c03b5f"
+    },
+    {
+      "path": "build/notifyorder/src/store/atomic_mvcc.h",
+      "sha256": "b730151e6bee38633124e6533b621a6b96a1a45f5964ccd7f5007642a8fc23a8"
+    },
+    {
+      "path": "build/notifyorder/src/store/eviction.h",
+      "sha256": "b78962ecb0d0fb67735b466220b47f548761d1bd1d5553e8e61cb3af403a5445"
+    },
+    {
+      "path": "build/notifyorder/src/store/flatstore.h",
+      "sha256": "dbe9a96ff05d1ba5d99c2e812c900aa2a940ca38e6f91629db6453e148ea0570"
+    },
+    {
+      "path": "build/notifyorder/src/store/flatstore_atomic.inc",
+      "sha256": "b2d9a4d79a3e5c456ff5e320238747b13dc6a3e06e39a5c6253d6f1058e2d3b2"
+    },
+    {
+      "path": "build/notifyorder/src/store/foreign_read_safety.h",
+      "sha256": "b9d5193a5edd639e90619576f601ad0eac4aeef8da61e006acfbe6eff1487310"
+    },
+    {
+      "path": "build/notifyorder/src/store/kv_block_cache.h",
+      "sha256": "adf67570dcce3a88114b9e7fd9c707873785c25b4aa2a8db684e4d9fa5c7e871"
+    },
+    {
+      "path": "build/notifyorder/src/store/kvobj.h",
+      "sha256": "c057b745c7fcba97140a98a2bcf9752cafb7d3783c8664e6d52b4d9913a161b3"
+    },
+    {
+      "path": "build/notifyorder/src/store/read_local_reclaim.h",
+      "sha256": "ed8dbb0b951bc1dd2b7eaf31a61e4ce40d5ada97cca9c3cf42efa60c7b317e63"
+    },
+    {
+      "path": "build/notifyorder/src/store/resize_retirement.h",
+      "sha256": "3ea9c163549d16a069daa0b5c17e802c918c20f20a08d6fb2fb24fc883e5261d"
+    },
+    {
+      "path": "build/notifyorder/src/store/store_ttl.h",
+      "sha256": "b9caa9251f47fa340cec8ca4eb0234ceb1e97848b7e7876abfd791ad4b325dbb"
+    },
+    {
+      "path": "build/notifyorder/src/store/typeval.h",
+      "sha256": "9d9990bd36fcf2d2b3c667a8d53533891a0a16dd72d024a73cb817ea60329d30"
+    }
+  ]
+}

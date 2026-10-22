@@ -1,0 +1,155 @@
+{
+  "complete": false,
+  "cpu_samples": 14,
+  "cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "finished_at": 1791583435.1522548,
+  "generic_cpu_screening": {
+    "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload",
+    "capacity_fraction": 0.0015,
+    "cpu_budget_seconds": 0.48,
+    "peak_rolling": {
+      "cpu_seconds": 0.86,
+      "cpu_ticks": 86
+    },
+    "preflight_seconds": null,
+    "sampled_physical_cores": 16,
+    "scope": "preflight",
+    "server_physical_cores": 8,
+    "window_seconds": 20
+  },
+  "interference": {
+    "cpu_budget_seconds": 0.48,
+    "cpu_seconds": 0.86,
+    "cpus": [
+      {
+        "busy_ticks": 3,
+        "cpu": 112,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 1,
+        "cpu": 113,
+        "total_ticks": 100
+      },
+      {
+        "busy_ticks": 1,
+        "cpu": 114,
+        "total_ticks": 99
+      },
+      {
+        "busy_ticks": 3,
+        "cpu": 115,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 17,
+        "cpu": 116,
+        "total_ticks": 98
+      },
+      {
+        "busy_ticks": 3,
+        "cpu": 117,
+        "total_ticks": 100
+      },
+      {
+        "busy_ticks": 4,
+        "cpu": 118,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 3,
+        "cpu": 119,
+        "total_ticks": 100
+      },
+      {
+        "busy_ticks": 7,
+        "cpu": 120,
+        "total_ticks": 100
+      },
+      {
+        "busy_ticks": 3,
+        "cpu": 121,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 2,
+        "cpu": 122,
+        "total_ticks": 100
+      },
+      {
+        "busy_ticks": 1,
+        "cpu": 123,
+        "total_ticks": 99
+      },
+      {
+        "busy_ticks": 4,
+        "cpu": 124,
+        "total_ticks": 101
+      },
+      {
+        "busy_ticks": 2,
+        "cpu": 125,
+        "total_ticks": 99
+      },
+      {
+        "busy_ticks": 2,
+        "cpu": 126,
+        "total_ticks": 100
+      },
+      {
+        "busy_ticks": 1,
+        "cpu": 127,
+        "total_ticks": 99
+      }
+    ],
+    "error": "selected-core CPU screening budget exceeded: 0.860000s > 0.480000s per 20s",
+    "observed_at": 1791583435.1516056
+  },
+  "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work",
+  "listener_checks": 1,
+  "policy": "selected-core-port-budget-v1",
+  "ports": [
+    25000,
+    25001
+  ],
+  "requested_cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "sample_artifact": "build/pfconfirm-smoke-2/quiet-samples.jsonl",
+  "sample_interval_seconds": 1.0,
+  "samples": 14,
+  "started_at": 1791583422.1366677,
+  "tick_seconds": 0.01
+}

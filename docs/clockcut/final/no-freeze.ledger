@@ -1,0 +1,5 @@
+PARTIAL	0	GATE_ONLY_JOBS=ntnew4_live; NOT A RECEIPT
+ok	0.040000	release build (+footprint locks)
+FAIL	0.510000	NT-new-4 command clock after dequeue (2s)
+FAIL	0.510000	NT-new-4 command clock after dequeue (1s)
+FAIL	0.510000	NT-new-4 command clock after dequeue (2s, epoll)

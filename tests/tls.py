@@ -481,6 +481,39 @@ def full_battery(host, tls_port, plain_port, cert_dir, mode, expect_ktls):
     admin.close(graceful=True)
 
 
+def close_after_reply(host, port, cert_dir, plain_port=None):
+    """N2: the peer stays silent after a complete reply; EOF must follow it."""
+    for transport, target, ctx in (
+            ("TLS", port, context(cert_dir, tls13=True)),
+            *([("TCP", plain_port, None)] if plain_port else [])):
+        for label, request, expected in (
+                ("protocol error", b"*x\r\n", b"-ERR Protocol error: invalid multibulk length\r\n"),
+                ("QUIT", frame("QUIT"), b"+OK\r\n"),
+                ("pipeline then QUIT", frame("PING") + frame("QUIT"), b"+PONG\r\n+OK\r\n")):
+            raw = socket.create_connection((host, target), timeout=3)
+            with (ctx.wrap_socket(raw, server_hostname=host) if ctx else raw) as sock:
+                sock.sendall(request)
+                actual = b""
+                while len(actual) < len(expected):
+                    data = sock.recv(len(expected) - len(actual))
+                    assert data, (transport, label, "early EOF", actual)
+                    actual += data
+                assert actual == expected, (transport, label, actual, expected)
+                try:
+                    trailing = sock.recv(1)
+                except (ConnectionResetError, ssl.SSLEOFError):
+                    trailing = b""
+                assert trailing == b"", (transport, label, "extra reply", trailing)
+            print("  ok   %s %s reply then EOF" % (transport, label), flush=True)
+        control = Conn(host, target, ctx)
+        try:
+            assert control.command("PING") == b"PONG"
+            assert control.command("PING") == b"PONG"
+        finally:
+            control.close()
+        print("  ok   %s PING remains open" % transport, flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("host", nargs="?")
@@ -489,6 +522,7 @@ def main():
     parser.add_argument("mode", nargs="?", choices=("yes", "optional", "no"))
     parser.add_argument("--plain-port", type=int)
     parser.add_argument("--full", action="store_true")
+    parser.add_argument("--close-after-reply", action="store_true")
     parser.add_argument("--expect-ktls", choices=("yes", "no"), default="yes")
     parser.add_argument("--generate", metavar="DIR")
     args = parser.parse_args()
@@ -497,6 +531,9 @@ def main():
         return
     if not all((args.host, args.tls_port, args.cert_dir, args.mode)):
         parser.error("HOST TLS_PORT CERT_DIR MODE are required")
+    if args.close_after_reply:
+        close_after_reply(args.host, args.tls_port, args.cert_dir, args.plain_port)
+        return
     auth_matrix(args.host, args.tls_port, args.cert_dir, args.mode)
     if args.full:
         if not args.plain_port:

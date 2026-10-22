@@ -1,0 +1,87 @@
+{
+  "argv": [
+    "tests/abba_instrument.py",
+    "--self-test"
+  ],
+  "seconds": 1.2417080337181687,
+  "cpus": [
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111
+  ],
+  "tests": [
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_imported_helper_bytes_modes_and_python_identity_change_fingerprint",
+      "seconds": 0.11065211333334446
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_missing_symlinked_and_unresolved_dependencies_fail_closed",
+      "seconds": 0.10949072893708944
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_new_dormant_import_and_its_transitive_dependency_are_bound",
+      "seconds": 0.19165188446640968
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_old_hash_only_unknown_version_and_tampered_manifest_are_rejected",
+      "seconds": 0.03293746057897806
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_unrelated_correctness_hooks_and_makefile_leave_null_identity_unchanged",
+      "seconds": 0.16015122830867767
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_warm_syntax_cache_resolves_new_local_modules_on_every_call",
+      "seconds": 0.11054449155926704
+    },
+    {
+      "test": "__main__.self_test.<locals>.Controls.test_warm_syntax_cache_uses_bytes_even_with_same_size_and_mtime",
+      "seconds": 0.11713956110179424
+    }
+  ]
+}

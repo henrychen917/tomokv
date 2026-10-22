@@ -1,0 +1,8 @@
+pre epoll-flip exit=1
+pre epoll-lb exit=1
+pre stream-1s exit=1
+pre stream-2s exit=1
+post epoll-flip exit=0
+post epoll-lb exit=0
+post stream-1s exit=0
+post stream-2s exit=0

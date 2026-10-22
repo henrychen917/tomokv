@@ -659,8 +659,6 @@ static_assert(sizeof(ScatterState) + 8 * (sizeof(ShardGroup) + sizeof(KeyRef) +
 
 namespace {
 
-[[gnu::noinline]] ScatterTaskResult execute_plain_element_mover(const Task&, Shard&, Op&);
-[[gnu::noinline]] ScatterTaskResult execute_live_pop(const Task&, Shard&, Op&);
 #if TOMO_SINGLE_DATABASE
 [[gnu::noinline]]
 #else
@@ -791,6 +789,8 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
                                                uint32_t owner_thread_id);
 bool xshard_owner_mutation_phase(const ScatterState& state, const Op& op);
 void finish_pfcount(ScatterState& state);
+[[gnu::noinline]] ScatterTaskResult execute_plain_element_mover(const Task&, Shard&, Op&);
+[[gnu::noinline]] ScatterTaskResult execute_live_pop(const Task&, Shard&, Op&);
 bool finish_phase1(ScatterState& state, Op& op);
 bool finish_phase2(ScatterState& state);
 void assemble_final(Client& client, Op& op, ScatterState& state, void* release_ctx,
@@ -1527,12 +1527,22 @@ void free_state_contents(ScatterState& state) {
 
 ScatterArenaPool::~ScatterArenaPool() {
     reap_deferred();
-    for (uint32_t i = 0; i < count_; i++) std::free(cached_[i]);
+    while (count_) {
+        void* memory = cached_[0];
+        cached_[0] = *static_cast<void**>(memory);
+        --count_;
+        std::free(memory);
+    }
 }
 
 void* ScatterArenaPool::acquire(size_t bytes, bool& pooled) {
     pooled = bytes <= kCommonBytes;
-    if (pooled && count_) return cached_[--count_];
+    if (pooled && count_) {
+        void* memory = cached_[0];
+        cached_[0] = *static_cast<void**>(memory);
+        --count_;
+        return memory;
+    }
     void* memory = nullptr;
     if (::posix_memalign(&memory, alignof(OwnerRecordRefs), pooled ? kCommonBytes : bytes) != 0)
         return nullptr;
@@ -1541,8 +1551,16 @@ void* ScatterArenaPool::acquire(size_t bytes, bool& pooled) {
 
 void ScatterArenaPool::release(void* ptr, bool pooled) {
     if (!ptr) return;
-    if (pooled && count_ < kCached) cached_[count_++] = ptr;
-    else std::free(ptr);
+    if (!pooled) { std::free(ptr); return; }
+    // Retain the common arenas this IO actually needed, up to its observed high-water
+    // demand across every connection/ROB it serves. A 64-block FREE-list bound is not a
+    // 64-operation live bound: deep pipelines freed and reacquired most arenas each lap.
+    // Returned ScatterStates have been destroyed and have no lifetime pins. Reuse their
+    // first word for the free link, without allocating a second container or changing the
+    // pool/IoLoop layout. The remaining legacy cached_ slots stay reserved and untouched.
+    std::construct_at(static_cast<void**>(ptr), count_ ? cached_[0] : nullptr);
+    cached_[0] = ptr;
+    ++count_;
 }
 
 ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
@@ -2449,7 +2467,7 @@ void script_clear_attempt(ScatterState& state, Op& op) {
     }
     state.script_staged_bytes.store(0, std::memory_order_relaxed);
     state.script_conflict.store(false, std::memory_order_relaxed);
-    notify_discard_batch(state.notify.exchange(nullptr));
+    notify_discard_speculative(state.notify);
 }
 
 uint32_t script_select_positions(ScatterState& state, ScriptPhase phase) {
@@ -3691,7 +3709,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                 if (state.aborted.load(std::memory_order_acquire)) {
                     server.note_script_abort_oom();
                     script_engine_error_reply(op, state, state.final_error);
-                    notify_discard_batch(state.notify.exchange(nullptr));
+                    notify_discard_speculative(state.notify);
                     state.script_apply_after_unpin = false;
                     state.script_commit_after_unpin = false;
                     if (!launch(ScriptPhase::Unpin)) return outcome;
@@ -3730,7 +3748,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     server.note_script_giveup();
                     op.clear_reply();
                     reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                    notify_discard_batch(state.notify.exchange(nullptr));
+                    notify_discard_speculative(state.notify);
                     state.script_apply_after_unpin = false;
                     state.script_commit_after_unpin = false;
                     if (!launch(ScriptPhase::Unpin)) return outcome;
@@ -3764,7 +3782,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     server.note_script_giveup();
                     op.clear_reply();
                     reply_err(op.sink(), "TRYAGAIN Cross-shard script conflicted, retry");
-                    notify_discard_batch(state.notify.exchange(nullptr));
+                    notify_discard_speculative(state.notify);
                     state.script_apply_after_unpin = false;
                     state.script_commit_after_unpin = false;
                     if (!launch(ScriptPhase::Unpin)) return outcome;
@@ -3818,7 +3836,7 @@ ScatterFinish xshard_complete_script(Server& server, ThreadCtx& self, Ring& ring
                     else server.note_script_abort_oom();
                     state.aborted.store(true, std::memory_order_release);
                     aof_abort_scatter_group(state);
-                    notify_discard_batch(state.notify.exchange(nullptr));
+                    notify_discard_speculative(state.notify);
                     if (state.script_ticket_live) {
                         server.atomic_commit_publish();
                         state.script_ticket_live = false;
@@ -4096,6 +4114,15 @@ void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
                 notify_xshard_finished(server.shard(state->commit_shard), op, *state);
             server.atomic_apply_close(self.id(), state->apply_open);
 
+            // Successful atomic MSET already has its final result. Publish that result with
+            // Done instead of advertising an opaque gather that forces WB to serve at once.
+            // Keep the arena attached: IO still owns group retirement and all lifetime pins.
+            // Errors and gathers retain their ordinary assembly/unknown-size marker.
+            if (state->kind == Kind::Mset && !state->aborted.load(std::memory_order_acquire)) {
+                reply_ok(op.sink());
+                op.zc_shard = Op::kScatterReplyMarker;
+            }
+
             // Capture `next` above: a fused self-notification may immediately retire the Op and
             // destroy this arena state. The release store remains the one reply-visibility edge.
             if (!server.aof().configured() ||
@@ -4242,7 +4269,8 @@ void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, 
     (void)ring;
     ScatterState* state = op.scatter_state();
     if (!state) return;
-    assemble_final(client, op, *state, release_ctx, release_fn, suppressed_fn);
+    if (op.zc_shard != Op::kScatterReplyMarker)
+        assemble_final(client, op, *state, release_ctx, release_fn, suppressed_fn);
     // A terminal error can bypass normal MGET assembly. Return any already-gathered borrows through
     // the same IO->owner channel used by send completion and teardown.
     if (state->kind == Kind::Mget && state->values) {

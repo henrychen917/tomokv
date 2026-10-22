@@ -137,7 +137,7 @@ class ServerProcess:
         if self.arm.kind == "tomokv":
             binary = Path(self.args.tomokv_binary).resolve()
             return prefix + [str(binary), "--bind", "127.0.0.1", "--port", str(self.arm.port),
-                             "--ratio", "8:8", "--shards", "64", "--atomic",
+                             "--databases", "1", "--ratio", "8:8", "--shards", "64", "--atomic",
                              str(self.arm.atomic), "--dir", str(self.data_dir),
                              "--dbfilename", "writer-atomic.rdb"]
         if self.arm.kind == "dragonfly":

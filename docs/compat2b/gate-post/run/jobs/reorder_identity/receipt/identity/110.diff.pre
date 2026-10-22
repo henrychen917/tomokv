@@ -1,0 +1,56 @@
+0000 [ 4] mov 0x18(%rdi),%rdx | 48 8b 57 18
+0004 [ 3] mov 0x8(%rdx),%eax | 8b 42 08
+0007 [ 2] test %eax,%eax | 85 c0
+0009 [ 6] je <+0xd0> | 0f 84 c1 00 00 00
+000f [ 2] push %r12 | 41 54
+0011 [ 1] push %rbp | 55
+0012 [ 2] xor %ebp,%ebp | 31 ed
+0014 [ 1] push %rbx | 53
+0015 [ 3] mov %rdi,%rbx | 48 89 fb
+0018 [ 2] jmp <+0x61> | eb 47
+001a [ 6] nopw 0x0(%rax,%rax,1) | 66 0f 1f 44 00 00
+0020 [ 4] shl $0x4,%rcx | 48 c1 e1 04
+0024 [ 3] add %rcx,%rax | 48 01 c8
+0027 [ 3] mov 0x8(%rax),%ecx | 8b 48 08
+002a [ 3] mov (%rax),%rax | 48 8b 00
+002d [ 3] mov (%rdx),%rsi | 48 8b 32
+0030 [ 3] mov %rax,%rdx | 48 89 c2
+0033 [ 5] call <tomo_db0::FlatStore::atomic_script_unpin(unsigned long, tomo_db0::Slice) [clone .isra.0]> | e8 ?? ?? ?? ??
+0038 [ 3] mov (%rbx),%rax | 48 8b 03
+003b [ 4] mov 0x78(%rax),%rax | 48 8b 40 78
+003f [ 8] lock incq 0x17490(%rax) | f0 48 ff 80 90 74 01 00
+0047 [ 3] mov (%rbx),%rax | 48 8b 03
+004a [ 7] mov 0x250(%rax),%rax | 48 8b 80 50 02 00 00
+0051 [ 5] movb $0x0,(%rax,%r12,1) | 42 c6 04 20 00
+0056 [ 4] mov 0x18(%rbx),%rdx | 48 8b 53 18
+005a [ 2] inc %ebp | ff c5
+005c [ 3] cmp 0x8(%rdx),%ebp | 3b 6a 08
+005f [ 2] jae <+0xc0> | 73 5f
+0061 [ 3] mov (%rbx),%rax | 48 8b 03
+0064 [ 2] mov %ebp,%esi | 89 ee
+0066 [ 3] add 0x4(%rdx),%esi | 03 72 04
+0069 [ 7] mov 0x238(%rax),%rcx | 48 8b 88 38 02 00 00
+0070 [ 4] mov (%rcx,%rsi,4),%r12d | 44 8b 24 b1
+0074 [ 7] mov 0x250(%rax),%rcx | 48 8b 88 50 02 00 00
+007b [ 5] cmpb $0x0,(%rcx,%r12,1) | 42 80 3c 21 00
+0080 [ 2] je <+0x5a> | 74 d8
+0082 [ 3] mov %r12,%rdx | 4c 89 e2
+0085 [ 4] mov 0x10(%rbx),%rsi | 48 8b 73 10
+0089 [ 4] shl $0x5,%rdx | 48 c1 e2 05
+008d [ 7] add 0x230(%rax),%rdx | 48 03 90 30 02 00 00
+0094 [ 4] mov 0x8(%rbx),%rax | 48 8b 43 08
+0098 [ 4] lea 0x38(%rax),%rdi | 48 8d 78 38
+009c [ 7] mov 0xc0(%rsi),%rax | 48 8b 86 c0 00 00 00
+00a3 [ 3] mov 0x8(%rdx),%ecx | 8b 4a 08
+00a6 [ 3] test %rax,%rax | 48 85 c0
+00a9 [ 6] jne <+0x20> | 0f 85 71 ff ff ff
+00af [ 4] add $0xd,%rcx | 48 83 c1 0d
+00b3 [ 4] shl $0x4,%rcx | 48 c1 e1 04
+00b7 [ 4] lea (%rsi,%rcx,1),%rax | 48 8d 04 0e
+00bb [ 5] jmp <+0x27> | e9 67 ff ff ff
+00c0 [ 1] pop %rbx | 5b
+00c1 [ 1] pop %rbp | 5d
+00c2 [ 2] pop %r12 | 41 5c
+00c4 [ 1] ret | c3
+00c5 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+00d0 [ 1] ret | c3

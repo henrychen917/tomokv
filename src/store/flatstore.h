@@ -87,8 +87,14 @@
 
 namespace tomo {
 
-// Defined with the sampler in the cold monitoring translation unit.
-struct StoreSizeState;
+// Monitoring state shared by the cold owner clear paths and the sampler.
+// Owner-private sampling cursor and INFO publication; reset only on cold clear.
+struct StoreSizeState {
+    uint64_t sample_cursor = 0;
+    std::atomic<uint64_t> avg_deadline{0};
+    std::atomic<bool> field_ttl_attention{false};
+};
+#line 92
 
 // Fault injection for the cold table-allocation paths. It is compiled in whenever NDEBUG is not
 // defined -- which is every build the Makefile produces, release included -- and costs one relaxed
@@ -1263,11 +1269,19 @@ public:
         if (!candidate && rehashing()) candidate = find_in(1, h, key);
         const bool expired = candidate && deadline_elapsed(h, candidate, cached_now_ms_) &&
                              !(snapshot_active_ && candidate == find_in(1, h, key));
-        if (expired && read_retirement_available())
+        if (expired && !notify_read_resolves_versions() && read_retirement_available())
             notify_emit(sink, NOTIFY_EXPIRED, NotifyEventId::Expired, candidate->key());
         KvObj* found = find(h, key);
         if (!found) notify_emit(sink, NOTIFY_KEY_MISS, NotifyEventId::Keymiss, key);
         return found;
+    }
+
+    // Notification-only cold query. The version-aware find is a logical read:
+    // it neither deletes a foreign candidate nor reaps an expired predecessor.
+    // Match find's live-version predicate exactly: script intents alone leave
+    // physical expiry enabled. Unrelated keys use the resolver while versions live.
+    __attribute__((noinline)) bool notify_read_resolves_versions() const {
+        return atomic_pending_ && atomic_pending_->live != 0;
     }
 
     // Same-size-CLASS overwrite, allocation-free. Asking for 88 bytes gets 96, so a value that grew
@@ -1459,7 +1473,7 @@ public:
     }
     bool deadline_elapsed(uint64_t h, const KvObj* object, int64_t now_ms) const {
         const int64_t at = deadline(h, object);
-        return at >= 0 && at <= now_ms;
+        return at >= 0 && at < now_ms;  // Redis keyIsExpired(): now > at; live at now == at
     }
     // The deadline WATCH pins on an armed key. Redis probes the key with LOOKUP_NOTOUCH and does
     // not reap it, so an elapsed-but-unreaped key must stay physically counted here too. A key that
@@ -1469,7 +1483,7 @@ public:
         const KvObj* object = find_resident(h, key);
         if (!object) return -1;
         const int64_t at = deadline(h, object);
-        return at > cached_now_ms_ ? at : -1;
+        return at >= cached_now_ms_ ? at : -1;
     }
     void bind_expired_counter(uint64_t* counter) { expired_counter_ = counter; }
     void bind_evicted_counter(uint64_t* counter) { evicted_counter_ = counter; }
@@ -1577,7 +1591,7 @@ public:
             if (atomic_has_record(h, o->key())) return;  // promotion resolves the winning TTL
             const int64_t at = deadline(h, o);
             if (at < 0) { untrack_expire(h); return; }
-            if (at > cached_now_ms_) return;
+            if (at >= cached_now_ms_) return;  // Redis active expiry reaps only once now > at
             if (!read_retirement_available()) { removed++; return; }
             const Slice key = o->key();
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, key);
@@ -1771,15 +1785,22 @@ public:
     // FLUSH is intentionally proportional to the table capacity it discards. Borrowed string
     // values move to the existing retirement list, so a send already in flight remains valid.
     void clear() {
-        if constexpr (!kSingleDatabase) storesize_clear();
+        if constexpr (kSingleDatabase) {
+            // A new volatile population must never inherit the flushed sample.
+            StoreSizeState* state;
+            std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
+            state->sample_cursor = 0;
+            state->avg_deadline.store(0, std::memory_order_relaxed);
+        } else storesize_clear();
+#line 1775
         if (__builtin_expect(read_local_enabled_, false)) {
             clear_read_local();
             return;
         }
-        // Allocate the small replacement before touching either live table. If that cold allocation
-        // fails, retain and zero table 0 after retiring its objects; FLUSH still has a valid empty
-        // table and never exposes a half-demoted state.
-        uint64_t* fresh = allocate_table(1024);
+        // Allocate the small replacement (clear_capacity()) before touching either live table. If
+        // that cold allocation fails, retain and zero table 0 after retiring its objects; FLUSH
+        // still has a valid empty table and never exposes a half-demoted state.
+        uint64_t* fresh = allocate_table(clear_capacity());
         expires_.clear();
         for (int t = 0; t < 2; t++) {
             if (!tab_[t]) continue;
@@ -1799,14 +1820,21 @@ public:
         field_ttl_gate_ = 0;
         field_ttl_index_incomplete_ = false;
         rehash_pos_ = 0;
-        if (fresh) install_empty_table(0, fresh, 1024);
+        if (fresh) install_empty_table(0, fresh, clear_capacity());
     }
 
     // FLUSH after its scatter gate has prepared every frozen pre-image.  Preserve both table
     // allocations and their slot numbering until the capture walker releases its cursor; turn all
     // live entries into ordinary tombstones instead of freeing the tables as clear() does.
     void clear_during_snapshot() {
-        if constexpr (!kSingleDatabase) storesize_clear();
+        if constexpr (kSingleDatabase) {
+            // Capture retains table slots, but the monitoring population is gone.
+            StoreSizeState* state;
+            std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
+            state->sample_cursor = 0;
+            state->avg_deadline.store(0, std::memory_order_relaxed);
+        } else storesize_clear();
+#line 1810
         if (__builtin_expect(read_local_enabled_, false)) {
             clear_during_snapshot_read_local();
             return;
@@ -2480,6 +2508,14 @@ private:
             flatstore_table_calloc(cap, sizeof(uint64_t)));  // EMPTY == 0
     }
 
+    // FLUSH's replacement table. A prepared snapshot sized its post-cut table at twice the current
+    // capacity and suppresses every resize until the cut, refusing new keys only when the current
+    // table is full: a larger replacement would accept keys that table cannot absorb and wedge the
+    // post-capture merge. clear() changes neither input, so it may ask again before installing.
+    uint32_t clear_capacity() const {
+        return snapshot_prepared_ ? std::min<uint32_t>(snapshot_new_cap_ / 2, 1024) : 1024;
+    }
+
     void install_empty_table(int t, uint64_t* table, uint32_t cap) {
         if (__builtin_expect(read_local_enabled_, false)) {
             install_empty_table_read_local(t, table, cap);
@@ -2614,10 +2650,10 @@ private:
 
     KvObj* live_or_expire(int t, uint64_t h, Slice key, KvObj* o) {
         // This is the non-expiring-key tax: one flags branch after the ordinary lookup. No clock
-        // read occurs here; the executor refreshed cached_now_ms_ once for its loop pass.
+        // read occurs here; the executor refreshed cached_now_ms_ once for its executed batch.
         if (!o->has_ttl_slot()) return o;
         const int64_t at = deadline(h, o);
-        if (at < 0 || at > cached_now_ms_) return o;
+        if (at < 0 || at >= cached_now_ms_) return o;  // Redis: still live at now == at
         if (snapshot_active_ && t == 1) return nullptr;
         // Logical expiry never needs reclamation. With a full armed ring, leave the object and
         // its deadline index resident for owner maintenance. Only the eventual physical delete
@@ -2935,7 +2971,7 @@ private:
     }
 
     void clear_read_local() {
-        uint64_t* fresh = allocate_table(1024);
+        uint64_t* fresh = allocate_table(clear_capacity());
         // A clear rewrites every answer without naming a key. Poison the per-key filter for its
         // duration so a multi-key local read straddling it sees every cell epoch move; the poison
         // opens before the first slot store and closes after the table bracket below.
@@ -2971,8 +3007,11 @@ private:
         // and the per-put ceiling would refuse new ones anyway (obj_bytes_ is now 0), so hand them
         // straight back rather than holding them until the next write pressure.
         read_local_cache_release_all();
-        read_local_store_state_armed().resize_retirement.reset();
-        if (fresh) install_empty_table_read_local(0, fresh, 1024);
+        // Both tables went to the object ring, so no resize owns the reservation now -- unless a
+        // prepared snapshot does: mark publishes its post-cut table and the post-capture merge
+        // hands the cut table to the owner FIFO with the record snapshot_prepare() reserved.
+        if (!snapshot_prepared_) read_local_store_state_armed().resize_retirement.reset();
+        if (fresh) install_empty_table_read_local(0, fresh, clear_capacity());
     }
 
     void clear_during_snapshot_read_local() {
@@ -3604,7 +3643,7 @@ private:
         }
     }
 
-    friend struct FlatStoreLayoutLock;
+    friend struct FlatStoreLayoutLock; friend class AofProducer;
 #ifdef TOMO_STORE_REGRESSION_TEST
     friend struct FlatStoreRegressionTest;
 #endif

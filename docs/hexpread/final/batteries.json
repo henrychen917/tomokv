@@ -1,0 +1,112 @@
+{
+  "phase": "batteries",
+  "binary_sha256": "b09bb31041e5400ebb68df32baf55abd39bc46e78921701acc86d208068a980d",
+  "rows": [
+    {
+      "label": "atomic-1s-torn",
+      "command": [
+        "taskset",
+        "-c",
+        "96-111",
+        "python3",
+        "tests/atomic_torn.py",
+        "127.0.0.1",
+        "25820",
+        "--release-build"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "matched": true
+    },
+    {
+      "label": "atomic-1s-ryow",
+      "command": [
+        "taskset",
+        "-c",
+        "96-111",
+        "python3",
+        "tests/atomic_ryow.py",
+        "127.0.0.1",
+        "25820"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "matched": true
+    },
+    {
+      "label": "atomic-1s-hazards",
+      "command": [
+        "taskset",
+        "-c",
+        "96-111",
+        "python3",
+        "tests/atomic_hazards.py",
+        "127.0.0.1",
+        "25820"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "matched": true
+    },
+    {
+      "label": "atomic-1s-shutdown",
+      "exit_code": 0,
+      "expected": 0,
+      "matched": true,
+      "log": "/home/user/Projects/cx-hexpread/docs/hexpread/final/batteries-1s/server-1.log"
+    },
+    {
+      "label": "atomic-2s-torn",
+      "command": [
+        "taskset",
+        "-c",
+        "96-111",
+        "python3",
+        "tests/atomic_torn.py",
+        "127.0.0.1",
+        "25820",
+        "--release-build"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "matched": true
+    },
+    {
+      "label": "atomic-2s-ryow",
+      "command": [
+        "taskset",
+        "-c",
+        "96-111",
+        "python3",
+        "tests/atomic_ryow.py",
+        "127.0.0.1",
+        "25820"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "matched": true
+    },
+    {
+      "label": "atomic-2s-hazards",
+      "command": [
+        "taskset",
+        "-c",
+        "96-111",
+        "python3",
+        "tests/atomic_hazards.py",
+        "127.0.0.1",
+        "25820"
+      ],
+      "exit_code": 0,
+      "expected": 0,
+      "matched": true
+    },
+    {
+      "label": "atomic-2s-shutdown",
+      "exit_code": 0,
+      "expected": 0,
+      "matched": true,
+      "log": "/home/user/Projects/cx-hexpread/docs/hexpread/final/batteries-2s/server-2.log"
+    }
+  ]
+}

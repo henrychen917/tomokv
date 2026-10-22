@@ -1,0 +1,6 @@
+PASS storage flush-prepared-capacity
+EXIT=0
+PASS storage flush-prepared-capacity
+EXIT=0
+PASS storage flush-prepared-capacity
+EXIT=0

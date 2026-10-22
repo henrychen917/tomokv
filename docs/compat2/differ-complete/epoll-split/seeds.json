@@ -1,0 +1,19 @@
+{
+  "run": "compat2-epoll-split",
+  "permanent": [
+    7,
+    19,
+    20,
+    23
+  ],
+  "failed": [],
+  "rotating": 24,
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    24
+  ],
+  "history": "/home/user/Projects/cx-compat2/docs/compat2/differ-complete/history"
+}

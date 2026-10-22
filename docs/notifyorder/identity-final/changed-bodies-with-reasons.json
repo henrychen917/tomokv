@@ -1,0 +1,2871 @@
+[
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_119store_string_notifyERNS_5ShardENS_5SliceEmS3_lbb",
+    "name": "tomo_db0::(anonymous namespace)::store_string_notify(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+    "pre_size": 2755,
+    "post_size": 2803,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN8tomo_db023notify_overwrite_expiryERNS_5ShardEmNS_5SliceE', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Observe the raw SET overwrite lookup in the armed handler only"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db014cmd_del_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_del_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db014cmd_set_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_set_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db014cmd_ttl_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_ttl_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db015cmd_decr_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_decr_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db015cmd_incr_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_incr_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db015cmd_pttl_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_pttl_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db016cmd_getex_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_getex_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db016cmd_pfadd_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_pfadd_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db016cmd_setex_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_setex_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db016cmd_setnx_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_setnx_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db017cmd_append_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_append_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db017cmd_bitpos_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_bitpos_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db017cmd_decrby_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_decrby_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db017cmd_expire_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_expire_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db017cmd_getbit_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_getbit_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db017cmd_getset_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_getset_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db017cmd_incrby_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_incrby_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db017cmd_psetex_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_psetex_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db017cmd_setbit_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_setbit_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db017cmd_strlen_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_strlen_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db018cmd_persist_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_persist_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db018cmd_pexpire_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_pexpire_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db018cmd_pfcount_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_pfcount_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db019cmd_bitcount_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_bitcount_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db019cmd_expireat_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_expireat_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db019cmd_setrange_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_setrange_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db020cmd_pexpireat_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_pexpireat_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db021cmd_expiretime_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_expiretime_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db022cmd_incrbyfloat_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_incrbyfloat_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db022cmd_pexpiretime_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::cmd_pexpiretime_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "symbol": "_ZN8tomo_db09FlatStore23atomic_resolve_internalEmNS_5SliceEmb",
+    "name": "tomo_db0::FlatStore::atomic_resolve_internal(unsigned long, tomo_db0::Slice, unsigned long, bool)",
+    "pre_size": 2147,
+    "post_size": 2167,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_GLOBAL__sub_I__ZN8tomo_db016ScatterArenaPoolD2Ev",
+    "name": "_GLOBAL__sub_I__ZN8tomo_db016ScatterArenaPoolD2Ev",
+    "pre_size": 345,
+    "post_size": 345,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 3068),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2876),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db011NotifyBatchC1Ev",
+    "name": "tomo_db0::NotifyBatch::NotifyBatch()",
+    "pre_size": 395,
+    "post_size": 386,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db011NotifyBatchC2Ev",
+    "name": "tomo_db0::NotifyBatch::NotifyBatch()",
+    "pre_size": 395,
+    "post_size": 386,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_113finish_phase1ERNS_12ScatterStateERNS_2OpE",
+    "name": "tomo_db0::(anonymous namespace)::finish_phase1(tomo_db0::ScatterState&, tomo_db0::Op&)",
+    "pre_size": 9251,
+    "post_size": 9251,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1820),)",
+      "(('.rodata', 2940),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1668),)",
+      "(('.rodata', 2876),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_114allocate_stateERNS_6ServerERNS_6ClientEjNS_14MultiStateKindE",
+    "name": "tomo_db0::(anonymous namespace)::allocate_state(tomo_db0::Server&, tomo_db0::Client&, unsigned int, tomo_db0::MultiStateKind)",
+    "pre_size": 1971,
+    "post_size": 1971,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 3068),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2876),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_114assemble_finalERNS_6ClientERNS_2OpERNS_12ScatterStateEPvPFvS7_iPKcEPFvS7_E",
+    "name": "tomo_db0::(anonymous namespace)::assemble_final(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+    "pre_size": 7139,
+    "post_size": 7139,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 2652),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2588),)"
+    ],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_116prepare_commandsERNS_6ServerERNS_14MultiExecStateERSt6vectorINS_18MultiQueuedCommandESaIS6_EE",
+    "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+    "pre_size": 11640,
+    "post_size": 11640,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1548),)",
+      "(('.rodata', 3196),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1396),)",
+      "(('.rodata', 3068),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_116sha256_transformEPjPKh",
+    "name": "tomo_db0::(anonymous namespace)::sha256_transform(unsigned int*, unsigned char const*)",
+    "pre_size": 927,
+    "post_size": 927,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 2396),)",
+      "(('.rodata', 3068),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2332),)",
+      "(('.rodata', 3004),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE",
+    "name": "tomo_db0::(anonymous namespace)::notify_keep_physical(tomo_db0::NotifyBatch*)",
+    "pre_size": 0,
+    "post_size": 949,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN8tomo_db012_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE.cold', 0),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)",
+      "(('_ZSt20__throw_length_errorPKc', -4),)",
+      "(('_ZSt20__throw_system_errori', -4),)",
+      "(('_ZdlPvm', -4),)",
+      "(('_Znwm', -4),)",
+      "(('memset', -4),)",
+      "(('pthread_mutex_lock', -4),)",
+      "(('pthread_mutex_unlock', -4),)",
+      "(('string', 'vector::_M_default_append'),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: speculative discard retains physically deleted keys"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE.cold",
+    "name": "tomo_db0::(anonymous namespace)::notify_keep_physical(tomo_db0::NotifyBatch*) [clone .cold]",
+    "pre_size": 0,
+    "post_size": 19,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_Unwind_Resume', -4),)",
+      "(('pthread_mutex_unlock', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: speculative discard retains physically deleted keys"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_120notify_key_arg_orderERKNS_5ShardERKNS_2OpENS_5SliceE.isra.0",
+    "name": "tomo_db0::(anonymous namespace)::notify_key_arg_order(tomo_db0::Shard const&, tomo_db0::Op const&, tomo_db0::Slice) [clone .isra.0]",
+    "pre_size": 0,
+    "post_size": 200,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('memcmp', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_120script_clear_attemptERNS_12ScatterStateERNS_2OpE",
+    "name": "tomo_db0::(anonymous namespace)::script_clear_attempt(tomo_db0::ScatterState&, tomo_db0::Op&)",
+    "pre_size": 873,
+    "post_size": 841,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db012_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: speculative discard retains physically deleted keys"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_121blocking_finish_errorERNS_13BlockingStateERNS_9ThreadCtxERNS_4RingE",
+    "name": "tomo_db0::(anonymous namespace)::blocking_finish_error(tomo_db0::BlockingState&, tomo_db0::ThreadCtx&, tomo_db0::Ring&)",
+    "pre_size": 351,
+    "post_size": 351,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 2684),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2620),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_122store_xstring_selectedEbRNS_5ShardENS_5SliceEmS3_lbb",
+    "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+    "pre_size": 181,
+    "post_size": 181,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1940),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1788),)"
+    ],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE",
+    "name": "tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&)",
+    "pre_size": 0,
+    "post_size": 330,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN8tomo_db011NotifyBatchC1Ev', -4),)",
+      "(('_ZN8tomo_db012_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE.cold', 0),)",
+      "(('_ZN8tomo_db012_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE.cold', 27),)",
+      "(('_ZN8tomo_db012_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE.cold', 5),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)",
+      "(('_ZNSt6vectorIN8tomo_db016NotifyRecordImplESaIS1_EED1Ev', -4),)",
+      "(('_ZSt7nothrow', -4),)",
+      "(('_ZdlPvm', -4),)",
+      "(('_ZnwmRKSt9nothrow_t', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE.cold",
+    "name": "tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&) [clone .cold]",
+    "pre_size": 0,
+    "post_size": 49,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_Unwind_Resume', -4),)",
+      "(('_ZdlPvRKSt9nothrow_t', -4),)",
+      "(('abort', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_128execute_atomic_direct_renameERKNS_4TaskERNS_5ShardERNS_2OpEj",
+    "name": "tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "pre_size": 1304,
+    "post_size": 1404,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNK8tomo_db05KvObj9str_valueEv', -4),)"
+    ],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+    "name": "tomo_db0::(anonymous namespace)::normalize_multi_blocking_pop(tomo_db0::MultiCommand&)",
+    "pre_size": 3529,
+    "post_size": 3529,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 2876),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2684),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_129notify_flat_emit_unattributedEPvjNS_13NotifyEventIdENS_5SliceE",
+    "name": "tomo_db0::(anonymous namespace)::notify_flat_emit_unattributed(void*, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+    "pre_size": 0,
+    "post_size": 329,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN8tomo_db013notify_recordINS_5ShardEEEbRT_RNS_2OpEjNS_13NotifyEventIdENS_5SliceE.isra.0', 0),)",
+      "(('_ZN8tomo_db026notify_keymiss_read_lookupERKNS_2OpENS_5SliceE', -4),)",
+      "(('_ZN8tomo_db026notify_record_keyless_slowERNS_5ShardEjjNS_13NotifyEventIdENS_5SliceE', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "R1: separate named and unattributed expiry, order Expired before New"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "pre_size": 23329,
+    "post_size": 23271,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1616),)",
+      "(('.rodata', 1644),)",
+      "(('.rodata', 1944),)",
+      "(('_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 318),)",
+      "(('_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 338),)",
+      "(('_ZSt20__throw_system_errori', -4),)",
+      "(('pthread_mutex_lock', -4),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1464),)",
+      "(('.rodata', 1492),)",
+      "(('.rodata', 1884),)",
+      "(('_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 322),)",
+      "(('_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 368),)",
+      "(('_ZNSt5mutex4lockEv', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold",
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+    "pre_size": 408,
+    "post_size": 408,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj', 14880),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj', 14864),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db014xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+    "name": "tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)",
+    "pre_size": 19208,
+    "post_size": 19208,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1492),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1340),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db016notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE",
+    "name": "tomo_db0::notify_flat_emit(void*, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+    "pre_size": 329,
+    "post_size": 2483,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN8tomo_db013notify_recordINS_5ShardEEEbRT_RNS_2OpEjNS_13NotifyEventIdENS_5SliceE.isra.0', 0),)",
+      "(('_ZN8tomo_db026notify_keymiss_read_lookupERKNS_2OpENS_5SliceE', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db012_GLOBAL__N_120notify_key_arg_orderERKNS_5ShardERKNS_2OpENS_5SliceE.isra.0', 0),)",
+      "(('_ZN8tomo_db012_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE', 0),)",
+      "(('_ZN8tomo_db012_GLOBAL__N_129notify_flat_emit_unattributedEPvjNS_13NotifyEventIdENS_5SliceE', 0),)",
+      "(('_ZN8tomo_db016notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE.cold', 0),)",
+      "(('_ZN8tomo_db016notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE.cold', 33),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE12emplace_backIJRPKcRjEEERS5_DpOT_.isra.0', 0),)",
+      "(('_ZSt20__throw_length_errorPKc', -4),)",
+      "(('_ZSt20__throw_system_errori', -4),)",
+      "(('_ZdlPvm', -4),)",
+      "(('_Znwm', -4),)",
+      "(('__stack_chk_fail', -4),)",
+      "(('memcmp', -4),)",
+      "(('pthread_mutex_lock', -4),)",
+      "(('pthread_mutex_unlock', -4),)",
+      "(('string', 'vector::_M_realloc_insert'),)"
+    ],
+    "resolved_equal": false,
+    "reason": "R1: separate named and unattributed expiry, order Expired before New"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db016notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE.cold",
+    "name": "tomo_db0::notify_flat_emit(void*, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice) [clone .cold]",
+    "pre_size": 0,
+    "post_size": 139,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_Unwind_Resume', -4),)",
+      "(('_ZN8tomo_db016notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE', 1160),)",
+      "(('__cxa_begin_catch', -4),)",
+      "(('__cxa_end_catch', -4),)",
+      "(('__stack_chk_fail', -4),)",
+      "(('pthread_mutex_unlock', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "R1: separate named and unattributed expiry, order Expired before New"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db017notify_take_batchERNS_2OpE",
+    "name": "tomo_db0::notify_take_batch(tomo_db0::Op&)",
+    "pre_size": 371,
+    "post_size": 354,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN8tomo_db020notify_discard_batchEPNS_11NotifyBatchE.part.0', 0),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db012_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: speculative discard retains physically deleted keys"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db018notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE",
+    "name": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+    "pre_size": 2804,
+    "post_size": 1831,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1020),)",
+      "(('_ZN8tomo_db011NotifyBatchC1Ev', -4),)",
+      "(('_ZN8tomo_db018notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold', 133),)",
+      "(('_ZN8tomo_db018notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold', 5),)",
+      "(('_ZN8tomo_db018notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold', 52),)",
+      "(('_ZN8tomo_db018notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold', 83),)",
+      "(('_ZN8tomo_db018notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold', 90),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE16_M_push_back_auxIJRPKcRjEEEvDpOT_', -4),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)",
+      "(('_ZNSt6vectorIN8tomo_db016NotifyRecordImplESaIS1_EED1Ev', -4),)",
+      "(('_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1EPKcmRKS3_', -4),)",
+      "(('_ZSt7nothrow', -4),)",
+      "(('_ZnwmRKSt9nothrow_t', -4),)",
+      "(('__stack_chk_fail', -4),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1820),)",
+      "(('_ZN8tomo_db012_GLOBAL__N_120notify_key_arg_orderERKNS_5ShardERKNS_2OpENS_5SliceE.isra.0', 0),)",
+      "(('_ZN8tomo_db012_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE', 0),)",
+      "(('_ZN8tomo_db018notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold', 27),)",
+      "(('_ZN8tomo_db018notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold', 34),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE12emplace_backIJRPKcRjEEERS5_DpOT_.isra.0', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db018notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold",
+    "name": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice) [clone .cold]",
+    "pre_size": 227,
+    "post_size": 85,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN8tomo_db018notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE', 1406),)",
+      "(('_ZdlPvRKSt9nothrow_t', -4),)",
+      "(('__stack_chk_fail', -4),)",
+      "(('abort', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db018notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE', 633),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db020blocking_owner_cycleERNS_6ServerERNS_9ThreadCtxERNS_4RingElb",
+    "name": "tomo_db0::blocking_owner_cycle(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, long, bool)",
+    "pre_size": 2166,
+    "post_size": 1830,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db013BlockingStateD1Ev', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db020cmd_xshard_only_implILb0EEEvRNS_5ShardERNS_2OpE",
+    "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 15739,
+    "post_size": 15739,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1940),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1788),)"
+    ],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db020cmd_xshard_only_implILb1EEEvRNS_5ShardERNS_2OpE",
+    "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 17145,
+    "post_size": 17145,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1940),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1788),)"
+    ],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db020notify_discard_batchEPNS_11NotifyBatchE.part.0",
+    "name": "tomo_db0::notify_discard_batch(tomo_db0::NotifyBatch*) [clone .part.0]",
+    "pre_size": 57,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)",
+      "(('_ZdlPvm', -4),)"
+    ],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE",
+    "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)",
+    "pre_size": 7454,
+    "post_size": 7646,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 15),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 150),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 160),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 165),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 45),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 95),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 115),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 126),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 221),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 5),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 60),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold', 75),)",
+      "(('_ZN8tomo_db023xshard_atomic_key_sliceEPKNS_12ScatterStateEj', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold",
+    "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&) [clone .cold]",
+    "pre_size": 242,
+    "post_size": 236,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE', 6222),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE', 6346),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE', 6318),)",
+      "(('_ZN8tomo_db020xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE', 6442),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db022notify_flat_store_emitEPKNS_9FlatStoreEjNS_13NotifyEventIdENS_5SliceE",
+    "name": "tomo_db0::notify_flat_store_emit(tomo_db0::FlatStore const*, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+    "pre_size": 144,
+    "post_size": 173,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN8tomo_db012_GLOBAL__N_129notify_flat_emit_unattributedEPvjNS_13NotifyEventIdENS_5SliceE', 0),)",
+      "(('_ZN8tomo_db016notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "R1: separate named and unattributed expiry, order Expired before New"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db022notify_xshard_finishedERNS_5ShardERNS_2OpERNS_12ScatterStateE",
+    "name": "tomo_db0::notify_xshard_finished(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+    "pre_size": 1909,
+    "post_size": 1909,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1172),)",
+      "(('.rodata', 1332),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1020),)",
+      "(('.rodata', 1180),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db022xshard_complete_scriptILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+    "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_script<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+    "pre_size": 1901,
+    "post_size": 1901,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN8tomo_db020notify_discard_batchEPNS_11NotifyBatchE.part.0', 0),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db026notify_discard_speculativeERSt6atomicIPNS_11NotifyBatchEE', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: one of the five cross-shard script discard/retry edges uses physical salvage"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db022xshard_complete_scriptILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+    "name": "tomo_db0::ScatterFinish tomo_db0::xshard_complete_script<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Task const&, tomo_db0::Op&, tomo_db0::ScatterState&)",
+    "pre_size": 1901,
+    "post_size": 1901,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN8tomo_db020notify_discard_batchEPNS_11NotifyBatchE.part.0', 0),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db026notify_discard_speculativeERSt6atomicIPNS_11NotifyBatchEE', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: one of the five cross-shard script discard/retry edges uses physical salvage"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db023notify_overwrite_expiryERNS_5ShardEmNS_5SliceE",
+    "name": "tomo_db0::notify_overwrite_expiry(tomo_db0::Shard&, unsigned long, tomo_db0::Slice)",
+    "pre_size": 0,
+    "post_size": 47,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN8tomo_db016notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Observe the raw SET overwrite lookup in the armed handler only"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db026notify_discard_speculativeERSt6atomicIPNS_11NotifyBatchEE",
+    "name": "tomo_db0::notify_discard_speculative(std::atomic<tomo_db0::NotifyBatch*>&)",
+    "pre_size": 0,
+    "post_size": 42,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN8tomo_db012_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: speculative discard retains physically deleted keys"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db05ShardD1Ev",
+    "name": "tomo_db0::Shard::~Shard()",
+    "pre_size": 1284,
+    "post_size": 880,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db013BlockingStateD1Ev', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db05ShardD2Ev",
+    "name": "tomo_db0::Shard::~Shard()",
+    "pre_size": 1284,
+    "post_size": 880,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db013BlockingStateD1Ev', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db06IoLoop12close_clientEPNS_6ClientEb",
+    "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+    "pre_size": 8266,
+    "post_size": 8248,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZSt20__throw_system_errori', -4),)",
+      "(('pthread_mutex_lock', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZNSt5mutex4lockEv', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZNSt19_Sp_counted_deleterIPN8tomo_db023PubSubNotificationChainEZNS0_12_GLOBAL__N_120notify_reserve_chainERNS0_6ServerESt10unique_ptrIS1_St14default_deleteIS1_EEEUlS2_E_SaIvELN9__gnu_cxx12_Lock_policyE2EE14_M_get_deleterERKSt9type_info",
+    "name": "std::_Sp_counted_deleter<tomo_db0::PubSubNotificationChain*, tomo_db0::(anonymous namespace)::notify_reserve_chain(tomo_db0::Server&, std::unique_ptr<tomo_db0::PubSubNotificationChain, std::default_delete<tomo_db0::PubSubNotificationChain> >)::{lambda(tomo_db0::PubSubNotificationChain*)#1}, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_get_deleter(std::type_info const&)",
+    "pre_size": 66,
+    "post_size": 66,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1980),)",
+      "(('.rodata', 1981),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1916),)",
+      "(('.rodata', 1917),)"
+    ],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZNSt3_V28__rotateIN9__gnu_cxx17__normal_iteratorIPN8tomo_db016NotifyRecordImplESt6vectorIS4_SaIS4_EEEEEET_SA_SA_SA_St26random_access_iterator_tag.isra.0",
+    "name": "__gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > > std::_V2::__rotate<__gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > > >(__gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, std::random_access_iterator_tag) [clone .isra.0]",
+    "pre_size": 484,
+    "post_size": 510,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE12emplace_backIJRPKcRjEEERS5_DpOT_.isra.0",
+    "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >& std::deque<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::emplace_back<char const*&, unsigned int&>(char const*&, unsigned int&) [clone .isra.0]",
+    "pre_size": 0,
+    "post_size": 182,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE16_M_push_back_auxIJRPKcRjEEEvDpOT_', -4),)",
+      "(('_ZSt19__throw_logic_errorPKc', -4),)",
+      "(('_Znwm', -4),)",
+      "(('memcpy', -4),)",
+      "(('string', 'basic_string: construction from null is not valid'),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZNSt5mutex4lockEv",
+    "name": "std::mutex::lock()",
+    "pre_size": 0,
+    "post_size": 29,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZSt20__throw_system_errori', -4),)",
+      "(('pthread_mutex_lock', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZNSt7__cxx119to_stringEi",
+    "name": "std::__cxx11::to_string(int)",
+    "pre_size": 725,
+    "post_size": 725,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 2876),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2684),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZSt16__insertion_sortIN9__gnu_cxx17__normal_iteratorIPN8tomo_db016NotifyRecordImplESt6vectorIS3_SaIS3_EEEENS0_5__ops15_Iter_comp_iterIZNS2_25notify_retire_batch_entryERNS2_6IoLoopEPNS2_11NotifyBatchEmEUlRKT_RKT0_E_EEEvSF_SF_SI_.isra.0",
+    "name": "void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}>) [clone .isra.0]",
+    "pre_size": 0,
+    "post_size": 417,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('memmove', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZSt21__inplace_stable_sortIN9__gnu_cxx17__normal_iteratorIPN8tomo_db016NotifyRecordImplESt6vectorIS3_SaIS3_EEEENS0_5__ops15_Iter_comp_iterIZNS2_25notify_retire_batch_entryERNS2_6IoLoopEPNS2_11NotifyBatchEmEUlRKT_RKT0_E_EEEvSF_SF_SI_.isra.0",
+    "name": "void std::__inplace_stable_sort<__gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}>) [clone .isra.0]",
+    "pre_size": 495,
+    "post_size": 127,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('memmove', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZSt16__insertion_sortIN9__gnu_cxx17__normal_iteratorIPN8tomo_db016NotifyRecordImplESt6vectorIS3_SaIS3_EEEENS0_5__ops15_Iter_comp_iterIZNS2_25notify_retire_batch_entryERNS2_6IoLoopEPNS2_11NotifyBatchEmEUlRKT_RKT0_E_EEEvSF_SF_SI_.isra.0', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZSt22__merge_without_bufferIN9__gnu_cxx17__normal_iteratorIPN8tomo_db016NotifyRecordImplESt6vectorIS3_SaIS3_EEEElNS0_5__ops15_Iter_comp_iterIZNS2_25notify_retire_batch_entryERNS2_6IoLoopEPNS2_11NotifyBatchEmEUlRKT_RKT0_E_EEEvSF_SF_SF_SI_SI_T1_.isra.0",
+    "name": "void std::__merge_without_buffer<__gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, long, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}>) [clone .isra.0]",
+    "pre_size": 648,
+    "post_size": 648,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZSt24__merge_sort_with_bufferIN9__gnu_cxx17__normal_iteratorIPN8tomo_db016NotifyRecordImplESt6vectorIS3_SaIS3_EEEES4_NS0_5__ops15_Iter_comp_iterIZNS2_25notify_retire_batch_entryERNS2_6IoLoopEPNS2_11NotifyBatchEmEUlRKT_RKT0_E_EEEvSF_SF_SI_T1_.isra.0",
+    "name": "void std::__merge_sort_with_buffer<__gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, tomo_db0::NotifyRecordImpl*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo_db0::NotifyRecordImpl*, std::vector<tomo_db0::NotifyRecordImpl, std::allocator<tomo_db0::NotifyRecordImpl> > >, tomo_db0::NotifyRecordImpl*, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}>) [clone .isra.0]",
+    "pre_size": 1296,
+    "post_size": 540,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('memmove', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZSt16__insertion_sortIN9__gnu_cxx17__normal_iteratorIPN8tomo_db016NotifyRecordImplESt6vectorIS3_SaIS3_EEEENS0_5__ops15_Iter_comp_iterIZNS2_25notify_retire_batch_entryERNS2_6IoLoopEPNS2_11NotifyBatchEmEUlRKT_RKT0_E_EEEvSF_SF_SI_.isra.0', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEjENKUlTnbTnbvE_clILb1ELb0EEEDav",
+    "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+    "pre_size": 1190,
+    "post_size": 1190,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db010AofManagerD1Ev",
+    "name": "tomo_db0::AofManager::~AofManager()",
+    "pre_size": 1403,
+    "post_size": 1435,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db010AofManagerD2Ev",
+    "name": "tomo_db0::AofManager::~AofManager()",
+    "pre_size": 1403,
+    "post_size": 1435,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_113manifest_nameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+    "name": "tomo_db0::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+    "pre_size": 1666,
+    "post_size": 1698,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db019aof_record_local_opERNS_5ShardERNS_2OpERNS_15AofOwnerContextE",
+    "name": "tomo_db0::aof_record_local_op(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&)",
+    "pre_size": 697,
+    "post_size": 619,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN8tomo_db024command_script_key_rangeERKNS_2OpERjS3_', -4),)",
+      "(('__stack_chk_fail', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN8tomo_db021xshard_aof_emit_localERNS_5ShardERNS_2OpERNS_15AofOwnerContextE', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "A5: notification-attached scripts use the grouped persistence writer"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db09FlatStore13make_room_forENS_5SliceEm",
+    "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+    "pre_size": 898,
+    "post_size": 898,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db09FlatStore9make_wordEtPNS_5KvObjE.part.0",
+    "name": "tomo_db0::FlatStore::make_word(unsigned short, tomo_db0::KvObj*) [clone .part.0]",
+    "pre_size": 37,
+    "post_size": 37,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('string', 'src/persist/../core/../store/flatstore.h'),)"
+    ],
+    "code_targets_added": [
+      "(('string', 'src/persist/../cmd/../store/flatstore.h'),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_113setex_genericILb1EEEvRNS_5ShardERNS_2OpENS0_10ExpireKindEPKc",
+    "name": "void tomo::(anonymous namespace)::setex_generic<true>(tomo::Shard&, tomo::Op&, tomo::(anonymous namespace)::ExpireKind, char const*)",
+    "pre_size": 495,
+    "post_size": 511,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_119store_string_notifyERNS_5ShardENS_5SliceEmS3_lbb",
+    "name": "tomo::(anonymous namespace)::store_string_notify(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+    "pre_size": 2780,
+    "post_size": 2816,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN4tomo23notify_overwrite_expiryERNS_5ShardEmNS_5SliceE', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Observe the raw SET overwrite lookup in the armed handler only"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_setnxILb1EEEvRNS_5ShardERNS_2OpE",
+    "name": "void tomo::(anonymous namespace)::cmd_setnx<true>(tomo::Shard&, tomo::Op&)",
+    "pre_size": 455,
+    "post_size": 421,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZNK4tomo2Op3keyEv', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo14cmd_del_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_del_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo14cmd_set_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_set_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo14cmd_ttl_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_ttl_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo15cmd_decr_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_decr_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo15cmd_incr_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_incr_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo15cmd_pttl_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_pttl_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo16cmd_getex_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_getex_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo16cmd_pfadd_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_pfadd_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo16cmd_setex_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_setex_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo16cmd_setnx_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_setnx_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo16kvobj_new_stringENS_5SliceES0_lb.isra.0",
+    "name": "tomo::kvobj_new_string(tomo::Slice, tomo::Slice, long, bool) [clone .isra.0]",
+    "pre_size": 1898,
+    "post_size": 1882,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN4tomo9good_sizeEm', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo17cmd_append_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_append_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo17cmd_bitpos_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_bitpos_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo17cmd_decrby_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_decrby_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo17cmd_expire_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_expire_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo17cmd_getbit_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_getbit_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo17cmd_getset_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_getset_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo17cmd_incrby_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_incrby_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo17cmd_psetex_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_psetex_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo17cmd_setbit_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_setbit_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo17cmd_strlen_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_strlen_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo18cmd_persist_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_persist_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo18cmd_pexpire_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_pexpire_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo18cmd_pfcount_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_pfcount_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo19cmd_bitcount_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_bitcount_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo19cmd_expireat_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_expireat_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo19cmd_setrange_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_setrange_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo20cmd_pexpireat_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_pexpireat_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo20kvobj_external_bytesEPKNS_5KvObjE",
+    "name": "tomo::kvobj_external_bytes(tomo::KvObj const*)",
+    "pre_size": 825,
+    "post_size": 665,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo21cmd_expiretime_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_expiretime_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo22cmd_incrbyfloat_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_incrbyfloat_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo22cmd_pexpiretime_notifyERNS_5ShardERNS_2OpE",
+    "name": "tomo::cmd_pexpiretime_notify(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "symbol": "_ZN4tomo9FlatStore13choose_victimENS_5SliceE",
+    "name": "tomo::FlatStore::choose_victim(tomo::Slice)",
+    "pre_size": 2177,
+    "post_size": 2473,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNK4tomo5Slice6key_eqERKS0_', -4),)"
+    ],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo11AofProducerD1Ev",
+    "name": "tomo::AofProducer::~AofProducer()",
+    "pre_size": 2918,
+    "post_size": 3030,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo11AofProducerD2Ev",
+    "name": "tomo::AofProducer::~AofProducer()",
+    "pre_size": 2918,
+    "post_size": 3030,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo11NotifyBatchC1Ev",
+    "name": "tomo::NotifyBatch::NotifyBatch()",
+    "pre_size": 395,
+    "post_size": 386,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo11NotifyBatchC2Ev",
+    "name": "tomo::NotifyBatch::NotifyBatch()",
+    "pre_size": 395,
+    "post_size": 386,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_113finish_phase1ERNS_12ScatterStateERNS_2OpE",
+    "name": "tomo::(anonymous namespace)::finish_phase1(tomo::ScatterState&, tomo::Op&)",
+    "pre_size": 9251,
+    "post_size": 9251,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1820),)",
+      "(('.rodata', 2940),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1668),)",
+      "(('.rodata', 2876),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_114allocate_stateERNS_6ServerERNS_6ClientEjNS_14MultiStateKindE",
+    "name": "tomo::(anonymous namespace)::allocate_state(tomo::Server&, tomo::Client&, unsigned int, tomo::MultiStateKind)",
+    "pre_size": 1971,
+    "post_size": 1971,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 3068),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2876),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_114assemble_finalERNS_6ClientERNS_2OpERNS_12ScatterStateEPvPFvS7_iPKcEPFvS7_E",
+    "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+    "pre_size": 7109,
+    "post_size": 7109,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 2652),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2588),)"
+    ],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_116prepare_commandsERNS_6ServerERNS_14MultiExecStateERSt6vectorINS_18MultiQueuedCommandESaIS6_EE",
+    "name": "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)",
+    "pre_size": 11902,
+    "post_size": 11902,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1548),)",
+      "(('.rodata', 3196),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1396),)",
+      "(('.rodata', 3068),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_116sha256_transformEPjPKh",
+    "name": "tomo::(anonymous namespace)::sha256_transform(unsigned int*, unsigned char const*)",
+    "pre_size": 927,
+    "post_size": 927,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 2396),)",
+      "(('.rodata', 3068),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2332),)",
+      "(('.rodata', 3004),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE",
+    "name": "tomo::(anonymous namespace)::notify_keep_physical(tomo::NotifyBatch*)",
+    "pre_size": 0,
+    "post_size": 949,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN4tomo12_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE.cold', 0),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)",
+      "(('_ZSt20__throw_length_errorPKc', -4),)",
+      "(('_ZSt20__throw_system_errori', -4),)",
+      "(('_ZdlPvm', -4),)",
+      "(('_Znwm', -4),)",
+      "(('memset', -4),)",
+      "(('pthread_mutex_lock', -4),)",
+      "(('pthread_mutex_unlock', -4),)",
+      "(('string', 'vector::_M_default_append'),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: speculative discard retains physically deleted keys"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE.cold",
+    "name": "tomo::(anonymous namespace)::notify_keep_physical(tomo::NotifyBatch*) [clone .cold]",
+    "pre_size": 0,
+    "post_size": 19,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_Unwind_Resume', -4),)",
+      "(('pthread_mutex_unlock', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: speculative discard retains physically deleted keys"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_120notify_key_arg_orderERKNS_5ShardERKNS_2OpENS_5SliceE.isra.0",
+    "name": "tomo::(anonymous namespace)::notify_key_arg_order(tomo::Shard const&, tomo::Op const&, tomo::Slice) [clone .isra.0]",
+    "pre_size": 0,
+    "post_size": 184,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('memcmp', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_120script_clear_attemptERNS_12ScatterStateERNS_2OpE",
+    "name": "tomo::(anonymous namespace)::script_clear_attempt(tomo::ScatterState&, tomo::Op&)",
+    "pre_size": 811,
+    "post_size": 776,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN4tomo12_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: speculative discard retains physically deleted keys"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_121blocking_finish_errorERNS_13BlockingStateERNS_9ThreadCtxERNS_4RingE",
+    "name": "tomo::(anonymous namespace)::blocking_finish_error(tomo::BlockingState&, tomo::ThreadCtx&, tomo::Ring&)",
+    "pre_size": 351,
+    "post_size": 351,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 2684),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2620),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_122store_xstring_selectedEbRNS_5ShardENS_5SliceEmS3_lbb",
+    "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+    "pre_size": 181,
+    "post_size": 181,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1940),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1788),)"
+    ],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE",
+    "name": "tomo::(anonymous namespace)::notify_get_or_create_batch(tomo::Op&)",
+    "pre_size": 0,
+    "post_size": 330,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN4tomo11NotifyBatchC1Ev', -4),)",
+      "(('_ZN4tomo12_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE.cold', 0),)",
+      "(('_ZN4tomo12_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE.cold', 27),)",
+      "(('_ZN4tomo12_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE.cold', 5),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)",
+      "(('_ZNSt6vectorIN4tomo16NotifyRecordImplESaIS1_EED1Ev', -4),)",
+      "(('_ZSt7nothrow', -4),)",
+      "(('_ZdlPvm', -4),)",
+      "(('_ZnwmRKSt9nothrow_t', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE.cold",
+    "name": "tomo::(anonymous namespace)::notify_get_or_create_batch(tomo::Op&) [clone .cold]",
+    "pre_size": 0,
+    "post_size": 49,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_Unwind_Resume', -4),)",
+      "(('_ZdlPvRKSt9nothrow_t', -4),)",
+      "(('abort', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+    "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+    "pre_size": 3454,
+    "post_size": 3326,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 2876),)",
+      "(('strlen', -4),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2684),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+    "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_129notify_flat_emit_unattributedEPvjNS_13NotifyEventIdENS_5SliceE",
+    "name": "tomo::(anonymous namespace)::notify_flat_emit_unattributed(void*, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+    "pre_size": 0,
+    "post_size": 329,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN4tomo13notify_recordINS_5ShardEEEbRT_RNS_2OpEjNS_13NotifyEventIdENS_5SliceE.isra.0', 0),)",
+      "(('_ZN4tomo26notify_keymiss_read_lookupERKNS_2OpENS_5SliceE', -4),)",
+      "(('_ZN4tomo26notify_record_keyless_slowERNS_5ShardEjjNS_13NotifyEventIdENS_5SliceE', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "R1: separate named and unattributed expiry, order Expired before New"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj",
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+    "pre_size": 21176,
+    "post_size": 21042,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1616),)",
+      "(('.rodata', 1644),)",
+      "(('.rodata', 1944),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 15),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 151),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 226),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 241),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 246),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 261),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 277),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 290),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 323),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 343),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 52),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 63),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 82),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 99),)",
+      "(('_ZSt20__throw_system_errori', -4),)",
+      "(('pthread_mutex_lock', -4),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1464),)",
+      "(('.rodata', 1492),)",
+      "(('.rodata', 1884),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 114),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 189),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 20),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 214),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 225),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 259),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 279),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 336),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 352),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 365),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 382),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 396),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 5),)",
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold', 57),)",
+      "(('_ZNSt5mutex4lockEv', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj.cold",
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+    "pre_size": 400,
+    "post_size": 411,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj', 13536),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj', 13520),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+    "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+    "pre_size": 18276,
+    "post_size": 18276,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1492),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1340),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo16notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE",
+    "name": "tomo::notify_flat_emit(void*, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+    "pre_size": 329,
+    "post_size": 2703,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN4tomo13notify_recordINS_5ShardEEEbRT_RNS_2OpEjNS_13NotifyEventIdENS_5SliceE.isra.0', 0),)",
+      "(('_ZN4tomo26notify_keymiss_read_lookupERKNS_2OpENS_5SliceE', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN4tomo12_GLOBAL__N_120notify_key_arg_orderERKNS_5ShardERKNS_2OpENS_5SliceE.isra.0', 0),)",
+      "(('_ZN4tomo12_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE', 0),)",
+      "(('_ZN4tomo12_GLOBAL__N_129notify_flat_emit_unattributedEPvjNS_13NotifyEventIdENS_5SliceE', 0),)",
+      "(('_ZN4tomo16notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE.cold', 0),)",
+      "(('_ZN4tomo16notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE.cold', 33),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE12emplace_backIJRPKcRjEEERS5_DpOT_.isra.0', 0),)",
+      "(('_ZSt20__throw_length_errorPKc', -4),)",
+      "(('_ZSt20__throw_system_errori', -4),)",
+      "(('_ZdlPvm', -4),)",
+      "(('_Znwm', -4),)",
+      "(('__stack_chk_fail', -4),)",
+      "(('memcmp', -4),)",
+      "(('pthread_mutex_lock', -4),)",
+      "(('pthread_mutex_unlock', -4),)",
+      "(('string', 'vector::_M_realloc_insert'),)"
+    ],
+    "resolved_equal": false,
+    "reason": "R1: separate named and unattributed expiry, order Expired before New"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo16notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE.cold",
+    "name": "tomo::notify_flat_emit(void*, unsigned int, tomo::NotifyEventId, tomo::Slice) [clone .cold]",
+    "pre_size": 0,
+    "post_size": 139,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_Unwind_Resume', -4),)",
+      "(('_ZN4tomo16notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE', 1208),)",
+      "(('__cxa_begin_catch', -4),)",
+      "(('__cxa_end_catch', -4),)",
+      "(('__stack_chk_fail', -4),)",
+      "(('pthread_mutex_unlock', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "R1: separate named and unattributed expiry, order Expired before New"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo17notify_take_batchERNS_2OpE",
+    "name": "tomo::notify_take_batch(tomo::Op&)",
+    "pre_size": 371,
+    "post_size": 354,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN4tomo20notify_discard_batchEPNS_11NotifyBatchE.part.0', 0),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN4tomo12_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: speculative discard retains physically deleted keys"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo18notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE",
+    "name": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+    "pre_size": 2841,
+    "post_size": 1976,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1020),)",
+      "(('_ZN4tomo11NotifyBatchC1Ev', -4),)",
+      "(('_ZN4tomo18notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold', 119),)",
+      "(('_ZN4tomo18notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold', 124),)",
+      "(('_ZN4tomo18notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold', 167),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE16_M_push_back_auxIJRPKcRjEEEvDpOT_', -4),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)",
+      "(('_ZNSt6vectorIN4tomo16NotifyRecordImplESaIS1_EED1Ev', -4),)",
+      "(('_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC1EPKcmRKS3_', -4),)",
+      "(('_ZSt7nothrow', -4),)",
+      "(('_ZnwmRKSt9nothrow_t', -4),)",
+      "(('__stack_chk_fail', -4),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1820),)",
+      "(('_ZN4tomo12_GLOBAL__N_120notify_key_arg_orderERKNS_5ShardERKNS_2OpENS_5SliceE.isra.0', 0),)",
+      "(('_ZN4tomo12_GLOBAL__N_126notify_get_or_create_batchERNS_2OpE', 0),)",
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE12emplace_backIJRPKcRjEEERS5_DpOT_.isra.0', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo18notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE.cold",
+    "name": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice) [clone .cold]",
+    "pre_size": 220,
+    "post_size": 93,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN4tomo18notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE', 1344),)",
+      "(('_ZdlPvRKSt9nothrow_t', -4),)",
+      "(('__stack_chk_fail', -4),)",
+      "(('abort', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN4tomo18notify_record_slowERNS_5ShardERNS_2OpEjjNS_13NotifyEventIdENS_5SliceE', 669),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo20blocking_owner_cycleERNS_6ServerERNS_9ThreadCtxERNS_4RingElb",
+    "name": "tomo::blocking_owner_cycle(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, long, bool)",
+    "pre_size": 2243,
+    "post_size": 1875,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN4tomo13BlockingStateD1Ev', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo20cmd_xshard_only_implILb0EEEvRNS_5ShardERNS_2OpE",
+    "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+    "pre_size": 15981,
+    "post_size": 15981,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1940),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1788),)"
+    ],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo20cmd_xshard_only_implILb1EEEvRNS_5ShardERNS_2OpE",
+    "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+    "pre_size": 17097,
+    "post_size": 17097,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1940),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1788),)"
+    ],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo20notify_discard_batchEPNS_11NotifyBatchE.part.0",
+    "name": "tomo::notify_discard_batch(tomo::NotifyBatch*) [clone .part.0]",
+    "pre_size": 57,
+    "post_size": 0,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)",
+      "(('_ZdlPvm', -4),)"
+    ],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo22notify_flat_store_emitEPKNS_9FlatStoreEjNS_13NotifyEventIdENS_5SliceE",
+    "name": "tomo::notify_flat_store_emit(tomo::FlatStore const*, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+    "pre_size": 144,
+    "post_size": 173,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN4tomo12_GLOBAL__N_129notify_flat_emit_unattributedEPvjNS_13NotifyEventIdENS_5SliceE', 0),)",
+      "(('_ZN4tomo16notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "R1: separate named and unattributed expiry, order Expired before New"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo22notify_xshard_finishedERNS_5ShardERNS_2OpERNS_12ScatterStateE",
+    "name": "tomo::notify_xshard_finished(tomo::Shard&, tomo::Op&, tomo::ScatterState&)",
+    "pre_size": 1909,
+    "post_size": 1909,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1172),)",
+      "(('.rodata', 1332),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1020),)",
+      "(('.rodata', 1180),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo22xshard_complete_scriptILb0EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+    "name": "tomo::ScatterFinish tomo::xshard_complete_script<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+    "pre_size": 1901,
+    "post_size": 1901,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN4tomo20notify_discard_batchEPNS_11NotifyBatchE.part.0', 0),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN4tomo26notify_discard_speculativeERSt6atomicIPNS_11NotifyBatchEE', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: one of the five cross-shard script discard/retry edges uses physical salvage"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo22xshard_complete_scriptILb1EEENS_13ScatterFinishERNS_6ServerERNS_9ThreadCtxERNS_4RingERKNS_4TaskERNS_2OpERNS_12ScatterStateE",
+    "name": "tomo::ScatterFinish tomo::xshard_complete_script<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Task const&, tomo::Op&, tomo::ScatterState&)",
+    "pre_size": 1901,
+    "post_size": 1901,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN4tomo20notify_discard_batchEPNS_11NotifyBatchE.part.0', 0),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN4tomo26notify_discard_speculativeERSt6atomicIPNS_11NotifyBatchEE', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: one of the five cross-shard script discard/retry edges uses physical salvage"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo23notify_overwrite_expiryERNS_5ShardEmNS_5SliceE",
+    "name": "tomo::notify_overwrite_expiry(tomo::Shard&, unsigned long, tomo::Slice)",
+    "pre_size": 0,
+    "post_size": 47,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN4tomo16notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Observe the raw SET overwrite lookup in the armed handler only"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo26notify_discard_speculativeERSt6atomicIPNS_11NotifyBatchEE",
+    "name": "tomo::notify_discard_speculative(std::atomic<tomo::NotifyBatch*>&)",
+    "pre_size": 0,
+    "post_size": 42,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZN4tomo12_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE', 0),)"
+    ],
+    "resolved_equal": false,
+    "reason": "S: speculative discard retains physically deleted keys"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo5ShardD1Ev",
+    "name": "tomo::Shard::~Shard()",
+    "pre_size": 1284,
+    "post_size": 880,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN4tomo13BlockingStateD1Ev', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo5ShardD2Ev",
+    "name": "tomo::Shard::~Shard()",
+    "pre_size": 1284,
+    "post_size": 880,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EED1Ev', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN4tomo13BlockingStateD1Ev', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo6IoLoop12close_clientEPNS_6ClientEb",
+    "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+    "pre_size": 8266,
+    "post_size": 8248,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZSt20__throw_system_errori', -4),)",
+      "(('pthread_mutex_lock', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZNSt5mutex4lockEv', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZNSt19_Sp_counted_deleterIPN4tomo23PubSubNotificationChainEZNS0_12_GLOBAL__N_120notify_reserve_chainERNS0_6ServerESt10unique_ptrIS1_St14default_deleteIS1_EEEUlS2_E_SaIvELN9__gnu_cxx12_Lock_policyE2EE14_M_get_deleterERKSt9type_info",
+    "name": "std::_Sp_counted_deleter<tomo::PubSubNotificationChain*, tomo::(anonymous namespace)::notify_reserve_chain(tomo::Server&, std::unique_ptr<tomo::PubSubNotificationChain, std::default_delete<tomo::PubSubNotificationChain> >)::{lambda(tomo::PubSubNotificationChain*)#1}, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_get_deleter(std::type_info const&)",
+    "pre_size": 66,
+    "post_size": 66,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 1980),)",
+      "(('.rodata', 1981),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 1916),)",
+      "(('.rodata', 1917),)"
+    ],
+    "resolved_equal": true,
+    "reason": "Local code-address/displacement normalization only; resolved body is PRE-identical"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZNSt3_V28__rotateIN9__gnu_cxx17__normal_iteratorIPN4tomo16NotifyRecordImplESt6vectorIS4_SaIS4_EEEEEET_SA_SA_SA_St26random_access_iterator_tag.isra.0",
+    "name": "__gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > > std::_V2::__rotate<__gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > > >(__gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > >, std::random_access_iterator_tag) [clone .isra.0]",
+    "pre_size": 486,
+    "post_size": 511,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE12emplace_backIJRPKcRjEEERS5_DpOT_.isra.0",
+    "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >& std::deque<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::emplace_back<char const*&, unsigned int&>(char const*&, unsigned int&) [clone .isra.0]",
+    "pre_size": 0,
+    "post_size": 182,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZNSt5dequeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE16_M_push_back_auxIJRPKcRjEEEvDpOT_', -4),)",
+      "(('_ZSt19__throw_logic_errorPKc', -4),)",
+      "(('_Znwm', -4),)",
+      "(('memcpy', -4),)",
+      "(('string', 'basic_string: construction from null is not valid'),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZNSt5mutex4lockEv",
+    "name": "std::mutex::lock()",
+    "pre_size": 0,
+    "post_size": 29,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "(('_ZSt20__throw_system_errori', -4),)",
+      "(('pthread_mutex_lock', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZNSt7__cxx119to_stringEi",
+    "name": "std::__cxx11::to_string(int)",
+    "pre_size": 725,
+    "post_size": 725,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('.rodata', 2876),)"
+    ],
+    "code_targets_added": [
+      "(('.rodata', 2684),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZSt16__insertion_sortIN9__gnu_cxx17__normal_iteratorIPN4tomo16NotifyRecordImplESt6vectorIS3_SaIS3_EEEENS0_5__ops15_Iter_comp_iterIZNS2_25notify_retire_batch_entryERNS2_6IoLoopEPNS2_11NotifyBatchEmEUlRKT_RKT0_E_EEEvSF_SF_SI_.isra.0",
+    "name": "void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::notify_retire_batch_entry(tomo::IoLoop&, tomo::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::notify_retire_batch_entry(tomo::IoLoop&, tomo::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}>) [clone .isra.0]",
+    "pre_size": 369,
+    "post_size": 417,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIS7_SaIS7_EEEElNS0_5__ops15_Iter_less_iterEEvT_SF_T0_T1_.isra.0",
+    "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]",
+    "pre_size": 5851,
+    "post_size": 5840,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZSt22__merge_without_bufferIN9__gnu_cxx17__normal_iteratorIPN4tomo16NotifyRecordImplESt6vectorIS3_SaIS3_EEEElNS0_5__ops15_Iter_comp_iterIZNS2_25notify_retire_batch_entryERNS2_6IoLoopEPNS2_11NotifyBatchEmEUlRKT_RKT0_E_EEEvSF_SF_SF_SI_SI_T1_.isra.0",
+    "name": "void std::__merge_without_buffer<__gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::notify_retire_batch_entry(tomo::IoLoop&, tomo::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > >, __gnu_cxx::__normal_iterator<tomo::NotifyRecordImpl*, std::vector<tomo::NotifyRecordImpl, std::allocator<tomo::NotifyRecordImpl> > >, long, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::notify_retire_batch_entry(tomo::IoLoop&, tomo::NotifyBatch*, unsigned long)::{lambda(auto:1 const&, auto:2 const&)#1}>) [clone .isra.0]",
+    "pre_size": 648,
+    "post_size": 664,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Heap batch records carry physical-effect metadata; locked server layouts unchanged"
+  },
+  {
+    "object": "src/persist/aof.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_113manifest_nameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+    "name": "tomo::(anonymous namespace)::manifest_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+    "pre_size": 1564,
+    "post_size": 1564,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/persist/aof.o",
+    "symbol": "_ZN4tomo19aof_record_local_opERNS_5ShardERNS_2OpERNS_15AofOwnerContextE",
+    "name": "tomo::aof_record_local_op(tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)",
+    "pre_size": 667,
+    "post_size": 599,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZN4tomo24command_script_key_rangeERKNS_2OpERjS3_', -4),)",
+      "(('__stack_chk_fail', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZN4tomo21xshard_aof_emit_localERNS_5ShardERNS_2OpERNS_15AofOwnerContextE', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "A5: notification-attached scripts use the grouped persistence writer"
+  },
+  {
+    "object": "src/persist/aof.o",
+    "symbol": "_ZN4tomo9FlatStore9make_wordEtPNS_5KvObjE.part.0",
+    "name": "tomo::FlatStore::make_word(unsigned short, tomo::KvObj*) [clone .part.0]",
+    "pre_size": 37,
+    "post_size": 37,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('string', 'src/persist/../core/../store/flatstore.h'),)"
+    ],
+    "code_targets_added": [
+      "(('string', 'src/persist/../cmd/../store/flatstore.h'),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  },
+  {
+    "object": "src/persist/aof.o",
+    "symbol": "_ZStplIcSt11char_traitsIcESaIcEENSt7__cxx1112basic_stringIT_T0_T1_EERKS8_PKS5_.isra.0",
+    "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*) [clone .isra.0]",
+    "pre_size": 633,
+    "post_size": 681,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "(('_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE10_M_disposeEv', -4),)"
+    ],
+    "code_targets_added": [
+      "(('_ZdlPvm', -4),)"
+    ],
+    "resolved_equal": false,
+    "reason": "Unedited body emitted differently in a changed translation unit (inlining/constant/target layout); retained as explicit spillover for merit review"
+  }
+]

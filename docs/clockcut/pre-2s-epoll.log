@@ -1,0 +1,18 @@
+{"check": "frozen clock non-vacuity", "actual": 1000000, "expected": 1000000, "ok": true}
+{"mode": "2s", "owner": 6, "shard": 0, "probe_thread": 2, "targets": [70, 71], "t0": 1792585551962, "t1": 1792585552012}
+{"check": "stall non-vacuity", "actual": 2, "expected": 2, "ok": true}
+{"check": "PTTL", "actual": 1000000, "expected": 999950, "ok": false}
+{"check": "GET expired key", "actual": "v", "expected": null, "ok": false}
+{"check": "EXISTS expired key", "actual": 1, "expected": 0, "ok": false}
+{"check": "HPEXPIREAT past deadline", "actual": [1], "expected": [2], "ok": false}
+{"check": "post-release control PTTL", "actual": 999950, "expected": 999950, "ok": true}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 208, in <module>
+    main()
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 204, in main
+    clock_check(args)
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 188, in clock_check
+    require(control and all(results), f"NT-new-4: {results.count(False)}/4 stale-clock replies")
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 86, in require
+    raise AssertionError(why)
+AssertionError: NT-new-4: 4/4 stale-clock replies

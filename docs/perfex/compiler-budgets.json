@@ -1,0 +1,17 @@
+{
+  "selected": {
+    "src/core/genthread.o": 128765,
+    "src/core/rl2s.o": 161697,
+    "db0/src/core/genthread.o": 128770,
+    "db0/src/core/reorder.o": 147504
+  },
+  "trials": 84,
+  "purpose": "Restore every unrelated body in the requested hot selection; full default -g proof follows",
+  "no_runtime_options": true,
+  "unchanged_other_checked_budgets": {
+    "src/main.o": 146503,
+    "db0/src/main.o": 146540,
+    "db0/src/core/rl2s.o": 161680
+  },
+  "retained_construction": "std::construct_at; alternate temporary sources were not adopted"
+}

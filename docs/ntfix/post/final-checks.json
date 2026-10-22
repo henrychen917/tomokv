@@ -1,0 +1,60 @@
+{
+  "make_all_fresh": {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "make",
+      "-q",
+      "all"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "gate_shell_syntax": {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "bash",
+      "-n",
+      "tests/gate.sh"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "python_syntax": {
+    "command": [
+      "taskset",
+      "-c",
+      "96-111",
+      "python3",
+      "-m",
+      "py_compile",
+      "tools/ntfix_proof.py",
+      "tests/infofix.py",
+      "tests/tls.py"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "diff_whitespace": {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "expect_constants_unchanged": [
+    "EXPECT_QUICK=637",
+    "EXPECT_FULL=654                 # ABBA reports only; self-test remains counted."
+  ],
+  "build/ntfix-pre/tomokv": "5c8ca908bc4babe1a2ef6dcae4d3d3a60900aa8de6ecc78019a02c8c7c30b8c5",
+  "build/tomokv": "ba65df4d872ab92ccd2d82afd3a979e2acba1d62694d82e0b22e342fc5c5af71"
+}

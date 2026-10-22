@@ -1,0 +1,63 @@
+[
+  {
+    "name": "docs-drift",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/docs_drift.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.052511527203023434
+  },
+  {
+    "name": "gate-shell",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "bash",
+      "-n",
+      "tests/gate.sh"
+    ],
+    "exit_code": 0,
+    "seconds": 0.017888145055621862
+  },
+  {
+    "name": "ledger",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/gate_ledger_fixture.py"
+    ],
+    "exit_code": 1,
+    "seconds": 0.196677319239825
+  },
+  {
+    "name": "row-audit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "docs/dbdefault/row_audit.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.30722041986882687
+  },
+  {
+    "name": "receipt-diff",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "docs/dbdefault/receipt_diff.py"
+    ],
+    "exit_code": 0,
+    "seconds": 1.1178513881750405
+  }
+]

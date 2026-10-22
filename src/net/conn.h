@@ -306,8 +306,31 @@ public:
     size_t rcap() const { return rcap_; }
     void     advance_parse(uint32_t n) { rpos_ += n; inline_scanned_ = 0; }
     uint32_t& inline_scanned() { return inline_scanned_; }
+    bool multibulk_pending() const { return inline_scanned_ & kRespMultibulkPending; }
+    RespFrontier& multibulk_frontier() { return multibulk_; }
+    void suspend_multibulk() { inline_scanned_ = kRespMultibulkPending; }
+    [[gnu::noinline, gnu::cold]] ParseResult resume_multibulk(
+            uint32_t& pos, Op& op, const char** err, uint64_t max_multibulk, uint64_t max_bulk) {
+        const auto result = resp_resume(rbuf_, rlen_, pos, op, err,
+                                        max_multibulk, max_bulk, multibulk_);
+        if (result != ParseResult::Incomplete) {
+            inline_scanned_ = 0;
+            multibulk_.finish();
+        }
+        return result;
+    }
+    uint32_t query_buffer_pos() const {
+        // Redis trims qb_pos after each input pass, including decoded headers
+        // and completed arguments of an incomplete multibulk. Our argv slices
+        // pin that prefix; account as if trimmed without moving any bytes.
+        return rpos_ + (__builtin_expect(multibulk_pending(), false) ? multibulk_.next : 0);
+    }
     bool query_buffer_exceeded(uint64_t limit, uint64_t queued = 0) const {
-        return queued > limit || rlen_ - rpos_ > limit - queued;
+        // The retained frame is a conservative bound. Consult the saved parser
+        // frontier only when that bound would close the connection.
+        return queued > limit ||
+            (__builtin_expect(rlen_ - rpos_ > limit - queued, false) &&
+             rlen_ - query_buffer_pos() > limit - queued);
     }
 
     // Space to recv() into. Returns nullptr to mean "do not read right now".
@@ -323,9 +346,10 @@ public:
     // resumes. That is backpressure, not a stall.
     static constexpr size_t kMinRecv = 2048;
 
-    char* read_space(size_t want, size_t& out_avail, bool may_grow,
-                     [[maybe_unused]] uint64_t proto_max_bulk_len = 512ull * 1024 * 1024,
-                     uint64_t query_limit = 1024ull * 1024 * 1024, uint64_t queued = 0) {
+    template <bool kFrontier>
+    [[gnu::always_inline]] char* read_space_impl(
+            size_t want, size_t& out_avail, bool may_grow,
+            uint64_t query_limit, uint64_t queued) {
         size_t avail = rcap_ - rlen_;
         // Past the soft cap, growth continues ONLY while the entire buffer is one incomplete
         // command (rpos_ == 0 after the quiescence reset: nothing parsed, nothing in flight --
@@ -333,7 +357,8 @@ public:
         // Offer one byte beyond the limit to distinguish equality (legal) from overflow.
         // Parsed bytes still pinned by workers are not pending input. Queued MULTI argv is.
         const uint64_t remaining = queued < query_limit ? query_limit - queued : 0;
-        size_t hard_cap = std::min<uint64_t>(kRbufHardCap, rpos_ + remaining + 1);
+        size_t hard_cap = std::min<uint64_t>(kRbufHardCap,
+            (kFrontier ? query_buffer_pos() : rpos_) + remaining + 1);
         // epoll/TLS drain reads before parsing. Stop them at the inline frontier so a
         // continuously readable peer cannot postpone the protocol error until the qbuf cap.
         if (rpos_ < rlen_ && rbuf_[rpos_] != '*')
@@ -342,17 +367,42 @@ public:
         if (avail < want && may_grow && rcap_ < cap) {
             size_t ncap = rcap_ * 2;
             while (ncap < rlen_ + want && ncap < cap) ncap *= 2;
-            if (ncap > cap) ncap = cap;
+            if constexpr (kFrontier) {
+                if (ncap > cap) ncap = cap;
+            } else {
+                // Reuse the growth-clamp comparison. Equality also needs a
+                // refinement: the conservative cap may have stopped doubling.
+                if (__builtin_expect(ncap >= cap, false))
+                    return read_space_refined(want, out_avail, may_grow, query_limit, queued);
+            }
             char* n = static_cast<char*>(std::realloc(rbuf_, ncap));
             if (n) { rbuf_ = n; rcap_ = ncap; avail = rcap_ - rlen_; }
         }
-        avail = std::min(avail, hard_cap > rlen_ ? hard_cap - rlen_ : 0);
+        if constexpr (kFrontier) {
+            avail = std::min(avail, hard_cap > rlen_ ? hard_cap - rlen_ : 0);
+        } else {
+            // Reuse the receive-offer clamp comparison, before reading any
+            // frontier state. Equality matters both for growth suppressed by
+            // the conservative cap and for the final short-receive exception.
+            if (__builtin_expect(hard_cap <= rcap_, false))
+                return read_space_refined(want, out_avail, may_grow, query_limit, queued);
+        }
         if (!avail || (avail < kMinRecv && rlen_ + avail != hard_cap)) {
             out_avail = 0;
             return nullptr;
         }
         out_avail = avail;
         return rbuf_ + rlen_;
+    }
+    [[gnu::noinline, gnu::cold]] char* read_space_refined(
+            size_t want, size_t& out_avail, bool may_grow,
+            uint64_t query_limit, uint64_t queued) {
+        return read_space_impl<true>(want, out_avail, may_grow, query_limit, queued);
+    }
+    char* read_space(size_t want, size_t& out_avail, bool may_grow,
+                    [[maybe_unused]] uint64_t proto_max_bulk_len = 512ull * 1024 * 1024,
+                    uint64_t query_limit = 1024ull * 1024 * 1024, uint64_t queued = 0) {
+        return read_space_impl<false>(want, out_avail, may_grow, query_limit, queued);
     }
     void commit_read(size_t n) { rlen_ += static_cast<uint32_t>(n); }
     uint32_t last_interaction_s() const { return last_interaction_s_; }
@@ -368,7 +418,8 @@ public:
     // are different: quiescence means no Slice into this buffer is still referenced by an op, while
     // !recv_armed means the KERNEL is not holding a pointer into it. Violating the second corrupts
     // the heap — the recv lands at a stale offset, or into freed memory if the realloc below runs.
-    // Preserves any partially received command at the tail, which has no Slices pointing at it yet.
+    // Preserves a partial command and its frame-relative frontier. Saved argv
+    // contains offsets, never Slices into the allocation being moved here.
     void reset_rbuf_at_quiescence() {
         const uint32_t rest = rlen_ - rpos_;
         if (rest && rpos_) std::memmove(rbuf_, rbuf_ + rpos_, rest);
@@ -582,6 +633,10 @@ public:
     // This release/acquire store is the connection ownership edge. Registration and queue
     // membership follow it; neither is allowed to stand in for it.
     uint32_t ifid_thread() const { return ifid_thread_.load(std::memory_order_acquire); }
+    // The same Client (including the offset frontier) crosses this ownership
+    // edge. Resetting a live frontier here would replay its completed arguments.
+    // FLIP, client-LB, R7 adoption and rollback all use this edge; none replaces
+    // the unconsumed frame. No IO-local pointer is retained by the parser.
     void set_ifid_thread(uint32_t t) { ifid_thread_.store(t, std::memory_order_release); }
     Session& session() { return session_; }
     const Session& session() const { return session_; }
@@ -589,9 +644,9 @@ public:
     // Torn down but not yet freed: still legal to READ while outstanding CQEs retire (it sits on
     // the io thread's deferred-free list), but no longer part of any working set.
     bool dead() const { return dead_; }
-    void mark_dead() { dead_ = true; }
+    void mark_dead() { dead_ = true; inline_scanned_ = 0; multibulk_.finish(); }
     bool closing() const { return closing_; }
-    void mark_closing() { closing_ = true; }
+    void mark_closing() { closing_ = true; inline_scanned_ = 0; multibulk_.finish(); }
 
     // Membership in its io thread's active set, as a FLAG rather than a search; and whether this
     // conn's ready bit fired since io last served it. Plain bools — one thread.
@@ -830,6 +885,7 @@ private:
     // Ordinary Client construction and every reorder=0 path keep their bytes.
     uint64_t  r7_long_slots_;
     uint64_t  r7_long_newest_;
+    RespFrontier multibulk_;            // 96..127: IO-only alignment hole
 
     // --- the ROB (manages its own cross-thread layout) ------------------------------------------
     Rob<kRobWindow> rob_;

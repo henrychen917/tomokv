@@ -1,0 +1,21 @@
+  versionstr target HELLO 2 / INFO redis_version=7.4.10
+  versionstr target RESP2 LOLWUT footer=TomoKV ver. 1.0-cpp
+  versionstr oracle HELLO 2 / INFO redis_version=7.4.10
+  versionstr oracle RESP2 LOLWUT footer=Redis ver. 7.4.10
+  versionstr target HELLO 3 / INFO redis_version=7.4.10
+  versionstr target RESP3 LOLWUT footer=TomoKV ver. 1.0-cpp
+  versionstr oracle HELLO 3 / INFO redis_version=7.4.10
+  versionstr oracle RESP3 LOLWUT footer=Redis ver. 7.4.10
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ntfix/tests/differ.py", line 7137, in <module>
+    run_infofields_properties(((ts, tf), (os_, of)))
+  File "/home/user/Projects/cx-ntfix/tests/differ.py", line 6521, in run_infofields_properties
+    assert read_reply(file) == b"+PONG\r\n", "rate driver PING failed"
+           ^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-ntfix/tests/differ.py", line 52, in read_reply
+    line = f.readline()
+           ^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer

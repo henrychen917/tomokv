@@ -122,14 +122,17 @@ expect(unauth.command("NOSUCHCOMMAND"),
 expect(unauth.command("GET"),
        "ERR wrong number of arguments for 'get' command", "arity precedes NOAUTH")
 # XGROUP advertises -2, so this two-argument unknown arm is arity-valid at the outer container.
-# It must reach authentication before subcommand resolution, exactly like Redis processCommand.
+# Redis processCommand resolves the subcommand before authentication (commandCheckExistence,
+# server.c:3919, ahead of authRequired at :3963), so the unknown-subcommand error precedes NOAUTH.
+# Redis 7.4.10 oracle replies: docs/wave4/oracle/auth-redis74.json.
 expect(unauth.command("XGROUP", "x"),
-       "NOAUTH Authentication required.", "XGROUP advertised minimum reaches NOAUTH")
+       "ERR unknown subcommand 'x'. Try XGROUP HELP.", "XGROUP unknown subcommand precedes NOAUTH")
 expect(unauth.command("XGROUP", "CREATE", "key", "group"),
        "ERR wrong number of arguments for 'xgroup|create' command",
        "known XGROUP child arity precedes NOAUTH")
-expect(unauth.command("AUTH", "a", "b", "c"),
-       "ERR wrong number of arguments for 'auth' command", "AUTH arity")
+# AUTH advertises -2, so four arguments pass arity; Redis authCommand rejects more than three
+# arguments with a syntax error (acl.c:3192-3193; oracle: docs/wave4/oracle/auth-redis74.json).
+expect(unauth.command("AUTH", "a", "b", "c"), "ERR syntax error", "AUTH argument count")
 expect(unauth.command("AUTH", b"s3cr\x00eX"),
        "WRONGPASS invalid username-password pair or user is disabled.", "wrong password")
 expect(unauth.command("AUTH", "nobody", password),
@@ -184,13 +187,25 @@ expect(proto.command("PING"), b"PONG", "HELLO 3 authenticated connection")
 
 # Iterate every registered command at valid minimum arity. Only AUTH/HELLO/QUIT/RESET may escape
 # the pre-dispatch NOAUTH gate; command syntax is intentionally irrelevant after arity validation.
+# Redis resolves command existence first: a container probed with the unknown subcommand 'x'
+# answers that error ahead of NOAUTH (server.c:3817/3919), and a rejected EXEC carries the
+# EXECABORT prefix (server.c:3769, multi.c:119). These twelve containers are exactly the probes
+# Redis 7.4.10 answers that way among TomoKV's registry (docs/wave4/oracle/auth-redis74.json).
 allowed = {b"auth", b"hello", b"quit", b"reset"}
+unknown_subcommand = {b"acl", b"client", b"config", b"function", b"latency", b"memory",
+                      b"object", b"pubsub", b"script", b"slowlog", b"xgroup", b"xinfo"}
 for info in registry:
     name, arity = info[0], abs(info[1])
     probe = Conn()
     reply = probe.command(name, *([b"x"] * (arity - 1)))
+    if name in unknown_subcommand:
+        wanted = "ERR unknown subcommand 'x'. Try %s HELP." % name.decode().upper()
+    elif name == b"exec":
+        wanted = "EXECABORT Transaction discarded because of: NOAUTH Authentication required."
+    else:
+        wanted = "NOAUTH Authentication required."
     if name not in allowed:
-        expect(reply, "NOAUTH Authentication required.", "pre-auth registry %s" % name.decode())
+        expect(reply, wanted, "pre-auth registry %s" % name.decode())
     probe.close()
 
 # Unauthenticated parser allocation limits reject >10 multibulk elements and >16KiB bulks.
