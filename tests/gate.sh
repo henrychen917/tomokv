@@ -3003,7 +3003,7 @@ for NET_IO in uring epoll; do
   done
   [ "$FLIPFIX_OK" = 1 ] \
       && ok "FLIP close during FLIP ($NET_IO)" \
-      || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-close-$NET_IO.txt"
+      || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-{close,churn}-$NET_IO.txt"
 done
 row_begin "FLIP signal stop during FLIP + second SIGINT"
 FLIPFIX_OK=1
