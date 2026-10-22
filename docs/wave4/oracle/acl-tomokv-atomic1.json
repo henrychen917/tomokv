@@ -1,0 +1,72 @@
+{
+ "rows": [
+  {
+   "argv": [
+    "ACL",
+    "SETUSER",
+    "alice",
+    "<rules>"
+   ],
+   "label": "ACL SETUSER alice (acl.py line 175 rules)",
+   "reply": {
+    "simple": "OK"
+   }
+  },
+  {
+   "argv": [
+    "AUTH",
+    "alice",
+    "<password>"
+   ],
+   "label": "alice AUTH",
+   "reply": {
+    "simple": "OK"
+   }
+  },
+  {
+   "argv": [
+    "ACL",
+    "WHOAMI"
+   ],
+   "label": "alice ACL WHOAMI (acl.py line 208)",
+   "reply": {
+    "error": "NOPERM User alice has no permissions to run the 'acl|whoami' command"
+   }
+  },
+  {
+   "argv": [
+    "ACL",
+    "LIST"
+   ],
+   "label": "alice ACL LIST (subcommand fullname control)",
+   "reply": {
+    "error": "NOPERM User alice has no permissions to run the 'acl|list' command"
+   }
+  },
+  {
+   "argv": [
+    "CONFIG",
+    "GET",
+    "maxmemory"
+   ],
+   "label": "alice CONFIG GET maxmemory (subcommand fullname control)",
+   "reply": {
+    "error": "NOPERM User alice has no permissions to run the 'config|get' command"
+   }
+  },
+  {
+   "argv": [
+    "DBSIZE"
+   ],
+   "label": "alice DBSIZE (top-level name control)",
+   "reply": {
+    "error": "NOPERM User alice has no permissions to run the 'dbsize' command"
+   }
+  }
+ ],
+ "server": {
+  "executable": "/home/user/Projects/cx-wave4/build/tomokv",
+  "redis_version": "7.4.10",
+  "tomokv_version": "1.0-cpp"
+ }
+}
