@@ -39,6 +39,10 @@ section of `MEASURE-REQUEST-wave4.md` in this checkout.
   The Redis logarithmic Markov model predicts mean 12.98748 and standard error
   0.20117 over 64 keys; the oracle run measured 12.96875. The witness requires
   every GET/MGET key read to be lane-served and visits every live IO lane.
+  Source comparison (`docs/bugs5/lfu-law.json`) checks the same
+  `1/(10*max(c-5,0)+1)` law below saturation, up to RNG discretization.
+  TomoKV's existing cap of 31 and Redis's cap of 255 remain different; this is
+  an increment-law claim, not a claim of identical saturation or decay policy.
 
 `bugs5` is a new gate job with three rows, each containing all eight declared
 1s/2s × uring/epoll × atomic 0/1 legs. Each new witness is followed by its existing
@@ -213,10 +217,95 @@ proof does not establish zero performance regression.
 
 ### Validation receipts
 
-Final results of the remaining broad jobs and standard differential matrix will
-be recorded here when those runs finish. Completed so far: broad uring 245/245
-rows, final `python3 tests/gates_test.py` 67/67 tests, and all 37 production unit
-targets plus `all` and `mdbqsbr-live-arms` fresh under `make -q`.
+Every new row was run through `tests/gate.sh` itself using `GATE_ONLY_JOBS=bugs5`,
+not an extracted-function driver. The PRE/POST/PAD-A matrix above has all 24 new
+witness legs and all 24 legacy control legs on each arm. The three unchanged
+oracle scripts pass. Broader jobs use the same partial-job interface; `full` is
+only the tier selector, and `GATE_ONLY_JOBS` excludes the full iteration,
+measurement tiers and EXPECT tally. Exact argv, job sets, ledgers and raw output
+are retained under `docs/bugs5/proof/` and `docs/bugs5/gate-receipts/`.
+
+| Gate run | Passing / failing rows | Interpretation |
+|---|---:|---|
+| Broad uring | 245 / 0 | Feature split/armed 0/1, debug 0/1, fused 0/1, storage/netcmd units, readonly, hexpread, bplus/read-local, authfix, FLIP, globcase |
+| Clientfix uring | 15 / 0 | Both thread modes; includes release prerequisite |
+| Sweep uring | 32 / 0 | CONFIG/metadata, LFU/LRU, all respresume legs, writeback units and atomic batteries |
+| Initial broad epoll | 252 / 7 | Seven harness failures from misplaced positional config file; retained, then affected whole jobs rerun |
+| Corrected epoll feature jobs | 138 / 1 | All four whole feature jobs rerun; config boots fixed; one pushtear tracking failure described below |
+| Corrected epoll authfix | 6 / 0 | Whole five-row authfix job plus release; config boots fixed |
+| Sweep epoll | 28 / 0 | Same sweep except LRU clock jobs scheduled separately |
+| Four epoll LRU clock jobs | 2 / 0 each | Each own job plus release; split/armed × atomic 0/1 |
+| PRE epoll armed atomic 1 | 36 / 0 | Whole affected feature job, including pushtear, attempted once on PRE |
+
+The initial epoll wrapper prepended `--net-io epoll` ahead of a positional config
+path. That path must be argv[1]. Its correction preserves the config path first
+and explicit engine overrides; both wrapper texts and all failed boot receipts
+are retained. No server parser change or test expectation change was made.
+
+**Additional unwaived failure:** the corrected epoll/1s/read-local=1/atomic=1
+feature rerun reports `tracking/no-loss/64B: priming reads returned 25 frames,
+wanted 24` in `pushtear.py`. All other 17 pushtear cells pass. The same complete
+job on PRE passed in one attempt (NOT REPRODUCED there in that one attempt).
+The transcript is consistent with a delayed SET notification reaching subsequent
+pending GETs, but this 24-key instance was not independently traced; do not treat
+that inference as proof or claim the broader gate is green. The earlier POST
+attempt's pushtear row passed. Raw output is in the `epoll-features-v2` and
+`pre-epoll-armed1` receipts. No rerun is used to erase the failure.
+
+Standard `tests/differ_gate.sh`, with no seed or parts reduction, ran against
+Redis 7.4.10 on both engines and both split/armed-fused geometries, atomic 0/1.
+The standard seed plan was **7, 19, 20, 23 plus rotating seed 21**, including the
+script's accumulated MULTI repeats and (on split invocations) 32 mode-equivalence
+combinations. The wrappers preserve the same POST binary hash.
+
+| Differential geometry | Passing / failing rows |
+|---|---:|
+| uring split | 475 / 0 |
+| epoll split | 475 / 0 |
+| uring armed-fused | 466 / 0 |
+| epoll armed-fused | 461 / 5 |
+
+The five failures are all `climon`, atomic 0, one for each seed. They contain
+4/2/5/2/1 duplicate invalidation comparisons respectively, with two target frames
+where Redis sends one. None is waived. Per-suite transcripts, command coverage,
+boot/stop logs and failure frames are archived in `docs/bugs5/differ/*/receipts.tar.gz`;
+the five short failure texts are also directly readable beside the epoll log.
+
+`python3 tests/gates_test.py` passes **67 tests** on the final gate source; its
+nested lifecycle self-test passes 14 tests. The fixture's deliberate owner-count
+guard is reported separately above. `make -j16 all` and all 37
+`job_production_units` targets plus `mdbqsbr-live-arms` succeed. All **39 targets**
+return zero from `make -q` in `docs/bugs5/freshness.json`. A final comment-only
+slowlog header cleanup was rebuilt with this complete target list: POST remained
+byte-for-byte identical, SHA-256 unchanged (`build-comment-refresh.json`). No
+functional source edit occurred after the successful new-row matrix.
+
+`scan-sweep.txt`, `slowlog-sweep.txt`, `lfu-sweep.txt` and `behavior-anchors.txt`
+retain the test searches. Relevant command assertions map to the full feature,
+debug, fused, globcase, authfix, clientfix, hexpread, eviction and respresume jobs
+above, plus the full differential suites. Incidental regex hits such as C++
+`sscanf` and `rename_off[4]` are not scan/slowlog assertions. Historical
+`cdfix_checks.py`/`cdfix_unit.cc` have no registered gate job; they concern the
+unchanged expanded SSCAN implementation and were NOT RUN. Compact SSCAN intset
+and listpack paths are covered directly by the new oracle witness.
+
+NOT RUN: full `tests/gate.sh iteration`, ABBA/merit/NIC throughput measurements,
+`flip_saturated` (uses memtier), and performance-oriented helpers found by the
+broad search. These remain explicitly reserved for the maintainer. The ordinary
+atomic RYOW job used its existing `--no-rate-assertions` mode; all mechanism,
+ordering and value assertions still ran. No throughput result is adopted from
+correctness diagnostics. No ASAN/TSAN-wide run is claimed.
+
+Primary gate servers used 96–103 at 8 threads / 16 shards / 6:2 in split mode.
+Historical batteries' nested spare-server boots retain their own declared
+geometry while staying within 96–103. Redis runs on 104 and protocol clients on
+105–111. All builds and serverless checks remain within 96–111. Listening ports
+are within 24800–24899; socket-only self-test port allocation is confined by the
+retained local fixture shim. Parallel runs here are correctness runs, not merit
+measurements. No other lane's files or listener ports were used. Initial read-only
+repository inspection preceded the affinity wrappers; the CPU placement of those
+metadata reads was not recorded. No server or build was launched in that portion.
+`docs/bugs5/cleanup.json` confirms no owned server or lane listener remains.
 
 ### Maintainer merit request — generic 14 cells
 

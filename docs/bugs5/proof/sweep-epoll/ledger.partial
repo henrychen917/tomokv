@@ -1,0 +1,29 @@
+PARTIAL	0	GATE_ONLY_JOBS=config_unit cmd_metadata atomic_batteries wb_rule_units evict-lfu-split-0 evict-lfu-split-1 evict-lfu-armed-0 evict-lfu-armed-1 respresume-fragment-1s-uring respresume-fragment-1s-epoll respresume-fragment-2s-uring respresume-fragment-2s-epoll respresume-cpu-1s-uring respresume-cpu-1s-epoll respresume-cpu-2s-uring respresume-cpu-2s-epoll respresume-neighbour-1s-uring respresume-neighbour-1s-epoll respresume-neighbour-2s-uring respresume-neighbour-2s-epoll; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.410000	configuration docs match parser
+ok	5.070000	Redis config quoting + mid-value #
+ok	0.060000	cmdmeta covers every registered command
+ok	0.360000	eviction lfu battery (split, atomic 0)
+ok	0.450000	eviction lfu battery (fused+armed, atomic 0)
+ok	3.220000	eviction lfu battery (split, atomic 1)
+ok	0.620000	eviction lfu battery (fused+armed, atomic 1)
+ok	22.480000	RESP resumable fragment (1s, epoll)
+ok	22.590000	RESP resumable fragment (1s, uring)
+ok	14.560000	RESP resumable fragment (2s, epoll)
+ok	14.540000	RESP resumable fragment (2s, uring)
+ok	2.600000	RESP resumable cpu (1s, epoll)
+ok	2.600000	RESP resumable cpu (1s, uring)
+ok	2.600000	RESP resumable cpu (2s, epoll)
+ok	2.590000	RESP resumable cpu (2s, uring)
+ok	0.780000	RESP resumable neighbour (1s, epoll)
+ok	0.780000	RESP resumable neighbour (1s, uring)
+ok	0.790000	RESP resumable neighbour (2s, epoll)
+ok	0.790000	RESP resumable neighbour (2s, uring)
+ok	0.100000	writeback c12 policy witnesses + negative controls
+ok	4.450000	writeback c12 phase witnesses + negative controls
+ok	1.750000	writeback c12 stages witnesses + negative controls
+ok	4.790000	writeback c12 split-phase witnesses + negative controls
+ok	30.030000	atomic torn/window battery
+ok	4.050000	atomic RYOW/mixed-write battery
+ok	4.230000	atomic owner-local hazard battery
+ok	0.030000	atomic shutdown invariants

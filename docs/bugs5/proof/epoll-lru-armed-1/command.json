@@ -1,0 +1,28 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-104",
+    "--load-cores",
+    "105-111",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "24864-24867",
+    "--candidate-binary",
+    "/home/user/Projects/cx-bugs5/build/bugs5/tomokv-epoll-epoll-lru-armed-1"
+  ],
+  "jobs": [
+    "evict-lruclock-armed-1"
+  ],
+  "requested_jobs": [
+    "evict-lruclock-armed-1"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "label": "epoll-authfix-v2",
+  "run": "/home/user/Projects/cx-bugs5/build/gate-run.JiVB5c",
+  "gate_summary": [
+    "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-bugs5/docs/bugs5/proof/epoll-authfix-v2/ledger.partial"
+  ],
+  "jobs": [
+    {
+      "job": "authfix",
+      "done": "0\t5\t0"
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0"
+    }
+  ],
+  "archive_sha256": "5c12de0eb316681eee1993aa4ee0f3fedf62ceb1dd90b50ff32c891d5733e9aa"
+}

@@ -1,0 +1,6 @@
+ok	0.000000	release build (+footprint locks)
+ok	0.900000	authfix CG4.1 binary config requirepass
+ok	3.410000	authfix CG4.2 missing config value refuses boot
+ok	0.860000	authfix SV4.2 binary requirepass rewrite restart
+ok	0.180000	authfix SV4.1 slowlog credential redaction (1s)
+ok	0.150000	authfix SV4.1 slowlog credential redaction (2s)

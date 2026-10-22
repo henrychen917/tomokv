@@ -1,0 +1,86 @@
+{
+  "label": "epoll",
+  "run": "/home/user/Projects/cx-bugs5/build/gate-run.xS6xFB",
+  "gate_summary": [
+    "GATE(PARTIAL): 252 ok, 7 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-bugs5/docs/bugs5/proof/epoll/ledger.partial"
+  ],
+  "jobs": [
+    {
+      "job": "authfix",
+      "done": "0\t2\t3"
+    },
+    {
+      "job": "bplus",
+      "done": "0\t8\t0"
+    },
+    {
+      "job": "clientfix",
+      "done": "0\t14\t0"
+    },
+    {
+      "job": "debug-0",
+      "done": "0\t14\t0"
+    },
+    {
+      "job": "debug-1",
+      "done": "0\t14\t0"
+    },
+    {
+      "job": "feature-armed-0",
+      "done": "0\t34\t1"
+    },
+    {
+      "job": "feature-armed-1",
+      "done": "0\t34\t1"
+    },
+    {
+      "job": "feature-split-0",
+      "done": "0\t33\t1"
+    },
+    {
+      "job": "feature-split-1",
+      "done": "0\t33\t1"
+    },
+    {
+      "job": "flip",
+      "done": "0\t9\t0"
+    },
+    {
+      "job": "fused-0",
+      "done": "0\t7\t0"
+    },
+    {
+      "job": "fused-1",
+      "done": "0\t7\t0"
+    },
+    {
+      "job": "globcase",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "hexpread",
+      "done": "0\t8\t0"
+    },
+    {
+      "job": "netcmd_units",
+      "done": "0\t16\t0"
+    },
+    {
+      "job": "production_units",
+      "done": "0\t0\t0"
+    },
+    {
+      "job": "readonly",
+      "done": "0\t4\t0"
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "storage_units",
+      "done": "0\t13\t0"
+    }
+  ],
+  "archive_sha256": "3968deb9b1f9f7f42fde1f06ef3d69047f8c6086b1afb5106f849e2081ca55f7"
+}

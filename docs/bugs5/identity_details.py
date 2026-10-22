@@ -39,6 +39,11 @@ with gzip.open(out/'instruction-differences.txt.gz','wt') as f:
    bb=[x+' | '+y for x,y in zip(b['ins'],b['encodings'])] if b else []
    f.write('\n'.join(difflib.unified_diff(aa,bb,fromfile='PRE',tofile='POST',n=2))+'\n')
 (out/'changed-bodies.json').write_text(json.dumps(changed,indent=2)+'\n')
+with gzip.open(out/'all-bodies.json.gz','rt') as f:all_rows=json.load(f)
+reasons={r['name']:r['reason'] for r in changed}
+for r in all_rows:
+ if r['name'] in reasons:r['reason']=reasons[r['name']]
+with gzip.open(out/'all-bodies.json.gz','wt') as f:json.dump(all_rows,f)
 s=json.loads((out/'summary.json').read_text());s['changed_hot']=[r for r in changed if r['hot']]
 (out/'summary.json').write_text(json.dumps(s,indent=2)+'\n')
 (out/'changed-bodies.md').write_text('\n'.join([

@@ -1,0 +1,32 @@
+ok	0.010000	release build (+footprint locks)
+ok	0.400000	configuration docs match parser
+ok	5.460000	Redis config quoting + mid-value #
+ok	0.070000	cmdmeta covers every registered command
+ok	249.590000	eviction lruclock battery (split, atomic 0)
+ok	254.380000	eviction lruclock battery (fused+armed, atomic 0)
+ok	255.360000	eviction lruclock battery (split, atomic 1)
+ok	252.570000	eviction lruclock battery (fused+armed, atomic 1)
+ok	6.940000	eviction lfu battery (split, atomic 0)
+ok	1.310000	eviction lfu battery (fused+armed, atomic 0)
+ok	1.840000	eviction lfu battery (split, atomic 1)
+ok	1.150000	eviction lfu battery (fused+armed, atomic 1)
+ok	34.910000	RESP resumable fragment (1s, epoll)
+ok	18.050000	RESP resumable fragment (1s, uring)
+ok	21.130000	RESP resumable fragment (2s, epoll)
+ok	30.890000	RESP resumable fragment (2s, uring)
+ok	2.610000	RESP resumable cpu (1s, epoll)
+ok	2.610000	RESP resumable cpu (1s, uring)
+ok	2.610000	RESP resumable cpu (2s, epoll)
+ok	2.610000	RESP resumable cpu (2s, uring)
+ok	0.790000	RESP resumable neighbour (1s, epoll)
+ok	0.790000	RESP resumable neighbour (1s, uring)
+ok	0.790000	RESP resumable neighbour (2s, epoll)
+ok	0.790000	RESP resumable neighbour (2s, uring)
+ok	0.110000	writeback c12 policy witnesses + negative controls
+ok	4.700000	writeback c12 phase witnesses + negative controls
+ok	1.860000	writeback c12 stages witnesses + negative controls
+ok	4.960000	writeback c12 split-phase witnesses + negative controls
+ok	32.530000	atomic torn/window battery
+ok	4.060000	atomic RYOW/mixed-write battery
+ok	4.240000	atomic owner-local hazard battery
+ok	0.020000	atomic shutdown invariants

@@ -1,0 +1,18 @@
+{
+  "label": "epoll-lru-split-0",
+  "run": "/home/user/Projects/cx-bugs5/build/gate-run.c4HF7T",
+  "gate_summary": [
+    "GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-bugs5/docs/bugs5/proof/epoll-lru-split-0/ledger.partial"
+  ],
+  "jobs": [
+    {
+      "job": "evict-lruclock-split-0",
+      "done": "0\t1\t0"
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0"
+    }
+  ],
+  "archive_sha256": "85718b7481e8f5a561a7c2e1785ffadb79950e4cdbf855b37240a33c129b9ce0"
+}
