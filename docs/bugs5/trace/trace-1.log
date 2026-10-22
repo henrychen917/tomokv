@@ -1,0 +1,50 @@
+TRACE round 0 key ck:2 mode 1
+TRACE round 1 key ck:4 mode 4
+TRACE round 2 key ck:10 mode 0
+TRACE round 3 key ck:9 mode 1
+TRACE round 4 key ck:1 mode 4
+TRACE round 5 key ck:0 mode 3
+TRACE round 6 key ck:3 mode 1
+TRACE round 7 key ck:10 mode 2
+TRACE round 8 key ck:9 mode 0
+  DIFF invalidation round 8 mode 0
+    target: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:9\r\n>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:9\r\n'
+    oracle: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:9\r\n'
+TRACE round 9 key ck:3 mode 4
+TRACE round 10 key ck:7 mode 3
+TRACE round 11 key ck:10 mode 4
+TRACE round 12 key ck:4 mode 3
+TRACE round 13 key ck:3 mode 1
+TRACE round 14 key ck:11 mode 2
+TRACE round 15 key ck:7 mode 3
+TRACE round 16 key ck:7 mode 1
+TRACE round 17 key ck:7 mode 2
+TRACE round 18 key ck:6 mode 1
+TRACE round 19 key ck:1 mode 3
+TRACE round 20 key ck:5 mode 4
+TRACE round 21 key ck:10 mode 1
+  DIFF invalidation round 21 mode 1
+    target: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:10\r\n>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:10\r\n'
+    oracle: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$5\r\nck:10\r\n'
+TRACE round 22 key ck:9 mode 2
+TRACE round 23 key ck:0 mode 3
+TRACE round 24 key ck:5 mode 2
+TRACE round 25 key ck:5 mode 1
+  DIFF invalidation round 25 mode 1
+    target: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:5\r\n>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:5\r\n'
+    oracle: b'>2\r\n$10\r\ninvalidate\r\n*1\r\n$4\r\nck:5\r\n'
+TRACE round 26 key ck:9 mode 2
+TRACE round 27 key ck:8 mode 4
+TRACE round 28 key ck:9 mode 3
+TRACE round 29 key ck:5 mode 2
+TRACE round 30 key ck:5 mode 2
+TRACE round 31 key ck:2 mode 3
+TRACE round 32 key ck:3 mode 3
+TRACE round 33 key ck:0 mode 3
+TRACE round 34 key ck:2 mode 1
+TRACE round 35 key ck:9 mode 0
+TRACE round 36 key ck:9 mode 3
+TRACE round 37 key ck:5 mode 2
+TRACE round 38 key ck:8 mode 2
+TRACE round 39 key ck:0 mode 0
+DIFFER climon: 4318 ops, 3 diffs -> FAIL

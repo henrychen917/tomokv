@@ -211,7 +211,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited template body: compiler propagation in rebuilt executor/IO units after cold slowlog signature and seed changes. Budget trials retained; merit input."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
@@ -226,7 +226,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
@@ -241,7 +241,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
@@ -256,7 +256,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
     },
     {
       "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
@@ -271,7 +271,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
@@ -286,7 +286,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
@@ -301,7 +301,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
@@ -316,7 +316,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
@@ -331,7 +331,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
@@ -346,7 +346,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
@@ -361,7 +361,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
     },
     {
       "name": "void tomo_db0::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
@@ -376,7 +376,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Compiler/layout propagation from changed HSCAN or SlowlogCapture; merit input."
+      "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
     }
   ]
 }

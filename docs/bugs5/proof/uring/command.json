@@ -1,0 +1,40 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-104",
+    "--load-cores",
+    "105-111",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "24810-24839",
+    "--candidate-binary",
+    "/home/user/Projects/cx-bugs5/build/tomokv"
+  ],
+  "jobs": [
+    "debug-0",
+    "debug-1",
+    "bplus",
+    "flip",
+    "authfix",
+    "feature-split-0",
+    "feature-split-1",
+    "feature-armed-0",
+    "feature-armed-1",
+    "fused-0",
+    "fused-1",
+    "netcmd_units",
+    "storage_units",
+    "readonly",
+    "globcase",
+    "hexpread"
+  ]
+}

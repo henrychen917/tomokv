@@ -1,0 +1,13 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(9/8 server, 7/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 9 server + 7 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-bugs5/build/gate-run.vE3Ysr
+PARTIAL jobs (including prerequisites): release bugs5
+PARTIAL jobs (including prerequisites): release bugs5
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=11.54s; correctness-plan-fallback; bugs5 scancompact (both modes, both engines, atomic 0/1)
+  bugs5 scancompact (both modes, both engines, atomic 0/1) FAIL (see /home/user/Projects/cx-bugs5/build/gate-run.vE3Ysr/jobs/bugs5/scancompact-*.log)
+  row budget: 900s; median=11.59s; correctness-plan-fallback; bugs5 slowlog_identity (both modes, both engines, atomic 0/1)
+  bugs5 slowlog_identity (both modes, both engines, atomic 0/1) FAIL (see /home/user/Projects/cx-bugs5/build/gate-run.vE3Ysr/jobs/bugs5/slowlog_identity-*.log)
+  row budget: 900s; median=22.96s; correctness-plan-fallback; bugs5 read_local_lfu (both modes, both engines, atomic 0/1)
+  bugs5 read_local_lfu (both modes, both engines, atomic 0/1) FAIL (see /home/user/Projects/cx-bugs5/build/gate-run.vE3Ysr/jobs/bugs5/read_local_lfu-*.log)
+GATE(PARTIAL): 1 ok, 3 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-bugs5/build/gate-run.vE3Ysr/ledger.partial

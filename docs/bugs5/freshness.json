@@ -1,0 +1,197 @@
+[
+  {
+    "target": "all",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/expire-notify-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/ktls-lifetime-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/moverfix-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/moverfix-db0-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/publishfix-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/at15-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/at15-db0-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/execabort-watch-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/execabort-watch-db0-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/core-concurrency-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/atomic-survivors-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/netcmd-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/encodingfix-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/netcap-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/waits-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/rehash-waits-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/multidb-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/multidb-boundary-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/storesize-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/respresume-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/respresume-migration",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/exbatch-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/exbatch-db0-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/wb-rule-units",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/wbland-units",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/rltopo-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/lbplanner-units",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/shutdown-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/persistfix-units",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/ktls-keyupdate",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/ktls-keyupdate-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/flushfix-units",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/splitlocal-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/reorder-engagement-unit",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/reorder-engagement-unit-db0",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/racefix-climon",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "build/aoforder-scheduled",
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "target": "mdbqsbr-live-arms",
+    "returncode": 0,
+    "output": "make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all\nmake[1]: Entering directory '/home/user/Projects/cx-bugs5'\nmake[1]: Leaving directory '/home/user/Projects/cx-bugs5'\nmake BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all\nmake[1]: Entering directory '/home/user/Projects/cx-bugs5'\nmake[1]: Leaving directory '/home/user/Projects/cx-bugs5'\n"
+  }
+]

@@ -1,8 +1,14 @@
 {
   "fixture_rows": 705,
   "source_rows": 705,
-  "labels_equal": true,
-  "EXPECTED_FULL_unchanged": 702,
+  "label_multisets_equal": true,
+  "missing": [],
+  "extra": [],
+  "EXPECT_QUICK_unchanged": 685,
+  "EXPECT_FULL_unchanged": 702,
+  "owner_quick_count": 688,
   "owner_full_count": 705,
-  "owner_quick_count": 688
+  "bugs5_collect_line": 4237,
+  "full_count_guard": "FAIL as required: owner constants unchanged",
+  "guard_message": "tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=705, source declarations=705\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth."
 }
