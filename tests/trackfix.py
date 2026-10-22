@@ -195,7 +195,6 @@ class Peer:
         try:
             equal(self.writer.cmd('CLIENT', 'TRACKING', 'ON', 'BCAST', 'PREFIX',
                                   'trackfix-never:'), b'OK', 'writer observation armed')
-            equal(self.writer.cmd('SET', key, 'before'), b'OK', 'initial value')
             if protocol == 3:
                 reader.cmd('HELLO', 3)
                 redirect = []
@@ -205,6 +204,15 @@ class Peer:
                       [b'subscribe', b'__redis__:invalidate', 1], 'RESP2 redirect subscriber')
             equal(reader.cmd('CLIENT', 'TRACKING', 'ON', *redirect,
                              *([] if mode == 'default' else [mode])), b'OK', 'tracking on')
+            equal(self.writer.cmd('SET', key, 'before'), b'OK', 'initial value')
+            if self.target and mode != 'BCAST':
+                receipt = Path(self.args.schedule_dir) / (key.decode() + '.primed')
+                end = time.monotonic() + 5
+                while not receipt.exists():
+                    assert time.monotonic() < end, 'initial notification never reached the reader owner'
+                    time.sleep(.002)
+            equal(drain(listener, 1 if mode == 'BCAST' else 0, 'initial write'),
+                  [invalidation(key, protocol)] if mode == 'BCAST' else [], 'initial frame')
             # OPTIN needs a CACHING command before each read; queue the pair in
             # one packet so no extra reader command reuses a held ROB slot.
             commands = []
@@ -223,6 +231,7 @@ class Peer:
                     assert time.monotonic() < end, 'all pending windows must open'
                     time.sleep(.002)
                 equal(receipt.read_text(), wanted, 'all pending windows opened')
+                assert not receipt.with_suffix('.overlapped').exists(), 'read released before the newer write'
             else:
                 for command in commands:
                     equal(reader.read(), b'OK' if command[0] == 'CLIENT' else b'before',

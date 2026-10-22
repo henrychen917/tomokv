@@ -22,6 +22,7 @@ thread_local std::unordered_map<std::string, PubSubEvent> trackfix_held;
 thread_local std::unordered_set<std::string> trackfix_seen;
 thread_local std::unordered_map<std::string, std::vector<std::pair<Client*, Op*>>> trackfix_late;
 thread_local std::unordered_set<std::string> trackfix_late_released;
+thread_local std::unordered_set<std::string> trackfix_overlap_primed;
 void trackfix_receipt(const std::string& key, const char* suffix, unsigned state) {
     const char* directory = std::getenv("TOMO_TRACKFIX_SCHEDULE_DIR");
     if (!directory) return;
@@ -39,6 +40,9 @@ HOLD = r'''
         const std::string& key = event.items[0].value;
         const bool remembering = std::any_of(climon_conn_.begin(), climon_conn_.end(),
             [](const auto& entry) { return entry.second.tracking_on && !entry.second.bcast; });
+        if (key.starts_with("trackfix:overlap:") && remembering &&
+            trackfix_overlap_primed.insert(key).second)
+            trackfix_receipt(key, ".primed", 1);
         if (key.starts_with("trackfix:ordered:") && key.find("BCAST") == std::string::npos &&
             remembering &&
             trackfix_seen.insert(key).second) {
@@ -83,25 +87,16 @@ LATE = r'''
 '''
 
 SERVE = r'''
-bool trackfix_hold_serve(Client* client) {
-    if (!std::getenv("TOMO_TRACKFIX_SCHEDULE_DIR")) return false;
-    auto& rob = client->rob();
-    if (!rob.in_flight()) return false;
-    Op& head = rob.at(rob.flush_id());
-    if (head.state.load(std::memory_order_acquire) != OpState::Done || head.argc() != 2 ||
-        !head.cmd_name().eq_icase("GET")) return false;
-    const std::string key(head.key().p, head.key().n);
-    if (!key.starts_with("trackfix:overlap:") || key.find("BCAST") != std::string::npos ||
+bool trackfix_hold_read(Client* client, Op* op, const std::string& key) {
+    if (!std::getenv("TOMO_TRACKFIX_SCHEDULE_DIR") ||
+        !key.starts_with("trackfix:overlap:") || key.find("BCAST") != std::string::npos ||
         trackfix_late_released.count(key)) return false;
     auto& held = trackfix_late[key];
-    held.clear();
-    for (uint64_t id = rob.flush_id(); id < rob.dispatch_id(); ++id) {
-        Op& op = rob.at(id);
-        if (op.state.load(std::memory_order_acquire) != OpState::Done) continue;
-        if (op.argc() == 2 && op.cmd_name().eq_icase("GET") &&
-            std::string(op.key().p, op.key().n) == key) held.emplace_back(client, &op);
+    if (op->state.load(std::memory_order_acquire) == OpState::Done &&
+        std::none_of(held.begin(), held.end(), [&](auto entry) { return entry.second == op; })) {
+        held.emplace_back(client, op);
+        trackfix_receipt(key, ".pending", held.size());
     }
-    trackfix_receipt(key, ".pending", held.size());
     return true;
 }
 '''
@@ -147,11 +142,22 @@ def main():
     path.write_text(text)
     path = source / 'src/cmd/climon.cc'
     text = path.read_text().replace('namespace tomo {',
-        'namespace tomo {\nbool trackfix_hold_serve(Client*);', 1)
+        'namespace tomo {\nbool trackfix_hold_read(Client*, Op*, const std::string&);', 1)
     for anchor in ('uint32_t IoLoop::climon_serve_suppressed(Client* client) {',
                    'uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed) {'):
         assert text.count(anchor) == 1
-        text = text.replace(anchor, anchor + '\n    if (trackfix_hold_serve(client)) return 0;')
+        hold = r'''
+    if (std::getenv("TOMO_TRACKFIX_SCHEDULE_DIR")) {
+        bool held = false;
+        if (auto* state = climon_conn_find(client->id()))
+            for (const auto& read : state->tracking_reads)
+                for (const std::string& key : READ_KEYS)
+                    held |= trackfix_hold_read(client, read.first, key);
+        if (held) return 0;
+    }
+'''
+        keys = 'read.second->keys' if 'auto& receipt = *read->second;' in (source / 'src/cmd/tracking.cc').read_text() else 'read.second'
+        text = text.replace(anchor, anchor + hold.replace('READ_KEYS', keys))
     path.write_text(text)
     dry = subprocess.check_output(['make', '-n', '-B', f'BUILD_ROOT={objects}', 'all'], cwd=source, text=True)
     commands = [shlex.split(line) for line in dry.splitlines() if line.startswith(('g++ ', 'c++ ', 'clang++ '))]

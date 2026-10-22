@@ -626,6 +626,8 @@ struct NetcmdRegression {
             // events carry raw key bytes. Exercise the actual membership filter
             // before either eviction run can populate it with false positives.
             Server server; server.cfg_.databases = 16;
+            server.shards_.push_back(std::make_unique<Shard>());
+            server.router_.build_uniform(1);
             ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
             IoLoop loop; loop.srv_ = &server; loop.self_ = &self;
             loop.tracking_broadcast_flush();
@@ -655,7 +657,7 @@ struct NetcmdRegression {
             check(loop.climon_track_keys_.size() == 1 && loop.climon_track_keys_.count(key) == 1 &&
                   tracking.tracking_reads.empty() && tracking.tracking_pending.empty(),
                   "retirement enrolls the raw key");
-            loop.tracking_broadcast_keys({key}, 999);
+            loop.tracking_broadcast_keys({key}, 999, tracking_clock_commit());
             check(std::string(client.fill_buf().data(), client.fill_buf().size()) == frame,
                   "raw invalidation reaches a physically stamped read");
             check(loop.climon_track_keys_.empty(), "post-SWAP invalidation retires registration");
@@ -663,13 +665,17 @@ struct NetcmdRegression {
             client.fill_buf().clear();
             Op pending; args(pending, {"GET", key.c_str()}); multidb_stamp(server, pending, 0);
             loop.tracking_register_read(&client, tracking, pending);
-            loop.tracking_broadcast_keys({key}, 999);
+            loop.tracking_broadcast_keys({key}, 999, tracking_clock_commit());
+            // Pending notification decisions wait for the read's observation at retirement.
+            loop.tracking_retire_read(client, pending);
             check(std::string(client.fill_buf().data(), client.fill_buf().size()) == frame &&
                   loop.climon_track_keys_.empty(),
                   "raw invalidation reaches a physically stamped pending read");
         }
         for (bool collide : {false, true}) {
             Server server; server.cfg_.tracking_table_max_keys = 32;
+            server.shards_.push_back(std::make_unique<Shard>());
+            server.router_.build_uniform(1);
             ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
             IoLoop loop; loop.srv_ = &server; loop.self_ = &self;
             loop.random_state_ = 0x123456789abcdefULL;
@@ -687,14 +693,15 @@ struct NetcmdRegression {
                 while (collide && loop.climon_track_keys_.bucket(key) != 0);
                 std::vector<std::string> before;
                 for (const auto& entry : loop.climon_track_keys_) before.push_back(entry.first);
-                Op op; args(op, {"GET", key.c_str()});
+                // Each live connection owns a distinct Op, as it does in the ROB.
+                Op op, other; args(op, {"GET", key.c_str()}); args(other, {"GET", key.c_str()});
                 loop.tracking_register_read(&a, ast, op);
-                loop.tracking_register_read(&b, bst, op);
+                loop.tracking_register_read(&b, bst, other);
                 // Dispatch records pending reads only; the bounded table changes when each
                 // connection's read retires, through the entry the production retire hook calls.
                 check(loop.climon_track_keys_.size() == std::min(turn, 32u), "dispatch alone enrolls nothing");
                 loop.tracking_retire_read(a, op);
-                loop.tracking_retire_read(b, op);
+                loop.tracking_retire_read(b, other);
                 check(ast.tracking_reads.empty() && ast.tracking_pending.empty() &&
                       bst.tracking_reads.empty() && bst.tracking_pending.empty(),
                       "retirement consumed both pending reads");

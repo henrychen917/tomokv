@@ -8,8 +8,9 @@ completed-enrollment watermark map adds 56 bytes (184 -> 240). Each pending-key
 value becomes a vector of readers plus two 64-bit notification watermarks
 (8 -> 40 bytes). NotifyBatch gains one 64-bit completion stamp. NotifyOut gains
 one 64-bit stamp. PubSubEventItem::count, previously unused for tracking,
-transports it without growing transport structures. Exact compiled sizes will
-be recorded with the proof. Empty/disarmed paths allocate no tracking state.
+transports it without growing transport structures. Compiled sizes: TrackingRead 152 bytes plus 8 bytes per shard and 4 bytes per
+key (besides the existing strings); NotifyBatch 416 -> 424; NotifyOut 40 -> 48;
+PubSubEventItem stays 48. DWARF receipts are in trackfix2/sizes.json. Empty/disarmed paths allocate no tracking state.
 
 ## Certificate and publication
 
@@ -29,18 +30,26 @@ The global certificate needs no per-owner state migration or ownership lock.
 
 Only a subscribed remembering read receives a side-owned CommandSpec copy.
 Its ordinary flags, handler and id are preserved; an otherwise unused armed
-handler pointer identifies the side object. Armed notification entry samples
-the clock before the actual owner read. Each shard has its own observation
+handler pointer identifies the side object. An armed executor hook samples
+the clock before the actual owner read; notification scopes cover special and
+blocking fragments. Command notification wrappers retain their original bodies. Each shard has its own observation
 slot, written only by its owner; fragments never contend on an atomic min loop.
 Read-local capture samples before capturing any record and uses the same side
 object. No record retries, seqlocks, write locks, or mutable value changes are
-introduced. The side object stays alive through Done and in-order retirement;
+introduced. OFF/RESET cancel obligations but retain live side objects and the local drain
+arming until every older read retires. Re-enabling tracking reuses that arming.
+Queued MULTI reads keep the registry spec because the queue outlives the ROB
+slot; their pre-existing conservative registration uses a zero certificate.
+The side object stays alive through Done and in-order retirement;
 consumer code does not read executor-owned observation slots before Done.
 
-Snapshot reads cannot certify a world newer than their pinned MVCC cut. Their
-certificate is bounded by the clock captured at dispatch; local reads, which
-capture the latest validated immutable records, use their capture observation.
-Unobserved/error paths conservatively retain the dispatch bound. A delayed
+Snapshot reads cannot certify a world newer than their pinned MVCC cut. The
+observer loads the clock before the current atomic epoch. If the read cut is
+older than that epoch, it uses the dispatch certificate only when the cut
+includes the epoch sampled after that dispatch certificate; otherwise it uses
+zero. This covers a commit between the pass-wide read-cut sample and the later
+per-read registration. Local reads, which capture the latest validated immutable
+records, use their capture observation. Unobserved/error paths use zero. A delayed
 write with certificate <= the read's observation is older and needs no frame
 for that read; a newer certificate invalidates it. A commit not yet certified
 when a read starts is conservatively concurrent. This can produce a conservative
@@ -91,3 +100,21 @@ retirement non-loss control; a disposable suppress-all arm must fail non-loss.
 Production has no scheduling hooks. Full differential, whole selected gate
 jobs, production-unit freshness, linked identity and labelled PAD-A receipts
 are appended to the merit request, with no performance claim.
+
+## Explicit non-loss boundary
+
+The causal comparison never discards an invalidation for an older/unknown
+observation, and invalidated pending reads never re-enroll. This does not fix
+pre-existing resource-failure loss in notification recording: failure to
+allocate NotifyBatch/owned keys/spill returns after incrementing the drop
+counter; the keyless queue's 4096 cap also drops records; the retirement catch
+can count a drop after allocation failure. These paths are in notify.inc and
+are outside the ordering fix. A claim of losslessness under arbitrary OOM or
+keyless-queue exhaustion would be false. The directed controls verify non-loss
+under the scheduled causal windows, not allocation-failure delivery.
+
+The completion certificate is conservative: an already-published write that
+has not yet reached its completion hook, or a pinned snapshot with no suitable
+certificate, can still cause an unnecessary invalidation. It cannot be dropped
+as an "older" write without the visibility proof. This limitation is distinct
+from the fixed delayed-transport duplicate and stale re-enrollment bugs.

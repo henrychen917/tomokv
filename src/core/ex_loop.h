@@ -2512,6 +2512,8 @@ private:
         sh.note_execution(self_->domain());
 
         if (!t.scatter) self_->note_command(op.spec->id);
+        if (__builtin_expect(srv_->climon_armed() & Server::kClimonTracking, false))
+            tracking_observe_read(sh, op);
 
         if (t.scatter) {
             const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());

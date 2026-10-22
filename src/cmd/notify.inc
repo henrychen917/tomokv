@@ -269,12 +269,10 @@ NotifyBatch* notify_get_or_create_batch(Op& carrier) {
 }  // namespace
 
 void notify_execute_enter(Shard& shard, Op& carrier, Op& source, uint32_t order_base) {
-    tracking_observe_read(shard, source);
     shard.set_notify_context(&carrier, &source, order_base);
 }
 
 void notify_execute_source(Shard& shard, Op& source, uint32_t order_base) {
-    tracking_observe_read(shard, source);
     shard.set_notify_context(shard.notify_carrier(), &source, order_base);
 }
 
@@ -285,6 +283,7 @@ void notify_execute_leave(Shard& shard) {
 NotifyExecutionScope::NotifyExecutionScope(Shard& shard, Op* op, bool active,
                                            uint32_t order_base) {
     if (!active || !op) return;
+    tracking_observe_read(shard, *op);
     shard_ = &shard;
     carrier_ = shard.notify_carrier();
     source_ = shard.notify_source();
