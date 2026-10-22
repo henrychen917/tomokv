@@ -1,0 +1,1208 @@
+{
+  "build_argv": [
+    "make",
+    "-j32",
+    "build/aclkeys-wake-unit",
+    "build/aclkeys-wake-db0-unit",
+    "build/l4prebuild-unit"
+  ],
+  "build_returncode": 0,
+  "results": [
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "window"
+      ],
+      "pid": 3943549,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.0057329172268509865
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "window-denied"
+      ],
+      "pid": 3943550,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.005372797138988972
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "window-unblock"
+      ],
+      "pid": 3943551,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004925855435431004
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "window-unblock-denied"
+      ],
+      "pid": 3943552,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004880785010755062
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "XREAD"
+      ],
+      "pid": 3943553,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004798924550414085
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "XREAD-denied"
+      ],
+      "pid": 3943554,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004762873984873295
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "BLMOVE"
+      ],
+      "pid": 3943555,
+      "cpus": "80-87",
+      "returncode": 1,
+      "seconds": 0.004660764709115028
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "BLMOVE-denied"
+      ],
+      "pid": 3943556,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004662043415009975
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "BRPOPLPUSH"
+      ],
+      "pid": 3943557,
+      "cpus": "80-87",
+      "returncode": 1,
+      "seconds": 0.0044041648507118225
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "BRPOPLPUSH-denied"
+      ],
+      "pid": 3943558,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.005145154893398285
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "XREADGROUP"
+      ],
+      "pid": 3943559,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004786674864590168
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "XREADGROUP-denied"
+      ],
+      "pid": 3943560,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.0047153448686003685
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "window"
+      ],
+      "pid": 3943561,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004572004079818726
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "window-denied"
+      ],
+      "pid": 3943562,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.005106605589389801
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "window-unblock"
+      ],
+      "pid": 3943563,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.0046952636912465096
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "window-unblock-denied"
+      ],
+      "pid": 3943564,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004706214182078838
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "XREAD"
+      ],
+      "pid": 3943565,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.0047188252210617065
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "XREAD-denied"
+      ],
+      "pid": 3943566,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004664214327931404
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "BLMOVE"
+      ],
+      "pid": 3943567,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004814624786376953
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "BLMOVE-denied"
+      ],
+      "pid": 3943568,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004715925082564354
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "BRPOPLPUSH"
+      ],
+      "pid": 3943569,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004699823446571827
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "BRPOPLPUSH-denied"
+      ],
+      "pid": 3943570,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004692264832556248
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "XREADGROUP"
+      ],
+      "pid": 3943571,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004575693979859352
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "XREADGROUP-denied"
+      ],
+      "pid": 3943572,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004585173912346363
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "window"
+      ],
+      "pid": 3943573,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004292353056371212
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "window-denied"
+      ],
+      "pid": 3943574,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004368502646684647
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "window-unblock"
+      ],
+      "pid": 3943575,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.00420211348682642
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "window-unblock-denied"
+      ],
+      "pid": 3943576,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.0044570136815309525
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "XREAD"
+      ],
+      "pid": 3943577,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004471994005143642
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "XREAD-denied"
+      ],
+      "pid": 3943578,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.0042690131813287735
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "BLMOVE"
+      ],
+      "pid": 3943579,
+      "cpus": "80-87",
+      "returncode": 1,
+      "seconds": 0.004258722998201847
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "BLMOVE-denied"
+      ],
+      "pid": 3943580,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004320493899285793
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "BRPOPLPUSH"
+      ],
+      "pid": 3943581,
+      "cpus": "80-87",
+      "returncode": 1,
+      "seconds": 0.004185632802546024
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "BRPOPLPUSH-denied"
+      ],
+      "pid": 3943582,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004231832921504974
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "XREADGROUP"
+      ],
+      "pid": 3943583,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004117023199796677
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "0",
+        "XREADGROUP-denied"
+      ],
+      "pid": 3943584,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.00422897282987833
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "window"
+      ],
+      "pid": 3943585,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004209723323583603
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "window-denied"
+      ],
+      "pid": 3943586,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004311002790927887
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "window-unblock"
+      ],
+      "pid": 3943587,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004192963242530823
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "window-unblock-denied"
+      ],
+      "pid": 3943588,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004319203086197376
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "XREAD"
+      ],
+      "pid": 3943589,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004419493488967419
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "XREAD-denied"
+      ],
+      "pid": 3943590,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004416363313794136
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "BLMOVE"
+      ],
+      "pid": 3943591,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004397242330014706
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "BLMOVE-denied"
+      ],
+      "pid": 3943592,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004206022247672081
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "BRPOPLPUSH"
+      ],
+      "pid": 3943593,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004430684261023998
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "BRPOPLPUSH-denied"
+      ],
+      "pid": 3943594,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.00425250269472599
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "XREADGROUP"
+      ],
+      "pid": 3943595,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004348074086010456
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-unit",
+        "split",
+        "1",
+        "XREADGROUP-denied"
+      ],
+      "pid": 3943596,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.0042488230392336845
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "window"
+      ],
+      "pid": 3943597,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004913104698061943
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "window-denied"
+      ],
+      "pid": 3943598,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.00472678430378437
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "window-unblock"
+      ],
+      "pid": 3943599,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004707464016973972
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "window-unblock-denied"
+      ],
+      "pid": 3943600,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004643844440579414
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "XREAD"
+      ],
+      "pid": 3943601,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004731155000627041
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "XREAD-denied"
+      ],
+      "pid": 3943602,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004502464085817337
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "BLMOVE"
+      ],
+      "pid": 3943603,
+      "cpus": "80-87",
+      "returncode": 1,
+      "seconds": 0.004343023523688316
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "BLMOVE-denied"
+      ],
+      "pid": 3943604,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004821645095944405
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "BRPOPLPUSH"
+      ],
+      "pid": 3943605,
+      "cpus": "80-87",
+      "returncode": 1,
+      "seconds": 0.004394753836095333
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "BRPOPLPUSH-denied"
+      ],
+      "pid": 3943606,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004729274660348892
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "XREADGROUP"
+      ],
+      "pid": 3943607,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.005044795572757721
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "XREADGROUP-denied"
+      ],
+      "pid": 3943608,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004762265831232071
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "window"
+      ],
+      "pid": 3943609,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004684183746576309
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "window-denied"
+      ],
+      "pid": 3943610,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.00484466552734375
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "window-unblock"
+      ],
+      "pid": 3943611,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004753605462610722
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "window-unblock-denied"
+      ],
+      "pid": 3943612,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004787225276231766
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "XREAD"
+      ],
+      "pid": 3943613,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004639394581317902
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "XREAD-denied"
+      ],
+      "pid": 3943614,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.0046100737527012825
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "BLMOVE"
+      ],
+      "pid": 3943615,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.005046626552939415
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "BLMOVE-denied"
+      ],
+      "pid": 3943616,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004857805557549
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "BRPOPLPUSH"
+      ],
+      "pid": 3943617,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004706365056335926
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "BRPOPLPUSH-denied"
+      ],
+      "pid": 3943618,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004507534205913544
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "XREADGROUP"
+      ],
+      "pid": 3943619,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004697124473750591
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "XREADGROUP-denied"
+      ],
+      "pid": 3943620,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004665284417569637
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "window"
+      ],
+      "pid": 3943621,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004521934315562248
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "window-denied"
+      ],
+      "pid": 3943622,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004350353963673115
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "window-unblock"
+      ],
+      "pid": 3943623,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004322703927755356
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "window-unblock-denied"
+      ],
+      "pid": 3943624,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004268253222107887
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "XREAD"
+      ],
+      "pid": 3943625,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004444323480129242
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "XREAD-denied"
+      ],
+      "pid": 3943626,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004398142918944359
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "BLMOVE"
+      ],
+      "pid": 3943627,
+      "cpus": "80-87",
+      "returncode": 1,
+      "seconds": 0.004232613369822502
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "BLMOVE-denied"
+      ],
+      "pid": 3943628,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004374182783067226
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "BRPOPLPUSH"
+      ],
+      "pid": 3943629,
+      "cpus": "80-87",
+      "returncode": 1,
+      "seconds": 0.004629113711416721
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "BRPOPLPUSH-denied"
+      ],
+      "pid": 3943630,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.0044159432873129845
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "XREADGROUP"
+      ],
+      "pid": 3943631,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.0043683042749762535
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "XREADGROUP-denied"
+      ],
+      "pid": 3943632,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004289824515581131
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "window"
+      ],
+      "pid": 3943633,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004424004815518856
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "window-denied"
+      ],
+      "pid": 3943634,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004307182505726814
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "window-unblock"
+      ],
+      "pid": 3943635,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004349454306066036
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "window-unblock-denied"
+      ],
+      "pid": 3943636,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004474683664739132
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "XREAD"
+      ],
+      "pid": 3943637,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004303374327719212
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "XREAD-denied"
+      ],
+      "pid": 3943638,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004407473839819431
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "BLMOVE"
+      ],
+      "pid": 3943639,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004355042241513729
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "BLMOVE-denied"
+      ],
+      "pid": 3943640,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004183904267847538
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "BRPOPLPUSH"
+      ],
+      "pid": 3943641,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004334593191742897
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "BRPOPLPUSH-denied"
+      ],
+      "pid": 3943642,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004304073750972748
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "XREADGROUP"
+      ],
+      "pid": 3943643,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.00441727414727211
+    },
+    {
+      "argv": [
+        "build/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "XREADGROUP-denied"
+      ],
+      "pid": 3943644,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.004595974460244179
+    },
+    {
+      "argv": [
+        "build/l4prebuild-unit",
+        "1s",
+        "read-local-0"
+      ],
+      "pid": 3943645,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.019123518839478493
+    },
+    {
+      "argv": [
+        "build/l4prebuild-unit",
+        "1s",
+        "read-local-1"
+      ],
+      "pid": 3943663,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.015621628612279892
+    },
+    {
+      "argv": [
+        "build/l4prebuild-unit",
+        "2s",
+        "read-local-0"
+      ],
+      "pid": 3943672,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.015135416761040688
+    },
+    {
+      "argv": [
+        "build/l4prebuild-unit",
+        "2s",
+        "read-local-1"
+      ],
+      "pid": 3943689,
+      "cpus": "80-87",
+      "returncode": 0,
+      "seconds": 0.015909398905932903
+    }
+  ]
+}

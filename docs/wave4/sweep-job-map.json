@@ -50,7 +50,7 @@
   {
     "file": "tests/aclkeys_wake_unit.cc",
     "jobs": [],
-    "note": "Source reviewed: unsupported DEBUG subcommand assertion is unaffected. Blocking ACL proof runs through aclfix/acl_recheck and multidb wake-state jobs.",
+    "note": "No gate job. Unchanged standalone matrix executed: 88/96 pass; eight atomic-0 admitted BLMOVE/BRPOPLPUSH cases reject the new legal Defer result. Print-only diagnostic retains the failing assertion; see serverless/extra-units.",
     "hits": 1
   },
   {
@@ -411,7 +411,7 @@
   {
     "file": "tests/l4prebuild_unit.cc",
     "jobs": [],
-    "note": "Source reviewed: stored-deadline observation, not a deadline-equality assertion. Prebuilt SET/MSET semantics are covered by feature and atomic unit jobs.",
+    "note": "No gate job. Unchanged standalone fixture passes all four mode/read-local combinations; see serverless/extra-units.",
     "hits": 1
   },
   {

@@ -158,9 +158,45 @@ pass in each cell. This is a pre-existing fixture contradiction, not a green
 result; no assertion was changed. POST, headline, command and owned-server
 receipts are under `docs/wave4/supplemental`.
 
+Two additional serverless fixtures have no owning gate job. The unchanged
+prebuild fixture passes all **four** mode/read-local combinations. The
+unchanged ACL-wake fixture passes **88/96** cases; its eight admitted atomic-0
+BLMOVE/BRPOPLPUSH cases fail at `stream scatter gather`, across both runtimes
+and modes. This fixture directly drains owner tasks and requires every
+`xshard_execute` call to return `Complete`. Moverfix intentionally returns
+`Defer` when a destination precedes its source; the real executor queues that
+result in `src/core/ex_loop.h:2516`, while this manual fixture has no deferred
+queue. A print-only diagnostic preserves the original assertion and records
+the actual result `Defer` before the same failure. This is an unadapted
+standalone scheduler fixture, and remains **FAIL**, not waived. No assertion
+or execution order was changed to make it pass. The gate-owned blocking,
+ACL-wake and mover batteries pass with production dispatch. Build commands,
+all 100 executions, and the diagnostic are in
+`docs/wave4/serverless/extra-units`.
+
 ### Scope of existing findings
 
 The moverfix lane's broader concurrent EXEC conservation counterexample failed
 both headline and isolated POST. Its atomic-0 claim protocol does not establish
 EXEC conservation; passing the standard MULTI/EXEC battery cannot erase that
 reported counterexample. This integration does not silently broaden the claim.
+
+### Maintainer measurement request
+
+PRE is `/home/user/Projects/bench-bins/tomokv-headline-8656f9fa9`, SHA-256
+`fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0`.
+POST is `/home/user/Projects/cx-wave4/build/tomokv`, SHA-256
+`3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5`.
+The frozen lane POSTs supplied in the task remain the identity references;
+this request adds no PAD arm.
+
+Run the requested merged-versus-headline null/comparison with the gate's own
+instrument on the quiet box, then the landing gate after applying the declared
+count delta. The canonical iteration selection is the 18 cells in
+`docs/wave4/measurement-cells.json`: t00, h01, h07, h11, h15, h17, h23, h27,
+h31, h48, m47, m92, and t01–t06, with the gate's standard engine twins.
+Keep the configured offered load, saturation/quiet controls, repeatability
+rules and per-cell score (rate, latency or tail); retain cycles/op, IPC and
+instructions/op alongside each PRE/POST result. The gate's verdict and the
+maintainer's merit decision determine acceptance; instruction identity does
+not substitute for that comparison. This lane makes **no throughput claim**.

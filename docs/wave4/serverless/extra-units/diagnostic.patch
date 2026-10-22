@@ -1,0 +1,14 @@
+--- tests/aclkeys_wake_unit.cc
++++ build/wave4/aclkeys-wake-diagnostic.cc
+@@ -233,7 +233,10 @@
+         for (unsigned pass = 0; !finished && pass < 16; ++pass) {
+             for (uint32_t tid = 0; tid < server.nthreads(); ++tid) {
+                 server.thread(tid).drain_tasks([&](const Task& task) {
+-                    require(xshard_execute(task, server.shard(task.shard), *op, tid) == ScatterTaskResult::Complete,
++                    const auto wave4_result = xshard_execute(task, server.shard(task.shard), *op, tid);
++                    std::fprintf(stderr, "wave4 result=%u (Complete=0 Retry=1 Defer=2) shard=%d owner=%u\n",
++                                 unsigned(wave4_result), int(task.shard), tid);
++                    require(wave4_result == ScatterTaskResult::Complete,
+                             "stream scatter gather");
+                     const auto result = xshard_complete(server, server.thread(tid), unused_ring, task, *op);
+                     if (result == ScatterFinish::Final) finished = true;
