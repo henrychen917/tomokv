@@ -325,7 +325,10 @@ $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inli
 # wave4 merge (provisional, additive lane deltas over 8656f9fa9): genthread compat2 +29 and
 # clockcut +128; rl2s clockcut +256. The wave-4 budget commit re-derives these values.
 $(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=130241
-$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162972
+# iofix: the initial IPA unit grows 111026 -> 112026. Preserve that 1000-insn
+# headroom delta; compile-only trials restore PRE's read-local GET resolver bytes.
+# Receipts: docs/iofix/budgets/{pre,post,scan}; no performance claim follows.
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=163972
 # wave3: see the note above $(BUILD_ROOT)/src/main.o (first override of this object).
 # wave3 R7 round (7fa5cb0e0 regenerates rlfix's RL4.4 into the R7 envelope): units +82 / +80
 # (src / db0). Compile-only scans 147770-147970 / 148760-148949 (docs/wave3/identity/

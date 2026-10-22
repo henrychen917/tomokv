@@ -1,0 +1,8 @@
+{
+  "unit": "src/core/rl2s.o",
+  "pre_budget": 162972,
+  "post_budget": 163972,
+  "initial_pre": 111026,
+  "initial_post": 112026,
+  "reason": "preserve PRE headroom; read-local GET resolver canonical bytes equal PRE in all eight trials"
+}

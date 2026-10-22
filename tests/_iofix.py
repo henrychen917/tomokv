@@ -83,6 +83,12 @@ class Listener:
                 self.process.kill()
                 self.process.wait()
                 raise AssertionError(f'owned server did not stop: {self.log.name}')
+        # io_uring cancellation can briefly retain the listening socket after waitpid.
+        # Only settle a process we owned and reaped; the next boot's guard stays strict.
+        deadline = time.monotonic() + 3
+        while subprocess.check_output(['ss', '-H', '-ltn', f'sport = :{self.port}']).strip():
+            assert time.monotonic() < deadline, f'owned listener did not disappear: {self.port}'
+            time.sleep(.01)
         self.log.close()
 
     def __enter__(self):

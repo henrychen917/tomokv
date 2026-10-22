@@ -2,6 +2,7 @@
 """IO4.17: signal starts the shutdown save immediately; failure/retry remains live."""
 import signal
 import time
+from pathlib import Path
 from _iofix import arguments, Listener, emit, info, cpu_times
 
 
@@ -62,6 +63,22 @@ def run(args):
                 raise AssertionError('failed save never reached the shutdown error')
             assert server.process.poll() is None
             assert c.cmd('GET', 'iofix:retry') == b'retained'
+            # Snapshot failure releases owners asynchronously. Witness that every live
+            # thread reached a kernel wait before measuring an otherwise idle interval;
+            # a sticky doorbell that prevents this must FAIL, never skip the CPU check.
+            deadline = time.monotonic() + 3
+            while True:
+                waits = []
+                for tid in cpu_times(server.process.pid):
+                    try:
+                        waits.append(Path(f'/proc/{tid}/wchan').read_text().strip())
+                    except FileNotFoundError:
+                        pass
+                if waits and all(wait != '0' for wait in waits):
+                    break
+                assert time.monotonic() < deadline, 'failed-save idle window never opened'
+                time.sleep(.002)
+            emit(kind=kind, failed_save_parked_threads=len(waits))
             before = cpu_times(server.process.pid)
             time.sleep(.2)
             after = cpu_times(server.process.pid)
