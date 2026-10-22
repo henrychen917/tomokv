@@ -15,6 +15,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 # 'prefix' is a disposable control: the committed tree before the NT4.8 32-bit bound fix.
 ARMS = {'pre': 'tomokv-pre-netfix', 'post': 'tomokv', 'pad': 'tomokv-pad-a-netfix',
+        'padb': 'tomokv-pad-b-netfix',
         'prefix': 'netfix-prefix-src/build/tomokv'}
 NEW = 'netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers'
 # Jobs that boot the default engine: run once per engine wrapper (or the source build for uring).
