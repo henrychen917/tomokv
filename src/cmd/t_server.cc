@@ -25,6 +25,7 @@
 #include "../exec/op.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
+#include "../net/query_limit_stats.h"
 #include "../store/kvobj.h"
 #include "../store/eviction.h"
 #include "../snapshot/snapshot.h"
@@ -2426,6 +2427,7 @@ void cmd_info(Shard&, Op& op) {
                       "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
                       "pubsub_blobs:%llu\r\npubsub_deliveries:%llu\r\n"
                       "pubsub_delivery_batches:%llu\r\npubsub_forwarded_stale:%llu\r\n"
+                      "client_query_buffer_limit_disconnections:%llu\r\n"
                       "client_output_buffer_limit_disconnections:%llu\r\n"
                       "notify_events_fired:%llu\r\nnotify_events_dropped:%llu\r\n"
                       "client_scatter_requests:%llu\r\nclient_scatter_io_responses:%llu\r\n"
@@ -2559,6 +2561,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_deliveries() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_delivery_batches() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_forwarded_stale() : 0),
+                static_cast<unsigned long long>(query_limit_disconnections.load(std::memory_order_relaxed)),
                 static_cast<unsigned long long>(
                     g_server ? g_server->client_output_buffer_limit_disconnections() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->notify_events_fired() : 0),
@@ -3134,6 +3137,7 @@ bool command_aof_load_truncated(bool boot_value) {
 }
 
 void command_config_resetstat() {
+    query_limit_disconnections.store(0, std::memory_order_relaxed);
     // Capture the CURRENT aggregate rather than writing zeros into per-shard/per-thread counters
     // that only their owner may write. INFO subtracts this baseline. The reads here are the same
     // cross-thread reads INFO already performs on every call, so no new sharing is introduced.

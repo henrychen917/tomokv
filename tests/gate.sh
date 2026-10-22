@@ -1105,7 +1105,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
+              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify notify_order notify_aof flip flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1)
@@ -1956,6 +1956,16 @@ row_begin "NET1 serverless bounds + scan + reclamation"
 unit_ready netcap-unit && taskset -c "$CORES" ./build/netcap-unit >"$TMPDIR/gate-netcap-unit.txt" 2>&1 \
     && ok "NET1 serverless bounds + scan + reclamation" \
     || bad "NET1 serverless bounds + scan + reclamation" "see $TMPDIR/gate-netcap-unit.txt"
+}
+
+job_netfix_query_stats(){
+  row_begin "netfix NT4.6 query-limit INFO parity"
+  py tests/netfix_query_stats.py --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 \
+    && ok "netfix NT4.6 query-limit INFO parity" \
+    || bad "netfix NT4.6 query-limit INFO parity" "see $TMPDIR/proof.log"
 }
 
 job_netcap(){
@@ -4162,6 +4172,8 @@ collect_job netcmd_units
 # NET1 contributes one serverless row above plus four live rows here: +5 quick / +5 full.
 # EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 collect_job netcap
+# netfix NT4.6: DQ +1 / DF +1; before the quick-tier exit.
+collect_job netfix_query_stats
 
 # respcompat: +1 quick / +1 full, counted here before the quick-tier exit.
 # EXPECT counts and ledger fixtures are maintained by the owner.

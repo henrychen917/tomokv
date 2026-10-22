@@ -5,6 +5,7 @@
 //   out  task_in of the shard's owner        a parsed op to execute
 //   in   ready mask / client_in             completed ops to retire and send
 #pragma once
+#include "../net/query_limit_stats.h"
 #include <array>
 #include <deque>
 #include <arpa/inet.h>
@@ -816,7 +817,15 @@ private:
         return __builtin_expect(c.multi_session() != nullptr, false) ? multi_session_query_bytes(c) : 0;
     }
     bool query_buffer_exceeded(const Client& c) const {
-        return c.query_buffer_exceeded(query_buffer_limit(c), queued_query_bytes(c));
+        return c.query_buffer_exceeded(query_buffer_limit(c), queued_query_bytes(c)) &&
+               note_query_limit_disconnect_once(c);
+    }
+    [[gnu::noinline, gnu::cold]] bool note_query_limit_disconnect_once(const Client& c) const {
+        // epoll defers teardown until its active-set walk ends; the same client can be
+        // checked again by the parser before that close. Count the first close request only.
+        if (c.closing() || c.dead()) return true;
+        for (const Client* queued : epoll_closes_) if (queued == &c) return true;
+        return note_query_limit_disconnect();
     }
 
     template <bool kEp>
