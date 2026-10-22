@@ -1,7 +1,23 @@
-Traceback (most recent call last):
-  File "/home/user/Projects/cx-iofix/tools/iofix_full_pad.py", line 81, in <module>
-    main()
-  File "/home/user/Projects/cx-iofix/tools/iofix_full_pad.py", line 61, in main
-    assert not old - new, 'an original PRE text function moved or changed size'
-           ^^^^^^^^^^^^^
-AssertionError: an original PRE text function moved or changed size
+{
+  "kind": "A: full PRE behavior with exact POST text size",
+  "limitation": "PRE function addresses retained; not POST function placement",
+  "pre_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+  "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+  "pad_sha256": "409efd511fafa64b2bf170c08320486b690e3277704d29a5a2cda2ca0be7ac32",
+  "baseline_relink_identical": true,
+  "pre_text_bytes": 7747526,
+  "post_text_bytes": 7796422,
+  "pad_text_bytes": 7796422,
+  "padding_bytes": 48896,
+  "original_text_symbols": 10301,
+  "all_original_function_addresses_sizes_equal": true,
+  "added_functions": [
+    [
+      "iofix_size_pad_a",
+      7868054,
+      48896
+    ]
+  ],
+  "cwd": "/home/user/Projects/cx-iofix/build/iofix/pre-source",
+  "output": "/home/user/Projects/cx-iofix/build/tomokv-pad-a"
+}

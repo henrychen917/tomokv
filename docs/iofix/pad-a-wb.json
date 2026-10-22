@@ -3,17 +3,17 @@
   "scope": "nominated 512-client merit cells, default hz, no DEBUG SLEEP or signal-save operation",
   "limitation": "hz, DEBUG SLEEP and signal-stop admin behaviour remains POST; not a full four-feature PRE twin",
   "pre_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
-  "post_sha256": "19e3a98b148a5537d211986b2ed16a7c89601ee37ae83e48bc5db709cf4d9fd3",
-  "pad_sha256": "ab026810b1fc3e87278be18a7ffbd187f6e908ec5908cd541386e2be15c01b6b",
-  "post_text_bytes": 7795286,
-  "pad_text_bytes": 7795286,
+  "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+  "pad_sha256": "d9c7e12006eee966c474b705ad7f0bdd4156e63ee32057b7f34a799119ad3fb5",
+  "post_text_bytes": 7796422,
+  "pad_text_bytes": 7796422,
   "all_sections_and_symbol_addresses_sizes_equal": true,
   "bytes_changed": 312,
   "functions_patched": 104,
   "patches": [
     {
-      "address": 940355,
-      "file_offset": 940355,
+      "address": 940707,
+      "file_offset": 940707,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -21,8 +21,8 @@
       ]
     },
     {
-      "address": 945043,
-      "file_offset": 945043,
+      "address": 945395,
+      "file_offset": 945395,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -30,8 +30,8 @@
       ]
     },
     {
-      "address": 949363,
-      "file_offset": 949363,
+      "address": 949715,
+      "file_offset": 949715,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -39,8 +39,8 @@
       ]
     },
     {
-      "address": 952851,
-      "file_offset": 952851,
+      "address": 953203,
+      "file_offset": 953203,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -48,44 +48,8 @@
       ]
     },
     {
-      "address": 3332035,
-      "file_offset": 3332035,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 3334467,
-      "file_offset": 3334467,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb0ELb0ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 3337235,
-      "file_offset": 3337235,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 3345059,
-      "file_offset": 3345059,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb0ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 3353827,
-      "file_offset": 3353827,
+      "address": 3332659,
+      "file_offset": 3332659,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -93,8 +57,8 @@
       ]
     },
     {
-      "address": 3356854,
-      "file_offset": 3356854,
+      "address": 3335686,
+      "file_offset": 3335686,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -102,8 +66,8 @@
       ]
     },
     {
-      "address": 3360163,
-      "file_offset": 3360163,
+      "address": 3338995,
+      "file_offset": 3338995,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -111,8 +75,8 @@
       ]
     },
     {
-      "address": 3368630,
-      "file_offset": 3368630,
+      "address": 3347462,
+      "file_offset": 3347462,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -120,8 +84,44 @@
       ]
     },
     {
-      "address": 3377683,
-      "file_offset": 3377683,
+      "address": 3356179,
+      "file_offset": 3356179,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 3358611,
+      "file_offset": 3358611,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb0ELb0ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 3361379,
+      "file_offset": 3361379,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 3369203,
+      "file_offset": 3369203,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb0ELb1ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 3377971,
+      "file_offset": 3377971,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -129,8 +129,8 @@
       ]
     },
     {
-      "address": 3380710,
-      "file_offset": 3380710,
+      "address": 3380998,
+      "file_offset": 3380998,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -138,8 +138,8 @@
       ]
     },
     {
-      "address": 3384019,
-      "file_offset": 3384019,
+      "address": 3384307,
+      "file_offset": 3384307,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -147,8 +147,8 @@
       ]
     },
     {
-      "address": 3392518,
-      "file_offset": 3392518,
+      "address": 3392806,
+      "file_offset": 3392806,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -156,8 +156,8 @@
       ]
     },
     {
-      "address": 3401267,
-      "file_offset": 3401267,
+      "address": 3401555,
+      "file_offset": 3401555,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -165,8 +165,8 @@
       ]
     },
     {
-      "address": 3403699,
-      "file_offset": 3403699,
+      "address": 3403987,
+      "file_offset": 3403987,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -174,8 +174,8 @@
       ]
     },
     {
-      "address": 3406467,
-      "file_offset": 3406467,
+      "address": 3406755,
+      "file_offset": 3406755,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -183,8 +183,8 @@
       ]
     },
     {
-      "address": 3414419,
-      "file_offset": 3414419,
+      "address": 3414707,
+      "file_offset": 3414707,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -192,8 +192,8 @@
       ]
     },
     {
-      "address": 3579843,
-      "file_offset": 3579843,
+      "address": 3580355,
+      "file_offset": 3580355,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -201,8 +201,8 @@
       ]
     },
     {
-      "address": 3582979,
-      "file_offset": 3582979,
+      "address": 3583491,
+      "file_offset": 3583491,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -210,8 +210,8 @@
       ]
     },
     {
-      "address": 3585731,
-      "file_offset": 3585731,
+      "address": 3586243,
+      "file_offset": 3586243,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -219,8 +219,8 @@
       ]
     },
     {
-      "address": 3588790,
-      "file_offset": 3588790,
+      "address": 3589302,
+      "file_offset": 3589302,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -228,8 +228,8 @@
       ]
     },
     {
-      "address": 3591910,
-      "file_offset": 3591910,
+      "address": 3592422,
+      "file_offset": 3592422,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -237,8 +237,8 @@
       ]
     },
     {
-      "address": 3595219,
-      "file_offset": 3595219,
+      "address": 3595731,
+      "file_offset": 3595731,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -246,8 +246,8 @@
       ]
     },
     {
-      "address": 3598627,
-      "file_offset": 3598627,
+      "address": 3599139,
+      "file_offset": 3599139,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -255,8 +255,8 @@
       ]
     },
     {
-      "address": 3602579,
-      "file_offset": 3602579,
+      "address": 3603091,
+      "file_offset": 3603091,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -264,71 +264,8 @@
       ]
     },
     {
-      "address": 3606515,
-      "file_offset": 3606515,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb1EEEjv"
-      ]
-    },
-    {
-      "address": 3615635,
-      "file_offset": 3615635,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb0ELb1ELb1EEEjv"
-      ]
-    },
-    {
-      "address": 3624307,
-      "file_offset": 3624307,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb1ELb1ELb1EEEjv"
-      ]
-    },
-    {
-      "address": 3633414,
-      "file_offset": 3633414,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb1ELb1ELb1ELb1ELb1EEEjv"
-      ]
-    },
-    {
-      "address": 3642614,
-      "file_offset": 3642614,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb1ELb1ELb0ELb1ELb1EEEjv"
-      ]
-    },
-    {
-      "address": 3652019,
-      "file_offset": 3652019,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb1EEEjv"
-      ]
-    },
-    {
-      "address": 3661411,
-      "file_offset": 3661411,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb1ELb1EEEjv"
-      ]
-    },
-    {
-      "address": 3671395,
-      "file_offset": 3671395,
+      "address": 3607027,
+      "file_offset": 3607027,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -336,8 +273,71 @@
       ]
     },
     {
-      "address": 3983155,
-      "file_offset": 3983155,
+      "address": 3616195,
+      "file_offset": 3616195,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb0ELb1ELb1EEEjv"
+      ]
+    },
+    {
+      "address": 3624867,
+      "file_offset": 3624867,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb1ELb1ELb1EEEjv"
+      ]
+    },
+    {
+      "address": 3633974,
+      "file_offset": 3633974,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb1ELb1ELb0ELb1ELb1EEEjv"
+      ]
+    },
+    {
+      "address": 3643126,
+      "file_offset": 3643126,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop11flush_readyILb0ELb1ELb1ELb1ELb1ELb1EEEjv"
+      ]
+    },
+    {
+      "address": 3652579,
+      "file_offset": 3652579,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb1ELb1ELb1EEEjv"
+      ]
+    },
+    {
+      "address": 3662067,
+      "file_offset": 3662067,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop11flush_readyILb1ELb0ELb1ELb0ELb1ELb1EEEjv"
+      ]
+    },
+    {
+      "address": 3671955,
+      "file_offset": 3671955,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb1EEEjv"
+      ]
+    },
+    {
+      "address": 3983667,
+      "file_offset": 3983667,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -345,71 +345,8 @@
       ]
     },
     {
-      "address": 3988355,
-      "file_offset": 3988355,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 3996851,
-      "file_offset": 3996851,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb0ELb1ELb1ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 3999811,
-      "file_offset": 3999811,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb0ELb1ELb0ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 4003062,
-      "file_offset": 4003062,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb1ELb1ELb0ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 4006518,
-      "file_offset": 4006518,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb1ELb1ELb1ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 4010147,
-      "file_offset": 4010147,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb1ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 4013587,
-      "file_offset": 4013587,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 4017507,
-      "file_offset": 4017507,
+      "address": 3988867,
+      "file_offset": 3988867,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -417,17 +354,71 @@
       ]
     },
     {
-      "address": 4020787,
-      "file_offset": 4020787,
+      "address": 3992147,
+      "file_offset": 3992147,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
-        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb0ELb1ELb0ELb0ELb0EEEjv"
+        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb0ELb1ELb0ELb1ELb0EEEjv"
       ]
     },
     {
-      "address": 4028675,
-      "file_offset": 4028675,
+      "address": 3995107,
+      "file_offset": 3995107,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb0ELb1ELb1ELb1ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 3998358,
+      "file_offset": 3998358,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb1ELb1ELb1ELb1ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 4001830,
+      "file_offset": 4001830,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb1ELb1ELb0ELb1ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 4005443,
+      "file_offset": 4005443,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb1ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 4008883,
+      "file_offset": 4008883,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb1ELb1ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 4012803,
+      "file_offset": 4012803,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb1ELb1ELb1ELb1ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 4021299,
+      "file_offset": 4021299,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -435,17 +426,17 @@
       ]
     },
     {
-      "address": 4036950,
-      "file_offset": 4036950,
+      "address": 4029283,
+      "file_offset": 4029283,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
-        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb1ELb1ELb1ELb0ELb0EEEjv"
+        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb0ELb1ELb0ELb0ELb0EEEjv"
       ]
     },
     {
-      "address": 4045126,
-      "file_offset": 4045126,
+      "address": 4037462,
+      "file_offset": 4037462,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -453,17 +444,17 @@
       ]
     },
     {
-      "address": 4053443,
-      "file_offset": 4053443,
+      "address": 4045622,
+      "file_offset": 4045622,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
-        "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv"
+        "_ZN8tomo_db06IoLoop14r7_flush_readyILb0ELb1ELb1ELb1ELb0ELb0EEEjv"
       ]
     },
     {
-      "address": 4061859,
-      "file_offset": 4061859,
+      "address": 4053955,
+      "file_offset": 4053955,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -471,8 +462,17 @@
       ]
     },
     {
-      "address": 4070867,
-      "file_offset": 4070867,
+      "address": 4062451,
+      "file_offset": 4062451,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN8tomo_db06IoLoop14r7_flush_readyILb1ELb0ELb1ELb0ELb0ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 4071347,
+      "file_offset": 4071347,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -480,8 +480,8 @@
       ]
     },
     {
-      "address": 4683011,
-      "file_offset": 4683011,
+      "address": 4683795,
+      "file_offset": 4683795,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -489,8 +489,8 @@
       ]
     },
     {
-      "address": 4687731,
-      "file_offset": 4687731,
+      "address": 4688515,
+      "file_offset": 4688515,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -498,8 +498,8 @@
       ]
     },
     {
-      "address": 4692083,
-      "file_offset": 4692083,
+      "address": 4692867,
+      "file_offset": 4692867,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -507,8 +507,8 @@
       ]
     },
     {
-      "address": 4695603,
-      "file_offset": 4695603,
+      "address": 4696387,
+      "file_offset": 4696387,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -516,44 +516,8 @@
       ]
     },
     {
-      "address": 7137699,
-      "file_offset": 7137699,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb0ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 7140467,
-      "file_offset": 7140467,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb0ELb0ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 7143731,
-      "file_offset": 7143731,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 7152179,
-      "file_offset": 7152179,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb0ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 7161043,
-      "file_offset": 7161043,
+      "address": 7138371,
+      "file_offset": 7138371,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -561,8 +525,8 @@
       ]
     },
     {
-      "address": 7163507,
-      "file_offset": 7163507,
+      "address": 7140835,
+      "file_offset": 7140835,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -570,8 +534,8 @@
       ]
     },
     {
-      "address": 7166307,
-      "file_offset": 7166307,
+      "address": 7143635,
+      "file_offset": 7143635,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -579,8 +543,8 @@
       ]
     },
     {
-      "address": 7174435,
-      "file_offset": 7174435,
+      "address": 7151763,
+      "file_offset": 7151763,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -588,8 +552,44 @@
       ]
     },
     {
-      "address": 7183123,
-      "file_offset": 7183123,
+      "address": 7160787,
+      "file_offset": 7160787,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb0ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 7163555,
+      "file_offset": 7163555,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb0ELb0ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 7166819,
+      "file_offset": 7166819,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN4tomo6IoLoop11flush_readyILb1ELb1ELb1ELb0ELb1ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 7175267,
+      "file_offset": 7175267,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb0ELb1ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 7184131,
+      "file_offset": 7184131,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -597,8 +597,8 @@
       ]
     },
     {
-      "address": 7185587,
-      "file_offset": 7185587,
+      "address": 7186595,
+      "file_offset": 7186595,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -606,8 +606,8 @@
       ]
     },
     {
-      "address": 7188387,
-      "file_offset": 7188387,
+      "address": 7189395,
+      "file_offset": 7189395,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -615,8 +615,8 @@
       ]
     },
     {
-      "address": 7196563,
-      "file_offset": 7196563,
+      "address": 7197571,
+      "file_offset": 7197571,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -624,8 +624,8 @@
       ]
     },
     {
-      "address": 7205699,
-      "file_offset": 7205699,
+      "address": 7206675,
+      "file_offset": 7206675,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -633,8 +633,8 @@
       ]
     },
     {
-      "address": 7208467,
-      "file_offset": 7208467,
+      "address": 7209443,
+      "file_offset": 7209443,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -642,8 +642,8 @@
       ]
     },
     {
-      "address": 7211731,
-      "file_offset": 7211731,
+      "address": 7212707,
+      "file_offset": 7212707,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -651,8 +651,8 @@
       ]
     },
     {
-      "address": 7220211,
-      "file_offset": 7220211,
+      "address": 7221187,
+      "file_offset": 7221187,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -660,8 +660,8 @@
       ]
     },
     {
-      "address": 7383059,
-      "file_offset": 7383059,
+      "address": 7383955,
+      "file_offset": 7383955,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -669,8 +669,8 @@
       ]
     },
     {
-      "address": 7386227,
-      "file_offset": 7386227,
+      "address": 7387123,
+      "file_offset": 7387123,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -678,8 +678,8 @@
       ]
     },
     {
-      "address": 7389011,
-      "file_offset": 7389011,
+      "address": 7389907,
+      "file_offset": 7389907,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -687,17 +687,8 @@
       ]
     },
     {
-      "address": 7392102,
-      "file_offset": 7392102,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb0ELb0ELb1EEEjv"
-      ]
-    },
-    {
-      "address": 7395254,
-      "file_offset": 7395254,
+      "address": 7392998,
+      "file_offset": 7392998,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -705,17 +696,17 @@
       ]
     },
     {
-      "address": 7398595,
-      "file_offset": 7398595,
+      "address": 7396150,
+      "file_offset": 7396150,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
-        "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb1EEEjv"
+        "_ZN4tomo6IoLoop11flush_readyILb0ELb1ELb1ELb0ELb0ELb1EEEjv"
       ]
     },
     {
-      "address": 7402035,
-      "file_offset": 7402035,
+      "address": 7399491,
+      "file_offset": 7399491,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -723,8 +714,17 @@
       ]
     },
     {
-      "address": 7406019,
-      "file_offset": 7406019,
+      "address": 7402931,
+      "file_offset": 7402931,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN4tomo6IoLoop11flush_readyILb1ELb0ELb1ELb0ELb0ELb1EEEjv"
+      ]
+    },
+    {
+      "address": 7406915,
+      "file_offset": 7406915,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -732,8 +732,8 @@
       ]
     },
     {
-      "address": 7409987,
-      "file_offset": 7409987,
+      "address": 7410883,
+      "file_offset": 7410883,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -741,8 +741,8 @@
       ]
     },
     {
-      "address": 7419427,
-      "file_offset": 7419427,
+      "address": 7420323,
+      "file_offset": 7420323,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -750,8 +750,8 @@
       ]
     },
     {
-      "address": 7428419,
-      "file_offset": 7428419,
+      "address": 7429315,
+      "file_offset": 7429315,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -759,8 +759,8 @@
       ]
     },
     {
-      "address": 7437830,
-      "file_offset": 7437830,
+      "address": 7438726,
+      "file_offset": 7438726,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -768,8 +768,8 @@
       ]
     },
     {
-      "address": 7447350,
-      "file_offset": 7447350,
+      "address": 7448246,
+      "file_offset": 7448246,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -777,8 +777,8 @@
       ]
     },
     {
-      "address": 7457075,
-      "file_offset": 7457075,
+      "address": 7457971,
+      "file_offset": 7457971,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -786,8 +786,8 @@
       ]
     },
     {
-      "address": 7466883,
-      "file_offset": 7466883,
+      "address": 7467779,
+      "file_offset": 7467779,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -795,8 +795,8 @@
       ]
     },
     {
-      "address": 7477123,
-      "file_offset": 7477123,
+      "address": 7478019,
+      "file_offset": 7478019,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -804,8 +804,8 @@
       ]
     },
     {
-      "address": 7795811,
-      "file_offset": 7795811,
+      "address": 7796979,
+      "file_offset": 7796979,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -813,8 +813,8 @@
       ]
     },
     {
-      "address": 7800835,
-      "file_offset": 7800835,
+      "address": 7802003,
+      "file_offset": 7802003,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -822,17 +822,8 @@
       ]
     },
     {
-      "address": 7803907,
-      "file_offset": 7803907,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN4tomo6IoLoop14r7_flush_readyILb0ELb0ELb1ELb1ELb1ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 7806563,
-      "file_offset": 7806563,
+      "address": 7805075,
+      "file_offset": 7805075,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -840,17 +831,17 @@
       ]
     },
     {
-      "address": 7809686,
-      "file_offset": 7809686,
+      "address": 7807731,
+      "file_offset": 7807731,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
-        "_ZN4tomo6IoLoop14r7_flush_readyILb0ELb1ELb1ELb0ELb1ELb0EEEjv"
+        "_ZN4tomo6IoLoop14r7_flush_readyILb0ELb0ELb1ELb1ELb1ELb0EEEjv"
       ]
     },
     {
-      "address": 7813126,
-      "file_offset": 7813126,
+      "address": 7810854,
+      "file_offset": 7810854,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -858,8 +849,17 @@
       ]
     },
     {
-      "address": 7816739,
-      "file_offset": 7816739,
+      "address": 7814310,
+      "file_offset": 7814310,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN4tomo6IoLoop14r7_flush_readyILb0ELb1ELb1ELb0ELb1ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 7817907,
+      "file_offset": 7817907,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -867,8 +867,8 @@
       ]
     },
     {
-      "address": 7820147,
-      "file_offset": 7820147,
+      "address": 7821315,
+      "file_offset": 7821315,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -876,8 +876,8 @@
       ]
     },
     {
-      "address": 7823891,
-      "file_offset": 7823891,
+      "address": 7825059,
+      "file_offset": 7825059,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -885,17 +885,8 @@
       ]
     },
     {
-      "address": 7832483,
-      "file_offset": 7832483,
-      "before": "0f95c0",
-      "after": "b00190",
-      "functions": [
-        "_ZN4tomo6IoLoop14r7_flush_readyILb0ELb0ELb1ELb0ELb0ELb0EEEjv"
-      ]
-    },
-    {
-      "address": 7840355,
-      "file_offset": 7840355,
+      "address": 7833635,
+      "file_offset": 7833635,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -903,8 +894,17 @@
       ]
     },
     {
-      "address": 7848774,
-      "file_offset": 7848774,
+      "address": 7841587,
+      "file_offset": 7841587,
+      "before": "0f95c0",
+      "after": "b00190",
+      "functions": [
+        "_ZN4tomo6IoLoop14r7_flush_readyILb0ELb0ELb1ELb0ELb0ELb0EEEjv"
+      ]
+    },
+    {
+      "address": 7849910,
+      "file_offset": 7849910,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -912,8 +912,8 @@
       ]
     },
     {
-      "address": 7857238,
-      "file_offset": 7857238,
+      "address": 7858374,
+      "file_offset": 7858374,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -921,8 +921,8 @@
       ]
     },
     {
-      "address": 7865843,
-      "file_offset": 7865843,
+      "address": 7866979,
+      "file_offset": 7866979,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -930,8 +930,8 @@
       ]
     },
     {
-      "address": 7874515,
-      "file_offset": 7874515,
+      "address": 7875651,
+      "file_offset": 7875651,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [
@@ -939,8 +939,8 @@
       ]
     },
     {
-      "address": 7883587,
-      "file_offset": 7883587,
+      "address": 7884723,
+      "file_offset": 7884723,
       "before": "0f95c0",
       "after": "b00190",
       "functions": [

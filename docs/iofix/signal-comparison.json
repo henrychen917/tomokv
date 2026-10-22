@@ -40,36 +40,46 @@
       {
         "exit": 0,
         "kind": "oracle",
-        "seconds": 0.11344743892550468,
+        "seconds": 0.11342599429190159,
         "signal": "SIGTERM"
       },
       {
         "exit": 0,
         "kind": "oracle",
-        "seconds": 0.11344664823263884,
+        "seconds": 0.11345735471695662,
         "signal": "SIGINT"
       },
       {
-        "failed_save_idle_cpu_seconds": 0.0003486,
+        "failed_save_parked_threads": 6,
+        "kind": "oracle"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00034433,
         "kind": "oracle"
       },
       {
         "exit": 0,
         "kind": "target",
-        "seconds": 0.003154638223350048,
+        "seconds": 0.0031759878620505333,
         "signal": "SIGTERM"
       },
       {
         "exit": 0,
         "kind": "target",
-        "seconds": 0.0031537283211946487,
+        "seconds": 0.0031614378094673157,
         "signal": "SIGINT"
       },
       {
-        "failed_save_idle_cpu_seconds": 0.002517,
+        "failed_save_parked_threads": 10,
+        "kind": "target"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00234442,
         "kind": "target"
       }
-    ]
+    ],
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-signal/signal-2s-uring.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
   },
   {
     "mode": "2s",
@@ -112,36 +122,46 @@
       {
         "exit": 0,
         "kind": "oracle",
-        "seconds": 0.1134239798411727,
+        "seconds": 0.11346918623894453,
         "signal": "SIGTERM"
       },
       {
         "exit": 0,
         "kind": "oracle",
-        "seconds": 0.11346287932246923,
+        "seconds": 0.1134606059640646,
         "signal": "SIGINT"
       },
       {
-        "failed_save_idle_cpu_seconds": 0.00032642,
+        "failed_save_parked_threads": 6,
+        "kind": "oracle"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00035108,
         "kind": "oracle"
       },
       {
         "exit": 0,
         "kind": "target",
-        "seconds": 0.0031660888344049454,
+        "seconds": 0.0031607290729880333,
         "signal": "SIGTERM"
       },
       {
         "exit": 0,
         "kind": "target",
-        "seconds": 0.003150707110762596,
+        "seconds": 0.003156859427690506,
         "signal": "SIGINT"
       },
       {
-        "failed_save_idle_cpu_seconds": 0.00261634,
+        "failed_save_parked_threads": 9,
+        "kind": "target"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00261408,
         "kind": "target"
       }
-    ]
+    ],
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-signal/signal-2s-epoll.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
   },
   {
     "mode": "1s",
@@ -184,36 +204,46 @@
       {
         "exit": 0,
         "kind": "oracle",
-        "seconds": 0.11346201971173286,
+        "seconds": 0.11347101721912622,
         "signal": "SIGTERM"
       },
       {
         "exit": 0,
         "kind": "oracle",
-        "seconds": 0.11345124989748001,
+        "seconds": 0.11345842853188515,
         "signal": "SIGINT"
       },
       {
-        "failed_save_idle_cpu_seconds": 0.000351182,
+        "failed_save_parked_threads": 6,
+        "kind": "oracle"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.000376669,
         "kind": "oracle"
       },
       {
         "exit": 0,
         "kind": "target",
-        "seconds": 0.0031583886593580246,
+        "seconds": 0.0031599001958966255,
         "signal": "SIGTERM"
       },
       {
         "exit": 0,
         "kind": "target",
-        "seconds": 0.007212819531559944,
+        "seconds": 0.0031604785472154617,
         "signal": "SIGINT"
       },
       {
-        "failed_save_idle_cpu_seconds": 0.00074919,
+        "failed_save_parked_threads": 10,
+        "kind": "target"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.000765,
         "kind": "target"
       }
-    ]
+    ],
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-signal/signal-1s-uring.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
   },
   {
     "mode": "1s",
@@ -256,35 +286,45 @@
       {
         "exit": 0,
         "kind": "oracle",
-        "seconds": 0.11346316058188677,
+        "seconds": 0.11347511596977711,
         "signal": "SIGTERM"
       },
       {
         "exit": 0,
         "kind": "oracle",
-        "seconds": 0.11343128979206085,
+        "seconds": 0.11343270167708397,
         "signal": "SIGINT"
       },
       {
-        "failed_save_idle_cpu_seconds": 0.00035286,
+        "failed_save_parked_threads": 6,
+        "kind": "oracle"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00034107,
         "kind": "oracle"
       },
       {
         "exit": 0,
         "kind": "target",
-        "seconds": 0.003156588412821293,
+        "seconds": 0.003162691369652748,
         "signal": "SIGTERM"
       },
       {
         "exit": 0,
         "kind": "target",
-        "seconds": 0.003159118816256523,
+        "seconds": 0.00721778254956007,
         "signal": "SIGINT"
       },
       {
-        "failed_save_idle_cpu_seconds": 0.0006549,
+        "failed_save_parked_threads": 9,
+        "kind": "target"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00069018,
         "kind": "target"
       }
-    ]
+    ],
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-signal/signal-1s-epoll.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
   }
 ]

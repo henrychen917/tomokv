@@ -1,18 +1,18 @@
 {
-  "changed_emitted_bodies": 720,
-  "changed_linked_pre": 409,
-  "changed_linked_post": 459,
+  "changed_emitted_bodies": 762,
+  "changed_linked_pre": 434,
+  "changed_linked_post": 492,
   "main_linked_bodies": 143,
   "main_equal": 143,
   "reasons": {
     "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim.": 259,
     "IO4.10: DEBUG sleep completion uses a global ticket and is excluded from blocked-client accounting.": 22,
     "Compiler emission changed after the included IO/admin definitions and unit budgets changed; added/removed copy is inventoried.": 69,
-    "IO4.17: signal request wake/consumption and terminal wake; interrupt any global sleep.": 6,
+    "IO4.17: separate request and latched terminal wakes; restore concurrent terminal edges and interrupt global sleep.": 8,
     "IO4.10: Redis duration parsing, global worker rendezvous, completion ticket or signal interruption.": 60,
     "IO4.9: hz/dynamic-hz grammar, validation, initialization, CONFIG persistence or INFO reporting.": 20,
     "IO4.10: EXEC sleep retains its microsecond duration, starts at the owner join and waits on a global ticket.": 4,
-    "IO4.17: rearm the one-shot signal poll after a nonterminal request.": 44,
+    "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll.": 84,
     "WB4.1: only bounded deferral advancement reports work; saturated entries can park.": 104,
     "IO4.9: effective Redis hz controls cron cadence, client share and idle wait deadline.": 8,
     "IO4.10: direct DEBUG SLEEP uses a global ticket; parser templates and nested lambdas are re-emitted.": 52,
@@ -22,6 +22,6 @@
   },
   "binaries": {
     "build/tomokv-pre": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
-    "build/tomokv": "19e3a98b148a5537d211986b2ed16a7c89601ee37ae83e48bc5db709cf4d9fd3"
+    "build/tomokv": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
   }
 }

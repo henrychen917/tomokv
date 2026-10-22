@@ -7,14 +7,20 @@
   },
   {
     "path": "build/tomokv",
-    "sha256": "19e3a98b148a5537d211986b2ed16a7c89601ee37ae83e48bc5db709cf4d9fd3",
-    "file_bytes": 193532536,
-    "text_bytes": 7795286
+    "sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+    "file_bytes": 193530560,
+    "text_bytes": 7796422
   },
   {
     "path": "build/tomokv-pad-a",
-    "sha256": "ab026810b1fc3e87278be18a7ffbd187f6e908ec5908cd541386e2be15c01b6b",
-    "file_bytes": 193532536,
-    "text_bytes": 7795286
+    "sha256": "409efd511fafa64b2bf170c08320486b690e3277704d29a5a2cda2ca0be7ac32",
+    "file_bytes": 192651080,
+    "text_bytes": 7796422
+  },
+  {
+    "path": "build/tomokv-pad-a-wb",
+    "sha256": "d9c7e12006eee966c474b705ad7f0bdd4156e63ee32057b7f34a799119ad3fb5",
+    "file_bytes": 193530560,
+    "text_bytes": 7796422
   }
 ]

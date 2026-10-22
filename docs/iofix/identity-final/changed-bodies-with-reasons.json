@@ -235,55 +235,29 @@
   },
   {
     "object": "db0/src/cmd/server_tail.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_objectERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_object(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "error_callee_only": false,
-    "raw_equal": false,
-    "pre_size": 1104,
-    "post_size": 1088,
-    "linked_pre": true,
-    "linked_post": true,
-    "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
-  },
-  {
-    "object": "db0/src/cmd/server_tail.o",
     "symbol": "_ZN8tomo_db020kvobj_external_bytesEPKNS_5KvObjE",
     "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
     "equal": false,
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 1463,
-    "post_size": 1271,
+    "post_size": 1322,
     "linked_pre": false,
     "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
   },
   {
     "object": "db0/src/cmd/server_tail.o",
-    "symbol": "_ZN8tomo_db029server_tail_config_subcommandERNS_2OpE",
-    "name": "tomo_db0::server_tail_config_subcommand(tomo_db0::Op&)",
+    "symbol": "_ZN8tomo_db06Server15finish_shutdownEv",
+    "name": "tomo_db0::Server::finish_shutdown()",
     "equal": false,
     "error_callee_only": false,
     "raw_equal": false,
-    "pre_size": 12557,
-    "post_size": 13080,
+    "pre_size": 204,
+    "post_size": 204,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
-  },
-  {
-    "object": "db0/src/cmd/server_tail.o",
-    "symbol": "_ZN8tomo_db029server_tail_config_subcommandERNS_2OpE.cold",
-    "name": "tomo_db0::server_tail_config_subcommand(tomo_db0::Op&) [clone .cold]",
-    "equal": false,
-    "error_callee_only": false,
-    "raw_equal": false,
-    "pre_size": 534,
-    "post_size": 599,
-    "linked_pre": true,
-    "linked_post": true,
-    "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
+    "reason": "IO4.17: separate request and latched terminal wakes; restore concurrent terminal edges and interrupt global sleep."
   },
   {
     "object": "db0/src/cmd/server_tail.o",
@@ -293,10 +267,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 309,
-    "post_size": 373,
+    "post_size": 485,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: signal request wake/consumption and terminal wake; interrupt any global sleep."
+    "reason": "IO4.17: separate request and latched terminal wakes; restore concurrent terminal edges and interrupt global sleep."
   },
   {
     "object": "db0/src/cmd/server_tail.o",
@@ -309,7 +283,7 @@
     "post_size": 40,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: signal request wake/consumption and terminal wake; interrupt any global sleep."
+    "reason": "IO4.17: separate request and latched terminal wakes; restore concurrent terminal edges and interrupt global sleep."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -998,7 +972,59 @@
     "post_size": 354,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb0ELb0ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 746,
+    "post_size": 764,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb0ELb1ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 925,
+    "post_size": 931,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb1ELb0ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 877,
+    "post_size": 895,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb1ELb1ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1037,
+    "post_size": 1059,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/genthread.o",
@@ -1405,6 +1431,19 @@
   },
   {
     "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop20signal_shutdown_wakeEv.isra.0",
+    "name": "tomo_db0::IoLoop::signal_shutdown_wake() [clone .isra.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 198,
+    "linked_pre": false,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/genthread.o",
     "symbol": "_ZN8tomo_db06IoLoop23debug_sleep_timer_startEPNS_6ClientEmmmRKNS_10SlowlogArmE.isra.0",
     "name": "tomo_db0::IoLoop::debug_sleep_timer_start(tomo_db0::Client*, unsigned long, unsigned long, unsigned long, tomo_db0::SlowlogArm const&) [clone .isra.0]",
     "equal": false,
@@ -1463,10 +1502,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/genthread.o",
@@ -1476,10 +1515,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/genthread.o",
@@ -1489,10 +1528,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 1159,
-    "post_size": 1191,
+    "post_size": 1207,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/genthread.o",
@@ -1505,7 +1544,7 @@
     "post_size": 913,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/genthread.o",
@@ -1726,7 +1765,7 @@
     "post_size": 146,
     "linked_pre": false,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/genthread.o",
@@ -1938,13 +1977,13 @@
   },
   {
     "object": "db0/src/core/genthread.o",
-    "symbol": "_ZZNK8tomo_db06Server22flip_smt_pairing_errorB5cxx11EjENKUljE_clEj",
-    "name": "tomo_db0::Server::flip_smt_pairing_error[abi:cxx11](unsigned int) const::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "symbol": "_ZZN8tomo_db09FlatStore35atomic_exchange_physical_read_localEmNS_5SliceEPNS_5KvObjEENKUliE_clEi",
+    "name": "tomo_db0::FlatStore::atomic_exchange_physical_read_local(unsigned long, tomo_db0::Slice, tomo_db0::KvObj*)::{lambda(int)#1}::operator()(int) const",
     "equal": false,
     "error_callee_only": false,
     "raw_equal": false,
-    "pre_size": 2797,
-    "post_size": 2637,
+    "pre_size": 1127,
+    "post_size": 852,
     "linked_pre": false,
     "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
@@ -2025,7 +2064,7 @@
     "post_size": 354,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/reorder.o",
@@ -2064,6 +2103,19 @@
     "post_size": 1371,
     "linked_pre": false,
     "linked_post": false,
+    "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db06IoLoop11r7_admit_fdILb0ELb1EEEviNS_6UrKindE",
+    "name": "void tomo_db0::IoLoop::r7_admit_fd<false, true>(int, tomo_db0::UrKind)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1827,
+    "post_size": 1635,
+    "linked_pre": true,
+    "linked_post": true,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
   },
   {
@@ -2208,6 +2260,58 @@
     "linked_pre": false,
     "linked_post": false,
     "reason": "IO4.10: DEBUG sleep completion uses a global ticket and is excluded from blocked-client accounting."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db06IoLoop13r7_epoll_passILb0ELb0ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::r7_epoll_pass<false, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 665,
+    "post_size": 654,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db06IoLoop13r7_epoll_passILb0ELb1ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::r7_epoll_pass<false, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 761,
+    "post_size": 738,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db06IoLoop13r7_epoll_passILb1ELb0ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::r7_epoll_pass<true, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 713,
+    "post_size": 702,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db06IoLoop13r7_epoll_passILb1ELb1ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::r7_epoll_pass<true, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 793,
+    "post_size": 786,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/reorder.o",
@@ -2373,7 +2477,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 3715,
-    "post_size": 3772,
+    "post_size": 3718,
     "linked_pre": true,
     "linked_post": true,
     "reason": "WB4.1: only bounded deferral advancement reports work; saturated entries can park."
@@ -2614,6 +2718,19 @@
   },
   {
     "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db06IoLoop20signal_shutdown_wakeEv.isra.0",
+    "name": "tomo_db0::IoLoop::signal_shutdown_wake() [clone .isra.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 198,
+    "linked_pre": false,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
     "symbol": "_ZN8tomo_db06IoLoop21pubsub_finish_pendingEm",
     "name": "tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)",
     "equal": false,
@@ -2750,10 +2867,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/reorder.o",
@@ -2763,10 +2880,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/reorder.o",
@@ -2779,7 +2896,7 @@
     "post_size": 753,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/reorder.o",
@@ -2792,7 +2909,7 @@
     "post_size": 753,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/reorder.o",
@@ -2868,6 +2985,19 @@
     "raw_equal": false,
     "pre_size": 4360,
     "post_size": 4450,
+    "linked_pre": false,
+    "linked_post": false,
+    "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE17flip_control_passEv",
+    "name": "tomo_db0::ExLoopT<true>::flip_control_pass()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 895,
+    "post_size": 879,
     "linked_pre": false,
     "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
@@ -2961,7 +3091,7 @@
     "post_size": 146,
     "linked_pre": true,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/reorder.o",
@@ -3063,19 +3193,6 @@
     "raw_equal": false,
     "pre_size": 1257,
     "post_size": 1208,
-    "linked_pre": false,
-    "linked_post": false,
-    "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
-  },
-  {
-    "object": "db0/src/core/reorder.o",
-    "symbol": "_ZN8tomo_db09FlatStore22snapshot_prepare_writeEmNS_5SliceE",
-    "name": "tomo_db0::FlatStore::snapshot_prepare_write(unsigned long, tomo_db0::Slice)",
-    "equal": false,
-    "error_callee_only": false,
-    "raw_equal": false,
-    "pre_size": 1380,
-    "post_size": 1348,
     "linked_pre": false,
     "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
@@ -3338,7 +3455,59 @@
     "post_size": 354,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb0ELb0ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 781,
+    "post_size": 803,
+    "linked_pre": false,
+    "linked_post": false,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb0ELb1ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 941,
+    "post_size": 951,
+    "linked_pre": false,
+    "linked_post": false,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb1ELb0ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 877,
+    "post_size": 895,
+    "linked_pre": false,
+    "linked_post": false,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb1ELb1ELb1EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1053,
+    "post_size": 1079,
+    "linked_pre": false,
+    "linked_post": false,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/rl2s.o",
@@ -3569,7 +3738,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 7182,
-    "post_size": 6900,
+    "post_size": 6711,
     "linked_pre": false,
     "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
@@ -3582,7 +3751,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 6914,
-    "post_size": 6675,
+    "post_size": 6599,
     "linked_pre": false,
     "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
@@ -3686,7 +3855,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 21388,
-    "post_size": 21199,
+    "post_size": 21215,
     "linked_pre": true,
     "linked_post": true,
     "reason": "IO4.10: direct DEBUG SLEEP uses a global ticket; parser templates and nested lambdas are re-emitted."
@@ -3703,6 +3872,19 @@
     "linked_pre": false,
     "linked_post": false,
     "reason": "IO4.10: DEBUG sleep completion uses a global ticket and is excluded from blocked-client accounting."
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop20signal_shutdown_wakeEv.isra.0",
+    "name": "tomo_db0::IoLoop::signal_shutdown_wake() [clone .isra.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 198,
+    "linked_pre": false,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/rl2s.o",
@@ -3738,10 +3920,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/rl2s.o",
@@ -3751,10 +3933,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/rl2s.o",
@@ -3764,10 +3946,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 1255,
-    "post_size": 1319,
+    "post_size": 1335,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/rl2s.o",
@@ -3777,10 +3959,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 913,
-    "post_size": 993,
+    "post_size": 1009,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/core/rl2s.o",
@@ -4040,7 +4222,7 @@
     "post_size": 543,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: signal request wake/consumption and terminal wake; interrupt any global sleep."
+    "reason": "IO4.17: separate request and latched terminal wakes; restore concurrent terminal edges and interrupt global sleep."
   },
   {
     "object": "db0/src/main.o",
@@ -4118,7 +4300,7 @@
     "post_size": 354,
     "linked_pre": false,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/main.o",
@@ -4145,6 +4327,58 @@
     "linked_pre": true,
     "linked_post": true,
     "reason": "IO4.9: hz/dynamic-hz grammar, validation, initialization, CONFIG persistence or INFO reporting."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb0ELb0ELb0EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, false, false>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 781,
+    "post_size": 803,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb0ELb1ELb0EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, true, false>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 941,
+    "post_size": 951,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb1ELb0ELb0EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, false>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 877,
+    "post_size": 895,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb1ELb1ELb0EEEji",
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, false>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1053,
+    "post_size": 1079,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/main.o",
@@ -4252,6 +4486,19 @@
   },
   {
     "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db06IoLoop20signal_shutdown_wakeEv.isra.0",
+    "name": "tomo_db0::IoLoop::signal_shutdown_wake() [clone .isra.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 198,
+    "linked_pre": false,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "db0/src/main.o",
     "symbol": "_ZN8tomo_db06IoLoop23debug_sleep_timer_startEPNS_6ClientEmmmRKNS_10SlowlogArmE.isra.0",
     "name": "tomo_db0::IoLoop::debug_sleep_timer_start(tomo_db0::Client*, unsigned long, unsigned long, unsigned long, tomo_db0::SlowlogArm const&) [clone .isra.0]",
     "equal": false,
@@ -4284,10 +4531,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 459,
-    "post_size": 507,
+    "post_size": 523,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/main.o",
@@ -4297,10 +4544,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 459,
-    "post_size": 507,
+    "post_size": 523,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/main.o",
@@ -4310,10 +4557,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 1223,
-    "post_size": 1255,
+    "post_size": 1271,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/main.o",
@@ -4323,10 +4570,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 891,
-    "post_size": 955,
+    "post_size": 971,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "db0/src/main.o",
@@ -4557,7 +4804,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 8469,
-    "post_size": 8598,
+    "post_size": 8611,
     "linked_pre": true,
     "linked_post": true,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
@@ -4863,13 +5110,26 @@
   },
   {
     "object": "src/cmd/server_tail.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_118reply_map_pair_intERNS_2Op4SinkEPKcy",
+    "name": "tomo::(anonymous namespace)::reply_map_pair_int(tomo::Op::Sink&, char const*, unsigned long long)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 705,
+    "post_size": 478,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
+  },
+  {
+    "object": "src/cmd/server_tail.o",
     "symbol": "_ZN4tomo20kvobj_external_bytesEPKNS_5KvObjE",
     "name": "tomo::kvobj_external_bytes(tomo::KvObj const*)",
     "equal": false,
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 1447,
-    "post_size": 1482,
+    "post_size": 1463,
     "linked_pre": false,
     "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
@@ -4882,7 +5142,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 12589,
-    "post_size": 12557,
+    "post_size": 12618,
     "linked_pre": true,
     "linked_post": true,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
@@ -4895,10 +5155,23 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 552,
-    "post_size": 534,
+    "post_size": 552,
     "linked_pre": true,
     "linked_post": true,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
+  },
+  {
+    "object": "src/cmd/server_tail.o",
+    "symbol": "_ZN4tomo6Server15finish_shutdownEv",
+    "name": "tomo::Server::finish_shutdown()",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 204,
+    "post_size": 204,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: separate request and latched terminal wakes; restore concurrent terminal edges and interrupt global sleep."
   },
   {
     "object": "src/cmd/server_tail.o",
@@ -4908,10 +5181,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 309,
-    "post_size": 373,
+    "post_size": 485,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: signal request wake/consumption and terminal wake; interrupt any global sleep."
+    "reason": "IO4.17: separate request and latched terminal wakes; restore concurrent terminal edges and interrupt global sleep."
   },
   {
     "object": "src/cmd/server_tail.o",
@@ -4924,7 +5197,7 @@
     "post_size": 40,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: signal request wake/consumption and terminal wake; interrupt any global sleep."
+    "reason": "IO4.17: separate request and latched terminal wakes; restore concurrent terminal edges and interrupt global sleep."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -5678,7 +5951,59 @@
     "post_size": 354,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb0ELb0ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 746,
+    "post_size": 776,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb0ELb1ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 941,
+    "post_size": 927,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb1ELb0ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 877,
+    "post_size": 891,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb1ELb1ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1053,
+    "post_size": 1055,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/genthread.o",
@@ -6033,6 +6358,19 @@
   },
   {
     "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop20signal_shutdown_wakeEv.isra.0",
+    "name": "tomo::IoLoop::signal_shutdown_wake() [clone .isra.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 198,
+    "linked_pre": false,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/genthread.o",
     "symbol": "_ZN4tomo6IoLoop21database_control_passEv",
     "name": "tomo::IoLoop::database_control_pass()",
     "equal": false,
@@ -6091,10 +6429,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/genthread.o",
@@ -6104,10 +6442,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/genthread.o",
@@ -6117,10 +6455,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 1159,
-    "post_size": 1191,
+    "post_size": 1207,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/genthread.o",
@@ -6133,7 +6471,7 @@
     "post_size": 913,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/genthread.o",
@@ -6195,7 +6533,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 5116,
-    "post_size": 5717,
+    "post_size": 5689,
     "linked_pre": true,
     "linked_post": true,
     "reason": "IO4.9/10/17: hz cron and bounded park deadline, global pause boundary, immediate pending-signal save."
@@ -6328,7 +6666,7 @@
     "post_size": 146,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/genthread.o",
@@ -6432,6 +6770,19 @@
     "post_size": 332,
     "linked_pre": true,
     "linked_post": true,
+    "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZZN4tomo9FlatStore35atomic_exchange_physical_read_localEmNS_5SliceEPNS_5KvObjEENKUliE_clEi",
+    "name": "tomo::FlatStore::atomic_exchange_physical_read_local(unsigned long, tomo::Slice, tomo::KvObj*)::{lambda(int)#1}::operator()(int) const",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 984,
+    "post_size": 800,
+    "linked_pre": false,
+    "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
   },
   {
@@ -6549,7 +6900,7 @@
     "post_size": 354,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/reorder.o",
@@ -6572,7 +6923,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 4842,
-    "post_size": 5536,
+    "post_size": 5513,
     "linked_pre": true,
     "linked_post": true,
     "reason": "IO4.9/10/17: hz cron and bounded park deadline, global pause boundary, immediate pending-signal save."
@@ -6663,7 +7014,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 4828,
-    "post_size": 5498,
+    "post_size": 5475,
     "linked_pre": true,
     "linked_post": true,
     "reason": "IO4.9/10/17: hz cron and bounded park deadline, global pause boundary, immediate pending-signal save."
@@ -6732,6 +7083,58 @@
     "linked_pre": false,
     "linked_post": true,
     "reason": "Compiler emission changed after the included IO/admin definitions and unit budgets changed; added/removed copy is inventoried."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo6IoLoop13r7_epoll_passILb0ELb0ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::r7_epoll_pass<false, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 633,
+    "post_size": 646,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo6IoLoop13r7_epoll_passILb0ELb1ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::r7_epoll_pass<false, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 729,
+    "post_size": 730,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo6IoLoop13r7_epoll_passILb1ELb0ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::r7_epoll_pass<true, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 681,
+    "post_size": 694,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo6IoLoop13r7_epoll_passILb1ELb1ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::r7_epoll_pass<true, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 777,
+    "post_size": 778,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/reorder.o",
@@ -7014,7 +7417,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 18483,
-    "post_size": 18451,
+    "post_size": 18543,
     "linked_pre": false,
     "linked_post": false,
     "reason": "IO4.10: direct DEBUG SLEEP uses a global ticket; parser templates and nested lambdas are re-emitted."
@@ -7109,6 +7512,19 @@
     "linked_pre": false,
     "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo6IoLoop20signal_shutdown_wakeEv.isra.0",
+    "name": "tomo::IoLoop::signal_shutdown_wake() [clone .isra.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 198,
+    "linked_pre": false,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/reorder.o",
@@ -7274,10 +7690,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/reorder.o",
@@ -7287,10 +7703,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/reorder.o",
@@ -7303,7 +7719,7 @@
     "post_size": 753,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/reorder.o",
@@ -7316,7 +7732,7 @@
     "post_size": 753,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/reorder.o",
@@ -7459,7 +7875,7 @@
     "post_size": 146,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/reorder.o",
@@ -7638,7 +8054,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 808,
-    "post_size": 798,
+    "post_size": 769,
     "linked_pre": false,
     "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
@@ -7924,7 +8340,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 5626,
-    "post_size": 5144,
+    "post_size": 5217,
     "linked_pre": false,
     "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
@@ -7992,7 +8408,59 @@
     "post_size": 354,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb0ELb0ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 794,
+    "post_size": 815,
+    "linked_pre": false,
+    "linked_post": false,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb0ELb1ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 957,
+    "post_size": 947,
+    "linked_pre": false,
+    "linked_post": false,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb1ELb0ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, false, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 877,
+    "post_size": 891,
+    "linked_pre": false,
+    "linked_post": false,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb1ELb1ELb1EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, true, true>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1069,
+    "post_size": 1075,
+    "linked_pre": false,
+    "linked_post": false,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/rl2s.o",
@@ -8262,7 +8730,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 21049,
-    "post_size": 20344,
+    "post_size": 20292,
     "linked_pre": true,
     "linked_post": true,
     "reason": "IO4.10: direct DEBUG SLEEP uses a global ticket; parser templates and nested lambdas are re-emitted."
@@ -8288,7 +8756,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 21239,
-    "post_size": 20631,
+    "post_size": 20573,
     "linked_pre": true,
     "linked_post": true,
     "reason": "IO4.10: direct DEBUG SLEEP uses a global ticket; parser templates and nested lambdas are re-emitted."
@@ -8301,7 +8769,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 12232,
-    "post_size": 12098,
+    "post_size": 12045,
     "linked_pre": true,
     "linked_post": true,
     "reason": "IO4.10: direct DEBUG SLEEP uses a global ticket; parser templates and nested lambdas are re-emitted."
@@ -8353,7 +8821,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 21252,
-    "post_size": 20598,
+    "post_size": 20493,
     "linked_pre": true,
     "linked_post": true,
     "reason": "IO4.10: direct DEBUG SLEEP uses a global ticket; parser templates and nested lambdas are re-emitted."
@@ -8386,6 +8854,19 @@
   },
   {
     "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop20signal_shutdown_wakeEv.isra.0",
+    "name": "tomo::IoLoop::signal_shutdown_wake() [clone .isra.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 198,
+    "linked_pre": false,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/core/rl2s.o",
     "symbol": "_ZN4tomo6IoLoop21ReadLocalDemotionPlan12post_currentERKNS_4TaskEj",
     "name": "tomo::IoLoop::ReadLocalDemotionPlan::post_current(tomo::Task const&, unsigned int)",
     "equal": false,
@@ -8405,7 +8886,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 6894,
-    "post_size": 6896,
+    "post_size": 6883,
     "linked_pre": false,
     "linked_post": false,
     "reason": "No source edit to this body: changed included IO/admin definitions and unit inlining altered its emitted code or resolved callees. This is recorded compiler drift, not an identity pass or a performance claim."
@@ -8457,10 +8938,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/rl2s.o",
@@ -8470,10 +8951,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 507,
-    "post_size": 539,
+    "post_size": 555,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/rl2s.o",
@@ -8483,10 +8964,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 1255,
-    "post_size": 1319,
+    "post_size": 1335,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/rl2s.o",
@@ -8496,10 +8977,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 913,
-    "post_size": 993,
+    "post_size": 1009,
     "linked_pre": false,
     "linked_post": false,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/core/rl2s.o",
@@ -8811,7 +9292,7 @@
     "post_size": 543,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: signal request wake/consumption and terminal wake; interrupt any global sleep."
+    "reason": "IO4.17: separate request and latched terminal wakes; restore concurrent terminal edges and interrupt global sleep."
   },
   {
     "object": "src/main.o",
@@ -8889,7 +9370,7 @@
     "post_size": 354,
     "linked_pre": false,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/main.o",
@@ -8916,6 +9397,58 @@
     "linked_pre": true,
     "linked_post": true,
     "reason": "IO4.9: hz/dynamic-hz grammar, validation, initialization, CONFIG persistence or INFO reporting."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb0ELb0ELb0EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, false, false>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 794,
+    "post_size": 815,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb0ELb1ELb0EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, true, false>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 957,
+    "post_size": 947,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb1ELb0ELb0EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, false, false>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 877,
+    "post_size": 891,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop10epoll_passILb1ELb1ELb0EEEji",
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, true, false>(int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1069,
+    "post_size": 1075,
+    "linked_pre": true,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/main.o",
@@ -9023,6 +9556,19 @@
   },
   {
     "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop20signal_shutdown_wakeEv.isra.0",
+    "name": "tomo::IoLoop::signal_shutdown_wake() [clone .isra.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 198,
+    "linked_pre": false,
+    "linked_post": true,
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
+  },
+  {
+    "object": "src/main.o",
     "symbol": "_ZN4tomo6IoLoop23debug_sleep_timer_startEPNS_6ClientEmmmRKNS_10SlowlogArmE.isra.0",
     "name": "tomo::IoLoop::debug_sleep_timer_start(tomo::Client*, unsigned long, unsigned long, unsigned long, tomo::SlowlogArm const&) [clone .isra.0]",
     "equal": false,
@@ -9055,10 +9601,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 459,
-    "post_size": 507,
+    "post_size": 523,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/main.o",
@@ -9068,10 +9614,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 459,
-    "post_size": 507,
+    "post_size": 523,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/main.o",
@@ -9081,10 +9627,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 1223,
-    "post_size": 1255,
+    "post_size": 1271,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/main.o",
@@ -9094,10 +9640,10 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 891,
-    "post_size": 955,
+    "post_size": 971,
     "linked_pre": true,
     "linked_post": true,
-    "reason": "IO4.17: rearm the one-shot signal poll after a nonterminal request."
+    "reason": "IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll."
   },
   {
     "object": "src/main.o",

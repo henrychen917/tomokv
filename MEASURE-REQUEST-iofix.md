@@ -75,7 +75,9 @@ and every DEBUG SLEEP grep user is mapped to its owning gate job in
 `docs/iofix/affected-jobs.md`. The corrected debug assertions and all new
 oracle reply comparisons retain their oracle runs.
 
-The pre-follow-up release directed run (`6SXO6t`) passed **63 rows, zero failures**.
+The final release directed run (`PHoa8J`) passed **72 rows, zero failures**.
+Its exact command, binary hash and complete archived evidence are in
+`docs/iofix/final-directed-receipt.json` and `docs/iofix/proof/final-directed/`.
 The identical new batteries on PRE (`1FCQ6x`) produced **39 passes and seven
 expected failures**: four new rows, two existing writeback phase/split-phase
 rows containing the stronger park assertion, and the corrected global DEBUG
@@ -88,22 +90,23 @@ Review then found a late-writer race in the signal eventfd. The new deterministi
 `netcmd config` witness failed all six dispatch variants on that release
 (`dCuZVC`: 16 passes, one expected failure). It explicitly opens the late-write
 window and checks elected-owner draining and terminal-edge retention. The
-follow-up rebuild and its proof results are being recorded separately; the
-earlier passing runs do not establish this stronger property.
+final directed run passes all six variants with explicit late-write draining
+and terminal-edge retention. The earlier passing runs are retained as interim
+evidence; they do not establish this stronger property.
 
 Actual connection-owner CPU, default policy=1/S16/D3, 16 remote LPOS windows:
 
 | Mode / engine | PRE IO CPU / wall (ms) | POST IO CPU / wall (ms) |
 | --- | ---: | ---: |
-| 2s / uring | 425.999 / 426.639 | 0.461 / 426.309 |
-| 2s / epoll | 425.795 / 426.271 | 0.462 / 426.586 |
-| 1s / uring | 438.417 / 438.910 | 0.488 / 428.486 |
-| 1s / epoll | 425.731 / 426.396 | 0.535 / 439.617 |
+| 2s / uring | 425.999 / 426.639 | 0.450 / 427.584 |
+| 2s / epoll | 425.795 / 426.271 | 0.472 / 427.398 |
+| 1s / uring | 438.417 / 438.910 | 0.502 / 426.604 |
+| 1s / epoll | 425.731 / 426.396 | 0.523 / 439.533 |
 
 Policy 0, S0/D3 and S16/D0 evidence is in
 `docs/iofix/deferred-cpu-comparison.json`. This is idle-IO CPU evidence, not a
 throughput experiment. Forced fresh-beat shutdown took 1014.66–1014.77 ms on
-PRE versus 3.15–7.21 ms on POST across SIGTERM/SIGINT and all four legs. Exact
+PRE versus 3.16–7.22 ms on POST across SIGTERM/SIGINT and all four legs. Exact
 values, failed-save idle CPU and oracle observations are in
 `docs/iofix/signal-comparison.json` and the retained signal logs.
 
@@ -125,11 +128,11 @@ correctly refuses the frozen 702 count; it is not called a pass. Evidence:
 ### Identity
 
 Existing ccfix/lbstall tools ran against PRE and report differences; whole-
-server strict identity is not claimed. All **720 changed emitted bodies**,
+server strict identity is not claimed. All **762 changed emitted bodies**,
 including added/removed COMDAT copies, reasons and actual PRE/POST link
 provenance, are listed in
-`docs/iofix/identity-final/changed-bodies-with-reasons.json`. Of these, 409 are
-linked in PRE and 459 in POST. Discarded object copies are identified.
+`docs/iofix/identity-final/changed-bodies-with-reasons.json`. Of these, 434 are
+linked in PRE and 492 in POST. Discarded object copies are identified.
 
 All **143 selected linked main-command bodies match PRE**, including GET/SET
 handlers, read-local GET/MGET resolvers, captured MGET/MSET executors and their
@@ -149,28 +152,36 @@ instructions. Other identity differences remain listed for merit judgment.
 | Arm | SHA-256 | .text bytes |
 | --- | --- | ---: |
 | build/tomokv-pre | 41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76 | 7,747,526 |
-| build/tomokv | 19e3a98b148a5537d211986b2ed16a7c89601ee37ae83e48bc5db709cf4d9fd3 | 7,795,286 |
-| build/tomokv-pad-a | ab026810b1fc3e87278be18a7ffbd187f6e908ec5908cd541386e2be15c01b6b | 7,795,286 |
+| build/tomokv | a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260 | 7,796,422 |
+| build/tomokv-pad-a | 409efd511fafa64b2bf170c08320486b690e3277704d29a5a2cda2ca0be7ac32 | 7,796,422 |
+| build/tomokv-pad-a-wb | d9c7e12006eee966c474b705ad7f0bdd4156e63ee32057b7f34a799119ad3fb5 | 7,796,422 |
 
-**PAD is kind A, scoped to WB4.1 and the nominated merit workloads:** PRE's
+**build/tomokv-pad-a is kind A: full PRE behavior with POST's exact .text
+size.** `tools/iofix_full_pad.py` first relinks the captured PRE objects to
+PRE's original SHA, then appends one unreachable 48,896-byte return/NOP function.
+All original PRE text function addresses and sizes remain unchanged; GNU CET
+properties are preserved. The control matches total text size, **not POST's
+function placement**. `docs/iofix/pad-a.json` records link inputs and checks.
+
+**build/tomokv-pad-a-wb is a separate kind A control scoped to WB4.1:** PRE's
 positive-work behavior whenever deferred, at POST's exact text/ELF layout.
 `tools/iofix_pad.py` patches only the boolean at all 104 linked FIFO/R7
 flush-ready sites (312 bytes). Section/symbol addresses/sizes are identical;
-no other bytes change. `docs/iofix/pad-a.json` records every patch.
+no other bytes change. `docs/iofix/pad-a-wb.json` records every patch. Its hz,
+DEBUG SLEEP and signal-stop administrative behavior remains POST.
 
-**This is not a full four-feature PRE behavior twin.** hz, DEBUG SLEEP and
-signal-stop administrative behavior remains POST. All nominated cells use
-default hz, 512 clients and no DEBUG SLEEP or signal-save operation; effective
-cron stays 10 Hz. The control isolates deferred-work behavior from layout; it
-cannot attribute constant coordination/administrative overhead of all four
-fixes. PRE versus POST remains the overall acceptance comparison.
+All nominated cells use default hz, 512 clients and no DEBUG SLEEP or
+signal-save operation; effective cron stays 10 Hz. The two controls answer
+different questions: total text size with full PRE behavior, and exact POST
+placement with PRE deferred-work behavior. Neither alone attributes every
+code-placement effect. PRE versus POST is the overall acceptance comparison.
 
 ### Maintainer merit request — NOT RUN in this lane
 
 Use `docs/iofix/merit-cells.txt`: exactly the generic 14 cells from
 `tests/wbland_merit_cells.txt` plus four **2s depth-1** cells (GET/SET ×
 read-local 0/1), atomic=1, 512 clients. Use the gate's ABBA instrument for PRE
-versus POST, then PRE versus PAD-A, including matched null controls. Preserve
+versus POST, then PRE versus each PAD-A control, including matched null controls. Preserve
 hashes, CPU/SMT masks, ratio, shards, load shape, sample order and receipts.
 Report rate at matched offered load and depth-1 p50/p99/throughput. Obtain
 cycles/op, instructions/op and IPC in a separate diagnostic PMU pass using
@@ -200,6 +211,8 @@ python3 tests/abbagate.py "${common[@]}" --candidate-binary build/tomokv \
     --output build/iofix-merit-post
 python3 tests/abbagate.py "${common[@]}" --candidate-binary build/tomokv-pad-a \
     --output build/iofix-merit-pad-a
+python3 tests/abbagate.py "${common[@]}" --candidate-binary build/tomokv-pad-a-wb \
+    --output build/iofix-merit-pad-a-wb
 python3 tools/wbknobs_measure.py --experiment null --profile 1 "${common[@]}" \
     --candidate-binary build/tomokv --output build/iofix-merit-pmu
 ```
@@ -207,7 +220,7 @@ python3 tools/wbknobs_measure.py --experiment null --profile 1 "${common[@]}" \
 Decision: compare POST with PRE in every cell. A material regression or
 invalid/null failure prevents acceptance. Explain cycles/op as instructions/op
 divided by IPC; fewer instructions alone prove no gain. For the scoped WB
-control, a behavioral gain needs POST to move while PAD-A stays with PRE,
+control, a behavioral gain needs POST to move while PAD-A-WB stays with PRE,
 subject to the same null envelope. Identical-arm spread above 2% requires
 diagnosis, not a wider noise allowance. No 25GbE claim follows from loopback.
 
@@ -215,13 +228,16 @@ diagnosis, not a wider noise allowance. No 25GbE claim follows from loopback.
 
 - Performance ABBA/PMU, full tests/gate.sh iteration, merging and pushing are
   **NOT RUN**; these remain the maintainer's scheduled work.
-- A full four-feature PRE behavior PAD-A is **not built**; the exact-layout
-  WB4.1 control has the explicit scope above.
+- The full PRE PAD-A controls text size, while the WB PAD-A controls exact
+  layout only for WB4.1; these limitations apply to merit attribution.
 - An initial splitlocal negative-control compile used that old fixture's
   hardcoded 112–127 mask. It now inherits 80–95 and was rerun. Database servers
   and oracles used the assigned server CPUs/ports. Initial gate selftests also
   used two ephemeral socket-only probe ports; the final run uses 19898. These
   initial attempts are retained as diagnostics.
+- The first full PAD link lacked GNU CET properties; strict address checks
+  rejected it before execution. The corrected builder preserves those notes
+  and publishes the arm only after all checks pass.
 - Earlier implementation/harness failures are retained and are not final
   passes. An early PRE signal attempt failed on an oracle log-string mismatch
   before reaching the target; it is not used as a negative witness. Final
