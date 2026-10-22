@@ -142,6 +142,24 @@ Independent serverless suites pass: `gates_test.py` **67/67**,
 `infofields_test.py` **9/9**, and `loading_ready_test.py` **22/22**.
 Receipts and commands are in `docs/wave4/serverless`.
 
+The original `abba_selftest` job passes **1/1** row, including all 15 component
+commands, in `docs/wave4/proof/abba-landing-complete`. Only the throwaway
+copy has EXPECT 685/702; its label fixture already matched 702. The first
+scratch attempt failed with six `FileNotFoundError` cases because the copy
+omitted tracked documentation fixtures. That failed receipt is retained in
+`proof/abba-landing`; adding the missing tracked files, with no assertion
+changes, yields the complete passing run. `landing-sim-files.json.gz` records
+the copied files and digests.
+
+The standard split differential matrices pass on both engines: **475/475**
+each, using permanent seeds 7, 19, 20, 23 plus rotating seed 21, both atomic
+settings, and all four repeated MULTI/atomic-1/seed-19 legs. Each engine also
+passes **16/16 mode-equivalence configurations**, with two boots per cell and
+6,137 byte-identical replies per cell. The gate's older printed label says
+"32 execution/knob combinations"; the retained result inventory makes clear
+that this is 16 configurations and 32 boots. Receipts:
+`docs/wave4/differ/{uring,epoll}-split` and `differ/split-summary.json`.
+
 ### Sweep findings outside the gate inventory
 
 The unchanged standalone `dumpttl.py` cross-wire oracle battery passes all
@@ -179,7 +197,9 @@ all 100 executions, and the diagnostic are in
 The moverfix lane's broader concurrent EXEC conservation counterexample failed
 both headline and isolated POST. Its atomic-0 claim protocol does not establish
 EXEC conservation; passing the standard MULTI/EXEC battery cannot erase that
-reported counterexample. This integration does not silently broaden the claim.
+reported counterexample. The inherited receipts are
+`docs/moverfix/exec-final/runs.json` and `docs/moverfix/exec-controls`.
+This integration does not silently broaden the claim.
 
 ### Maintainer measurement request
 
@@ -200,3 +220,13 @@ rules and per-cell score (rate, latency or tail); retain cycles/op, IPC and
 instructions/op alongside each PRE/POST result. The gate's verdict and the
 maintainer's merit decision determine acceptance; instruction identity does
 not substitute for that comparison. This lane makes **no throughput claim**.
+
+### NOT RUN
+
+| Item | Reason / retained limit |
+|---|---|
+| Performance/null comparison, load generators and full `tests/gate.sh iteration` | Explicitly reserved for the maintainer. The atomic-RYOW speed predicate is disabled through its existing correctness-only option; its overlap and ordering witnesses still run. |
+| `tests/climon_128.py` | Requires a witnessed fused geometry with more than 64 IO owners; this lane is limited to 48 CPUs. The ordinary TRACKING and climon matrices run in both modes. |
+| Broader concurrent EXEC conservation counterexample from moverfix | Its existing headline/isolated-POST failure is retained as a limitation; the integration runs the registered mover and MULTI/EXEC proofs, not a new counterexample campaign. |
+| C1 invalid-advertised-arity comparison for its 25 enumerated exclusions | Twenty-four variadic commands expose no invalid advertised arity; FLIP has no Redis counterpart. The original C1 inventory records these exclusions explicitly. |
+| Twenty fused differential SORT legs | The unchanged standard differential harness explicitly excludes SORT outside its required split 6:2 geometry. All corresponding split seeds run on both engines; no exclusion was added here. |

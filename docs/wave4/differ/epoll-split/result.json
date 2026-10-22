@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "105-111",
+    "bash",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-wave4/build/wave4/differ/tomokv-epoll",
+    "26862",
+    "26863",
+    "96-103",
+    "6:2"
+  ],
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave4/build/wave4/oracle",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+    "GATE_DIFFER_ORACLE_CORES": "104",
+    "GATE_LOAD_CORES": "105-111",
+    "GATE_RUN_ID": "wave4b-final-standard",
+    "GATE_DIFFER_GEOMETRY": "split",
+    "GATE_DIFFER_OUT": "/home/user/Projects/cx-wave4/build/wave4/differ/epoll-split",
+    "GATE_TEST_PORT": "26899"
+  },
+  "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+  "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+  "returncode": 0,
+  "seconds": 1075.6264649145305
+}
