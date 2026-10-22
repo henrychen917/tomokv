@@ -170,7 +170,9 @@ public:
         srv_ = srv; self_ = self;
         srv_->bind_owner_notify_pending(self_->id(), &notify_keyless_pending_);
         aof_manager_ = srv->aof().configured() ? &srv->aof() : nullptr;
-        foreign_touch_random_ ^= (static_cast<uint64_t>(self->id()) + 1) * 0x9e3779b97f4a7c15ULL;
+        // Multiplication by an odd word is injective modulo 2^64. Every thread
+        // therefore starts at a distinct nonzero xorshift state, including 0.
+        foreign_touch_random_ = (static_cast<uint64_t>(self->id()) + 1) * 0x9e3779b97f4a7c15ULL;
         lb_sample_rate_ = srv->key_lb_signals_enabled() ? srv->lb_sample_rate() : 0;
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
