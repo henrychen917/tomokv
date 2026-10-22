@@ -1,0 +1,1 @@
+{"pre": {"path": "/home/user/Projects/cx-trackfix/build/tomokv-PRE", "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26"}, "post": {"path": "/home/user/Projects/cx-trackfix/build/tomokv", "sha256": "787031f023997cd3e5ce2330e9d11794819c4799202714f5a1d7299c9b39a181"}, "total": 8701, "identical": 8189, "command_hot_total": 12, "command_hot_changed": []}

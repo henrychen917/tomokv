@@ -1,0 +1,86 @@
+[
+  {
+    "label": "trackfix2-broad-epoll",
+    "returncode": 1,
+    "passed": 172,
+    "failed": 1
+  },
+  {
+    "label": "trackfix2-broad-uring",
+    "returncode": 0,
+    "passed": 173,
+    "failed": 0
+  },
+  {
+    "label": "trackfix2-epoll-whole-job-recheck",
+    "returncode": 0,
+    "passed": 37,
+    "failed": 0
+  },
+  {
+    "label": "trackfix2-final-ownjobs",
+    "returncode": 0,
+    "passed": 3,
+    "failed": 0
+  },
+  {
+    "label": "trackfix2-final-pre-controls",
+    "returncode": 1,
+    "passed": 1,
+    "failed": 2
+  },
+  {
+    "label": "trackfix2-final-units",
+    "returncode": 1,
+    "passed": 50,
+    "failed": 2
+  },
+  {
+    "label": "trackfix2-fused-notify-epoll",
+    "returncode": 0,
+    "passed": 7,
+    "failed": 0
+  },
+  {
+    "label": "trackfix2-fused-notify-uring",
+    "returncode": 0,
+    "passed": 7,
+    "failed": 0
+  },
+  {
+    "label": "trackfix2-initial",
+    "returncode": 1,
+    "passed": 2,
+    "failed": 1
+  },
+  {
+    "label": "trackfix2-netcmd-fixture-final",
+    "returncode": 0,
+    "passed": 17,
+    "failed": 0
+  },
+  {
+    "label": "trackfix2-pad-a-accounting",
+    "returncode": 1,
+    "passed": 1,
+    "failed": 1
+  },
+  {
+    "label": "trackfix2-pre-controls",
+    "returncode": 1,
+    "passed": 1,
+    "failed": 1
+  },
+  {
+    "label": "trackfix2-scheduled-v2",
+    "returncode": 130,
+    "passed": 0,
+    "failed": 0
+  },
+  {
+    "label": "trackfix2-scheduled-v3",
+    "returncode": 0,
+    "passed": 2,
+    "failed": 0
+  }
+]

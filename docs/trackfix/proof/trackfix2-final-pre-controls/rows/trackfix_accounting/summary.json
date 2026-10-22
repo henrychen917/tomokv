@@ -1,0 +1,277 @@
+{
+  "legs": [
+    {
+      "leg": "order-1s-epoll-a0-rl0.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-1s-epoll-a0-rl1.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-1s-epoll-a1-rl0.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-1s-epoll-a1-rl1.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-1s-uring-a0-rl0.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-1s-uring-a0-rl1.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-1s-uring-a1-rl0.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-1s-uring-a1-rl1.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-2s-epoll-a0-rl0.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-2s-epoll-a0-rl1.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-2s-epoll-a1-rl0.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-2s-epoll-a1-rl1.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-2s-uring-a0-rl0.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-2s-uring-a0-rl1.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-2s-uring-a1-rl0.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    },
+    {
+      "leg": "order-2s-uring-a1-rl1.log",
+      "passed": 0,
+      "failed": 10,
+      "failures": [
+        "FAIL case() RESP2 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP2 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 default: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 BCAST: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTIN: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 OPTOUT: CC4.4 delivered tracking event is not dropped: got 1, expected 0",
+        "FAIL case() RESP3 NOLOOP: CC4.4 delivered tracking event is not dropped: got 1, expected 0"
+      ]
+    }
+  ],
+  "receipts": {}
+}

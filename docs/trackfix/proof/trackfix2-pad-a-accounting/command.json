@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-104",
+    "--load-cores",
+    "105-111",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "22830-22839",
+    "--candidate-binary",
+    "/home/user/Projects/cx-trackfix/build/trackfix/server-trackfix2-pad-a-accounting"
+  ],
+  "jobs": [
+    "trackfix_accounting"
+  ],
+  "binary": "/home/user/Projects/cx-trackfix/build/tomokv-PAD-A",
+  "sha256": "a564613eb192b16301960a6a45e780118f6e7ebbb72c5ad3ab71a14702ca16c0"
+}

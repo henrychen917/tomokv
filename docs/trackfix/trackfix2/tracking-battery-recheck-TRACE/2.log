@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-trackfix/tests/tracking.py", line 510, in <module>
+    assert info[1] == [b"on", b"broken_redirect"], f"broken_redirect not reported: {info!r}"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: broken_redirect not reported: [b'flags', [b'on'], b'redirect', 11, b'prefixes', []]

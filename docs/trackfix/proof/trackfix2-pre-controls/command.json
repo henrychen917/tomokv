@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-104",
+    "--load-cores",
+    "105-111",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "22840-22849",
+    "--candidate-binary",
+    "/home/user/Projects/cx-trackfix/build/trackfix/server-trackfix2-pre-controls"
+  ],
+  "jobs": [
+    "trackfix_order"
+  ],
+  "binary": "/home/user/Projects/cx-trackfix/build/tomokv-PRE",
+  "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26"
+}

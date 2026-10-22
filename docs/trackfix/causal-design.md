@@ -10,7 +10,12 @@ value becomes a vector of readers plus two 64-bit notification watermarks
 one 64-bit stamp. PubSubEventItem::count, previously unused for tracking,
 transports it without growing transport structures. Compiled sizes: TrackingRead 152 bytes plus 8 bytes per shard and 4 bytes per
 key (besides the existing strings); NotifyBatch 416 -> 424; NotifyOut 40 -> 48;
-PubSubEventItem stays 48. DWARF receipts are in trackfix2/sizes.json. Empty/disarmed paths allocate no tracking state.
+PubSubEventItem stays 48. DWARF receipts are in trackfix2/sizes.json. No per-read,
+pending-key or enrollment node is allocated with tracking disarmed. The shared
+ClimonConn/NotifyBatch/NotifyOut footprint increases also apply when another
+feature allocates those objects (MONITOR or keyspace notifications); empty
+tracking maps do not allocate nodes, and zero stamp fields remain inactive.
+The tracking clock is neither sampled nor incremented on those paths.
 
 ## Certificate and publication
 
@@ -118,3 +123,17 @@ has not yet reached its completion hook, or a pinned snapshot with no suitable
 certificate, can still cause an unnecessary invalidation. It cannot be dropped
 as an "older" write without the visibility proof. This limitation is distinct
 from the fixed delayed-transport duplicate and stale re-enrollment bugs.
+
+## Separate baseline REDIRECT-close defect
+
+The final broader validation exposed a pre-existing closure race: POST fails
+one of five isolated tracking batteries and PRE fails three of five, each on
+the same missing `broken_redirect` flag. A disposable trace shows that the
+causal path correctly retires enrollment 45 on write certificate 46 and calls
+`tracking_deliver_frame`. The directory lookup still finds the remote redirect
+target, but `TrackingDeliver` later sees it gone and exits without notifying
+the tracking source. The flag only gets set when the source's initial directory
+lookup fails. This unchanged baseline delivery path is outside the ordering
+comparison; the lane does not claim to fix it or label that battery uniformly
+green. Trace scripts, binary-patch-free debug copies and raw receipts are under
+`trackfix2/tracking-battery-recheck*` and `redirect_trace_build.py`.
