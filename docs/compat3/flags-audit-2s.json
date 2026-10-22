@@ -1,0 +1,439 @@
+[
+  {
+    "flags": [],
+    "command": [
+      "GET",
+      "k"
+    ],
+    "reply": {
+      "bytes": "6265666f7265"
+    }
+  },
+  {
+    "flags": [],
+    "command": [
+      "SET",
+      "k",
+      "after"
+    ],
+    "reply": {
+      "bytes": "4f4b"
+    }
+  },
+  {
+    "flags": [],
+    "command": [
+      "DEL",
+      "k"
+    ],
+    "reply": 1
+  },
+  {
+    "flags": [],
+    "command": [
+      "PUBLISH",
+      "k",
+      "message"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [],
+    "command": [
+      "SPUBLISH",
+      "k",
+      "message"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [],
+    "command": [
+      "PFCOUNT",
+      "k"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [],
+    "command": [
+      "PING"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes"
+    ],
+    "command": [
+      "GET",
+      "k"
+    ],
+    "reply": {
+      "bytes": "6265666f7265"
+    }
+  },
+  {
+    "flags": [
+      "no-writes"
+    ],
+    "command": [
+      "SET",
+      "k",
+      "after"
+    ],
+    "reply": {
+      "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+    }
+  },
+  {
+    "flags": [
+      "no-writes"
+    ],
+    "command": [
+      "DEL",
+      "k"
+    ],
+    "reply": {
+      "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+    }
+  },
+  {
+    "flags": [
+      "no-writes"
+    ],
+    "command": [
+      "PUBLISH",
+      "k",
+      "message"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes"
+    ],
+    "command": [
+      "SPUBLISH",
+      "k",
+      "message"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes"
+    ],
+    "command": [
+      "PFCOUNT",
+      "k"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes"
+    ],
+    "command": [
+      "PING"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "allow-stale"
+    ],
+    "command": [
+      "GET",
+      "k"
+    ],
+    "reply": {
+      "bytes": "6265666f7265"
+    }
+  },
+  {
+    "flags": [
+      "allow-stale"
+    ],
+    "command": [
+      "SET",
+      "k",
+      "after"
+    ],
+    "reply": {
+      "bytes": "4f4b"
+    }
+  },
+  {
+    "flags": [
+      "allow-stale"
+    ],
+    "command": [
+      "DEL",
+      "k"
+    ],
+    "reply": 1
+  },
+  {
+    "flags": [
+      "allow-stale"
+    ],
+    "command": [
+      "PUBLISH",
+      "k",
+      "message"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "allow-stale"
+    ],
+    "command": [
+      "SPUBLISH",
+      "k",
+      "message"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "allow-stale"
+    ],
+    "command": [
+      "PFCOUNT",
+      "k"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "allow-stale"
+    ],
+    "command": [
+      "PING"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-stale"
+    ],
+    "command": [
+      "GET",
+      "k"
+    ],
+    "reply": {
+      "bytes": "6265666f7265"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-stale"
+    ],
+    "command": [
+      "SET",
+      "k",
+      "after"
+    ],
+    "reply": {
+      "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-stale"
+    ],
+    "command": [
+      "DEL",
+      "k"
+    ],
+    "reply": {
+      "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-stale"
+    ],
+    "command": [
+      "PUBLISH",
+      "k",
+      "message"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-stale"
+    ],
+    "command": [
+      "SPUBLISH",
+      "k",
+      "message"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-stale"
+    ],
+    "command": [
+      "PFCOUNT",
+      "k"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-stale"
+    ],
+    "command": [
+      "PING"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-oom"
+    ],
+    "command": [
+      "GET",
+      "k"
+    ],
+    "reply": {
+      "bytes": "6265666f7265"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-oom"
+    ],
+    "command": [
+      "SET",
+      "k",
+      "after"
+    ],
+    "reply": {
+      "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-oom"
+    ],
+    "command": [
+      "DEL",
+      "k"
+    ],
+    "reply": {
+      "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-oom"
+    ],
+    "command": [
+      "PUBLISH",
+      "k",
+      "message"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-oom"
+    ],
+    "command": [
+      "SPUBLISH",
+      "k",
+      "message"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-oom"
+    ],
+    "command": [
+      "PFCOUNT",
+      "k"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "flags": [
+      "no-writes",
+      "allow-oom"
+    ],
+    "command": [
+      "PING"
+    ],
+    "reply": {
+      "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+    }
+  },
+  {
+    "admitted_growth": {
+      "reply": {
+        "bytes": "4f4b"
+      },
+      "length": 33554432,
+      "cap_restored": {
+        "error": "4f4f4d20636f6d6d616e64206e6f7420616c6c6f776564207768656e2075736564206d656d6f7279203e20276d61786d656d6f7279272e"
+      }
+    }
+  }
+]

@@ -1,0 +1,1078 @@
+[
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": 0
+    },
+    "target": {
+      "flags": [],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": 0
+    },
+    "target": {
+      "flags": [],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": 1
+    },
+    "target": {
+      "flags": [],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "504f4e47"
+      }
+    },
+    "target": {
+      "flags": [],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "504f4e47"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": 0
+    },
+    "target": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": 0
+    },
+    "target": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": 1
+    },
+    "target": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "504f4e47"
+      }
+    },
+    "target": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "504f4e47"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "504f4e47"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": 0
+    },
+    "target": {
+      "flags": [],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": 0
+    },
+    "target": {
+      "flags": [],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": 1
+    },
+    "target": {
+      "flags": [],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "504f4e47"
+      }
+    },
+    "target": {
+      "flags": [],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "504f4e47"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": 0
+    },
+    "target": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": 0
+    },
+    "target": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": 1
+    },
+    "target": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "504f4e47"
+      }
+    },
+    "target": {
+      "flags": [
+        "allow-stale"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "504f4e47"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-stale"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "SPUBLISH",
+        "k",
+        "message"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e642027535055424c49534827206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220577269746520636f6d6d616e647320617265206e6f7420616c6c6f7765642066726f6d20726561642d6f6e6c7920736372697074732e"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PFCOUNT",
+        "k"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e6420275046434f554e5427206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "oracle": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "504f4e47"
+      }
+    },
+    "target": {
+      "flags": [
+        "no-writes",
+        "allow-oom"
+      ],
+      "command": [
+        "PING"
+      ],
+      "reply": {
+        "bytes": "45525220636f6d6d616e64202750494e4727206973206e6f7420616c6c6f7765642066726f6d2073637269707473"
+      }
+    }
+  }
+]

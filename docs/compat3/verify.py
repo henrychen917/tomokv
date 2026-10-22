@@ -9,7 +9,9 @@ ENV={**os.environ,"REDIS74_ROOT":"/home/user/Projects/redis",
      "GATE_DIFFER_ORACLE_BIN":"/home/user/Projects/redis74/src/redis-server",
      "GATE_DIFFER_REDIS_CLI":"/home/user/Projects/redis74/src/redis-cli",
      "GATE_DIFFER_ORACLE_CORES":"104", "GATE_GLOBCASE_ORACLE_CORES":"104",
-     "GATE_TEST_PORT":"25899", "GATE_DIFFER_HISTORY":str(BUILD/"differ-history")}
+     "GATE_TEST_PORT":"25899", "GATE_DIFFER_HISTORY":str(BUILD/"differ-history"),
+     "PYTHONPATH":str(DOC/"port_guard")+os.pathsep+os.environ.get("PYTHONPATH",""),
+     "COMPAT3_PORT_RECEIPT":str(DOC/"fixture-ports.jsonl")}
 RESULTS=[]
 
 def execute(name,argv,extra=None):
@@ -27,13 +29,16 @@ def execute(name,argv,extra=None):
 
 def gate(name,jobs,binary):
     return execute(name,["tests/gate.sh","iteration","--server-cores","96-104",
-        "--load-cores","105-111","--load-smt","","--ports","25800-25821",
+        "--load-cores","105-111","--load-smt","","--ports",ARGS.ports,
         "--candidate-binary",binary],dict(GATE_ONLY_JOBS=jobs,GATE_LEDGER=str(DOC/(name+".ledger"))))
 
 p=argparse.ArgumentParser();p.add_argument("phase",choices=("units","post","pre","differ","selftest","flags"))
 p.add_argument("--prefix",default="",help="Keep continuation receipts separate from earlier attempts")
 p.add_argument("--engine",choices=("uring","epoll"),action="append",help="Differential engines; default both")
+p.add_argument("--ports",default="25800-25821",help="Reserved gate ports within 25800-25899")
 ARGS=p.parse_args()
+port_bounds=ARGS.ports.split("-")
+assert len(port_bounds)==2 and 25800<=int(port_bounds[0])<int(port_bounds[1])<=25899
 if ARGS.phase=="units":
     body=(ROOT/"tests/gate.sh").read_text().split("job_production_units(){",1)[1].split("\n}",1)[0]
     targets=re.findall(r"build/[\w-]+",body.split('>"$TMPDIR/build.log"',1)[0])
