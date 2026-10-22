@@ -1,0 +1,38 @@
+{
+  "name": "final-epoll",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "80-87",
+    "--load-cores",
+    "88-95",
+    "--ports",
+    "19800-19899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-iofix/docs/iofix/gate_candidate.py"
+  ],
+  "cwd": "/home/user/Projects/cx-iofix",
+  "binary": "/home/user/Projects/cx-iofix/build/tomokv",
+  "sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+  "jobs": [
+    "differ-split-0",
+    "differ-split-1",
+    "differ-armed-0",
+    "differ-armed-1",
+    "differ-equivalence",
+    "wb_policy",
+    "debug-0",
+    "debug-1",
+    "auth",
+    "flipctl",
+    "flip_saturated",
+    "notify"
+  ],
+  "engine": "epoll",
+  "mode": "",
+  "force_engine": false,
+  "expected_exit": 0,
+  "actual_exit": 0,
+  "run": "/home/user/Projects/cx-iofix/build/gate-run.RrQLvP"
+}

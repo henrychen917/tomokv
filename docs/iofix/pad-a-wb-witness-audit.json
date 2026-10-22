@@ -1,0 +1,38 @@
+{
+  "kind": "A: WB PRE behavior, exact POST ELF layout",
+  "checked_legs": 4,
+  "intended_failures": [
+    {
+      "mode": "2s",
+      "engine": "uring",
+      "log": "/home/user/Projects/cx-iofix/build/gate-run.ZjX82p/jobs/iofix-deferred/deferred-2s-uring.log",
+      "failure": "AssertionError: [('policy-1-S16-D3', 'deferred IO busy-spun', 0.42665296, 0.42665296, 0.4271177751943469), ('policy-1-S0-D3', 'deferred IO busy-spun', 0.42680336, 0.42680336, 0.42728113383054733), ('policy-1-S16-D0', 'deferred IO busy-spun', 0.42623049, 0.42623049, 0.42673840280622244)]",
+      "archive": "docs/iofix/proof/pad-a-wb-deferred/evidence.tar.gz",
+      "member": "jobs/iofix-deferred/deferred-2s-uring.log"
+    },
+    {
+      "mode": "2s",
+      "engine": "epoll",
+      "log": "/home/user/Projects/cx-iofix/build/gate-run.ZjX82p/jobs/iofix-deferred/deferred-2s-epoll.log",
+      "failure": "AssertionError: [('policy-1-S16-D3', 'deferred IO busy-spun', 0.42695729, 0.42695729, 0.42739524971693754), ('policy-1-S0-D3', 'deferred IO busy-spun', 0.42651767, 0.42651767, 0.4270343342795968), ('policy-1-S16-D0', 'deferred IO busy-spun', 0.426777091, 0.426777091, 0.42726369481533766)]",
+      "archive": "docs/iofix/proof/pad-a-wb-deferred/evidence.tar.gz",
+      "member": "jobs/iofix-deferred/deferred-2s-epoll.log"
+    },
+    {
+      "mode": "1s",
+      "engine": "uring",
+      "log": "/home/user/Projects/cx-iofix/build/gate-run.ZjX82p/jobs/iofix-deferred/deferred-1s-uring.log",
+      "failure": "AssertionError: [('policy-1-S16-D3', 'deferred IO busy-spun', 0.42932298, 0.42911732, 0.42984464205801487), ('policy-1-S0-D3', 'deferred IO busy-spun', 0.42542828, 0.42518724, 0.42591264843940735), ('policy-1-S16-D0', 'deferred IO busy-spun', 0.42583196, 0.4255991, 0.4263340765610337)]",
+      "archive": "docs/iofix/proof/pad-a-wb-deferred/evidence.tar.gz",
+      "member": "jobs/iofix-deferred/deferred-1s-uring.log"
+    },
+    {
+      "mode": "1s",
+      "engine": "epoll",
+      "log": "/home/user/Projects/cx-iofix/build/gate-run.ZjX82p/jobs/iofix-deferred/deferred-1s-epoll.log",
+      "failure": "AssertionError: [('policy-1-S16-D3', 'deferred IO busy-spun', 0.43874666, 0.43839618, 0.43919424805790186), ('policy-1-S0-D3', 'deferred IO busy-spun', 0.43835223, 0.43798796, 0.43881809897720814), ('policy-1-S16-D0', 'deferred IO busy-spun', 0.43828197, 0.43806027, 0.4387668389827013)]",
+      "archive": "docs/iofix/proof/pad-a-wb-deferred/evidence.tar.gz",
+      "member": "jobs/iofix-deferred/deferred-1s-epoll.log"
+    }
+  ]
+}

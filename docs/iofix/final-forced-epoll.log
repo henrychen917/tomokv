@@ -1,0 +1,39 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 8 load SMT threads (automatic available siblings), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-iofix/build/gate-run.MZm8I0
+PARTIAL jobs (including prerequisites): release production_units climonfix flip
+PARTIAL jobs (including prerequisites): release production_units climonfix flip
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; shutdown policy + signal handoff serverless
+  shutdown policy + signal handoff serverless          ok
+  row budget: 900s; median=0.34s; correctness-plan-fallback; shutdown persistence (1s, command)
+  shutdown persistence (1s, command)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (1s, sigterm)
+  shutdown persistence (1s, sigterm)                   ok
+  row budget: 900s; median=0.135s; correctness-plan-fallback; shutdown persistence (1s, sigint)
+  shutdown persistence (1s, sigint)                    ok
+  row budget: 900s; median=0.335s; correctness-plan-fallback; shutdown persistence (2s, command)
+  shutdown persistence (2s, command)                   ok
+  row budget: 900s; median=0.135s; correctness-plan-fallback; shutdown persistence (2s, sigterm)
+  shutdown persistence (2s, sigterm)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (2s, sigint)
+  shutdown persistence (2s, sigint)                    ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; FLIP state battery
+  FLIP state battery                                   ok
+  row budget: 900s; median=1.04s; correctness-plan-fallback; FLIP under verified load
+  FLIP under verified load                             ok
+  row budget: 900s; median=1.44s; correctness-plan-fallback; FLIP TTL + expiry events
+  FLIP TTL + expiry events                             ok
+  row budget: 900s; median=2.23s; correctness-plan-fallback; partial-frame conn parks (no io spin)
+  partial-frame conn parks (no io spin)                ok
+  row budget: 900s; median=1.01s; correctness-plan-fallback; FLIP close during FLIP (uring)
+  FLIP close during FLIP (uring)                       ok
+  row budget: 900s; median=1.02s; correctness-plan-fallback; FLIP close during FLIP (epoll)
+  FLIP close during FLIP (epoll)                       ok
+  row budget: 900s; median=0.49s; correctness-plan-fallback; FLIP signal stop during FLIP + second SIGINT
+  FLIP signal stop during FLIP + second SIGINT         ok
+  row budget: 900s; median=0.53s; correctness-plan-fallback; perfio stale epoll registration (epoll-flip)
+  perfio stale epoll registration (epoll-flip)         ok
+  row budget: 900s; median=12.18s; correctness-plan-fallback; perfio stale epoll registration (epoll-lb)
+  perfio stale epoll registration (epoll-lb)           ok
+GATE(PARTIAL): 17 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-iofix/build/gate-run.MZm8I0/ledger.partial

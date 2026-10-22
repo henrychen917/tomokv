@@ -20,7 +20,7 @@ for source in sorted(a.run.rglob('*')):
     if not source.is_file() or source.is_symlink():
         continue
     rel = source.relative_to(a.run)
-    if source.name in ('ledger', 'ledger.partial', 'ledger.partial.timings', 'timings', 'plan.sh') or source.suffix in ('.log', '.txt', '.json', '.jsonl', '.tsv', '.conf'):
+    if source.name in ('ledger', 'ledger.partial', 'ledger.partial.timings', 'timings', 'plan.sh') or source.name.startswith('gate-srv') or source.suffix in ('.log', '.txt', '.json', '.jsonl', '.tsv', '.conf'):
         dest = a.destination / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, dest)

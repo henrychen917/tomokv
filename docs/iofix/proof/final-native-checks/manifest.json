@@ -2,7 +2,7 @@
   "run": "/home/user/Projects/cx-iofix/build/gate-run.RgiM3K",
   "binary": "/home/user/Projects/cx-iofix/build/tomokv",
   "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
-  "note": "final-native-checks: gate-owned jobs; exact command/environment in group receipt",
+  "note": "final-native-checks: gate-owned jobs; exact command/environment in group receipt; includes generic gate-srv logs",
   "files": [
     {
       "path": "families.tsv",
@@ -865,6 +865,71 @@
       "sha256": "538a9da1ed9ae6b43095a3c2cc2046c26a02c43c88e8f8042df4dc887f43ce42"
     },
     {
+      "path": "jobs/aof-uring/gate-srv-main.6xS1yi",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.91Dm17",
+      "bytes": 6623,
+      "sha256": "4c0bf227860bf66bc2207e1b3a612275f7a664d4434b7e9af90a159fb2ebc9ce"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.9Yh1sa",
+      "bytes": 6646,
+      "sha256": "896173e0ff33ef3479e64932b0b4144cfa0e94001e53072f7f15edb1842ea425"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.9apdFO",
+      "bytes": 6651,
+      "sha256": "a06979d8f2d935ab9994071de8b97ad4b6043c5a5c4338fa8c226ad052097d6f"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.Ax8gVm",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.aCU4tB",
+      "bytes": 6613,
+      "sha256": "17d233fc210a5900d8ac817536612f8cd37f919142a9f1696d14652ebf0de11b"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.aGiSl8",
+      "bytes": 6601,
+      "sha256": "92f472be893bb846adf123fa386c53edaf654b283f0c4308877cc02a683ee48a"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.gbPVJj",
+      "bytes": 6669,
+      "sha256": "73f8eb5b9c74137769ad37bf0c35a1e93d2b4d70ffbd1cb1c4f58b9e86734735"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.gc40r6",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.hFKpJ2",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.n2Fu4e",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.uFPrAC",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.vTT8cz",
+      "bytes": 6575,
+      "sha256": "83626473a7c13def8d49399637c62581da239ba4691623bc4bae6cfeeb9a7316"
+    },
+    {
       "path": "jobs/aof-uring/ledger",
       "bytes": 2863,
       "sha256": "c048f73f41165b9403e9a5a21cc20004c31105f86afd58fa35f3f813dbb00274"
@@ -1222,6 +1287,6 @@
   ],
   "archive": {
     "path": "evidence.tar.gz",
-    "sha256": "0004caa2eb73b19db662d870d4b7f94f14b36f6129769782e4538005da745325"
+    "sha256": "d4aadcced228576471357e52d3a2c9cf29ca2beb6d0659561951df35544a1e40"
   }
 }

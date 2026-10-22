@@ -1,0 +1,282 @@
+[
+  {
+    "name": "pre-release-witnesses",
+    "arm": "pre",
+    "passed": 39,
+    "failed": 7,
+    "status": "Intended PRE failures: four new rows, two stronger writeback rows and corrected DEBUG row",
+    "binary_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+    "evidence": "docs/iofix/proof/pre-release-witnesses"
+  },
+  {
+    "name": "final-directed",
+    "arm": "post",
+    "passed": 72,
+    "failed": 0,
+    "failures": [],
+    "status": "PASS",
+    "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+    "jobs": [
+      "iofix-deferred",
+      "iofix-hz",
+      "iofix-sleep",
+      "iofix-signal",
+      "wb_rule_units",
+      "wbland_units",
+      "splitlocal_units",
+      "netcmd_units",
+      "config_unit",
+      "boot_grammar",
+      "auth",
+      "atomic_units",
+      "reorder_sync"
+    ],
+    "receipt": "docs/iofix/final-directed-receipt.json",
+    "evidence": "docs/iofix/proof/final-directed"
+  },
+  {
+    "name": "final-uring",
+    "arm": "post",
+    "passed": 204,
+    "failed": 2,
+    "failures": [
+      "aoffix2 error (2s, uring)",
+      "R7 FIFO twin off-path identity + negative controls"
+    ],
+    "status": "Two launch-tool failures; both complete jobs pass in final-native-checks on the same ELF",
+    "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+    "jobs": [
+      "differ-split-0",
+      "differ-split-1",
+      "differ-armed-0",
+      "differ-armed-1",
+      "differ-equivalence",
+      "wb_policy",
+      "debug-0",
+      "debug-1",
+      "climonfix",
+      "flip_unit",
+      "flipfix_units",
+      "flip",
+      "flipctl",
+      "flip_saturated",
+      "persistfix_units",
+      "snapshot-uring",
+      "snapshot-epoll",
+      "aof-uring",
+      "aof-epoll",
+      "notify",
+      "reorder_engagement",
+      "reorder_identity"
+    ],
+    "receipt": "docs/iofix/final-uring-receipt.json",
+    "evidence": "docs/iofix/proof/final-uring"
+  },
+  {
+    "name": "final-native-checks",
+    "arm": "post",
+    "passed": 56,
+    "failed": 0,
+    "failures": [],
+    "status": "PASS",
+    "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+    "jobs": [
+      "aof-uring",
+      "reorder_identity"
+    ],
+    "receipt": "docs/iofix/final-native-checks-receipt.json",
+    "evidence": "docs/iofix/proof/final-native-checks"
+  },
+  {
+    "name": "final-epoll",
+    "arm": "post",
+    "passed": 51,
+    "failed": 0,
+    "failures": [],
+    "status": "PASS",
+    "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+    "jobs": [
+      "differ-split-0",
+      "differ-split-1",
+      "differ-armed-0",
+      "differ-armed-1",
+      "differ-equivalence",
+      "wb_policy",
+      "debug-0",
+      "debug-1",
+      "auth",
+      "flipctl",
+      "flip_saturated",
+      "notify"
+    ],
+    "receipt": "docs/iofix/final-epoll-receipt.json",
+    "evidence": "docs/iofix/proof/final-epoll"
+  },
+  {
+    "name": "final-forced-epoll",
+    "arm": "post",
+    "passed": 17,
+    "failed": 0,
+    "failures": [],
+    "status": "PASS",
+    "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+    "jobs": [
+      "climonfix",
+      "flip"
+    ],
+    "receipt": "docs/iofix/final-forced-epoll-receipt.json",
+    "evidence": "docs/iofix/proof/final-forced-epoll"
+  },
+  {
+    "name": "final-fused-uring",
+    "arm": "post",
+    "passed": 46,
+    "failed": 0,
+    "failures": [],
+    "status": "PASS",
+    "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+    "jobs": [
+      "auth",
+      "snapshot-uring",
+      "snapshot-epoll",
+      "notify"
+    ],
+    "receipt": "docs/iofix/final-fused-uring-receipt.json",
+    "evidence": "docs/iofix/proof/final-fused-uring"
+  },
+  {
+    "name": "final-fused-epoll",
+    "arm": "post",
+    "passed": 14,
+    "failed": 0,
+    "failures": [],
+    "status": "PASS",
+    "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+    "jobs": [
+      "auth",
+      "notify"
+    ],
+    "receipt": "docs/iofix/final-fused-epoll-receipt.json",
+    "evidence": "docs/iofix/proof/final-fused-epoll"
+  },
+  {
+    "name": "pad-a-witnesses",
+    "arm": "pad-a",
+    "passed": 1,
+    "failed": 4,
+    "failures": [
+      "iofix WB4.1 deferred IO parks",
+      "iofix IO4.9 Redis hz cron",
+      "iofix IO4.10 global DEBUG SLEEP",
+      "iofix IO4.17 immediate signal shutdown"
+    ],
+    "status": "Intended negative witnesses; causes audited in raw logs",
+    "binary_sha256": "409efd511fafa64b2bf170c08320486b690e3277704d29a5a2cda2ca0be7ac32",
+    "jobs": [
+      "iofix-deferred",
+      "iofix-hz",
+      "iofix-sleep",
+      "iofix-signal"
+    ],
+    "receipt": "docs/iofix/pad-a-witnesses-receipt.json",
+    "evidence": "docs/iofix/proof/pad-a-witnesses"
+  },
+  {
+    "name": "pad-a-wb-deferred",
+    "arm": "pad-a-wb",
+    "passed": 1,
+    "failed": 1,
+    "failures": [
+      "iofix WB4.1 deferred IO parks"
+    ],
+    "status": "Intended negative witnesses; causes audited in raw logs",
+    "binary_sha256": "d9c7e12006eee966c474b705ad7f0bdd4156e63ee32057b7f34a799119ad3fb5",
+    "jobs": [
+      "iofix-deferred"
+    ],
+    "receipt": "docs/iofix/pad-a-wb-deferred-receipt.json",
+    "evidence": "docs/iofix/proof/pad-a-wb-deferred"
+  },
+  {
+    "name": "pre-late-wake",
+    "arm": "pre",
+    "passed": 16,
+    "failed": 1,
+    "failures": [
+      "netcmd config regression"
+    ],
+    "status": "Intended negative witnesses; causes audited in raw logs",
+    "binary_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+    "jobs": [
+      "netcmd_units"
+    ],
+    "receipt": "docs/iofix/pre-late-wake-receipt.json",
+    "evidence": "docs/iofix/proof/pre-late-wake"
+  },
+  {
+    "name": "pre-existing-epoll",
+    "arm": "pre",
+    "passed": 14,
+    "failed": 1,
+    "failures": [
+      "DEBUG toggle/reload battery"
+    ],
+    "status": "Intended negative witnesses; causes audited in raw logs",
+    "binary_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+    "jobs": [
+      "wb_policy",
+      "auth",
+      "notify"
+    ],
+    "receipt": "docs/iofix/pre-existing-epoll-receipt.json",
+    "evidence": "docs/iofix/proof/pre-existing-epoll"
+  },
+  {
+    "name": "pre-notify-uring",
+    "arm": "pre",
+    "passed": 7,
+    "failed": 0,
+    "failures": [],
+    "status": "PASS",
+    "binary_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+    "jobs": [
+      "notify"
+    ],
+    "receipt": "docs/iofix/pre-notify-uring-receipt.json",
+    "evidence": "docs/iofix/proof/pre-notify-uring"
+  },
+  {
+    "name": "pre-fused-uring",
+    "arm": "pre",
+    "passed": 13,
+    "failed": 1,
+    "failures": [
+      "DEBUG toggle/reload battery"
+    ],
+    "status": "Intended negative witnesses; causes audited in raw logs",
+    "binary_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+    "jobs": [
+      "auth",
+      "notify"
+    ],
+    "receipt": "docs/iofix/pre-fused-uring-receipt.json",
+    "evidence": "docs/iofix/proof/pre-fused-uring"
+  },
+  {
+    "name": "pre-fused-epoll",
+    "arm": "pre",
+    "passed": 13,
+    "failed": 1,
+    "failures": [
+      "DEBUG toggle/reload battery"
+    ],
+    "status": "Intended negative witnesses; causes audited in raw logs",
+    "binary_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+    "jobs": [
+      "auth",
+      "notify"
+    ],
+    "receipt": "docs/iofix/pre-fused-epoll-receipt.json",
+    "evidence": "docs/iofix/proof/pre-fused-epoll"
+  }
+]

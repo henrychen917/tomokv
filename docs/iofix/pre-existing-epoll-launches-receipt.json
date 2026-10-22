@@ -1,0 +1,52 @@
+{
+  "group": "pre-existing-epoll",
+  "path": "docs/iofix/pre-existing-epoll-launches.jsonl",
+  "records": 11,
+  "sha256": "0f27ef98266c0124ccf130a69c5c60dcb96c4fead0ba99ff126a3a9e47aaaf68",
+  "source_records": [
+    {
+      "pid": 3294714,
+      "sha256": "d74da2055a637136b7088de4bb05c9176d63890458a610485e1a92a1c72bec07"
+    },
+    {
+      "pid": 3294741,
+      "sha256": "675fcfd874e37c08463fb2f6b6e458bf346b0bf496f3a390fe7415ee5208646a"
+    },
+    {
+      "pid": 3294768,
+      "sha256": "e584d1896be77978fa0fda04e2307a8753e7759dd00132d3423e16b50a56bbf0"
+    },
+    {
+      "pid": 3294795,
+      "sha256": "11e7f9444d0a9a2bbdeee9d146a1d2d0f4c17e62692eddf0e2678f9161a5a02c"
+    },
+    {
+      "pid": 3294852,
+      "sha256": "835d90b610548d9dbcf9eacc1c722908661f157aac653e57f32621d756b60829"
+    },
+    {
+      "pid": 3294870,
+      "sha256": "e0a183d1c12ab5eb03644d6417c2992723bdac19106a49f724cdb07628d1e92f"
+    },
+    {
+      "pid": 3294884,
+      "sha256": "01c070b903bc640f504ae8969296d885052b6acc5c5029e9bd6e1895abed1129"
+    },
+    {
+      "pid": 3294928,
+      "sha256": "6202172841cb7c4e50697822f42e4aa46a977ea7278d7a3d8ee797c2974568e2"
+    },
+    {
+      "pid": 3294973,
+      "sha256": "d5f75f1087704ba087ad4cf098f06ee44e52465ef0a5654427b553126b93b5fe"
+    },
+    {
+      "pid": 3295015,
+      "sha256": "6d20a919e051f85316b7b84e635df97c92aaa310bdf3e984ab0d0b0b73c1a3bc"
+    },
+    {
+      "pid": 3295094,
+      "sha256": "d315fd693be431f9d7ec2523d63e240f4b82f1248e7304f51b462a18bbfa93e2"
+    }
+  ]
+}

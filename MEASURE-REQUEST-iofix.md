@@ -74,6 +74,9 @@ The raw logs and ledgers are retained in `docs/iofix/proof/`. Every touched fixt
 and every DEBUG SLEEP grep user is mapped to its owning gate job in
 `docs/iofix/affected-jobs.md`. The corrected debug assertions and all new
 oracle reply comparisons retain their oracle runs.
+The completed runs, expected negative rows and resolved launch-tool failures
+are indexed in [the proof table](docs/iofix/PROOF.md) and
+`docs/iofix/proof-index.json`.
 
 The final release directed run (`PHoa8J`) passed **72 rows, zero failures**.
 Its exact command, binary hash and complete archived evidence are in
@@ -88,13 +91,19 @@ row reaches the target and fails specifically on the forced save-cron wait.
 `docs/iofix/directed-witness-audit.json` checks each of the 16 PRE failures
 against its intended defect and the matching final POST pass, with raw-log links.
 
-Review then found a late-writer race in the signal eventfd. The new deterministic
-`netcmd config` witness failed all six dispatch variants on that release
-(`dCuZVC`: 16 passes, one expected failure). It explicitly opens the late-write
-window and checks elected-owner draining and terminal-edge retention. The
-final directed run passes all six variants with explicit late-write draining
-and terminal-edge retention. The earlier passing runs are retained as interim
-evidence; they do not establish this stronger property.
+The final standard differential matrix passed **940 legs per engine**, plus
+all **32 execution/knob combinations** in each mode-equivalence job. Permanent
+seeds were 7, 19, 20 and 23; the gate selected rotating seed 24 for uring and
+25 for epoll. The 47-suite standard plan and partition totals are recorded in
+`docs/iofix/differ-final-summary.json`. The existing plan excludes SORT from
+fused mode because that suite requires split 6:2 geometry.
+
+The deterministic `netcmd config` witness explicitly opens a late signal write
+after the pending request has ended. It checks elected-owner draining and
+terminal-edge retention in six dispatch variants. All six fail on PRE
+(`c0fBzV`: 16 passes, one expected failure) and on the interim implementation
+before the correction (`dCuZVC`: 16 passes, one expected failure). All six pass
+on final POST. Earlier passing runs remain labelled as interim evidence.
 
 Actual connection-owner CPU, default policy=1/S16/D3, 16 remote LPOS windows:
 
@@ -116,7 +125,16 @@ Build proof: make all, every job_production_units target and MDBQSBR live arms
 built successfully. `docs/iofix/production-freshness-final.txt` records make -q
 exit 0 for every target, with matching flags for the live arms.
 `python3 tests/gates_test.py` passed **67/67**, including 14 nested persistfix
-selftests, with GATE_TEST_PORT=19898 (`gates-test-final.log`).
+selftests, with GATE_TEST_PORT=19898 (`docs/iofix/gates-test-final.log` and
+`docs/iofix/gates-test-final-receipt.json`).
+
+Cleanup removed 22.8 GB of duplicate binaries, scratch builds and generated
+gate data, reducing build storage from 36.3 GB to 13.4 GB. The four frozen
+ELFs, current production targets/dependencies, PRE source and compressed PRE
+objects remain. All indexed evidence and earlier diagnostic logs were
+archived and checked against SHA-256 manifests before scratch removal.
+`docs/iofix/build-cleanup.json` records the removed paths. All 40 freshness
+checks and the four binary hashes were checked again after cleanup.
 
 ### Row accounting
 
@@ -171,6 +189,9 @@ positive-work behavior whenever deferred, at POST's exact text/ELF layout.
 flush-ready sites (312 bytes). Section/symbol addresses/sizes are identical;
 no other bytes change. `docs/iofix/pad-a-wb.json` records every patch. Its hz,
 DEBUG SLEEP and signal-stop administrative behavior remains POST.
+The full PRE control fails all 16 directed legs for the intended defects; the
+WB control fails all four deferred-IO legs. Their witness audits and gate logs
+are indexed in the proof table.
 
 All nominated cells use default hz, 512 clients and no DEBUG SLEEP or
 signal-save operation; effective cron stays 10 Hz. The two controls answer
@@ -230,6 +251,9 @@ diagnosis, not a wider noise allowance. No 25GbE claim follows from loopback.
 
 - Performance ABBA/PMU, full tests/gate.sh iteration, merging and pushing are
   **NOT RUN**; these remain the maintainer's scheduled work.
+- Fused SORT differential legs are **NOT RUN** because the standard gate
+  declares that suite split-only. Fused FLIP batteries are **NOT RUN** because
+  FLIP is unsupported in fused mode; its split-mode batteries cover both engines.
 - The full PRE PAD-A controls text size, while the WB PAD-A controls exact
   layout only for WB4.1; these limitations apply to merit attribution.
 - An initial splitlocal negative-control compile used that old fixture's
@@ -248,5 +272,6 @@ diagnosis, not a wider noise allowance. No 25GbE claim follows from loopback.
   adapter failures: an inherited 128 KiB file-size limit rejected the growing
   launch log before AOF boot, and the R7 identity tool received the adapter
   script instead of an ELF. Launch records now use one short file per process;
-  both affected jobs are rerun through the gate with the real, unchanged ELF.
+  both affected jobs passed their complete gate reruns with the real, unchanged
+  ELF (`RgiM3K`, 56 passed rows).
   The failed batch remains in the evidence and is not labelled all-green.

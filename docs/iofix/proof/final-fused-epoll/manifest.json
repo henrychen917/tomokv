@@ -1,0 +1,182 @@
+{
+  "run": "/home/user/Projects/cx-iofix/build/gate-run.0qzwrW",
+  "binary": "/home/user/Projects/cx-iofix/build/tomokv",
+  "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+  "note": "final-fused-epoll: gate-owned jobs; exact command/environment in group receipt; includes generic gate-srv logs",
+  "files": [
+    {
+      "path": "families.tsv",
+      "bytes": 152,
+      "sha256": "a49aec30b035953b063a90dcd3b2e5c36aef715751a9facfe8844d7e4366cf24"
+    },
+    {
+      "path": "jobs/auth/family.tsv",
+      "bytes": 49,
+      "sha256": "b800824f73aac61c0b3b8c164c6ca8b775363f36cef28423a14f6d968fd8b772"
+    },
+    {
+      "path": "jobs/auth/gate-acl-atomic.txt",
+      "bytes": 79,
+      "sha256": "579c39f9bf519dcae6dcfe7339c5a12e8b8e2f91a4e0ebef19587ad340a2b02d"
+    },
+    {
+      "path": "jobs/auth/gate-acl.txt",
+      "bytes": 79,
+      "sha256": "579c39f9bf519dcae6dcfe7339c5a12e8b8e2f91a4e0ebef19587ad340a2b02d"
+    },
+    {
+      "path": "jobs/auth/gate-auth.txt",
+      "bytes": 81,
+      "sha256": "4b01e2f31f4f80eda45d582a820be108197ecbfb83b0fae449ff025a16ab1a39"
+    },
+    {
+      "path": "jobs/auth/gate-debug.txt",
+      "bytes": 125,
+      "sha256": "c957bac834b1f1fdc1a9cdfd3c09cd1a2256e71192a35e3b83fb53fda8c8c3ca"
+    },
+    {
+      "path": "jobs/auth/gate-snap-state-19800.txt",
+      "bytes": 166285,
+      "sha256": "ddbb07f19d8ebbc9c54c7b0d03e0f4e002f328aafce3480d6ff5e800cf0af75d"
+    },
+    {
+      "path": "jobs/auth/gate-snap-typed.txt",
+      "bytes": 71,
+      "sha256": "716d49713d5fc353ee8b5647dc1977b7229252c42714bc2dbd5987867d8b78a8"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.D2yhGf",
+      "bytes": 7826,
+      "sha256": "4ad4cbe03f6212c4822c28c86c8841744b3efe2933e4bf26392cf49d74b37889"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.ULWO19",
+      "bytes": 7685,
+      "sha256": "81937ad06a1fcf20f753a9e3e9247d37e8923da4ffa1493e527a8f7d0e3e7d4b"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.nUtFzS",
+      "bytes": 7635,
+      "sha256": "007004672a6d27f9aecce8b2ecfe7961530497f8dbb59901e9bfed089ef2e7d6"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.shOvZx",
+      "bytes": 7639,
+      "sha256": "448de71aa64e7feb775b283c0ab04d0ad500d3bfea963a73e26ec88fc2e4c376"
+    },
+    {
+      "path": "jobs/auth/ledger",
+      "bytes": 292,
+      "sha256": "7c1413f7d2947c95c69a1da575dd85288c90e0f82aa52b4b7441e5e69d054da6"
+    },
+    {
+      "path": "jobs/auth/output.log",
+      "bytes": 1041,
+      "sha256": "accd4a615b82dd3b229a67b6e8bf457c611afafe034c06e25d90fcd035e48449"
+    },
+    {
+      "path": "jobs/auth/timings",
+      "bytes": 292,
+      "sha256": "7c1413f7d2947c95c69a1da575dd85288c90e0f82aa52b4b7441e5e69d054da6"
+    },
+    {
+      "path": "jobs/notify/family.tsv",
+      "bytes": 51,
+      "sha256": "8f1accd7afad027856b7679ccbf9c674ea17088920200d0cf7528966904d1c73"
+    },
+    {
+      "path": "jobs/notify/gate-blocking.txt",
+      "bytes": 1207,
+      "sha256": "23fa13b7550711ba82ed49bff209268835d4fd3bad779a352d22779e8f6537ed"
+    },
+    {
+      "path": "jobs/notify/gate-lua.txt",
+      "bytes": 1333,
+      "sha256": "95557ed335948b1ea3702148b419e9d301eb22071ca3afd7e4b3954a480d6f4e"
+    },
+    {
+      "path": "jobs/notify/gate-multi.txt",
+      "bytes": 1476,
+      "sha256": "713fc16832eebc1bb14906bc85dc71ebd117eab0cbb4581c365a47c7633ad205"
+    },
+    {
+      "path": "jobs/notify/gate-notify.txt",
+      "bytes": 38,
+      "sha256": "24819451d67e6ffa651e03a620d0ce6a6a00cfc976a8e683189a2f265feb3f0b"
+    },
+    {
+      "path": "jobs/notify/gate-pubsub.txt",
+      "bytes": 143,
+      "sha256": "cd31a15589bf2729e03ba9116ec2e161ca2fd73afb96a691b9d6315f3612fc57"
+    },
+    {
+      "path": "jobs/notify/gate-srv-main.r0uT1p",
+      "bytes": 8033,
+      "sha256": "50eebdfeff02ea91d60553265e8c788f794052b8f0112e062de8252e37ab53a7"
+    },
+    {
+      "path": "jobs/notify/ledger",
+      "bytes": 242,
+      "sha256": "be7c7f898deeb4902cf81677cfde7dfb340670fa51e1ee4049923cce483a28d7"
+    },
+    {
+      "path": "jobs/notify/output.log",
+      "bytes": 887,
+      "sha256": "3514150c8a41d4b8cb8c90816d4122d85933faf82e9e5ede1ae4a8b9e9d2261f"
+    },
+    {
+      "path": "jobs/notify/timings",
+      "bytes": 242,
+      "sha256": "be7c7f898deeb4902cf81677cfde7dfb340670fa51e1ee4049923cce483a28d7"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "bytes": 52,
+      "sha256": "88c99528e8f1277cff88ae82fd52d9485d2d2ef653e40074619aee90e892fd55"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "bytes": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "ledger.partial",
+      "bytes": 631,
+      "sha256": "3dc0b8e618dafec7045b7322343a6dfe14459ef7d7960f6cd5b37a98f5053ede"
+    },
+    {
+      "path": "ledger.partial.timings",
+      "bytes": 579,
+      "sha256": "6a8b440276cbdbde0b1d220e2726e3ee841de42f1ee05912dcea0e64a19179a1"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "sha256": "86204fb06e121bbe655afb3d8dcc349cb9cf6d8e298d5f184426f8d364d9a821"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1230,
+      "sha256": "179aa3667bf49f414ea794cd1325672a4f6396b2b4c3fe398d9e6c7f3f7033d9"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 68800,
+      "sha256": "9f05eafb291f9c510aaf6d0006e9c4cd8eedda6c723807e11fa33f860cb4939f"
+    }
+  ],
+  "archive": {
+    "path": "evidence.tar.gz",
+    "sha256": "5a0e84b917ae523dda08b28cb382b9f633a73fe0edc6a90a1a07fc61e7cdff6f"
+  }
+}

@@ -1,0 +1,14 @@
+  row budget: 900s; median=0.02s; correctness-plan-fallback; shutdown policy + signal handoff serverless
+  shutdown policy + signal handoff serverless          ok
+  row budget: 900s; median=0.34s; correctness-plan-fallback; shutdown persistence (1s, command)
+  shutdown persistence (1s, command)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (1s, sigterm)
+  shutdown persistence (1s, sigterm)                   ok
+  row budget: 900s; median=0.135s; correctness-plan-fallback; shutdown persistence (1s, sigint)
+  shutdown persistence (1s, sigint)                    ok
+  row budget: 900s; median=0.335s; correctness-plan-fallback; shutdown persistence (2s, command)
+  shutdown persistence (2s, command)                   ok
+  row budget: 900s; median=0.135s; correctness-plan-fallback; shutdown persistence (2s, sigterm)
+  shutdown persistence (2s, sigterm)                   ok
+  row budget: 900s; median=0.13s; correctness-plan-fallback; shutdown persistence (2s, sigint)
+  shutdown persistence (2s, sigint)                    ok

@@ -2,7 +2,7 @@
   "run": "/home/user/Projects/cx-iofix/build/gate-run.PHoa8J",
   "binary": "/home/user/Projects/cx-iofix/build/tomokv",
   "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
-  "note": "final-directed: gate-owned jobs; exact command/environment in group receipt",
+  "note": "final-directed: gate-owned jobs; exact command/environment in group receipt; includes generic gate-srv logs",
   "files": [
     {
       "path": "families.tsv",
@@ -273,6 +273,26 @@
       "path": "jobs/auth/gate-snap-typed.txt",
       "bytes": 71,
       "sha256": "716d49713d5fc353ee8b5647dc1977b7229252c42714bc2dbd5987867d8b78a8"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.0tDDqR",
+      "bytes": 6670,
+      "sha256": "ed17f5695984f89bf73fe585406e19a156ac4933c6ed8dbeee80172cb62d7398"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.3yogLt",
+      "bytes": 6640,
+      "sha256": "dbad15ac45c2863c305636293985dad4664d14803ca6f3ea53b07c9da06a8848"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.HcCbNR",
+      "bytes": 6640,
+      "sha256": "e5249827cc28f2f869ccc8c98bb57de2fd37655dd13dbb040ad053291eb82342"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.sGZuOJ",
+      "bytes": 6786,
+      "sha256": "2c8259823c9fdb251b82f2ca5b9260c83a13f8595ba8bceb132eb9ac21677db9"
     },
     {
       "path": "jobs/auth/ledger",
@@ -1382,6 +1402,6 @@
   ],
   "archive": {
     "path": "evidence.tar.gz",
-    "sha256": "ab968594ce8f663811247eff5b3df1cfe61fc783c0aa4fef49fdff1def83d6a4"
+    "sha256": "4e58d9af9196f59392b49c43c2cdd1ceffecedee489a028a5a3912d10ca31fc5"
   }
 }

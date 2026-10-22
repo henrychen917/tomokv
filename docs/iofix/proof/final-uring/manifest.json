@@ -2,7 +2,7 @@
   "run": "/home/user/Projects/cx-iofix/build/gate-run.1H4VvA",
   "binary": "/home/user/Projects/cx-iofix/build/tomokv",
   "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
-  "note": "final-uring: gate-owned jobs; exact command/environment in group receipt",
+  "note": "final-uring: gate-owned jobs; exact command/environment in group receipt; includes generic gate-srv logs",
   "files": [
     {
       "path": "differ-plan.json",
@@ -868,6 +868,71 @@
       "path": "jobs/aof-epoll/gate-knobs-epoll-1.txt",
       "bytes": 75,
       "sha256": "538a9da1ed9ae6b43095a3c2cc2046c26a02c43c88e8f8042df4dc887f43ce42"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.DRpucf",
+      "bytes": 6658,
+      "sha256": "1d8b70eb2e50735c2bfa0b04471ab2b7e486ff07ba6dabb6f69c33fa6dd1293f"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.DiPcXZ",
+      "bytes": 6704,
+      "sha256": "d61be8fa38b5b923183b6154a9888bbee0ad7898d1bae1267ce0dc8bd268d09c"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.LJftql",
+      "bytes": 6687,
+      "sha256": "560e7be551feb030239a9de331ee0835ba48d43b6d686bc522fa62f2180fd69f"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.M7CZxy",
+      "bytes": 663,
+      "sha256": "621a2328b8a01b3cfbffb08b9130ae0efe2046a52131f2686b38955c7a4c6c1c"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.PDf0CK",
+      "bytes": 663,
+      "sha256": "621a2328b8a01b3cfbffb08b9130ae0efe2046a52131f2686b38955c7a4c6c1c"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.PiXk29",
+      "bytes": 663,
+      "sha256": "621a2328b8a01b3cfbffb08b9130ae0efe2046a52131f2686b38955c7a4c6c1c"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.R3UZSY",
+      "bytes": 6694,
+      "sha256": "7854911ee0757057a092ed4726c0713cbd9dd037e7365f832213930a80c46cb5"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.R748II",
+      "bytes": 6742,
+      "sha256": "0920d8a1e6679dcb0b8e7847408488b6bc03c84b40c680f138a0a7fe00ac30fd"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.V2aMgg",
+      "bytes": 6755,
+      "sha256": "eaa3576092d0a6df080841b656d15b18e30c6c67e185ce6c17f1d19e07fe4c29"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.a8SF9q",
+      "bytes": 6742,
+      "sha256": "9bfd7f71fd198c69f03f9573188595efe3f31b14cfb3389e3b54bd7b844764d2"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.awYgh3",
+      "bytes": 663,
+      "sha256": "621a2328b8a01b3cfbffb08b9130ae0efe2046a52131f2686b38955c7a4c6c1c"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.dfTnJk",
+      "bytes": 663,
+      "sha256": "621a2328b8a01b3cfbffb08b9130ae0efe2046a52131f2686b38955c7a4c6c1c"
+    },
+    {
+      "path": "jobs/aof-epoll/gate-srv-main.egyy2P",
+      "bytes": 663,
+      "sha256": "621a2328b8a01b3cfbffb08b9130ae0efe2046a52131f2686b38955c7a4c6c1c"
     },
     {
       "path": "jobs/aof-epoll/ledger",
@@ -2000,6 +2065,71 @@
       "sha256": "538a9da1ed9ae6b43095a3c2cc2046c26a02c43c88e8f8042df4dc887f43ce42"
     },
     {
+      "path": "jobs/aof-uring/gate-srv-main.8ljlfc",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.CNpW0L",
+      "bytes": 6674,
+      "sha256": "46f665d76dfae9cbd071cc3b5601f1050ffcd91df60ee0b850ffb7f1dd4e9e94"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.NPyxiF",
+      "bytes": 6648,
+      "sha256": "6daf186b9d52a9d6bf0b988514a409dc2af640c7b29b372861d871d791ce0400"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.P8YePG",
+      "bytes": 6610,
+      "sha256": "7877907e6551e702de5b39289229a60def014791f581243d4a4ad558e603f1b1"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.VOV4Rl",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.Xeex3U",
+      "bytes": 6575,
+      "sha256": "d58e4873a5d3b852c0c46767458bb61898cee0a4bc6ff532f5e17a89cef2bb35"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.gSMOei",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.lp200r",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.nU6GP4",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.sSX1iq",
+      "bytes": 605,
+      "sha256": "3e4e27d0e8cfcc41bac7eb7c04836a33665535a7e111d622b438372bec382969"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.sdbMHj",
+      "bytes": 6617,
+      "sha256": "7ae08121268f838c8a91ca4449c9ddf12e4fbc808b578e7b50f46b74d2a720c0"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.v1ZdRu",
+      "bytes": 6598,
+      "sha256": "6592a5c5bd75d7955680797e30ee879cb0bf79c56206fa78550993dbd55a84c6"
+    },
+    {
+      "path": "jobs/aof-uring/gate-srv-main.yAQVw7",
+      "bytes": 6651,
+      "sha256": "31fa06b2b2b4a0cdbfedd5235ca48a8434f462936bd383e6160a4649f1a9ab6a"
+    },
+    {
       "path": "jobs/aof-uring/ledger",
       "bytes": 2865,
       "sha256": "4f561ce4b1bb93adb372d7aec05a4d51ea4f01f5a8a247b8acb8c79dd71e31ac"
@@ -2835,6 +2965,11 @@
       "sha256": "01e5b6ac184c0b1e872eab812b9c31ea3a8fe85abc03c7bf8babe359e5d677df"
     },
     {
+      "path": "jobs/debug-0/gate-srv-main.wrxf4a",
+      "bytes": 7007,
+      "sha256": "735d404e79058ab4cc88ca0ad9649f80fa6efafbc847b4e2b014e98108423207"
+    },
+    {
       "path": "jobs/debug-0/gate-xacct-0.txt",
       "bytes": 884,
       "sha256": "db414cff5ac517e2ccbc53e1f87e50eef768974312797e3f2bf633e0e6cc3a7d"
@@ -2923,6 +3058,11 @@
       "path": "jobs/debug-1/gate-slowlog-1.txt",
       "bytes": 138,
       "sha256": "01e5b6ac184c0b1e872eab812b9c31ea3a8fe85abc03c7bf8babe359e5d677df"
+    },
+    {
+      "path": "jobs/debug-1/gate-srv-main.CoBYmm",
+      "bytes": 7003,
+      "sha256": "d69125210efe4afcdd1964c824d2e497db7433c793796c9476fb6a8c40e1a3ba"
     },
     {
       "path": "jobs/debug-1/gate-xacct-1.txt",
@@ -13565,6 +13705,11 @@
       "sha256": "c2ecd17bd511474437692fd3db03f1ffcdc946544e74957f8753d2bd307ba989"
     },
     {
+      "path": "jobs/flip/gate-srv-main.MwwoTh",
+      "bytes": 7976,
+      "sha256": "4d18db9b61076e6828e6f53b430eb00bf1510db7a8bdb8fd51b6a4d0339667da"
+    },
+    {
       "path": "jobs/flip/ledger",
       "bytes": 411,
       "sha256": "77840399459c43b4b60133ab7fe2af6f197451eef55e2b16796c910e4ef106dc"
@@ -13603,6 +13748,11 @@
       "path": "jobs/flip_saturated/family.tsv",
       "bytes": 59,
       "sha256": "37ae6eed58c7967542364da6a0aa60800420406f6f0f4572154908530b2a9b57"
+    },
+    {
+      "path": "jobs/flip_saturated/gate-srv-main.ujCpCb",
+      "bytes": 8591,
+      "sha256": "82cde3af6ccdc4ca2281e4fcb8ef8a126890d9d4c4aee6f54e476515c2e1ed21"
     },
     {
       "path": "jobs/flip_saturated/ledger",
@@ -13653,6 +13803,11 @@
       "path": "jobs/flipctl/family.tsv",
       "bytes": 52,
       "sha256": "4d23dccbf80eb27dc228e07904064249ad89869fc79defa51cdca223f732a8bf"
+    },
+    {
+      "path": "jobs/flipctl/gate-srv-main.9lr0vK",
+      "bytes": 8958,
+      "sha256": "402a8b5c7906a49800065b188a2e56257dcdd2b006077e43bf42ccd37e484334"
     },
     {
       "path": "jobs/flipctl/ledger",
@@ -13738,6 +13893,11 @@
       "path": "jobs/notify/gate-pubsub.txt",
       "bytes": 143,
       "sha256": "d44d7bd57afda74494b0541b63c17dc491df28d6275652ebf3e5ec07a5bf1ba3"
+    },
+    {
+      "path": "jobs/notify/gate-srv-main.sUET10",
+      "bytes": 7004,
+      "sha256": "04d65ee0c0d4e356db165271447a520898ac7596571de65fe6acb8fd3f5284e3"
     },
     {
       "path": "jobs/notify/ledger",
@@ -13958,6 +14118,46 @@
       "path": "jobs/snapshot-epoll/gate-snapshot-typed-epoll.txt",
       "bytes": 68,
       "sha256": "cd1893cd43d13c063784f690a204de8aa22ee78c6d6c5475cb0d5f8e7a48478e"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-main.8O1qD7",
+      "bytes": 6934,
+      "sha256": "eace206363acfd74e004ff8350fa62028ee3b362c3dcaa8c6fe2d4e5274b8aeb"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-main.ArH65a",
+      "bytes": 6709,
+      "sha256": "e492ba57818770b05478a1714edcfee91e6ab1d25db5be3182562985e05fcc2a"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-main.GV2poi",
+      "bytes": 7004,
+      "sha256": "4939e086ceb8216676a4468066432bad8dd56799f3c18c04ad61613b5dd10a10"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-main.LfhZ9s",
+      "bytes": 6783,
+      "sha256": "1f506d9174f7db601a08e4cbe64f7fa2932229d3feff512cce0fb891fdaa98fe"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-main.TZ2jkX",
+      "bytes": 6746,
+      "sha256": "412ed2bea9dcf1cfb9339d60e6aa965bc234e4ca15b814fde792c658668a2d0e"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-main.UF73td",
+      "bytes": 6746,
+      "sha256": "bcd899d00cd460bce3199198fa42e62111afd60aa52391d23806ff0e2c0b5ab6"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-main.YVNdUP",
+      "bytes": 6770,
+      "sha256": "104952f59a88b12ec4a73334a861c8fb7cb7c829b6e9a8f3323cafbf3cc9832e"
+    },
+    {
+      "path": "jobs/snapshot-epoll/gate-srv-main.e4xGtp",
+      "bytes": 6794,
+      "sha256": "9cd076f59e21fae4d9a55cc4bd2594e35ef7860e7e8d38c3604f601379dd047e"
     },
     {
       "path": "jobs/snapshot-epoll/ledger",
@@ -14213,6 +14413,46 @@
       "path": "jobs/snapshot-uring/gate-snapshot-typed-uring.txt",
       "bytes": 68,
       "sha256": "cd1893cd43d13c063784f690a204de8aa22ee78c6d6c5475cb0d5f8e7a48478e"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-main.A9gOEn",
+      "bytes": 6677,
+      "sha256": "972379550f77157e7d9c278486b71ad6246616f8f1bdf6194daeda7e79f330c9"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-main.KqaZDh",
+      "bytes": 6685,
+      "sha256": "af817670de89ba1ad55aabebd201b8021d6b642f3ecc7bbb0ba0c1d7c4484659"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-main.N103K0",
+      "bytes": 6658,
+      "sha256": "c627a9a4ee7f8824a124616e26a589b1fc342e436d2a8b984420995cf45e2fe7"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-main.ahKCGQ",
+      "bytes": 6895,
+      "sha256": "c535a032079b5a5bed4b3e91a37847462862f085560c9abbd6c844c4fe712bd4"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-main.fB2fA1",
+      "bytes": 6898,
+      "sha256": "be1a7b394ba122d1ea5944a5fde5a0b66855e850eb25cc81179b558e834948f6"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-main.lWcdpo",
+      "bytes": 6661,
+      "sha256": "aa5155925fe2c1e7a231eb931bf4d45272a67e955e9910f8c4519a3e1727a6f2"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-main.rEdqSp",
+      "bytes": 6628,
+      "sha256": "c287a7b576b9a0622eea42e2f98a9a3be9bdc82d06b12bc54b5a8d2c8b304f4f"
+    },
+    {
+      "path": "jobs/snapshot-uring/gate-srv-main.rn0dHS",
+      "bytes": 6697,
+      "sha256": "512270e48eb1f904edea45f9a7124b41bb6dff27b930bb9cbd26b796071317be"
     },
     {
       "path": "jobs/snapshot-uring/ledger",
@@ -14475,6 +14715,26 @@
       "sha256": "5910a0bac5a1b5510f5229017b7e65cdcd277ad39d6ef0e798ee051ed3c1a05c"
     },
     {
+      "path": "jobs/wb_policy/gate-srv-fused.5zNFGG",
+      "bytes": 7561,
+      "sha256": "243f84d21a1bc6d8ca797969b363fbd56481b67d3c3d91e54442c8f9629612bd"
+    },
+    {
+      "path": "jobs/wb_policy/gate-srv-fused.Gv2zsq",
+      "bytes": 7563,
+      "sha256": "b988a217e9585132ee9f9fd482d0436b62740170dc4600d34fad09baeaa3d53f"
+    },
+    {
+      "path": "jobs/wb_policy/gate-srv-main.0eJ9tz",
+      "bytes": 6647,
+      "sha256": "0d8ffa84b468ee79aed09ac8acca991df1ab7e56806988a67e562acc318ee189"
+    },
+    {
+      "path": "jobs/wb_policy/gate-srv-main.MSAg1q",
+      "bytes": 6651,
+      "sha256": "af673f27d3aa76052539570077a6ba62786351abae5cac6d2712bcb32c886105"
+    },
+    {
       "path": "jobs/wb_policy/ledger",
       "bytes": 57,
       "sha256": "3fe90554ee0274fb8ddff204f597c7315e762b446be199f4db496dd4780fa9f9"
@@ -14522,6 +14782,6 @@
   ],
   "archive": {
     "path": "evidence.tar.gz",
-    "sha256": "426feb4c8cc8155e123683eee09b28e511cb8411f11ac6cf6149b6dcb8a30fd5"
+    "sha256": "7a6657684ab568010931e59880b0ba6872dceefc63b05c8c878cf6bd4c94b708"
   }
 }

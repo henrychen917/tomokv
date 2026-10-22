@@ -2,7 +2,7 @@
   "run": "/home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x",
   "binary": "/home/user/Projects/cx-iofix/build/tomokv-pre",
   "binary_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
-  "note": "Archived PRE source and PRE-owned units; current directed tests plus documented fixture interface adapters; failures expected on original defects.",
+  "note": "Archived PRE source and PRE-owned units; current directed tests plus documented fixture interface adapters; failures expected on original defects.; includes generic gate-srv logs",
   "files": [
     {
       "path": "families.tsv",
@@ -43,6 +43,26 @@
       "path": "jobs/auth/gate-snap-typed.txt",
       "bytes": 71,
       "sha256": "716d49713d5fc353ee8b5647dc1977b7229252c42714bc2dbd5987867d8b78a8"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.OzSoQH",
+      "bytes": 6671,
+      "sha256": "b77c7818e2da132cd5992b12c1e36412db76ae2880067d2dab916529f78ffbf0"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.Rz7VPr",
+      "bytes": 6643,
+      "sha256": "bafb8a778f22f82aca2f93c2f8b814b9f39ab2ab21a3eab70517a0b7b6c22ba3"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.bYqBfs",
+      "bytes": 6642,
+      "sha256": "44c032af2cd0ad7017e4f9515147bce0547017327dd7cb6bb3aadecf17d560d7"
+    },
+    {
+      "path": "jobs/auth/gate-srv-main.nbiRaO",
+      "bytes": 6678,
+      "sha256": "c0122a73e5dd5c4f5717d514c422698c23da4df4511ad4eeddd45e3ab7541706"
     },
     {
       "path": "jobs/auth/ledger",
@@ -1100,6 +1120,26 @@
       "sha256": "c48f09c7c787ba607983c20207fca840ce0368b6add970d1088abd39c4e7dca8"
     },
     {
+      "path": "jobs/wb_policy/gate-srv-fused.1p0xw9",
+      "bytes": 7563,
+      "sha256": "8d04c015614819ef46f40a52449799ba8011fc4cc36280855b922fbec1432606"
+    },
+    {
+      "path": "jobs/wb_policy/gate-srv-fused.snzkae",
+      "bytes": 7563,
+      "sha256": "20c5dab6ffdbbdef42c9b5ff79d294349693d194a94bb9853a85716b5797212a"
+    },
+    {
+      "path": "jobs/wb_policy/gate-srv-main.6KmCIn",
+      "bytes": 6651,
+      "sha256": "d03c34ea8903710f445f65f7e89055982e9a9c0f368d56b9c23de1264acdcc9b"
+    },
+    {
+      "path": "jobs/wb_policy/gate-srv-main.cOb61w",
+      "bytes": 6650,
+      "sha256": "b4186956c1eec172159a4c3c7aef276bf450d9d602911d4ddbfd0b84e5b5bce0"
+    },
+    {
       "path": "jobs/wb_policy/ledger",
       "bytes": 57,
       "sha256": "d2a882c8cc4d9d961a801f57d01b0b0b2b6a310281418b60f4783032d6485935"
@@ -1214,5 +1254,9 @@
       "bytes": 191,
       "sha256": "f0b9f7d40e2b8cc10c7ab21b3765c409272f7fd420e52b22aac87f853bced63b"
     }
-  ]
+  ],
+  "archive": {
+    "path": "evidence.tar.gz",
+    "sha256": "b80564b2b691bd923ff5874bde8a94d0ebac6ce4433011349cc8b8d04af43842"
+  }
 }

@@ -1,0 +1,187 @@
+{
+  "run": "/home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.c0fBzV",
+  "binary": "/home/user/Projects/cx-iofix/build/tomokv-pre",
+  "binary_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+  "note": "pre-late-wake: gate-owned jobs; exact command/environment in group receipt; includes generic gate-srv logs",
+  "files": [
+    {
+      "path": "families.tsv",
+      "bytes": 170,
+      "sha256": "bf59c382f7a919463afe69e6f24f72c8c4535c0c042a62d430369ffd61ac7a1e"
+    },
+    {
+      "path": "jobs/netcmd_units/family.tsv",
+      "bytes": 57,
+      "sha256": "167b1b243b520225f74d2c9133f85ae5126884b63be312869e808aeb0a1f4afc"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-encodingfix-knob.txt",
+      "bytes": 53,
+      "sha256": "1f06968d896a0ed77ad4b10bb708cabe74d5714cb3828843002fce1e93256e62"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-encodingfix-precedence.txt",
+      "bytes": 59,
+      "sha256": "58b128cea10b68c0ea149e05e5cc99f1a1b37548e14579e9479387db888659ec"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcap-unit.txt",
+      "bytes": 432,
+      "sha256": "74aca9184b6e10b7803f89041da412b71eba08120a692bca55901479d723429e"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-config.txt",
+      "bytes": 603,
+      "sha256": "4ee5d91daf45415ffc1eb245c9f6481159b41ea0701e67a81874a738ba8a6209"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-flush.txt",
+      "bytes": 17,
+      "sha256": "27ac995b1ee9c0ee2d11a92b7a0580b54a72c5b08996576b626c96af1c94d729"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-hexpire-oom.txt",
+      "bytes": 498,
+      "sha256": "4ec74288d7518dc3a20c2f14a6f4c51ad4f18fc516ab503593f359a5b03d5c33"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-notify-oom.txt",
+      "bytes": 22,
+      "sha256": "b87048581a0c4b05580208a979894b9502a595d631c322873867ce72e4fe06bd"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-notify-retry.txt",
+      "bytes": 24,
+      "sha256": "665e76fb312cc40d95847167fe23e731393429312bc375ac7ea6f637c4c0a497"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-output.txt",
+      "bytes": 227,
+      "sha256": "a10e9a34a50912530e964ff624af3b6a28318c5daff37b043a14723614a76ff6"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-pubsub.txt",
+      "bytes": 18,
+      "sha256": "d133f8ffc3ceac088d94c9cf572b5651de1add5d3980ac71fc723d271fcff32e"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-receive.txt",
+      "bytes": 19,
+      "sha256": "029010a14da8dc31467445236c17e5bf9a7faf0e42e983e972b56a8b1abeff80"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-streams.txt",
+      "bytes": 19,
+      "sha256": "aa0200bd449abe7a9008761aee8836c67ccec70b09bb2c1dc4ba563dab96270f"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-wb-complete-visits.txt",
+      "bytes": 813,
+      "sha256": "3adb673e0e68d118baa5626febe325d15d7eeb8350bf343dc2582deb58a57a37"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-wb-small-pipe.txt",
+      "bytes": 718,
+      "sha256": "ed092aafcc5ffd950594723e424f925d3d1d6108bc7fb6b0df5a0ed4eae9e283"
+    },
+    {
+      "path": "jobs/netcmd_units/gate-netcmd-zpop.txt",
+      "bytes": 697,
+      "sha256": "afaef5389362fc21ed2eef4dee8e555cf39a1437fa667c79652808e4c5041978"
+    },
+    {
+      "path": "jobs/netcmd_units/ledger",
+      "bytes": 635,
+      "sha256": "57753516f50e7649d0a6495351a37703d47b4d43ff9a939fbe00715c67001d64"
+    },
+    {
+      "path": "jobs/netcmd_units/output.log",
+      "bytes": 2506,
+      "sha256": "49d507249ca8099d964170b7f3a3873cfb5cce7d7a1fea5b90bcc571e3f70030"
+    },
+    {
+      "path": "jobs/netcmd_units/timings",
+      "bytes": 635,
+      "sha256": "57753516f50e7649d0a6495351a37703d47b4d43ff9a939fbe00715c67001d64"
+    },
+    {
+      "path": "jobs/production_units/build.log",
+      "bytes": 4272,
+      "sha256": "28c551a8bff49d4a6f0c29b6b16eed4042cbcc678d31fa7e4040782119cd888c"
+    },
+    {
+      "path": "jobs/production_units/family.tsv",
+      "bytes": 61,
+      "sha256": "a79c7c1615a9e3242a8dd9fa8b646cb4668d142a79d85c2c7488f567e30b8a15"
+    },
+    {
+      "path": "jobs/production_units/ledger",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "jobs/production_units/mdbqsbr-live-build.log",
+      "bytes": 845,
+      "sha256": "9a412364108b961139ccc4fd1997e29a7ff335c421d09286afb740dc7e6c3ea9"
+    },
+    {
+      "path": "jobs/production_units/output.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "jobs/production_units/timings",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "bytes": 52,
+      "sha256": "6a3866d8a0811b002305fa9082a913a60af492f1b0c5cb25c5aa6d48f225c670"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "bytes": 152,
+      "sha256": "4226cb783b1ee986a149d7a84489865f589e42bd6b2d3333c1985b5261eaa2f9"
+    },
+    {
+      "path": "jobs/release/timings",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "ledger.partial",
+      "bytes": 733,
+      "sha256": "d77e0d6b811e376a4bf44d38d4945fbe279cd6653afd17aa15283941799cd179"
+    },
+    {
+      "path": "ledger.partial.timings",
+      "bytes": 680,
+      "sha256": "6b44e72638bcd507c38b5c7025b8ea7ca8cb3a1f9382b88a1e5b93b47271237d"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "sha256": "4616aa62aef1ee1134838c1f1eae5b2e6a429d5dd0020eb753c7cf797b9acf12"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1230,
+      "sha256": "179aa3667bf49f414ea794cd1325672a4f6396b2b4c3fe398d9e6c7f3f7033d9"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 13240,
+      "sha256": "b2509448733f512f534e9244def7d1b4bd5c3fdce836fcef8da3bd01af2d5f23"
+    }
+  ],
+  "archive": {
+    "path": "evidence.tar.gz",
+    "sha256": "df726faca386ee432395057ba7b948068878564e0e58d711b1b03de7320f19ec"
+  }
+}

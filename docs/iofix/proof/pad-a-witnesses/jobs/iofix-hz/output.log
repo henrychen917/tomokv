@@ -1,0 +1,2 @@
+  row budget: 900s; median=24.77s; correctness-plan-fallback; iofix IO4.9 Redis hz cron
+  iofix IO4.9 Redis hz cron                            FAIL (see /home/user/Projects/cx-iofix/build/gate-run.0wEBDU/jobs/iofix-hz/hz-*.log)

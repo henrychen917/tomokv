@@ -1,0 +1,202 @@
+{
+  "run": "/home/user/Projects/cx-iofix/build/gate-run.ZjX82p",
+  "binary": "/home/user/Projects/cx-iofix/build/tomokv-pad-a-wb",
+  "binary_sha256": "d9c7e12006eee966c474b705ad7f0bdd4156e63ee32057b7f34a799119ad3fb5",
+  "note": "pad-a-wb-deferred: gate-owned jobs; exact command/environment in group receipt; includes generic gate-srv logs",
+  "files": [
+    {
+      "path": "families.tsv",
+      "bytes": 111,
+      "sha256": "fbeadb065e8536cade69a978b6e3aa231778aff89c4272163f23f897ee6dbf39"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-epoll/oracle.log",
+      "bytes": 1203,
+      "sha256": "8ce2647c3be8709e5160d40087c9cfa83760a7be0664fd7dd57972f6878aa764"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-epoll/policy-0-S16-D3.log",
+      "bytes": 7668,
+      "sha256": "3f280c1c27dcbdc09c8b17e7951e535a89553fa78685f02ab9cbe023eb34cad9"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-epoll/policy-1-S0-D3.log",
+      "bytes": 7678,
+      "sha256": "9d6c740aaf080fd2535d9a7799edd4156efdf1da067595da0d184c13ff6a6447"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-epoll/policy-1-S16-D0.log",
+      "bytes": 7672,
+      "sha256": "3d56f6fcbabb23b2753524d291b6002817ce788e94a758abb7e9bfe12c0a9b09"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-epoll/policy-1-S16-D3.log",
+      "bytes": 7672,
+      "sha256": "bce1a497a71df28bd13fc2464b3c61bc6d6242989eb07b58c391a23f63e568a9"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-epoll.log",
+      "bytes": 4443,
+      "sha256": "3b1099eca53b69fa11a902066f9d6c156be920fb1ec006e010d7c7bbb968f2e0"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-uring/oracle.log",
+      "bytes": 1203,
+      "sha256": "a5961bdae2aa01c9f95e421a1a41e0efccdf926ba7f19e55b608372bbc597cab"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-uring/policy-0-S16-D3.log",
+      "bytes": 7581,
+      "sha256": "27c5560114c98db59da19375564a0d08f3ac9fa0dd70031e6c887219d78d87e6"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-uring/policy-1-S0-D3.log",
+      "bytes": 7573,
+      "sha256": "7790256107d862a5d93484abbfc67ed506e6992003e608f3787026fc01a2f5c6"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-uring/policy-1-S16-D0.log",
+      "bytes": 7579,
+      "sha256": "568eaeafdb3aa3ebf0b4f500ec784bd227bf36303fa21f30e15f0aa1b92eaaf3"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-uring/policy-1-S16-D3.log",
+      "bytes": 7574,
+      "sha256": "0f315bce127cecbeca4bf8b13efb3fbdad117e39257c08c49a75fc6d0d4d3966"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-1s-uring.log",
+      "bytes": 4434,
+      "sha256": "c21b9ba11fe346869d9ef1fbcbe282d8e189479fad02378f0b360feba33d220f"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-epoll/oracle.log",
+      "bytes": 1203,
+      "sha256": "80f787409bae1fe73d2c4c312eb2da371150ab9ac1484c9e6230b42cb6c00762"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-epoll/policy-0-S16-D3.log",
+      "bytes": 6762,
+      "sha256": "43215ec14312d3a8c45d41a7cf33fd57efcb74e410d91d0291cbda02ca1ea60c"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-epoll/policy-1-S0-D3.log",
+      "bytes": 6762,
+      "sha256": "c5f4c4a58f78a64a7930f87f67b4b16b1aa6d5445401494d60c97a2c24fb9f24"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-epoll/policy-1-S16-D0.log",
+      "bytes": 6762,
+      "sha256": "2bd9f5e987b89f6820e2bd9d14c27bedc2d541892773ef7d9251b7d36cee5ffd"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-epoll/policy-1-S16-D3.log",
+      "bytes": 6762,
+      "sha256": "30625e5339797bf71117fe25e533cbd02017eaff921b883e966616c1f1c76c34"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-epoll.log",
+      "bytes": 4517,
+      "sha256": "eda8b86c5cc002800f2fc6dc5d137e5a0ace5dbe6a50b48843ee108d2fbb2e86"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-uring/oracle.log",
+      "bytes": 1203,
+      "sha256": "9ba664c5a401bfe2ea965a812f6416babb58263812bebd969e089dc401151bf0"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-uring/policy-0-S16-D3.log",
+      "bytes": 6671,
+      "sha256": "b00683c4c1fb356ad96f53677bb499956e50e20741190d2cff24d1c618a10011"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-uring/policy-1-S0-D3.log",
+      "bytes": 6668,
+      "sha256": "49d1f207fe2dd191c6b6adf69e04e5c6dbb16344311dbac6af307e256f4d30b9"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-uring/policy-1-S16-D0.log",
+      "bytes": 6671,
+      "sha256": "4087f4bc80eaea9ca5b788a0fdaefd75550a8c1073e411b292aba85ea12e33e1"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-uring/policy-1-S16-D3.log",
+      "bytes": 6675,
+      "sha256": "3b728ee33a7f193c3510387252f3c8d10ca4b10d172b44cde94033672ab80002"
+    },
+    {
+      "path": "jobs/iofix-deferred/deferred-2s-uring.log",
+      "bytes": 4518,
+      "sha256": "2952e9fa30d0b969463c1fe55fa20eaef5a9ffdf7b22ba3ce635c8d3a91a0869"
+    },
+    {
+      "path": "jobs/iofix-deferred/family.tsv",
+      "bytes": 59,
+      "sha256": "7bfbe730f16f7fac2e4c8b59fb6805b408124224161c21614a73d172bb57f760"
+    },
+    {
+      "path": "jobs/iofix-deferred/ledger",
+      "bytes": 45,
+      "sha256": "3b94395f4ee2d0877625eb8127ab7339718106a9d33a4f61bbd1226579d9621d"
+    },
+    {
+      "path": "jobs/iofix-deferred/output.log",
+      "bytes": 244,
+      "sha256": "48a0b14c30ac861e5b337d94a0d1e0b100808eea8be71edcee3bd3c32b41bb82"
+    },
+    {
+      "path": "jobs/iofix-deferred/timings",
+      "bytes": 45,
+      "sha256": "3b94395f4ee2d0877625eb8127ab7339718106a9d33a4f61bbd1226579d9621d"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "bytes": 52,
+      "sha256": "3a3a22075e473450006618a33482a7fc40c9aff1b6e8f9c4fc49d7398fe9f228"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "bytes": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "ledger.partial",
+      "bytes": 145,
+      "sha256": "6bb8c9b36671c652a1bae00b79f95ad1fd33a5731652834c1c48a9e93ad1ef77"
+    },
+    {
+      "path": "ledger.partial.timings",
+      "bytes": 90,
+      "sha256": "26f8abb7d7de89b41c803d305f25e29bf64e4b88f7d24f7acff325ce32f45e1b"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "sha256": "56588c7f595a649d1eccfcd56eb3ecd94239e83df1e9af0b058fb96ad84ef9a4"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1230,
+      "sha256": "179aa3667bf49f414ea794cd1325672a4f6396b2b4c3fe398d9e6c7f3f7033d9"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 68787,
+      "sha256": "d914af09fe2da94a9340de39f85653b39e850c17bfce5cbdda083e9e02c1352a"
+    }
+  ],
+  "archive": {
+    "path": "evidence.tar.gz",
+    "sha256": "7e44d051bc964bdb1ce4271c9d8312ac2656601adcef8d9c496f2df545cd00a2"
+  }
+}

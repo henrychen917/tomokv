@@ -1,0 +1,6 @@
+PARTIAL	0	GATE_ONLY_JOBS=iofix-deferred iofix-hz iofix-sleep iofix-signal; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	27.160000	iofix WB4.1 deferred IO parks
+FAIL	21.260000	iofix IO4.9 Redis hz cron
+FAIL	27.700000	iofix IO4.10 global DEBUG SLEEP
+FAIL	35.310000	iofix IO4.17 immediate signal shutdown

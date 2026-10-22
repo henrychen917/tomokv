@@ -1,0 +1,28 @@
+{
+  "name": "pre-fused-uring",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "80-87",
+    "--load-cores",
+    "88-95",
+    "--ports",
+    "19800-19899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-iofix/docs/iofix/gate_candidate.py"
+  ],
+  "cwd": "/home/user/Projects/cx-iofix/build/iofix/pre-source",
+  "binary": "/home/user/Projects/cx-iofix/build/tomokv-pre",
+  "sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+  "jobs": [
+    "auth",
+    "notify"
+  ],
+  "engine": "uring",
+  "mode": "1s",
+  "force_engine": false,
+  "expected_exit": 1,
+  "actual_exit": 1,
+  "run": "/home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.5n2Zhr"
+}

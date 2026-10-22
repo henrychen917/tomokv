@@ -1,0 +1,722 @@
+{
+  "run": "/home/user/Projects/cx-iofix/build/gate-run.MZm8I0",
+  "binary": "/home/user/Projects/cx-iofix/build/tomokv",
+  "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+  "note": "final-forced-epoll: gate-owned jobs; exact command/environment in group receipt; includes generic gate-srv logs",
+  "files": [
+    {
+      "path": "families.tsv",
+      "bytes": 216,
+      "sha256": "4f00d4e44eef43888a1f4033e4e63353564a7533542ca358b17ca7279f6df379"
+    },
+    {
+      "path": "jobs/climonfix/family.tsv",
+      "bytes": 54,
+      "sha256": "59f840979e7e674c50ca413aeb727b0efcec9050b4f5d28ec8801e94e2f7927c"
+    },
+    {
+      "path": "jobs/climonfix/ledger",
+      "bytes": 336,
+      "sha256": "a92f9c153296de25821a678fb63e16ca337b8863889902f38f88a0faeb6d2eee"
+    },
+    {
+      "path": "jobs/climonfix/output.log",
+      "bytes": 1088,
+      "sha256": "cf81619478986528ace457bbd265293098a5d28e203934a3badfac8407e964db"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/config-off/restart.argv.json",
+      "bytes": 357,
+      "sha256": "49c3632b775130c151c01b586a639707381fd75bde1a065a4c9de7f122047d07"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/config-off/restart.log",
+      "bytes": 7534,
+      "sha256": "8cae1bc79e1c6719f326d6cf74bd274f5139469e9226f31c9353e4b79a8cb44a"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/config-off/write.argv.json",
+      "bytes": 343,
+      "sha256": "ee10808b626c792e0815ba9a6b242fc1c23697446f3680d2862e426e57332db7"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/config-off/write.log",
+      "bytes": 7550,
+      "sha256": "d981be52f63ff9eb6a6c05b0b6427e017ec9aa18fb1c84637cc9daaf798d1486"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/config-on/restart.argv.json",
+      "bytes": 356,
+      "sha256": "eaf5bd2579e79d117e6d76fab576104cfdbdfa033c13f760b70f8b414b651808"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/config-on/restart.log",
+      "bytes": 7534,
+      "sha256": "c2d8e3c6093ad98bbf2d2e669b7b1c8b51893111ca1e7743d8727bf124e9d61b"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/config-on/write.argv.json",
+      "bytes": 356,
+      "sha256": "eaf5bd2579e79d117e6d76fab576104cfdbdfa033c13f760b70f8b414b651808"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/config-on/write.log",
+      "bytes": 7573,
+      "sha256": "0becc7e304558ed0605fb28f36402f720d1438612eec6269c67dda740e490b0f"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/default/restart.argv.json",
+      "bytes": 354,
+      "sha256": "b6131e44f7df28ec29dc5c2ff50522c985f771ceae4751e39ed3560a1eec3f32"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/default/restart.log",
+      "bytes": 7537,
+      "sha256": "efac2c74a0cec3b68155e006310691f3019bd931c9dcae8b2df61b6676ec488a"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/default/write.argv.json",
+      "bytes": 340,
+      "sha256": "a6fe2ec28283eb87eb0b4ffcfd839d8350562b2d29ef543b1750ed634e5a699c"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/default/write.log",
+      "bytes": 7568,
+      "sha256": "eaaab8666d4776df4ccb194c623fd1f0d918128ede53680801ae77164839fb6c"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/nosave/restart.argv.json",
+      "bytes": 353,
+      "sha256": "68cf316ccef5f518594e03cf8d4d2c1d8b924dd9d81cb7171ac639200fed322e"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/nosave/restart.log",
+      "bytes": 7537,
+      "sha256": "87cf58e914d7ff309eaf911f61b48a2d275a7d89636062925bbe3ff0a6f40bd3"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/nosave/write.argv.json",
+      "bytes": 339,
+      "sha256": "7bcbc6bdf6bd6b3836ceda4bd6e9fb79991b51cff617f92faa0dc24ad34a9a70"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/nosave/write.log",
+      "bytes": 7583,
+      "sha256": "25db7c2803c939d027e69ca57a63a87096a588280c5343fb68d978007d7b31dd"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/save-failure/write.argv.json",
+      "bytes": 345,
+      "sha256": "0494f86bbf1f7af547eb1b8182c5b49d18fb666e12d9764ced11f4b1ca02aadc"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/save-failure/write.log",
+      "bytes": 7557,
+      "sha256": "51ac2602b202e7056a536a9c60088ca60b1e9aa66c045fbbe0b019bf1d6e0c56"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/save-off/restart.argv.json",
+      "bytes": 355,
+      "sha256": "8a8932b2c6ea096921151b14cf04f3333c73bcb9a5e47e340a3b1b682b3314e9"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/save-off/restart.log",
+      "bytes": 7534,
+      "sha256": "d5164996ff4ca43fd8f6248e9379f7d3319f05d75f4e284d8f8d75a53eca77fb"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/save-off/write.argv.json",
+      "bytes": 355,
+      "sha256": "8a8932b2c6ea096921151b14cf04f3333c73bcb9a5e47e340a3b1b682b3314e9"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/save-off/write.log",
+      "bytes": 7537,
+      "sha256": "aa48e1982966b78a5376d008f6838cc3019c22b21c7410058a21aa0070129416"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/save-override/restart.argv.json",
+      "bytes": 360,
+      "sha256": "f79d7df79496677c2814d33647ca1ae6080e325a16d927625f9aa83162e51fcf"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/save-override/restart.log",
+      "bytes": 7537,
+      "sha256": "33443598e96b94a764bddb6ec1c22429f878b4f5cadd24abad3b9ebec494a31a"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/save-override/write.argv.json",
+      "bytes": 360,
+      "sha256": "f79d7df79496677c2814d33647ca1ae6080e325a16d927625f9aa83162e51fcf"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command/save-override/write.log",
+      "bytes": 7556,
+      "sha256": "2429aba22242b703fdc417567b1ff04885beee728ae7051e208176c3daf25c06"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-command.log",
+      "bytes": 628,
+      "sha256": "4c134b32478e5dbc8ea57b1b0fbed3732cc6a3f4a2dafcd7aa3792d6847186ba"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigint/sigint/restart.argv.json",
+      "bytes": 352,
+      "sha256": "7648cc6ee2ffad9f282ecd5f781172a1f302fe4fbe1f1c9e2bbfd1cb8dac3ae2"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigint/sigint/restart.log",
+      "bytes": 7537,
+      "sha256": "53671cb7373328fdfcd8512fcfbedb29b90acea119007cc32be36ae8cee0cb96"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigint/sigint/write.argv.json",
+      "bytes": 338,
+      "sha256": "cac2d5e00ea2606631a67424648fcb7456db465de3f1de2478a6096f6c2ef531"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigint/sigint/write.log",
+      "bytes": 7562,
+      "sha256": "5ce7e287445ebc1d80b244c6d90d26d8f4eb13cb6da555edd7b3264beaea3cc1"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigint/sigint-off/restart.argv.json",
+      "bytes": 356,
+      "sha256": "9e176c4d574a9dd8c7bae53958ca8742e69d91616f4015714375a12d166419ad"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigint/sigint-off/restart.log",
+      "bytes": 7534,
+      "sha256": "153da65576d2f8c22e1ee7e2c4a84031fb3480e20cf7a1a47d137ad35432b5bb"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigint/sigint-off/write.argv.json",
+      "bytes": 356,
+      "sha256": "9e176c4d574a9dd8c7bae53958ca8742e69d91616f4015714375a12d166419ad"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigint/sigint-off/write.log",
+      "bytes": 7534,
+      "sha256": "94914cefb70405f54299cf6615d58408a7c2764ba27e64d99e86be61a6c8a6ee"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigint.log",
+      "bytes": 171,
+      "sha256": "b7208814082df1f49a1a27d1594a7e683a1fdce86633fe430d9650b1b6075d5e"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigterm/sigterm/restart.argv.json",
+      "bytes": 354,
+      "sha256": "fe6d9fa408461ac9bdcbfaf2b62fdee1543aca279e6026a1fb544360af50bfae"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigterm/sigterm/restart.log",
+      "bytes": 7528,
+      "sha256": "238ba73716cc2e92ad40b3e56b637d97d6812acee3f9df6fbca17376ed065ef0"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigterm/sigterm/write.argv.json",
+      "bytes": 340,
+      "sha256": "19311ba17111f18c9b7ad436106374d352ec33ae9ef46585eaa7de4d5dddc174"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigterm/sigterm/write.log",
+      "bytes": 7571,
+      "sha256": "a802ed2311bf6acb6292e2460ef1f32f3dd493f6ff8c3f36b22b6166fbf30a81"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigterm/sigterm-off/restart.argv.json",
+      "bytes": 358,
+      "sha256": "3e16bd174f2bc7eb39a96abdba952f6bcd67aa456c03c153dce0b7b5e13edb57"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigterm/sigterm-off/restart.log",
+      "bytes": 7537,
+      "sha256": "5db56b21dd66dbec29b2e8a4ed390bfb67814b5c9f546465452481cd0e5226b9"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigterm/sigterm-off/write.argv.json",
+      "bytes": 358,
+      "sha256": "3e16bd174f2bc7eb39a96abdba952f6bcd67aa456c03c153dce0b7b5e13edb57"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigterm/sigterm-off/write.log",
+      "bytes": 7531,
+      "sha256": "d3b945875e4dd0a2e530494e9eaae8b04b95872721134a93288891a1217c95cc"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-1s-sigterm.log",
+      "bytes": 173,
+      "sha256": "138df2609404c423293ba07c683bc72808c2243bb635fc6fdace5a8491af719c"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/config-off/restart.argv.json",
+      "bytes": 375,
+      "sha256": "5383d38e9261bd1211fde51744a0c0329348710cdf17951abe8777b02362377a"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/config-off/restart.log",
+      "bytes": 6625,
+      "sha256": "9256a57b496aa0d4434879a4d3bcc1e8f3b6ff8bfa7caecf43bef2a29f01bda4"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/config-off/write.argv.json",
+      "bytes": 361,
+      "sha256": "6e756ac863fa25025143567ef5ba92ca17bffe767a7395fe87562ba8b719f933"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/config-off/write.log",
+      "bytes": 6634,
+      "sha256": "f126cd2971b2f24f24fe50fc450295772cddc5c827ea0d9300c255bd3fe2b166"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/config-on/restart.argv.json",
+      "bytes": 374,
+      "sha256": "ad9b325b6dd761c3b1f58ee82ec0b86477900a4c281e6664fcb71817a00ba0d2"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/config-on/restart.log",
+      "bytes": 6625,
+      "sha256": "d2f509d620b32dfce9a4a3dfeb2aaae24d690852a936a60e5cc82f2c66c0efaf"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/config-on/write.argv.json",
+      "bytes": 374,
+      "sha256": "ad9b325b6dd761c3b1f58ee82ec0b86477900a4c281e6664fcb71817a00ba0d2"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/config-on/write.log",
+      "bytes": 6639,
+      "sha256": "ceb1794c5ea041351674e11ae230152d2f1fa3524f44b1a5012063c8774dc0c3"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/default/restart.argv.json",
+      "bytes": 372,
+      "sha256": "6884389ab21b93c7727b97260042a132a0c3788bf41e5f66a6b28820ce78ba79"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/default/restart.log",
+      "bytes": 6625,
+      "sha256": "00385339b676f341cc60ddc5d26fc2e80081bd2362455be4d0fd99c596671676"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/default/write.argv.json",
+      "bytes": 358,
+      "sha256": "213abe52addb71f78abf189004b3791ce2a5a8d9531a6063fe950faff3a7d955"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/default/write.log",
+      "bytes": 6635,
+      "sha256": "22d3576ba5c37b7d5a6258937b385489770037f47b0109ce2d581931bd77301e"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/nosave/restart.argv.json",
+      "bytes": 371,
+      "sha256": "0565bb1856d98a31a4a76faefc748931089b1f467ac7f189454314b90a58738c"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/nosave/restart.log",
+      "bytes": 6625,
+      "sha256": "378532ec596d9e281efdbf69b496497fbfdd5a3ca882aaa72bdd734b9f5a1a34"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/nosave/write.argv.json",
+      "bytes": 357,
+      "sha256": "a1389ca53a91ea539af133e3f99a39d6bec97a1a6b0bc914d061868b17a3a498"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/nosave/write.log",
+      "bytes": 6636,
+      "sha256": "714bc00ecfef47d296d704a3bcb142d9adb59c4ad6f28842e62a90234e5ab176"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/save-failure/write.argv.json",
+      "bytes": 363,
+      "sha256": "d582d68628a6fe3d280b240960982aa4da474228b08aa6c947d911c1d37f9f80"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/save-failure/write.log",
+      "bytes": 6634,
+      "sha256": "110b3c0beb453b77b546a234b532aee7aa6e49e6231e28bf323d90038bca64c1"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/save-off/restart.argv.json",
+      "bytes": 373,
+      "sha256": "1cfdef143fd12a37c4a41eb44761fdc3d916bad9985e258f2000380a08ef738d"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/save-off/restart.log",
+      "bytes": 6625,
+      "sha256": "ceeb52225965f6a1a13513314b5cf7f32c65a37008e201bcbf5688ce3af0ba78"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/save-off/write.argv.json",
+      "bytes": 373,
+      "sha256": "1cfdef143fd12a37c4a41eb44761fdc3d916bad9985e258f2000380a08ef738d"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/save-off/write.log",
+      "bytes": 6625,
+      "sha256": "da5a797e5ac456002014f41fa426010801ae881a39e3cfe5147798861d68753f"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/save-override/restart.argv.json",
+      "bytes": 378,
+      "sha256": "3fcb3d46b7a6e415ebafa58a37548a9e53c5406f3a7511ddeed7db5ac734bec8"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/save-override/restart.log",
+      "bytes": 6625,
+      "sha256": "f5883848ef7606f56d1e404ec8375e8ac0bef69f2e39c7f71909cd444091b6a6"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/save-override/write.argv.json",
+      "bytes": 378,
+      "sha256": "3fcb3d46b7a6e415ebafa58a37548a9e53c5406f3a7511ddeed7db5ac734bec8"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command/save-override/write.log",
+      "bytes": 6631,
+      "sha256": "5ae8f4c43c12a4fe9a53cd9839742febf2f161410cb84713f122f9412ad159e9"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-command.log",
+      "bytes": 628,
+      "sha256": "71a8b12a3dd1e6f46c82f6e9c31217df4a7e68a782e41373c9ad10a17846bdae"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigint/sigint/restart.argv.json",
+      "bytes": 370,
+      "sha256": "afa642459d3213aa733286c817a253ad7a5f9d52597c93cf68c74a74d97416b1"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigint/sigint/restart.log",
+      "bytes": 6625,
+      "sha256": "a171952d683d0590718d4463253b8e04d03bdb0ca767f294a9f8ca8a1bc898c9"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigint/sigint/write.argv.json",
+      "bytes": 356,
+      "sha256": "5977630a28abca004241196bd3b5df05c557120d4923d6454ec73209a6ca829a"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigint/sigint/write.log",
+      "bytes": 6640,
+      "sha256": "05c82d007e031a5a46fe8fd891de4efcea4ab307e6300ecc5e63520587364020"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigint/sigint-off/restart.argv.json",
+      "bytes": 374,
+      "sha256": "c68193fb1bd20408b2266eb949498b73508ac9ff45f7584f344e74354fa082d3"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigint/sigint-off/restart.log",
+      "bytes": 6625,
+      "sha256": "683eb74e28965973f1338495c7411161beb3bb11da1e05c76df7bbee82a949d3"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigint/sigint-off/write.argv.json",
+      "bytes": 374,
+      "sha256": "c68193fb1bd20408b2266eb949498b73508ac9ff45f7584f344e74354fa082d3"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigint/sigint-off/write.log",
+      "bytes": 6625,
+      "sha256": "45708ed7741b6b1083c2df3142ac17479323aca05a350175ae942427f9d2bba7"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigint.log",
+      "bytes": 171,
+      "sha256": "0b823b022d25b0036ab5d97ad17d1f6b2a03051956922c506fd2194c8078bec6"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigterm/sigterm/restart.argv.json",
+      "bytes": 372,
+      "sha256": "d063ac102024a10f13ffd759e33352ca2b069c7863231114bad87c9d4d82ec9c"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigterm/sigterm/restart.log",
+      "bytes": 6625,
+      "sha256": "2e2dce37861e9da1524b90dff77d1b13c0e4f6468353461eb1bbec0a5bfcaf9a"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigterm/sigterm/write.argv.json",
+      "bytes": 358,
+      "sha256": "d3d4261d5f07154b33976922f55b123b4a1539423a2808e5702f9026bd68e5dc"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigterm/sigterm/write.log",
+      "bytes": 6640,
+      "sha256": "e71661cd1f86911899327b2c8d43044d62e8307a2f3efdcd6284b0a987869e47"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigterm/sigterm-off/restart.argv.json",
+      "bytes": 376,
+      "sha256": "52f56464f3f62ff696bf416ae6a0f7ed8cdd50aeb300e5c2057f483103c71dad"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigterm/sigterm-off/restart.log",
+      "bytes": 6625,
+      "sha256": "a5e44e1caadc123ad283d53ee659db4810d9fe60cb8d17cd92e55161713b3d6a"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigterm/sigterm-off/write.argv.json",
+      "bytes": 376,
+      "sha256": "52f56464f3f62ff696bf416ae6a0f7ed8cdd50aeb300e5c2057f483103c71dad"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigterm/sigterm-off/write.log",
+      "bytes": 6625,
+      "sha256": "6528247b60b87af88a48c3e7c45a23928bd414442ef8e2c5dd5a94d8e505566c"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-2s-sigterm.log",
+      "bytes": 173,
+      "sha256": "d8683ac7c7ec967f1e70b96cdf9b92b36293b566a13bbcf6ec481b3dc8d48110"
+    },
+    {
+      "path": "jobs/climonfix/shutdown-unit.log",
+      "bytes": 886,
+      "sha256": "8a270385105625ad7c54cefe1b6adf44ca428d48d31a353a082d876bf7217b54"
+    },
+    {
+      "path": "jobs/climonfix/timings",
+      "bytes": 336,
+      "sha256": "a92f9c153296de25821a678fb63e16ca337b8863889902f38f88a0faeb6d2eee"
+    },
+    {
+      "path": "jobs/flip/family.tsv",
+      "bytes": 49,
+      "sha256": "40b327772fba0fdb5cc370cbe0eb79ab258f8958465a2bc9d87039891adb220b"
+    },
+    {
+      "path": "jobs/flip/flipfix-close-epoll/close/close.argv.json",
+      "bytes": 398,
+      "sha256": "00ce89483a644a14fd29c60f36c71e80bc1fbdd4759a74c5d71cfb18e93d9a66"
+    },
+    {
+      "path": "jobs/flip/flipfix-close-epoll/close/close.load.txt",
+      "bytes": 143899,
+      "sha256": "8cef28800c0c21123292d957a3a97b5ec867378873c0e9001255a749ba8b6c14"
+    },
+    {
+      "path": "jobs/flip/flipfix-close-epoll/close/close.log",
+      "bytes": 18657,
+      "sha256": "e34dc6ef6dd87197a2a1df6088c149d911b53fc42e07c67574d5e155f5bace7c"
+    },
+    {
+      "path": "jobs/flip/flipfix-close-uring/close/close.argv.json",
+      "bytes": 398,
+      "sha256": "df45521967273500b68ec65e8e2b896c46924a7fb0d052f14937ddb4bc9bf1fe"
+    },
+    {
+      "path": "jobs/flip/flipfix-close-uring/close/close.load.txt",
+      "bytes": 143937,
+      "sha256": "e78b23977b855bc6f1ce21c96dc94440772fee7905b06614b5be68b0dbc0ebce"
+    },
+    {
+      "path": "jobs/flip/flipfix-close-uring/close/close.log",
+      "bytes": 18652,
+      "sha256": "2bba17c6854faf4897f57983e5c2add73627a8da0907040dd68f8f48662bb782"
+    },
+    {
+      "path": "jobs/flip/flipfix-sigint/sigint/sigint.argv.json",
+      "bytes": 400,
+      "sha256": "f61648aab810687dd526356006aeb7b864ff3b387a494fefe1f4252fbcff0a90"
+    },
+    {
+      "path": "jobs/flip/flipfix-sigint/sigint/sigint.load.txt",
+      "bytes": 144069,
+      "sha256": "2b9b99cba030de02dd36957799ddcda28cc4743e8dd78679bdb64c8e53f43c7e"
+    },
+    {
+      "path": "jobs/flip/flipfix-sigint/sigint/sigint.log",
+      "bytes": 690,
+      "sha256": "f81cbf9dba0a19dd207dc001e58925c36323db1da3d817fd08074cf022a4e7c7"
+    },
+    {
+      "path": "jobs/flip/flipfix-sigterm/sigterm/restart.argv.json",
+      "bytes": 396,
+      "sha256": "9101ff5bf71cb771ffd8a5e02864f6b14318112ef5f7a636fce466695658affd"
+    },
+    {
+      "path": "jobs/flip/flipfix-sigterm/sigterm/restart.load.txt",
+      "bytes": 144085,
+      "sha256": "caa908a5f9151f625b9093fa7a41f44233dba208b2159579ca2f3d2a51dbc643"
+    },
+    {
+      "path": "jobs/flip/flipfix-sigterm/sigterm/restart.log",
+      "bytes": 6664,
+      "sha256": "430c8c19b4ee15117e1312c38290b98794b203e58ea3ca6d546930e66cf8f230"
+    },
+    {
+      "path": "jobs/flip/flipfix-sigterm/sigterm/sigterm.argv.json",
+      "bytes": 402,
+      "sha256": "ebf4231491eb54b7a3045f50ef29e2a0045f7979173751a798c6652b1b7d584a"
+    },
+    {
+      "path": "jobs/flip/flipfix-sigterm/sigterm/sigterm.load.txt",
+      "bytes": 144063,
+      "sha256": "a9958e1adb39f7bb9f35cde6d46b92dbd378204c15c1acd69ddc037cad5be5c7"
+    },
+    {
+      "path": "jobs/flip/flipfix-sigterm/sigterm/sigterm.log",
+      "bytes": 6732,
+      "sha256": "0ffbcf0e27cfb661826b348813ed21175fcc2a371389f1688c1b8a20f1ca85e8"
+    },
+    {
+      "path": "jobs/flip/gate-flip-load.txt",
+      "bytes": 395,
+      "sha256": "0ba1d72b6060d1630837ad3fa137cde02a38d380632b52ab8c2e8812e7ae7b05"
+    },
+    {
+      "path": "jobs/flip/gate-flip-ttl.txt",
+      "bytes": 75,
+      "sha256": "a6e215e690a4a6613692900821215323f554b9be35f6f9378c07253b3acceb16"
+    },
+    {
+      "path": "jobs/flip/gate-flip.txt",
+      "bytes": 20,
+      "sha256": "0153665bbaa9f77b220be34da7874ddad7d832576143b1a0b53fe85d4b5f1645"
+    },
+    {
+      "path": "jobs/flip/gate-flipfix-close-epoll.txt",
+      "bytes": 3217,
+      "sha256": "66a963e9cce975b5f01ecb7247188a6862c674262530a662a04e8d24c9a94943"
+    },
+    {
+      "path": "jobs/flip/gate-flipfix-close-uring.txt",
+      "bytes": 3214,
+      "sha256": "ee2cad49f765c3901a22becd24057d5b9e2d1a3ca21c2d6338cc4fa0dfe38e3c"
+    },
+    {
+      "path": "jobs/flip/gate-flipfix-signal.txt",
+      "bytes": 3047,
+      "sha256": "eb11abcd846033ab8f249ff5f9230eef5a0a5e2ebd469e44dc81228fcd3c3910"
+    },
+    {
+      "path": "jobs/flip/gate-spinprobe.txt",
+      "bytes": 250,
+      "sha256": "bae46883473f14565c663c5071190496e70dab9e1c40534e39cfe4bd75a66e91"
+    },
+    {
+      "path": "jobs/flip/gate-srv-main.GehaSL",
+      "bytes": 8073,
+      "sha256": "8378e25d31ec4c0caae65b6a26d53fe5dc47196a89267aff7fe691d1f1c4f440"
+    },
+    {
+      "path": "jobs/flip/ledger",
+      "bytes": 411,
+      "sha256": "5c16cb999506ae355a3ce56221e5b95f879431befb456f86ccf236b904bb2299"
+    },
+    {
+      "path": "jobs/flip/output.log",
+      "bytes": 1374,
+      "sha256": "cd04582b1be2002dfdc2468d287cdfa41d5f85516af25e926f5755504ea32bb7"
+    },
+    {
+      "path": "jobs/flip/perfio-epoll-flip/epoll-flip/server.log",
+      "bytes": 11566,
+      "sha256": "c8088a89ae4c78b339c8f5522ab0d3ffb65800a7726153d9ad7927a00d12f66f"
+    },
+    {
+      "path": "jobs/flip/perfio-epoll-flip.log",
+      "bytes": 3052,
+      "sha256": "f034f2ddfbf1a9ff35e154c25a9311df62d1f8b12dd451c6d0c7268152519166"
+    },
+    {
+      "path": "jobs/flip/perfio-epoll-lb/epoll-lb/server.log",
+      "bytes": 6967,
+      "sha256": "285597dcecf30b01b8a74ee4aa8af7b9ea67abc5dc527e29d9cfc339fc509c24"
+    },
+    {
+      "path": "jobs/flip/perfio-epoll-lb.log",
+      "bytes": 1154,
+      "sha256": "a289af10d3705d352ae2e0177ff71ad64629943cd56c9a01a5021a812a7e2b62"
+    },
+    {
+      "path": "jobs/flip/timings",
+      "bytes": 411,
+      "sha256": "5c16cb999506ae355a3ce56221e5b95f879431befb456f86ccf236b904bb2299"
+    },
+    {
+      "path": "jobs/production_units/build.log",
+      "bytes": 2689,
+      "sha256": "64e7f3cabfbb38434eb3f4caec52603d04c9ce1c16a03d2e83d1358731cbf4dd"
+    },
+    {
+      "path": "jobs/production_units/family.tsv",
+      "bytes": 61,
+      "sha256": "8d0eec446ede01bed125e27d8e275e67284bf341aa654e0180ed21dc46e029b9"
+    },
+    {
+      "path": "jobs/production_units/ledger",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "jobs/production_units/mdbqsbr-live-build.log",
+      "bytes": 751,
+      "sha256": "f5f8fbe79541afbcd76c027137311879381be35d1706d4e89a51c524c3982301"
+    },
+    {
+      "path": "jobs/production_units/output.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "jobs/production_units/timings",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "jobs/release/family.tsv",
+      "bytes": 52,
+      "sha256": "293b20d5bc365bee8e4f94782232e0b79ccf9c0ee6cb5be580c4b7689f1afab8"
+    },
+    {
+      "path": "jobs/release/ledger",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "jobs/release/output.log",
+      "bytes": 149,
+      "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+    },
+    {
+      "path": "jobs/release/timings",
+      "bytes": 45,
+      "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+    },
+    {
+      "path": "ledger.partial",
+      "bytes": 847,
+      "sha256": "0f0c3d1e6b9a88c79d2340b1847df92dc1884719b76ad15830f7314e133e618b"
+    },
+    {
+      "path": "ledger.partial.timings",
+      "bytes": 792,
+      "sha256": "cb09f6332e8c6e80320c1b551ed4bd51c5a1f0c267242e22670199476e9e30de"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "sha256": "a097ddb3c1484b31ae3f45db51b9911be02d9bfde98e9d585d82929caf2c753f"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1230,
+      "sha256": "179aa3667bf49f414ea794cd1325672a4f6396b2b4c3fe398d9e6c7f3f7033d9"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 68841,
+      "sha256": "ebaaf7cc8020d72d870b1ece4df0db363583c4dad51bf1a20974de295f830172"
+    }
+  ],
+  "archive": {
+    "path": "evidence.tar.gz",
+    "sha256": "4cb97ec74dff0abe72fb682c0ae7a541d153809d9a67cd60d47458f44191073e"
+  }
+}
