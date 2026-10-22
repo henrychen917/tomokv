@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-moverfix/tests/txn_movers.py", line 120, in <module>
+    main()
+  File "/home/user/Projects/cx-moverfix/tests/txn_movers.py", line 109, in main
+    move(b, name)
+  File "/home/user/Projects/cx-moverfix/tests/txn_movers.py", line 42, in move
+    assert len(delivered) == len(set(delivered)) == count, (name, "duplicate/missing delivery")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('BRPOPLPUSH', 'duplicate/missing delivery')

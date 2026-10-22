@@ -1,0 +1,8 @@
+FAIL	2.350000	moverfix conservation (1s, uring, databases 1, atomic 0)
+FAIL	2.360000	moverfix conservation (1s, uring, databases 16, atomic 0)
+FAIL	2.330000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+FAIL	2.320000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+FAIL	2.380000	moverfix conservation (2s, uring, databases 1, atomic 0)
+FAIL	2.350000	moverfix conservation (2s, uring, databases 16, atomic 0)
+FAIL	2.230000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+FAIL	2.380000	moverfix conservation (2s, epoll, databases 16, atomic 0)

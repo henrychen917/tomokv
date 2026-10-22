@@ -1,0 +1,10 @@
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 128042, "start_size": null, "object": "/home/user/Projects/cx-moverfix/build/moverfix/budgets/src_cmd_xshard.o-post-128042.o", "changed": 56, "spillover": 45, "hot": 3}
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 128231, "start_size": null, "object": "/home/user/Projects/cx-moverfix/build/moverfix/budgets/src_cmd_xshard.o-post-128231.o", "changed": 47, "spillover": 37, "hot": 2}
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 128247, "start_size": null, "object": "/home/user/Projects/cx-moverfix/build/moverfix/budgets/src_cmd_xshard.o-post-128247.o", "changed": 50, "spillover": 39, "hot": 2}
+{"arm": "post", "unit": "src/cmd/xshard.o", "budget": 128263, "start_size": null, "object": "/home/user/Projects/cx-moverfix/build/moverfix/budgets/src_cmd_xshard.o-post-128263.o", "changed": 47, "spillover": 37, "hot": 1}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126710, "start_size": null, "object": "/home/user/Projects/cx-moverfix/build/moverfix/budgets/db0_src_cmd_xshard.o-post-126710.o", "changed": 58, "spillover": 51, "hot": 2}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126892, "start_size": null, "object": "/home/user/Projects/cx-moverfix/build/moverfix/budgets/db0_src_cmd_xshard.o-post-126892.o", "changed": 51, "spillover": 44, "hot": 1}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126908, "start_size": null, "object": "/home/user/Projects/cx-moverfix/build/moverfix/budgets/db0_src_cmd_xshard.o-post-126908.o", "changed": 49, "spillover": 42, "hot": 1}
+{"arm": "post", "unit": "db0/src/cmd/xshard.o", "budget": 126924, "start_size": null, "object": "/home/user/Projects/cx-moverfix/build/moverfix/budgets/db0_src_cmd_xshard.o-post-126924.o", "changed": 51, "spillover": 44, "hot": 1}
+BEST src/cmd/xshard.o 128263 hot 1 spillover 37
+BEST db0/src/cmd/xshard.o 126908 hot 1 spillover 42

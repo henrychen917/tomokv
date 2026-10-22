@@ -1,0 +1,6 @@
+ARMED close-cycle mode=2s reorder=0: reciprocal IO epoch waits
+ARMED close-cycle mode=1s reorder=0: reciprocal IO epoch waits
+ARMED close-cycle mode=1s reorder=1: reciprocal IO epoch waits
+ARMED flip-close db16: ERR FLIP connection ownership count is not conserved (FLIP 6 2, owned=1 live=2)
+ARMED flip-close db1: ERR FLIP connection ownership count is not conserved (FLIP 6 2, owned=1 live=2)
+PASS core concurrency lifetime (state assertions fired)

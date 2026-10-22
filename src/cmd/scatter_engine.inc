@@ -733,6 +733,8 @@ ScatterTaskResult execute_atomic_direct_rename(const Task& task, Shard& shard, O
                                                uint32_t owner_thread_id);
 bool xshard_owner_mutation_phase(const ScatterState& state, const Op& op);
 void finish_pfcount(ScatterState& state);
+[[gnu::noinline]] ScatterTaskResult execute_plain_element_mover(const Task&, Shard&, Op&);
+[[gnu::noinline]] ScatterTaskResult execute_live_pop(const Task&, Shard&, Op&);
 bool finish_phase1(ScatterState& state, Op& op);
 bool finish_phase2(ScatterState& state);
 void assemble_final(Client& client, Op& op, ScatterState& state, void* release_ctx,
@@ -3164,46 +3166,10 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
         }
 
         if (state.phase == 2) {
-            if (state.kind == Kind::Lmpop || state.kind == Kind::Zmpop) {
-                const uint32_t pos = state.key_order[group.begin];
-                const KeyRef& key = state.keys[pos];
-                // The bare phase-two pop may mutate in place without needing an MVCC record.
-                // Publish its selected key for the complete handler interval anyway; an EXEC
-                // child can safely hold this duplicate scope beside its transaction entry.
-                auto foreign_read_scope =
-                    shard.store().foreign_read_key_guard(key.hash);
-                bool plain_active = false;
-                if (!state.multi_child &&
-                    shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
-                    const WorkError prepared = begin_plain_version(
-                        *state.server, shard, op.arg(key.arg), key.hash,
-                        UINT64_MAX, state.origin_conn_id);
-                    if (prepared != WorkError::None) {
-                        state.status[pos] = static_cast<uint8_t>(prepared);
-                        return ScatterTaskResult::Complete;
-                    }
-                    plain_active = true;
-                }
-                ResultHeap* result = ensure_result(state);
-                if (!result) {
-                    state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
-                    if (plain_active) shard.store().atomic_finish_plain();
-                    return ScatterTaskResult::Complete;
-                }
-                const XshardPopResult popped = state.kind == Kind::Lmpop
-                    ? xshard_pop_list(shard, op.arg(key.arg), key.hash, !state.pop_edge,
-                                      state.pop_count, result->members)
-                    : xshard_pop_zset(shard, op.arg(key.arg), key.hash, state.pop_edge,
-                                      state.pop_count, result->members, result->scores);
-                if (popped == XshardPopResult::WrongType)
-                    state.status[pos] = static_cast<uint8_t>(WorkError::WrongType);
-                else if (popped == XshardPopResult::Oom)
-                    state.status[pos] = static_cast<uint8_t>(WorkError::Oom);
-                else if (popped == XshardPopResult::Missing && state.atomic_pop)
-                    state.pop_missed = true;
-                if (plain_active) shard.store().atomic_finish_plain();
-                return ScatterTaskResult::Complete;
-            }
+            if (state.kind == Kind::Lmpop || state.kind == Kind::Zmpop)
+                return execute_live_pop(task, shard, op);
+            if (!state.atomic_apply && is_element_mover(state.kind))
+                return execute_plain_element_mover(task, shard, op);
             for (uint32_t i = 0; i < group.count; i++) {
                 const uint32_t pos = state.key_order[group.begin + i];
                 const KeyRef& key = state.keys[pos];
@@ -3219,25 +3185,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     plain_active = true;
                 }
                 WorkError result;
-                if (!state.atomic_apply && is_element_mover(state.kind)) {
-                    XshardElementResult moved = XshardElementResult::InsertFailed;
-                    if (state.kind == Kind::Smove) {
-                        moved = pos == 0
-                            ? xshard_remove_set_element(
-                                  shard, op.arg(key.arg), key.hash, op.arg(3))
-                            : xshard_insert_set_element(
-                                  shard, op.arg(key.arg), key.hash, op.arg(3));
-                    } else {
-                        const std::string& element = state.result->bulk;
-                        const Slice value(element.data(), static_cast<uint32_t>(element.size()));
-                        moved = pos == 0
-                            ? xshard_remove_list_element(
-                                  shard, op.arg(key.arg), key.hash, state.from_left, value)
-                            : xshard_push_list_element(
-                                  shard, op.arg(key.arg), key.hash, state.to_left, value);
-                    }
-                    result = element_work_error(moved);
-                } else if (state.kind == Kind::Msetnx) {
+                if (state.kind == Kind::Msetnx) {
                     result = store_xstring_selected(
                         notify, shard, op.arg(key.arg), key.hash, op.arg(key.arg + 1));
                 } else if (state.kind == Kind::Bitop) {

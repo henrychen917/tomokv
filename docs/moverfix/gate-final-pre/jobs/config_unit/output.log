@@ -1,0 +1,6 @@
+  row budget: 900s; median=0.41s; correctness-plan-fallback; configuration docs match parser
+  configuration docs match parser                      ok
+  row budget: 900s; median=5.225s; correctness-plan-fallback; Redis config quoting + mid-value #
+PASS documented config example: parser, defaults, 6:2 placement, 16 shards
+boot presentation: 256 resolved cells, eight placement witnesses each
+  Redis config quoting + mid-value #                   ok

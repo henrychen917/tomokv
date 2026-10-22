@@ -1,0 +1,826 @@
+[
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "databases": 1,
+    "legs": [
+      {
+        "name": "unit-1s-uring-1-RPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-1-LMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-1-BRPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-1-BLMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-1-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-1-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-1-SMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-uring-1-RPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-uring-1-LMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-1s-uring-1-BRPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-uring-1-BLMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-1s-uring-1-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-1s-uring-1-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-1s-uring-1-SMOVE.log",
+        "bytes": 55,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-uring-1-T05.log",
+        "bytes": 131,
+        "hits": 0,
+        "pass_lines": 0
+      },
+      {
+        "name": "live-1s-uring-1-G5.log",
+        "bytes": 127,
+        "hits": 0,
+        "pass_lines": 0
+      }
+    ]
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "databases": 16,
+    "legs": [
+      {
+        "name": "unit-1s-uring-16-RPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-16-LMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-16-BRPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-16-BLMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-16-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-16-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-uring-16-SMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-uring-16-RPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-uring-16-LMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-1s-uring-16-BRPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-uring-16-BLMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-1s-uring-16-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-1s-uring-16-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-1s-uring-16-SMOVE.log",
+        "bytes": 55,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-uring-16-T05.log",
+        "bytes": 131,
+        "hits": 0,
+        "pass_lines": 0
+      },
+      {
+        "name": "live-1s-uring-16-G5.log",
+        "bytes": 127,
+        "hits": 0,
+        "pass_lines": 0
+      }
+    ]
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "databases": 1,
+    "legs": [
+      {
+        "name": "unit-1s-epoll-1-RPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-1-LMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-1-BRPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-1-BLMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-1-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-1-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-1-SMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-epoll-1-RPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-epoll-1-LMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-1s-epoll-1-BRPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-epoll-1-BLMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-1s-epoll-1-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-1s-epoll-1-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-1s-epoll-1-SMOVE.log",
+        "bytes": 55,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-epoll-1-T05.log",
+        "bytes": 131,
+        "hits": 0,
+        "pass_lines": 0
+      },
+      {
+        "name": "live-1s-epoll-1-G5.log",
+        "bytes": 127,
+        "hits": 0,
+        "pass_lines": 0
+      }
+    ]
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "databases": 16,
+    "legs": [
+      {
+        "name": "unit-1s-epoll-16-RPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-16-LMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-16-BRPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-16-BLMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-16-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-16-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-1s-epoll-16-SMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-epoll-16-RPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-epoll-16-LMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-1s-epoll-16-BRPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-epoll-16-BLMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-1s-epoll-16-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-1s-epoll-16-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-1s-epoll-16-SMOVE.log",
+        "bytes": 55,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-1s-epoll-16-T05.log",
+        "bytes": 131,
+        "hits": 0,
+        "pass_lines": 0
+      },
+      {
+        "name": "live-1s-epoll-16-G5.log",
+        "bytes": 127,
+        "hits": 0,
+        "pass_lines": 0
+      }
+    ]
+  },
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "databases": 1,
+    "legs": [
+      {
+        "name": "unit-2s-uring-1-RPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-1-LMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-1-BRPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-1-BLMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-1-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-1-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-1-SMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-uring-1-RPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-uring-1-LMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-2s-uring-1-BRPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-uring-1-BLMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-2s-uring-1-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-2s-uring-1-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-2s-uring-1-SMOVE.log",
+        "bytes": 55,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-uring-1-T05.log",
+        "bytes": 131,
+        "hits": 0,
+        "pass_lines": 0
+      },
+      {
+        "name": "live-2s-uring-1-G5.log",
+        "bytes": 127,
+        "hits": 0,
+        "pass_lines": 0
+      }
+    ]
+  },
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "databases": 16,
+    "legs": [
+      {
+        "name": "unit-2s-uring-16-RPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-16-LMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-16-BRPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-16-BLMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-16-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-16-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-uring-16-SMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-uring-16-RPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-uring-16-LMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-2s-uring-16-BRPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-uring-16-BLMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-2s-uring-16-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-2s-uring-16-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-2s-uring-16-SMOVE.log",
+        "bytes": 55,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-uring-16-T05.log",
+        "bytes": 131,
+        "hits": 0,
+        "pass_lines": 0
+      },
+      {
+        "name": "live-2s-uring-16-G5.log",
+        "bytes": 127,
+        "hits": 0,
+        "pass_lines": 0
+      }
+    ]
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "databases": 1,
+    "legs": [
+      {
+        "name": "unit-2s-epoll-1-RPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-1-LMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-1-BRPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-1-BLMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-1-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-1-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-1-SMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-epoll-1-RPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-epoll-1-LMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-2s-epoll-1-BRPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-epoll-1-BLMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-2s-epoll-1-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-2s-epoll-1-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-2s-epoll-1-SMOVE.log",
+        "bytes": 55,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-epoll-1-T05.log",
+        "bytes": 131,
+        "hits": 0,
+        "pass_lines": 0
+      },
+      {
+        "name": "live-2s-epoll-1-G5.log",
+        "bytes": 127,
+        "hits": 0,
+        "pass_lines": 0
+      }
+    ]
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "databases": 16,
+    "legs": [
+      {
+        "name": "unit-2s-epoll-16-RPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-16-LMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-16-BRPOPLPUSH.log",
+        "bytes": 555,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-16-BLMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-16-LMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-16-ZMPOP.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "unit-2s-epoll-16-SMOVE.log",
+        "bytes": 523,
+        "hits": 8,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-epoll-16-RPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-epoll-16-LMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-2s-epoll-16-BRPOPLPUSH.log",
+        "bytes": 62,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-epoll-16-BLMOVE.log",
+        "bytes": 232,
+        "hits": 0,
+        "pass_lines": 4
+      },
+      {
+        "name": "live-2s-epoll-16-LMPOP.log",
+        "bytes": 75,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-2s-epoll-16-ZMPOP.log",
+        "bytes": 72,
+        "hits": 0,
+        "pass_lines": 2
+      },
+      {
+        "name": "live-2s-epoll-16-SMOVE.log",
+        "bytes": 55,
+        "hits": 0,
+        "pass_lines": 1
+      },
+      {
+        "name": "live-2s-epoll-16-T05.log",
+        "bytes": 131,
+        "hits": 0,
+        "pass_lines": 0
+      },
+      {
+        "name": "live-2s-epoll-16-G5.log",
+        "bytes": 127,
+        "hits": 0,
+        "pass_lines": 0
+      }
+    ]
+  }
+]

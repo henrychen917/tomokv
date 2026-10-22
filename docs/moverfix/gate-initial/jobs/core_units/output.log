@@ -1,0 +1,18 @@
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency watch
+  core concurrency watch                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency lifetime
+  core concurrency lifetime                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency drain
+  core concurrency drain                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency route
+  core concurrency route                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency snapshot
+  core concurrency snapshot                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency config
+  core concurrency config                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; core concurrency notify
+  core concurrency notify                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local topology demotion (1s)
+  read-local topology demotion (1s)                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; read-local topology demotion (2s)
+  read-local topology demotion (2s)                    ok

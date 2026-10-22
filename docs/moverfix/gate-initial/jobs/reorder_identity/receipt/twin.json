@@ -1,0 +1,22 @@
+{
+  "kind": "A: PRE FIFO behaviour with POST text size and layout; all reorder disabled",
+  "post": "/home/user/Projects/cx-moverfix/build/tomokv",
+  "pad": "/home/user/Projects/cx-moverfix/build/gate-run.trTWZd/jobs/reorder_identity/receipt/fifo-twin",
+  "file_bytes": 192414072,
+  "text_bytes": 7738641,
+  "patches": [
+    {
+      "capability_symbol": "_ZN4tomo17reorder_availableEv",
+      "patch_offset": 7615733
+    },
+    {
+      "capability_symbol": "_ZN8tomo_db017reorder_availableEv",
+      "patch_offset": 3827429
+    }
+  ],
+  "original_byte": "01",
+  "pad_byte": "00",
+  "post_sha256": "6cbfe1aa02936ed18b65149105ff4be3004beb40342b8473cb351193a878d500",
+  "pad_sha256": "191e9954117671ffb8c9ec2e3a4b49f785098b519b0c438cd9bb968685b25af7",
+  "all_other_bytes_equal": true
+}

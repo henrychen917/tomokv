@@ -150,6 +150,14 @@ if __name__ == '__main__':
             owner = f'{namespace}::ExLoopT<true>::prefetch_owner_batch({namespace}::Task const*, unsigned int)'
             for binary in (pre, post):
                 assert len(binary.groups.get(owner, ())) == 1, f'missing owner prefetch body: {namespace}'
+        # moverfix: normal xshard.o inlines the xshard_execute KEYS/RANDOMKEY
+        # atomic_for_each_unique_key<atomic_for_each_side_key<...>> .isra.0
+        # body and its cold fragment into xshard_execute (-2), but emits its
+        # FlatStore::scan<...> .constprop.0 clone (+1): 146 -> 145. DB0 keeps
+        # the two unique-key bodies and inlines scan (146). Budget-only trials
+        # retaining those helper bodies change other hot bodies; retain POST.
+        # See docs/moverfix2/README.md for symbols, IPA decisions and trials.
+        expected['tomo'] -= 1
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):

@@ -1,0 +1,58 @@
+[
+  {
+    "mode": "2s",
+    "databases": 1,
+    "test": "T05",
+    "rc": 1,
+    "sha256": "297f2dc1683de49b66c71d0ddba4fd728aa830e9f92339e8c4a1083d2094660b"
+  },
+  {
+    "mode": "2s",
+    "databases": 1,
+    "test": "G5",
+    "rc": 1,
+    "sha256": "297f2dc1683de49b66c71d0ddba4fd728aa830e9f92339e8c4a1083d2094660b"
+  },
+  {
+    "mode": "2s",
+    "databases": 16,
+    "test": "T05",
+    "rc": 1,
+    "sha256": "297f2dc1683de49b66c71d0ddba4fd728aa830e9f92339e8c4a1083d2094660b"
+  },
+  {
+    "mode": "2s",
+    "databases": 16,
+    "test": "G5",
+    "rc": 1,
+    "sha256": "297f2dc1683de49b66c71d0ddba4fd728aa830e9f92339e8c4a1083d2094660b"
+  },
+  {
+    "mode": "1s",
+    "databases": 1,
+    "test": "T05",
+    "rc": 1,
+    "sha256": "297f2dc1683de49b66c71d0ddba4fd728aa830e9f92339e8c4a1083d2094660b"
+  },
+  {
+    "mode": "1s",
+    "databases": 1,
+    "test": "G5",
+    "rc": 1,
+    "sha256": "297f2dc1683de49b66c71d0ddba4fd728aa830e9f92339e8c4a1083d2094660b"
+  },
+  {
+    "mode": "1s",
+    "databases": 16,
+    "test": "T05",
+    "rc": 1,
+    "sha256": "297f2dc1683de49b66c71d0ddba4fd728aa830e9f92339e8c4a1083d2094660b"
+  },
+  {
+    "mode": "1s",
+    "databases": 16,
+    "test": "G5",
+    "rc": 1,
+    "sha256": "297f2dc1683de49b66c71d0ddba4fd728aa830e9f92339e8c4a1083d2094660b"
+  }
+]

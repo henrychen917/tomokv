@@ -1,0 +1,1 @@
+  row budget: 900s; median=38.3s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); build dependency: core-concurrency-tsan

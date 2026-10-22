@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-moverfix/tests/moverfix.py", line 227, in <module>
+    main()
+  File "/home/user/Projects/cx-moverfix/tests/moverfix.py", line 217, in main
+    exec_moves(b)
+  File "/home/user/Projects/cx-moverfix/tests/moverfix.py", line 197, in exec_moves
+    assert len(delivered) == len(set(delivered)) == count and set(delivered) == expected, (verb, "EXEC duplicate/loss")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('RPOPLPUSH', 'EXEC duplicate/loss')

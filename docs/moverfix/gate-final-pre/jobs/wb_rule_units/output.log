@@ -1,0 +1,8 @@
+  row budget: 900s; median=0.11s; correctness-plan-fallback; writeback c12 policy witnesses + negative controls
+  writeback c12 policy witnesses + negative controls   ok
+  row budget: 900s; median=4.53s; correctness-plan-fallback; writeback c12 phase witnesses + negative controls
+  writeback c12 phase witnesses + negative controls    ok
+  row budget: 900s; median=1.775s; correctness-plan-fallback; writeback c12 stages witnesses + negative controls
+  writeback c12 stages witnesses + negative controls   ok
+  row budget: 900s; median=4.895s; correctness-plan-fallback; writeback c12 split-phase witnesses + negative controls
+  writeback c12 split-phase witnesses + negative controls ok

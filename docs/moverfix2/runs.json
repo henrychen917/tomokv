@@ -1,0 +1,81 @@
+[
+  {
+    "name": "build",
+    "argv": [
+      "taskset",
+      "-c",
+      "80-95",
+      "make",
+      "-j16",
+      "all",
+      "build/moverfix-unit",
+      "build/moverfix-db0-unit",
+      "build/publishfix-unit",
+      "build/at15-unit",
+      "build/at15-db0-unit",
+      "build/execabort-watch-unit",
+      "build/execabort-watch-db0-unit",
+      "build/core-concurrency-unit",
+      "build/atomic-survivors-unit",
+      "build/netcmd-unit",
+      "build/encodingfix-unit",
+      "build/netcap-unit",
+      "build/waits-unit",
+      "build/rehash-waits-unit",
+      "build/multidb-unit",
+      "build/multidb-boundary-unit",
+      "build/storesize-unit",
+      "build/respresume-unit",
+      "build/respresume-migration",
+      "build/exbatch-unit",
+      "build/exbatch-db0-unit",
+      "build/wb-rule-units",
+      "build/wbland-units",
+      "build/rltopo-unit",
+      "build/lbplanner-units",
+      "build/shutdown-unit",
+      "build/persistfix-units",
+      "build/ktls-keyupdate",
+      "build/ktls-keyupdate-unit",
+      "build/flushfix-units",
+      "build/splitlocal-unit",
+      "build/reorder-engagement-unit",
+      "build/reorder-engagement-unit-db0",
+      "build/racefix-climon",
+      "build/aoforder-scheduled",
+      "mdbqsbr-live-arms"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "gate",
+    "argv": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "80-88",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "89-95",
+      "--load-smt",
+      "",
+      "--ports",
+      "23800-23877",
+      "--candidate-binary",
+      "/home/user/Projects/cx-moverfix/build/tomokv"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "gates-test",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "rc": 0
+  }
+]

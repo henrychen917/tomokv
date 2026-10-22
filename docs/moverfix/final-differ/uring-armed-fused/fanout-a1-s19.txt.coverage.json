@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "commands": {
+    "PSUBSCRIBE": 5,
+    "PUBLISH": 1387,
+    "PUBSUB": 115,
+    "SPUBLISH": 490,
+    "SSUBSCRIBE": 6,
+    "SUBSCRIBE": 17
+  },
+  "kinds": {
+    "PSUBSCRIBE": [
+      "reply"
+    ],
+    "PUBLISH": [
+      "reply"
+    ],
+    "PUBSUB": [
+      "reply"
+    ],
+    "SPUBLISH": [
+      "reply"
+    ],
+    "SSUBSCRIBE": [
+      "reply"
+    ],
+    "SUBSCRIBE": [
+      "reply"
+    ]
+  }
+}

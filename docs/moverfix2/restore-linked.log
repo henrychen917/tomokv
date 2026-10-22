@@ -1,0 +1,16 @@
+{
+  "post_sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+  "trial_sha256": "9b0557b3221f5babeb648a995a97e3d24ce5016431b3b8b02dc9961d576e77d1",
+  "post_inventory": {
+    "tomo": 145,
+    "tomo_db0": 146
+  },
+  "trial_inventory": {
+    "tomo": 145,
+    "tomo_db0": 146
+  },
+  "selected": 504,
+  "changed": 15,
+  "hot": 457,
+  "hot_changed": 5
+}

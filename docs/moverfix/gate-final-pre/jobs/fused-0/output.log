@@ -1,0 +1,14 @@
+  row budget: 900s; median=0.255s; correctness-plan-fallback; fused boot line (atomic 0)
+  fused boot line (atomic 0)                           ok
+  row budget: 900s; median=1.15s; correctness-plan-fallback; fused s6 battery (atomic 0)
+  fused s6 battery (atomic 0)                          ok
+  row budget: 900s; median=2.075s; correctness-plan-fallback; fused multi_exec battery (atomic 0)
+  fused multi_exec battery (atomic 0)                  ok
+  row budget: 900s; median=0.74s; correctness-plan-fallback; fused edgeproto battery (atomic 0)
+  fused edgeproto battery (atomic 0)                   ok
+  row budget: 900s; median=0.045s; correctness-plan-fallback; fused atomfix battery (atomic 0)
+  fused atomfix battery (atomic 0)                     ok
+  row budget: 900s; median=2.23s; correctness-plan-fallback; fused spinprobe battery (atomic 0)
+  fused spinprobe battery (atomic 0)                   ok
+  row budget: 900s; median=1.165s; correctness-plan-fallback; fused shutdown report (atomic 0)
+  fused shutdown report (atomic 0)                     ok

@@ -1,0 +1,8 @@
+{
+  "txn_movers_donor": "f7f3ce7a5",
+  "txn_movers": "byte-identical except Battery import",
+  "G5_donor_head": "a8f849553a4a829ac3327e125603bef064868cfc",
+  "G5_moves": "AST-identical, including all assertions; later atomic-1-only counter assertions also retained but not executed by atomic-0 rows",
+  "initial_check": "Comparison of whole G5 method against f7f3ce7a5 rejected later atomic-1-only counter additions; actual port matches current donor whole method.",
+  "T05": "Both assertions AST-identical to tests/txnfix_audit/t05_mover_only.py; N=2000 W=4; client/server plumbing adapted."
+}

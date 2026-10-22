@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-moverfix/docs/moverfix/reproduce.py", line 28, in <module>
+    with server(a.binary, "80-87", 23800, d / "server", argv):
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-moverfix/tests/_gate_process.py", line 178, in server
+    conn = wait_ready('127.0.0.1', port, timeout=20, process=process,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-moverfix/tests/_lib.py", line 260, in wait_ready
+    check_process()
+  File "/home/user/Projects/cx-moverfix/tests/_lib.py", line 244, in check_process
+    raise exited("server exited during boot (status %s)" % status)
+RuntimeError: server exited during boot (status 1)
+unknown argument '--io-engine' (see --help)
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+

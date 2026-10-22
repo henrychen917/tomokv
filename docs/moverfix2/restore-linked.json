@@ -1,0 +1,190 @@
+{
+  "post_sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+  "trial_sha256": "9b0557b3221f5babeb648a995a97e3d24ce5016431b3b8b02dc9961d576e77d1",
+  "post_inventory": {
+    "tomo": 145,
+    "tomo_db0": 146
+  },
+  "trial_inventory": {
+    "tomo": 145,
+    "tomo_db0": 146
+  },
+  "selected": 504,
+  "changed": 15,
+  "hot": 457,
+  "hot_changed": 5,
+  "changed_bodies": [
+    {
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, false>() const",
+      "equal": false,
+      "hot": false,
+      "category": "multi-key commands",
+      "before_sizes": [
+        1078
+      ],
+      "trial_sizes": []
+    },
+    {
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<false, true>() const",
+      "equal": false,
+      "hot": false,
+      "category": "multi-key commands",
+      "before_sizes": [
+        1094
+      ],
+      "trial_sizes": [
+        1341
+      ]
+    },
+    {
+      "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "equal": false,
+      "hot": false,
+      "category": "multi-key commands",
+      "before_sizes": [
+        1190
+      ],
+      "trial_sizes": [
+        1405
+      ]
+    },
+    {
+      "name": "tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent)",
+      "equal": false,
+      "hot": true,
+      "category": null,
+      "before_sizes": [
+        812
+      ],
+      "trial_sizes": [
+        1181
+      ]
+    },
+    {
+      "name": "tomo::FlatStore::find(unsigned long, tomo::Slice)",
+      "equal": false,
+      "hot": true,
+      "category": null,
+      "before_sizes": [
+        806
+      ],
+      "trial_sizes": [
+        1117
+      ]
+    },
+    {
+      "name": "tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)",
+      "equal": false,
+      "hot": true,
+      "category": null,
+      "before_sizes": [
+        846
+      ],
+      "trial_sizes": [
+        1177
+      ]
+    },
+    {
+      "name": "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)",
+      "equal": false,
+      "hot": true,
+      "category": null,
+      "before_sizes": [
+        1033
+      ],
+      "trial_sizes": [
+        1037
+      ]
+    },
+    {
+      "name": "tomo::FlatStore::insert_notify(unsigned long, tomo::KvObj*, tomo::FlatNotifySink*)",
+      "equal": false,
+      "hot": true,
+      "category": null,
+      "before_sizes": [
+        737
+      ],
+      "trial_sizes": [
+        1191
+      ]
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "equal": false,
+      "hot": false,
+      "category": "multi-key commands",
+      "before_sizes": [
+        20731
+      ],
+      "trial_sizes": [
+        21180
+      ]
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+      "equal": false,
+      "hot": false,
+      "category": "multi-key commands",
+      "before_sizes": [
+        372
+      ],
+      "trial_sizes": [
+        388
+      ]
+    },
+    {
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+      "equal": false,
+      "hot": false,
+      "category": "multi-key commands",
+      "before_sizes": [
+        18276
+      ],
+      "trial_sizes": [
+        18625
+      ]
+    },
+    {
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+      "equal": false,
+      "hot": false,
+      "category": "multi-key commands",
+      "before_sizes": [
+        594
+      ],
+      "trial_sizes": [
+        576
+      ]
+    },
+    {
+      "name": "unsigned long tomo::FlatStore::scan<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}>(unsigned long, unsigned int, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::KvObj*)#1}&&, bool) [clone .constprop.0]",
+      "equal": false,
+      "hot": false,
+      "category": "multi-key commands",
+      "before_sizes": [
+        1071
+      ],
+      "trial_sizes": []
+    },
+    {
+      "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0]",
+      "equal": false,
+      "hot": false,
+      "category": "multi-key commands",
+      "before_sizes": [],
+      "trial_sizes": [
+        2394
+      ]
+    },
+    {
+      "name": "void tomo::FlatStore::atomic_for_each_unique_key<tomo::FlatStore::atomic_for_each_side_key<tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}>(unsigned long, tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&)::{lambda(unsigned long, tomo::Slice)#1}>(tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(tomo::Slice)#1}&&) [clone .isra.0] [clone .cold]",
+      "equal": false,
+      "hot": false,
+      "category": "multi-key commands",
+      "before_sizes": [],
+      "trial_sizes": [
+        5
+      ]
+    }
+  ]
+}

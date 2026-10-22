@@ -1,0 +1,9 @@
+HIT ZMPOP both probes before claims count=3 left=0 to_left=0
+HIT ZMPOP both probes before claims count=6 left=0 to_left=0
+HIT ZMPOP both probes before claims count=3 left=0 to_left=1
+HIT ZMPOP both probes before claims count=6 left=0 to_left=1
+HIT ZMPOP both probes before claims count=3 left=1 to_left=0
+HIT ZMPOP both probes before claims count=6 left=1 to_left=0
+HIT ZMPOP both probes before claims count=3 left=1 to_left=1
+HIT ZMPOP both probes before claims count=6 left=1 to_left=1
+PASS moverfix deterministic claims

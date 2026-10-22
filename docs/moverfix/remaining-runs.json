@@ -1,0 +1,166 @@
+[
+  {
+    "name": "pre-gate",
+    "argv": [
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "80-88",
+      "--server-smt",
+      "",
+      "--load-cores",
+      "89-95",
+      "--load-smt",
+      "",
+      "--ports",
+      "23800-23877",
+      "--candidate-binary",
+      "/home/user/Projects/cx-moverfix/build/moverfix/pre/tomokv"
+    ],
+    "rc": 1
+  },
+  {
+    "name": "final-supplement",
+    "argv": [
+      "python3",
+      "docs/moverfix/supplement.py"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "final-differ",
+    "argv": [
+      "python3",
+      "docs/moverfix/differ.py"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "gates-test-quiet",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "abba-tail-abba_instrument",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/abba_instrument.py",
+      "--self-test"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "abba-tail-background_environment_test",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/background_environment_test.py"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "abba-tail-gate_history",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/gate_history.py",
+      "self-test"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "abba-tail-gate_process_test",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/gate_process_test.py"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "abba-tail-gate_subset_test",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/gate_subset_test.py"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "abba-tail-wb_policy",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/wb_policy.py",
+      "--self-test"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "abba-tail-lb_stationary",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/lb_stationary.py",
+      "--self-test"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "abba-tail-netio",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/netio.py",
+      "--self-test"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "abba-tail-gateprod",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/gateprod.py",
+      "--self-test"
+    ],
+    "rc": 0
+  },
+  {
+    "name": "abba-tail-tailgen_stall",
+    "argv": [
+      "taskset",
+      "-c",
+      "89-95",
+      "python3",
+      "tests/tailgen_stall.py",
+      "--self-test"
+    ],
+    "rc": 0
+  }
+]
