@@ -1,0 +1,112 @@
+{
+  "arm": "PRE",
+  "engine": "epoll",
+  "run": "build/gate-run.AwxK0k",
+  "manifest": {
+    "schema": 1,
+    "manifest": {
+      "run": "iteration:gate-run.AwxK0k",
+      "permanent": [
+        7,
+        19,
+        20,
+        23
+      ],
+      "failed": [],
+      "rotating": 27,
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        27
+      ],
+      "history": "/home/user/Projects/cx-compat3/build/compat3/differ-history"
+    },
+    "suites": [
+      "string",
+      "list",
+      "set",
+      "zset",
+      "hash",
+      "hexpire",
+      "edgetime",
+      "xshard",
+      "xmove",
+      "bitmap",
+      "hll",
+      "bitfield",
+      "cgaps",
+      "stream",
+      "script",
+      "streamgrp",
+      "zsetops",
+      "geo",
+      "doubles",
+      "scan",
+      "multi",
+      "encodingfix",
+      "edgeenc",
+      "edgeproto",
+      "cmdgap",
+      "cmdgap2",
+      "sort",
+      "servertail",
+      "arity",
+      "storeorder",
+      "infofix",
+      "multidb",
+      "blocking",
+      "pubsub",
+      "fanout",
+      "spubsub",
+      "notify",
+      "wiredump",
+      "climon",
+      "compatintro",
+      "aclsel",
+      "aclkeys",
+      "cmdmeta",
+      "s6fix",
+      "ccfix",
+      "psfix",
+      "monitor"
+    ],
+    "repeats": 4,
+    "equivalence_seeds": [
+      27
+    ]
+  },
+  "parts": [
+    {
+      "part": "armed-0",
+      "executed": 230,
+      "passed": 230,
+      "failures": [],
+      "gate_done": "0\t1\t0",
+      "success_completion": true
+    },
+    {
+      "part": "armed-1",
+      "executed": 234,
+      "passed": 233,
+      "failures": [
+        {
+          "suite": "climon",
+          "atomic": 1,
+          "seed": 20,
+          "repeat": 0,
+          "returncode": 1,
+          "receipt": "build/gate-run.AwxK0k/jobs/differ-armed-1/differ/climon-a1-s20.txt"
+        }
+      ],
+      "gate_done": "0\t0\t1",
+      "success_completion": false
+    }
+  ],
+  "executed": 464,
+  "passed": 463,
+  "failed": 1,
+  "verdict": "FAIL; known DIFF-TRK-1 reproduced on baseline",
+  "all_declared_legs_present": true
+}

@@ -691,6 +691,40 @@
     ]
   },
   {
+    "log": "PRE-tracking-differ-epoll.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.AwxK0k",
+    "archive": "receipts/PRE-tracking-differ-epoll.tar.gz",
+    "sha256": "50ffc387ebd8f6cee18e701aeb66596c440d1a8f7d881ccceae35d131039fdb4",
+    "bytes": 114813,
+    "parts": [],
+    "complete": true,
+    "files": 956,
+    "jobs": [
+      {
+        "job": "differ-armed-0",
+        "done": "0\t1\t0",
+        "ledger": "ok\t527.510000\tRedis 7.4 differential part (armed fused, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "differ-armed-1",
+        "done": "0\t0\t1",
+        "ledger": "FAIL\t528.300000\tRedis 7.4 differential part (armed fused, atomic 1)\n",
+        "failures": [
+          "  differ climon (atomic=1 seed=20)                           FAIL (see /home/user/Projects/cx-compat3/build/gate-run.AwxK0k/jobs/differ-armed-1/differ/climon-a1-s20.txt; DIFFER climon: 4318 ops, 1 diffs -> FAIL)",
+          "DIFFER FANOUT FAIL: armed-1: failed leg climon-a1-s20.txt (exit 1)",
+          "  Redis 7.4 differential part (armed fused, atomic 1)  FAIL"
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
     "log": "bounded-differ-uring.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.1E9ADa",
     "archive": "receipts/bounded-differ-uring.tar.gz",
