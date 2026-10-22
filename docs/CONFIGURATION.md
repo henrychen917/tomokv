@@ -50,8 +50,8 @@ the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 | `read-local` | T | u32, 0 or 1 | `0` | Boot/GET | `read_local` | Eligible GET/MGET on the parsing thread in both modes; `src/core/config.h:801`, `src/main.cc:325`. |
 | `reorder` | T | u32, 0 or 1 | `0` | Boot/GET | `reorder`, `reorder_retired` | 1s shadow priority; 2s resolves to 0; `src/core/config.h:437`, `:836`. |
 | `wb-policy` | T | Literal `0` or `1` | `1` | Boot/GET | `wb_policy` (Writeback) | Flush-all or composite half rule; `src/core/config.h:843`, `src/core/wb_rule.h:25`. |
-| `wb-small-pipe` | T | Canonical decimal 0..64 | `16` | Boot/GET | `wb_small_pipe` (Writeback) | 0 = half rule, no completion; measured default, ledger addendum 12; `src/core/config.h:458`. |
-| `wb-complete-visits` | T | Canonical decimal 0..255 | `3` | Boot/GET | `wb_complete_visits` (Writeback) | 0 = unbounded completion; measured default, ledger addendum 12; `src/core/config.h:459`. |
+| `wb-small-pipe` | T | Canonical decimal 0..64 | `16` | Boot/GET | `wb_small_pipe` (Writeback) | 0 = half rule, no completion; measured default, ledger addendum 12; `src/core/config.h:463`. |
+| `wb-complete-visits` | T | Canonical decimal 0..255 | `3` | Boot/GET | `wb_complete_visits` (Writeback) | 0 = unbounded completion; measured default, ledger addendum 12; `src/core/config.h:464`. |
 | `key-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `key_lb` | Sample key demand and rebalance shard ownership; `src/core/config.h:851`, `src/core/server.h:1272`. |
 | `key-lb-damping` | T | canonical signed decimal, -1..2147483647 | `-1` | Boot/GET | `tomokv_keylb_damping_band_pct`, `tomokv_keylb_damping_fire_pct`, `tomokv_keylb_damping_ticks` | 0 keeps the original key planner and allocates no damping sidecar; -1 derives damping from the decision window; positive N sets the level. Residual-band objective and bounded recent-move damping; `src/core/lbplanner.cc`. |
 | `client-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `client_lb` | Census client demand and move connections between IO owners; `src/core/config.h:857`, `src/core/server.h:529`. |
@@ -234,23 +234,23 @@ at u32; a CONFIG update does not eagerly rebuild existing collections.
 
 | Name | Kind | Type / grammar | Default | Change | INFO field | Semantics / parser anchor |
 | --- | --- | --- | --- | --- | --- | --- |
-| `hash-max-listpack-entries` | R | Count64 | `512` | Live | — | Compact hash entry ceiling; `src/core/config.h:271`. |
-| `hash-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact hash field/value byte ceiling; `src/core/config.h:272`. |
-| `list-max-listpack-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | -1..-5: 4/8/16/32/64 KiB; smaller negatives clamp to 64 KiB; nonnegative count with 8 KiB ceiling, 0 allows one element; `src/core/config.h:273`. |
-| `set-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact string-set entry ceiling; `src/core/config.h:274`. |
-| `set-max-listpack-value` | R | Count64, no memory suffix | `64` | Live | — | Compact string-set element byte ceiling; `src/core/config.h:275`. |
-| `zset-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact sorted-set entry ceiling; `src/core/config.h:276`. |
-| `zset-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact sorted-set member byte ceiling; `src/core/config.h:277`. |
-| `set-max-intset-entries` | R | Count64 | `512` | Live | — | Integer-set entry ceiling; 0 disables intsets; internal cap 1073741824; `src/core/config.h:278`. |
-| `hash-max-ziplist-entries` | R | Count64 | `512` | Live | — | Alias of hash-max-listpack-entries; `src/core/config.h:271`. |
-| `hash-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of hash-max-listpack-value; `src/core/config.h:272`. |
-| `list-max-ziplist-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | Alias of list-max-listpack-size; `src/core/config.h:273`. |
-| `zset-max-ziplist-entries` | R | Count64 | `128` | Live | — | Alias of zset-max-listpack-entries; `src/core/config.h:276`. |
-| `zset-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of zset-max-listpack-value; `src/core/config.h:277`. |
-| `hash-max-compact-entries` | T | u32 decimal | `512` | Live | — | Legacy alias of hash-max-listpack-entries; `src/core/config.h:271`. |
-| `hash-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of hash-max-listpack-value; `src/core/config.h:272`. |
-| `zset-max-compact-entries` | T | u32 decimal | `128` | Live | — | Legacy alias of zset-max-listpack-entries; `src/core/config.h:276`. |
-| `zset-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of zset-max-listpack-value; `src/core/config.h:277`. |
+| `hash-max-listpack-entries` | R | Count64 | `512` | Live | — | Compact hash entry ceiling; `src/core/config.h:276`. |
+| `hash-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact hash field/value byte ceiling; `src/core/config.h:277`. |
+| `list-max-listpack-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | -1..-5: 4/8/16/32/64 KiB; smaller negatives clamp to 64 KiB; nonnegative count with 8 KiB ceiling, 0 allows one element; `src/core/config.h:278`. |
+| `set-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact string-set entry ceiling; `src/core/config.h:279`. |
+| `set-max-listpack-value` | R | Count64, no memory suffix | `64` | Live | — | Compact string-set element byte ceiling; `src/core/config.h:280`. |
+| `zset-max-listpack-entries` | R | Count64 | `128` | Live | — | Compact sorted-set entry ceiling; `src/core/config.h:281`. |
+| `zset-max-listpack-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Compact sorted-set member byte ceiling; `src/core/config.h:282`. |
+| `set-max-intset-entries` | R | Count64 | `512` | Live | — | Integer-set entry ceiling; 0 disables intsets; internal cap 1073741824; `src/core/config.h:283`. |
+| `hash-max-ziplist-entries` | R | Count64 | `512` | Live | — | Alias of hash-max-listpack-entries; `src/core/config.h:276`. |
+| `hash-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of hash-max-listpack-value; `src/core/config.h:277`. |
+| `list-max-ziplist-size` | R | Canonical signed 32-bit decimal | `-2` | Live | — | Alias of list-max-listpack-size; `src/core/config.h:278`. |
+| `zset-max-ziplist-entries` | R | Count64 | `128` | Live | — | Alias of zset-max-listpack-entries; `src/core/config.h:281`. |
+| `zset-max-ziplist-value` | R | Memory ≤9223372036854775807 | `64` | Live | — | Alias of zset-max-listpack-value; `src/core/config.h:282`. |
+| `hash-max-compact-entries` | T | u32 decimal | `512` | Live | — | Legacy alias of hash-max-listpack-entries; `src/core/config.h:276`. |
+| `hash-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of hash-max-listpack-value; `src/core/config.h:277`. |
+| `zset-max-compact-entries` | T | u32 decimal | `128` | Live | — | Legacy alias of zset-max-listpack-entries; `src/core/config.h:281`. |
+| `zset-max-compact-value` | T | u32 decimal bytes | `64` | Live | — | Legacy alias of zset-max-listpack-value; `src/core/config.h:282`. |
 | `hll-sparse-max-bytes` | R | Memory, 0..4294967295 bytes | `3000` | Boot/GET | — | Sparse HLL promotion cutoff; 0 forces dense on sparse growth; `src/core/config.h:1022`, `tomokv.conf:333`. |
 | `stream-node-max-bytes` | R | Memory, 0..4294967295; empty/bare unit = 0 | `4096` | Live | — | Stream macro-node byte rollover, 0 disables this axis; `src/core/config.h:503`, `:1031`, `src/store/typeval.h:50`. |
 | `stream-node-max-entries` | R | Canonical decimal 0..4294967295 | `100` | Live | — | Stream macro-node entry rollover, 0 disables this axis; `src/core/config.h:1031`, `src/store/typeval.h:50`. |
