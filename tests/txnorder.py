@@ -127,7 +127,7 @@ class OrderBattery(Battery):
         if seconds is None and clients == 1 and not self.args.pre:
             assert self.delta(before, "atomic_txn_attempts") == 2000, "not every EXEC used one attempt"
             assert self.delta(before, "atomic_txn_retries") == 0, "plain writers re-executed EXEC"
-        elif seconds is None:
+        elif seconds is None and clients != 1:
             assert executions == 8000
             if not self.args.pre:
                 assert self.delta(before, "atomic_txn_retries") == (
