@@ -1887,7 +1887,7 @@ void multi_mark_queue_error(Client& client) {
 }
 
 MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t owner_io,
-                              MultiExecState*& dispatch, uint64_t age_ns) {
+                              MultiExecState*& dispatch) {
     dispatch = nullptr;
     MultiSession* session = client.multi_session();
     if (session && session->pending) {
@@ -2018,8 +2018,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
         uint64_t generation = 0;
         if (!server.atomic_try_admit(owner_io, generation, true))
             return MultiIoAction::Backpressure;
-        MultiExecState* state = allocate_state(server, client, owner_io, MultiStateKind::Execute,
-                                              age_ns);
+        MultiExecState* state = allocate_state(server, client, owner_io, MultiStateKind::Execute);
         if (!state) {
             server.atomic_retire_group(owner_io, generation);
             reply_err(op.sink(), "ERR out of memory");
@@ -2317,7 +2316,8 @@ uint32_t multi_owner_reap_entry(IoLoop& loop) {
 namespace {
 MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
     Server& server = *previous.server;
-    auto* next = allocate_state(server, *previous.client, previous.owner_io, MultiStateKind::Execute);
+    auto* next = allocate_state(server, *previous.client, previous.owner_io, MultiStateKind::Execute,
+                                previous.decision.age_ns);
     if (!next) return nullptr;
     try {
         std::vector<MultiQueuedCommand> queue;
