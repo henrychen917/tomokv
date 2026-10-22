@@ -179,13 +179,12 @@ public:
         try {
             std::lock_guard<std::mutex> lock(mu_);
             out.clear();
-            if (by_name) {
-                const auto it = libraries_.find(std::string(library_name.p, library_name.n));
-                if (it != libraries_.end()) out.push_back(it->second);
-                return true;
-            }
             out.reserve(libraries_.size());
-            for (const auto& entry : libraries_) out.push_back(entry.second);
+            for (const auto& entry : libraries_) {
+                if (!by_name || command_glob_match(library_name,
+                        Slice(entry.first.data(), entry.first.size())))
+                    out.push_back(entry.second);
+            }
             return true;
         } catch (const std::bad_alloc&) {
             return false;

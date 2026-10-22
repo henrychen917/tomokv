@@ -350,7 +350,7 @@
         if (!client || client->closing() || client->dead()) return;
         const bool resp3 = client->resp3();
         const PubSubBlob& blob = *item.blob;
-        if (item.pattern.empty()) {
+        if (!item.is_pattern) {
             pubsub_emit(client, blob.frame.data(), blob.frame.size(), resp3);
             return;
         }
@@ -399,7 +399,7 @@
                                const std::string* pattern) {
         blob->refs.fetch_add(1, std::memory_order_relaxed);
         PubSubOutbox& box = pubsub_outbox_for(ref.io);
-        if (pattern) box.deliveries.push_back(PubSubDelivery{blob, ref.conn, *pattern});
+        if (pattern) box.deliveries.push_back(PubSubDelivery{blob, ref.conn, *pattern, true});
         else box.deliveries.push_back(PubSubDelivery{blob, ref.conn, std::string()});
     }
 
