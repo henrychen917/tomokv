@@ -1,0 +1,6594 @@
+[
+  {
+    "config": {
+      "arm": "post",
+      "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+      "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+      "mode": "1s",
+      "atomic": 0,
+      "depth": 1,
+      "port": 26890
+    },
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "gdb",
+      "-nx",
+      "-q",
+      "-batch",
+      "-ex",
+      "source docs/wave4d/trace_gdb.py",
+      "--args",
+      "/home/user/Projects/cx-wave4/build/tomokv",
+      "--port",
+      "26890",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "1s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "0",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-1s-a0-p1"
+    ],
+    "returncode": 0,
+    "seconds": 1.6664427863433957,
+    "directory": "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-1s-a0-p1",
+    "result": {
+      "status": "PASS",
+      "config": {
+        "arm": "post",
+        "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+        "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+        "mode": "1s",
+        "atomic": 0,
+        "depth": 1,
+        "port": 26890
+      },
+      "setup": {
+        "keys": [
+          "wave4d:31",
+          "wave4d:4",
+          "wave4d:7",
+          "wave4d:5",
+          "wave4d:14",
+          "wave4d:3",
+          "wave4d:13",
+          "wave4d:0"
+        ],
+        "shards": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "value_bytes": 64,
+        "warmup_commands": 1
+      },
+      "scopes": [
+        {
+          "function": "xshard_prepare",
+          "tid": 1968091,
+          "instructions": 3799,
+          "raw_instructions": 3800,
+          "cycles": 24926,
+          "time_enabled_ns": 17430,
+          "time_running_ns": 17430
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968096,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 5110,
+          "time_enabled_ns": 7800,
+          "time_running_ns": 7800
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968094,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 3133,
+          "time_enabled_ns": 7420,
+          "time_running_ns": 7420
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968090,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 4636,
+          "time_enabled_ns": 8280,
+          "time_running_ns": 8280
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968093,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 5936,
+          "time_enabled_ns": 14390,
+          "time_running_ns": 14390
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968094,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 919,
+          "time_enabled_ns": 15110,
+          "time_running_ns": 15110
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968091,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 3190,
+          "time_enabled_ns": 22990,
+          "time_running_ns": 22990
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968096,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1161,
+          "time_enabled_ns": 14660,
+          "time_running_ns": 14660
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968093,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1193,
+          "time_enabled_ns": 28780,
+          "time_running_ns": 28780
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968089,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 4862,
+          "time_enabled_ns": 14860,
+          "time_running_ns": 14860
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968092,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 4650,
+          "time_enabled_ns": 19870,
+          "time_running_ns": 19870
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968089,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1697,
+          "time_enabled_ns": 27770,
+          "time_running_ns": 27770
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968092,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1141,
+          "time_enabled_ns": 26590,
+          "time_running_ns": 26590
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968090,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 858,
+          "time_enabled_ns": 16040,
+          "time_running_ns": 16040
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968095,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 3324,
+          "time_enabled_ns": 8020,
+          "time_running_ns": 8020
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968091,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1234,
+          "time_enabled_ns": 30670,
+          "time_running_ns": 30670
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968095,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1069,
+          "time_enabled_ns": 15670,
+          "time_running_ns": 15670
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968091,
+          "instructions": 2318,
+          "raw_instructions": 2319,
+          "cycles": 14121,
+          "time_enabled_ns": 39660,
+          "time_running_ns": 39660
+        }
+      ],
+      "scope_counts": {
+        "xshard_prepare": 1,
+        "xshard_execute": 8,
+        "xshard_complete": 8,
+        "xshard_retire": 1
+      },
+      "instructions_per_command": 10263.0,
+      "cycles_per_command": 83160.0,
+      "note": "User-only PMU from function entry trap to return trap, one retired return breakpoint subtracted (known-count control), inclusive callees; parser, scheduling, network and idle loops excluded. Threads serialized during each scope; cycles are debugger-perturbed, not latency or throughput."
+    }
+  },
+  {
+    "config": {
+      "arm": "post",
+      "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+      "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+      "mode": "1s",
+      "atomic": 0,
+      "depth": 8,
+      "port": 26890
+    },
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "gdb",
+      "-nx",
+      "-q",
+      "-batch",
+      "-ex",
+      "source docs/wave4d/trace_gdb.py",
+      "--args",
+      "/home/user/Projects/cx-wave4/build/tomokv",
+      "--port",
+      "26890",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "1s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "0",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-1s-a0-p8"
+    ],
+    "returncode": 0,
+    "seconds": 1.7665331438183784,
+    "directory": "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-1s-a0-p8",
+    "result": {
+      "status": "PASS",
+      "config": {
+        "arm": "post",
+        "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+        "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+        "mode": "1s",
+        "atomic": 0,
+        "depth": 8,
+        "port": 26890
+      },
+      "setup": {
+        "keys": [
+          "wave4d:5",
+          "wave4d:3",
+          "wave4d:34",
+          "wave4d:24",
+          "wave4d:4",
+          "wave4d:15",
+          "wave4d:9",
+          "wave4d:2"
+        ],
+        "shards": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "value_bytes": 64,
+        "warmup_commands": 1
+      },
+      "scopes": [
+        {
+          "function": "xshard_prepare",
+          "tid": 1968278,
+          "instructions": 3799,
+          "raw_instructions": 3800,
+          "cycles": 14957,
+          "time_enabled_ns": 13349,
+          "time_running_ns": 13349
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968281,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 5481,
+          "time_enabled_ns": 9400,
+          "time_running_ns": 9400
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968282,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 4102,
+          "time_enabled_ns": 7460,
+          "time_running_ns": 7460
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968283,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 3381,
+          "time_enabled_ns": 8171,
+          "time_running_ns": 8171
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968284,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 3115,
+          "time_enabled_ns": 7560,
+          "time_running_ns": 7560
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968281,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 862,
+          "time_enabled_ns": 16689,
+          "time_running_ns": 16689
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968279,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 2818,
+          "time_enabled_ns": 7631,
+          "time_running_ns": 7631
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968284,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 828,
+          "time_enabled_ns": 14571,
+          "time_running_ns": 14571
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968282,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 404,
+          "time_enabled_ns": 14120,
+          "time_running_ns": 14120
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968277,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 4251,
+          "time_enabled_ns": 13631,
+          "time_running_ns": 13631
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968280,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 3411,
+          "time_enabled_ns": 8651,
+          "time_running_ns": 8651
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968279,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 793,
+          "time_enabled_ns": 15402,
+          "time_running_ns": 15402
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968277,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1474,
+          "time_enabled_ns": 26113,
+          "time_running_ns": 26113
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968280,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 746,
+          "time_enabled_ns": 15942,
+          "time_running_ns": 15942
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968278,
+          "instructions": 11891,
+          "raw_instructions": 11892,
+          "cycles": 22109,
+          "time_enabled_ns": 31978,
+          "time_running_ns": 31978
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968283,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 774,
+          "time_enabled_ns": 16640,
+          "time_running_ns": 16640
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968281,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 2106,
+          "time_enabled_ns": 23269,
+          "time_running_ns": 23269
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968284,
+          "instructions": 481,
+          "raw_instructions": 482,
+          "cycles": 2185,
+          "time_enabled_ns": 25111,
+          "time_running_ns": 25111
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968280,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1427,
+          "time_enabled_ns": 23173,
+          "time_running_ns": 23173
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968282,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1324,
+          "time_enabled_ns": 20200,
+          "time_running_ns": 20200
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968281,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 633,
+          "time_enabled_ns": 31038,
+          "time_running_ns": 31038
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968283,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1285,
+          "time_enabled_ns": 24140,
+          "time_running_ns": 24140
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968284,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1001,
+          "time_enabled_ns": 31571,
+          "time_running_ns": 31571
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968279,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1852,
+          "time_enabled_ns": 22451,
+          "time_running_ns": 22451
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968282,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 515,
+          "time_enabled_ns": 25880,
+          "time_running_ns": 25880
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968280,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 811,
+          "time_enabled_ns": 29664,
+          "time_running_ns": 29664
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968283,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 734,
+          "time_enabled_ns": 30551,
+          "time_running_ns": 30551
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968277,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 3581,
+          "time_enabled_ns": 39173,
+          "time_running_ns": 39173
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968279,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 717,
+          "time_enabled_ns": 28402,
+          "time_running_ns": 28402
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968278,
+          "instructions": 7184,
+          "raw_instructions": 7185,
+          "cycles": 10655,
+          "time_enabled_ns": 46429,
+          "time_running_ns": 46429
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968277,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1619,
+          "time_enabled_ns": 51244,
+          "time_running_ns": 51244
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968281,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1566,
+          "time_enabled_ns": 37289,
+          "time_running_ns": 37289
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968282,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1048,
+          "time_enabled_ns": 32171,
+          "time_running_ns": 32171
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968281,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 733,
+          "time_enabled_ns": 42680,
+          "time_running_ns": 42680
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968279,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1733,
+          "time_enabled_ns": 34931,
+          "time_running_ns": 34931
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968282,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 694,
+          "time_enabled_ns": 38560,
+          "time_running_ns": 38560
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968280,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1418,
+          "time_enabled_ns": 36404,
+          "time_running_ns": 36404
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968284,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1806,
+          "time_enabled_ns": 39100,
+          "time_running_ns": 39100
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968277,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 4353,
+          "time_enabled_ns": 64173,
+          "time_running_ns": 64173
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968280,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 688,
+          "time_enabled_ns": 43084,
+          "time_running_ns": 43084
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968277,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1115,
+          "time_enabled_ns": 75773,
+          "time_running_ns": 75773
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968283,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1110,
+          "time_enabled_ns": 37660,
+          "time_running_ns": 37660
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968279,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 802,
+          "time_enabled_ns": 41722,
+          "time_running_ns": 41722
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968278,
+          "instructions": 6984,
+          "raw_instructions": 6985,
+          "cycles": 10718,
+          "time_enabled_ns": 58920,
+          "time_running_ns": 58920
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968283,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 806,
+          "time_enabled_ns": 43829,
+          "time_running_ns": 43829
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968279,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1337,
+          "time_enabled_ns": 48733,
+          "time_running_ns": 48733
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968280,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1519,
+          "time_enabled_ns": 49433,
+          "time_running_ns": 49433
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968283,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 965,
+          "time_enabled_ns": 50449,
+          "time_running_ns": 50449
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968281,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1676,
+          "time_enabled_ns": 49431,
+          "time_running_ns": 49431
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968282,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 831,
+          "time_enabled_ns": 44540,
+          "time_running_ns": 44540
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968281,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 864,
+          "time_enabled_ns": 55151,
+          "time_running_ns": 55151
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968284,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 785,
+          "time_enabled_ns": 46651,
+          "time_running_ns": 46651
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968283,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 754,
+          "time_enabled_ns": 56940,
+          "time_running_ns": 56940
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968279,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 769,
+          "time_enabled_ns": 61422,
+          "time_running_ns": 61422
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968280,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 816,
+          "time_enabled_ns": 56573,
+          "time_running_ns": 56573
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968284,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1649,
+          "time_enabled_ns": 53411,
+          "time_running_ns": 53411
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968278,
+          "instructions": 11243,
+          "raw_instructions": 11244,
+          "cycles": 12106,
+          "time_enabled_ns": 73282,
+          "time_running_ns": 73282
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968282,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 700,
+          "time_enabled_ns": 50731,
+          "time_running_ns": 50731
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968277,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 3784,
+          "time_enabled_ns": 89124,
+          "time_running_ns": 89124
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968280,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1793,
+          "time_enabled_ns": 63342,
+          "time_running_ns": 63342
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968282,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 753,
+          "time_enabled_ns": 56920,
+          "time_running_ns": 56920
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968281,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1919,
+          "time_enabled_ns": 61560,
+          "time_running_ns": 61560
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968280,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1081,
+          "time_enabled_ns": 69902,
+          "time_running_ns": 69902
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968281,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 768,
+          "time_enabled_ns": 67482,
+          "time_running_ns": 67482
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968278,
+          "instructions": 7198,
+          "raw_instructions": 7199,
+          "cycles": 7675,
+          "time_enabled_ns": 92580,
+          "time_running_ns": 92580
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968279,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1186,
+          "time_enabled_ns": 68551,
+          "time_running_ns": 68551
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968284,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 695,
+          "time_enabled_ns": 60211,
+          "time_running_ns": 60211
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968281,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1152,
+          "time_enabled_ns": 73933,
+          "time_running_ns": 73933
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968278,
+          "instructions": 6984,
+          "raw_instructions": 6985,
+          "cycles": 6121,
+          "time_enabled_ns": 103220,
+          "time_running_ns": 103220
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968284,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1840,
+          "time_enabled_ns": 67382,
+          "time_running_ns": 67382
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968283,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1149,
+          "time_enabled_ns": 64020,
+          "time_running_ns": 64020
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968280,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1344,
+          "time_enabled_ns": 77093,
+          "time_running_ns": 77093
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968284,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 705,
+          "time_enabled_ns": 73640,
+          "time_running_ns": 73640
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968278,
+          "instructions": 6990,
+          "raw_instructions": 6991,
+          "cycles": 5593,
+          "time_enabled_ns": 113229,
+          "time_running_ns": 113229
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968284,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 801,
+          "time_enabled_ns": 79700,
+          "time_running_ns": 79700
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968279,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 764,
+          "time_enabled_ns": 75711,
+          "time_running_ns": 75711
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968283,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 834,
+          "time_enabled_ns": 70871,
+          "time_running_ns": 70871
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968281,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 775,
+          "time_enabled_ns": 81602,
+          "time_running_ns": 81602
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968283,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 831,
+          "time_enabled_ns": 76940,
+          "time_running_ns": 76940
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968282,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 748,
+          "time_enabled_ns": 63649,
+          "time_running_ns": 63649
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968277,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1330,
+          "time_enabled_ns": 102344,
+          "time_running_ns": 102344
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968284,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 793,
+          "time_enabled_ns": 86460,
+          "time_running_ns": 86460
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968282,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 804,
+          "time_enabled_ns": 70280,
+          "time_running_ns": 70280
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968281,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1381,
+          "time_enabled_ns": 88551,
+          "time_running_ns": 88551
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968279,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1380,
+          "time_enabled_ns": 82473,
+          "time_running_ns": 82473
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968280,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 949,
+          "time_enabled_ns": 84402,
+          "time_running_ns": 84402
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968283,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 712,
+          "time_enabled_ns": 84011,
+          "time_running_ns": 84011
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968278,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 3485,
+          "time_enabled_ns": 121389,
+          "time_running_ns": 121389
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968284,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 842,
+          "time_enabled_ns": 93131,
+          "time_running_ns": 93131
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968279,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 744,
+          "time_enabled_ns": 89362,
+          "time_running_ns": 89362
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968281,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 870,
+          "time_enabled_ns": 95282,
+          "time_running_ns": 95282
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968277,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 3996,
+          "time_enabled_ns": 115344,
+          "time_running_ns": 115344
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968283,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1013,
+          "time_enabled_ns": 91091,
+          "time_running_ns": 91091
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968282,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 734,
+          "time_enabled_ns": 76800,
+          "time_running_ns": 76800
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968283,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 711,
+          "time_enabled_ns": 97180,
+          "time_running_ns": 97180
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968282,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 767,
+          "time_enabled_ns": 82791,
+          "time_running_ns": 82791
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968281,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1621,
+          "time_enabled_ns": 102102,
+          "time_running_ns": 102102
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968284,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 716,
+          "time_enabled_ns": 101400,
+          "time_running_ns": 101400
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968282,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 702,
+          "time_enabled_ns": 90051,
+          "time_running_ns": 90051
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968278,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1670,
+          "time_enabled_ns": 128800,
+          "time_running_ns": 128800
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968277,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1505,
+          "time_enabled_ns": 128313,
+          "time_running_ns": 128313
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968278,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 2794,
+          "time_enabled_ns": 137411,
+          "time_running_ns": 137411
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968282,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1033,
+          "time_enabled_ns": 95849,
+          "time_running_ns": 95849
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968284,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1280,
+          "time_enabled_ns": 107929,
+          "time_running_ns": 107929
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968282,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 698,
+          "time_enabled_ns": 102398,
+          "time_running_ns": 102398
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968281,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 812,
+          "time_enabled_ns": 109062,
+          "time_running_ns": 109062
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968277,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 4770,
+          "time_enabled_ns": 142751,
+          "time_running_ns": 142751
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968278,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1005,
+          "time_enabled_ns": 145360,
+          "time_running_ns": 145360
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968279,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1999,
+          "time_enabled_ns": 96553,
+          "time_running_ns": 96553
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968278,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1649,
+          "time_enabled_ns": 152202,
+          "time_running_ns": 152202
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968283,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1091,
+          "time_enabled_ns": 103938,
+          "time_running_ns": 103938
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968278,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 836,
+          "time_enabled_ns": 158402,
+          "time_running_ns": 158402
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968279,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 759,
+          "time_enabled_ns": 102813,
+          "time_running_ns": 102813
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968283,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 708,
+          "time_enabled_ns": 110107,
+          "time_running_ns": 110107
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968280,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 2087,
+          "time_enabled_ns": 92131,
+          "time_running_ns": 92131
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968284,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1116,
+          "time_enabled_ns": 115629,
+          "time_running_ns": 115629
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968280,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1090,
+          "time_enabled_ns": 99020,
+          "time_running_ns": 99020
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968277,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1470,
+          "time_enabled_ns": 155269,
+          "time_running_ns": 155269
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968279,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1912,
+          "time_enabled_ns": 110042,
+          "time_running_ns": 110042
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968278,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1779,
+          "time_enabled_ns": 165722,
+          "time_running_ns": 165722
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968279,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 748,
+          "time_enabled_ns": 116213,
+          "time_running_ns": 116213
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968277,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 4237,
+          "time_enabled_ns": 168129,
+          "time_running_ns": 168129
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968280,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1294,
+          "time_enabled_ns": 105611,
+          "time_running_ns": 105611
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968277,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1671,
+          "time_enabled_ns": 179709,
+          "time_running_ns": 179709
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968278,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1400,
+          "time_enabled_ns": 172573,
+          "time_running_ns": 172573
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968280,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 796,
+          "time_enabled_ns": 112351,
+          "time_running_ns": 112351
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968277,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 4035,
+          "time_enabled_ns": 192649,
+          "time_running_ns": 192649
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968278,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1449,
+          "time_enabled_ns": 179253,
+          "time_running_ns": 179253
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968277,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1043,
+          "time_enabled_ns": 204600,
+          "time_running_ns": 204600
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968278,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 799,
+          "time_enabled_ns": 186033,
+          "time_running_ns": 186033
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968278,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 877,
+          "time_enabled_ns": 189693,
+          "time_running_ns": 189693
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968278,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 683,
+          "time_enabled_ns": 193702,
+          "time_running_ns": 193702
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968278,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1199,
+          "time_enabled_ns": 197513,
+          "time_running_ns": 197513
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968278,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1116,
+          "time_enabled_ns": 201753,
+          "time_running_ns": 201753
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968278,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1296,
+          "time_enabled_ns": 206184,
+          "time_running_ns": 206184
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968278,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 830,
+          "time_enabled_ns": 210484,
+          "time_running_ns": 210484
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968278,
+          "instructions": 2338,
+          "raw_instructions": 2339,
+          "cycles": 13882,
+          "time_enabled_ns": 218593,
+          "time_running_ns": 218593
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968278,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 3041,
+          "time_enabled_ns": 223533,
+          "time_running_ns": 223533
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968278,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 2673,
+          "time_enabled_ns": 227793,
+          "time_running_ns": 227793
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968278,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 2469,
+          "time_enabled_ns": 232004,
+          "time_running_ns": 232004
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968278,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 2350,
+          "time_enabled_ns": 236684,
+          "time_running_ns": 236684
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968278,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 1781,
+          "time_enabled_ns": 241104,
+          "time_running_ns": 241104
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968278,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 2277,
+          "time_enabled_ns": 245213,
+          "time_running_ns": 245213
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968278,
+          "instructions": 2349,
+          "raw_instructions": 2350,
+          "cycles": 2479,
+          "time_enabled_ns": 249773,
+          "time_running_ns": 249773
+        }
+      ],
+      "scope_counts": {
+        "xshard_prepare": 8,
+        "xshard_execute": 64,
+        "xshard_complete": 64,
+        "xshard_retire": 8
+      },
+      "instructions_per_command": 14270.375,
+      "cycles_per_command": 38207.625,
+      "note": "User-only PMU from function entry trap to return trap, one retired return breakpoint subtracted (known-count control), inclusive callees; parser, scheduling, network and idle loops excluded. Threads serialized during each scope; cycles are debugger-perturbed, not latency or throughput."
+    }
+  },
+  {
+    "config": {
+      "arm": "post",
+      "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+      "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+      "mode": "1s",
+      "atomic": 1,
+      "depth": 1,
+      "port": 26890
+    },
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "gdb",
+      "-nx",
+      "-q",
+      "-batch",
+      "-ex",
+      "source docs/wave4d/trace_gdb.py",
+      "--args",
+      "/home/user/Projects/cx-wave4/build/tomokv",
+      "--port",
+      "26890",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "1s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-1s-a1-p1"
+    ],
+    "returncode": 0,
+    "seconds": 1.7663119928911328,
+    "directory": "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-1s-a1-p1",
+    "result": {
+      "status": "PASS",
+      "config": {
+        "arm": "post",
+        "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+        "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+        "mode": "1s",
+        "atomic": 1,
+        "depth": 1,
+        "port": 26890
+      },
+      "setup": {
+        "keys": [
+          "wave4d:58",
+          "wave4d:26",
+          "wave4d:9",
+          "wave4d:12",
+          "wave4d:39",
+          "wave4d:44",
+          "wave4d:1",
+          "wave4d:0"
+        ],
+        "shards": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "value_bytes": 64,
+        "warmup_commands": 1
+      },
+      "scopes": [
+        {
+          "function": "xshard_prepare",
+          "tid": 1968577,
+          "instructions": 3875,
+          "raw_instructions": 3876,
+          "cycles": 13738,
+          "time_enabled_ns": 14000,
+          "time_running_ns": 14000
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968578,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 4358,
+          "time_enabled_ns": 7470,
+          "time_running_ns": 7470
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968577,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 2896,
+          "time_enabled_ns": 19540,
+          "time_running_ns": 19540
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968572,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 4253,
+          "time_enabled_ns": 10310,
+          "time_running_ns": 10310
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968578,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 660,
+          "time_enabled_ns": 14210,
+          "time_running_ns": 14210
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968574,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 3220,
+          "time_enabled_ns": 9670,
+          "time_running_ns": 9670
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968573,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 3360,
+          "time_enabled_ns": 10070,
+          "time_running_ns": 10070
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968572,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 935,
+          "time_enabled_ns": 17950,
+          "time_running_ns": 17950
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968576,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 4466,
+          "time_enabled_ns": 13320,
+          "time_running_ns": 13320
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968573,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 535,
+          "time_enabled_ns": 17090,
+          "time_running_ns": 17090
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968576,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 984,
+          "time_enabled_ns": 25550,
+          "time_running_ns": 25550
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968575,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 3113,
+          "time_enabled_ns": 10370,
+          "time_running_ns": 10370
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968571,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 3908,
+          "time_enabled_ns": 10500,
+          "time_running_ns": 10500
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968577,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1204,
+          "time_enabled_ns": 26920,
+          "time_running_ns": 26920
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968575,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 633,
+          "time_enabled_ns": 16770,
+          "time_running_ns": 16770
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968574,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 657,
+          "time_enabled_ns": 16350,
+          "time_running_ns": 16350
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968571,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1332,
+          "time_enabled_ns": 17430,
+          "time_running_ns": 17430
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968577,
+          "instructions": 2318,
+          "raw_instructions": 2319,
+          "cycles": 8854,
+          "time_enabled_ns": 33940,
+          "time_running_ns": 33940
+        }
+      ],
+      "scope_counts": {
+        "xshard_prepare": 1,
+        "xshard_execute": 8,
+        "xshard_complete": 8,
+        "xshard_retire": 1
+      },
+      "instructions_per_command": 10339.0,
+      "cycles_per_command": 59106.0,
+      "note": "User-only PMU from function entry trap to return trap, one retired return breakpoint subtracted (known-count control), inclusive callees; parser, scheduling, network and idle loops excluded. Threads serialized during each scope; cycles are debugger-perturbed, not latency or throughput."
+    }
+  },
+  {
+    "config": {
+      "arm": "post",
+      "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+      "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+      "mode": "1s",
+      "atomic": 1,
+      "depth": 8,
+      "port": 26890
+    },
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "gdb",
+      "-nx",
+      "-q",
+      "-batch",
+      "-ex",
+      "source docs/wave4d/trace_gdb.py",
+      "--args",
+      "/home/user/Projects/cx-wave4/build/tomokv",
+      "--port",
+      "26890",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "1s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-1s-a1-p8"
+    ],
+    "returncode": 0,
+    "seconds": 1.9666982516646385,
+    "directory": "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-1s-a1-p8",
+    "result": {
+      "status": "PASS",
+      "config": {
+        "arm": "post",
+        "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+        "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+        "mode": "1s",
+        "atomic": 1,
+        "depth": 8,
+        "port": 26890
+      },
+      "setup": {
+        "keys": [
+          "wave4d:19",
+          "wave4d:16",
+          "wave4d:17",
+          "wave4d:23",
+          "wave4d:5",
+          "wave4d:37",
+          "wave4d:1",
+          "wave4d:39"
+        ],
+        "shards": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "value_bytes": 64,
+        "warmup_commands": 1
+      },
+      "scopes": [
+        {
+          "function": "xshard_prepare",
+          "tid": 1968881,
+          "instructions": 3899,
+          "raw_instructions": 3900,
+          "cycles": 23885,
+          "time_enabled_ns": 15880,
+          "time_running_ns": 15880
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968884,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 6318,
+          "time_enabled_ns": 8100,
+          "time_running_ns": 8100
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968883,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 4625,
+          "time_enabled_ns": 7920,
+          "time_running_ns": 7920
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968884,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1417,
+          "time_enabled_ns": 15040,
+          "time_running_ns": 15040
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968881,
+          "instructions": 11991,
+          "raw_instructions": 11992,
+          "cycles": 25777,
+          "time_enabled_ns": 33810,
+          "time_running_ns": 33810
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968883,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 967,
+          "time_enabled_ns": 14800,
+          "time_running_ns": 14800
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968882,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 4720,
+          "time_enabled_ns": 7580,
+          "time_running_ns": 7580
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968884,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1450,
+          "time_enabled_ns": 21330,
+          "time_running_ns": 21330
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968880,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 4252,
+          "time_enabled_ns": 13790,
+          "time_running_ns": 13790
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968886,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 4083,
+          "time_enabled_ns": 7570,
+          "time_running_ns": 7570
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968885,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 3899,
+          "time_enabled_ns": 7880,
+          "time_running_ns": 7880
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968880,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 2065,
+          "time_enabled_ns": 26000,
+          "time_running_ns": 26000
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968885,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 888,
+          "time_enabled_ns": 14830,
+          "time_running_ns": 14830
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968880,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 3924,
+          "time_enabled_ns": 39140,
+          "time_running_ns": 39140
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968884,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 695,
+          "time_enabled_ns": 28070,
+          "time_running_ns": 28070
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968880,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 890,
+          "time_enabled_ns": 50270,
+          "time_running_ns": 50270
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968879,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 3019,
+          "time_enabled_ns": 10000,
+          "time_running_ns": 10000
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968881,
+          "instructions": 7284,
+          "raw_instructions": 7285,
+          "cycles": 13760,
+          "time_enabled_ns": 48790,
+          "time_running_ns": 48790
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968882,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1674,
+          "time_enabled_ns": 15840,
+          "time_running_ns": 15840
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968886,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 961,
+          "time_enabled_ns": 15680,
+          "time_running_ns": 15680
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968885,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1372,
+          "time_enabled_ns": 21940,
+          "time_running_ns": 21940
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968882,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1460,
+          "time_enabled_ns": 23050,
+          "time_running_ns": 23050
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968884,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1666,
+          "time_enabled_ns": 34520,
+          "time_running_ns": 34520
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968883,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1123,
+          "time_enabled_ns": 21610,
+          "time_running_ns": 21610
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968885,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 838,
+          "time_enabled_ns": 28140,
+          "time_running_ns": 28140
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968884,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 700,
+          "time_enabled_ns": 40250,
+          "time_running_ns": 40250
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968883,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 890,
+          "time_enabled_ns": 27510,
+          "time_running_ns": 27510
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968879,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 606,
+          "time_enabled_ns": 15660,
+          "time_running_ns": 15660
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968883,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1377,
+          "time_enabled_ns": 33640,
+          "time_running_ns": 33640
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968880,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 3697,
+          "time_enabled_ns": 63100,
+          "time_running_ns": 63100
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968879,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 792,
+          "time_enabled_ns": 21490,
+          "time_running_ns": 21490
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968881,
+          "instructions": 7084,
+          "raw_instructions": 7085,
+          "cycles": 13404,
+          "time_enabled_ns": 63850,
+          "time_running_ns": 63850
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968886,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1701,
+          "time_enabled_ns": 24350,
+          "time_running_ns": 24350
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968885,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 2331,
+          "time_enabled_ns": 35960,
+          "time_running_ns": 35960
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968886,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 696,
+          "time_enabled_ns": 30200,
+          "time_running_ns": 30200
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968885,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 816,
+          "time_enabled_ns": 42060,
+          "time_running_ns": 42060
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968883,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 901,
+          "time_enabled_ns": 41040,
+          "time_running_ns": 41040
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968880,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1262,
+          "time_enabled_ns": 74940,
+          "time_running_ns": 74940
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968882,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 975,
+          "time_enabled_ns": 29940,
+          "time_running_ns": 29940
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968881,
+          "instructions": 11344,
+          "raw_instructions": 11345,
+          "cycles": 13542,
+          "time_enabled_ns": 78800,
+          "time_running_ns": 78800
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968879,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 382,
+          "time_enabled_ns": 27450,
+          "time_running_ns": 27450
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968886,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1492,
+          "time_enabled_ns": 36780,
+          "time_running_ns": 36780
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968885,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1642,
+          "time_enabled_ns": 48850,
+          "time_running_ns": 48850
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968881,
+          "instructions": 7298,
+          "raw_instructions": 7299,
+          "cycles": 9111,
+          "time_enabled_ns": 90040,
+          "time_running_ns": 90040
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968886,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 833,
+          "time_enabled_ns": 42680,
+          "time_running_ns": 42680
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968879,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 2319,
+          "time_enabled_ns": 33520,
+          "time_running_ns": 33520
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968881,
+          "instructions": 7085,
+          "raw_instructions": 7086,
+          "cycles": 6973,
+          "time_enabled_ns": 100390,
+          "time_running_ns": 100390
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968884,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 2225,
+          "time_enabled_ns": 47080,
+          "time_running_ns": 47080
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968883,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1563,
+          "time_enabled_ns": 47880,
+          "time_running_ns": 47880
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1968881,
+          "instructions": 7084,
+          "raw_instructions": 7085,
+          "cycles": 6389,
+          "time_enabled_ns": 114050,
+          "time_running_ns": 114050
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968884,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 852,
+          "time_enabled_ns": 53830,
+          "time_running_ns": 53830
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968880,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 4338,
+          "time_enabled_ns": 88180,
+          "time_running_ns": 88180
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968886,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1356,
+          "time_enabled_ns": 49640,
+          "time_running_ns": 49640
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968883,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 600,
+          "time_enabled_ns": 54570,
+          "time_running_ns": 54570
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968885,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 397,
+          "time_enabled_ns": 55100,
+          "time_running_ns": 55100
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968881,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 4134,
+          "time_enabled_ns": 121500,
+          "time_running_ns": 121500
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968882,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1326,
+          "time_enabled_ns": 36850,
+          "time_running_ns": 36850
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968885,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 2167,
+          "time_enabled_ns": 62470,
+          "time_running_ns": 62470
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968883,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1136,
+          "time_enabled_ns": 60850,
+          "time_running_ns": 60850
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968884,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1584,
+          "time_enabled_ns": 62830,
+          "time_running_ns": 62830
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968883,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 683,
+          "time_enabled_ns": 67790,
+          "time_running_ns": 67790
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968886,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 767,
+          "time_enabled_ns": 57040,
+          "time_running_ns": 57040
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968885,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 746,
+          "time_enabled_ns": 68810,
+          "time_running_ns": 68810
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968880,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1125,
+          "time_enabled_ns": 100730,
+          "time_running_ns": 100730
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968886,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1561,
+          "time_enabled_ns": 63910,
+          "time_running_ns": 63910
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968885,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1231,
+          "time_enabled_ns": 75440,
+          "time_running_ns": 75440
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968881,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 812,
+          "time_enabled_ns": 127530,
+          "time_running_ns": 127530
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968880,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 3859,
+          "time_enabled_ns": 113780,
+          "time_running_ns": 113780
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968886,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 787,
+          "time_enabled_ns": 70460,
+          "time_running_ns": 70460
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968880,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 928,
+          "time_enabled_ns": 125640,
+          "time_running_ns": 125640
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968883,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1981,
+          "time_enabled_ns": 74820,
+          "time_running_ns": 74820
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968884,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 452,
+          "time_enabled_ns": 71170,
+          "time_running_ns": 71170
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968885,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1185,
+          "time_enabled_ns": 82760,
+          "time_running_ns": 82760
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968879,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 638,
+          "time_enabled_ns": 40080,
+          "time_running_ns": 40080
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968886,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1510,
+          "time_enabled_ns": 77190,
+          "time_running_ns": 77190
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968885,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1287,
+          "time_enabled_ns": 89010,
+          "time_running_ns": 89010
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968882,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 923,
+          "time_enabled_ns": 44050,
+          "time_running_ns": 44050
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968886,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 685,
+          "time_enabled_ns": 83640,
+          "time_running_ns": 83640
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968882,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1593,
+          "time_enabled_ns": 49900,
+          "time_running_ns": 49900
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968880,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 5013,
+          "time_enabled_ns": 139390,
+          "time_running_ns": 139390
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968884,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1160,
+          "time_enabled_ns": 78010,
+          "time_running_ns": 78010
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968880,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1708,
+          "time_enabled_ns": 151320,
+          "time_running_ns": 151320
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968885,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 694,
+          "time_enabled_ns": 95590,
+          "time_running_ns": 95590
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968883,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 713,
+          "time_enabled_ns": 81270,
+          "time_running_ns": 81270
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968885,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1230,
+          "time_enabled_ns": 101470,
+          "time_running_ns": 101470
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968884,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 782,
+          "time_enabled_ns": 84380,
+          "time_running_ns": 84380
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968880,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 3625,
+          "time_enabled_ns": 163950,
+          "time_running_ns": 163950
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968879,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 2025,
+          "time_enabled_ns": 46320,
+          "time_running_ns": 46320
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968882,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 772,
+          "time_enabled_ns": 56310,
+          "time_running_ns": 56310
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968880,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1680,
+          "time_enabled_ns": 175900,
+          "time_running_ns": 175900
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968886,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1879,
+          "time_enabled_ns": 90560,
+          "time_running_ns": 90560
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968885,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 686,
+          "time_enabled_ns": 107740,
+          "time_running_ns": 107740
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968883,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1785,
+          "time_enabled_ns": 88450,
+          "time_running_ns": 88450
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968882,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1279,
+          "time_enabled_ns": 62300,
+          "time_running_ns": 62300
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968886,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 817,
+          "time_enabled_ns": 97310,
+          "time_running_ns": 97310
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968882,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 677,
+          "time_enabled_ns": 68290,
+          "time_running_ns": 68290
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968880,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 3590,
+          "time_enabled_ns": 189040,
+          "time_running_ns": 189040
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968883,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 750,
+          "time_enabled_ns": 94900,
+          "time_running_ns": 94900
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968880,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1031,
+          "time_enabled_ns": 200880,
+          "time_running_ns": 200880
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968886,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1529,
+          "time_enabled_ns": 103690,
+          "time_running_ns": 103690
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968879,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 477,
+          "time_enabled_ns": 52960,
+          "time_running_ns": 52960
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968882,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 2277,
+          "time_enabled_ns": 75090,
+          "time_running_ns": 75090
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968883,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1535,
+          "time_enabled_ns": 101160,
+          "time_running_ns": 101160
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968884,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1661,
+          "time_enabled_ns": 91090,
+          "time_running_ns": 91090
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968882,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 679,
+          "time_enabled_ns": 81660,
+          "time_running_ns": 81660
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968881,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 3221,
+          "time_enabled_ns": 135260,
+          "time_running_ns": 135260
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968886,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 831,
+          "time_enabled_ns": 110470,
+          "time_running_ns": 110470
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968879,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 891,
+          "time_enabled_ns": 59190,
+          "time_running_ns": 59190
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968883,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 761,
+          "time_enabled_ns": 107190,
+          "time_running_ns": 107190
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968881,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 936,
+          "time_enabled_ns": 141220,
+          "time_running_ns": 141220
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968884,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 703,
+          "time_enabled_ns": 97480,
+          "time_running_ns": 97480
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968881,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1807,
+          "time_enabled_ns": 147590,
+          "time_running_ns": 147590
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968882,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 2057,
+          "time_enabled_ns": 89090,
+          "time_running_ns": 89090
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968881,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 917,
+          "time_enabled_ns": 154260,
+          "time_running_ns": 154260
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968884,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1122,
+          "time_enabled_ns": 104190,
+          "time_running_ns": 104190
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968879,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 378,
+          "time_enabled_ns": 64680,
+          "time_running_ns": 64680
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968884,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 701,
+          "time_enabled_ns": 110220,
+          "time_running_ns": 110220
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968882,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1386,
+          "time_enabled_ns": 95870,
+          "time_running_ns": 95870
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968879,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 1113,
+          "time_enabled_ns": 70840,
+          "time_running_ns": 70840
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968882,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1272,
+          "time_enabled_ns": 101850,
+          "time_running_ns": 101850
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968881,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 2385,
+          "time_enabled_ns": 161990,
+          "time_running_ns": 161990
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968882,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 678,
+          "time_enabled_ns": 108070,
+          "time_running_ns": 108070
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968879,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 374,
+          "time_enabled_ns": 76370,
+          "time_running_ns": 76370
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968881,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 932,
+          "time_enabled_ns": 167420,
+          "time_running_ns": 167420
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968879,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 1246,
+          "time_enabled_ns": 82310,
+          "time_running_ns": 82310
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968881,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1488,
+          "time_enabled_ns": 174170,
+          "time_running_ns": 174170
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968879,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 369,
+          "time_enabled_ns": 88860,
+          "time_running_ns": 88860
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968881,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1094,
+          "time_enabled_ns": 180510,
+          "time_running_ns": 180510
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968879,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 831,
+          "time_enabled_ns": 94410,
+          "time_running_ns": 94410
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968881,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1310,
+          "time_enabled_ns": 187340,
+          "time_running_ns": 187340
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968879,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 581,
+          "time_enabled_ns": 100190,
+          "time_running_ns": 100190
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968881,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 701,
+          "time_enabled_ns": 193910,
+          "time_running_ns": 193910
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968881,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1593,
+          "time_enabled_ns": 197830,
+          "time_running_ns": 197830
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968881,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 706,
+          "time_enabled_ns": 202620,
+          "time_running_ns": 202620
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1968881,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 2045,
+          "time_enabled_ns": 206330,
+          "time_running_ns": 206330
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1968881,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 816,
+          "time_enabled_ns": 210190,
+          "time_running_ns": 210190
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968881,
+          "instructions": 2338,
+          "raw_instructions": 2339,
+          "cycles": 15392,
+          "time_enabled_ns": 219060,
+          "time_running_ns": 219060
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968881,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 3309,
+          "time_enabled_ns": 223070,
+          "time_running_ns": 223070
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968881,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 3105,
+          "time_enabled_ns": 227040,
+          "time_running_ns": 227040
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968881,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 2240,
+          "time_enabled_ns": 231130,
+          "time_running_ns": 231130
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968881,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 2548,
+          "time_enabled_ns": 235900,
+          "time_running_ns": 235900
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968881,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 3000,
+          "time_enabled_ns": 240830,
+          "time_running_ns": 240830
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968881,
+          "instructions": 2339,
+          "raw_instructions": 2340,
+          "cycles": 2794,
+          "time_enabled_ns": 246420,
+          "time_running_ns": 246420
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1968881,
+          "instructions": 2349,
+          "raw_instructions": 2350,
+          "cycles": 2397,
+          "time_enabled_ns": 251290,
+          "time_running_ns": 251290
+        }
+      ],
+      "scope_counts": {
+        "xshard_prepare": 8,
+        "xshard_execute": 64,
+        "xshard_complete": 64,
+        "xshard_retire": 8
+      },
+      "instructions_per_command": 14369.75,
+      "cycles_per_command": 42884.25,
+      "note": "User-only PMU from function entry trap to return trap, one retired return breakpoint subtracted (known-count control), inclusive callees; parser, scheduling, network and idle loops excluded. Threads serialized during each scope; cycles are debugger-perturbed, not latency or throughput."
+    }
+  },
+  {
+    "config": {
+      "arm": "post",
+      "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+      "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+      "mode": "2s",
+      "atomic": 0,
+      "depth": 1,
+      "port": 26890
+    },
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "gdb",
+      "-nx",
+      "-q",
+      "-batch",
+      "-ex",
+      "source docs/wave4d/trace_gdb.py",
+      "--args",
+      "/home/user/Projects/cx-wave4/build/tomokv",
+      "--port",
+      "26890",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "2s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "0",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-2s-a0-p1",
+      "--ratio",
+      "6:2"
+    ],
+    "returncode": 0,
+    "seconds": 1.7663103407248855,
+    "directory": "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-2s-a0-p1",
+    "result": {
+      "status": "PASS",
+      "config": {
+        "arm": "post",
+        "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+        "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+        "mode": "2s",
+        "atomic": 0,
+        "depth": 1,
+        "port": 26890
+      },
+      "setup": {
+        "keys": [
+          "wave4d:32",
+          "wave4d:13",
+          "wave4d:18",
+          "wave4d:11",
+          "wave4d:10",
+          "wave4d:40",
+          "wave4d:3",
+          "wave4d:4"
+        ],
+        "shards": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "value_bytes": 64,
+        "warmup_commands": 1
+      },
+      "scopes": [
+        {
+          "function": "xshard_prepare",
+          "tid": 1969304,
+          "instructions": 3885,
+          "raw_instructions": 3886,
+          "cycles": 19552,
+          "time_enabled_ns": 13900,
+          "time_running_ns": 13900
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969299,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 5073,
+          "time_enabled_ns": 8100,
+          "time_running_ns": 8100
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969298,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 3566,
+          "time_enabled_ns": 8050,
+          "time_running_ns": 8050
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969299,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1172,
+          "time_enabled_ns": 15490,
+          "time_running_ns": 15490
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969298,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 900,
+          "time_enabled_ns": 15770,
+          "time_running_ns": 15770
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969299,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 2278,
+          "time_enabled_ns": 22100,
+          "time_running_ns": 22100
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969298,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 2442,
+          "time_enabled_ns": 22900,
+          "time_running_ns": 22900
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969299,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 831,
+          "time_enabled_ns": 27920,
+          "time_running_ns": 27920
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969298,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 759,
+          "time_enabled_ns": 29460,
+          "time_running_ns": 29460
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969299,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1956,
+          "time_enabled_ns": 34070,
+          "time_running_ns": 34070
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969298,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1408,
+          "time_enabled_ns": 37610,
+          "time_running_ns": 37610
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969299,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 694,
+          "time_enabled_ns": 40460,
+          "time_running_ns": 40460
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969298,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 927,
+          "time_enabled_ns": 43830,
+          "time_running_ns": 43830
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969299,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1695,
+          "time_enabled_ns": 47450,
+          "time_running_ns": 47450
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969298,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 2723,
+          "time_enabled_ns": 50820,
+          "time_running_ns": 50820
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969299,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 697,
+          "time_enabled_ns": 54420,
+          "time_running_ns": 54420
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969298,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1403,
+          "time_enabled_ns": 57580,
+          "time_running_ns": 57580
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1969304,
+          "instructions": 2318,
+          "raw_instructions": 2319,
+          "cycles": 12721,
+          "time_enabled_ns": 22410,
+          "time_running_ns": 22410
+        }
+      ],
+      "scope_counts": {
+        "xshard_prepare": 1,
+        "xshard_execute": 8,
+        "xshard_complete": 8,
+        "xshard_retire": 1
+      },
+      "instructions_per_command": 10349.0,
+      "cycles_per_command": 60797.0,
+      "note": "User-only PMU from function entry trap to return trap, one retired return breakpoint subtracted (known-count control), inclusive callees; parser, scheduling, network and idle loops excluded. Threads serialized during each scope; cycles are debugger-perturbed, not latency or throughput."
+    }
+  },
+  {
+    "config": {
+      "arm": "post",
+      "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+      "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+      "mode": "2s",
+      "atomic": 0,
+      "depth": 8,
+      "port": 26890
+    },
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "gdb",
+      "-nx",
+      "-q",
+      "-batch",
+      "-ex",
+      "source docs/wave4d/trace_gdb.py",
+      "--args",
+      "/home/user/Projects/cx-wave4/build/tomokv",
+      "--port",
+      "26890",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "2s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "0",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-2s-a0-p8",
+      "--ratio",
+      "6:2"
+    ],
+    "returncode": 0,
+    "seconds": 1.9667184995487332,
+    "directory": "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-2s-a0-p8",
+    "result": {
+      "status": "PASS",
+      "config": {
+        "arm": "post",
+        "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+        "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+        "mode": "2s",
+        "atomic": 0,
+        "depth": 8,
+        "port": 26890
+      },
+      "setup": {
+        "keys": [
+          "wave4d:0",
+          "wave4d:29",
+          "wave4d:14",
+          "wave4d:6",
+          "wave4d:10",
+          "wave4d:12",
+          "wave4d:2",
+          "wave4d:19"
+        ],
+        "shards": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "value_bytes": 64,
+        "warmup_commands": 1
+      },
+      "scopes": [
+        {
+          "function": "xshard_prepare",
+          "tid": 1969890,
+          "instructions": 3861,
+          "raw_instructions": 3862,
+          "cycles": 23441,
+          "time_enabled_ns": 16660,
+          "time_running_ns": 16660
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1969890,
+          "instructions": 11953,
+          "raw_instructions": 11954,
+          "cycles": 24204,
+          "time_enabled_ns": 32870,
+          "time_running_ns": 32870
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 7709,
+          "time_enabled_ns": 12280,
+          "time_running_ns": 12280
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1969890,
+          "instructions": 7246,
+          "raw_instructions": 7247,
+          "cycles": 10370,
+          "time_enabled_ns": 50250,
+          "time_running_ns": 50250
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 5602,
+          "time_enabled_ns": 11330,
+          "time_running_ns": 11330
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1107,
+          "time_enabled_ns": 19470,
+          "time_running_ns": 19470
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1969890,
+          "instructions": 7047,
+          "raw_instructions": 7048,
+          "cycles": 8598,
+          "time_enabled_ns": 62230,
+          "time_running_ns": 62230
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 2531,
+          "time_enabled_ns": 26870,
+          "time_running_ns": 26870
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1969890,
+          "instructions": 11305,
+          "raw_instructions": 11306,
+          "cycles": 12904,
+          "time_enabled_ns": 75950,
+          "time_running_ns": 75950
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 695,
+          "time_enabled_ns": 33150,
+          "time_running_ns": 33150
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 976,
+          "time_enabled_ns": 18570,
+          "time_running_ns": 18570
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1969890,
+          "instructions": 7260,
+          "raw_instructions": 7261,
+          "cycles": 7839,
+          "time_enabled_ns": 87380,
+          "time_running_ns": 87380
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 2209,
+          "time_enabled_ns": 25820,
+          "time_running_ns": 25820
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1969890,
+          "instructions": 7046,
+          "raw_instructions": 7047,
+          "cycles": 5932,
+          "time_enabled_ns": 97810,
+          "time_running_ns": 97810
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1366,
+          "time_enabled_ns": 39780,
+          "time_running_ns": 39780
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 765,
+          "time_enabled_ns": 32260,
+          "time_running_ns": 32260
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 754,
+          "time_enabled_ns": 46280,
+          "time_running_ns": 46280
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1969890,
+          "instructions": 7047,
+          "raw_instructions": 7048,
+          "cycles": 10048,
+          "time_enabled_ns": 110320,
+          "time_running_ns": 110320
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 2601,
+          "time_enabled_ns": 53340,
+          "time_running_ns": 53340
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1428,
+          "time_enabled_ns": 39090,
+          "time_running_ns": 39090
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 464,
+          "time_enabled_ns": 59030,
+          "time_running_ns": 59030
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 771,
+          "time_enabled_ns": 45210,
+          "time_running_ns": 45210
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 2629,
+          "time_enabled_ns": 66090,
+          "time_running_ns": 66090
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 2202,
+          "time_enabled_ns": 52040,
+          "time_running_ns": 52040
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 673,
+          "time_enabled_ns": 72880,
+          "time_running_ns": 72880
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1312,
+          "time_enabled_ns": 58660,
+          "time_running_ns": 58660
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1697,
+          "time_enabled_ns": 82490,
+          "time_running_ns": 82490
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1296,
+          "time_enabled_ns": 65610,
+          "time_running_ns": 65610
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 862,
+          "time_enabled_ns": 88820,
+          "time_running_ns": 88820
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 753,
+          "time_enabled_ns": 75160,
+          "time_running_ns": 75160
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1969890,
+          "instructions": 2311,
+          "raw_instructions": 2312,
+          "cycles": 11061,
+          "time_enabled_ns": 120920,
+          "time_running_ns": 120920
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 2307,
+          "time_enabled_ns": 81990,
+          "time_running_ns": 81990
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 2958,
+          "time_enabled_ns": 97130,
+          "time_running_ns": 97130
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 504,
+          "time_enabled_ns": 89070,
+          "time_running_ns": 89070
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 567,
+          "time_enabled_ns": 107370,
+          "time_running_ns": 107370
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1138,
+          "time_enabled_ns": 96880,
+          "time_running_ns": 96880
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1565,
+          "time_enabled_ns": 115270,
+          "time_running_ns": 115270
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 664,
+          "time_enabled_ns": 104400,
+          "time_running_ns": 104400
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 555,
+          "time_enabled_ns": 122580,
+          "time_running_ns": 122580
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 2178,
+          "time_enabled_ns": 112000,
+          "time_running_ns": 112000
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 1803,
+          "time_enabled_ns": 129770,
+          "time_running_ns": 129770
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 643,
+          "time_enabled_ns": 120120,
+          "time_running_ns": 120120
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 545,
+          "time_enabled_ns": 136610,
+          "time_running_ns": 136610
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1861,
+          "time_enabled_ns": 127030,
+          "time_running_ns": 127030
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1969890,
+          "instructions": 2312,
+          "raw_instructions": 2313,
+          "cycles": 2943,
+          "time_enabled_ns": 128630,
+          "time_running_ns": 128630
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 589,
+          "time_enabled_ns": 133600,
+          "time_running_ns": 133600
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 2500,
+          "time_enabled_ns": 143630,
+          "time_running_ns": 143630
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1198,
+          "time_enabled_ns": 140830,
+          "time_running_ns": 140830
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 724,
+          "time_enabled_ns": 149930,
+          "time_running_ns": 149930
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 601,
+          "time_enabled_ns": 146930,
+          "time_running_ns": 146930
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1081,
+          "time_enabled_ns": 156260,
+          "time_running_ns": 156260
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 818,
+          "time_enabled_ns": 153260,
+          "time_running_ns": 153260
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 395,
+          "time_enabled_ns": 162310,
+          "time_running_ns": 162310
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 396,
+          "time_enabled_ns": 159320,
+          "time_running_ns": 159320
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1046,
+          "time_enabled_ns": 168650,
+          "time_running_ns": 168650
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1108,
+          "time_enabled_ns": 165680,
+          "time_running_ns": 165680
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 839,
+          "time_enabled_ns": 174620,
+          "time_running_ns": 174620
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1272,
+          "time_enabled_ns": 172070,
+          "time_running_ns": 172070
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 1276,
+          "time_enabled_ns": 181650,
+          "time_running_ns": 181650
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1969890,
+          "instructions": 2312,
+          "raw_instructions": 2313,
+          "cycles": 2973,
+          "time_enabled_ns": 136360,
+          "time_running_ns": 136360
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 537,
+          "time_enabled_ns": 187880,
+          "time_running_ns": 187880
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 863,
+          "time_enabled_ns": 178220,
+          "time_running_ns": 178220
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1111,
+          "time_enabled_ns": 194160,
+          "time_running_ns": 194160
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 479,
+          "time_enabled_ns": 184600,
+          "time_running_ns": 184600
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 820,
+          "time_enabled_ns": 200160,
+          "time_running_ns": 200160
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1023,
+          "time_enabled_ns": 191170,
+          "time_running_ns": 191170
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 772,
+          "time_enabled_ns": 206440,
+          "time_running_ns": 206440
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 570,
+          "time_enabled_ns": 197240,
+          "time_running_ns": 197240
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 750,
+          "time_enabled_ns": 212740,
+          "time_running_ns": 212740
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1221,
+          "time_enabled_ns": 203660,
+          "time_running_ns": 203660
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1123,
+          "time_enabled_ns": 218610,
+          "time_running_ns": 218610
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 789,
+          "time_enabled_ns": 210080,
+          "time_running_ns": 210080
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 771,
+          "time_enabled_ns": 224600,
+          "time_running_ns": 224600
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1158,
+          "time_enabled_ns": 216560,
+          "time_running_ns": 216560
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 2607,
+          "time_enabled_ns": 230900,
+          "time_running_ns": 230900
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 884,
+          "time_enabled_ns": 222780,
+          "time_running_ns": 222780
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 763,
+          "time_enabled_ns": 237160,
+          "time_running_ns": 237160
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1245,
+          "time_enabled_ns": 230030,
+          "time_running_ns": 230030
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1217,
+          "time_enabled_ns": 243010,
+          "time_running_ns": 243010
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1969890,
+          "instructions": 2312,
+          "raw_instructions": 2313,
+          "cycles": 2917,
+          "time_enabled_ns": 143510,
+          "time_running_ns": 143510
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 682,
+          "time_enabled_ns": 236420,
+          "time_running_ns": 236420
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 766,
+          "time_enabled_ns": 249550,
+          "time_running_ns": 249550
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1207,
+          "time_enabled_ns": 242790,
+          "time_running_ns": 242790
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1195,
+          "time_enabled_ns": 255990,
+          "time_running_ns": 255990
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 825,
+          "time_enabled_ns": 249050,
+          "time_running_ns": 249050
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 766,
+          "time_enabled_ns": 261800,
+          "time_running_ns": 261800
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1714,
+          "time_enabled_ns": 255630,
+          "time_running_ns": 255630
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 2051,
+          "time_enabled_ns": 268100,
+          "time_running_ns": 268100
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 832,
+          "time_enabled_ns": 261890,
+          "time_running_ns": 261890
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 771,
+          "time_enabled_ns": 274340,
+          "time_running_ns": 274340
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1397,
+          "time_enabled_ns": 268790,
+          "time_running_ns": 268790
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 1660,
+          "time_enabled_ns": 280740,
+          "time_running_ns": 280740
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 752,
+          "time_enabled_ns": 274840,
+          "time_running_ns": 274840
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 681,
+          "time_enabled_ns": 287160,
+          "time_running_ns": 287160
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1588,
+          "time_enabled_ns": 281510,
+          "time_running_ns": 281510
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1969890,
+          "instructions": 2312,
+          "raw_instructions": 2313,
+          "cycles": 4177,
+          "time_enabled_ns": 151420,
+          "time_running_ns": 151420
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 700,
+          "time_enabled_ns": 287580,
+          "time_running_ns": 287580
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1322,
+          "time_enabled_ns": 293810,
+          "time_running_ns": 293810
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1491,
+          "time_enabled_ns": 294590,
+          "time_running_ns": 294590
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 670,
+          "time_enabled_ns": 298950,
+          "time_running_ns": 298950
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 806,
+          "time_enabled_ns": 300980,
+          "time_running_ns": 300980
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1972,
+          "time_enabled_ns": 304670,
+          "time_running_ns": 304670
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1178,
+          "time_enabled_ns": 306520,
+          "time_running_ns": 306520
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 679,
+          "time_enabled_ns": 309800,
+          "time_running_ns": 309800
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 915,
+          "time_enabled_ns": 311960,
+          "time_running_ns": 311960
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 2018,
+          "time_enabled_ns": 315660,
+          "time_running_ns": 315660
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1143,
+          "time_enabled_ns": 318060,
+          "time_running_ns": 318060
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 694,
+          "time_enabled_ns": 321240,
+          "time_running_ns": 321240
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1063,
+          "time_enabled_ns": 323980,
+          "time_running_ns": 323980
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 2520,
+          "time_enabled_ns": 327210,
+          "time_running_ns": 327210
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1400,
+          "time_enabled_ns": 329630,
+          "time_running_ns": 329630
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 707,
+          "time_enabled_ns": 332690,
+          "time_running_ns": 332690
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1111,
+          "time_enabled_ns": 335130,
+          "time_running_ns": 335130
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1759,
+          "time_enabled_ns": 338640,
+          "time_running_ns": 338640
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1445,
+          "time_enabled_ns": 341190,
+          "time_running_ns": 341190
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 703,
+          "time_enabled_ns": 346930,
+          "time_running_ns": 346930
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 774,
+          "time_enabled_ns": 347170,
+          "time_running_ns": 347170
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1280,
+          "time_enabled_ns": 352880,
+          "time_running_ns": 352880
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1233,
+          "time_enabled_ns": 353840,
+          "time_running_ns": 353840
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 665,
+          "time_enabled_ns": 358750,
+          "time_running_ns": 358750
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 787,
+          "time_enabled_ns": 359220,
+          "time_running_ns": 359220
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1276,
+          "time_enabled_ns": 364300,
+          "time_running_ns": 364300
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1969890,
+          "instructions": 2312,
+          "raw_instructions": 2313,
+          "cycles": 6141,
+          "time_enabled_ns": 159410,
+          "time_running_ns": 159410
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 832,
+          "time_enabled_ns": 372220,
+          "time_running_ns": 372220
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1791,
+          "time_enabled_ns": 365600,
+          "time_running_ns": 365600
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 2070,
+          "time_enabled_ns": 377910,
+          "time_running_ns": 377910
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 863,
+          "time_enabled_ns": 371380,
+          "time_running_ns": 371380
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 836,
+          "time_enabled_ns": 384160,
+          "time_running_ns": 384160
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1292,
+          "time_enabled_ns": 377720,
+          "time_running_ns": 377720
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1653,
+          "time_enabled_ns": 390800,
+          "time_running_ns": 390800
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 821,
+          "time_enabled_ns": 384630,
+          "time_running_ns": 384630
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1098,
+          "time_enabled_ns": 397990,
+          "time_running_ns": 397990
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1392,
+          "time_enabled_ns": 391190,
+          "time_running_ns": 391190
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1340,
+          "time_enabled_ns": 404550,
+          "time_running_ns": 404550
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 785,
+          "time_enabled_ns": 397330,
+          "time_running_ns": 397330
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 751,
+          "time_enabled_ns": 410650,
+          "time_running_ns": 410650
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1083,
+          "time_enabled_ns": 403540,
+          "time_running_ns": 403540
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969887,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1097,
+          "time_enabled_ns": 417080,
+          "time_running_ns": 417080
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 821,
+          "time_enabled_ns": 409660,
+          "time_running_ns": 409660
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969887,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 754,
+          "time_enabled_ns": 423330,
+          "time_running_ns": 423330
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1969888,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1859,
+          "time_enabled_ns": 416540,
+          "time_running_ns": 416540
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1969888,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 825,
+          "time_enabled_ns": 420870,
+          "time_running_ns": 420870
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1969890,
+          "instructions": 2319,
+          "raw_instructions": 2320,
+          "cycles": 4090,
+          "time_enabled_ns": 164800,
+          "time_running_ns": 164800
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1969890,
+          "instructions": 2319,
+          "raw_instructions": 2320,
+          "cycles": 1928,
+          "time_enabled_ns": 169550,
+          "time_running_ns": 169550
+        }
+      ],
+      "scope_counts": {
+        "xshard_prepare": 8,
+        "xshard_execute": 64,
+        "xshard_complete": 64,
+        "xshard_retire": 8
+      },
+      "instructions_per_command": 14305.25,
+      "cycles_per_command": 37370.375,
+      "note": "User-only PMU from function entry trap to return trap, one retired return breakpoint subtracted (known-count control), inclusive callees; parser, scheduling, network and idle loops excluded. Threads serialized during each scope; cycles are debugger-perturbed, not latency or throughput."
+    }
+  },
+  {
+    "config": {
+      "arm": "post",
+      "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+      "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+      "mode": "2s",
+      "atomic": 1,
+      "depth": 1,
+      "port": 26890
+    },
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "gdb",
+      "-nx",
+      "-q",
+      "-batch",
+      "-ex",
+      "source docs/wave4d/trace_gdb.py",
+      "--args",
+      "/home/user/Projects/cx-wave4/build/tomokv",
+      "--port",
+      "26890",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "2s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-2s-a1-p1",
+      "--ratio",
+      "6:2"
+    ],
+    "returncode": 0,
+    "seconds": 1.8165926998481154,
+    "directory": "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-2s-a1-p1",
+    "result": {
+      "status": "PASS",
+      "config": {
+        "arm": "post",
+        "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+        "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+        "mode": "2s",
+        "atomic": 1,
+        "depth": 1,
+        "port": 26890
+      },
+      "setup": {
+        "keys": [
+          "wave4d:0",
+          "wave4d:38",
+          "wave4d:21",
+          "wave4d:12",
+          "wave4d:13",
+          "wave4d:17",
+          "wave4d:5",
+          "wave4d:3"
+        ],
+        "shards": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "value_bytes": 64,
+        "warmup_commands": 1
+      },
+      "scopes": [
+        {
+          "function": "xshard_prepare",
+          "tid": 1970207,
+          "instructions": 3889,
+          "raw_instructions": 3890,
+          "cycles": 20650,
+          "time_enabled_ns": 15120,
+          "time_running_ns": 15120
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1970203,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 6899,
+          "time_enabled_ns": 8669,
+          "time_running_ns": 8669
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1970202,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 5146,
+          "time_enabled_ns": 10120,
+          "time_running_ns": 10120
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1970203,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1906,
+          "time_enabled_ns": 13889,
+          "time_running_ns": 13889
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1970202,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1458,
+          "time_enabled_ns": 22320,
+          "time_running_ns": 22320
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1970203,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 2550,
+          "time_enabled_ns": 20969,
+          "time_running_ns": 20969
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1970202,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 3448,
+          "time_enabled_ns": 34651,
+          "time_running_ns": 34651
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1970203,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 738,
+          "time_enabled_ns": 26698,
+          "time_running_ns": 26698
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1970202,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1215,
+          "time_enabled_ns": 46302,
+          "time_running_ns": 46302
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1970203,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 2108,
+          "time_enabled_ns": 32858,
+          "time_running_ns": 32858
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1970202,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 3540,
+          "time_enabled_ns": 58771,
+          "time_running_ns": 58771
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1970203,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 746,
+          "time_enabled_ns": 38667,
+          "time_running_ns": 38667
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1970202,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1082,
+          "time_enabled_ns": 70213,
+          "time_running_ns": 70213
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1970203,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 2656,
+          "time_enabled_ns": 45147,
+          "time_running_ns": 45147
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1970202,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 3228,
+          "time_enabled_ns": 83753,
+          "time_running_ns": 83753
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1970203,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 956,
+          "time_enabled_ns": 50998,
+          "time_running_ns": 50998
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1970202,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1437,
+          "time_enabled_ns": 95553,
+          "time_running_ns": 95553
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1970207,
+          "instructions": 2318,
+          "raw_instructions": 2319,
+          "cycles": 12418,
+          "time_enabled_ns": 23109,
+          "time_running_ns": 23109
+        }
+      ],
+      "scope_counts": {
+        "xshard_prepare": 1,
+        "xshard_execute": 8,
+        "xshard_complete": 8,
+        "xshard_retire": 1
+      },
+      "instructions_per_command": 10353.0,
+      "cycles_per_command": 72181.0,
+      "note": "User-only PMU from function entry trap to return trap, one retired return breakpoint subtracted (known-count control), inclusive callees; parser, scheduling, network and idle loops excluded. Threads serialized during each scope; cycles are debugger-perturbed, not latency or throughput."
+    }
+  },
+  {
+    "config": {
+      "arm": "post",
+      "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+      "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+      "mode": "2s",
+      "atomic": 1,
+      "depth": 8,
+      "port": 26890
+    },
+    "argv": [
+      "taskset",
+      "-c",
+      "64-71",
+      "gdb",
+      "-nx",
+      "-q",
+      "-batch",
+      "-ex",
+      "source docs/wave4d/trace_gdb.py",
+      "--args",
+      "/home/user/Projects/cx-wave4/build/tomokv",
+      "--port",
+      "26890",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "1",
+      "--thread-mode",
+      "2s",
+      "--read-local",
+      "0",
+      "--atomic",
+      "1",
+      "--enable-debug-command",
+      "yes",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-2s-a1-p8",
+      "--ratio",
+      "6:2"
+    ],
+    "returncode": 0,
+    "seconds": 1.9165644571185112,
+    "directory": "/home/user/Projects/cx-wave4/build/wave4d/trace-post/post-2s-a1-p8",
+    "result": {
+      "status": "PASS",
+      "config": {
+        "arm": "post",
+        "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+        "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+        "mode": "2s",
+        "atomic": 1,
+        "depth": 8,
+        "port": 26890
+      },
+      "setup": {
+        "keys": [
+          "wave4d:5",
+          "wave4d:6",
+          "wave4d:15",
+          "wave4d:9",
+          "wave4d:32",
+          "wave4d:3",
+          "wave4d:29",
+          "wave4d:1"
+        ],
+        "shards": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "value_bytes": 64,
+        "warmup_commands": 1
+      },
+      "scopes": [
+        {
+          "function": "xshard_prepare",
+          "tid": 1971405,
+          "instructions": 3841,
+          "raw_instructions": 3842,
+          "cycles": 24185,
+          "time_enabled_ns": 17510,
+          "time_running_ns": 17510
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1971405,
+          "instructions": 11933,
+          "raw_instructions": 11934,
+          "cycles": 20107,
+          "time_enabled_ns": 38090,
+          "time_running_ns": 38090
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 4674,
+          "time_enabled_ns": 10530,
+          "time_running_ns": 10530
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1971405,
+          "instructions": 7226,
+          "raw_instructions": 7227,
+          "cycles": 14790,
+          "time_enabled_ns": 51930,
+          "time_running_ns": 51930
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 5356,
+          "time_enabled_ns": 10690,
+          "time_running_ns": 10690
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1316,
+          "time_enabled_ns": 16690,
+          "time_running_ns": 16690
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1971405,
+          "instructions": 7026,
+          "raw_instructions": 7027,
+          "cycles": 8143,
+          "time_enabled_ns": 63750,
+          "time_running_ns": 63750
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 3020,
+          "time_enabled_ns": 23710,
+          "time_running_ns": 23710
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1971405,
+          "instructions": 11285,
+          "raw_instructions": 11286,
+          "cycles": 9266,
+          "time_enabled_ns": 75450,
+          "time_running_ns": 75450
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 671,
+          "time_enabled_ns": 29470,
+          "time_running_ns": 29470
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1337,
+          "time_enabled_ns": 16900,
+          "time_running_ns": 16900
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1971405,
+          "instructions": 7240,
+          "raw_instructions": 7241,
+          "cycles": 10303,
+          "time_enabled_ns": 88230,
+          "time_running_ns": 88230
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 2555,
+          "time_enabled_ns": 23230,
+          "time_running_ns": 23230
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1971405,
+          "instructions": 7026,
+          "raw_instructions": 7027,
+          "cycles": 6549,
+          "time_enabled_ns": 99000,
+          "time_running_ns": 99000
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1735,
+          "time_enabled_ns": 35700,
+          "time_running_ns": 35700
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 789,
+          "time_enabled_ns": 28700,
+          "time_running_ns": 28700
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 788,
+          "time_enabled_ns": 41640,
+          "time_running_ns": 41640
+        },
+        {
+          "function": "xshard_prepare",
+          "tid": 1971405,
+          "instructions": 7026,
+          "raw_instructions": 7027,
+          "cycles": 8309,
+          "time_enabled_ns": 113360,
+          "time_running_ns": 113360
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 2109,
+          "time_enabled_ns": 48230,
+          "time_running_ns": 48230
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1455,
+          "time_enabled_ns": 36030,
+          "time_running_ns": 36030
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 768,
+          "time_enabled_ns": 54940,
+          "time_running_ns": 54940
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 792,
+          "time_enabled_ns": 41460,
+          "time_running_ns": 41460
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 1788,
+          "time_enabled_ns": 60940,
+          "time_running_ns": 60940
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1788,
+          "time_enabled_ns": 47510,
+          "time_running_ns": 47510
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 658,
+          "time_enabled_ns": 66480,
+          "time_running_ns": 66480
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1314,
+          "time_enabled_ns": 53380,
+          "time_running_ns": 53380
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1329,
+          "time_enabled_ns": 72450,
+          "time_running_ns": 72450
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1971405,
+          "instructions": 2311,
+          "raw_instructions": 2312,
+          "cycles": 15033,
+          "time_enabled_ns": 123890,
+          "time_running_ns": 123890
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1897,
+          "time_enabled_ns": 60530,
+          "time_running_ns": 60530
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 960,
+          "time_enabled_ns": 78710,
+          "time_running_ns": 78710
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 813,
+          "time_enabled_ns": 66620,
+          "time_running_ns": 66620
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1244,
+          "time_enabled_ns": 84350,
+          "time_running_ns": 84350
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1171,
+          "time_enabled_ns": 72160,
+          "time_running_ns": 72160
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 677,
+          "time_enabled_ns": 89750,
+          "time_running_ns": 89750
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 915,
+          "time_enabled_ns": 77950,
+          "time_running_ns": 77950
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1477,
+          "time_enabled_ns": 95780,
+          "time_running_ns": 95780
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1326,
+          "time_enabled_ns": 84740,
+          "time_running_ns": 84740
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 695,
+          "time_enabled_ns": 101220,
+          "time_running_ns": 101220
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 901,
+          "time_enabled_ns": 90650,
+          "time_running_ns": 90650
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 991,
+          "time_enabled_ns": 106960,
+          "time_running_ns": 106960
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1005,
+          "time_enabled_ns": 96450,
+          "time_running_ns": 96450
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 695,
+          "time_enabled_ns": 112440,
+          "time_running_ns": 112440
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 789,
+          "time_enabled_ns": 103860,
+          "time_running_ns": 103860
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1158,
+          "time_enabled_ns": 118280,
+          "time_running_ns": 118280
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1135,
+          "time_enabled_ns": 109730,
+          "time_running_ns": 109730
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 547,
+          "time_enabled_ns": 124150,
+          "time_running_ns": 124150
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1971405,
+          "instructions": 2312,
+          "raw_instructions": 2313,
+          "cycles": 3571,
+          "time_enabled_ns": 132680,
+          "time_running_ns": 132680
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1774,
+          "time_enabled_ns": 130300,
+          "time_running_ns": 130300
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 498,
+          "time_enabled_ns": 115920,
+          "time_running_ns": 115920
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 776,
+          "time_enabled_ns": 136110,
+          "time_running_ns": 136110
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1324,
+          "time_enabled_ns": 122710,
+          "time_running_ns": 122710
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1139,
+          "time_enabled_ns": 142150,
+          "time_running_ns": 142150
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 681,
+          "time_enabled_ns": 128040,
+          "time_running_ns": 128040
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 907,
+          "time_enabled_ns": 148010,
+          "time_running_ns": 148010
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1063,
+          "time_enabled_ns": 134220,
+          "time_running_ns": 134220
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 1270,
+          "time_enabled_ns": 153600,
+          "time_running_ns": 153600
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 681,
+          "time_enabled_ns": 139820,
+          "time_running_ns": 139820
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 686,
+          "time_enabled_ns": 159990,
+          "time_running_ns": 159990
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1111,
+          "time_enabled_ns": 145990,
+          "time_running_ns": 145990
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1978,
+          "time_enabled_ns": 165740,
+          "time_running_ns": 165740
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 874,
+          "time_enabled_ns": 151490,
+          "time_running_ns": 151490
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 751,
+          "time_enabled_ns": 171080,
+          "time_running_ns": 171080
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1208,
+          "time_enabled_ns": 157100,
+          "time_running_ns": 157100
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1632,
+          "time_enabled_ns": 176850,
+          "time_running_ns": 176850
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 814,
+          "time_enabled_ns": 162710,
+          "time_running_ns": 162710
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 879,
+          "time_enabled_ns": 182520,
+          "time_running_ns": 182520
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1350,
+          "time_enabled_ns": 168670,
+          "time_running_ns": 168670
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1314,
+          "time_enabled_ns": 195820,
+          "time_running_ns": 195820
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 690,
+          "time_enabled_ns": 174450,
+          "time_running_ns": 174450
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 740,
+          "time_enabled_ns": 201540,
+          "time_running_ns": 201540
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1513,
+          "time_enabled_ns": 180650,
+          "time_running_ns": 180650
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 2463,
+          "time_enabled_ns": 207840,
+          "time_running_ns": 207840
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 680,
+          "time_enabled_ns": 185920,
+          "time_running_ns": 185920
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 679,
+          "time_enabled_ns": 213510,
+          "time_running_ns": 213510
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1227,
+          "time_enabled_ns": 192120,
+          "time_running_ns": 192120
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1094,
+          "time_enabled_ns": 223080,
+          "time_running_ns": 223080
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1084,
+          "time_enabled_ns": 198270,
+          "time_running_ns": 198270
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 763,
+          "time_enabled_ns": 228370,
+          "time_running_ns": 228370
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 2047,
+          "time_enabled_ns": 204490,
+          "time_running_ns": 204490
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1971405,
+          "instructions": 2312,
+          "raw_instructions": 2313,
+          "cycles": 6872,
+          "time_enabled_ns": 142080,
+          "time_running_ns": 142080
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 733,
+          "time_enabled_ns": 209780,
+          "time_running_ns": 209780
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1971405,
+          "instructions": 2312,
+          "raw_instructions": 2313,
+          "cycles": 2281,
+          "time_enabled_ns": 148570,
+          "time_running_ns": 148570
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1525,
+          "time_enabled_ns": 234960,
+          "time_running_ns": 234960
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1530,
+          "time_enabled_ns": 215860,
+          "time_running_ns": 215860
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 829,
+          "time_enabled_ns": 240360,
+          "time_running_ns": 240360
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 892,
+          "time_enabled_ns": 221430,
+          "time_running_ns": 221430
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1550,
+          "time_enabled_ns": 246030,
+          "time_running_ns": 246030
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1255,
+          "time_enabled_ns": 226770,
+          "time_running_ns": 226770
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 681,
+          "time_enabled_ns": 251590,
+          "time_running_ns": 251590
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 992,
+          "time_enabled_ns": 231880,
+          "time_running_ns": 231880
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 2130,
+          "time_enabled_ns": 257350,
+          "time_running_ns": 257350
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1567,
+          "time_enabled_ns": 237520,
+          "time_running_ns": 237520
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 671,
+          "time_enabled_ns": 262560,
+          "time_running_ns": 262560
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 880,
+          "time_enabled_ns": 243040,
+          "time_running_ns": 243040
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 2086,
+          "time_enabled_ns": 268260,
+          "time_running_ns": 268260
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1339,
+          "time_enabled_ns": 248460,
+          "time_running_ns": 248460
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 548,
+          "time_enabled_ns": 273860,
+          "time_running_ns": 273860
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 776,
+          "time_enabled_ns": 254070,
+          "time_running_ns": 254070
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1398,
+          "time_enabled_ns": 279460,
+          "time_running_ns": 279460
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1403,
+          "time_enabled_ns": 259900,
+          "time_running_ns": 259900
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 688,
+          "time_enabled_ns": 284980,
+          "time_running_ns": 284980
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 761,
+          "time_enabled_ns": 265210,
+          "time_running_ns": 265210
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1405,
+          "time_enabled_ns": 293550,
+          "time_running_ns": 293550
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1243,
+          "time_enabled_ns": 271660,
+          "time_running_ns": 271660
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 685,
+          "time_enabled_ns": 299900,
+          "time_running_ns": 299900
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 767,
+          "time_enabled_ns": 277280,
+          "time_running_ns": 277280
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 1586,
+          "time_enabled_ns": 305380,
+          "time_running_ns": 305380
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1426,
+          "time_enabled_ns": 282910,
+          "time_running_ns": 282910
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 681,
+          "time_enabled_ns": 310530,
+          "time_running_ns": 310530
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 1035,
+          "time_enabled_ns": 288380,
+          "time_running_ns": 288380
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1201,
+          "time_enabled_ns": 315970,
+          "time_running_ns": 315970
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 2133,
+          "time_enabled_ns": 294430,
+          "time_running_ns": 294430
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 695,
+          "time_enabled_ns": 321260,
+          "time_running_ns": 321260
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 904,
+          "time_enabled_ns": 299860,
+          "time_running_ns": 299860
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1971405,
+          "instructions": 2312,
+          "raw_instructions": 2313,
+          "cycles": 6254,
+          "time_enabled_ns": 155980,
+          "time_running_ns": 155980
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1160,
+          "time_enabled_ns": 305250,
+          "time_running_ns": 305250
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1971405,
+          "instructions": 2312,
+          "raw_instructions": 2313,
+          "cycles": 1688,
+          "time_enabled_ns": 161820,
+          "time_running_ns": 161820
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1231,
+          "time_enabled_ns": 326680,
+          "time_running_ns": 326680
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 786,
+          "time_enabled_ns": 310820,
+          "time_running_ns": 310820
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 917,
+          "time_enabled_ns": 332310,
+          "time_running_ns": 332310
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1387,
+          "time_enabled_ns": 316740,
+          "time_running_ns": 316740
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 476,
+          "raw_instructions": 477,
+          "cycles": 2051,
+          "time_enabled_ns": 339950,
+          "time_running_ns": 339950
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 938,
+          "time_enabled_ns": 322950,
+          "time_running_ns": 322950
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 893,
+          "time_enabled_ns": 345220,
+          "time_running_ns": 345220
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1080,
+          "time_enabled_ns": 328830,
+          "time_running_ns": 328830
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 445,
+          "raw_instructions": 446,
+          "cycles": 1979,
+          "time_enabled_ns": 350890,
+          "time_running_ns": 350890
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 863,
+          "time_enabled_ns": 334440,
+          "time_running_ns": 334440
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 685,
+          "time_enabled_ns": 356380,
+          "time_running_ns": 356380
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 450,
+          "raw_instructions": 451,
+          "cycles": 1367,
+          "time_enabled_ns": 340000,
+          "time_running_ns": 340000
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 455,
+          "raw_instructions": 456,
+          "cycles": 1331,
+          "time_enabled_ns": 361780,
+          "time_running_ns": 361780
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 693,
+          "time_enabled_ns": 345300,
+          "time_running_ns": 345300
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 759,
+          "time_enabled_ns": 367140,
+          "time_running_ns": 367140
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 460,
+          "raw_instructions": 461,
+          "cycles": 1691,
+          "time_enabled_ns": 351020,
+          "time_running_ns": 351020
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 465,
+          "raw_instructions": 466,
+          "cycles": 1166,
+          "time_enabled_ns": 372540,
+          "time_running_ns": 372540
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 826,
+          "time_enabled_ns": 357250,
+          "time_running_ns": 357250
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 1019,
+          "time_enabled_ns": 378330,
+          "time_running_ns": 378330
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 470,
+          "raw_instructions": 471,
+          "cycles": 1882,
+          "time_enabled_ns": 363220,
+          "time_running_ns": 363220
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971401,
+          "instructions": 475,
+          "raw_instructions": 476,
+          "cycles": 1316,
+          "time_enabled_ns": 383830,
+          "time_running_ns": 383830
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 687,
+          "time_enabled_ns": 368620,
+          "time_running_ns": 368620
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971401,
+          "instructions": 49,
+          "raw_instructions": 50,
+          "cycles": 758,
+          "time_enabled_ns": 389080,
+          "time_running_ns": 389080
+        },
+        {
+          "function": "xshard_execute",
+          "tid": 1971402,
+          "instructions": 480,
+          "raw_instructions": 481,
+          "cycles": 1433,
+          "time_enabled_ns": 374340,
+          "time_running_ns": 374340
+        },
+        {
+          "function": "xshard_complete",
+          "tid": 1971402,
+          "instructions": 103,
+          "raw_instructions": 104,
+          "cycles": 743,
+          "time_enabled_ns": 378230,
+          "time_running_ns": 378230
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1971405,
+          "instructions": 2319,
+          "raw_instructions": 2320,
+          "cycles": 4457,
+          "time_enabled_ns": 166840,
+          "time_running_ns": 166840
+        },
+        {
+          "function": "xshard_retire",
+          "tid": 1971405,
+          "instructions": 2319,
+          "raw_instructions": 2320,
+          "cycles": 2356,
+          "time_enabled_ns": 170320,
+          "time_running_ns": 170320
+        }
+      ],
+      "scope_counts": {
+        "xshard_prepare": 8,
+        "xshard_execute": 64,
+        "xshard_complete": 64,
+        "xshard_retire": 8
+      },
+      "instructions_per_command": 14285.125,
+      "cycles_per_command": 37516.0,
+      "note": "User-only PMU from function entry trap to return trap, one retired return breakpoint subtracted (known-count control), inclusive callees; parser, scheduling, network and idle loops excluded. Threads serialized during each scope; cycles are debugger-perturbed, not latency or throughput."
+    }
+  }
+]

@@ -5,7 +5,7 @@ ROOT=Path(__file__).resolve().parents[2]
 p=argparse.ArgumentParser();p.add_argument('--arm',action='append',default=[]);p.add_argument('--label',default='references');a=p.parse_args()
 refs={'headline':'/home/user/Projects/bench-bins/tomokv-headline-8656f9fa9',
       'moverfix':'/home/user/Projects/bins/moverfix-post-82a44439',
-      'merged':str(ROOT/'build/wave4c/tomokv-pre'),'post':str(ROOT/'build/tomokv')}
+      'merged':str(ROOT/'build/wave4c/tomokv-pre'),'post':str(ROOT/'build/tomokv'),'pad-a':str(ROOT/'build/wave4d/tomokv-pad-a')}
 base=ROOT/'build/wave4d'/('trace-'+a.label);base.mkdir(parents=True,exist_ok=True)
 rows=[]
 for arm in a.arm or ['headline','moverfix','merged']:
