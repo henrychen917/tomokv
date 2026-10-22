@@ -2796,7 +2796,12 @@ void xshard_visit_task_hashes(const Task& task, void* context,
 
 ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                                  uint32_t owner_thread_id) {
-    const uint32_t execution_owner = owner_thread_id;
+    // DB0's ordinary read path does not use this atomic-arm argument. Keeping
+    // it in a register spills a notification input on every fragment. The
+    // compile-only trials in docs/txnorder2/mget-trials count this store too:
+    // stack residence restores MGET/DEL/UNLINK and scan instruction counts.
+    std::conditional_t<TOMO_SINGLE_DATABASE, const volatile uint32_t, const uint32_t>
+        execution_owner = owner_thread_id;
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     NotifyExecutionScope notify_scope(shard, op, notify, shard.notify_order_base());
     ScatterState& state = *task.scatter;
