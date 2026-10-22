@@ -2209,8 +2209,14 @@ public:
         if (__builtin_expect(debug_sleep_.pending(), false)) debug_sleep_.park(tid);
     }
     uint64_t debug_sleep_start(uint64_t us, uint32_t tid) {
+        if (signal_shutdown_pending() || shutting_down().load(std::memory_order_relaxed))
+            return 0;
         const uint64_t ticket = debug_sleep_.start(us);
         if (ticket) {
+            // The signal publishes its stop request before interrupting a sleeper. Recheck
+            // after start resets the old interrupt latch, closing the signal/start race.
+            if (signal_shutdown_pending() || shutting_down().load(std::memory_order_relaxed))
+                debug_sleep_.interrupt();
             if (Ring* source = thread(tid).ring()) {
                 for (uint32_t other = 0; other < nthreads(); ++other)
                     if (other != tid)

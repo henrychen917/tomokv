@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 import select
+import signal
 import time
 from _iofix import arguments, Listener, emit, encode, info, cpu_times
 
@@ -27,6 +28,8 @@ def replies(server):
         assert reply == b'OK'
         if value == '1.01':
             assert elapsed >= 1, 'old timeout-derived ceiling still active'
+        if value in ('.002tail', ' 0.002'):
+            assert elapsed >= .002, 'Redis numeric prefix must retain the positive delay'
         out.append(reply)
     assert c.cmd('MULTI') == b'OK'
     for command in (('SET', 'iofix:order', 'before'), ('DEBUG', 'SLEEP', '.03'),
@@ -46,6 +49,32 @@ def replies(server):
     assert time.monotonic() - start >= .20, 'disconnect cancelled the global sleep'
     assert info(c, 'clients')[b'blocked_clients'] == blocked
     return out
+
+
+def signal_stop(server, oracle=False):
+    c = server.connect()
+    assert c.cmd('CONFIG', 'SET', 'save', '3600 1') == b'OK'
+    assert c.cmd('SET', 'iofix:sleep-stop', 'persisted') == b'OK'
+    filename = c.cmd('CONFIG', 'GET', 'dbfilename')[1].decode()
+    tids = workers(server.process.pid) if not oracle else [server.process.pid]
+    assert len(tids) == (1 if oracle else 8)
+    c.send('DEBUG', 'SLEEP', '5')
+    deadline = time.monotonic() + 3
+    while True:
+        entered = ('hrtimer' in Path(f'/proc/{server.process.pid}/wchan').read_text()
+                   if oracle else paused(server.process.pid, tids))
+        if entered:
+            break
+        assert time.monotonic() < deadline, 'signal/sleep window never opened'
+        assert not select.select([c.sock], [], [], 0)[0], 'sleep returned before signal window'
+        time.sleep(.001)
+    start = time.monotonic()
+    server.process.send_signal(signal.SIGTERM)
+    assert server.process.wait(timeout=10) == 0
+    elapsed = time.monotonic() - start
+    emit(signal_during_sleep_seconds=elapsed, oracle=oracle)
+    assert elapsed < .4, 'signal waited for DEBUG SLEEP to finish'
+    assert (server.directory / filename).is_file(), 'signal skipped the shutdown save'
 
 
 def witness(server, mode, transaction=False):
@@ -102,6 +131,7 @@ def run(args):
     with Listener(args, 'oracle', oracle=True) as oracle:
         expected = replies(oracle)
         emit(oracle=expected)
+        signal_stop(oracle, oracle=True)
     variants = [[], ['--read-local', '1']]
     if args.mode == '1s':
         variants.append(['--read-local', '1', '--reorder', '1'])
@@ -110,6 +140,7 @@ def run(args):
             assert replies(server) == expected
             witness(server, args.mode)
             witness(server, args.mode, transaction=True)
+            signal_stop(server)
     emit(result='PASS IO4.10', mode=args.mode, engine=args.net_io)
 
 

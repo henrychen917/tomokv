@@ -66,7 +66,6 @@ static_assert(std::atomic<uint8_t>::is_always_lock_free);
 static void on_signal(int sig) {
     if (!g_signal_armed.load(std::memory_order_acquire)) return;
     if (Server* server = g_signal_server.load(std::memory_order_acquire)) {
-        server->debug_sleep_coordinator().interrupt(); // lock-free; sleepers observe the signal
         // Redis 7.4: SIGINT while a signal stop is already scheduled means "exit now" without
         // waiting for the save (exit status 1: not a clean shutdown). Only async-signal-safe
         // calls: two atomic loads, write(2) and _exit(2).
@@ -79,10 +78,12 @@ static void on_signal(int sig) {
         // Keep owners alive until the ordinary IO save path has persisted the final cut.
         // Wake the elected IO immediately, keeping all owners alive for its shutdown save.
         if (server->request_signal_shutdown()) {
+            server->debug_sleep_coordinator().interrupt();
             signal_doorbell_notify();
             return;
         }
         server->shutting_down().store(true, std::memory_order_relaxed);
+        server->debug_sleep_coordinator().interrupt();
     }
     const uint32_t count = g_signal_thread_count.load(std::memory_order_acquire);
     for (uint32_t i = 0; i < count; i++) {
