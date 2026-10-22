@@ -497,8 +497,198 @@ gate rows; EXPECT remains **685/702**, counted at the same quick-tier boundary.
 
 ## wave4d
 
-Started from `a44aef25c` on `cx-wave4`. CPUs 64–111 only; builds `-j32`;
-ports 26800–26899. Correctness servers and individual gate jobs are authorized.
-Performance load generators and the full iteration gate remain with the maintainer.
-No EXPECT or assertion change, no push. Call-site diagnosis and source trials
-are retained under `docs/wave4d`; final evidence will be appended here.
+Started at `a44aef25c` on `cx-wave4`; source change is `045fc60c4`.
+All work uses CPUs 64–111, builds use `-j32`, and live listeners use
+26800–26899. No push. EXPECT remains **685 quick / 702 full**, with **zero
+row delta**. Gate assertions, negative controls and the strict normalizer are
+unchanged.
+
+### Source result and call-site diagnosis
+
+`[[gnu::noinline]]` on `Server::lb_forget_client` in `src/core/server.h`
+restores DB0 `xshard_execute` and its cold fragment **exactly to moverfix POST**
+(23,221 and 383 bytes), with the existing budgets. This keeps teardown's shared
+mutex/erase inlining decisions from displacing the SWAPDB lock inline inside
+the scatter body. No behavior, per-operation work, data layout or intentional
+lane change is altered. `make all` includes the existing footprint locks.
+
+The key attribution is transitive: notifyorder's `f026db036` grows physical-event
+routing inside `notify.inc`, which is compiled into `xshard.cc`. The merged IPA
+graph leaves the mutex helper shared with teardown; moverfix inlines it. A
+compile-only notification-source counterfactual and eleven source trials isolate
+that decision. Twelve cold-helper budget trials fail to restore the body; the
+selected source change needs **no budget adjustment**.
+
+The six `cmd_xshard_only_impl` / `store_xstring_selected` residuals already have
+identical call sites and instruction encodings against both references; their
+strict differences are compiler table names and anonymous references. The two
+armed SET residuals retain compat2's observation guard and clockcut's deadline
+fix. Relative to compat2, each SET body has exactly seven changed branch opcodes.
+These eight residuals must not be made identical by deleting correctness changes.
+
+[Call-by-call diagnosis](docs/wave4d/diagnosis.md),
+[complete call inventory](docs/wave4d/call-sites.json.gz),
+[DWARF inline chains](docs/wave4d/call-frames.json), and
+[strict restoration receipt](docs/wave4d/restoration.json) retain the details.
+No extra merged MGET gather/completion callee was found. Restoring the enclosing
+scatter layout is a measurement candidate; **the reported throughput regression
+has not been shown to be removed**.
+
+### Identity, propagation and binaries
+
+All inventories use the unchanged gate normalizer and reference union.
+
+| Inventory | Merged headline / lane / residual | wave4d headline / lane / residual |
+|---|---:|---:|
+| Full function groups | 7932 / 604 / 113 = 8649 | 7931 / 543 / 177 = 8651 |
+| Historical hot inventory | 394 / 78 / 17 = 489 | 395 / 77 / 17 = 489 |
+| Expanded command paths | 50 / 17 / 10 = 77 | 49 / 20 / 8 = 77 |
+
+The full residual increase is retained. **98 groups change**: 69 only in
+references with identical instruction encodings, 27 in instruction encodings,
+and two newly emitted teardown helpers. **64 previously matched groups become
+residual** (51 reference-only, 13 instruction changes); no previously matched
+historical hot group loses its reference match. Three already-residual parser
+groups change. This is not a claim that propagation outside the target is free.
+[Summary](docs/wave4d/identity/summary.json),
+[all groups](docs/wave4d/identity/all-bodies.json.gz),
+[propagation and exact diffs](docs/wave4d/identity/propagation.json), and
+[command paths](docs/wave4d/identity/command-paths.json) make this reviewable.
+
+POST: `build/tomokv` (also frozen as `build/wave4d/tomokv-post`), SHA-256
+`766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04`.
+Merged PRE: `build/wave4c/tomokv-pre`, SHA-256
+`3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5`.
+Headline and moverfix use the exact supplied frozen files and digests recorded
+in the instruction receipts.
+
+`.text`: merged **7,747,494 bytes**, POST **7,747,526 bytes** (+32).
+PAD is **(A), a behavior twin: PRE behavior with POST's total `.text` size and
+section placement**. It is `build/wave4d/tomokv-pad-a`, SHA-256
+`e6d8284d6bd0fdcfe54133916ee18f20cbb510d009300cfbcef5472500ebf716`.
+It is a **total-text-size control**, not a claim to reproduce POST's individual
+function addresses or internal layout. The PRE source rebuild matches all 8639
+PRE function groups; PAD matches 8635, with four strict reference residuals from
+relocating the existing read-local trampolines by 32 bytes. A separate byte proof
+checks each branch and return target, all other executable bytes, identical
+read-only data and GNU IBT/SHSTK properties. The strict residuals are not waived.
+All eight finite MGET diagnostic cells also pass on PAD. The first assembly-only
+PAD attempt lost GNU properties and was rejected before execution; its failed
+identity evidence is retained. See [PAD build](docs/wave4d/pad.json),
+[strict audit](docs/wave4d/pad-identity.json), and
+[relocation proof](docs/wave4d/pad-relocations.json). No PAD(B) is requested for
+this 32-byte change.
+
+### Bounded instruction evidence, without a load generator
+
+Each cell sends one warm MGET and one verified batch of 1 or 8 commands, each
+with eight keys on eight distinct shards and 64-byte values. Geometry is 16
+shards, databases 1, read-local 0; 1s has eight fused threads, 2s has six IO and
+two executor threads. GDB scopes pinned user-only PMU counters around command
+preparation, gather, completion and retirement, including callees. The counters
+exclude parser/scheduler/network/idle work: these are **command-scope counts per
+command, not total server instructions/op**. A known 129/131-instruction control
+establishes the one return-breakpoint instruction subtracted per scope. Every
+scope must have equal PMU running/enabled time; every reply is checked.
+
+| Mode | Atomic | Batch | Headline | Moverfix POST | Merged PRE | wave4d POST |
+|---|---:|---:|---:|---:|---:|---:|
+| 1s | 0 | 1 | 10335 | 10239 | 10311 | 10263 |
+| 1s | 0 | 8 | 14341.6 | 14317.9 | 14293.5 | 14270.4 |
+| 1s | 1 | 1 | 10339 | 10315 | 10393 | 10339 |
+| 1s | 1 | 8 | 14369.8 | 14297.6 | 14345.6 | 14369.8 |
+| 2s | 0 | 1 | 10373 | 10301 | 10301 | 10349 |
+| 2s | 0 | 8 | 14328.4 | 14328.5 | 14306.4 | 14305.2 |
+| 2s | 1 | 1 | 10329 | 10353 | 10329 | 10353 |
+| 2s | 1 | 8 | 14360.1 | 14309.2 | 14332.2 | 14285.1 |
+
+Ordinary gather is 3724 instructions/command on headline and 3700 on the other
+three arms; ordinary completion is 446. The small batch variants and allocation/
+scheduling-dependent preparation/retirement counts remain in the raw records.
+All 32 required cells pass. Cycles were captured for every scope and are listed
+in [the full table](docs/wave4d/instructions.md), but debugger serialization and
+cache disruption make them unsuitable as latency or performance evidence.
+[Per-scope summary](docs/wave4d/instruction-summary.json),
+[reference records](docs/wave4d/instructions-references.json),
+[POST records](docs/wave4d/instructions-post.json), and
+[known-count calibration](docs/wave4d/trace-calibration.json) retain the method and
+raw values. These counts neither explain nor refute the maintainer's rate loss.
+
+### Correctness jobs and freshness
+
+Every requested family ran through `tests/gate.sh`'s own selected-job interface;
+these are partial receipts, not a full iteration gate. Server boots retain the
+16-shard / 6:2 split geometry. Fused supplements use the retained launcher to
+select 1s with read-local 0 or 1. The existing atomic-RYOW correctness-only option
+omits its speed predicate while retaining every overlap/ordering witness.
+
+| Invocation | PASS rows | FAIL rows | Receipt |
+|---|---:|---:|---|
+| Main requested selection | 346 | 1 | [main](docs/wave4/proof/wave4d-main) |
+| R7 and initial ABBA | 2 | 1 | [R7/ABBA](docs/wave4/proof/wave4d-r7-abba) |
+| Isolated ABBA repeat | 1 | 0 | [ABBA](docs/wave4/proof/wave4d-abba-isolated) |
+| Fused read-local 0: notify, debug both atomics, atomic batteries | 39 | 0 | [RL0](docs/wave4/proof/wave4d-fused-rl0) |
+| Fused read-local 1: same jobs | 37 | 2 | [RL1](docs/wave4/proof/wave4d-fused-rl1) |
+| Isolated notification AOF repeat, all eight legs | 2 | 0 | [notification AOF](docs/wave4/proof/wave4d-notify-aof-retry) |
+
+R7: **293/293 bodies**, inventory unchanged; missing policy symbol, missing
+split-local parser and changed-opcode controls all fail as required. The four
+lanes' registered rows run all legs: compat2 3/3, moverfix 8/8, clockcut 3/3,
+notifyorder 1/1 (12 live legs), and notification AOF's eight legs on its repeat.
+The main selection also passes feature split and armed matrices, fused matrices,
+MULTI/EXEC debug jobs in 2s, 27 atomic unit rows, four atomic batteries, both
+network-engine AOF families (54 rows each, internally both modes), AOF frame and
+AOF order. General notification batteries pass in 2s and in both fused postures.
+
+The initial notification AOF failure is the 2s/epoll/atomic-0 publisher-connection
+witness: observed 2 accepted publishers, expected 1. The same unmodified job
+passes all eight legs in isolation; the first failure remains archived. The
+initial ABBA scheduler fixture and standalone `gates_test.py` hit the unchanged
+45-second fixture timeout while builds/suites overlapped. The isolated ABBA row
+passes, and standalone **67/67 tests pass** in 183.184 seconds. A separate ABBA
+launch was refused by the port guard because the lane's fused test still owned
+26800; it ran no rows and was repeated on 26870–26879. No foreign process was
+stopped, no timeout enlarged and no assertion weakened.
+
+**Remaining FAIL: armed fused EXEC witness, both debug jobs.** Each deterministic
+MGET test opens all four windows but observes no MGET cut and sometimes an
+all-new array where its assertion requires the old view. The second job also
+fails the atomic-0 concurrent cut witness with zero cuts (no mixed-value read).
+These are the same failure class retained in wave4c. They are not converted to
+passes because other rows succeed. Existing moverfix concurrent-EXEC conservation
+limits documented above also remain unchanged.
+
+`make -k -j32 all` plus all **37** `job_production_units` targets and the existing
+`mdbqsbr-live-arms` target succeeds; final **39/39 `make -q` freshness checks**
+succeed with the same POST digest. See [build](docs/wave4d/production-build.json),
+[final freshness](docs/wave4d/final-freshness.json), and
+[complete correctness summary](docs/wave4d/correctness-summary.json). Commands,
+logs, ledgers and failed-attempt artifacts are committed beside each receipt.
+
+### Maintainer measurement request and NOT RUN
+
+Compare **headline, frozen moverfix POST, merged PRE, wave4d POST, and PAD(A)**
+with the gate's own quiet-box instrument. Preserve the exact existing cell
+parameters and offered loads from the maintainer's failing blocks:
+
+- Primary: `mk1g_a1_p8` and `m8g_l0` (eight-key, depth-8 MGET) in 1s; the same
+  atomic-1 depth-8 shape in 2s. Retain separate repeated `m8g_l0` blocks.
+- Depth controls: atomic-1 MGET in 1s at 32 and 128.
+- Semantic-path controls: atomic-0 MGET and atomic-1 MSET at depth 8 in both modes.
+- Propagation controls: the existing single-key GET/SET and ordinary 18-cell
+  iteration selection from `docs/wave4/measurement-cells.json`, plus existing
+  notification-enabled controls if available. Keep the instrument's engine twins.
+
+For every cell retain PRE/POST **rate at matched offered load**, cycles/op,
+instructions/op and IPC, and the instrument's repeatability/null checks. The
+acceptance question is whether POST closes the merged-versus-headline/moverfix
+loss without regressing controls. PAD(A) only tests the total text-size effect;
+its staying flat while POST moves would support an effect beyond appended size,
+but would not isolate every changed function placement. Populate the measured
+PRE/POST table from those receipts; there is no measured rate table in this lane.
+
+**NOT RUN:** throughput/performance comparisons, measurement load generators,
+and the full `tests/gate.sh iteration`, explicitly reserved for the maintainer.
+All requested correctness jobs and the bounded instruction matrix ran. The
+armed EXEC failures and the broader compiler propagation remain acceptance
+limits. **No throughput gain or cleared regression is claimed.**
