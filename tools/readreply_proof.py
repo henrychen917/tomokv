@@ -172,8 +172,8 @@ inline bool readreply_fault(const char* name) {
                         'if (!readreply_fault("omit-integer")) reply_bulk(op.sink(), Slice(text, length));')
     body = body.replace('if (static_cast<Type>(object->type) != Type::String)',
                         'if (!readreply_fault("accept-type") && static_cast<Type>(object->type) != Type::String)')
-    body = body.replace('if (deadline >= 0 && deadline <=',
-                        'if (!readreply_fault("accept-expired") && deadline >= 0 && deadline <=')
+    body = body.replace('if (deadline >= 0 && deadline <',
+                        'if (!readreply_fault("accept-expired") && deadline >= 0 && deadline <')
     body = body.replace('if (store.read_local_validate(probe_state))',
                         'if (readreply_fault("accept-invalid") || store.read_local_validate(probe_state))')
     anchor = '        std::atomic_thread_fence(std::memory_order_acquire);'

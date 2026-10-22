@@ -1,0 +1,34 @@
+server=tomokv mode=1s binary=/home/user/Projects/cx-clockcut/build/clockcut/pre/tomokv sha256=708c53c42ad9555f617a1deaa238226b72c58f7fe194d72731af9e7f58ddcab3
+{"check": "NT-new-7 frozen clock non-vacuity", "actual": 10, "expected": 10, "ok": true}
+{"check": "NT-new-7 PTTL at deadline", "actual": -2, "expected": 0, "ok": false}
+{"check": "NT-new-7 TTL at deadline", "actual": -2, "expected": 0, "ok": false}
+{"check": "NT-new-7 PEXPIRETIME at deadline", "actual": -2, "expected": 1792589003741, "ok": false}
+{"check": "NT-new-7 GET at deadline", "actual": null, "expected": "v", "ok": false}
+{"check": "NT-new-7 EXISTS at deadline", "actual": 0, "expected": 1, "ok": false}
+{"check": "NT-new-7 TYPE at deadline", "actual": "none", "expected": "string", "ok": false}
+{"check": "NT-new-7 relative PX at deadline", "actual": -2, "expected": 0, "ok": false}
+{"check": "NT-new-7 PEXPIREAT deadline reached", "actual": -2, "expected": 0, "ok": false}
+{"check": "NT-new-7 KEYS at deadline", "actual": [], "expected": ["nt7:abs", "nt7:exec", "nt7:exp", "nt7:rel", "nt7:watch"], "ok": false}
+{"check": "NT-new-7 SCAN at deadline", "actual": [], "expected": ["nt7:abs", "nt7:exec", "nt7:exp", "nt7:rel", "nt7:watch"], "ok": false}
+{"check": "NT-new-7 WATCH and EXEC at deadline", "actual": [null], "expected": ["v"], "ok": false}
+{"check": "NT-new-7 SET PXAT now stays live", "actual": 0, "expected": 1, "ok": false}
+{"check": "NT-new-7 PEXPIREAT now deletes", "actual": [1, 0], "expected": [1, 0], "ok": true}
+{"check": "NT-new-7 GETEX PXAT now deletes", "actual": ["v", 0], "expected": ["v", 0], "ok": true}
+{"check": "NT-new-7 WATCH armed at deadline aborts after it", "actual": [null], "expected": null, "ok": false}
+{"check": "NT-new-7 PTTL past deadline", "actual": -2, "expected": -2, "ok": true}
+{"check": "NT-new-7 GET past deadline", "actual": null, "expected": null, "ok": true}
+{"check": "NT-new-7 SET PXAT now key past deadline", "actual": 0, "expected": 0, "ok": true}
+{"check": "NT-new-7 KEYS past deadline", "actual": [], "expected": [], "ok": true}
+{"check": "NT-new-7 RANDOMKEY at deadline", "actual": false, "expected": true, "ok": false}
+{"check": "NT-new-7 RANDOMKEY past deadline", "actual": null, "expected": null, "ok": true}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 328, in <module>
+    main()
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 321, in main
+    boundary_only(args)
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 305, in boundary_only
+    require(all(results), f"NT-new-7: {results.count(False)}/{len(results)} exact-deadline replies")
+  File "/home/user/Projects/cx-clockcut/tests/ntnew4_clock.py", line 101, in require
+    raise AssertionError(why)
+AssertionError: NT-new-7: 14/22 exact-deadline replies
+boundary_rc=1

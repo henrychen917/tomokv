@@ -1,0 +1,33 @@
+{
+  "arms": [
+    {
+      "arm": "PRE",
+      "binary": "build/clockcut/pre/tomokv",
+      "text": 7735985,
+      "text_functions": 10394
+    },
+    {
+      "arm": "POST clock-only (stage 1, 1d1fba77c)",
+      "binary": "build/clockcut/stage1/tomokv",
+      "text": 7741457,
+      "text_functions": 10398
+    },
+    {
+      "arm": "POST",
+      "binary": "build/tomokv",
+      "text": 7741457,
+      "text_functions": 10398
+    },
+    {
+      "arm": "PAD-A",
+      "binary": "build/clockcut/tomokv-pad-a",
+      "text": 7741457,
+      "text_functions": 10398
+    }
+  ],
+  "stage1_vs_post": {
+    "symbol_tables_identical": true,
+    "text_bytes_differing": 165,
+    "note": "NT-new-7 flips only strict/non-strict condition codes; every symbol address and size is unchanged"
+  }
+}

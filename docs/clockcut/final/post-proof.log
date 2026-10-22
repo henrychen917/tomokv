@@ -1,0 +1,496 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-clockcut/build/gate-run.RyWK7v
+PARTIAL jobs (including prerequisites): release core_tsan_build waits_tsan_build config_unit flip_unit filter_unit ring_unit storage_units production_units abba_selftest feature-split-0 feature-armed-0 feature-split-1 feature-armed-1 multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1 reorder_sync reorder_engagement reorder_identity core_units flipfix_units persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units wait_units release_batteries atomic_batteries hexpread script_bounds scriptfix dump_restore notify fused-0 fused-1
+PARTIAL jobs (including prerequisites): release core_tsan_build waits_tsan_build config_unit flip_unit filter_unit ring_unit storage_units production_units abba_selftest feature-split-0 feature-armed-0 feature-split-1 feature-armed-1 multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1 reorder_sync reorder_engagement reorder_identity core_units flipfix_units persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units wait_units release_batteries atomic_batteries hexpread script_bounds scriptfix dump_restore notify fused-0 fused-1
+  release build (+footprint locks)                     ok
+  configuration docs match parser                      ok
+PASS documented config example: parser, defaults, 6:2 placement, 16 shards
+boot presentation: 256 resolved cells, eight placement witnesses each
+  Redis config quoting + mid-value #                   ok
+  flip controller model unit                           ok
+foreign-read-safety unit: PASS
+  B+ counting-fingerprint filter unit                  ok
+  read-local write ring + arming transient unit        ok
+  climon 128-owner delivery mask                       ok
+  read-local MGET fence symmetry unit                  ok
+  storage unlinked regression                          ok
+  storage randomkey regression                         ok
+  storage rehash regression                            ok
+  storage rollback regression                          ok
+  storage snapshot-eviction regression                 ok
+  storage flags regression                             ok
+  storage aof-eviction regression                      ok
+  storage intents regression                           ok
+  storage imported-hash regression                     ok
+  storage field-index-failure regression               ok
+  storage hash-bytes regression                        ok
+  storage deadline-allocation-failure regression       ok
+  storage flush-prepared-capacity regression           ok
+  ABBA comparison + saturation negative controls       FAIL (see /home/user/Projects/cx-clockcut/build/gate-run.RyWK7v/jobs/abba_selftest/gate-abbagate-unit.txt)
+  s6 battery (atomic 0)                                ok
+  multi_exec battery (atomic 0)                        ok
+  blocking battery (atomic 0)                          ok
+  blockmulti battery (atomic 0)                        ok
+  stream battery (atomic 0)                            ok
+  streamgroups battery (atomic 0)                      ok
+  pubsub battery (atomic 0)                            ok
+  lua_scripting battery (atomic 0)                     ok
+  scriptsurf battery (atomic 0)                        ok
+  limits battery (atomic 0)                            ok
+  resp3 battery (atomic 0)                             ok
+  bitfield battery (atomic 0)                          ok
+  dumprestore battery (atomic 0)                       ok
+  zsetops battery (atomic 0)                           ok
+  geo battery (atomic 0)                               ok
+  climon battery (atomic 0)                            ok
+  climon2 battery (atomic 0)                           ok
+  tracking battery (atomic 0)                          ok
+  hexpire battery (atomic 0)                           ok
+  servertail battery (atomic 0)                        ok
+  lcs battery (atomic 0)                               ok
+  concur battery (atomic 0)                            ok
+  edgeproto battery (atomic 0)                         ok
+  edgeenc battery (atomic 0)                           ok
+  edgetime battery (atomic 0)                          ok
+  arity battery (atomic 0)                             ok
+  contarity battery (atomic 0)                         ok
+  cmdgap battery (atomic 0)                            ok
+  aclsel battery (atomic 0)                            ok
+  expwide battery (atomic 0)                           ok
+  infofix battery (atomic 0)                           ok
+  pushtear battery (atomic 0)                          ok
+  netcmd battery (atomic 0)                            ok
+  feature shutdown invariants (atomic 0)               ok
+  fused+armed boot line (atomic 0)                     ok
+  fused+armed s6 battery (atomic 0)                    ok
+  fused+armed multi_exec battery (atomic 0)            ok
+  fused+armed blocking battery (atomic 0)              ok
+  fused+armed blockmulti battery (atomic 0)            ok
+  fused+armed stream battery (atomic 0)                ok
+  fused+armed streamgroups battery (atomic 0)          ok
+  fused+armed pubsub battery (atomic 0)                ok
+  fused+armed lua_scripting battery (atomic 0)         ok
+  fused+armed scriptsurf battery (atomic 0)            ok
+  fused+armed limits battery (atomic 0)                ok
+  fused+armed resp3 battery (atomic 0)                 ok
+  fused+armed bitfield battery (atomic 0)              ok
+  fused+armed dumprestore battery (atomic 0)           ok
+  fused+armed zsetops battery (atomic 0)               ok
+  fused+armed geo battery (atomic 0)                   ok
+  fused+armed climon battery (atomic 0)                ok
+  fused+armed climon2 battery (atomic 0)               ok
+  fused+armed tracking battery (atomic 0)              ok
+  fused+armed hexpire battery (atomic 0)               ok
+  fused+armed servertail battery (atomic 0)            ok
+  fused+armed lcs battery (atomic 0)                   ok
+  fused+armed concur battery (atomic 0)                ok
+  fused+armed edgeproto battery (atomic 0)             ok
+  fused+armed edgeenc battery (atomic 0)               ok
+  fused+armed edgetime battery (atomic 0)              ok
+  fused+armed arity battery (atomic 0)                 ok
+  fused+armed contarity battery (atomic 0)             ok
+  fused+armed cmdgap battery (atomic 0)                ok
+  fused+armed aclsel battery (atomic 0)                ok
+  fused+armed expwide battery (atomic 0)               ok
+  fused+armed infofix battery (atomic 0)               ok
+  fused+armed pushtear battery (atomic 0)              ok
+  fused+armed netcmd battery (atomic 0)                ok
+  fused+armed shutdown report + lane fired (hits=790775, atomic 0) ok
+  s6 battery (atomic 1)                                ok
+  multi_exec battery (atomic 1)                        ok
+  blocking battery (atomic 1)                          ok
+  blockmulti battery (atomic 1)                        ok
+  stream battery (atomic 1)                            ok
+  streamgroups battery (atomic 1)                      ok
+  pubsub battery (atomic 1)                            ok
+  lua_scripting battery (atomic 1)                     ok
+  scriptsurf battery (atomic 1)                        ok
+  limits battery (atomic 1)                            ok
+  resp3 battery (atomic 1)                             ok
+  bitfield battery (atomic 1)                          ok
+  dumprestore battery (atomic 1)                       ok
+  zsetops battery (atomic 1)                           ok
+  geo battery (atomic 1)                               ok
+  climon battery (atomic 1)                            ok
+  climon2 battery (atomic 1)                           ok
+  tracking battery (atomic 1)                          ok
+  hexpire battery (atomic 1)                           ok
+  servertail battery (atomic 1)                        ok
+  lcs battery (atomic 1)                               ok
+  concur battery (atomic 1)                            ok
+  edgeproto battery (atomic 1)                         ok
+  edgeenc battery (atomic 1)                           ok
+  edgetime battery (atomic 1)                          ok
+  arity battery (atomic 1)                             ok
+  contarity battery (atomic 1)                         ok
+  cmdgap battery (atomic 1)                            ok
+  aclsel battery (atomic 1)                            ok
+  expwide battery (atomic 1)                           ok
+  infofix battery (atomic 1)                           ok
+  pushtear battery (atomic 1)                          ok
+  netcmd battery (atomic 1)                            ok
+  feature shutdown invariants (atomic 1)               ok
+  fused+armed boot line (atomic 1)                     ok
+  fused+armed s6 battery (atomic 1)                    ok
+  fused+armed multi_exec battery (atomic 1)            ok
+  fused+armed blocking battery (atomic 1)              ok
+  fused+armed blockmulti battery (atomic 1)            ok
+  fused+armed stream battery (atomic 1)                ok
+  fused+armed streamgroups battery (atomic 1)          ok
+  fused+armed pubsub battery (atomic 1)                ok
+  fused+armed lua_scripting battery (atomic 1)         ok
+  fused+armed scriptsurf battery (atomic 1)            ok
+  fused+armed limits battery (atomic 1)                ok
+  fused+armed resp3 battery (atomic 1)                 ok
+  fused+armed bitfield battery (atomic 1)              ok
+  fused+armed dumprestore battery (atomic 1)           ok
+  fused+armed zsetops battery (atomic 1)               ok
+  fused+armed geo battery (atomic 1)                   ok
+  fused+armed climon battery (atomic 1)                ok
+  fused+armed climon2 battery (atomic 1)               ok
+  fused+armed tracking battery (atomic 1)              ok
+  fused+armed hexpire battery (atomic 1)               ok
+  fused+armed servertail battery (atomic 1)            ok
+  fused+armed lcs battery (atomic 1)                   ok
+  fused+armed concur battery (atomic 1)                ok
+  fused+armed edgeproto battery (atomic 1)             ok
+  fused+armed edgeenc battery (atomic 1)               ok
+  fused+armed edgetime battery (atomic 1)              ok
+  fused+armed arity battery (atomic 1)                 ok
+  fused+armed contarity battery (atomic 1)             ok
+  fused+armed cmdgap battery (atomic 1)                ok
+  fused+armed aclsel battery (atomic 1)                ok
+  fused+armed expwide battery (atomic 1)               ok
+  fused+armed infofix battery (atomic 1)               ok
+  fused+armed pushtear battery (atomic 1)              ok
+  fused+armed netcmd battery (atomic 1)                ok
+  fused+armed shutdown report + lane fired (hits=804050, atomic 1) ok
+  multidb (1s, read-local 0, atomic 0)                 ok
+  multidb (1s, read-local 0, atomic 0) SWAPDB serial order ok
+  multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB ok
+  multidb (1s, read-local 0, atomic 1)                 ok
+  multidb (1s, read-local 0, atomic 1) SWAPDB serial order ok
+  multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB ok
+  multidb (1s, read-local 1, atomic 0)                 ok
+  multidb (1s, read-local 1, atomic 0) SWAPDB serial order ok
+  multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB ok
+  multidb (1s, read-local 1, atomic 1)                 ok
+  multidb (1s, read-local 1, atomic 1) SWAPDB serial order ok
+  multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB ok
+  multidb (2s, read-local 0, atomic 0)                 ok
+  multidb (2s, read-local 0, atomic 0) SWAPDB serial order ok
+  multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB ok
+  multidb (2s, read-local 0, atomic 1)                 ok
+  multidb (2s, read-local 0, atomic 1) SWAPDB serial order ok
+  multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB ok
+  multidb (2s, read-local 1, atomic 0)                 ok
+  multidb (2s, read-local 1, atomic 0) SWAPDB serial order ok
+  multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB ok
+  multidb (2s, read-local 1, atomic 1)                 ok
+  multidb (2s, read-local 1, atomic 1) SWAPDB serial order ok
+  multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB ok
+  configuration reduction + actual geometry (epoll, atomic 0) ok
+  AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0) ok
+  AOF writer fired (records=1025)                      ok
+  AOF process-restart script replay (epoll, atomic 0)  ok
+  AOF native snapshot streams byte-exact               ok
+  AOF replay fired (records=1025 skipped=0)            ok
+  configuration reduction + actual geometry (epoll, atomic 1) ok
+  AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1) ok
+  AOF writer fired (records=1026)                      ok
+  AOF process-restart script replay (epoll, atomic 1)  ok
+  AOF native snapshot streams byte-exact               ok
+  AOF replay fired (records=1026 skipped=0)            ok
+  AOF directed group interruption fired                ok
+  AOF atomic-group recovery + writer order             ok
+  AOF group shutdown invariants                        ok
+  AOF always sync + reply gate fired                   ok
+  AOF always recovery after quiescent SIGKILL          ok
+  AOF in-window kill recovery (2s, epoll)              ok
+  AOF in-window term recovery (2s, epoll)              ok
+  AOF in-window kill recovery (1s, epoll)              ok
+  AOF in-window term recovery (1s, epoll)              ok
+  shutdown cancels AOF rewrite capture (1s, atomic 0, epoll) ok
+  shutdown cancels AOF rewrite capture (1s, atomic 1, epoll) ok
+  shutdown cancels AOF rewrite capture (2s, atomic 0, epoll) ok
+  shutdown cancels AOF rewrite capture (2s, atomic 1, epoll) ok
+  AOF everysec write gate + idle sync fired            ok
+  AOF everysec durability window + tail warning        ok
+  AOF no-sync bypassed sync + reply gate               ok
+  AOF rewrite atomic/stage/corruption matrix           ok
+  AOF rewrite triggers + observability matrix          ok
+  AOF-off negative-control seed landed                 ok
+  AOF-off negative control lost data                   ok
+  aoffix2 snapshot (1s, epoll)                         ok
+  aoffix2 filename (1s, epoll)                         ok
+  aoffix2 error (1s, epoll)                            ok
+  aoffix2 tickets (1s, epoll)                          ok
+  aoffix2 exec_tickets (1s, epoll)                     ok
+  aoffix2 resurrection (1s, epoll)                     ok
+  aoffix2 rewrite_fail2 (1s, epoll)                    ok
+  aoffix2 manifest_missing (1s, epoll)                 ok
+  aoffix2 off-writer acknowledgement everysec (1s, epoll) ok
+  aoffix2 off-writer acknowledgement always (1s, epoll) ok
+  aoffix2 snapshot (2s, epoll)                         ok
+  aoffix2 filename (2s, epoll)                         ok
+  aoffix2 error (2s, epoll)                            ok
+  aoffix2 tickets (2s, epoll)                          ok
+  aoffix2 exec_tickets (2s, epoll)                     ok
+  aoffix2 resurrection (2s, epoll)                     ok
+  aoffix2 rewrite_fail2 (2s, epoll)                    ok
+  aoffix2 manifest_missing (2s, epoll)                 ok
+  aoffix2 off-writer acknowledgement everysec (2s, epoll) ok
+  aoffix2 off-writer acknowledgement always (2s, epoll) ok
+  aoffix2 large (1s, epoll)                            ok
+  aoffix2 large_placed (1s, epoll)                     ok
+  configuration reduction + actual geometry (uring, atomic 0) ok
+  AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0) ok
+  AOF writer fired (records=1025)                      ok
+  AOF process-restart script replay (uring, atomic 0)  ok
+  AOF native snapshot streams byte-exact               ok
+  AOF replay fired (records=1025 skipped=0)            ok
+  configuration reduction + actual geometry (uring, atomic 1) ok
+  AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1) ok
+  AOF writer fired (records=1026)                      ok
+  AOF process-restart script replay (uring, atomic 1)  ok
+  AOF native snapshot streams byte-exact               ok
+  AOF replay fired (records=1026 skipped=0)            ok
+  AOF directed group interruption fired                ok
+  AOF atomic-group recovery + writer order             ok
+  AOF group shutdown invariants                        ok
+  AOF always sync + reply gate fired                   ok
+  AOF always recovery after quiescent SIGKILL          ok
+  AOF in-window kill recovery (2s, uring)              ok
+  AOF in-window term recovery (2s, uring)              ok
+  AOF in-window kill recovery (1s, uring)              ok
+  AOF in-window term recovery (1s, uring)              ok
+  shutdown cancels AOF rewrite capture (1s, atomic 0, uring) ok
+  shutdown cancels AOF rewrite capture (1s, atomic 1, uring) ok
+  shutdown cancels AOF rewrite capture (2s, atomic 0, uring) ok
+  shutdown cancels AOF rewrite capture (2s, atomic 1, uring) ok
+  AOF everysec write gate + idle sync fired            ok
+  AOF everysec durability window + tail warning        ok
+  AOF no-sync bypassed sync + reply gate               ok
+  AOF rewrite atomic/stage/corruption matrix           ok
+  AOF rewrite triggers + observability matrix          ok
+  AOF-off negative-control seed landed                 ok
+  AOF-off negative control lost data                   ok
+  aoffix2 snapshot (1s, uring)                         ok
+  aoffix2 filename (1s, uring)                         ok
+  aoffix2 error (1s, uring)                            ok
+  aoffix2 tickets (1s, uring)                          ok
+  aoffix2 exec_tickets (1s, uring)                     ok
+  aoffix2 resurrection (1s, uring)                     ok
+  aoffix2 rewrite_fail2 (1s, uring)                    ok
+  aoffix2 manifest_missing (1s, uring)                 ok
+  aoffix2 off-writer acknowledgement everysec (1s, uring) ok
+  aoffix2 off-writer acknowledgement always (1s, uring) ok
+  aoffix2 snapshot (2s, uring)                         ok
+  aoffix2 filename (2s, uring)                         ok
+  aoffix2 error (2s, uring)                            ok
+  aoffix2 tickets (2s, uring)                          ok
+  aoffix2 exec_tickets (2s, uring)                     ok
+  aoffix2 resurrection (2s, uring)                     ok
+  aoffix2 rewrite_fail2 (2s, uring)                    ok
+  aoffix2 manifest_missing (2s, uring)                 ok
+  aoffix2 off-writer acknowledgement everysec (2s, uring) ok
+  aoffix2 off-writer acknowledgement always (2s, uring) ok
+  aoffix2 large (1s, uring)                            ok
+  aoffix2 large_placed (1s, uring)                     ok
+  snapshot concurrent cut (epoll)                      ok
+  snapshot cut reload (epoll)                          ok
+  snapshot never tears a cross-shard MSET group (epoll, atomic 1) ok
+  snapshot never tears a MULTI/EXEC group (epoll, default atomic 0) ok
+  typed snapshot save (epoll)                          ok
+  typed snapshot reload (epoll)                        ok
+  typed snapshot preimage race (epoll)                 ok
+  typed snapshot race reload (epoll)                   ok
+  shutdown keeps acknowledged writes (1s, sigterm, epoll) ok
+  shutdown keeps acknowledged writes (1s, command, epoll) ok
+  shutdown cancels BGSAVE capture (1s, atomic 0, epoll) ok
+  shutdown cancels BGSAVE capture (1s, atomic 1, epoll) ok
+  shutdown keeps acknowledged writes (2s, sigterm, epoll) ok
+  shutdown keeps acknowledged writes (2s, command, epoll) ok
+  shutdown cancels BGSAVE capture (2s, atomic 0, epoll) ok
+  shutdown cancels BGSAVE capture (2s, atomic 1, epoll) ok
+  snapshot concurrent cut (uring)                      ok
+  snapshot cut reload (uring)                          ok
+  snapshot never tears a cross-shard MSET group (uring, atomic 1) ok
+  snapshot never tears a MULTI/EXEC group (uring, default atomic 0) ok
+  typed snapshot save (uring)                          ok
+  typed snapshot reload (uring)                        ok
+  typed snapshot preimage race (uring)                 ok
+  typed snapshot race reload (uring)                   ok
+  shutdown keeps acknowledged writes (1s, sigterm, uring) ok
+  shutdown keeps acknowledged writes (1s, command, uring) ok
+  shutdown cancels BGSAVE capture (1s, atomic 0, uring) ok
+  shutdown cancels BGSAVE capture (1s, atomic 1, uring) ok
+  shutdown keeps acknowledged writes (2s, sigterm, uring) ok
+  shutdown keeps acknowledged writes (2s, command, uring) ok
+  shutdown cancels BGSAVE capture (2s, atomic 0, uring) ok
+  shutdown cancels BGSAVE capture (2s, atomic 1, uring) ok
+  plain-write lost updates (atomic 0)                  ok
+  lbsignals battery (atomic 0)                         ok
+  slowlog battery (atomic 0)                           ok
+  atomfix battery (atomic 0)                           ok
+  scriptatomic battery (atomic 0)                      ok
+  execatomic battery (atomic 0)                        ok
+  execiso battery (atomic 0)                           ok
+  execfix battery (atomic 0)                           ok
+  multires battery (atomic 0)                          ok
+  multirace battery (atomic 0)                         ok
+  session_monotonic battery (atomic 0)                 ok
+  xacct battery (atomic 0)                             ok
+  xmove battery (atomic 0)                             ok
+  xscript battery (atomic 0)                           ok
+  plain-write lost updates (atomic 1)                  ok
+  lbsignals battery (atomic 1)                         ok
+  slowlog battery (atomic 1)                           ok
+  atomfix battery (atomic 1)                           ok
+  scriptatomic battery (atomic 1)                      ok
+  execatomic battery (atomic 1)                        ok
+  execiso battery (atomic 1)                           ok
+  execfix battery (atomic 1)                           ok
+  multires battery (atomic 1)                          ok
+  multirace battery (atomic 1)                         ok
+  session_monotonic battery (atomic 1)                 ok
+  xacct battery (atomic 1)                             ok
+  xmove battery (atomic 1)                             ok
+  xscript battery (atomic 1)                           ok
+  R7 generated envelope parity                         ok
+  R7 production engagement (both database runtimes)    ok
+  R7 FIFO twin off-path identity + negative controls   FAIL (see /home/user/Projects/cx-clockcut/build/gate-run.RyWK7v/jobs/reorder_identity/receipt.log)
+  core concurrency watch                               ok
+  core concurrency lifetime                            ok
+  core concurrency drain                               ok
+  core concurrency route                               ok
+  core concurrency snapshot                            ok
+  core concurrency config                              ok
+  core concurrency notify                              ok
+  read-local topology demotion (1s)                    FAIL (see /home/user/Projects/cx-clockcut/build/gate-run.RyWK7v/jobs/core_units/gate-rltopo-1s.txt and /home/user/Projects/cx-clockcut/build/gate-run.RyWK7v/jobs/production_units/build.log)
+  read-local topology demotion (2s)                    FAIL (see /home/user/Projects/cx-clockcut/build/gate-run.RyWK7v/jobs/core_units/gate-rltopo-2s.txt and /home/user/Projects/cx-clockcut/build/gate-run.RyWK7v/jobs/production_units/build.log)
+  FLIP planned-connection close lifetime (ASAN+TSAN)   ok
+  FLIP fingerprint publication (ASAN+TSAN)             ok
+  AOF publication/shutdown witnesses + negative controls ok
+  perfex clock binary regression                       ok
+  perfex batch binary regression                       ok
+  perfex TTL sampler beat (1s)                         ok
+  perfex TTL sampler beat (2s)                         ok
+  NT-new-4 command clock after dequeue (2s)            ok
+  NT-new-4 command clock after dequeue (1s)            ok
+  NT-new-4 command clock after dequeue (2s, epoll)     ok
+  LB sampler exceptional cleanup + negative control    ok
+  LB monitor plan handoff + negative controls          ok
+  exbatch publication unit + negative controls         ok
+  exbatch watch unit + negative controls               ok
+  exbatch metadata unit + negative controls            ok
+  exbatch publication and WATCH lifecycle (1s)         ok
+  exbatch publication and WATCH lifecycle (2s)         ok
+  writeback c12 policy witnesses + negative controls   ok
+  writeback c12 phase witnesses + negative controls    ok
+  writeback c12 stages witnesses + negative controls   ok
+  writeback c12 split-phase witnesses + negative controls ok
+  writeback policy clauses witnesses + negative controls ok
+  writeback policy paths witnesses + negative controls ok
+  splitlocal template forwarding + old-argument controls ok
+  atomic commit publication catches up at quiescence   ok
+  flushfix flush witnesses                             ok
+  flushfix headers witnesses                           ok
+  multidb serverless owners                            ok
+  multidb global namespace boundary                    ok
+  storesize published monitoring                       ok
+  MULTI admin command replies                          ok
+  EXECABORT releases WATCH reservation                 ok
+  atomic survivors unit build                          ok
+  atomic survivor: admission                           ok
+  atomic survivor: closure                             ok
+  atomic survivor: script_keys                         ok
+  atomic survivor: rename_overlay                      ok
+  atomic survivor: write_latest                        ok
+  atomic survivor: script_apply                        ok
+  atomic survivor: post_apply_probe                    ok
+  atomic survivor: lua_conversion                      ok
+  atomic survivor: watch_parent                        ok
+  atomic survivor: watch_cycle                         ok
+  atomic survivor: mset_arity                          ok
+  atomic survivor: watch_oom                           ok
+  atomic survivor: lua_lines                           ok
+  atomic survivor: library_limit                       ok
+  atomic survivor: stage_flag                          ok
+  atomic survivor: instruction_limit                   ok
+  armed resize retirement: atomic-growth               ok
+  armed resize retirement: flush-prepared              ok
+  netcmd regression build                              ok
+  netcmd streams regression                            ok
+  netcmd zpop regression                               ok
+  netcmd notify-oom regression                         ok
+  netcmd notify-retry regression                       ok
+  netcmd flush regression                              ok
+  netcmd output regression                             ok
+  netcmd pubsub regression                             ok
+  netcmd receive regression                            ok
+  netcmd config regression                             ok
+  netcmd wb-small-pipe regression                      ok
+  netcmd wb-complete-visits regression                 ok
+  netcmd hexpire-oom regression                        ok
+  encodingfix knob                                     ok
+  encodingfix precedence                               ok
+  NET1 serverless bounds + scan + reclamation          ok
+  waits config publication + admission unit            ok
+  reads never wait for retirement quiescence           ok
+  torture battery                                      ok
+  RYOW battery                                         ok
+  ACL category runtime table                           ok
+  ACL LOAD/SAVE no-file errors                         ok
+  idle loop ceiling (LBSIGNALS, 1s)                    ok
+LBSIGNALS IO tenure conservation: {'tenures': 6, 'fired': {'did_submit': 0, 'sweep_submit': 0, 'park': 0, 'role_exit': 0}, 'mixed': False}
+  shutdown invariants (nothing stuck)                  ok
+  direct-reply fired (direct=11767)                    ok
+  dispatched==executed (55413)                         ok
+  atomic torn/window battery                           ok
+  atomic RYOW/mixed-write battery                      ok
+  atomic owner-local hazard battery                    ok
+  atomic shutdown invariants                           ok
+  hexpread torn (1s)                                   ok
+  hexpread replies (1s)                                ok
+  hexpread deferred (1s)                               ok
+  hexpread OBJECT expiry (1s)                          ok
+  hexpread torn (2s)                                   ok
+  hexpread replies (2s)                                ok
+  hexpread deferred (2s)                               ok
+  hexpread OBJECT expiry (2s)                          ok
+  xscript limit control                                ok
+  xscript window control                               ok
+  scriptfix sandbox (1s)                               ok
+  scriptfix functions (1s)                             ok
+  scriptfix replies (1s)                               ok
+  scriptfix dump (1s)                                  ok
+  scriptfix sandbox (2s)                               ok
+  scriptfix functions (2s)                             ok
+  scriptfix replies (2s)                               ok
+  scriptfix dump (2s)                                  ok
+  DUMP/RESTORE prepare + native SAVE                   ok
+  DUMP/RESTORE cross-restart round-trip                ok
+  DUMP/RESTORE restart shutdown invariants             ok
+  MULTI feature battery                                ok
+  blocking feature battery                             ok
+  pubsub feature battery                               ok
+  Lua feature battery                                  ok
+  keyspace notification battery                        FAIL (see /home/user/Projects/cx-clockcut/build/gate-run.RyWK7v/jobs/notify/gate-notify.txt)
+  feature battery shutdown invariants                  ok
+  fused boot line (atomic 0)                           ok
+  fused s6 battery (atomic 0)                          ok
+  fused multi_exec battery (atomic 0)                  ok
+  fused edgeproto battery (atomic 0)                   ok
+  fused atomfix battery (atomic 0)                     ok
+  fused spinprobe battery (atomic 0)                   ok
+  fused shutdown report (atomic 0)                     ok
+  fused boot line (atomic 1)                           ok
+  fused s6 battery (atomic 1)                          ok
+  fused multi_exec battery (atomic 1)                  ok
+  fused edgeproto battery (atomic 1)                   ok
+  fused atomfix battery (atomic 1)                     ok
+  fused spinprobe battery (atomic 1)                   ok
+  fused shutdown report (atomic 1)                     ok
+GATE(PARTIAL): 481 ok, 5 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-clockcut/build/clockcut/receipts/post-proof.ledger.partial
+rc=1

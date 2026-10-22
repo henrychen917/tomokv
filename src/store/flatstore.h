@@ -1473,7 +1473,7 @@ public:
     }
     bool deadline_elapsed(uint64_t h, const KvObj* object, int64_t now_ms) const {
         const int64_t at = deadline(h, object);
-        return at >= 0 && at <= now_ms;
+        return at >= 0 && at < now_ms;  // Redis keyIsExpired(): now > at; live at now == at
     }
     // The deadline WATCH pins on an armed key. Redis probes the key with LOOKUP_NOTOUCH and does
     // not reap it, so an elapsed-but-unreaped key must stay physically counted here too. A key that
@@ -1483,7 +1483,7 @@ public:
         const KvObj* object = find_resident(h, key);
         if (!object) return -1;
         const int64_t at = deadline(h, object);
-        return at > cached_now_ms_ ? at : -1;
+        return at >= cached_now_ms_ ? at : -1;
     }
     void bind_expired_counter(uint64_t* counter) { expired_counter_ = counter; }
     void bind_evicted_counter(uint64_t* counter) { evicted_counter_ = counter; }
@@ -1591,7 +1591,7 @@ public:
             if (atomic_has_record(h, o->key())) return;  // promotion resolves the winning TTL
             const int64_t at = deadline(h, o);
             if (at < 0) { untrack_expire(h); return; }
-            if (at > cached_now_ms_) return;
+            if (at >= cached_now_ms_) return;  // Redis active expiry reaps only once now > at
             if (!read_retirement_available()) { removed++; return; }
             const Slice key = o->key();
             notify_flat_store_emit(this, NOTIFY_EXPIRED, NotifyEventId::Expired, key);
@@ -2650,10 +2650,10 @@ private:
 
     KvObj* live_or_expire(int t, uint64_t h, Slice key, KvObj* o) {
         // This is the non-expiring-key tax: one flags branch after the ordinary lookup. No clock
-        // read occurs here; the executor refreshed cached_now_ms_ once for its loop pass.
+        // read occurs here; the executor refreshed cached_now_ms_ once for its executed batch.
         if (!o->has_ttl_slot()) return o;
         const int64_t at = deadline(h, o);
-        if (at < 0 || at > cached_now_ms_) return o;
+        if (at < 0 || at >= cached_now_ms_) return o;  // Redis: still live at now == at
         if (snapshot_active_ && t == 1) return nullptr;
         // Logical expiry never needs reclamation. With a full armed ring, leave the object and
         // its deadline index resident for owner maintenance. Only the eventual physical delete

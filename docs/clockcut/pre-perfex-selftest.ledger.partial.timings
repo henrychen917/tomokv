@@ -1,0 +1,6 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	210.520000	ABBA comparison + saturation negative controls
+ok	0.130000	perfex clock binary regression
+ok	0.130000	perfex batch binary regression
+ok	15.260000	perfex TTL sampler beat (1s)
+ok	15.250000	perfex TTL sampler beat (2s)

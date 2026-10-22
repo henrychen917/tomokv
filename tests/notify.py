@@ -483,7 +483,8 @@ try:
         while True:
             clock = driver.command("TIME")
             now_ms = int(clock[0]) * 1000 + int(clock[1]) // 1000
-            if now_ms >= after_arm_ms + 20:
+            # Redis keyIsExpired(): the key is still live at now == deadline (<= after_arm + 20).
+            if now_ms > after_arm_ms + 20:
                 break
             assert time.monotonic() < deadline, "server expiry clock did not advance"
             time.sleep(.001)

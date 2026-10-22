@@ -1239,7 +1239,7 @@ private:
     KvObj* atomic_live_value(KvObj* value) const {
         if (!value) return nullptr;
         const int64_t deadline = value->expire_at_ms();
-        if (deadline >= 0 && deadline <= cached_now_ms_) return nullptr;
+        if (deadline >= 0 && deadline < cached_now_ms_) return nullptr;  // live at now == at
         return value;
     }
 

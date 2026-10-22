@@ -387,8 +387,9 @@ def server_ms(conn):
 
 
 def wait_deadline(observer, expiry):
+    # Redis keyIsExpired(): a key is still live at now == expiry and expired once now > expiry.
     deadline = time.monotonic() + 5
-    while server_ms(observer) < expiry:
+    while server_ms(observer) <= expiry:
         if time.monotonic() >= deadline:
             raise AssertionError("server clock never reached the armed expiry")
         time.sleep(0.001)
