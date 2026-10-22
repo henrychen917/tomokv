@@ -1,0 +1,11 @@
+tests/edgeproto.py
+tests/scancompact.py
+tests/cdfix_unit.cc
+tests/resp3.py
+tests/concur.py
+tests/differ.py
+tests/hexpread.py
+tests/respresume.py
+tests/replyschema.py
+tests/hexpire.py
+tests/globcase.py
