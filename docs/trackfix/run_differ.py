@@ -18,8 +18,9 @@ def run(spec):
     env = environment()
     env.update(GATE_DIFFER_OUT=str(BASE / 'differ' / label),
                GATE_DIFFER_GEOMETRY=geometry, GATE_RUN_ID='trackfix-standard')
+    port = (22850 if arm == 'PRE' else 22860) + index * 2
     argv = ['taskset', '-c', '105-111', 'bash', 'tests/differ_gate.sh', str(wrapper),
-            str(22850 + index * 2), str(22851 + index * 2), '96-103', '6:2']
+            str(port), str(port + 1), '96-103', '6:2']
     (dest / 'command.json').write_text(json.dumps(dict(argv=argv, engine=engine,
         geometry=geometry, arm=arm), indent=2) + '\n')
     with (dest / 'output.log').open('w') as log:

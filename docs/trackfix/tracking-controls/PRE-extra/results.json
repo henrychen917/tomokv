@@ -1,0 +1,192 @@
+[
+  {
+    "arm": "PRE-extra",
+    "roll": 21,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 2
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 22,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 2
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 23,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 24,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 25,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 26,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 27,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 28,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 29,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 30,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 2
+  }
+]

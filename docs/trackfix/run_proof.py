@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 DOC = ROOT / 'docs/trackfix'
@@ -14,8 +15,13 @@ ORACLE = Path('/home/user/Projects/redis74/src/redis-server')
 
 def executable(path, body):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(body)
-    path.chmod(0o755)
+    if path.exists() and path.read_text() == body:
+        return
+    with tempfile.NamedTemporaryFile(mode='w', dir=path.parent, delete=False) as out:
+        out.write(body)
+        temporary = Path(out.name)
+    temporary.chmod(0o755)
+    temporary.replace(path)
 
 
 def environment():
@@ -58,11 +64,22 @@ exit 125
 
 def engine_binary(binary, engine, label):
     wrapper = BASE / ('server-' + label)
+    defaults = ['--net-io', engine]
+    if os.getenv('TRACKFIX_DEFAULT_MODE'):
+        defaults += ['--thread-mode', os.environ['TRACKFIX_DEFAULT_MODE']]
+    shape = ''
+    if os.getenv('TRACKFIX_DEFAULT_MODE') == '1s':
+        shape = ('# job_notify uses boot(), which supplies the split-only ratio.\n'
+                 '# This supplementary run uses boot_fused geometry.\n'
+                 'if "--thread-mode" not in args:\n'
+                 ' while "--ratio" in args:\n'
+                 '  i=args.index("--ratio"); del args[i:i+2]\n')
     executable(wrapper, '#!/usr/bin/python3\nimport os,sys\n'
                'args=sys.argv[1:]\nfirst=[]\n'
                'if args and not args[0].startswith("-"): first=[args.pop(0)]\n'
+               + shape +
                f'server={str(binary.resolve())!r}\n'
-               f'os.execv(server,[server,*first,"--net-io",{engine!r},*args])\n')
+               f'os.execv(server,[server,*first,*{defaults!r},*args])\n')
     return wrapper
 
 
@@ -95,16 +112,19 @@ def repeats(arm):
     support.OUT = BASE / 'tracking-controls' / arm
     dest = DOC / 'tracking-controls' / arm
     dest.mkdir(parents=True, exist_ok=False)
-    binary = ROOT / ('build/tomokv-PRE' if arm == 'PRE' else 'build/tomokv')
+    binary = ROOT / ('build/tomokv-PRE' if arm.startswith('PRE') else 'build/tomokv')
     rows = []
-    for roll in range(1, 21):
+    count = int(os.getenv('TRACKFIX_CONTROL_COUNT', '20'))
+    first = int(os.getenv('TRACKFIX_CONTROL_FIRST', '1'))
+    port = int(os.getenv('TRACKFIX_CONTROL_PORT', '22800' if arm == 'PRE' else '22802'))
+    for roll in range(first, first + count):
         label = f'{arm}-{roll}'
         shape = ['--shards', '16', '--thread-mode', 'fused', '--read-local', '1',
                  '--net-io', 'epoll', '--databases', '16', '--atomic', '0']
-        with support.owned(label + '-oracle', ORACLE, '104', 22801, []):
-            with support.owned(label + '-target', binary, '96-103', 22800, shape):
+        with support.owned(label + '-oracle', ORACLE, '104', port + 1, []):
+            with support.owned(label + '-target', binary, '96-103', port, shape):
                 argv = ['taskset', '-c', '105-111', 'python3', 'tests/differ.py',
-                        '127.0.0.1', '22800', '127.0.0.1', '22801', 'climon', '19']
+                        '127.0.0.1', str(port), '127.0.0.1', str(port + 1), 'climon', '19']
                 path = dest / f'{label}.log'
                 with path.open('w') as log:
                     rc = subprocess.run(argv, cwd=ROOT, env=environment(), stdout=log,
