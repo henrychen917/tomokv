@@ -38,6 +38,7 @@ def transform(value):
     value = value.replace(str(ROOT / 'build/tomokv'), str(POST))
     value = value.replace('docs/txnorder/runtime-', 'docs/txnorder2/runtime/legacy-' + RUN_ID + '-')
     value = value.replace('build/txnorder/runtime-', 'build/txnorder2/runtime-data-' + RUN_ID + '/legacy-')
+    value = value.replace('build/txnorder/owner-data/', 'build/txnorder2/runtime-data-' + RUN_ID + '/owner-data/')
     if value.endswith('pre-armed-server'): value = str(DATA / 'pre-armed-server')
     if value.endswith('post-armed-server'): value = str(DATA / 'post-armed-server')
     if '/proof-drivers/watchlive-' in value:
