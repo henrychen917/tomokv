@@ -66,6 +66,7 @@ static_assert(std::atomic<uint8_t>::is_always_lock_free);
 static void on_signal(int sig) {
     if (!g_signal_armed.load(std::memory_order_acquire)) return;
     if (Server* server = g_signal_server.load(std::memory_order_acquire)) {
+        server->debug_sleep_coordinator().interrupt(); // lock-free; sleepers observe the signal
         // Redis 7.4: SIGINT while a signal stop is already scheduled means "exit now" without
         // waiting for the save (exit status 1: not a clean shutdown). Only async-signal-safe
         // calls: two atomic loads, write(2) and _exit(2).

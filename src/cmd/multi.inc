@@ -687,13 +687,13 @@ bool prepare_commands(Server& server, MultiExecState& state,
             if (state.client->resp3()) command->op->mark_resp3();
             if (command->kind == MultiCommandKind::Admin &&
                 has_name(command->queued, "debug")) {
-                uint64_t sleep_ms = 0;
+                uint64_t sleep_us = 0;
                 const auto sleep = debug_sleep_prepare(
-                    server, *state.client, *command->op, sleep_ms);
+                    server, *state.client, *command->op, sleep_us);
                 if (sleep == DebugSleepResult::Handled) command->kind = MultiCommandKind::Prebuilt;
                 else if (sleep == DebugSleepResult::Deferred) {
                     command->kind = MultiCommandKind::DebugSleep;
-                    command->integer.store(sleep_ms, std::memory_order_relaxed);
+                    command->integer.store(sleep_us, std::memory_order_relaxed);
                 }
             }
             if (command->kind == MultiCommandKind::Scan &&
@@ -1183,11 +1183,19 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
                            Shard& shard, uint32_t owner_thread_id, uint32_t stage) {
     // ConfigRoute's keyless handlers run once, on shard 0's owner, between two all-owner
     // joins. In particular CONFIG GET before CONFIG SET must not run at reply retirement.
-    // DEBUG SLEEP parks these EXEC tasks; it never blocks an IO or executor thread.
+    // DEBUG SLEEP requests the global pause after the first all-owner join.
     if (command.kind == MultiCommandKind::Admin || command.kind == MultiCommandKind::DebugSleep) {
         if (stage == 0) return true;
-        if (command.kind == MultiCommandKind::DebugSleep)
-            return now_ns() >= static_cast<uint64_t>(command.integer.load(std::memory_order_relaxed));
+        if (command.kind == MultiCommandKind::DebugSleep) {
+            const int64_t value = command.integer.load(std::memory_order_acquire);
+            if (value >= 0) {
+                if (shard.id() != 0) return false;
+                const uint64_t ticket = server.debug_sleep_start(static_cast<uint64_t>(value), owner_thread_id);
+                if (ticket) command.integer.store(-static_cast<int64_t>(ticket), std::memory_order_release);
+                return false;
+            }
+            return server.debug_sleep_complete(static_cast<uint64_t>(-value));
+        }
         if (shard.id() == 0) {
             Client* previous_client = command_local_client();
             ThreadCtx* previous_thread = command_local_thread();
@@ -1425,11 +1433,6 @@ void finish_command(MultiCommand& command, uint32_t stage) {
     if (command.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
     if (stage == 0 && (command.kind == MultiCommandKind::Admin ||
                        command.kind == MultiCommandKind::DebugSleep)) {
-        if (command.kind == MultiCommandKind::DebugSleep) {
-            // Reuse the kind-specific accumulator: duration becomes a deadline at the join.
-            const auto ms = static_cast<uint64_t>(command.integer.load(std::memory_order_relaxed));
-            command.integer.store(now_ns() + ms * 1000000ull, std::memory_order_relaxed);
-        }
         command.pending.store(static_cast<uint32_t>(command.participants.size()),
                               std::memory_order_relaxed);
         command.stage.store(1, std::memory_order_release);

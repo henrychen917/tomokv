@@ -509,6 +509,7 @@ private:
         static_assert(!SplitLocal || Fused);
         LoopSignals& sig = self_->sig();
         IoTenure tenure(sig);
+        Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
         if constexpr (Fused) {
             if (srv_->read_local_enabled()) {
                 // A split EX tenure is permanently parked: it never probes the local lane.
@@ -526,6 +527,7 @@ private:
         }
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
+            srv_->debug_sleep_poll(self_->id());
             const uint64_t pass_ns = tenure.pass();
             Server::DatabaseWorkScope database_work(*srv_, self_->id());
 #ifdef TOMO_MDBQSBR_TEST
@@ -3608,9 +3610,8 @@ subscriber_checks_done:
                     mark_active(c);
                     break;
                 }
-                // DEBUG SLEEP parks only this connection. The unfinished ROB slot preserves
-                // pipeline order while this IO thread continues serving unrelated clients (and,
-                // in 1s, continues owning shards). All other DEBUG forms fall through unchanged.
+                // DEBUG SLEEP orders behind older replies, then retains its ROB slot while
+                // every worker rendezvouses and pauses. Other DEBUG forms are unchanged.
                 if (__builtin_expect((spec->flags & CmdFlags::DebugSleep) != 0, false)) {
                     if (op->argc() == 2 && op->arg(1).eq_icase("rehash-state")) {
                         // This diagnostic reads mutable table counters. ConfigRoute normally
@@ -3621,16 +3622,18 @@ subscriber_checks_done:
                         op->shard = 0;
                         goto ordinary_shard_ready;
                     }
-                    uint64_t delay_ms = 0;
+                    if (op->argc() == 3 && op->arg(1).eq_icase("sleep") && !rob.quiesced()) break;
+                    uint64_t delay_us = 0;
                     const uint64_t slow_started =
                         __builtin_expect(slowlog_armed_, false) ? now_ns() : 0;
                     DebugSleepResult sleep =
-                        debug_sleep_prepare(*srv_, *c, *op, delay_ms);
+                        debug_sleep_prepare(*srv_, *c, *op, delay_us);
                     if (sleep != DebugSleepResult::NotSleep) {
-                        if (sleep == DebugSleepResult::Deferred &&
-                            deferred_timer_start(c, rob.dispatch_id(),
-                                                 DeferredTimerKind::DebugSleepOk, delay_ms,
-                                                 slow_started, slowlog_arm_)) {
+                        const int started = sleep == DebugSleepResult::Deferred
+                            ? debug_sleep_timer_start(c, rob.dispatch_id(), delay_us,
+                                                      slow_started, slowlog_arm_) : -1;
+                        if (started == 0) break; // another sleep owns the process-wide pause
+                        if (started > 0) {
                             conn.advance_parse(consumed);
                             self_->note_command(spec->id);
                             flip_fingerprint_note(*spec, *op);
@@ -4636,11 +4639,25 @@ ordinary_shard_ready:
     struct DeferredTimer {
         Client* client = nullptr;
         uint64_t op_id = 0;
-        uint64_t deadline_ms = 0;  // zero is WAIT's wait-forever spelling
+        uint64_t deadline_ms = 0;  // WAIT deadline (0 = forever), or a DEBUG SLEEP completion ticket
         uint64_t slow_started_ns = 0;
         SlowlogArm slowlog_arm{};
         DeferredTimerKind kind = DeferredTimerKind::WaitZero;
     };
+
+    int debug_sleep_timer_start(Client* client, uint64_t op_id, uint64_t delay_us,
+                                uint64_t slow_started_ns, const SlowlogArm& arm) {
+        // Reserve ownership before publishing a pause; an allocation failure must not leave
+        // a process-wide action without a corresponding command result.
+        try {
+            deferred_timers_.push_back(DeferredTimer{client, op_id, 0, slow_started_ns, arm,
+                                                     DeferredTimerKind::DebugSleepOk});
+        } catch (const std::bad_alloc&) { return -1; }
+        const uint64_t ticket = srv_->debug_sleep_start(delay_us, self_->id());
+        if (!ticket) { deferred_timers_.pop_back(); return 0; }
+        deferred_timers_.back().deadline_ms = ticket;
+        return 1;
+    }
 
     bool deferred_timer_start(Client* client, uint64_t op_id, DeferredTimerKind kind,
                               uint64_t delay_ms, uint64_t slow_started_ns,
@@ -4662,7 +4679,10 @@ ordinary_shard_ready:
         uint32_t completed = 0;
         for (size_t i = 0; i < deferred_timers_.size();) {
             const DeferredTimer timer = deferred_timers_[i];
-            if (!timer.deadline_ms || now_ms < timer.deadline_ms) {
+            const bool ready = timer.kind == DeferredTimerKind::DebugSleepOk
+                ? srv_->debug_sleep_complete(timer.deadline_ms)
+                : timer.deadline_ms && now_ms >= timer.deadline_ms;
+            if (!ready) {
                 i++;
                 continue;
             }
@@ -4685,7 +4705,7 @@ ordinary_shard_ready:
             op.state.store(OpState::Done, std::memory_order_release);
             client->set_blocked(false);
             client->set_last_interaction_s(cached_now_s_);
-            srv_->blocking_client_unparked();
+            if (timer.kind == DeferredTimerKind::WaitZero) srv_->blocking_client_unparked();
             deferred_timers_[i] = deferred_timers_.back();
             deferred_timers_.pop_back();
             enqueue_serve(client);
@@ -4705,7 +4725,7 @@ ordinary_shard_ready:
             }
             Op& op = client->rob().at(timer.op_id);
             op.state.store(OpState::Done, std::memory_order_release);
-            srv_->blocking_client_unparked();
+            if (timer.kind == DeferredTimerKind::WaitZero) srv_->blocking_client_unparked();
             deferred_timers_[i] = deferred_timers_.back();
             deferred_timers_.pop_back();
             cancelled = true;
@@ -4758,7 +4778,8 @@ ordinary_shard_ready:
         if (client_cron_was_armed_) deadline = std::min(deadline, client_cron_beat_ms_);
         // Connection timers have no external producer to wake their owner.
         for (const auto& timer : deferred_timers_)
-            if (timer.deadline_ms) deadline = std::min(deadline, timer.deadline_ms);
+            if (timer.kind == DeferredTimerKind::WaitZero && timer.deadline_ms)
+                deadline = std::min(deadline, timer.deadline_ms);
         return deadline > now_ms ? static_cast<unsigned>(deadline - now_ms) : 0;
     }
 

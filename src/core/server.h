@@ -13,6 +13,7 @@
 // the ownership edge. An IO may enqueue using an old route after that edge, so tasks and borrow
 // releases recheck ownership and forward before shard access instead of carrying routing epochs.
 #pragma once
+#include "../cmd/debug_sleep.h"
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
@@ -2202,6 +2203,25 @@ public:
     }
     uint32_t timeout() const { return live_timeout_.load(std::memory_order_relaxed); }
     uint32_t configured_hz() const { return client_hz_.configured.load(std::memory_order_relaxed); }
+    using DebugSleepWorker = DebugSleepCoordinator<kMaxThreads, Ring::kWaitTimeoutMs>::Worker;
+    auto& debug_sleep_coordinator() { return debug_sleep_; }
+    void debug_sleep_poll(uint32_t tid) {
+        if (__builtin_expect(debug_sleep_.pending(), false)) debug_sleep_.park(tid);
+    }
+    uint64_t debug_sleep_start(uint64_t us, uint32_t tid) {
+        const uint64_t ticket = debug_sleep_.start(us);
+        if (ticket) {
+            if (Ring* source = thread(tid).ring()) {
+                for (uint32_t other = 0; other < nthreads(); ++other)
+                    if (other != tid)
+                        if (Ring* target = thread(other).ring())
+                            source->msg_to(*target, ur_tag(UrKind::Wake, nullptr));
+                source->submit_and_reap();
+            }
+        }
+        return ticket;
+    }
+    bool debug_sleep_complete(uint64_t ticket) { return debug_sleep_.complete(ticket); }
     uint32_t client_hz() const {
         return client_hz_.effective(live_clients_.load(std::memory_order_relaxed));
     }
@@ -3661,6 +3681,7 @@ private:
     std::unique_ptr<LbPlan> lb_plan_; // absent with both balancers off
     // Cold cron policy at the tail: all prior owner/publication offsets stay fixed.
     ClientHz client_hz_;
+    DebugSleepCoordinator<kMaxThreads, Ring::kWaitTimeoutMs> debug_sleep_;
 
 };
 

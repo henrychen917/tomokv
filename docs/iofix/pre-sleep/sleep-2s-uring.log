@@ -1,0 +1,31 @@
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "19801", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.PXi3D1/jobs/iofix-sleep/sleep-2s-uring/oracle", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes"], "pid": 3045216}
+{"reply": "b'OK'", "seconds": 9.270943701267242e-05, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 2.5840476155281067e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 7.67391175031662e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 2.0119361579418182e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 1.9599683582782745e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 7.672049105167389e-05, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 0.0020814351737499237, "sleep": ".002tail"}
+{"reply": "b'OK'", "seconds": 0.002083835192024708, "sleep": " 0.002"}
+{"reply": "b'OK'", "seconds": 1.0103454822674394, "sleep": "1.01"}
+{"oracle": ["b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", ["b'OK'", "b'OK'", "b'OK'", "b'after'"], "b'PONG'"]}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/cx-iofix/build/tomokv-pre", "--bind", "127.0.0.1", "--port", "19800", "--dir", "/home/user/Projects/cx-iofix/build/gate-run.PXi3D1/jobs/iofix-sleep/sleep-2s-uring/target-0", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--shards", "16", "--thread-mode", "2s", "--net-io", "uring", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--ratio", "6:2"], "pid": 3045311}
+{"reply": "b'OK'", "seconds": 7.100030779838562e-05, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 2.5571323931217194e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 2.0059756934642792e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 1.8700025975704193e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 1.818966120481491e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 0.05007012560963631, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 2.9509887099266052e-05, "sleep": ".002tail"}
+{"reply": "b'OK'", "seconds": 0.050058964639902115, "sleep": " 0.002"}
+{"reply": "ERR value is not a valid float", "seconds": 5.27799129486084e-05, "sleep": "1.01"}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-iofix/tests/iofix_sleep.py", line 119, in <module>
+    run(args)
+  File "/home/user/Projects/cx-iofix/tests/iofix_sleep.py", line 110, in run
+    assert replies(server) == expected
+           ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-iofix/tests/iofix_sleep.py", line 27, in replies
+    assert reply == b'OK'
+           ^^^^^^^^^^^^^^
+AssertionError

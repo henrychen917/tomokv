@@ -977,8 +977,8 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
-    // Direct DEBUG SLEEP is intercepted by IoLoop; EXEC uses multi.inc's deferred owner tasks.
-    // Both routes share debug_sleep_prepare, so this handler never sleeps a worker thread.
+    // Direct DEBUG SLEEP is intercepted by IoLoop; EXEC uses multi.inc's owner join.
+    // Both routes request the same process-wide pass-boundary pause.
 #ifndef NDEBUG
     // Fail the next N FlatStore/ExpireIndex table calloc calls. This is deliberately reachable only
     // through the already-gated DEBUG command and is compiled out of assertion-disabled builds.
@@ -3028,7 +3028,7 @@ static const CommandSpec kTable[] = {
 }  // namespace
 
 DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
-                                     uint64_t& delay_ms) {
+                                     uint64_t& delay_us) {
     if (op.argc() != 3 || !eq_icase(op.arg(1), "sleep"))
         return DebugSleepResult::NotSleep;
     if (!debug_command_allowed(server, &client)) {
@@ -3036,25 +3036,18 @@ DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
         return DebugSleepResult::Handled;
     }
 
-    // Preserve DEBUG SLEEP's deliberately lenient Redis-compatible parse: malformed, negative,
-    // NaN and infinity all spell zero. Only a finite positive value can become a timer.
-    double seconds = 0;
-    if (!parse_double_lenient(op.arg(2), seconds)) seconds = 0;
-    if (!std::isfinite(seconds) || seconds < 0.0) seconds = 0;
-    const double cap_seconds = static_cast<double>(std::max<uint32_t>(1, server.timeout()));
-    if (seconds > cap_seconds) {
-        reply_err(op.sink(), "ERR value is not a valid float");
-        return DebugSleepResult::Handled;
-    }
-    if (seconds == 0.0) {
+    // Redis uses bare strtod (including a numeric prefix), truncates to microseconds,
+    // then calls nanosleep once. Nonfinite/out-of-range casts produce an invalid negative
+    // timespec on the oracle's platform; return its OK without invoking C++ cast UB.
+    const Terminated text(op.arg(2));
+    const double micros = std::strtod(text.get(), nullptr) * 1000000.0;
+    if (!std::isfinite(micros) || micros < 1.0 || micros >= 0x1p63) {
+        const timespec zero{};
+        ::nanosleep(&zero, nullptr); // DEBUG SLEEP 0 is a yield, not an indefinite timer
         reply_ok(op.sink());
         return DebugSleepResult::Handled;
     }
-
-    // IoLoop deadlines are milliseconds. Round away from zero so every positive request parks at
-    // least once; the timeout-derived cap keeps this conversion far below uint64_t overflow.
-    delay_ms = static_cast<uint64_t>(std::ceil(seconds * 1000.0));
-    if (!delay_ms) delay_ms = 1;
+    delay_us = static_cast<uint64_t>(micros);
     return DebugSleepResult::Deferred;
 }
 
