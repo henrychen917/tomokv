@@ -1,0 +1,189 @@
+{
+  "matrices": [
+    {
+      "matrix": "uring-split",
+      "summary": "DIFFER GATE: pass=475 fail=0 runtime=18m02s",
+      "seeds": {
+        "run": "wave4b-final-standard",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [
+          19
+        ],
+        "rotating": 21,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          21
+        ],
+        "history": "/home/user/Projects/cx-wave4/.gate-history/differ"
+      },
+      "sort_skips": 0,
+      "read_local_witnesses": [],
+      "coverage": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2145296 recorded comparison witnesses, 474 legs)",
+        "not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE"
+      ],
+      "mode_equivalence": {
+        "cells": 16,
+        "verdicts": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "all_reached": true,
+        "replies_per_cell": [
+          6137
+        ],
+        "boots": 32
+      }
+    },
+    {
+      "matrix": "uring-armed-fused",
+      "summary": "DIFFER GATE: pass=466 fail=0 runtime=17m30s",
+      "seeds": {
+        "run": "wave4b-final-standard",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [
+          19
+        ],
+        "rotating": 21,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          21
+        ],
+        "history": "/home/user/Projects/cx-wave4/.gate-history/differ"
+      },
+      "sort_skips": 10,
+      "read_local_witnesses": [
+        "read-local lane fired (atomic=0)                           ok (hits=1257 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+        "read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=23 final_fallbacks=237)"
+      ],
+      "coverage": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2098515 recorded comparison witnesses, 464 legs)",
+        "not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE"
+      ]
+    },
+    {
+      "matrix": "epoll-split",
+      "summary": "DIFFER GATE: pass=475 fail=0 runtime=18m02s",
+      "seeds": {
+        "run": "wave4b-final-standard",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [
+          19
+        ],
+        "rotating": 21,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          21
+        ],
+        "history": "/home/user/Projects/cx-wave4/.gate-history/differ"
+      },
+      "sort_skips": 0,
+      "read_local_witnesses": [],
+      "coverage": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2144807 recorded comparison witnesses, 474 legs)",
+        "not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE"
+      ],
+      "mode_equivalence": {
+        "cells": 16,
+        "verdicts": [
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok",
+          "ok"
+        ],
+        "all_reached": true,
+        "replies_per_cell": [
+          6137
+        ],
+        "boots": 32
+      }
+    },
+    {
+      "matrix": "epoll-armed-fused",
+      "summary": "DIFFER GATE: pass=466 fail=0 runtime=17m33s",
+      "seeds": {
+        "run": "wave4b-final-standard",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [
+          19
+        ],
+        "rotating": 21,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          21
+        ],
+        "history": "/home/user/Projects/cx-wave4/.gate-history/differ"
+      },
+      "sort_skips": 10,
+      "read_local_witnesses": [
+        "read-local lane fired (atomic=0)                           ok (hits=1257 fallbacks=2 at peak; final_hits=1 final_fallbacks=0)",
+        "read-local lane fired (atomic=1)                           ok (hits=1257 fallbacks=2 at peak; final_hits=20 final_fallbacks=240)"
+      ],
+      "coverage": [
+        "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (2098584 recorded comparison witnesses, 464 legs)",
+        "not observed in compared replies/properties: BGREWRITEAOF, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE"
+      ]
+    }
+  ],
+  "fixture_binds": 40,
+  "fixture_port_min": 26880,
+  "fixture_port_max": 26883
+}

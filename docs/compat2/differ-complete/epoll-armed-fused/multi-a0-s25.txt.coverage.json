@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "commands": {
+    "APPEND": 126,
+    "DEBUG": 1,
+    "DEL": 116,
+    "DISCARD": 68,
+    "EXEC": 634,
+    "EXISTS": 131,
+    "GET": 203,
+    "GETDEL": 133,
+    "GETRANGE": 138,
+    "GETSET": 137,
+    "HRANDFIELD": 1,
+    "HSET": 1,
+    "INCRBY": 105,
+    "INFO": 2,
+    "LCS": 133,
+    "LLEN": 139,
+    "LPOP": 119,
+    "LRANGE": 138,
+    "MGET": 132,
+    "MSET": 126,
+    "MSETNX": 121,
+    "MULTI": 702,
+    "RPUSH": 134,
+    "SADD": 1,
+    "SET": 150,
+    "SETNX": 134,
+    "SPOP": 1,
+    "SRANDMEMBER": 1,
+    "STRLEN": 124,
+    "TOUCH": 122,
+    "TYPE": 120,
+    "ZADD": 1,
+    "ZRANDMEMBER": 1
+  },
+  "kinds": {
+    "APPEND": [
+      "reply"
+    ],
+    "DEBUG": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "DISCARD": [
+      "reply"
+    ],
+    "EXEC": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "GETDEL": [
+      "reply"
+    ],
+    "GETRANGE": [
+      "reply"
+    ],
+    "GETSET": [
+      "reply"
+    ],
+    "HRANDFIELD": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "INCRBY": [
+      "reply"
+    ],
+    "INFO": [
+      "reply"
+    ],
+    "LCS": [
+      "reply"
+    ],
+    "LLEN": [
+      "reply"
+    ],
+    "LPOP": [
+      "reply"
+    ],
+    "LRANGE": [
+      "reply"
+    ],
+    "MGET": [
+      "reply"
+    ],
+    "MSET": [
+      "reply"
+    ],
+    "MSETNX": [
+      "reply"
+    ],
+    "MULTI": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SETNX": [
+      "reply"
+    ],
+    "SPOP": [
+      "reply"
+    ],
+    "SRANDMEMBER": [
+      "reply"
+    ],
+    "STRLEN": [
+      "reply"
+    ],
+    "TOUCH": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZRANDMEMBER": [
+      "reply"
+    ]
+  }
+}

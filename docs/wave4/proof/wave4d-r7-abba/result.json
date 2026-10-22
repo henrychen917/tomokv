@@ -1,0 +1,47 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "64-111",
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-72",
+    "--load-cores",
+    "73-95",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26879",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave4/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave4",
+  "jobs": [
+    "reorder_identity",
+    "abba_selftest"
+  ],
+  "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+  "binary_sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+  "env": {
+    "PYTHONPATH": "/home/user/Projects/cx-wave4/docs/wave4/fixture_site",
+    "WAVE4_FIXTURE_PORT_LOG": "/home/user/Projects/cx-wave4/build/wave4/fixture-ports.log",
+    "GATE_TEST_PORT": "26899",
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave4/build/wave4/oracle",
+    "GATE_DIFFER_ORACLE_CORES": "72",
+    "GATE_NOTIFY_ORACLE_CORES": "72",
+    "GATE_ONLY_JOBS": "reorder_identity abba_selftest",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave4/docs/wave4/proof/wave4d-r7-abba/ledger",
+    "GATE_HISTORY": "/home/user/Projects/cx-wave4/build/wave4/history-wave4d-r7-abba"
+  },
+  "returncode": 1,
+  "run_directory": "/home/user/Projects/cx-wave4/build/gate-run.MKE4E0",
+  "jobs_done": {
+    "abba_selftest": "0\t0\t1",
+    "reorder_identity": "0\t1\t0",
+    "release": "0\t1\t0"
+  }
+}

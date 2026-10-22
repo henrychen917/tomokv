@@ -1,0 +1,18 @@
+  row budget: 900s; median=0.105s; correctness-plan-fallback; core concurrency watch
+  core concurrency watch                               ok
+  row budget: 900s; median=0.2s; correctness-plan-fallback; core concurrency lifetime
+  core concurrency lifetime                            ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; core concurrency drain
+  core concurrency drain                               ok
+  row budget: 900s; median=7.055s; correctness-plan-fallback; core concurrency route
+  core concurrency route                               ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; core concurrency snapshot
+  core concurrency snapshot                            ok
+  row budget: 900s; median=0.16s; correctness-plan-fallback; core concurrency config
+  core concurrency config                              ok
+  row budget: 900s; median=0.16s; correctness-plan-fallback; core concurrency notify
+  core concurrency notify                              ok
+  row budget: 900s; median=0.555s; correctness-plan-fallback; read-local topology demotion (1s)
+  read-local topology demotion (1s)                    ok
+  row budget: 900s; median=0.545s; correctness-plan-fallback; read-local topology demotion (2s)
+  read-local topology demotion (2s)                    ok

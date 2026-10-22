@@ -1,0 +1,43 @@
+{
+  "kind": "A: behaviour twin",
+  "source": "build/tomokv",
+  "output": "build/notifyorder/tomokv-pad-a",
+  "source_sha256": "704b8fd4a5362a096269764df7cc546f87676df33c9aca0aff40c5382c4a8e7c",
+  "sha256": "c9a682a27c65dcd738dbee644d6ddb1a8dbb7c3263e40ce2fae4adac657e8e22",
+  "behavior": "PRE lazy-expiry routing/order and raw SET observation; POST AOF grouping remains",
+  "layout": "All bytes outside four entry patches are POST-identical, including text extent, function addresses/sizes, section/program headers",
+  "patches": [
+    {
+      "symbol": "_ZN4tomo16notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE",
+      "offset": 4951684,
+      "address": 4951684,
+      "target": "_ZN4tomo12_GLOBAL__N_129notify_flat_emit_unattributedEPvjNS_13NotifyEventIdENS_5SliceE",
+      "before": "554889e541",
+      "after": "e907e0ffff"
+    },
+    {
+      "symbol": "_ZN4tomo23notify_overwrite_expiryERNS_5ShardEmNS_5SliceE",
+      "offset": 4954388,
+      "address": 4954388,
+      "target": "return: retain PRE overwrite probe without observing",
+      "before": "48",
+      "after": "c3"
+    },
+    {
+      "symbol": "_ZN8tomo_db016notify_flat_emitEPvjNS_13NotifyEventIdENS_5SliceE",
+      "offset": 1236484,
+      "address": 1236484,
+      "target": "_ZN8tomo_db012_GLOBAL__N_129notify_flat_emit_unattributedEPvjNS_13NotifyEventIdENS_5SliceE",
+      "before": "554889e541",
+      "after": "e9e7deffff"
+    },
+    {
+      "symbol": "_ZN8tomo_db023notify_overwrite_expiryERNS_5ShardEmNS_5SliceE",
+      "offset": 1238980,
+      "address": 1238980,
+      "target": "return: retain PRE overwrite probe without observing",
+      "before": "48",
+      "after": "c3"
+    }
+  ]
+}

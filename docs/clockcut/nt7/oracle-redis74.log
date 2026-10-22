@@ -1,0 +1,24 @@
+server=redis mode=2s binary=/home/user/Projects/redis74/src/redis-server sha256=ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b
+{"check": "NT-new-7 frozen clock non-vacuity", "actual": 10, "expected": 10, "ok": true}
+{"check": "NT-new-7 PTTL at deadline", "actual": 0, "expected": 0, "ok": true}
+{"check": "NT-new-7 TTL at deadline", "actual": 0, "expected": 0, "ok": true}
+{"check": "NT-new-7 PEXPIRETIME at deadline", "actual": 1792589002807, "expected": 1792589002807, "ok": true}
+{"check": "NT-new-7 GET at deadline", "actual": "v", "expected": "v", "ok": true}
+{"check": "NT-new-7 EXISTS at deadline", "actual": 1, "expected": 1, "ok": true}
+{"check": "NT-new-7 TYPE at deadline", "actual": "string", "expected": "string", "ok": true}
+{"check": "NT-new-7 relative PX at deadline", "actual": 0, "expected": 0, "ok": true}
+{"check": "NT-new-7 PEXPIREAT deadline reached", "actual": 0, "expected": 0, "ok": true}
+{"check": "NT-new-7 KEYS at deadline", "actual": ["nt7:abs", "nt7:exec", "nt7:exp", "nt7:rel", "nt7:watch"], "expected": ["nt7:abs", "nt7:exec", "nt7:exp", "nt7:rel", "nt7:watch"], "ok": true}
+{"check": "NT-new-7 SCAN at deadline", "actual": ["nt7:abs", "nt7:exec", "nt7:exp", "nt7:rel", "nt7:watch"], "expected": ["nt7:abs", "nt7:exec", "nt7:exp", "nt7:rel", "nt7:watch"], "ok": true}
+{"check": "NT-new-7 WATCH and EXEC at deadline", "actual": ["v"], "expected": ["v"], "ok": true}
+{"check": "NT-new-7 SET PXAT now stays live", "actual": 1, "expected": 1, "ok": true}
+{"check": "NT-new-7 PEXPIREAT now deletes", "actual": [1, 0], "expected": [1, 0], "ok": true}
+{"check": "NT-new-7 GETEX PXAT now deletes", "actual": ["v", 0], "expected": ["v", 0], "ok": true}
+{"check": "NT-new-7 WATCH armed at deadline aborts after it", "actual": null, "expected": null, "ok": true}
+{"check": "NT-new-7 PTTL past deadline", "actual": -2, "expected": -2, "ok": true}
+{"check": "NT-new-7 GET past deadline", "actual": null, "expected": null, "ok": true}
+{"check": "NT-new-7 SET PXAT now key past deadline", "actual": 0, "expected": 0, "ok": true}
+{"check": "NT-new-7 KEYS past deadline", "actual": [], "expected": [], "ok": true}
+{"check": "NT-new-7 RANDOMKEY at deadline", "actual": true, "expected": true, "ok": true}
+{"check": "NT-new-7 RANDOMKEY past deadline", "actual": null, "expected": null, "ok": true}
+boundary_rc=0

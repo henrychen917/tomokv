@@ -1,0 +1,994 @@
+[
+  {
+    "arm": "headline",
+    "mode": "1s",
+    "atomic": 0,
+    "depth": 1,
+    "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+    "instructions_per_command": 10335.0,
+    "cycles_per_command": 79534.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3847.0,
+        "cycles_per_command": 23429.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3724.0,
+        "cycles_per_command": 32408.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 10441.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 13256.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "headline",
+    "mode": "1s",
+    "atomic": 0,
+    "depth": 8,
+    "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+    "instructions_per_command": 14341.625,
+    "cycles_per_command": 41068.375,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7831.375,
+        "cycles_per_command": 11720.0,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3724.125,
+        "cycles_per_command": 17649.625,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 7135.0,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2340.125,
+        "cycles_per_command": 4563.75,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "headline",
+    "mode": "1s",
+    "atomic": 1,
+    "depth": 1,
+    "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+    "instructions_per_command": 10339.0,
+    "cycles_per_command": 75249.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3851.0,
+        "cycles_per_command": 22925.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3724.0,
+        "cycles_per_command": 31188.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 8732.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 12404.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "headline",
+    "mode": "1s",
+    "atomic": 1,
+    "depth": 8,
+    "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+    "instructions_per_command": 14369.75,
+    "cycles_per_command": 43844.25,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7859.625,
+        "cycles_per_command": 15468.375,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3724.0,
+        "cycles_per_command": 16493.625,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 7293.875,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2340.125,
+        "cycles_per_command": 4588.375,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "headline",
+    "mode": "2s",
+    "atomic": 0,
+    "depth": 1,
+    "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+    "instructions_per_command": 10373.0,
+    "cycles_per_command": 61258.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3885.0,
+        "cycles_per_command": 22568.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3724.0,
+        "cycles_per_command": 17011.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 6571.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 15108.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "headline",
+    "mode": "2s",
+    "atomic": 0,
+    "depth": 8,
+    "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+    "instructions_per_command": 14328.375,
+    "cycles_per_command": 35610.875,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7845.625,
+        "cycles_per_command": 10661.625,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3724.0,
+        "cycles_per_command": 13171.5,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 6781.75,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2312.75,
+        "cycles_per_command": 4996.0,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "headline",
+    "mode": "2s",
+    "atomic": 1,
+    "depth": 1,
+    "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+    "instructions_per_command": 10329.0,
+    "cycles_per_command": 59597.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3841.0,
+        "cycles_per_command": 19778.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3724.0,
+        "cycles_per_command": 19070.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 7050.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 13699.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "headline",
+    "mode": "2s",
+    "atomic": 1,
+    "depth": 8,
+    "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+    "instructions_per_command": 14360.125,
+    "cycles_per_command": 35762.375,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7873.625,
+        "cycles_per_command": 11469.625,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3724.0,
+        "cycles_per_command": 12715.0,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 6473.0,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2316.5,
+        "cycles_per_command": 5104.75,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "moverfix",
+    "mode": "1s",
+    "atomic": 0,
+    "depth": 1,
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "instructions_per_command": 10239.0,
+    "cycles_per_command": 67854.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3775.0,
+        "cycles_per_command": 20361.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 28354.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 8072.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 11067.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "moverfix",
+    "mode": "1s",
+    "atomic": 0,
+    "depth": 8,
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "instructions_per_command": 14317.875,
+    "cycles_per_command": 42969.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7831.75,
+        "cycles_per_command": 13829.125,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 17397.25,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 7499.25,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2340.125,
+        "cycles_per_command": 4243.375,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "moverfix",
+    "mode": "1s",
+    "atomic": 1,
+    "depth": 1,
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "instructions_per_command": 10315.0,
+    "cycles_per_command": 74982.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3851.0,
+        "cycles_per_command": 22683.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 29911.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 10254.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 12134.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "moverfix",
+    "mode": "1s",
+    "atomic": 1,
+    "depth": 8,
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "instructions_per_command": 14297.625,
+    "cycles_per_command": 40950.25,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7811.5,
+        "cycles_per_command": 12413.875,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 16854.625,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 6960.375,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2340.125,
+        "cycles_per_command": 4721.375,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "moverfix",
+    "mode": "2s",
+    "atomic": 0,
+    "depth": 1,
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "instructions_per_command": 10301.0,
+    "cycles_per_command": 68027.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3837.0,
+        "cycles_per_command": 19517.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 26231.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 10530.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 11749.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "moverfix",
+    "mode": "2s",
+    "atomic": 0,
+    "depth": 8,
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "instructions_per_command": 14328.5,
+    "cycles_per_command": 38487.5,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7869.75,
+        "cycles_per_command": 14064.125,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 12505.375,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 6664.75,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2312.75,
+        "cycles_per_command": 5253.25,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "moverfix",
+    "mode": "2s",
+    "atomic": 1,
+    "depth": 1,
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "instructions_per_command": 10353.0,
+    "cycles_per_command": 58629.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3889.0,
+        "cycles_per_command": 22206.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 18318.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 6027.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 12078.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "moverfix",
+    "mode": "2s",
+    "atomic": 1,
+    "depth": 8,
+    "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+    "instructions_per_command": 14309.25,
+    "cycles_per_command": 47853.625,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7849.625,
+        "cycles_per_command": 12764.125,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 21252.125,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 8567.25,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2313.625,
+        "cycles_per_command": 5270.125,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "merged",
+    "mode": "1s",
+    "atomic": 0,
+    "depth": 1,
+    "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+    "instructions_per_command": 10311.0,
+    "cycles_per_command": 70847.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3847.0,
+        "cycles_per_command": 20776.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 30072.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 8286.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 11713.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "merged",
+    "mode": "1s",
+    "atomic": 0,
+    "depth": 8,
+    "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+    "instructions_per_command": 14293.5,
+    "cycles_per_command": 41809.625,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7807.375,
+        "cycles_per_command": 13377.5,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 16671.25,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 7383.875,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2340.125,
+        "cycles_per_command": 4377.0,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "merged",
+    "mode": "1s",
+    "atomic": 1,
+    "depth": 1,
+    "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+    "instructions_per_command": 10393.0,
+    "cycles_per_command": 68543.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3899.0,
+        "cycles_per_command": 21791.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 29737.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 8028.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2348.0,
+        "cycles_per_command": 8987.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "merged",
+    "mode": "1s",
+    "atomic": 1,
+    "depth": 8,
+    "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+    "instructions_per_command": 14345.625,
+    "cycles_per_command": 41771.125,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7859.5,
+        "cycles_per_command": 14125.25,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 16339.625,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 7252.25,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2340.125,
+        "cycles_per_command": 4054.0,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "merged",
+    "mode": "2s",
+    "atomic": 0,
+    "depth": 1,
+    "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+    "instructions_per_command": 10301.0,
+    "cycles_per_command": 76526.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3837.0,
+        "cycles_per_command": 23420.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 29418.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 9105.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 14583.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "merged",
+    "mode": "2s",
+    "atomic": 0,
+    "depth": 8,
+    "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+    "instructions_per_command": 14306.375,
+    "cycles_per_command": 45555.5,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7845.625,
+        "cycles_per_command": 11292.625,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 22603.125,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.25,
+        "cycles_per_command": 6529.125,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2314.5,
+        "cycles_per_command": 5130.625,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "merged",
+    "mode": "2s",
+    "atomic": 1,
+    "depth": 1,
+    "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+    "instructions_per_command": 10329.0,
+    "cycles_per_command": 64457.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3865.0,
+        "cycles_per_command": 25091.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 19641.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 6549.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 13176.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "merged",
+    "mode": "2s",
+    "atomic": 1,
+    "depth": 8,
+    "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+    "instructions_per_command": 14332.25,
+    "cycles_per_command": 42724.375,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7873.5,
+        "cycles_per_command": 11298.75,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 19756.125,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 7136.25,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2312.75,
+        "cycles_per_command": 4533.25,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "atomic": 0,
+    "depth": 1,
+    "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+    "instructions_per_command": 10263.0,
+    "cycles_per_command": 83160.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3799.0,
+        "cycles_per_command": 24926.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 34841.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 9272.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 14121.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "atomic": 0,
+    "depth": 8,
+    "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+    "instructions_per_command": 14270.375,
+    "cycles_per_command": 38207.625,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7784.125,
+        "cycles_per_command": 11241.75,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.125,
+        "cycles_per_command": 15994.0,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 7102.875,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2340.125,
+        "cycles_per_command": 3869.0,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "atomic": 1,
+    "depth": 1,
+    "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+    "instructions_per_command": 10339.0,
+    "cycles_per_command": 59106.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3875.0,
+        "cycles_per_command": 13738.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 29574.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 6940.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 8854.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "atomic": 1,
+    "depth": 8,
+    "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+    "instructions_per_command": 14369.75,
+    "cycles_per_command": 42884.25,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7883.625,
+        "cycles_per_command": 14105.125,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 17635.25,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 6795.75,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2340.125,
+        "cycles_per_command": 4348.125,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "atomic": 0,
+    "depth": 1,
+    "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+    "instructions_per_command": 10349.0,
+    "cycles_per_command": 60797.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3885.0,
+        "cycles_per_command": 19552.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 21141.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 7383.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 12721.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "atomic": 0,
+    "depth": 8,
+    "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+    "instructions_per_command": 14305.25,
+    "cycles_per_command": 37370.375,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7845.625,
+        "cycles_per_command": 12917.0,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 13859.125,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 6065.5,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2313.625,
+        "cycles_per_command": 4528.75,
+        "calls": 8
+      }
+    }
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "atomic": 1,
+    "depth": 1,
+    "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+    "instructions_per_command": 10353.0,
+    "cycles_per_command": 72181.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 3889.0,
+        "cycles_per_command": 20650.0,
+        "calls": 1
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.0,
+        "cycles_per_command": 29575.0,
+        "calls": 8
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 9538.0,
+        "calls": 8
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2318.0,
+        "cycles_per_command": 12418.0,
+        "calls": 1
+      }
+    }
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "atomic": 1,
+    "depth": 8,
+    "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+    "instructions_per_command": 14285.125,
+    "cycles_per_command": 37516.0,
+    "scope": {
+      "xshard_prepare": {
+        "instructions_per_command": 7825.375,
+        "cycles_per_command": 12706.5,
+        "calls": 8
+      },
+      "xshard_execute": {
+        "instructions_per_command": 3700.125,
+        "cycles_per_command": 13071.375,
+        "calls": 64
+      },
+      "xshard_complete": {
+        "instructions_per_command": 446.0,
+        "cycles_per_command": 6424.125,
+        "calls": 64
+      },
+      "xshard_retire": {
+        "instructions_per_command": 2313.625,
+        "cycles_per_command": 5314.0,
+        "calls": 8
+      }
+    }
+  }
+]

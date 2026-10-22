@@ -1,0 +1,4 @@
+post verified rc=0
+pre verified rc=1
+pad-a verified rc=1
+no-salvage verified rc=1

@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "commands": {
+    "PSUBSCRIBE": 1,
+    "PUBLISH": 1,
+    "PUBSUB": 64,
+    "SPUBLISH": 365,
+    "SSUBSCRIBE": 97,
+    "SUBSCRIBE": 1,
+    "SUNSUBSCRIBE": 76
+  },
+  "kinds": {
+    "PSUBSCRIBE": [
+      "reply"
+    ],
+    "PUBLISH": [
+      "reply"
+    ],
+    "PUBSUB": [
+      "reply"
+    ],
+    "SPUBLISH": [
+      "reply"
+    ],
+    "SSUBSCRIBE": [
+      "reply"
+    ],
+    "SUBSCRIBE": [
+      "reply"
+    ],
+    "SUNSUBSCRIBE": [
+      "reply",
+      "unordered acknowledgement multiset"
+    ]
+  }
+}

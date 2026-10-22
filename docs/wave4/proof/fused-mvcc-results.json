@@ -1,0 +1,42 @@
+[
+  {
+    "label": "fused-mvcc-rl0",
+    "argv": [
+      "python3",
+      "docs/wave4/run_proof.py",
+      "fused-mvcc-rl0",
+      "--jobs",
+      "atomic_batteries debug-0 debug-1",
+      "--binary",
+      "docs/wave4/fused_candidate.py",
+      "--server-cores",
+      "80-88",
+      "--load-cores",
+      "89-95"
+    ],
+    "env": {
+      "WAVE4_READ_LOCAL": "0"
+    },
+    "returncode": 0
+  },
+  {
+    "label": "fused-mvcc-rl1",
+    "argv": [
+      "python3",
+      "docs/wave4/run_proof.py",
+      "fused-mvcc-rl1",
+      "--jobs",
+      "atomic_batteries debug-0 debug-1",
+      "--binary",
+      "docs/wave4/fused_candidate.py",
+      "--server-cores",
+      "80-88",
+      "--load-cores",
+      "89-95"
+    ],
+    "env": {
+      "WAVE4_READ_LOCAL": "1"
+    },
+    "returncode": 1
+  }
+]

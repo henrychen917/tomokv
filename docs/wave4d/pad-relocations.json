@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "strict_identity": "8635/8639; four residuals retained",
+  "pre_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+  "pad_sha256": "e6d8284d6bd0fdcfe54133916ee18f20cbb510d009300cfbcef5472500ebf716",
+  "padding_bytes": 32,
+  "text_prefix_equal_except_four_checked_rel32": true,
+  "rodata_equal": true,
+  "gnu_properties_equal": true,
+  "trampolines": [
+    {
+      "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "entry": "0x6a7c60",
+      "trampoline_offset": 56,
+      "return_address": "0x6a7c9e"
+    },
+    {
+      "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "entry": "0x6ac250",
+      "trampoline_offset": 84,
+      "return_address": "0x6ac28e"
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "entry": "0x30c020",
+      "trampoline_offset": 0,
+      "return_address": "0x30c05e"
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "entry": "0x310630",
+      "trampoline_offset": 28,
+      "return_address": "0x31066e"
+    }
+  ]
+}

@@ -205,8 +205,10 @@ expect(admin.command("ACL", "SETUSER", "bad-firstarg", "+select|0"),
 
 alice = Conn()
 expect(alice.command("AUTH", "alice", password), b"OK", "multi-user AUTH")
+# Redis names a denied subcommand by its full name (acl.c:2739-2740 prints cmd->fullname);
+# Redis 7.4.10 oracle replies: docs/wave4/oracle/acl-redis74.json.
 expect(alice.command("ACL", "WHOAMI"),
-       "NOPERM User alice has no permissions to run the 'acl' command", "ACL command bit")
+       "NOPERM User alice has no permissions to run the 'acl|whoami' command", "ACL command bit")
 expect(alice.command("AUTH", "default", "anything"), b"OK", "AUTH identity switch")
 expect(alice.command("ACL", "WHOAMI"), b"default", "WHOAMI after default switch")
 expect(alice.command("HELLO", "2", "AUTH", "alice", password)[:2],

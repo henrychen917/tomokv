@@ -1,0 +1,16 @@
+pre-1s-epoll-a0 1
+pre-1s-epoll-a1 1
+pre-1s-uring-a0 0
+pre-1s-uring-a1 0
+pre-2s-epoll-a0 1
+pre-2s-epoll-a1 1
+pre-2s-uring-a0 0
+pre-2s-uring-a1 0
+post-1s-epoll-a0 1
+post-1s-epoll-a1 1
+post-1s-uring-a0 0
+post-1s-uring-a1 0
+post-2s-epoll-a0 1
+post-2s-epoll-a1 1
+post-2s-uring-a0 0
+post-2s-uring-a1 0

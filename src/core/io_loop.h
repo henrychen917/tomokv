@@ -1399,7 +1399,7 @@ private:
         }
     }
 
-    void release_tls(Client* c) {
+    __attribute__((noinline)) void release_tls(Client* c) {
         if (!c->is_tls()) return;
         const uint32_t slot = c->tls_slot();
         if (slot >= tls_slots_.size() || !tls_slots_[slot]) std::abort();
@@ -3356,7 +3356,8 @@ private:
                 // Routed containers and SLOWLOG keep a broad container bound in the registry so
                 // malformed requests are rejected before ACL and MULTI. On this already-taken
                 // cold error path, recover Redis's more specific subcommand name/grammar.
-                const bool container_reply = command_reply_container_outer_arity(*op, *spec);
+                const bool container_reply = command_reply_container_outer_arity(
+                    *op, *spec, auth_required && !conn.authenticated());
                 conn.advance_parse(consumed);
                 if (container_reply) {
                     finish_prebuilt(c, *op);
@@ -3377,8 +3378,8 @@ private:
             if ((spec->flags & CmdFlags::SubcmdRoute) &&
                 command_reply_container_subcommand_arity(*op, *spec)) {
                 // A known child has its own generated arity and Redis checks that before ACL and
-                // MULTI. Unknown children deliberately continue: on an unauthenticated connection
-                // XGROUP x is parent-arity-valid and must reach NOAUTH.
+                // MULTI. Unknown children continue to the cold AUTH/ACL hook or container
+                // handler, where lookup errors precede authentication checks.
                 conn.advance_parse(consumed);
                 finish_prebuilt(c, *op);
                 continue;
@@ -4927,6 +4928,11 @@ ordinary_shard_ready:
         connreset::note(*c, self_->id(), "fd_release", site);
 #endif
         ::close(c->fd());
+        // At this fence the socket is gone and all recv/send/poll references
+        // have drained. Count live TLS connections here, independently of the
+        // extra iteration retaining Client for late executor inbox messages.
+        // reap_dead's idempotent release remains the cleanup fallback.
+        release_tls(c);
         srv_->client_released();
         srv_->lb_forget_client(c->id());
         // NOT delete. An ex-side claimed post may still sit un-consumed in our inbound channels

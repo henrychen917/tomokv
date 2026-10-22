@@ -94,7 +94,7 @@ void cmd_set_prebuilt(Shard& sh, Op& op) {
     int64_t expire = options.expire_at_ms;
     const bool reserve = options.keep_ttl && old && old->has_ttl_slot();
     if (options.keep_ttl && old) expire = sh.store().deadline(op.hash, old);
-    if (expire >= 0 && expire <= sh.now_ms()) {
+    if (expire >= 0 && expire < sh.now_ms()) {  // elapsed only: Redis serves at now == at
         if (old) sh.store_erase<notify>(op.hash, op.key());
         else if constexpr (notify)
             notify_record(sh, op, NOTIFY_GENERIC, NotifyEventId::Del, op.key());

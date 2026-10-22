@@ -280,8 +280,11 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
 '''
         with tempfile.TemporaryDirectory(dir=root / 'build') as tmp:
             for label, context in cases:
-                for basis, limit, expected in (('own-row-history', 456, 900), ('fixture', 1800, 1800)):
+                for basis, limit, expected in (('own-row-history', 456, 900), ('fixture', 1800, 1800),
+                                               ('no-history-conservative-default', 900, 900)):
                     with self.subTest(label=label, context=context, basis=basis):
+                        if label == 'ABBA comparison + saturation negative controls':
+                            expected = 1200
                         plan = dict(schema=1, defaults=dict(fallback_seconds=900), rows={label: dict(
                             timeout_seconds=limit, median_seconds=114, basis=basis)})
                         (Path(tmp) / 'plan.json').write_text(json.dumps(plan))
@@ -290,6 +293,9 @@ row_begin "$FIXTURE_LABEL" "$FIXTURE_CONTEXT"
                             text=True, capture_output=True, timeout=5)
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                         self.assertIn(f'WATCH\t{expected}\t', result.stdout)
+                        if label == 'ABBA comparison + saturation negative controls':
+                            self.assertIn('WATCH\t1200\tabba-selftest-cx-compat2-851.44s-plus-40pct-rounded',
+                                          result.stdout)
 
 
 class LedgerWiring(unittest.TestCase):
@@ -385,8 +391,9 @@ say(){ :; }
                            text=True, capture_output=True, check=True, timeout=10)
             if kind == 'feature':
                 helpers = list(self.instrument_helpers)
-                if abba_rc:
-                    helpers = helpers[:helpers.index(abba_helper) + 1] if abba_helper else helpers[:1]
+                # Every independent control must run, including after a failure.
+                # The callers still require the aggregate row to fail for every
+                # nonzero helper result; later successes cannot erase it.
                 self.assertEqual((Path(directory) / 'controls').read_text().splitlines(), helpers)
             if kind == 'performance':
                 argv = (Path(directory) / 'argv').read_bytes().decode().rstrip('\0').split('\0')
@@ -1125,6 +1132,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
             arrays = '\n'.join([
                 f'GATE_SLOTS={count}',
+                f'ALL_BUILD_CORES={cpu_list}',
                 'CANONICAL=(' + ' '.join(map(shlex.quote, canonical)) + ')',
                 'COMPLETION_ORDER=(' + ' '.join(map(shlex.quote, order)) + ')',
                 'SLOT_CORES=(' + ' '.join(slot_cpus) + ')',

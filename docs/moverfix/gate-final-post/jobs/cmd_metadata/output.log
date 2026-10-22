@@ -1,0 +1,2 @@
+  row budget: 900s; median=0.07s; correctness-plan-fallback; cmdmeta covers every registered command
+  cmdmeta covers every registered command              ok

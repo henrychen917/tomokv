@@ -1,0 +1,32 @@
+{
+  "note": "Compile-only counterfactual: incoming notify.inc before f026db036; never executed or delivered.",
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=127713",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "build/wave4d/trials/notify-attribution/src/cmd/xshard.cc",
+    "-o",
+    "build/wave4d/trials/notify-attribution/db0xshard.o",
+    "-fmacro-prefix-map=build/wave4d/trials/notify-attribution/=",
+    "-fdebug-prefix-map=build/wave4d/trials/notify-attribution/=",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "build/wave4d/trials/notify-attribution/db0xshard.o"
+  ],
+  "execute_symbol": "000000000004a4d0 0000000000005a78 T tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+  "mutex_callgraph": "_ZNSt5mutex4lockEv/102 (void std::mutex::lock())\n  Type: function definition analyzed\n  Visibility: semantic_interposition public weak comdat comdat_group:_ZNSt5mutex4lockEv one_only visibility_specified\n  previous sharing asm name: 41353\n  References: \n  Referring: \n  Function void std::mutex::lock()/102 is inline copy in tomo_db0::ScatterTaskResult tomo_db0::xshard_execute(const Task&, Shard&, Op&, uint32_t)/8406\n  Availability: available\n  Function flags: count:324152 (estimated locally) body\n  Called by: _ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj/8406 (inlined) (324152 (estimated locally),0.00 per call) \n  Calls: _ZSt20__throw_system_errori/26152 (130 (estimated locally),0.00 per call) (can throw external) pthread_mutex_lock/26153 (324152 (estimated locally),0.00 per call) "
+}

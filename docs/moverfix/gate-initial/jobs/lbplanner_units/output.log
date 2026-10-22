@@ -1,0 +1,4 @@
+  row budget: 900s; median=-s; no-history-conservative-default; LB sampler exceptional cleanup + negative control
+  LB sampler exceptional cleanup + negative control    ok
+  row budget: 900s; median=-s; no-history-conservative-default; LB monitor plan handoff + negative controls
+  LB monitor plan handoff + negative controls          ok

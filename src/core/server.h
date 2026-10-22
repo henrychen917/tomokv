@@ -556,7 +556,10 @@ public:
         lb_client_owner_weight_[owner].store(
             static_cast<uint64_t>(total * 1024.0 + 0.5), std::memory_order_release);
     }
-    void lb_forget_client(uint64_t id) {
+    // Connection teardown only. Keep its mutex/erase work out of callers' inline
+    // budgets: sharing this tail with notification code otherwise outlines the
+    // unrelated SWAPDB lock and changes the atomic MGET scatter body's layout.
+    [[gnu::noinline]] void lb_forget_client(uint64_t id) {
         if (!client_lb_signals_enabled()) return;
         std::lock_guard<std::mutex> lock(lb_signal_mu_);
         lb_clients_.erase(id);

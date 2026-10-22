@@ -1,0 +1,56 @@
+[
+  {
+    "namespace": "normal",
+    "argv": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=128042",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-moverfix/build/moverfix2/trials/pre-normal.o",
+      "-fdump-ipa-inline-details",
+      "-dumpbase",
+      "/home/user/Projects/cx-moverfix/build/moverfix2/trials/pre-normal"
+    ]
+  },
+  {
+    "namespace": "db0",
+    "argv": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "--param",
+      "inline-unit-growth=0",
+      "--param",
+      "large-unit-insns=126710",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-c",
+      "src/cmd/xshard.cc",
+      "-o",
+      "/home/user/Projects/cx-moverfix/build/moverfix2/trials/pre-db0.o",
+      "-fdump-ipa-inline-details",
+      "-dumpbase",
+      "/home/user/Projects/cx-moverfix/build/moverfix2/trials/pre-db0"
+    ]
+  }
+]

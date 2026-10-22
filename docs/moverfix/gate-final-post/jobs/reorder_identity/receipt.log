@@ -1,0 +1,12 @@
+normalizer self-checks PASS
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-moverfix/tests/r7shadow_noop.py", line 154, in <module>
+    assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: off-path inventory changed: Counter({'tomo_db0': 146, 'tomo': 145}), expected {'tomo': 146, 'tomo_db0': 146}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-moverfix/tests/reorder_receipt.py", line 83, in <module>
+    subprocess.run([sys.executable, str(Path(__file__).with_name('r7shadow_noop.py')),
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/usr/bin/python3', '/home/user/Projects/cx-moverfix/tests/r7shadow_noop.py', '/home/user/Projects/cx-moverfix/build/gate-run.RuvqTT/jobs/reorder_identity/receipt/fifo-twin', '/home/user/Projects/cx-moverfix/build/tomokv', '/home/user/Projects/cx-moverfix/build/gate-run.RuvqTT/jobs/reorder_identity/receipt/identity', '--inventory', 'overlapaxe']' returned non-zero exit status 1.

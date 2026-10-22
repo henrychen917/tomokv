@@ -1,0 +1,73 @@
+{
+  "subset": "smoke",
+  "count": 18,
+  "ids": [
+    "t00",
+    "h01",
+    "h07",
+    "h11",
+    "h15",
+    "h17",
+    "h23",
+    "h27",
+    "h31",
+    "h48",
+    "m47",
+    "m92",
+    "t01",
+    "t02",
+    "t03",
+    "t04",
+    "t05",
+    "t06"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "MGET",
+    "MSET",
+    "REORDER",
+    "SET"
+  ],
+  "commands": [
+    "BITCOUNT",
+    "GET",
+    "MGET",
+    "MSET",
+    "SET"
+  ],
+  "depths": [
+    1,
+    8,
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "latency_ms",
+    "p999_ms",
+    "rate"
+  ],
+  "pending_pins": [
+    "h01",
+    "h07",
+    "h11",
+    "h15",
+    "h17",
+    "h23",
+    "h27",
+    "h31",
+    "m47",
+    "m92"
+  ]
+}

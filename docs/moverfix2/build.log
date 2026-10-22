@@ -1,0 +1,44 @@
+make: Nothing to be done for 'all'.
+make: 'build/moverfix-unit' is up to date.
+make: 'build/moverfix-db0-unit' is up to date.
+make: 'build/publishfix-unit' is up to date.
+make: 'build/at15-unit' is up to date.
+make: 'build/at15-db0-unit' is up to date.
+make: 'build/execabort-watch-unit' is up to date.
+make: 'build/execabort-watch-db0-unit' is up to date.
+make: 'build/core-concurrency-unit' is up to date.
+make: 'build/atomic-survivors-unit' is up to date.
+make: 'build/netcmd-unit' is up to date.
+make: 'build/encodingfix-unit' is up to date.
+make: 'build/netcap-unit' is up to date.
+make: 'build/waits-unit' is up to date.
+make: 'build/rehash-waits-unit' is up to date.
+make: 'build/multidb-unit' is up to date.
+make: 'build/multidb-boundary-unit' is up to date.
+make: 'build/storesize-unit' is up to date.
+make: 'build/respresume-unit' is up to date.
+make: 'build/respresume-migration' is up to date.
+make: 'build/exbatch-unit' is up to date.
+make: 'build/exbatch-db0-unit' is up to date.
+make: 'build/wb-rule-units' is up to date.
+make: 'build/wbland-units' is up to date.
+make: 'build/rltopo-unit' is up to date.
+make: 'build/lbplanner-units' is up to date.
+make: 'build/shutdown-unit' is up to date.
+make: 'build/persistfix-units' is up to date.
+make: 'build/ktls-keyupdate' is up to date.
+make: 'build/ktls-keyupdate-unit' is up to date.
+make: 'build/flushfix-units' is up to date.
+make: 'build/splitlocal-unit' is up to date.
+make: 'build/reorder-engagement-unit' is up to date.
+make: 'build/reorder-engagement-unit-db0' is up to date.
+make: 'build/racefix-climon' is up to date.
+make: 'build/aoforder-scheduled' is up to date.
+make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all
+make[1]: Entering directory '/home/user/Projects/cx-moverfix'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/user/Projects/cx-moverfix'
+make BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all
+make[1]: Entering directory '/home/user/Projects/cx-moverfix'
+make[1]: Nothing to be done for 'all'.
+make[1]: Leaving directory '/home/user/Projects/cx-moverfix'

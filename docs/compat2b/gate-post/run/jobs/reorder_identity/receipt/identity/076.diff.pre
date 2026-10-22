@@ -1,0 +1,84 @@
+0000 [ 4] endbr64 | f3 0f 1e fa
+0004 [ 3] mov %rdi,%r8 | 49 89 f8
+0007 [ 2] test %edx,%edx | 85 d2
+0009 [ 2] je <+0x6f> | 74 64
+000b [ 2] mov %edx,%edx | 89 d2
+000d [ 4] shl $0x5,%rdx | 48 c1 e2 05
+0011 [ 4] lea (%rsi,%rdx,1),%rdi | 48 8d 3c 16
+0015 [ 2] jmp <+0x30> | eb 19
+0017 [ 9] nopw 0x0(%rax,%rax,1) | 66 0f 1f 84 00 00 00 00 00
+0020 [ 5] cmpq $0x0,0x18(%rsi) | 48 83 7e 18 00
+0025 [ 2] je <+0x70> | 74 49
+0027 [ 4] add $0x20,%rsi | 48 83 c6 20
+002b [ 3] cmp %rsi,%rdi | 48 39 f7
+002e [ 2] je <+0x6f> | 74 3f
+0030 [ 3] mov (%rsi),%rcx | 48 8b 0e
+0033 [ 3] test %rcx,%rcx | 48 85 c9
+0036 [ 2] je <+0x27> | 74 ef
+0038 [ 4] mov 0x8(%rsi),%rax | 48 8b 46 08
+003c [ 2] mov %eax,%edx | 89 c2
+003e [ 3] and $0x7,%eax | 83 e0 07
+0041 [ 3] shr $0x3,%edx | c1 ea 03
+0044 [ 3] and $0x7,%edx | 83 e2 07
+0047 [ 7] imul $0x150,%rax,%rax | 48 69 c0 50 01 00 00
+004e [ 8] add 0x80(%rcx,%rdx,8),%rax | 48 03 84 d1 80 00 00 00
+0056 [ 4] movslq 0x10(%rsi),%rdx | 48 63 56 10
+005a [ 2] test %edx,%edx | 85 d2
+005c [ 2] jns <+0x20> | 79 c2
+005e [ 4] movslq 0x8(%rax),%rdx | 48 63 50 08
+0062 [ 2] test %edx,%edx | 85 d2
+0064 [ 2] jns <+0x20> | 79 ba
+0066 [ 4] add $0x20,%rsi | 48 83 c6 20
+006a [ 3] cmp %rsi,%rdi | 48 39 f7
+006d [ 2] jne <+0x30> | 75 c1
+006f [ 1] ret | c3
+0070 [ 3] mov (%r8),%rcx | 49 8b 08
+0073 [ 7] lea 0x440e(%rdx),%r9 | 4c 8d 8a 0e 44 00 00
+007a [ 4] mov (%rcx,%r9,4),%ecx | 42 8b 0c 89
+007e [ 4] mov 0x8(%r8),%r9 | 4d 8b 48 08
+0082 [ 3] cmp %ecx,(%r9) | 41 39 09
+0085 [ 2] jne <+0x27> | 75 a0
+0087 [ 3] mov (%rax),%rcx | 48 8b 08
+008a [ 4] testb $0x60,0x10(%rcx) | f6 41 10 60
+008e [ 2] jne <+0x27> | 75 97
+0090 [ 3] mov (%r8),%rcx | 49 8b 08
+0093 [ 7] mov 0x10350(%rcx),%rcx | 48 8b 89 50 03 01 00
+009a [ 4] mov (%rcx,%rdx,8),%rdx | 48 8b 14 d1
+009e [ 4] mov 0x10(%rax),%rcx | 48 8b 48 10
+00a2 [ 7] mov 0x108(%rdx),%r9 | 4c 8b 8a 08 01 00 00
+00a9 [ 3] test %r9,%r9 | 4d 85 c9
+00ac [ 2] je <+0xf3> | 74 45
+00ae [ 3] mov %rcx,%rax | 48 89 c8
+00b1 [10] movabs $0xff51afd7ed558ccd,%r10 | 49 ba cd 8c 55 ed d7 af 51 ff
+00bb [ 4] shr $0x21,%rax | 48 c1 e8 21
+00bf [ 3] xor %rcx,%rax | 48 31 c8
+00c2 [ 4] imul %r10,%rax | 49 0f af c2
+00c6 [ 3] mov %rax,%r10 | 49 89 c2
+00c9 [ 4] shr $0x21,%r10 | 49 c1 ea 21
+00cd [ 3] xor %r10,%rax | 4c 31 d0
+00d0 [10] movabs $0xc4ceb9fe1a85ec53,%r10 | 49 ba 53 ec 85 1a fe b9 ce c4
+00da [ 4] imul %r10,%rax | 49 0f af c2
+00de [ 3] mov %rax,%r10 | 49 89 c2
+00e1 [ 4] shr $0x21,%r10 | 49 c1 ea 21
+00e5 [ 3] xor %r10,%rax | 4c 31 d0
+00e8 [ 6] and 0x120(%rdx),%eax | 23 82 20 01 00 00
+00ee [ 5] prefetcht0 (%r9,%rax,8) | 41 0f 18 0c c1
+00f3 [ 7] mov 0x110(%rdx),%r9 | 4c 8b 8a 10 01 00 00
+00fa [ 3] test %r9,%r9 | 4d 85 c9
+00fd [ 6] je <+0x27> | 0f 84 24 ff ff ff
+0103 [ 3] mov %rcx,%rax | 48 89 c8
+0106 [ 4] shr $0x21,%rax | 48 c1 e8 21
+010a [ 3] xor %rcx,%rax | 48 31 c8
+010d [10] movabs $0xff51afd7ed558ccd,%rcx | 48 b9 cd 8c 55 ed d7 af 51 ff
+0117 [ 4] imul %rcx,%rax | 48 0f af c1
+011b [ 3] mov %rax,%rcx | 48 89 c1
+011e [ 4] shr $0x21,%rcx | 48 c1 e9 21
+0122 [ 3] xor %rcx,%rax | 48 31 c8
+0125 [10] movabs $0xc4ceb9fe1a85ec53,%rcx | 48 b9 53 ec 85 1a fe b9 ce c4
+012f [ 4] imul %rcx,%rax | 48 0f af c1
+0133 [ 3] mov %rax,%rcx | 48 89 c1
+0136 [ 4] shr $0x21,%rcx | 48 c1 e9 21
+013a [ 3] xor %rcx,%rax | 48 31 c8
+013d [ 6] and 0x124(%rdx),%eax | 23 82 24 01 00 00
+0143 [ 5] prefetcht0 (%r9,%rax,8) | 41 0f 18 0c c1
+0148 [ 5] jmp <+0x27> | e9 da fe ff ff

@@ -1,0 +1,283 @@
+make: Entering directory '/home/user/Projects/cx-moverfix/build/gate-run.ahbrts/jobs/splitlocal_units/splitlocal-controls/old-forwarding'
+g++ -std=c++20 -O2 -Wall -Wextra unit.cc -o unit
+unit.cc:35:37: error: static assertion failed: fifo: flush_ready preserves SplitLocal and prebuild policy
+   35 | static_assert(flush_ready<true,true>(), "fifo: flush_ready preserves SplitLocal and prebuild policy");
+      |               ~~~~~~~~~~~~~~~~~~~~~~^~
+unit.cc: In instantiation of ‘consteval bool r7::flush_ready() [with bool Fused = false; bool SplitLocal = false]’:
+unit.cc:84:39:   required from here
+unit.cc:68:70: error: no matching function for call to ‘r7_parse_and_dispatch<true, 0>(void*&)’
+   67 | const Policy sites[] = {r7_parse_and_dispatch<
+      |                         ~~~~~~~~~~~~~~~~~~~~~~                        
+   68 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:68:70: note:   couldn’t deduce template parameter ‘SplitLocal’
+   67 | const Policy sites[] = {r7_parse_and_dispatch<
+      |                         ~~~~~~~~~~~~~~~~~~~~~~                        
+   68 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:70:71: error: no matching function for call to ‘r7_parse_and_dispatch<false, 0>(void*&)’
+   69 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   70 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:70:71: note:   couldn’t deduce template parameter ‘SplitLocal’
+   69 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   70 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:72:67: error: no matching function for call to ‘r7_parse_and_dispatch<false, 0>(void*&)’
+   71 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   72 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:72:67: note:   couldn’t deduce template parameter ‘SplitLocal’
+   71 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   72 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:74:70: error: no matching function for call to ‘r7_parse_and_dispatch<true, 0>(void*&)’
+   73 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                
+   74 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:74:70: note:   couldn’t deduce template parameter ‘SplitLocal’
+   73 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                
+   74 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:76:71: error: no matching function for call to ‘r7_parse_and_dispatch<false, 0>(void*&)’
+   75 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   76 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:76:71: note:   couldn’t deduce template parameter ‘SplitLocal’
+   75 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   76 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:78:67: error: no matching function for call to ‘r7_parse_and_dispatch<false, 0>(void*&)’
+   77 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   78 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c)};
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:78:67: note:   couldn’t deduce template parameter ‘SplitLocal’
+   77 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   78 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c)};
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:84:39: error: ‘consteval bool r7::flush_ready() [with bool Fused = false; bool SplitLocal = false]’ called in a constant expression
+   84 | static_assert(flush_ready<false,false>(), "r7: flush_ready preserves SplitLocal and prebuild policy");
+      |               ~~~~~~~~~~~~~~~~~~~~~~~~^~
+unit.cc:64:54: note: ‘consteval bool r7::flush_ready() [with bool Fused = false; bool SplitLocal = false]’ is not usable as a ‘constexpr’ function because:
+   64 | template<bool Fused, bool SplitLocal> consteval bool flush_ready() {
+      |                                                      ^~~~~~~~~~~
+unit.cc: In instantiation of ‘consteval bool r7::flush_ready() [with bool Fused = true; bool SplitLocal = false]’:
+unit.cc:85:38:   required from here
+unit.cc:68:70: error: no matching function for call to ‘r7_parse_and_dispatch<true, 32>(void*&)’
+   67 | const Policy sites[] = {r7_parse_and_dispatch<
+      |                         ~~~~~~~~~~~~~~~~~~~~~~                        
+   68 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:68:70: note:   couldn’t deduce template parameter ‘SplitLocal’
+   67 | const Policy sites[] = {r7_parse_and_dispatch<
+      |                         ~~~~~~~~~~~~~~~~~~~~~~                        
+   68 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:70:71: error: no matching function for call to ‘r7_parse_and_dispatch<false, 32>(void*&)’
+   69 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   70 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:70:71: note:   couldn’t deduce template parameter ‘SplitLocal’
+   69 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   70 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:72:67: error: no matching function for call to ‘r7_parse_and_dispatch<false, 32>(void*&)’
+   71 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   72 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:72:67: note:   couldn’t deduce template parameter ‘SplitLocal’
+   71 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   72 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:74:70: error: no matching function for call to ‘r7_parse_and_dispatch<true, 32>(void*&)’
+   73 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                
+   74 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:74:70: note:   couldn’t deduce template parameter ‘SplitLocal’
+   73 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                
+   74 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:76:71: error: no matching function for call to ‘r7_parse_and_dispatch<false, 32>(void*&)’
+   75 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   76 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:76:71: note:   couldn’t deduce template parameter ‘SplitLocal’
+   75 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   76 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:78:67: error: no matching function for call to ‘r7_parse_and_dispatch<false, 32>(void*&)’
+   77 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   78 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c)};
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:78:67: note:   couldn’t deduce template parameter ‘SplitLocal’
+   77 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   78 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c)};
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:85:38: error: ‘consteval bool r7::flush_ready() [with bool Fused = true; bool SplitLocal = false]’ called in a constant expression
+   85 | static_assert(flush_ready<true,false>(), "r7: flush_ready preserves SplitLocal and prebuild policy");
+      |               ~~~~~~~~~~~~~~~~~~~~~~~^~
+unit.cc:64:54: note: ‘consteval bool r7::flush_ready() [with bool Fused = true; bool SplitLocal = false]’ is not usable as a ‘constexpr’ function because:
+   64 | template<bool Fused, bool SplitLocal> consteval bool flush_ready() {
+      |                                                      ^~~~~~~~~~~
+unit.cc: In instantiation of ‘consteval bool r7::flush_ready() [with bool Fused = true; bool SplitLocal = true]’:
+unit.cc:86:37:   required from here
+unit.cc:68:70: error: no matching function for call to ‘r7_parse_and_dispatch<true, 32>(void*&)’
+   67 | const Policy sites[] = {r7_parse_and_dispatch<
+      |                         ~~~~~~~~~~~~~~~~~~~~~~                        
+   68 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:68:70: note:   couldn’t deduce template parameter ‘SplitLocal’
+   67 | const Policy sites[] = {r7_parse_and_dispatch<
+      |                         ~~~~~~~~~~~~~~~~~~~~~~                        
+   68 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:70:71: error: no matching function for call to ‘r7_parse_and_dispatch<false, 32>(void*&)’
+   69 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   70 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:70:71: note:   couldn’t deduce template parameter ‘SplitLocal’
+   69 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   70 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:72:67: error: no matching function for call to ‘r7_parse_and_dispatch<false, 32>(void*&)’
+   71 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   72 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:72:67: note:   couldn’t deduce template parameter ‘SplitLocal’
+   71 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   72 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:74:70: error: no matching function for call to ‘r7_parse_and_dispatch<true, 32>(void*&)’
+   73 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                
+   74 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:74:70: note:   couldn’t deduce template parameter ‘SplitLocal’
+   73 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                
+   74 |                             true, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:76:71: error: no matching function for call to ‘r7_parse_and_dispatch<false, 32>(void*&)’
+   75 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   76 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:76:71: note:   couldn’t deduce template parameter ‘SplitLocal’
+   75 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                                 
+   76 |                             false, Fused ? kGenthreadIfidBatchOps : 0>(c),
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:78:67: error: no matching function for call to ‘r7_parse_and_dispatch<false, 32>(void*&)’
+   77 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   78 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c)};
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:59:18: note: candidate: ‘template<bool NoBorrow, unsigned int BatchOps, bool SplitLocal> constexpr Policy r7::r7_parse_and_dispatch(void*)’
+   59 | constexpr Policy r7_parse_and_dispatch(void*) {
+      |                  ^~~~~~~~~~~~~~~~~~~~~
+unit.cc:59:18: note:   template argument deduction/substitution failed:
+unit.cc:78:67: note:   couldn’t deduce template parameter ‘SplitLocal’
+   77 | r7_parse_and_dispatch<
+      | ~~~~~~~~~~~~~~~~~~~~~~                                             
+   78 |                         false, Fused ? kGenthreadIfidBatchOps : 0>(c)};
+      |                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+unit.cc:86:37: error: ‘consteval bool r7::flush_ready() [with bool Fused = true; bool SplitLocal = true]’ called in a constant expression
+   86 | static_assert(flush_ready<true,true>(), "r7: flush_ready preserves SplitLocal and prebuild policy");
+      |               ~~~~~~~~~~~~~~~~~~~~~~^~
+unit.cc:64:54: note: ‘consteval bool r7::flush_ready() [with bool Fused = true; bool SplitLocal = true]’ is not usable as a ‘constexpr’ function because:
+   64 | template<bool Fused, bool SplitLocal> consteval bool flush_ready() {
+      |                                                      ^~~~~~~~~~~
+make: *** [Makefile:2: unit] Error 1
+make: Leaving directory '/home/user/Projects/cx-moverfix/build/gate-run.ahbrts/jobs/splitlocal_units/splitlocal-controls/old-forwarding'

@@ -675,10 +675,14 @@ void acl_reply_denied(Client& client, Op& op, uint32_t user_index, AclDeniedReas
     acl_log_denial(thread, client, reason, context, object, username);
     if (reason == AclDeniedReason::Command) {
         signals.acl_access_denied_cmd++;
-        std::string message = "NOPERM User ";
+        std::string message = op.cmd_name().eq_icase("exec")
+            ? "EXECABORT Transaction discarded because of: NOPERM User " : "NOPERM User ";
         message += username_text;
         message += " has no permissions to run the '";
-        message += acl_lower(op.cmd_name());
+        if (const auto* metadata = command_metadata_resolve(op, 0)) {
+            const Slice name = command_metadata_name(*metadata);
+            message.append(name.p, name.n);
+        } else message += acl_lower(op.cmd_name());
         message += "' command";
         reply_err(op.sink(), message.c_str());
     } else if (reason == AclDeniedReason::Key) {
@@ -1241,6 +1245,14 @@ bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
     const bool unauthenticated = (security_flags & Server::kSecurityAuth) &&
                                  !client.authenticated();
     const bool acl_active = (security_flags & Server::kSecurityAcl) != 0;
+    if (auth_arity_reply(op, *op.spec, unauthenticated)) {
+        multi_mark_queue_error(client);
+        client.advance_parse(consumed);
+        loop.self_->note_command_rejected(op.spec->id);
+        loop.flip_fingerprint_note(*op.spec, op);
+        loop.finish_prebuilt(&client, op);
+        return true;
+    }
     if (unauthenticated && auth_dispatch_entry(loop, client, op, consumed)) {
         return true;
     }
@@ -1320,6 +1332,7 @@ static constexpr SubcommandArity kAclSubcommands[] = {
 };
 
 void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
+    if (auth_arity_reply(op, *op.spec, false)) return;
     if (!command_validate_subcommand(op, "ACL", kAclSubcommands,
                                      sizeof(kAclSubcommands) / sizeof(kAclSubcommands[0]))) return;
     const Slice sub = op.arg(1);

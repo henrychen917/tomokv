@@ -1,0 +1,1388 @@
+{
+  "files": [
+    {
+      "file": "/home/user/Projects/redis/src/bitops.c",
+      "baseline_sha256": "24d8ac2a7e1f0d441057cb5070dcdca5fadb346d64f2bd9e9e883e7d0690c1fd",
+      "worktree_sha256": "24d8ac2a7e1f0d441057cb5070dcdca5fadb346d64f2bd9e9e883e7d0690c1fd",
+      "unchanged": true,
+      "anchors": [
+        [
+          532,
+          549
+        ],
+        [
+          623,
+          768
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/blocked.c",
+      "baseline_sha256": "37db99d382947213e32a1c892bc035a01839db6370b98fb9c637f214de9c7d82",
+      "worktree_sha256": "37db99d382947213e32a1c892bc035a01839db6370b98fb9c637f214de9c7d82",
+      "unchanged": true,
+      "anchors": [
+        [
+          589,
+          589
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/cluster.c",
+      "baseline_sha256": "c4ee3a68720d5611a6c76e8b316243be970c5efc843f8fe4935cb6bb3275b0c9",
+      "worktree_sha256": "c4ee3a68720d5611a6c76e8b316243be970c5efc843f8fe4935cb6bb3275b0c9",
+      "unchanged": true,
+      "anchors": [
+        [
+          137,
+          137
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/db.c",
+      "baseline_sha256": "eee5b6618aebea4e45157556fbf7c1a4a33dcea58ca4f440fe0a0e4da99c5561",
+      "worktree_sha256": "eee5b6618aebea4e45157556fbf7c1a4a33dcea58ca4f440fe0a0e4da99c5561",
+      "unchanged": true,
+      "anchors": [
+        [
+          94,
+          94
+        ],
+        [
+          119,
+          120
+        ],
+        [
+          193,
+          193
+        ],
+        [
+          318,
+          321
+        ],
+        [
+          362,
+          362
+        ],
+        [
+          798,
+          808
+        ],
+        [
+          800,
+          800
+        ],
+        [
+          830,
+          830
+        ],
+        [
+          884,
+          896
+        ],
+        [
+          892,
+          892
+        ],
+        [
+          1291,
+          1291
+        ],
+        [
+          1413,
+          1413
+        ],
+        [
+          1423,
+          1423
+        ],
+        [
+          1433,
+          1452
+        ],
+        [
+          1500,
+          1500
+        ],
+        [
+          1508,
+          1508
+        ],
+        [
+          1593,
+          1593
+        ],
+        [
+          1602,
+          1602
+        ],
+        [
+          1877,
+          1877
+        ],
+        [
+          1883,
+          1883
+        ],
+        [
+          1884,
+          1884
+        ],
+        [
+          1974,
+          2016
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/expire.c",
+      "baseline_sha256": "b50f498a97c08c7428cd9852670490bff31eccd57dcce29897a05cd900457e0a",
+      "worktree_sha256": "b50f498a97c08c7428cd9852670490bff31eccd57dcce29897a05cd900457e0a",
+      "unchanged": true,
+      "anchors": [
+        [
+          666,
+          666
+        ],
+        [
+          777,
+          777
+        ],
+        [
+          836,
+          836
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/geo.c",
+      "baseline_sha256": "50d673710ca403ba8f9b1510a2d9bbb091937043751b1fae94cb364a845e7d83",
+      "worktree_sha256": "50d673710ca403ba8f9b1510a2d9bbb091937043751b1fae94cb364a845e7d83",
+      "unchanged": true,
+      "anchors": [
+        [
+          528,
+          838
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/hyperloglog.c",
+      "baseline_sha256": "96125a1c9069a09cd837986f8a3940af868bdeaf32ddcfe8d126568ac503fcaf",
+      "worktree_sha256": "96125a1c9069a09cd837986f8a3940af868bdeaf32ddcfe8d126568ac503fcaf",
+      "unchanged": true,
+      "anchors": [
+        [
+          1209,
+          1241
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/multi.c",
+      "baseline_sha256": "2a757271b29cb70322ed831f0199180f7704f36b6dfc9043a0df3202d8b7f63c",
+      "worktree_sha256": "2a757271b29cb70322ed831f0199180f7704f36b6dfc9043a0df3202d8b7f63c",
+      "unchanged": true,
+      "anchors": [
+        [
+          139,
+          141
+        ],
+        [
+          175,
+          213
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/networking.c",
+      "baseline_sha256": "0ed207f003c35589f97e6375bcf589c5fb22a1f905b3c2e9ec6a08d67984893c",
+      "worktree_sha256": "0ed207f003c35589f97e6375bcf589c5fb22a1f905b3c2e9ec6a08d67984893c",
+      "unchanged": true,
+      "anchors": [
+        [
+          373,
+          373
+        ],
+        [
+          408,
+          416
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/notify.c",
+      "baseline_sha256": "e3f079fb6338e6f20fc2a4825d4f9870b7799693f1eeaa0702296491cece497a",
+      "worktree_sha256": "e3f079fb6338e6f20fc2a4825d4f9870b7799693f1eeaa0702296491cece497a",
+      "unchanged": true,
+      "anchors": [
+        [
+          85,
+          140
+        ],
+        [
+          101,
+          122
+        ],
+        [
+          108,
+          108
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/object.c",
+      "baseline_sha256": "b30c5f2292e7d4538c5b18ae2d2090eae5d58e3f9bff52724da893e39dcbe45c",
+      "worktree_sha256": "b30c5f2292e7d4538c5b18ae2d2090eae5d58e3f9bff52724da893e39dcbe45c",
+      "unchanged": true,
+      "anchors": [
+        [
+          1425,
+          1440
+        ],
+        [
+          1430,
+          1431
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/pubsub.c",
+      "baseline_sha256": "ae0a743666170863f8e59a88200621e2bbf0d92595dd46b2a0ac13743c497c77",
+      "worktree_sha256": "ae0a743666170863f8e59a88200621e2bbf0d92595dd46b2a0ac13743c497c77",
+      "unchanged": true,
+      "anchors": [
+        [
+          453,
+          502
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/script.c",
+      "baseline_sha256": "6ec9e4ca368180bee6f7abc9f3137b5dca864d84048e6a7a3c375a5582e0fcfd",
+      "worktree_sha256": "6ec9e4ca368180bee6f7abc9f3137b5dca864d84048e6a7a3c375a5582e0fcfd",
+      "unchanged": true,
+      "anchors": [
+        [
+          628,
+          628
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/server.c",
+      "baseline_sha256": "9d1f0f0bdc25ed6ebb2efcfce50bd4e678301567507ac6d6c67f1d85e0e6c58e",
+      "worktree_sha256": "9d1f0f0bdc25ed6ebb2efcfce50bd4e678301567507ac6d6c67f1d85e0e6c58e",
+      "unchanged": true,
+      "anchors": [
+        [
+          221,
+          236
+        ],
+        [
+          1145,
+          1154
+        ],
+        [
+          3798,
+          3801
+        ],
+        [
+          4198,
+          4200
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/sort.c",
+      "baseline_sha256": "c74f18d5bd934ad34187f0e2508917e96fa95248838e343d6217ada39afb78e4",
+      "worktree_sha256": "c74f18d5bd934ad34187f0e2508917e96fa95248838e343d6217ada39afb78e4",
+      "unchanged": true,
+      "anchors": [
+        [
+          279,
+          586
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/t_hash.c",
+      "baseline_sha256": "68102b3d0a9757bc5a6ee7f4d8609399e5871f90027a0e43db9ddaaafa698e09",
+      "worktree_sha256": "68102b3d0a9757bc5a6ee7f4d8609399e5871f90027a0e43db9ddaaafa698e09",
+      "unchanged": true,
+      "anchors": [
+        [
+          713,
+          782
+        ],
+        [
+          770,
+          782
+        ],
+        [
+          2172,
+          2188
+        ],
+        [
+          2343,
+          2343
+        ],
+        [
+          2357,
+          2409
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/t_list.c",
+      "baseline_sha256": "6e108ff0d1e13caf65ce08cd58a7535c561006b2ca8ed0eff24d0c867b131d1f",
+      "worktree_sha256": "6e108ff0d1e13caf65ce08cd58a7535c561006b2ca8ed0eff24d0c867b131d1f",
+      "unchanged": true,
+      "anchors": [
+        [
+          467,
+          489
+        ],
+        [
+          863,
+          863
+        ],
+        [
+          1079,
+          1135
+        ],
+        [
+          1120,
+          1120
+        ],
+        [
+          1128,
+          1128
+        ],
+        [
+          1134,
+          1135
+        ],
+        [
+          1200,
+          1250
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/t_set.c",
+      "baseline_sha256": "ab63519961480da1deb156e415f80e8f93cf2fbc6dad9d26c19f0395bdae8b02",
+      "worktree_sha256": "ab63519961480da1deb156e415f80e8f93cf2fbc6dad9d26c19f0395bdae8b02",
+      "unchanged": true,
+      "anchors": [
+        [
+          587,
+          602
+        ],
+        [
+          638,
+          639
+        ],
+        [
+          1269,
+          1269
+        ],
+        [
+          1269,
+          1408
+        ],
+        [
+          1288,
+          1290
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/t_stream.c",
+      "baseline_sha256": "a89ceca65dd20f778dac06e980b02f73649ba5c1327205feea595348af24cf8a",
+      "worktree_sha256": "a89ceca65dd20f778dac06e980b02f73649ba5c1327205feea595348af24cf8a",
+      "unchanged": true,
+      "anchors": [
+        [
+          2026,
+          2053
+        ],
+        [
+          2136,
+          2136
+        ],
+        [
+          2260,
+          2260
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/t_string.c",
+      "baseline_sha256": "8b8b497aa70b7179d15b08063080405cd6157fc1b53d3494731772ff1cae6c51",
+      "worktree_sha256": "8b8b497aa70b7179d15b08063080405cd6157fc1b53d3494731772ff1cae6c51",
+      "unchanged": true,
+      "anchors": [
+        [
+          73,
+          73
+        ],
+        [
+          76,
+          76
+        ],
+        [
+          76,
+          84
+        ],
+        [
+          104,
+          104
+        ],
+        [
+          305,
+          305
+        ],
+        [
+          525,
+          566
+        ],
+        [
+          527,
+          527
+        ],
+        [
+          551,
+          556
+        ],
+        [
+          551,
+          566
+        ],
+        [
+          560,
+          563
+        ],
+        [
+          710,
+          710
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/t_zset.c",
+      "baseline_sha256": "9bce243ee93f78e29f5612c6b44750eb7708777c506fbe80d538394adf8c4b75",
+      "worktree_sha256": "9bce243ee93f78e29f5612c6b44750eb7708777c506fbe80d538394adf8c4b75",
+      "unchanged": true,
+      "anchors": [
+        [
+          1852,
+          1894
+        ],
+        [
+          2677,
+          2904
+        ],
+        [
+          3783,
+          3783
+        ],
+        [
+          4139,
+          4177
+        ]
+      ]
+    },
+    {
+      "file": "/home/user/Projects/redis/src/tracking.c",
+      "baseline_sha256": "afaa41d813e9ee5fccf4f45f9b82202d9d4f35cad9ee7d8fac1ce049a25044f7",
+      "worktree_sha256": "afaa41d813e9ee5fccf4f45f9b82202d9d4f35cad9ee7d8fac1ce049a25044f7",
+      "unchanged": true,
+      "anchors": [
+        [
+          385,
+          390
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/blocking.inc",
+      "baseline_sha256": "057fd92b20be9f46034e71444d75d71508bf6d8a7703c99ad61125cd5f5e1df7",
+      "worktree_sha256": "057fd92b20be9f46034e71444d75d71508bf6d8a7703c99ad61125cd5f5e1df7",
+      "unchanged": true,
+      "anchors": [
+        [
+          44,
+          44
+        ],
+        [
+          76,
+          76
+        ],
+        [
+          442,
+          444
+        ],
+        [
+          1131,
+          1132
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/commands.cc",
+      "baseline_sha256": "d4c85201f56c04bd944d433360bbc58615723c94c31ac32c97e9c08b8cd4e226",
+      "worktree_sha256": "d4c85201f56c04bd944d433360bbc58615723c94c31ac32c97e9c08b8cd4e226",
+      "unchanged": true,
+      "anchors": [
+        [
+          185,
+          189
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/multi.inc",
+      "baseline_sha256": "dadd8a5ca62dbb7b0fdb072ca6015693e4d4d8bebba2f6b4d84edac4f5cffe3a",
+      "worktree_sha256": "dadd8a5ca62dbb7b0fdb072ca6015693e4d4d8bebba2f6b4d84edac4f5cffe3a",
+      "unchanged": true,
+      "anchors": [
+        [
+          84,
+          84
+        ],
+        [
+          138,
+          139
+        ],
+        [
+          1090,
+          1090
+        ],
+        [
+          1174,
+          1174
+        ],
+        [
+          2071,
+          2078
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/notify.h",
+      "baseline_sha256": "5a934b5fe063cb129eaafb2a88ed08b21572db9fd0eab901327cf3e509b66ee4",
+      "worktree_sha256": "a4868440748cc7306e2b80a35f05f47f9def30d970e0e956a2f16c8440a14894",
+      "unchanged": false,
+      "anchors": [
+        [
+          141,
+          143
+        ],
+        [
+          176,
+          186
+        ],
+        [
+          218,
+          221
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/notify.inc",
+      "baseline_sha256": "eeca14e3f0bd7bd2d476889369abb7efedb726a42e5188543cab1916f8f03605",
+      "worktree_sha256": "c070052e79d7bb4732ee89927d3ff5af7bbe009a1c132e93069dd3a34b425be8",
+      "unchanged": false,
+      "anchors": [
+        [
+          6,
+          15
+        ],
+        [
+          9,
+          15
+        ],
+        [
+          20,
+          20
+        ],
+        [
+          105,
+          174
+        ],
+        [
+          176,
+          182
+        ],
+        [
+          186,
+          190
+        ],
+        [
+          234,
+          242
+        ],
+        [
+          246,
+          264
+        ],
+        [
+          260,
+          260
+        ],
+        [
+          280,
+          295
+        ],
+        [
+          297,
+          306
+        ],
+        [
+          313,
+          322
+        ],
+        [
+          324,
+          385
+        ],
+        [
+          331,
+          331
+        ],
+        [
+          332,
+          334
+        ],
+        [
+          334,
+          335
+        ],
+        [
+          337,
+          383
+        ],
+        [
+          383,
+          383
+        ],
+        [
+          387,
+          418
+        ],
+        [
+          420,
+          432
+        ],
+        [
+          440,
+          462
+        ],
+        [
+          464,
+          478
+        ],
+        [
+          468,
+          472
+        ],
+        [
+          468,
+          477
+        ],
+        [
+          474,
+          477
+        ],
+        [
+          480,
+          566
+        ],
+        [
+          503,
+          503
+        ],
+        [
+          517,
+          551
+        ],
+        [
+          553,
+          554
+        ],
+        [
+          553,
+          557
+        ],
+        [
+          556,
+          556
+        ],
+        [
+          568,
+          597
+        ],
+        [
+          569,
+          577
+        ],
+        [
+          569,
+          586
+        ],
+        [
+          578,
+          586
+        ],
+        [
+          599,
+          641
+        ],
+        [
+          613,
+          623
+        ],
+        [
+          624,
+          641
+        ],
+        [
+          641,
+          641
+        ],
+        [
+          641,
+          642
+        ],
+        [
+          642,
+          642
+        ],
+        [
+          650,
+          650
+        ],
+        [
+          661,
+          818
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/scatter_engine.inc",
+      "baseline_sha256": "c185630f7901f1e1a2cc91ab1b249dab8a206e4746979f5ae1c9f459e92dfa76",
+      "worktree_sha256": "f7cd60a5d6da5d2c5bfcc69dfd1e5a9f7566f5ece0d8a65a137ad8e5aaefa754",
+      "unchanged": false,
+      "anchors": [
+        [
+          448,
+          448
+        ],
+        [
+          2263,
+          2290
+        ],
+        [
+          2404,
+          2404
+        ],
+        [
+          2731,
+          2733
+        ],
+        [
+          2884,
+          2892
+        ],
+        [
+          2884,
+          2893
+        ],
+        [
+          3044,
+          3045
+        ],
+        [
+          3870,
+          3870
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/scripting.cc",
+      "baseline_sha256": "af4e1a28d56312c60df482358984381c9b62444d70a929e6e83f46a4b7a4af1c",
+      "worktree_sha256": "af4e1a28d56312c60df482358984381c9b62444d70a929e6e83f46a4b7a4af1c",
+      "unchanged": true,
+      "anchors": [
+        [
+          626,
+          641
+        ],
+        [
+          631,
+          641
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/server_tail.cc",
+      "baseline_sha256": "3c9e45f0ebd77b095aa06451ba7f4d981851bb39605955e6c0604a2788448777",
+      "worktree_sha256": "3c9e45f0ebd77b095aa06451ba7f4d981851bb39605955e6c0604a2788448777",
+      "unchanged": true,
+      "anchors": [
+        [
+          429,
+          433
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/t_hash.cc",
+      "baseline_sha256": "9029f80fd6e1016bc4a468122c36836622f2467561224e40bd059ae289dd600f",
+      "worktree_sha256": "9029f80fd6e1016bc4a468122c36836622f2467561224e40bd059ae289dd600f",
+      "unchanged": true,
+      "anchors": [
+        [
+          810,
+          819
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/t_hash_ttl.cc",
+      "baseline_sha256": "c09ef6968b4455515f1e7879f5df43a3203fe7d117c41c88f24004679a3f5eb6",
+      "worktree_sha256": "c09ef6968b4455515f1e7879f5df43a3203fe7d117c41c88f24004679a3f5eb6",
+      "unchanged": true,
+      "anchors": [
+        [
+          408,
+          448
+        ],
+        [
+          439,
+          445
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/t_server.cc",
+      "baseline_sha256": "e8a41aeb988c66737696acd8a4f5c1182b8d1d9c6f60ebab628fbd4c08178595",
+      "worktree_sha256": "e8a41aeb988c66737696acd8a4f5c1182b8d1d9c6f60ebab628fbd4c08178595",
+      "unchanged": true,
+      "anchors": [
+        [
+          2385,
+          2389
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/t_string.cc",
+      "baseline_sha256": "4dbc381f91b5e9229bfec754ecf21b616b706348ca7ce493f493b7c98af0e1ed",
+      "worktree_sha256": "4dbc381f91b5e9229bfec754ecf21b616b706348ca7ce493f493b7c98af0e1ed",
+      "unchanged": true,
+      "anchors": [
+        [
+          344,
+          363
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/tracking.cc",
+      "baseline_sha256": "006103438cd8fd50e1d85cabac41cae58205790ddc0c0c018078cb028540cb54",
+      "worktree_sha256": "006103438cd8fd50e1d85cabac41cae58205790ddc0c0c018078cb028540cb54",
+      "unchanged": true,
+      "anchors": [
+        [
+          405,
+          410
+        ]
+      ]
+    },
+    {
+      "file": "src/cmd/xshard_commands.inc",
+      "baseline_sha256": "9e535a65b1d1f8f8718c38b5bec18ef78df182dac1cbd054a1692a1548cbcfbe",
+      "worktree_sha256": "9e535a65b1d1f8f8718c38b5bec18ef78df182dac1cbd054a1692a1548cbcfbe",
+      "unchanged": true,
+      "anchors": [
+        [
+          2056,
+          2498
+        ]
+      ]
+    },
+    {
+      "file": "src/core/ex_loop.h",
+      "baseline_sha256": "79ce567b958472ae3be32e226511e9a5423102d56f8bf2ad595f4b16fb250f6d",
+      "worktree_sha256": "79ce567b958472ae3be32e226511e9a5423102d56f8bf2ad595f4b16fb250f6d",
+      "unchanged": true,
+      "anchors": [
+        [
+          493,
+          493
+        ],
+        [
+          1113,
+          1113
+        ],
+        [
+          1482,
+          1482
+        ],
+        [
+          1549,
+          1550
+        ],
+        [
+          1620,
+          1622
+        ],
+        [
+          1642,
+          1652
+        ],
+        [
+          1750,
+          1767
+        ],
+        [
+          1751,
+          1751
+        ],
+        [
+          2319,
+          2335
+        ],
+        [
+          2319,
+          2337
+        ],
+        [
+          2336,
+          2345
+        ],
+        [
+          2538,
+          2546
+        ],
+        [
+          2576,
+          2580
+        ],
+        [
+          2589,
+          2589
+        ]
+      ]
+    },
+    {
+      "file": "src/core/io_loop.h",
+      "baseline_sha256": "092f362d99050e86ad5278fc83cda3b66b3a07837836dd1e6b5b7661d7f2b2a3",
+      "worktree_sha256": "092f362d99050e86ad5278fc83cda3b66b3a07837836dd1e6b5b7661d7f2b2a3",
+      "unchanged": true,
+      "anchors": [
+        [
+          75,
+          86
+        ],
+        [
+          104,
+          132
+        ],
+        [
+          122,
+          124
+        ],
+        [
+          128,
+          132
+        ],
+        [
+          131,
+          132
+        ],
+        [
+          633,
+          633
+        ],
+        [
+          3404,
+          3416
+        ],
+        [
+          3409,
+          3416
+        ],
+        [
+          4312,
+          4315
+        ],
+        [
+          4329,
+          4329
+        ],
+        [
+          4560,
+          4562
+        ],
+        [
+          4560,
+          4564
+        ],
+        [
+          4563,
+          4563
+        ],
+        [
+          4570,
+          4570
+        ],
+        [
+          4836,
+          4840
+        ]
+      ]
+    },
+    {
+      "file": "src/core/placement.h",
+      "baseline_sha256": "bdf621652e98ba257b278022dc235b4488a21d931e7bfecdab312f807c582fc8",
+      "worktree_sha256": "bdf621652e98ba257b278022dc235b4488a21d931e7bfecdab312f807c582fc8",
+      "unchanged": true,
+      "anchors": [
+        [
+          55,
+          60
+        ],
+        [
+          133,
+          136
+        ]
+      ]
+    },
+    {
+      "file": "src/core/pubsub.inc",
+      "baseline_sha256": "00b82ee9374f1c9ce8d4ab660590ab8e4fb09b26c8d25ed3e66d42442234030b",
+      "worktree_sha256": "00b82ee9374f1c9ce8d4ab660590ab8e4fb09b26c8d25ed3e66d42442234030b",
+      "unchanged": true,
+      "anchors": [
+        [
+          99,
+          113
+        ],
+        [
+          115,
+          119
+        ],
+        [
+          375,
+          381
+        ],
+        [
+          491,
+          494
+        ],
+        [
+          496,
+          526
+        ],
+        [
+          507,
+          513
+        ],
+        [
+          507,
+          526
+        ],
+        [
+          570,
+          583
+        ],
+        [
+          907,
+          909
+        ],
+        [
+          961,
+          971
+        ]
+      ]
+    },
+    {
+      "file": "src/core/read_local_parse.inc",
+      "baseline_sha256": "0a5d2e4bb54612cb0e347f265b4af7f92a947938b621f44141f4ae23e6f211e6",
+      "worktree_sha256": "0a5d2e4bb54612cb0e347f265b4af7f92a947938b621f44141f4ae23e6f211e6",
+      "unchanged": true,
+      "anchors": [
+        [
+          238,
+          245
+        ]
+      ]
+    },
+    {
+      "file": "src/core/shard.h",
+      "baseline_sha256": "e95e589a7314b05d2901fc9ae1df3dff737682a51e54b794ebabce89bbc805b4",
+      "worktree_sha256": "e95e589a7314b05d2901fc9ae1df3dff737682a51e54b794ebabce89bbc805b4",
+      "unchanged": true,
+      "anchors": [
+        [
+          76,
+          79
+        ],
+        [
+          168,
+          174
+        ],
+        [
+          169,
+          171
+        ],
+        [
+          194,
+          198
+        ]
+      ]
+    },
+    {
+      "file": "src/core/thread.h",
+      "baseline_sha256": "c67c4be83589ee44d2784ca77a2b259f2bc642e7b727283862ba555dd485237f",
+      "worktree_sha256": "c67c4be83589ee44d2784ca77a2b259f2bc642e7b727283862ba555dd485237f",
+      "unchanged": true,
+      "anchors": [
+        [
+          591,
+          597
+        ],
+        [
+          599,
+          611
+        ],
+        [
+          602,
+          611
+        ],
+        [
+          604,
+          604
+        ],
+        [
+          604,
+          610
+        ],
+        [
+          613,
+          617
+        ]
+      ]
+    },
+    {
+      "file": "src/exec/op.h",
+      "baseline_sha256": "04866c8b69854e551ba49e3e5a7c730e6a1716e1fbd7b6c7b5153ff45098efa9",
+      "worktree_sha256": "04866c8b69854e551ba49e3e5a7c730e6a1716e1fbd7b6c7b5153ff45098efa9",
+      "unchanged": true,
+      "anchors": [
+        [
+          411,
+          416
+        ],
+        [
+          448,
+          458
+        ]
+      ]
+    },
+    {
+      "file": "src/main.cc",
+      "baseline_sha256": "69052ede2af866370b4878d0d9a3c037c89eee2175c97e51afe92287462a59ce",
+      "worktree_sha256": "69052ede2af866370b4878d0d9a3c037c89eee2175c97e51afe92287462a59ce",
+      "unchanged": true,
+      "anchors": [
+        [
+          163,
+          170
+        ]
+      ]
+    },
+    {
+      "file": "src/net/wb.h",
+      "baseline_sha256": "05961e5cc98cb24f2f086eb06ce7eb14da71bfcf4540896f8466e4a49c0b590b",
+      "worktree_sha256": "05961e5cc98cb24f2f086eb06ce7eb14da71bfcf4540896f8466e4a49c0b590b",
+      "unchanged": true,
+      "anchors": [
+        [
+          280,
+          284
+        ]
+      ]
+    },
+    {
+      "file": "src/store/flatstore.h",
+      "baseline_sha256": "dbe9a96ff05d1ba5d99c2e812c900aa2a940ca38e6f91629db6453e148ea0570",
+      "worktree_sha256": "dbe9a96ff05d1ba5d99c2e812c900aa2a940ca38e6f91629db6453e148ea0570",
+      "unchanged": true,
+      "anchors": [
+        [
+          1250,
+          1252
+        ],
+        [
+          1267,
+          1277
+        ],
+        [
+          1270,
+          1273
+        ],
+        [
+          1272,
+          1272
+        ],
+        [
+          1272,
+          1275
+        ],
+        [
+          1273,
+          1274
+        ],
+        [
+          1274,
+          1275
+        ],
+        [
+          1567,
+          1601
+        ],
+        [
+          1607,
+          1646
+        ],
+        [
+          1723,
+          1734
+        ],
+        [
+          1753,
+          1767
+        ],
+        [
+          1757,
+          1762
+        ],
+        [
+          1856,
+          1883
+        ],
+        [
+          1897,
+          1898
+        ],
+        [
+          1952,
+          1968
+        ],
+        [
+          2436,
+          2441
+        ],
+        [
+          2557,
+          2575
+        ],
+        [
+          2652,
+          2655
+        ],
+        [
+          2708,
+          2712
+        ],
+        [
+          2710,
+          2710
+        ]
+      ]
+    },
+    {
+      "file": "tests/differ.py",
+      "baseline_sha256": "824c67cd050dea2254b0e8633ad342f8a2988b77d16f135f82403cb8533551fc",
+      "worktree_sha256": "824c67cd050dea2254b0e8633ad342f8a2988b77d16f135f82403cb8533551fc",
+      "unchanged": true,
+      "anchors": [
+        [
+          4726,
+          4811
+        ]
+      ]
+    },
+    {
+      "file": "tests/gate.sh",
+      "baseline_sha256": "13b5069565ef9ae2dff3b41cf164159795641e9a5ea95a881b3151bcadee9044",
+      "worktree_sha256": "59d79376a7dc607a0876a2eff91806a807f4d24d5275ec7644c87cf7387dcd09",
+      "unchanged": false,
+      "anchors": [
+        [
+          1923,
+          1980
+        ],
+        [
+          2692,
+          2694
+        ]
+      ]
+    },
+    {
+      "file": "tests/gate_ledger_fixture.py",
+      "baseline_sha256": "e394e648fabb57b2c3c13af782f27f9227ee2ec3157194b4438ddfb274ed0f8c",
+      "worktree_sha256": "e394e648fabb57b2c3c13af782f27f9227ee2ec3157194b4438ddfb274ed0f8c",
+      "unchanged": true,
+      "anchors": [
+        [
+          190,
+          205
+        ]
+      ]
+    },
+    {
+      "file": "tests/notify.py",
+      "baseline_sha256": "c05823e4e2aa85fba271f442b1a1c535f0cdf7084881536b9e2c6cec716ef529",
+      "worktree_sha256": "c05823e4e2aa85fba271f442b1a1c535f0cdf7084881536b9e2c6cec716ef529",
+      "unchanged": true,
+      "anchors": [
+        [
+          212,
+          214
+        ],
+        [
+          480,
+          489
+        ]
+      ]
+    },
+    {
+      "file": "tests/tracking.py",
+      "baseline_sha256": "28b8350d180c96d0be0c53a2a9608ec0cd06f80312c0c9863ddd7cce355c090a",
+      "worktree_sha256": "28b8350d180c96d0be0c53a2a9608ec0cd06f80312c0c9863ddd7cce355c090a",
+      "unchanged": true,
+      "anchors": [
+        [
+          305,
+          330
+        ]
+      ]
+    }
+  ],
+  "out_of_range": [
+    [
+      "/home/user/Projects/redis/src/notify.c",
+      85,
+      140,
+      124
+    ]
+  ]
+}

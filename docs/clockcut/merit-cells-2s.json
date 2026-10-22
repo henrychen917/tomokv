@@ -1,0 +1,39 @@
+{
+  "subset": "full",
+  "count": 4,
+  "ids": [
+    "cc_2s_get_p1",
+    "cc_2s_set_p1",
+    "cc_2s_get_p32",
+    "cc_2s_set_p32"
+  ],
+  "modes": [
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "SET"
+  ],
+  "depths": [
+    1,
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "latency_ms",
+    "rate"
+  ],
+  "pending_pins": []
+}

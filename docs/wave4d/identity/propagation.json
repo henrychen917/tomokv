@@ -1,0 +1,2983 @@
+{
+  "summary": {
+    "changed": 98,
+    "kinds": {
+      "same-encoding-reference-only": 69,
+      "instruction-encoding-change": 27,
+      "new-or-removed-group": 2
+    },
+    "new_residuals": [
+      {
+        "name": "_GLOBAL__sub_I__ZN4tomo19debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          2921
+        ],
+        "post_sizes": [
+          2921
+        ]
+      },
+      {
+        "name": "_GLOBAL__sub_I__ZN4tomo6Server8shutdownENS0_12ShutdownSaveEPNS_9ThreadCtxEPNS_4RingERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          882
+        ],
+        "post_sizes": [
+          882
+        ]
+      },
+      {
+        "name": "_GLOBAL__sub_I__ZN8tomo_db019debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          3191
+        ],
+        "post_sizes": [
+          3191
+        ]
+      },
+      {
+        "name": "_GLOBAL__sub_I__ZN8tomo_db06Server8shutdownENS0_12ShutdownSaveEPNS_9ThreadCtxEPNS_4RingERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1145
+        ],
+        "post_sizes": [
+          1145
+        ]
+      },
+      {
+        "name": "chunk",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          4829
+        ],
+        "post_sizes": [
+          4829
+        ]
+      },
+      {
+        "name": "math_random",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          404
+        ],
+        "post_sizes": [
+          404
+        ]
+      },
+      {
+        "name": "std::enable_if<std::__and_<std::__not_<std::__is_tuple_like<tomo::(anonymous namespace)::AclLogEntry> >, std::is_move_constructible<tomo::(anonymous namespace)::AclLogEntry>, std::is_move_assignable<tomo::(anonymous namespace)::AclLogEntry> >::value, void>::type std::swap<tomo::(anonymous namespace)::AclLogEntry>(tomo::(anonymous namespace)::AclLogEntry&, tomo::(anonymous namespace)::AclLogEntry&)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          665
+        ],
+        "post_sizes": [
+          671
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::acl_describe_image(tomo::(anonymous namespace)::AclUserImage const&)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          3044
+        ],
+        "post_sizes": [
+          3012
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::acl_describe_image(tomo::(anonymous namespace)::AclUserImage const&) [clone .cold]",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          244
+        ],
+        "post_sizes": [
+          244
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "headline",
+          "compat2",
+          "moverfix",
+          "clockcut",
+          "notifyorder"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          7109
+        ],
+        "post_sizes": [
+          7107
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::cmd_geodist_armed(tomo::Shard&, tomo::Op&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1160
+        ],
+        "post_sizes": [
+          1160
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::cmd_geodist_clean(tomo::Shard&, tomo::Op&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1144
+        ],
+        "post_sizes": [
+          1144
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          9396
+        ],
+        "post_sizes": [
+          9396
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::geo_distance(double, double, double, double)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          244
+        ],
+        "post_sizes": [
+          244
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "headline",
+          "compat2",
+          "moverfix",
+          "clockcut",
+          "notifyorder"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1314
+        ],
+        "post_sizes": [
+          1346
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "headline",
+          "compat2",
+          "moverfix",
+          "clockcut",
+          "notifyorder"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          118
+        ],
+        "post_sizes": [
+          117
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::parse_search(tomo::Op&, tomo::(anonymous namespace)::GeoSearchOptions&) [clone .constprop.0]",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          3410
+        ],
+        "post_sizes": [
+          3410
+        ]
+      },
+      {
+        "name": "tomo::FlipController::debug_dump[abi:cxx11]() const",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          6458
+        ],
+        "post_sizes": [
+          6458
+        ]
+      },
+      {
+        "name": "tomo::FlipController::report() const",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          3939
+        ],
+        "post_sizes": [
+          3939
+        ]
+      },
+      {
+        "name": "tomo::FlipController::seek_after_reading(tomo::Server&, unsigned int, unsigned long, double)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1281
+        ],
+        "post_sizes": [
+          1281
+        ]
+      },
+      {
+        "name": "tomo::IoLoop::climon_begin_client_scatter(tomo::Client*, tomo::PubSubEvent const&, tomo::IoLoop::ClimonPendingKind)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "headline",
+          "compat2",
+          "moverfix",
+          "clockcut",
+          "notifyorder"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1561
+        ],
+        "post_sizes": [
+          1545
+        ]
+      },
+      {
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          4777
+        ],
+        "post_sizes": [
+          4359
+        ]
+      },
+      {
+        "name": "tomo::LbAutotune::KeyDamping::update(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          957
+        ],
+        "post_sizes": [
+          957
+        ]
+      },
+      {
+        "name": "tomo::LbAutotune::QuietJitter::band(unsigned int) const [clone .isra.0]",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          167
+        ],
+        "post_sizes": [
+          167
+        ]
+      },
+      {
+        "name": "tomo::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          559
+        ],
+        "post_sizes": [
+          559
+        ]
+      },
+      {
+        "name": "tomo::Server::lb_controller_tick_pad(unsigned int, unsigned long)::{lambda(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          559
+        ],
+        "post_sizes": [
+          559
+        ]
+      },
+      {
+        "name": "tomo::dtoa::grisu2_digits(double, char*, int&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1043
+        ],
+        "post_sizes": [
+          1043
+        ]
+      },
+      {
+        "name": "tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          2068
+        ],
+        "post_sizes": [
+          2068
+        ]
+      },
+      {
+        "name": "tomo::geo_prepare_route(tomo::Op&, tomo::GeoRoute&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          136
+        ],
+        "post_sizes": [
+          136
+        ]
+      },
+      {
+        "name": "tomo::parse_double_strict(tomo::Slice, double&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          503
+        ],
+        "post_sizes": [
+          503
+        ]
+      },
+      {
+        "name": "tomo::redis_double_text(char*, unsigned long, double) [clone .isra.0]",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1043,
+          1043,
+          1043,
+          1043,
+          1043
+        ],
+        "post_sizes": [
+          1043,
+          1043,
+          1043,
+          1043,
+          1043
+        ]
+      },
+      {
+        "name": "tomo::stream_parse_xreadgroup(tomo::Op&, tomo::StreamXreadGroupArgs&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1231
+        ],
+        "post_sizes": [
+          1231
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::acl_parse_file(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<tomo_db0::(anonymous namespace)::AclUserImage, std::allocator<tomo_db0::(anonymous namespace)::AclUserImage> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          6809
+        ],
+        "post_sizes": [
+          6793
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::acl_parse_file(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<tomo_db0::(anonymous namespace)::AclUserImage, std::allocator<tomo_db0::(anonymous namespace)::AclUserImage> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .cold]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          804
+        ],
+        "post_sizes": [
+          804
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_geodist_armed(tomo_db0::Shard&, tomo_db0::Op&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1144
+        ],
+        "post_sizes": [
+          1144
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::cmd_geodist_clean(tomo_db0::Shard&, tomo_db0::Op&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1144
+        ],
+        "post_sizes": [
+          1144
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          9396
+        ],
+        "post_sizes": [
+          9396
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::geo_distance(double, double, double, double)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          244
+        ],
+        "post_sizes": [
+          244
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::parse_search(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions&) [clone .constprop.0]",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          3458
+        ],
+        "post_sizes": [
+          3458
+        ]
+      },
+      {
+        "name": "tomo_db0::FlipController::debug_dump[abi:cxx11]() const",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          6458
+        ],
+        "post_sizes": [
+          6458
+        ]
+      },
+      {
+        "name": "tomo_db0::FlipController::report() const",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          3939
+        ],
+        "post_sizes": [
+          3939
+        ]
+      },
+      {
+        "name": "tomo_db0::FlipController::seek_after_reading(tomo_db0::Server&, unsigned int, unsigned long, double)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1281
+        ],
+        "post_sizes": [
+          1281
+        ]
+      },
+      {
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          4777
+        ],
+        "post_sizes": [
+          4359
+        ]
+      },
+      {
+        "name": "tomo_db0::LbAutotune::KeyDamping::update(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          957
+        ],
+        "post_sizes": [
+          957
+        ]
+      },
+      {
+        "name": "tomo_db0::LbAutotune::QuietJitter::band(unsigned int) const [clone .isra.0]",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          167
+        ],
+        "post_sizes": [
+          167
+        ]
+      },
+      {
+        "name": "tomo_db0::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          559
+        ],
+        "post_sizes": [
+          559
+        ]
+      },
+      {
+        "name": "tomo_db0::Server::lb_controller_tick_pad(unsigned int, unsigned long)::{lambda(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          559
+        ],
+        "post_sizes": [
+          559
+        ]
+      },
+      {
+        "name": "tomo_db0::acl_command_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          11704
+        ],
+        "post_sizes": [
+          11736
+        ]
+      },
+      {
+        "name": "tomo_db0::acl_command_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&) [clone .cold]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          679
+        ],
+        "post_sizes": [
+          678
+        ]
+      },
+      {
+        "name": "tomo_db0::dtoa::grisu2_digits(double, char*, int&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1043
+        ],
+        "post_sizes": [
+          1043
+        ]
+      },
+      {
+        "name": "tomo_db0::geo_build_store(tomo_db0::Op&, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> >&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          2068
+        ],
+        "post_sizes": [
+          2068
+        ]
+      },
+      {
+        "name": "tomo_db0::geo_prepare_route(tomo_db0::Op&, tomo_db0::GeoRoute&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          136
+        ],
+        "post_sizes": [
+          136
+        ]
+      },
+      {
+        "name": "tomo_db0::parse_double_strict(tomo_db0::Slice, double&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          503
+        ],
+        "post_sizes": [
+          503
+        ]
+      },
+      {
+        "name": "tomo_db0::redis_double_text(char*, unsigned long, double) [clone .isra.0]",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1043,
+          1043,
+          1043,
+          1043,
+          1043
+        ],
+        "post_sizes": [
+          1043,
+          1043,
+          1043,
+          1043,
+          1043
+        ]
+      },
+      {
+        "name": "tomo_db0::stream_parse_xreadgroup(tomo_db0::Op&, tomo_db0::StreamXreadGroupArgs&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1231
+        ],
+        "post_sizes": [
+          1231
+        ]
+      },
+      {
+        "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::AclLogEntry*, std::vector<tomo_db0::(anonymous namespace)::AclLogEntry, std::allocator<tomo_db0::(anonymous namespace)::AclLogEntry> > >, long, tomo_db0::(anonymous namespace)::AclLogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::AclLogEntry const&, tomo_db0::(anonymous namespace)::AclLogEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::AclLogEntry*, std::vector<tomo_db0::(anonymous namespace)::AclLogEntry, std::allocator<tomo_db0::(anonymous namespace)::AclLogEntry> > >, long, long, tomo_db0::(anonymous namespace)::AclLogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::AclLogEntry const&, tomo_db0::(anonymous namespace)::AclLogEntry const&)#1}>) [clone .isra.0]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          2816
+        ],
+        "post_sizes": [
+          2815
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_geosearch<false>(tomo::Shard&, tomo::Op&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          886
+        ],
+        "post_sizes": [
+          886
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_geosearch<true>(tomo::Shard&, tomo::Op&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          886
+        ],
+        "post_sizes": [
+          886
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<false>(tomo::Shard&, tomo::Op&, bool)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          6533
+        ],
+        "post_sizes": [
+          6533
+        ]
+      },
+      {
+        "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          6613
+        ],
+        "post_sizes": [
+          6613
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          886
+        ],
+        "post_sizes": [
+          886
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          886
+        ],
+        "post_sizes": [
+          886
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          6533
+        ],
+        "post_sizes": [
+          6533
+        ]
+      },
+      {
+        "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+        "kind": "same-encoding-reference-only",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          6613
+        ],
+        "post_sizes": [
+          6613
+        ]
+      }
+    ],
+    "real_code_changes": [
+      {
+        "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "headline",
+          "compat2",
+          "moverfix",
+          "clockcut"
+        ],
+        "post_matches": [
+          "notifyorder"
+        ],
+        "old_sizes": [
+          1190
+        ],
+        "post_sizes": [
+          1190
+        ]
+      },
+      {
+        "name": "std::enable_if<std::__and_<std::__not_<std::__is_tuple_like<tomo::(anonymous namespace)::AclLogEntry> >, std::is_move_constructible<tomo::(anonymous namespace)::AclLogEntry>, std::is_move_assignable<tomo::(anonymous namespace)::AclLogEntry> >::value, void>::type std::swap<tomo::(anonymous namespace)::AclLogEntry>(tomo::(anonymous namespace)::AclLogEntry&, tomo::(anonymous namespace)::AclLogEntry&)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          665
+        ],
+        "post_sizes": [
+          671
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::acl_describe_image(tomo::(anonymous namespace)::AclUserImage const&)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          3044
+        ],
+        "post_sizes": [
+          3012
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "headline",
+          "compat2",
+          "moverfix",
+          "clockcut",
+          "notifyorder"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          7109
+        ],
+        "post_sizes": [
+          7107
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "headline",
+          "compat2",
+          "moverfix",
+          "clockcut",
+          "notifyorder"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1314
+        ],
+        "post_sizes": [
+          1346
+        ]
+      },
+      {
+        "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "headline",
+          "compat2",
+          "moverfix",
+          "clockcut",
+          "notifyorder"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          118
+        ],
+        "post_sizes": [
+          117
+        ]
+      },
+      {
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+        "kind": "instruction-encoding-change",
+        "hot": true,
+        "old_matches": [],
+        "post_matches": [],
+        "old_sizes": [
+          21270
+        ],
+        "post_sizes": [
+          21239
+        ]
+      },
+      {
+        "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+        "kind": "instruction-encoding-change",
+        "hot": true,
+        "old_matches": [],
+        "post_matches": [],
+        "old_sizes": [
+          21241
+        ],
+        "post_sizes": [
+          21252
+        ]
+      },
+      {
+        "name": "tomo::IoLoop::climon_begin_client_scatter(tomo::Client*, tomo::PubSubEvent const&, tomo::IoLoop::ClimonPendingKind)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "headline",
+          "compat2",
+          "moverfix",
+          "clockcut",
+          "notifyorder"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          1561
+        ],
+        "post_sizes": [
+          1545
+        ]
+      },
+      {
+        "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          4777
+        ],
+        "post_sizes": [
+          4359
+        ]
+      },
+      {
+        "name": "tomo::Server::lb_forget_client(unsigned long)",
+        "kind": "new-or-removed-group",
+        "hot": false,
+        "old_matches": [],
+        "post_matches": [],
+        "old_sizes": [],
+        "post_sizes": [
+          419
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::acl_parse_file(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<tomo_db0::(anonymous namespace)::AclUserImage, std::allocator<tomo_db0::(anonymous namespace)::AclUserImage> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          6809
+        ],
+        "post_sizes": [
+          6793
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::acl_parse_file(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<tomo_db0::(anonymous namespace)::AclUserImage, std::allocator<tomo_db0::(anonymous namespace)::AclUserImage> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .cold]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          804
+        ],
+        "post_sizes": [
+          804
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [],
+        "post_matches": [],
+        "old_sizes": [
+          945
+        ],
+        "post_sizes": [
+          947
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::normalize_multi_blocking_pop(tomo_db0::MultiCommand&)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [],
+        "post_matches": [],
+        "old_sizes": [
+          3529
+        ],
+        "post_sizes": [
+          3368
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::normalize_multi_blocking_pop(tomo_db0::MultiCommand&) [clone .cold]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "headline",
+          "clockcut",
+          "notifyorder"
+        ],
+        "post_matches": [
+          "compat2",
+          "moverfix"
+        ],
+        "old_sizes": [
+          45
+        ],
+        "post_sizes": [
+          45
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::ImageRangeOptions const&, tomo_db0::(anonymous namespace)::ImageRangeSpec&) [clone .isra.0]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "moverfix"
+        ],
+        "post_matches": [
+          "headline",
+          "compat2",
+          "clockcut",
+          "notifyorder"
+        ],
+        "old_sizes": [
+          1230
+        ],
+        "post_sizes": [
+          1297
+        ]
+      },
+      {
+        "name": "tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::ImageRangeOptions const&, tomo_db0::(anonymous namespace)::ImageRangeSpec&) [clone .isra.0] [clone .cold]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "moverfix"
+        ],
+        "post_matches": [
+          "headline",
+          "compat2",
+          "clockcut",
+          "notifyorder"
+        ],
+        "old_sizes": [
+          86
+        ],
+        "post_sizes": [
+          90
+        ]
+      },
+      {
+        "name": "tomo_db0::FlatStore::atomic_free_entry(tomo_db0::AtomicEntry*) [clone .isra.0]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "moverfix"
+        ],
+        "post_matches": [
+          "headline",
+          "compat2",
+          "clockcut",
+          "notifyorder"
+        ],
+        "old_sizes": [
+          222,
+          222,
+          222
+        ],
+        "post_sizes": [
+          225,
+          222,
+          222
+        ]
+      },
+      {
+        "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+        "kind": "instruction-encoding-change",
+        "hot": true,
+        "old_matches": [],
+        "post_matches": [],
+        "old_sizes": [
+          10014,
+          12450,
+          9810
+        ],
+        "post_sizes": [
+          10014,
+          12450,
+          9794
+        ]
+      },
+      {
+        "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          4777
+        ],
+        "post_sizes": [
+          4359
+        ]
+      },
+      {
+        "name": "tomo_db0::Server::lb_forget_client(unsigned long)",
+        "kind": "new-or-removed-group",
+        "hot": false,
+        "old_matches": [],
+        "post_matches": [],
+        "old_sizes": [],
+        "post_sizes": [
+          419
+        ]
+      },
+      {
+        "name": "tomo_db0::acl_command_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          11704
+        ],
+        "post_sizes": [
+          11736
+        ]
+      },
+      {
+        "name": "tomo_db0::acl_command_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&) [clone .cold]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          679
+        ],
+        "post_sizes": [
+          678
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [],
+        "post_matches": [
+          "moverfix"
+        ],
+        "old_sizes": [
+          23183
+        ],
+        "post_sizes": [
+          23221
+        ]
+      },
+      {
+        "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [],
+        "post_matches": [
+          "moverfix"
+        ],
+        "old_sizes": [
+          380
+        ],
+        "post_sizes": [
+          383
+        ]
+      },
+      {
+        "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+        "kind": "instruction-encoding-change",
+        "hot": true,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [
+          "headline",
+          "moverfix",
+          "clockcut",
+          "notifyorder"
+        ],
+        "old_sizes": [
+          729
+        ],
+        "post_sizes": [
+          796
+        ]
+      },
+      {
+        "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "moverfix"
+        ],
+        "post_matches": [
+          "headline",
+          "compat2",
+          "clockcut",
+          "notifyorder"
+        ],
+        "old_sizes": [
+          371,
+          371
+        ],
+        "post_sizes": [
+          352,
+          371
+        ]
+      },
+      {
+        "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::AclLogEntry*, std::vector<tomo_db0::(anonymous namespace)::AclLogEntry, std::allocator<tomo_db0::(anonymous namespace)::AclLogEntry> > >, long, tomo_db0::(anonymous namespace)::AclLogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::AclLogEntry const&, tomo_db0::(anonymous namespace)::AclLogEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::AclLogEntry*, std::vector<tomo_db0::(anonymous namespace)::AclLogEntry, std::allocator<tomo_db0::(anonymous namespace)::AclLogEntry> > >, long, long, tomo_db0::(anonymous namespace)::AclLogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::AclLogEntry const&, tomo_db0::(anonymous namespace)::AclLogEntry const&)#1}>) [clone .isra.0]",
+        "kind": "instruction-encoding-change",
+        "hot": false,
+        "old_matches": [
+          "compat2"
+        ],
+        "post_matches": [],
+        "old_sizes": [
+          2816
+        ],
+        "post_sizes": [
+          2815
+        ]
+      }
+    ]
+  },
+  "bodies": [
+    {
+      "name": "_GLOBAL__sub_I__ZN4tomo19debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        2921
+      ],
+      "post_sizes": [
+        2921
+      ]
+    },
+    {
+      "name": "_GLOBAL__sub_I__ZN4tomo6Server8shutdownENS0_12ShutdownSaveEPNS_9ThreadCtxEPNS_4RingERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        882
+      ],
+      "post_sizes": [
+        882
+      ]
+    },
+    {
+      "name": "_GLOBAL__sub_I__ZN8tomo_db019debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        3191
+      ],
+      "post_sizes": [
+        3191
+      ]
+    },
+    {
+      "name": "_GLOBAL__sub_I__ZN8tomo_db06Server8shutdownENS0_12ShutdownSaveEPNS_9ThreadCtxEPNS_4RingERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1145
+      ],
+      "post_sizes": [
+        1145
+      ]
+    },
+    {
+      "name": "auto tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "headline",
+        "compat2",
+        "moverfix",
+        "clockcut"
+      ],
+      "post_matches": [
+        "notifyorder"
+      ],
+      "old_sizes": [
+        1190
+      ],
+      "post_sizes": [
+        1190
+      ]
+    },
+    {
+      "name": "chunk",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        4829
+      ],
+      "post_sizes": [
+        4829
+      ]
+    },
+    {
+      "name": "math_random",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        404
+      ],
+      "post_sizes": [
+        404
+      ]
+    },
+    {
+      "name": "std::enable_if<std::__and_<std::__not_<std::__is_tuple_like<tomo::(anonymous namespace)::AclLogEntry> >, std::is_move_constructible<tomo::(anonymous namespace)::AclLogEntry>, std::is_move_assignable<tomo::(anonymous namespace)::AclLogEntry> >::value, void>::type std::swap<tomo::(anonymous namespace)::AclLogEntry>(tomo::(anonymous namespace)::AclLogEntry&, tomo::(anonymous namespace)::AclLogEntry&)",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        665
+      ],
+      "post_sizes": [
+        671
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::acl_describe_image(tomo::(anonymous namespace)::AclUserImage const&)",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        3044
+      ],
+      "post_sizes": [
+        3012
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::acl_describe_image(tomo::(anonymous namespace)::AclUserImage const&) [clone .cold]",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        244
+      ],
+      "post_sizes": [
+        244
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "headline",
+        "compat2",
+        "moverfix",
+        "clockcut",
+        "notifyorder"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        7109
+      ],
+      "post_sizes": [
+        7107
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::cmd_geodist_armed(tomo::Shard&, tomo::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1160
+      ],
+      "post_sizes": [
+        1160
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::cmd_geodist_clean(tomo::Shard&, tomo::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1144
+      ],
+      "post_sizes": [
+        1144
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        16917
+      ],
+      "post_sizes": [
+        16917
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        9396
+      ],
+      "post_sizes": [
+        9396
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::geo_distance(double, double, double, double)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        244
+      ],
+      "post_sizes": [
+        244
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "headline",
+        "compat2",
+        "moverfix",
+        "clockcut",
+        "notifyorder"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1314
+      ],
+      "post_sizes": [
+        1346
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "headline",
+        "compat2",
+        "moverfix",
+        "clockcut",
+        "notifyorder"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        118
+      ],
+      "post_sizes": [
+        117
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::parse_search(tomo::Op&, tomo::(anonymous namespace)::GeoSearchOptions&) [clone .constprop.0]",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        3410
+      ],
+      "post_sizes": [
+        3410
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::parse_zset_operation(tomo::Op&, tomo::(anonymous namespace)::Kind, unsigned int&, std::vector<double, std::allocator<double> >&, tomo::(anonymous namespace)::ZAggregate&, bool&, unsigned long&) [clone .constprop.0]",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        2644
+      ],
+      "post_sizes": [
+        2644
+      ]
+    },
+    {
+      "name": "tomo::FlipController::debug_dump[abi:cxx11]() const",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        6458
+      ],
+      "post_sizes": [
+        6458
+      ]
+    },
+    {
+      "name": "tomo::FlipController::report() const",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        3939
+      ],
+      "post_sizes": [
+        3939
+      ]
+    },
+    {
+      "name": "tomo::FlipController::seek_after_reading(tomo::Server&, unsigned int, unsigned long, double)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1281
+      ],
+      "post_sizes": [
+        1281
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "kind": "instruction-encoding-change",
+      "hot": true,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        21270
+      ],
+      "post_sizes": [
+        21239
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "kind": "instruction-encoding-change",
+      "hot": true,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        21241
+      ],
+      "post_sizes": [
+        21252
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::climon_begin_client_scatter(tomo::Client*, tomo::PubSubEvent const&, tomo::IoLoop::ClimonPendingKind)",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "headline",
+        "compat2",
+        "moverfix",
+        "clockcut",
+        "notifyorder"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1561
+      ],
+      "post_sizes": [
+        1545
+      ]
+    },
+    {
+      "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        4777
+      ],
+      "post_sizes": [
+        4359
+      ]
+    },
+    {
+      "name": "tomo::LbAutotune::KeyDamping::update(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        957
+      ],
+      "post_sizes": [
+        957
+      ]
+    },
+    {
+      "name": "tomo::LbAutotune::QuietJitter::band(unsigned int) const [clone .isra.0]",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        167
+      ],
+      "post_sizes": [
+        167
+      ]
+    },
+    {
+      "name": "tomo::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        559
+      ],
+      "post_sizes": [
+        559
+      ]
+    },
+    {
+      "name": "tomo::Server::lb_controller_tick_pad(unsigned int, unsigned long)::{lambda(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        559
+      ],
+      "post_sizes": [
+        559
+      ]
+    },
+    {
+      "name": "tomo::Server::lb_forget_client(unsigned long)",
+      "kind": "new-or-removed-group",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [],
+      "post_sizes": [
+        419
+      ]
+    },
+    {
+      "name": "tomo::cmd_geo_xshard_local(tomo::Shard&, tomo::Op&, bool)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        1719
+      ],
+      "post_sizes": [
+        1719
+      ]
+    },
+    {
+      "name": "tomo::dtoa::grisu2_digits(double, char*, int&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1043
+      ],
+      "post_sizes": [
+        1043
+      ]
+    },
+    {
+      "name": "tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        2068
+      ],
+      "post_sizes": [
+        2068
+      ]
+    },
+    {
+      "name": "tomo::geo_prepare_route(tomo::Op&, tomo::GeoRoute&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        136
+      ],
+      "post_sizes": [
+        136
+      ]
+    },
+    {
+      "name": "tomo::parse_double_strict(tomo::Slice, double&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        503
+      ],
+      "post_sizes": [
+        503
+      ]
+    },
+    {
+      "name": "tomo::redis_double_text(char*, unsigned long, double) [clone .isra.0]",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1043,
+        1043,
+        1043,
+        1043,
+        1043
+      ],
+      "post_sizes": [
+        1043,
+        1043,
+        1043,
+        1043,
+        1043
+      ]
+    },
+    {
+      "name": "tomo::stream_parse_xreadgroup(tomo::Op&, tomo::StreamXreadGroupArgs&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1231
+      ],
+      "post_sizes": [
+        1231
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::acl_parse_file(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<tomo_db0::(anonymous namespace)::AclUserImage, std::allocator<tomo_db0::(anonymous namespace)::AclUserImage> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        6809
+      ],
+      "post_sizes": [
+        6793
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::acl_parse_file(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::vector<tomo_db0::(anonymous namespace)::AclUserImage, std::allocator<tomo_db0::(anonymous namespace)::AclUserImage> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .cold]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        804
+      ],
+      "post_sizes": [
+        804
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        945
+      ],
+      "post_sizes": [
+        947
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_geodist_armed(tomo_db0::Shard&, tomo_db0::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1144
+      ],
+      "post_sizes": [
+        1144
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_geodist_clean(tomo_db0::Shard&, tomo_db0::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1144
+      ],
+      "post_sizes": [
+        1144
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        16644
+      ],
+      "post_sizes": [
+        16644
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        9396
+      ],
+      "post_sizes": [
+        9396
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::geo_distance(double, double, double, double)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        244
+      ],
+      "post_sizes": [
+        244
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::normalize_multi_blocking_pop(tomo_db0::MultiCommand&)",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        3529
+      ],
+      "post_sizes": [
+        3368
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::normalize_multi_blocking_pop(tomo_db0::MultiCommand&) [clone .cold]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "headline",
+        "clockcut",
+        "notifyorder"
+      ],
+      "post_matches": [
+        "compat2",
+        "moverfix"
+      ],
+      "old_sizes": [
+        45
+      ],
+      "post_sizes": [
+        45
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::parse_search(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions&) [clone .constprop.0]",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        3458
+      ],
+      "post_sizes": [
+        3458
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::ImageRangeOptions const&, tomo_db0::(anonymous namespace)::ImageRangeSpec&) [clone .isra.0]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "moverfix"
+      ],
+      "post_matches": [
+        "headline",
+        "compat2",
+        "clockcut",
+        "notifyorder"
+      ],
+      "old_sizes": [
+        1230
+      ],
+      "post_sizes": [
+        1297
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::ImageRangeOptions const&, tomo_db0::(anonymous namespace)::ImageRangeSpec&) [clone .isra.0] [clone .cold]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "moverfix"
+      ],
+      "post_matches": [
+        "headline",
+        "compat2",
+        "clockcut",
+        "notifyorder"
+      ],
+      "old_sizes": [
+        86
+      ],
+      "post_sizes": [
+        90
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::parse_zset_operation(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Kind, unsigned int&, std::vector<double, std::allocator<double> >&, tomo_db0::(anonymous namespace)::ZAggregate&, bool&, unsigned long&) [clone .constprop.0]",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        2644
+      ],
+      "post_sizes": [
+        2644
+      ]
+    },
+    {
+      "name": "tomo_db0::FlatStore::atomic_free_entry(tomo_db0::AtomicEntry*) [clone .isra.0]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "moverfix"
+      ],
+      "post_matches": [
+        "headline",
+        "compat2",
+        "clockcut",
+        "notifyorder"
+      ],
+      "old_sizes": [
+        222,
+        222,
+        222
+      ],
+      "post_sizes": [
+        225,
+        222,
+        222
+      ]
+    },
+    {
+      "name": "tomo_db0::FlipController::debug_dump[abi:cxx11]() const",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        6458
+      ],
+      "post_sizes": [
+        6458
+      ]
+    },
+    {
+      "name": "tomo_db0::FlipController::report() const",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        3939
+      ],
+      "post_sizes": [
+        3939
+      ]
+    },
+    {
+      "name": "tomo_db0::FlipController::seek_after_reading(tomo_db0::Server&, unsigned int, unsigned long, double)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1281
+      ],
+      "post_sizes": [
+        1281
+      ]
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "kind": "instruction-encoding-change",
+      "hot": true,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        10014,
+        12450,
+        9810
+      ],
+      "post_sizes": [
+        10014,
+        12450,
+        9794
+      ]
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "kind": "same-encoding-reference-only",
+      "hot": true,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        166,
+        170,
+        166
+      ],
+      "post_sizes": [
+        166,
+        170,
+        166
+      ]
+    },
+    {
+      "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        4777
+      ],
+      "post_sizes": [
+        4359
+      ]
+    },
+    {
+      "name": "tomo_db0::LbAutotune::KeyDamping::update(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        957
+      ],
+      "post_sizes": [
+        957
+      ]
+    },
+    {
+      "name": "tomo_db0::LbAutotune::QuietJitter::band(unsigned int) const [clone .isra.0]",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        167
+      ],
+      "post_sizes": [
+        167
+      ]
+    },
+    {
+      "name": "tomo_db0::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        559
+      ],
+      "post_sizes": [
+        559
+      ]
+    },
+    {
+      "name": "tomo_db0::Server::lb_controller_tick_pad(unsigned int, unsigned long)::{lambda(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        559
+      ],
+      "post_sizes": [
+        559
+      ]
+    },
+    {
+      "name": "tomo_db0::Server::lb_forget_client(unsigned long)",
+      "kind": "new-or-removed-group",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [],
+      "post_sizes": [
+        419
+      ]
+    },
+    {
+      "name": "tomo_db0::acl_command_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&)",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        11704
+      ],
+      "post_sizes": [
+        11736
+      ]
+    },
+    {
+      "name": "tomo_db0::acl_command_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&) [clone .cold]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        679
+      ],
+      "post_sizes": [
+        678
+      ]
+    },
+    {
+      "name": "tomo_db0::cmd_geo_xshard_local(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        1719
+      ],
+      "post_sizes": [
+        1719
+      ]
+    },
+    {
+      "name": "tomo_db0::dtoa::grisu2_digits(double, char*, int&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1043
+      ],
+      "post_sizes": [
+        1043
+      ]
+    },
+    {
+      "name": "tomo_db0::geo_build_store(tomo_db0::Op&, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> >&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        2068
+      ],
+      "post_sizes": [
+        2068
+      ]
+    },
+    {
+      "name": "tomo_db0::geo_prepare_route(tomo_db0::Op&, tomo_db0::GeoRoute&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        136
+      ],
+      "post_sizes": [
+        136
+      ]
+    },
+    {
+      "name": "tomo_db0::parse_double_strict(tomo_db0::Slice, double&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        503
+      ],
+      "post_sizes": [
+        503
+      ]
+    },
+    {
+      "name": "tomo_db0::redis_double_text(char*, unsigned long, double) [clone .isra.0]",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1043,
+        1043,
+        1043,
+        1043,
+        1043
+      ],
+      "post_sizes": [
+        1043,
+        1043,
+        1043,
+        1043,
+        1043
+      ]
+    },
+    {
+      "name": "tomo_db0::stream_parse_xreadgroup(tomo_db0::Op&, tomo_db0::StreamXreadGroupArgs&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        1231
+      ],
+      "post_sizes": [
+        1231
+      ]
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [
+        "moverfix"
+      ],
+      "old_sizes": [
+        23183
+      ],
+      "post_sizes": [
+        23221
+      ]
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [
+        "moverfix"
+      ],
+      "old_sizes": [
+        380
+      ],
+      "post_sizes": [
+        383
+      ]
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "kind": "instruction-encoding-change",
+      "hot": true,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [
+        "headline",
+        "moverfix",
+        "clockcut",
+        "notifyorder"
+      ],
+      "old_sizes": [
+        729
+      ],
+      "post_sizes": [
+        796
+      ]
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, true, false>(int)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        941
+      ],
+      "post_sizes": [
+        941
+      ]
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, false>(int)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        877
+      ],
+      "post_sizes": [
+        877
+      ]
+    },
+    {
+      "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, false>(int)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        1053
+      ],
+      "post_sizes": [
+        1053
+      ]
+    },
+    {
+      "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "moverfix"
+      ],
+      "post_matches": [
+        "headline",
+        "compat2",
+        "clockcut",
+        "notifyorder"
+      ],
+      "old_sizes": [
+        371,
+        371
+      ],
+      "post_sizes": [
+        352,
+        371
+      ]
+    },
+    {
+      "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::AclLogEntry*, std::vector<tomo_db0::(anonymous namespace)::AclLogEntry, std::allocator<tomo_db0::(anonymous namespace)::AclLogEntry> > >, long, tomo_db0::(anonymous namespace)::AclLogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::AclLogEntry const&, tomo_db0::(anonymous namespace)::AclLogEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::AclLogEntry*, std::vector<tomo_db0::(anonymous namespace)::AclLogEntry, std::allocator<tomo_db0::(anonymous namespace)::AclLogEntry> > >, long, long, tomo_db0::(anonymous namespace)::AclLogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::AclLogEntry const&, tomo_db0::(anonymous namespace)::AclLogEntry const&)#1}>) [clone .isra.0]",
+      "kind": "instruction-encoding-change",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        2816
+      ],
+      "post_sizes": [
+        2815
+      ]
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_geosearch<false>(tomo::Shard&, tomo::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        886
+      ],
+      "post_sizes": [
+        886
+      ]
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_geosearch<true>(tomo::Shard&, tomo::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        886
+      ],
+      "post_sizes": [
+        886
+      ]
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<false>(tomo::Shard&, tomo::Op&, bool)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        6533
+      ],
+      "post_sizes": [
+        6533
+      ]
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        6613
+      ],
+      "post_sizes": [
+        6613
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+      "kind": "same-encoding-reference-only",
+      "hot": true,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        865
+      ],
+      "post_sizes": [
+        865
+      ]
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        15981
+      ],
+      "post_sizes": [
+        15981
+      ]
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        17097
+      ],
+      "post_sizes": [
+        17097
+      ]
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        886
+      ],
+      "post_sizes": [
+        886
+      ]
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        886
+      ],
+      "post_sizes": [
+        886
+      ]
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        6533
+      ],
+      "post_sizes": [
+        6533
+      ]
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [
+        "compat2"
+      ],
+      "post_matches": [],
+      "old_sizes": [
+        6613
+      ],
+      "post_sizes": [
+        6613
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+      "kind": "same-encoding-reference-only",
+      "hot": true,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        459
+      ],
+      "post_sizes": [
+        459
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+      "kind": "same-encoding-reference-only",
+      "hot": true,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        1223
+      ],
+      "post_sizes": [
+        1223
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+      "kind": "same-encoding-reference-only",
+      "hot": true,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        891
+      ],
+      "post_sizes": [
+        891
+      ]
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        15739
+      ],
+      "post_sizes": [
+        15739
+      ]
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "kind": "same-encoding-reference-only",
+      "hot": false,
+      "old_matches": [],
+      "post_matches": [],
+      "old_sizes": [
+        17145
+      ],
+      "post_sizes": [
+        17145
+      ]
+    }
+  ]
+}

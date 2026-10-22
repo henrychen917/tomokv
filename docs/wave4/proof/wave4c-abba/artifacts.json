@@ -1,0 +1,78 @@
+{
+  "source": "build/gate-run.4XVZqu",
+  "files": [
+    {
+      "path": "families.tsv",
+      "bytes": 58,
+      "included": true,
+      "sha256": "e04ce1204849adebc8e6279dfe0f8e9288039d37755a947ea6de2536a111d46a"
+    },
+    {
+      "path": "jobs/abba_selftest/done",
+      "bytes": 6,
+      "included": true,
+      "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+    },
+    {
+      "path": "jobs/abba_selftest/family.tsv",
+      "bytes": 58,
+      "included": true,
+      "sha256": "e04ce1204849adebc8e6279dfe0f8e9288039d37755a947ea6de2536a111d46a"
+    },
+    {
+      "path": "jobs/abba_selftest/gate-abbagate-unit.txt",
+      "bytes": 156929,
+      "included": true,
+      "sha256": "a44aa44088eb608dacf2f15575972c6b8378bd697e6db8fe3a935bf64c94ccd9"
+    },
+    {
+      "path": "jobs/abba_selftest/ledger",
+      "bytes": 61,
+      "included": true,
+      "sha256": "61cf953a8918dee85028f17aa89c1392ce64964beb3bfe615a38b94b37f016eb"
+    },
+    {
+      "path": "jobs/abba_selftest/output.log",
+      "bytes": 190,
+      "included": true,
+      "sha256": "8835b8cb51e6ecdfd6d798d57bbfb0e5ea90b3431cf7be5c3976279081475609"
+    },
+    {
+      "path": "jobs/abba_selftest/row-timeout-1200228.1200228.430633026.1.cancel",
+      "bytes": 63,
+      "included": true,
+      "sha256": "a1b9fad79a5279204cbbf5b6085712452a6bc3b2c9433ddc67735dd613254250"
+    },
+    {
+      "path": "jobs/abba_selftest/timings",
+      "bytes": 61,
+      "included": true,
+      "sha256": "61cf953a8918dee85028f17aa89c1392ce64964beb3bfe615a38b94b37f016eb"
+    },
+    {
+      "path": "phases.tsv",
+      "bytes": 88,
+      "included": true,
+      "sha256": "9c4e7c09ef17d40be64a4476589d6158f09f55aa1c85758fce6550531681cc5a"
+    },
+    {
+      "path": "plan.sh",
+      "bytes": 1190,
+      "included": true,
+      "sha256": "d7384f9b8c905fee756a4a0c401f9c65c2a35684f9f09229114d209f95d03341"
+    },
+    {
+      "path": "queue.lock",
+      "bytes": 0,
+      "included": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "row-timeouts.json",
+      "bytes": 191,
+      "included": true,
+      "sha256": "1c63f8b627a1d5954c222071b1c48cce3d1830cd6433b5f084a7623475d4a598"
+    }
+  ],
+  "archive_sha256": "9eed1c2fc8454cc7c9c6de4ca9a7e7a34f18fe1d80b8d7d1d7779dd404a09249"
+}

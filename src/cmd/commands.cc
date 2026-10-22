@@ -7,6 +7,7 @@
 #include "cmdmeta.h"
 #include "server_tail.h"
 #include "slowlog.h"
+#include "auth.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
 
@@ -375,7 +376,9 @@ bool command_reply_container_subcommand_arity(Op& op, const CommandSpec& spec) {
     return true;
 }
 
-bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec) {
+bool command_reply_container_outer_arity(Op& op, const CommandSpec& spec,
+                                         bool unauthenticated) {
+    if (auth_arity_reply(op, spec, unauthenticated, true)) return true;
     if (op.argc() < 2) return false;
     if (spec.flags & CmdFlags::SubcmdRoute) {
         int16_t first_key = 0;

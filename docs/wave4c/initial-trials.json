@@ -1,0 +1,14 @@
+[
+  {
+    "object": "src/cmd/xshard.o"
+  },
+  {
+    "object": "db0/src/cmd/xshard.o"
+  },
+  {
+    "object": "src/cmd/l4prebuild.o"
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o"
+  }
+]

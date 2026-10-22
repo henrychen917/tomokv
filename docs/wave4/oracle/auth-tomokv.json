@@ -1,0 +1,2982 @@
+{
+ "rows": [
+  {
+   "argv": [
+    "AUTH",
+    "<password>"
+   ],
+   "label": "admin AUTH",
+   "reply": {
+    "simple": "OK"
+   }
+  },
+  {
+   "argv": [
+    "PING"
+   ],
+   "label": "unauthenticated PING",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   }
+  },
+  {
+   "argv": [
+    "XGROUP",
+    "x"
+   ],
+   "label": "XGROUP x (auth.py line 126)",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try XGROUP HELP."
+   }
+  },
+  {
+   "argv": [
+    "XGROUP",
+    "CREATE",
+    "key",
+    "group"
+   ],
+   "label": "XGROUP CREATE key group (auth.py line 128)",
+   "reply": {
+    "error": "ERR wrong number of arguments for 'xgroup|create' command"
+   }
+  },
+  {
+   "argv": [
+    "AUTH",
+    "a",
+    "b",
+    "c"
+   ],
+   "label": "AUTH a b c (auth.py line 131)",
+   "reply": {
+    "error": "ERR syntax error"
+   }
+  },
+  {
+   "argv": [
+    "get",
+    "x"
+   ],
+   "label": "pre-auth registry get",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "set",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry set",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "append",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry append",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "strlen",
+    "x"
+   ],
+   "label": "pre-auth registry strlen",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "getrange",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry getrange",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "substr",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry substr",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "setrange",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry setrange",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "setbit",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry setbit",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "getbit",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry getbit",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "bitfield",
+    "x"
+   ],
+   "label": "pre-auth registry bitfield",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "bitfield_ro",
+    "x"
+   ],
+   "label": "pre-auth registry bitfield_ro",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "bitcount",
+    "x"
+   ],
+   "label": "pre-auth registry bitcount",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "bitpos",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry bitpos",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "bitop",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry bitop",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "getset",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry getset",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "setnx",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry setnx",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "setex",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry setex",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "psetex",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry psetex",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "getex",
+    "x"
+   ],
+   "label": "pre-auth registry getex",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "getdel",
+    "x"
+   ],
+   "label": "pre-auth registry getdel",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "del",
+    "x"
+   ],
+   "label": "pre-auth registry del",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "unlink",
+    "x"
+   ],
+   "label": "pre-auth registry unlink",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "exists",
+    "x"
+   ],
+   "label": "pre-auth registry exists",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "touch",
+    "x"
+   ],
+   "label": "pre-auth registry touch",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "mget",
+    "x"
+   ],
+   "label": "pre-auth registry mget",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "mset",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry mset",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "msetnx",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry msetnx",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "rename",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry rename",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "renamenx",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry renamenx",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "copy",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry copy",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "incr",
+    "x"
+   ],
+   "label": "pre-auth registry incr",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "decr",
+    "x"
+   ],
+   "label": "pre-auth registry decr",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "incrby",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry incrby",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "decrby",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry decrby",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "incrbyfloat",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry incrbyfloat",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "pfadd",
+    "x"
+   ],
+   "label": "pre-auth registry pfadd",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "pfcount",
+    "x"
+   ],
+   "label": "pre-auth registry pfcount",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "pfmerge",
+    "x"
+   ],
+   "label": "pre-auth registry pfmerge",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "expire",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry expire",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "pexpire",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry pexpire",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "expireat",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry expireat",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "pexpireat",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry pexpireat",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "ttl",
+    "x"
+   ],
+   "label": "pre-auth registry ttl",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "pttl",
+    "x"
+   ],
+   "label": "pre-auth registry pttl",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "persist",
+    "x"
+   ],
+   "label": "pre-auth registry persist",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "expiretime",
+    "x"
+   ],
+   "label": "pre-auth registry expiretime",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "pexpiretime",
+    "x"
+   ],
+   "label": "pre-auth registry pexpiretime",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "type",
+    "x"
+   ],
+   "label": "pre-auth registry type",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "dump",
+    "x"
+   ],
+   "label": "pre-auth registry dump",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "restore",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry restore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hset",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hset",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hmset",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hmset",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hsetnx",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hsetnx",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hget",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hget",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hmget",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hmget",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hdel",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hdel",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hlen",
+    "x"
+   ],
+   "label": "pre-auth registry hlen",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hexists",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hexists",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hstrlen",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hstrlen",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hincrby",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hincrby",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hincrbyfloat",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hincrbyfloat",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hgetall",
+    "x"
+   ],
+   "label": "pre-auth registry hgetall",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hkeys",
+    "x"
+   ],
+   "label": "pre-auth registry hkeys",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hvals",
+    "x"
+   ],
+   "label": "pre-auth registry hvals",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hrandfield",
+    "x"
+   ],
+   "label": "pre-auth registry hrandfield",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hscan",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hscan",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hexpire",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hexpire",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hpexpire",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hpexpire",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hexpireat",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hexpireat",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hpexpireat",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hpexpireat",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "httl",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry httl",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hpttl",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hpttl",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hexpiretime",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hexpiretime",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hpexpiretime",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hpexpiretime",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hpersist",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry hpersist",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lpush",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry lpush",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "rpush",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry rpush",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lpushx",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry lpushx",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "rpushx",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry rpushx",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lpop",
+    "x"
+   ],
+   "label": "pre-auth registry lpop",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "rpop",
+    "x"
+   ],
+   "label": "pre-auth registry rpop",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "llen",
+    "x"
+   ],
+   "label": "pre-auth registry llen",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lrange",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry lrange",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lindex",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry lindex",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lset",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry lset",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "linsert",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry linsert",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lrem",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry lrem",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "ltrim",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry ltrim",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lpos",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry lpos",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "blpop",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry blpop",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "brpop",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry brpop",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "blmpop",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry blmpop",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "blmove",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry blmove",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "brpoplpush",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry brpoplpush",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lmpop",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry lmpop",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lmove",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry lmove",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "rpoplpush",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry rpoplpush",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sadd",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry sadd",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "srem",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry srem",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sismember",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry sismember",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "smismember",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry smismember",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "scard",
+    "x"
+   ],
+   "label": "pre-auth registry scard",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "smembers",
+    "x"
+   ],
+   "label": "pre-auth registry smembers",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "spop",
+    "x"
+   ],
+   "label": "pre-auth registry spop",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "srandmember",
+    "x"
+   ],
+   "label": "pre-auth registry srandmember",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sscan",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry sscan",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "smove",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry smove",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sinter",
+    "x"
+   ],
+   "label": "pre-auth registry sinter",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sunion",
+    "x"
+   ],
+   "label": "pre-auth registry sunion",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sdiff",
+    "x"
+   ],
+   "label": "pre-auth registry sdiff",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sintercard",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry sintercard",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sinterstore",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry sinterstore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sunionstore",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry sunionstore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sdiffstore",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry sdiffstore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zadd",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zadd",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zscore",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zscore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zmscore",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zmscore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zincrby",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zincrby",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zcard",
+    "x"
+   ],
+   "label": "pre-auth registry zcard",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zcount",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zcount",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zrange",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zrange",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zrangebyscore",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zrangebyscore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zrevrangebyscore",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zrevrangebyscore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zrangebylex",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zrangebylex",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zrevrangebylex",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zrevrangebylex",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zrevrange",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zrevrange",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zrank",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zrank",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zrevrank",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zrevrank",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zrem",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zrem",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zremrangebyrank",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zremrangebyrank",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zremrangebyscore",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zremrangebyscore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zremrangebylex",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zremrangebylex",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zlexcount",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zlexcount",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zpopmin",
+    "x"
+   ],
+   "label": "pre-auth registry zpopmin",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zpopmax",
+    "x"
+   ],
+   "label": "pre-auth registry zpopmax",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zrandmember",
+    "x"
+   ],
+   "label": "pre-auth registry zrandmember",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zscan",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zscan",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "bzpopmin",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry bzpopmin",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "bzpopmax",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry bzpopmax",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "bzmpop",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry bzmpop",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zmpop",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zmpop",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zrangestore",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zrangestore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zunion",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zunion",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zinter",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zinter",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zdiff",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zdiff",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zunionstore",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zunionstore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zinterstore",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zinterstore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zdiffstore",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zdiffstore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "zintercard",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry zintercard",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "geoadd",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry geoadd",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "geopos",
+    "x"
+   ],
+   "label": "pre-auth registry geopos",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "geodist",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry geodist",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "geohash",
+    "x"
+   ],
+   "label": "pre-auth registry geohash",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "geosearch",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry geosearch",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "geosearchstore",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry geosearchstore",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "georadius",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry georadius",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "georadiusbymember",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry georadiusbymember",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "georadius_ro",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry georadius_ro",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "georadiusbymember_ro",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry georadiusbymember_ro",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xadd",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xadd",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xlen",
+    "x"
+   ],
+   "label": "pre-auth registry xlen",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xrange",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xrange",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xrevrange",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xrevrange",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xdel",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xdel",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xtrim",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xtrim",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xread",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xread",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xgroup",
+    "x"
+   ],
+   "label": "pre-auth registry xgroup",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try XGROUP HELP."
+   },
+   "subcommands": 6
+  },
+  {
+   "argv": [
+    "xreadgroup",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xreadgroup",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xack",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xack",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xpending",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xpending",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xclaim",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xclaim",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xautoclaim",
+    "x",
+    "x",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xautoclaim",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xsetid",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry xsetid",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "xinfo",
+    "x"
+   ],
+   "label": "pre-auth registry xinfo",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try XINFO HELP."
+   },
+   "subcommands": 4
+  },
+  {
+   "argv": [
+    "ping"
+   ],
+   "label": "pre-auth registry ping",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "acl",
+    "x"
+   ],
+   "label": "pre-auth registry acl",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try ACL HELP."
+   },
+   "subcommands": 13
+  },
+  {
+   "argv": [
+    "save"
+   ],
+   "label": "pre-auth registry save",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "bgsave"
+   ],
+   "label": "pre-auth registry bgsave",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "bgrewriteaof"
+   ],
+   "label": "pre-auth registry bgrewriteaof",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lastsave"
+   ],
+   "label": "pre-auth registry lastsave",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "echo",
+    "x"
+   ],
+   "label": "pre-auth registry echo",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "auth",
+    "x"
+   ],
+   "label": "pre-auth registry auth",
+   "reply": {
+    "error": "WRONGPASS invalid username-password pair or user is disabled."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "hello"
+   ],
+   "label": "pre-auth registry hello",
+   "reply": {
+    "error": "NOAUTH HELLO must be called with the client already authenticated, otherwise the HELLO <proto> AUTH <user> <pass> option can be used to authenticate the client and select the RESP protocol version at the same time"
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "reset"
+   ],
+   "label": "pre-auth registry reset",
+   "reply": {
+    "simple": "RESET"
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "quit"
+   ],
+   "label": "pre-auth registry quit",
+   "reply": {
+    "simple": "OK"
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "subscribe",
+    "x"
+   ],
+   "label": "pre-auth registry subscribe",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "unsubscribe"
+   ],
+   "label": "pre-auth registry unsubscribe",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "psubscribe",
+    "x"
+   ],
+   "label": "pre-auth registry psubscribe",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "punsubscribe"
+   ],
+   "label": "pre-auth registry punsubscribe",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "ssubscribe",
+    "x"
+   ],
+   "label": "pre-auth registry ssubscribe",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sunsubscribe"
+   ],
+   "label": "pre-auth registry sunsubscribe",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "publish",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry publish",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "spublish",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry spublish",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "pubsub",
+    "x"
+   ],
+   "label": "pre-auth registry pubsub",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try PUBSUB HELP."
+   },
+   "subcommands": 6
+  },
+  {
+   "argv": [
+    "client",
+    "x"
+   ],
+   "label": "pre-auth registry client",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try CLIENT HELP."
+   },
+   "subcommands": 18
+  },
+  {
+   "argv": [
+    "monitor"
+   ],
+   "label": "pre-auth registry monitor",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "command"
+   ],
+   "label": "pre-auth registry command",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 7
+  },
+  {
+   "argv": [
+    "config",
+    "x"
+   ],
+   "label": "pre-auth registry config",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try CONFIG HELP."
+   },
+   "subcommands": 5
+  },
+  {
+   "argv": [
+    "debug",
+    "x"
+   ],
+   "label": "pre-auth registry debug",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "flip",
+    "x"
+   ],
+   "label": "pre-auth registry flip",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "info"
+   ],
+   "label": "pre-auth registry info",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "select",
+    "x"
+   ],
+   "label": "pre-auth registry select",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "move",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry move",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "swapdb",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry swapdb",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "dbsize"
+   ],
+   "label": "pre-auth registry dbsize",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "flushall"
+   ],
+   "label": "pre-auth registry flushall",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "flushdb"
+   ],
+   "label": "pre-auth registry flushdb",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "randomkey"
+   ],
+   "label": "pre-auth registry randomkey",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "scan",
+    "x"
+   ],
+   "label": "pre-auth registry scan",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "keys",
+    "x"
+   ],
+   "label": "pre-auth registry keys",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sort",
+    "x"
+   ],
+   "label": "pre-auth registry sort",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "multi"
+   ],
+   "label": "pre-auth registry multi",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "exec"
+   ],
+   "label": "pre-auth registry exec",
+   "reply": {
+    "error": "EXECABORT Transaction discarded because of: NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "discard"
+   ],
+   "label": "pre-auth registry discard",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "watch",
+    "x"
+   ],
+   "label": "pre-auth registry watch",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "unwatch"
+   ],
+   "label": "pre-auth registry unwatch",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "eval",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry eval",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "evalsha",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry evalsha",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "eval_ro",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry eval_ro",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "evalsha_ro",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry evalsha_ro",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "script",
+    "x"
+   ],
+   "label": "pre-auth registry script",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try SCRIPT HELP."
+   },
+   "subcommands": 6
+  },
+  {
+   "argv": [
+    "fcall",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry fcall",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "fcall_ro",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry fcall_ro",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "function",
+    "x"
+   ],
+   "label": "pre-auth registry function",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try FUNCTION HELP."
+   },
+   "subcommands": 9
+  },
+  {
+   "argv": [
+    "time"
+   ],
+   "label": "pre-auth registry time",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "lolwut"
+   ],
+   "label": "pre-auth registry lolwut",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "role"
+   ],
+   "label": "pre-auth registry role",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "wait",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry wait",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "waitaof",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry waitaof",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "failover"
+   ],
+   "label": "pre-auth registry failover",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "replicaof",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry replicaof",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "slaveof",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry slaveof",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "pfselftest"
+   ],
+   "label": "pre-auth registry pfselftest",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "shutdown"
+   ],
+   "label": "pre-auth registry shutdown",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "sort_ro",
+    "x"
+   ],
+   "label": "pre-auth registry sort_ro",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "object",
+    "x"
+   ],
+   "label": "pre-auth registry object",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try OBJECT HELP."
+   },
+   "subcommands": 5
+  },
+  {
+   "argv": [
+    "memory",
+    "x"
+   ],
+   "label": "pre-auth registry memory",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try MEMORY HELP."
+   },
+   "subcommands": 6
+  },
+  {
+   "argv": [
+    "slowlog",
+    "x"
+   ],
+   "label": "pre-auth registry slowlog",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try SLOWLOG HELP."
+   },
+   "subcommands": 4
+  },
+  {
+   "argv": [
+    "latency",
+    "x"
+   ],
+   "label": "pre-auth registry latency",
+   "reply": {
+    "error": "ERR unknown subcommand 'x'. Try LATENCY HELP."
+   },
+   "subcommands": 7
+  },
+  {
+   "argv": [
+    "lcs",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry lcs",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "asking"
+   ],
+   "label": "pre-auth registry asking",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "readonly"
+   ],
+   "label": "pre-auth registry readonly",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "readwrite"
+   ],
+   "label": "pre-auth registry readwrite",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "restore-asking",
+    "x",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry restore-asking",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  },
+  {
+   "argv": [
+    "pfdebug",
+    "x",
+    "x"
+   ],
+   "label": "pre-auth registry pfdebug",
+   "reply": {
+    "error": "NOAUTH Authentication required."
+   },
+   "subcommands": 0
+  }
+ ],
+ "server": {
+  "executable": "/home/user/Projects/cx-wave4/build/tomokv",
+  "redis_version": "7.4.10",
+  "tomokv_version": "1.0-cpp"
+ }
+}

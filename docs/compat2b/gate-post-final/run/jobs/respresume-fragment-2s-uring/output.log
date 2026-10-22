@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; RESP resumable fragment (2s, uring)
+  RESP resumable fragment (2s, uring)                  ok

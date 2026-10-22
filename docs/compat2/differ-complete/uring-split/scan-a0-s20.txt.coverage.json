@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "commands": {
+    "DEL": 236,
+    "HDEL": 218,
+    "HSCAN": 13,
+    "HSET": 677,
+    "LPUSH": 60,
+    "SADD": 1163,
+    "SCAN": 12,
+    "SET": 1104,
+    "SREM": 704,
+    "SSCAN": 138,
+    "ZADD": 677,
+    "ZREM": 209,
+    "ZSCAN": 10
+  },
+  "kinds": {
+    "DEL": [
+      "CD6 SSCAN churn property",
+      "reply"
+    ],
+    "HDEL": [
+      "reply"
+    ],
+    "HSCAN": [
+      "cursor-completeness property",
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "LPUSH": [
+      "reply"
+    ],
+    "SADD": [
+      "CD6 SSCAN churn property",
+      "reply"
+    ],
+    "SCAN": [
+      "cursor-completeness property",
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SREM": [
+      "CD6 SSCAN churn property",
+      "reply"
+    ],
+    "SSCAN": [
+      "CD6 SSCAN churn property",
+      "cursor-completeness property",
+      "reply"
+    ],
+    "ZADD": [
+      "reply"
+    ],
+    "ZREM": [
+      "reply"
+    ],
+    "ZSCAN": [
+      "cursor-completeness property",
+      "reply"
+    ]
+  }
+}

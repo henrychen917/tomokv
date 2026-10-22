@@ -4,6 +4,7 @@
 // owner, so Lua and every redis.call handler obey the ownership law without locks around a shard.
 // The cache is the only cross-thread scripting object and is protected independently of shard data.
 #include "command.h"
+#include "auth.h"
 #include "notify.h"
 #include "scripting.h"
 
@@ -1323,6 +1324,7 @@ void reply_script_help(Op& op) {
 }
 
 void cmd_script(Shard&, Op& op) {
+    if (auth_arity_reply(op, *op.spec, false)) return;
     const Slice subcommand = op.arg(1);
     if (subcommand.eq_icase("load")) {
         if (op.argc() != 3) { reply_script_wrong_args(op, "load"); return; }

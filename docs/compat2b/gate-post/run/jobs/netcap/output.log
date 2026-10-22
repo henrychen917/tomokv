@@ -1,0 +1,8 @@
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (1s, uring)
+  NET1 inline + query cap (1s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (1s, epoll)
+  NET1 inline + query cap (1s, epoll)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (2s, uring)
+  NET1 inline + query cap (2s, uring)                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; NET1 inline + query cap (2s, epoll)
+  NET1 inline + query cap (2s, epoll)                  ok

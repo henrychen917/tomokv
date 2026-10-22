@@ -1,0 +1,47 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "64-111",
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-72",
+    "--load-cores",
+    "73-95",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26879",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave4/docs/wave4/fused_candidate.py"
+  ],
+  "cwd": "/home/user/Projects/cx-wave4",
+  "jobs": [
+    "auth",
+    "notify"
+  ],
+  "binary": "docs/wave4/fused_candidate.py",
+  "binary_sha256": "2f7d48d37dd39b8bd37934ac17eeddc5e789136ddca4b79cb467252a453dd535",
+  "env": {
+    "PYTHONPATH": "/home/user/Projects/cx-wave4/docs/wave4/fixture_site",
+    "WAVE4_FIXTURE_PORT_LOG": "/home/user/Projects/cx-wave4/build/wave4/fixture-ports.log",
+    "GATE_TEST_PORT": "26899",
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave4/build/wave4/oracle",
+    "GATE_DIFFER_ORACLE_CORES": "72",
+    "GATE_NOTIFY_ORACLE_CORES": "72",
+    "GATE_ONLY_JOBS": "auth notify",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave4/docs/wave4/proof/fused-auth-notify/ledger",
+    "GATE_HISTORY": "/home/user/Projects/cx-wave4/build/wave4/history-fused-auth-notify"
+  },
+  "returncode": 0,
+  "run_directory": "/home/user/Projects/cx-wave4/build/gate-run.PLfm8h",
+  "jobs_done": {
+    "auth": "0\t7\t0",
+    "notify": "0\t6\t0",
+    "release": "0\t1\t0"
+  }
+}

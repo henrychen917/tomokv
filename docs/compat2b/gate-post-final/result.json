@@ -1,0 +1,35 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "64-79",
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-72",
+    "--load-cores",
+    "73-79",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-compat2/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-compat2",
+  "env": {
+    "REDIS74_ROOT": "/home/user/Projects/cx-compat2/build/compat2b/oracle",
+    "GATE_ONLY_JOBS": "atomic_units abba_selftest respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring",
+    "GATE_DIFFER_ORACLE_CORES": "72",
+    "GATE_TEST_PORT": "26899",
+    "GATE_HISTORY": "/home/user/Projects/cx-compat2/build/compat2b/history-gate-post-final",
+    "GATE_LEDGER": "/home/user/Projects/cx-compat2/docs/compat2b/gate-post-final/ledger",
+    "TMPDIR": "/home/user/Projects/cx-compat2/build/compat2b/tmp"
+  },
+  "binary_sha256": "d611f49909f254fa94e9096283c5ec4921593e8de24b549453e884c0a8a5b8c0",
+  "returncode": 1,
+  "run_directory": "/home/user/Projects/cx-compat2/build/gate-run.8uN4dz"
+}

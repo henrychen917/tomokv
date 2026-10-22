@@ -1,0 +1,53 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "64-111",
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-72",
+    "--load-cores",
+    "73-95",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26879",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave4/docs/wave4/fused_candidate.py"
+  ],
+  "cwd": "/home/user/Projects/cx-wave4",
+  "jobs": [
+    "notify",
+    "debug-0",
+    "debug-1",
+    "atomic_batteries"
+  ],
+  "binary": "docs/wave4/fused_candidate.py",
+  "binary_sha256": "0f21640df16cd39d1c6afd7e811b87d20fdb73b3121279548abb8f4ab57fc963",
+  "env": {
+    "WAVE4_READ_LOCAL": "0",
+    "PYTHONPATH": "/home/user/Projects/cx-wave4/docs/wave4/fixture_site",
+    "WAVE4_FIXTURE_PORT_LOG": "/home/user/Projects/cx-wave4/build/wave4/fixture-ports.log",
+    "GATE_TEST_PORT": "26899",
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave4/build/wave4/oracle",
+    "GATE_DIFFER_ORACLE_CORES": "72",
+    "GATE_NOTIFY_ORACLE_CORES": "72",
+    "GATE_ONLY_JOBS": "notify debug-0 debug-1 atomic_batteries",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave4/docs/wave4/proof/wave4d-fused-rl0/ledger",
+    "GATE_HISTORY": "/home/user/Projects/cx-wave4/build/wave4/history-wave4d-fused-rl0"
+  },
+  "returncode": 0,
+  "run_directory": "/home/user/Projects/cx-wave4/build/gate-run.0ir41Q",
+  "jobs_done": {
+    "production_units": "0\t0\t0",
+    "debug-1": "0\t14\t0",
+    "atomic_batteries": "0\t4\t0",
+    "debug-0": "0\t14\t0",
+    "notify": "0\t6\t0",
+    "release": "0\t1\t0"
+  }
+}

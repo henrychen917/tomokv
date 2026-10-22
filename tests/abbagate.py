@@ -4704,7 +4704,7 @@ def self_test():
             with socket.socket() as listener, socket.socket() as client:
                 listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 listener.settimeout(2)
-                listener.bind(("127.0.0.1", 0))
+                listener.bind(("127.0.0.1", int(os.environ.get("GATE_TEST_PORT", "0"))))
                 listener.listen(1)
                 address = listener.getsockname()
                 client.settimeout(2)
@@ -4732,7 +4732,7 @@ def self_test():
             with socket.socket() as listener:
                 listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-                listener.bind(("127.0.0.1", 0))
+                listener.bind(("127.0.0.1", int(os.environ.get("GATE_TEST_PORT", "0"))))
                 listener.listen(1)
                 with self.assertRaises(OSError) as caught:
                     require_unbound_port(listener.getsockname()[1])

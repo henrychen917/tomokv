@@ -1,0 +1,6 @@
+  row budget: 900s; median=1.125s; correctness-plan-fallback; read-local write ring + arming transient unit
+  read-local write ring + arming transient unit        ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; climon 128-owner delivery mask
+  climon 128-owner delivery mask                       ok
+  row budget: 900s; median=0.89s; correctness-plan-fallback; read-local MGET fence symmetry unit
+  read-local MGET fence symmetry unit                  ok

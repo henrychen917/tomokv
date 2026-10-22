@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "commands": {
+    "XACK": 249,
+    "XADD": 776,
+    "XAUTOCLAIM": 241,
+    "XCLAIM": 484,
+    "XDEL": 263,
+    "XGROUP": 763,
+    "XPENDING": 485,
+    "XREADGROUP": 523,
+    "XSETID": 1,
+    "XTRIM": 267
+  },
+  "kinds": {
+    "XACK": [
+      "reply"
+    ],
+    "XADD": [
+      "reply"
+    ],
+    "XAUTOCLAIM": [
+      "reply"
+    ],
+    "XCLAIM": [
+      "reply"
+    ],
+    "XDEL": [
+      "reply"
+    ],
+    "XGROUP": [
+      "reply"
+    ],
+    "XPENDING": [
+      "reply"
+    ],
+    "XREADGROUP": [
+      "reply"
+    ],
+    "XSETID": [
+      "reply"
+    ],
+    "XTRIM": [
+      "reply"
+    ]
+  }
+}

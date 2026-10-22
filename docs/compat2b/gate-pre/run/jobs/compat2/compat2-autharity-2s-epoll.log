@@ -1,0 +1,8 @@
+autharity: commands=245 comparisons=1522 failures=228
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-compat2/build/compat2b/headline-src/tests/autharity.py", line 128, in <module>
+    run(p.parse_args())
+  File "/home/user/Projects/cx-compat2/build/compat2b/headline-src/tests/autharity.py", line 120, in run
+    assert not failures, failures[:5]
+           ^^^^^^^^^^^^
+AssertionError: [{'command': 'acl', 'kind': 'right', 'argv': ['acl', 'compat2-invalid'], 'authenticated': False, 'restricted_user': False, 'target': b'-NOAUTH Authentication required.\r\n', 'oracle': b"-ERR unknown subcommand 'compat2-invalid'. Try ACL HELP.\r\n"}, {'command': 'acl|load', 'kind': 'wrong', 'argv': ['acl', 'load', 'compat2-invalid'], 'authenticated': False, 'restricted_user': False, 'target': b'-NOAUTH Authentication required.\r\n', 'oracle': b"-ERR wrong number of arguments for 'acl|load' command\r\n"}, {'command': 'acl|help', 'kind': 'wrong', 'argv': ['acl', 'help', 'compat2-invalid'], 'authenticated': False, 'restricted_user': False, 'target': b'-NOAUTH Authentication required.\r\n', 'oracle': b"-ERR wrong number of arguments for 'acl|help' command\r\n"}, {'command': 'acl|save', 'kind': 'wrong', 'argv': ['acl', 'save', 'compat2-invalid'], 'authenticated': False, 'restricted_user': False, 'target': b'-NOAUTH Authentication required.\r\n', 'oracle': b"-ERR wrong number of arguments for 'acl|save' command\r\n"}, {'command': 'acl|getuser', 'kind': 'wrong', 'argv': ['acl', 'getuser'], 'authenticated': False, 'restricted_user': False, 'target': b'-NOAUTH Authentication required.\r\n', 'oracle': b"-ERR wrong number of arguments for 'acl|getuser' command\r\n"}]

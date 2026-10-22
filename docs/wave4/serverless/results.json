@@ -1,0 +1,55 @@
+{
+  "cpus": "80-87",
+  "env": {
+    "PYTHONPATH": "/home/user/Projects/cx-wave4/docs/wave4/fixture_site",
+    "GATE_TEST_PORT": "26879",
+    "WAVE4_FIXTURE_PORT_LOG": "/home/user/Projects/cx-wave4/build/wave4/standalone-fixture-ports.log"
+  },
+  "results": [
+    {
+      "test": "gates_test",
+      "argv": [
+        "python3",
+        "tests/gates_test.py"
+      ],
+      "returncode": 0,
+      "seconds": 183.0095166116953
+    },
+    {
+      "test": "debug_load_test",
+      "argv": [
+        "python3",
+        "tests/debug_load_test.py"
+      ],
+      "returncode": 0,
+      "seconds": 0.081310766749084
+    },
+    {
+      "test": "differ_test",
+      "argv": [
+        "python3",
+        "tests/differ_test.py"
+      ],
+      "returncode": 0,
+      "seconds": 5.663633605465293
+    },
+    {
+      "test": "infofields_test",
+      "argv": [
+        "python3",
+        "tests/infofields_test.py"
+      ],
+      "returncode": 0,
+      "seconds": 0.0786090875044465
+    },
+    {
+      "test": "loading_ready_test",
+      "argv": [
+        "python3",
+        "tests/loading_ready_test.py"
+      ],
+      "returncode": 0,
+      "seconds": 0.2796266507357359
+    }
+  ]
+}

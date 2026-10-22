@@ -1,0 +1,32 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "97-99",
+    "bash",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-wave4/build/wave4/differ-constrained/tomokv-uring-armed-fused",
+    "26864",
+    "26865",
+    "88-95",
+    "6:2"
+  ],
+  "env": {
+    "PYTHONPATH": "/home/user/Projects/cx-wave4/docs/wave4/fixture_site",
+    "WAVE4_FIXTURE_PORT_LOG": "/home/user/Projects/cx-wave4/build/wave4/differ-constrained/fixture-ports.log",
+    "GATE_TEST_PORT": "26899",
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave4/build/wave4/oracle",
+    "GATE_DIFFER_ORACLE_CORES": "96",
+    "GATE_NOTIFY_ORACLE_CORES": "88",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+    "GATE_LOAD_CORES": "97-99",
+    "GATE_RUN_ID": "wave4b-final-standard",
+    "GATE_DIFFER_GEOMETRY": "armed-fused",
+    "GATE_DIFFER_OUT": "/home/user/Projects/cx-wave4/build/wave4/differ-constrained/uring-armed-fused"
+  },
+  "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+  "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+  "returncode": 0,
+  "seconds": 1049.7556342398748
+}

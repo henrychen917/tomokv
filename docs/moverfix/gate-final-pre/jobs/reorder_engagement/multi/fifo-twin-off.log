@@ -1,0 +1,30 @@
+PASS iotemplates membership 1s rl=0 ro=0
+PASS iotemplates membership 1s rl=1 ro=0
+PASS iotemplates membership 1s rl=0 ro=1
+PASS iotemplates membership 1s rl=1 ro=1
+PASS iotemplates membership 1s rl=0 ro=-1
+PASS iotemplates membership 1s rl=1 ro=-1
+PASS iotemplates membership 2s rl=0 ro=0
+PASS iotemplates membership 2s rl=1 ro=0
+PASS iotemplates membership 2s rl=0 ro=1
+PASS iotemplates membership 2s rl=1 ro=1
+PASS iotemplates membership 2s rl=0 ro=-1
+PASS iotemplates membership 2s rl=1 ro=-1
+PASS R7 production drain 1s read-local=1 requested=0 effective=0: 64 handlers, FIFO, empty carry
+PASS R7 production drain 1s read-local=1 requested=1 effective=0: 64 handlers, FIFO, empty carry
+PASS R7 production drain 2s read-local=1 requested=0 effective=0: 64 handlers, FIFO, empty carry
+PASS R7 production drain 2s read-local=1 requested=1 effective=0: 64 handlers, FIFO, empty carry
+PASS R7 production drain 2s read-local=0 requested=0 effective=0: 64 handlers, FIFO, empty carry
+PASS R7 production drain 2s read-local=0 requested=1 effective=0: 64 handlers, FIFO, empty carry
+PASS R7 production drain 1s read-local=1 requested=1 effective=0: 64 handlers, FIFO, empty carry
+PASS production parser + three pipes 1s read-local=1 reorder=0 shadow=0
+PASS production parser + three pipes 1s read-local=1 reorder=1 shadow=0
+PASS production parser + three pipes 2s read-local=1 reorder=0 shadow=0
+PASS production parser + three pipes 2s read-local=1 reorder=1 shadow=0
+PASS production parser + three pipes 2s read-local=0 reorder=0 shadow=0
+PASS production parser + three pipes 2s read-local=0 reorder=1 shadow=0
+PASS production shadow across parser passes and executor owners; shadow=0
+PASS production read-local demotion 1s: older blocker stamp, late owner order, shadow=0
+PASS production read-local demotion 2s: older blocker stamp, late owner order, shadow=0
+PASS reorder database parser multidb requested=0: SELECT, boundary, stamp, shadow, replies
+PASS reorder database parser multidb requested=1: SELECT, boundary, stamp, shadow, replies

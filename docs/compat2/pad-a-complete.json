@@ -1,0 +1,145 @@
+{
+  "kind": "A: PRE behavior in POST layout",
+  "counts": {
+    "arity": 2,
+    "noauth": 2,
+    "notification": 4,
+    "tls": 2,
+    "acl_name": 2,
+    "acl_exec": 2,
+    "quit": 2
+  },
+  "changed_bytes": 58,
+  "patches": [
+    {
+      "address": "0x77ab14",
+      "offset": 7842580,
+      "before": "415741",
+      "after": "31c0c3",
+      "reason": "arity: return false",
+      "symbol": "tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)"
+    },
+    {
+      "address": "0x77aa94",
+      "offset": 7842452,
+      "before": "8b87cc000000488d",
+      "after": "488d05f11d0100c3",
+      "reason": "NOAUTH: return PRE prefix after the unchanged output-limit check",
+      "symbol": "tomo::auth_noauth_error(tomo::Op const&)"
+    },
+    {
+      "address": "0x3e0474",
+      "offset": 4064372,
+      "before": "415741",
+      "after": "31c0c3",
+      "reason": "arity: return false",
+      "symbol": "tomo_db0::auth_arity_reply(tomo_db0::Op&, tomo_db0::CommandSpec const&, bool, bool)"
+    },
+    {
+      "address": "0x3e03f4",
+      "offset": 4064244,
+      "before": "8b87cc000000488d",
+      "after": "488d0591c43a00c3",
+      "reason": "NOAUTH: return PRE prefix after the unchanged output-limit check",
+      "symbol": "tomo_db0::auth_noauth_error(tomo_db0::Op const&)"
+    },
+    {
+      "address": "0x4dbab0",
+      "offset": 5094064,
+      "before": "31c048",
+      "after": "31c0c3",
+      "reason": "notification: return false",
+      "symbol": "tomo::FlatStore::notify_read_resolves_versions() const [clone .isra.0]"
+    },
+    {
+      "address": "0x723040",
+      "offset": 7483456,
+      "before": "31c048",
+      "after": "31c0c3",
+      "reason": "notification: return false",
+      "symbol": "tomo::FlatStore::notify_read_resolves_versions() const [clone .isra.0]"
+    },
+    {
+      "address": "0x1534d0",
+      "offset": 1389776,
+      "before": "31c048",
+      "after": "31c0c3",
+      "reason": "notification: return false",
+      "symbol": "tomo_db0::FlatStore::notify_read_resolves_versions() const [clone .isra.0]"
+    },
+    {
+      "address": "0x38a8a0",
+      "offset": 3713184,
+      "before": "31c048",
+      "after": "31c0c3",
+      "reason": "notification: return false",
+      "symbol": "tomo_db0::FlatStore::notify_read_resolves_versions() const [clone .isra.0]"
+    },
+    {
+      "address": "0x4ed1e",
+      "offset": 322846,
+      "before": "488935c3758100",
+      "after": "488915c3758100",
+      "reason": "QUIT: initialize PRE bounds (1,1)",
+      "symbol": "_GLOBAL__sub_I__ZN8tomo_db019debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm"
+    },
+    {
+      "address": "0x54914",
+      "offset": 346388,
+      "before": "488935ed3e8100",
+      "after": "488915ed3e8100",
+      "reason": "QUIT: initialize PRE bounds (1,1)",
+      "symbol": "_GLOBAL__sub_I__ZN4tomo19debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm"
+    },
+    {
+      "address": "0xd0901",
+      "offset": 854273,
+      "before": "e83a60faff",
+      "after": "9090909090",
+      "reason": "TLS: retain sidecar until reap_dead",
+      "symbol": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)"
+    },
+    {
+      "address": "0x1852c4",
+      "offset": 1594052,
+      "before": "e89724ffff",
+      "after": "31c0909090",
+      "reason": "acl_exec: use PRE fallback",
+      "symbol": "tomo_db0::(anonymous namespace)::acl_reply_denied(tomo_db0::Client&, tomo_db0::Op&, unsigned int, tomo_db0::AclDeniedReason, unsigned int, tomo_db0::ThreadCtx&, tomo_db0::AclLogContext) [clone .constprop.0]"
+    },
+    {
+      "address": "0x18530c",
+      "offset": 1594124,
+      "before": "e8ef9b2000",
+      "after": "31c0909090",
+      "reason": "acl_name: use PRE fallback",
+      "symbol": "tomo_db0::(anonymous namespace)::acl_reply_denied(tomo_db0::Client&, tomo_db0::Op&, unsigned int, tomo_db0::AclDeniedReason, unsigned int, tomo_db0::ThreadCtx&, tomo_db0::AclLogContext) [clone .constprop.0]"
+    },
+    {
+      "address": "0x45a1b1",
+      "offset": 4563377,
+      "before": "e81a8afaff",
+      "after": "9090909090",
+      "reason": "TLS: retain sidecar until reap_dead",
+      "symbol": "tomo::IoLoop::close_client(tomo::Client*, bool)"
+    },
+    {
+      "address": "0x50ad2f",
+      "offset": 5287215,
+      "before": "e82c27ffff",
+      "after": "31c0909090",
+      "reason": "acl_exec: use PRE fallback",
+      "symbol": "tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]"
+    },
+    {
+      "address": "0x50ad7b",
+      "offset": 5287291,
+      "before": "e8b0c82100",
+      "after": "31c0909090",
+      "reason": "acl_name: use PRE fallback",
+      "symbol": "tomo::(anonymous namespace)::acl_reply_denied(tomo::Client&, tomo::Op&, unsigned int, tomo::AclDeniedReason, unsigned int, tomo::ThreadCtx&, tomo::AclLogContext) [clone .constprop.0]"
+    }
+  ],
+  "post_sha256": "b8a21b0f8e880877b46a71b27e89a86ee5071c766da459417d773ba8a52c0596",
+  "pad_sha256": "5c830403b32304512fe6b72ecf8d5d47e4e5f506cd7e294101798acc78b94ac1"
+}

@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; correctness-plan-fallback; ABBA comparison + saturation negative controls
+  ABBA comparison + saturation negative controls       FAIL (see /home/user/Projects/cx-moverfix/build/gate-run.ahbrts/jobs/abba_selftest/gate-abbagate-unit.txt)

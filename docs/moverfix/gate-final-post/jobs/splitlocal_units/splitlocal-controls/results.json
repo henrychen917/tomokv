@@ -1,0 +1,14 @@
+[
+  {
+    "control": "old-forwarding",
+    "exit": 2,
+    "assertion": "flush_ready preserves SplitLocal and prebuild policy",
+    "rejected": true
+  },
+  {
+    "control": "old-park",
+    "exit": 2,
+    "assertion": "park/hot callback Fused policy mismatch",
+    "rejected": true
+  }
+]

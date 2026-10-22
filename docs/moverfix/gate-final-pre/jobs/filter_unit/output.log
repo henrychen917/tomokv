@@ -1,0 +1,3 @@
+  row budget: 900s; median=0.295s; correctness-plan-fallback; B+ counting-fingerprint filter unit
+foreign-read-safety unit: PASS
+  B+ counting-fingerprint filter unit                  ok

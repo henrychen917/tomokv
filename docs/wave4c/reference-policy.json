@@ -1,0 +1,52 @@
+[
+  {
+    "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+    "reference": "headline",
+    "reason": "No direct source edit in this function. Existing encoded instructions match headline; resolved switch-table symbols and anonymous scalar-pool labels differ. Strict matching is retained, without relaxing the normalizer."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+    "reference": "headline",
+    "reason": "No direct source edit in this function. Existing encoded instructions match headline; resolved switch-table symbols and anonymous scalar-pool labels differ. Strict matching is retained, without relaxing the normalizer."
+  },
+  {
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "reference": "moverfix",
+    "reason": "Direct moverfix phase-two element-mover/live-pop dispatch. Other lanes change callees and compiler context; do not restore pre-mover dispatch."
+  },
+  {
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+    "reference": "moverfix",
+    "reason": "Direct moverfix phase-two element-mover/live-pop dispatch. Other lanes change callees and compiler context; do not restore pre-mover dispatch."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+    "reference": "clockcut",
+    "reason": "Clockcut intentionally changes the SET absolute-deadline comparison from <= to <. compat2 intentionally adds the version-aware expiry-notification guard in the inlined find_notify path. Both fixes must survive; headline/moverfix lacks both, and no supplied single-lane reference contains their composition."
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+    "reference": "headline",
+    "reason": "No direct source edit in this function. Existing encoded instructions match headline; resolved switch-table symbols and anonymous scalar-pool labels differ. Strict matching is retained, without relaxing the normalizer."
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+    "reference": "headline",
+    "reason": "No direct source edit in this function. Existing encoded instructions match headline; resolved switch-table symbols and anonymous scalar-pool labels differ. Strict matching is retained, without relaxing the normalizer."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "reference": "clockcut",
+    "reason": "Clockcut intentionally changes the SET absolute-deadline comparison from <= to <. compat2 intentionally adds the version-aware expiry-notification guard in the inlined find_notify path. Both fixes must survive; headline/moverfix lacks both, and no supplied single-lane reference contains their composition."
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "reference": "headline",
+    "reason": "No direct source edit in this function. Existing encoded instructions match headline; resolved switch-table symbols and anonymous scalar-pool labels differ. Strict matching is retained, without relaxing the normalizer."
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "reference": "headline",
+    "reason": "No direct source edit in this function. Existing encoded instructions match headline; resolved switch-table symbols and anonymous scalar-pool labels differ. Strict matching is retained, without relaxing the normalizer."
+  }
+]

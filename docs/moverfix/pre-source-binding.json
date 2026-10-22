@@ -1,0 +1,25 @@
+{
+  "revision": "8656f9fa924fc06aa128504fca8aa99436aa9e41",
+  "unchanged": [
+    {
+      "path": "Makefile",
+      "sha256": "eb04b4b95b70e938ca1b0125a3b941402e577be76363ee260ed4440e76d73822"
+    },
+    {
+      "path": "src/cmd/scatter_engine.inc",
+      "sha256": "c185630f7901f1e1a2cc91ab1b249dab8a206e4746979f5ae1c9f459e92dfa76"
+    },
+    {
+      "path": "src/cmd/xshard_commands.inc",
+      "sha256": "9e535a65b1d1f8f8718c38b5bec18ef78df182dac1cbd054a1692a1548cbcfbe"
+    },
+    {
+      "path": "src/cmd/xshard.cc",
+      "sha256": "0d31662906470600a850a09f1857c5be41a065268db5d4f5707d67af2d622587"
+    },
+    {
+      "path": "src/store/flatstore.h",
+      "sha256": "dbe9a96ff05d1ba5d99c2e812c900aa2a940ca38e6f91629db6453e148ea0570"
+    }
+  ]
+}

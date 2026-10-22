@@ -1,0 +1,78 @@
+         6647460 function calls (6583848 primitive calls) in 3.266 seconds
+
+   Ordered by: cumulative time
+   List reduced from 553 to 70 due to restriction <70>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    3.266    3.266 case.py:599(run)
+        1    0.001    0.001    3.266    3.266 case.py:588(_callTestMethod)
+        1    0.005    0.005    3.266    3.266 gateprod.py:334(test_dry_run_matches_real_boot_argv_for_every_cell_and_both_arms)
+        1    0.002    0.002    1.674    1.674 gateprod.py:107(dry_run)
+      320    0.126    0.000    1.367    0.004 abbagate.py:512(load_layout)
+        2    0.004    0.002    1.066    0.533 abbagate.py:300(read_cells)
+        2    0.000    0.000    1.007    0.504 gate_measurements.py:152(instrument_digest)
+        2    0.004    0.002    1.007    0.504 abba_instrument.py:115(instrument_fingerprint)
+      128    0.011    0.000    0.963    0.008 abbagate.py:1836(measure)
+       30    0.121    0.004    0.886    0.030 abba_instrument.py:84(syntax_imports)
+      131    0.140    0.001    0.580    0.004 gate_measurements.py:43(load)
+      129    0.001    0.000    0.571    0.004 gate_measurements.py:125(ratio)
+   196146    0.091    0.000    0.503    0.000 ast.py:369(walk)
+    31077    0.038    0.000    0.439    0.000 pathlib.py:1024(read_text)
+    33359    0.010    0.000    0.438    0.000 pathlib.py:837(stat)
+    33367    0.091    0.000    0.428    0.000 {built-in method posix.stat}
+    30720    0.015    0.000    0.417    0.000 pathlib.py:854(exists)
+   196115    0.058    0.000    0.391    0.000 {method 'extend' of 'collections.deque' objects}
+    65322    0.027    0.000    0.365    0.000 pathlib.py:447(__fspath__)
+    69261    0.064    0.000    0.353    0.000 pathlib.py:437(__str__)
+   392199    0.162    0.000    0.333    0.000 ast.py:269(iter_child_nodes)
+      128    0.007    0.000    0.298    0.002 gateprod.py:80(server_argv)
+      131    0.000    0.000    0.275    0.002 __init__.py:299(loads)
+      131    0.000    0.000    0.275    0.002 decoder.py:332(decode)
+      131    0.274    0.002    0.274    0.002 decoder.py:343(raw_decode)
+    37259    0.031    0.000    0.261    0.000 pathlib.py:551(drive)
+    31269    0.014    0.000    0.246    0.000 pathlib.py:1007(open)
+    36487    0.031    0.000    0.238    0.000 pathlib.py:407(_load_parts)
+    30732    0.092    0.000    0.232    0.000 abbagate.py:440(cpus)
+    31270    0.190    0.000    0.228    0.000 {built-in method _io.open}
+       31    0.027    0.001    0.204    0.007 ast.py:34(parse)
+    36487    0.099    0.000    0.186    0.000 pathlib.py:387(_parse_path)
+       32    0.177    0.006    0.177    0.006 {built-in method builtins.compile}
+  1590287    0.163    0.000    0.164    0.000 {built-in method builtins.isinstance}
+    79338    0.039    0.000    0.125    0.000 __init__.py:169(fullmatch)
+   513420    0.092    0.000    0.124    0.000 ast.py:257(iter_fields)
+    31077    0.086    0.000    0.116    0.000 {method 'read' of '_io.TextIOWrapper' objects}
+    42842    0.029    0.000    0.100    0.000 pathlib.py:1159(__init__)
+    43422    0.022    0.000    0.086    0.000 {built-in method builtins.all}
+      520    0.003    0.000    0.075    0.000 abba_instrument.py:66(local_modules)
+    42842    0.046    0.000    0.071    0.000 pathlib.py:357(__init__)
+    15196    0.020    0.000    0.052    0.000 gate_measurements.py:37(provenance)
+    79532    0.033    0.000    0.051    0.000 __init__.py:280(_compile)
+      130    0.001    0.000    0.049    0.000 __init__.py:183(dumps)
+      130    0.004    0.000    0.048    0.000 encoder.py:183(encode)
+    30720    0.047    0.000    0.047    0.000 {method 'intersection' of 'set' objects}
+    31270    0.045    0.000    0.045    0.000 {method '__exit__' of '_io._IOBase' objects}
+    36096    0.006    0.000    0.042    0.000 encoder.py:414(_iterencode)
+   247537    0.042    0.000    0.042    0.000 {built-in method sys.intern}
+      990    0.000    0.000    0.042    0.000 {built-in method builtins.next}
+      982    0.001    0.000    0.041    0.000 abba_instrument.py:72(<genexpr>)
+    10570    0.008    0.000    0.040    0.000 pathlib.py:380(with_segments)
+    78772    0.032    0.000    0.037    0.000 {built-in method builtins.sorted}
+62848/36096    0.011    0.000    0.036    0.000 encoder.py:334(_iterencode_dict)
+    79338    0.036    0.000    0.036    0.000 {method 'fullmatch' of 're.Pattern' objects}
+   330118    0.033    0.000    0.034    0.000 {built-in method builtins.getattr}
+    36487    0.024    0.000    0.032    0.000 <frozen posixpath>:138(splitroot)
+     1907    0.002    0.000    0.032    0.000 pathlib.py:888(is_file)
+    31119    0.017    0.000    0.030    0.000 <frozen codecs>:319(decode)
+   131420    0.029    0.000    0.029    0.000 {method 'split' of 'str' objects}
+56448/31488    0.019    0.000    0.028    0.000 encoder.py:278(_iterencode_list)
+      256    0.001    0.000    0.028    0.000 mock.py:2119(__init__)
+    39825    0.017    0.000    0.027    0.000 {method 'join' of 'str' objects}
+    38695    0.016    0.000    0.027    0.000 pathlib.py:429(_format_parsed_parts)
+     5654    0.004    0.000    0.027    0.000 pathlib.py:711(joinpath)
+      256    0.001    0.000    0.026    0.000 mock.py:1129(__call__)
+      432    0.001    0.000    0.025    0.000 pathlib.py:1230(resolve)
+      512    0.012    0.000    0.024    0.000 mock.py:2125(_mock_set_magics)
+     4672    0.002    0.000    0.023    0.000 pathlib.py:719(__truediv__)
+    42842    0.015    0.000    0.023    0.000 pathlib.py:1166(__new__)
+
+

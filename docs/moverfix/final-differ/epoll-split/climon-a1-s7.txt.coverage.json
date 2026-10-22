@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "commands": {
+    "CLIENT": 4202
+  },
+  "kinds": {
+    "CLIENT": [
+      "reply"
+    ]
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "commands": {
+    "COPY": 109,
+    "DEBUG": 2,
+    "DEL": 112,
+    "EXISTS": 131,
+    "EXPIRE": 6,
+    "EXPIREAT": 120,
+    "EXPIRETIME": 26,
+    "GET": 119,
+    "GETEX": 328,
+    "HGETALL": 106,
+    "HLEN": 112,
+    "HPERSIST": 134,
+    "HPEXPIREAT": 256,
+    "HPEXPIRETIME": 130,
+    "HSET": 110,
+    "KEYS": 148,
+    "MEMORY": 233,
+    "MGET": 125,
+    "MSET": 108,
+    "PERSIST": 345,
+    "PEXPIRE": 4,
+    "PEXPIREAT": 500,
+    "PEXPIRETIME": 48,
+    "PSETEX": 7,
+    "PTTL": 26,
+    "RENAME": 112,
+    "SADD": 133,
+    "SET": 331,
+    "SETEX": 7,
+    "SINTERSTORE": 115,
+    "SMEMBERS": 113,
+    "STRLEN": 54,
+    "TOUCH": 60,
+    "TTL": 38,
+    "TYPE": 119
+  },
+  "kinds": {
+    "COPY": [
+      "reply"
+    ],
+    "DEBUG": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "EXPIRE": [
+      "reply"
+    ],
+    "EXPIREAT": [
+      "reply"
+    ],
+    "EXPIRETIME": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "GETEX": [
+      "reply"
+    ],
+    "HGETALL": [
+      "reply"
+    ],
+    "HLEN": [
+      "reply"
+    ],
+    "HPERSIST": [
+      "reply"
+    ],
+    "HPEXPIREAT": [
+      "reply"
+    ],
+    "HPEXPIRETIME": [
+      "reply"
+    ],
+    "HSET": [
+      "reply"
+    ],
+    "KEYS": [
+      "reply"
+    ],
+    "MEMORY": [
+      "reply"
+    ],
+    "MGET": [
+      "reply"
+    ],
+    "MSET": [
+      "reply"
+    ],
+    "PERSIST": [
+      "reply"
+    ],
+    "PEXPIRE": [
+      "reply"
+    ],
+    "PEXPIREAT": [
+      "reply"
+    ],
+    "PEXPIRETIME": [
+      "reply"
+    ],
+    "PSETEX": [
+      "reply"
+    ],
+    "PTTL": [
+      "reply"
+    ],
+    "RENAME": [
+      "reply"
+    ],
+    "SADD": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "SETEX": [
+      "reply"
+    ],
+    "SINTERSTORE": [
+      "reply"
+    ],
+    "SMEMBERS": [
+      "reply"
+    ],
+    "STRLEN": [
+      "reply"
+    ],
+    "TOUCH": [
+      "reply"
+    ],
+    "TTL": [
+      "reply"
+    ],
+    "TYPE": [
+      "reply"
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "binary": "build/tomokv",
+  "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f",
+  "missing_symbol_rejected": true,
+  "missing_splitlocal_parser_rejected": true,
+  "changed_opcode_rejected": true,
+  "gate_inventory_guard": "Still fails 145/146 versus expected 146/146; unchanged."
+}

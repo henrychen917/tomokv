@@ -1,0 +1,19 @@
+{
+  "run": "compat2-uring-armed-fused",
+  "permanent": [
+    7,
+    19,
+    20,
+    23
+  ],
+  "failed": [],
+  "rotating": 22,
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    22
+  ],
+  "history": "/home/user/Projects/cx-compat2/docs/compat2b/differ/history"
+}

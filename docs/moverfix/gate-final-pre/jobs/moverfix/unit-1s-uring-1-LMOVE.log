@@ -1,0 +1,2 @@
+FAIL: destination arriving first must defer
+HIT LMOVE both probes before claims count=1 left=0 to_left=0

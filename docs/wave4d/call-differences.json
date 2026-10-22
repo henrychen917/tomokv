@@ -1,0 +1,772 @@
+[
+  {
+    "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+    "reference": "headline",
+    "candidate": "merged",
+    "sizes": [
+      [
+        181
+      ],
+      [
+        181
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  },
+  {
+    "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+    "reference": "moverfix",
+    "candidate": "merged",
+    "sizes": [
+      [
+        181
+      ],
+      [
+        181
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+    "reference": "headline",
+    "candidate": "merged",
+    "sizes": [
+      [
+        181
+      ],
+      [
+        181
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+    "reference": "moverfix",
+    "candidate": "merged",
+    "sizes": [
+      [
+        181
+      ],
+      [
+        181
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  },
+  {
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "reference": "headline",
+    "candidate": "merged",
+    "sizes": [
+      [
+        23329
+      ],
+      [
+        23183
+      ]
+    ],
+    "removed": [
+      {
+        "kind": "call",
+        "target": "<tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::(anonymous namespace)::ensure_result(tomo_db0::ScatterState&)>",
+        "count": 2
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::FlatStore::atomic_needs_version(unsigned long, tomo_db0::Slice) const>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::(anonymous namespace)::begin_plain_version(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, unsigned long, unsigned long) [clone .constprop.0]>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::xshard_remove_list_element(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, tomo_db0::Slice)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::xshard_remove_set_element(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::xshard_push_list_element(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, tomo_db0::Slice)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::FlatStore::ForeignReadKeyGuard::ForeignReadKeyGuard(tomo_db0::FlatStore&, unsigned long)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::FlatStore::ForeignReadKeyGuard::~ForeignReadKeyGuard()>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::xshard_insert_set_element(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::xshard_pop_zset(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, unsigned long, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<double, std::allocator<double> >&)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::xshard_pop_list(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, unsigned long, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<__stack_chk_fail@plt>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<pthread_mutex_lock@plt>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<_ZSt20__throw_system_errori@plt>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x19>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x3e>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xd0>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xea>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x72>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x114>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xc5>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x103>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x122>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x12e>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x13e>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x152>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x180>",
+        "count": 1
+      }
+    ],
+    "added": [
+      {
+        "kind": "call",
+        "target": "<tomo_db0::(anonymous namespace)::group_for(tomo_db0::ScatterState&, int)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::KvObj::str_value() const>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::xshard_make_string(tomo_db0::Slice, tomo_db0::Slice, long, bool, bool)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::(anonymous namespace)::execute_atomic_apply(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .isra.0]>",
+        "count": 2
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::(anonymous namespace)::serialize_object(tomo_db0::KvObj*, tomo_db0::(anonymous namespace)::ObjectImage&)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::(anonymous namespace)::load_object_image(tomo_db0::Slice, tomo_db0::(anonymous namespace)::ObjectImage const&, tomo_db0::TypeLimits const&, tomo_db0::KvObj*&)>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<mallocx@plt>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::kvobj_init_int(void*, tomo_db0::Slice, long, long, bool) [clone .isra.0]>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::(anonymous namespace)::execute_live_pop(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .isra.0]>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::(anonymous namespace)::execute_plain_element_mover(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .isra.0]>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<std::mutex::lock()>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xe>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x51>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xcd>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xd7>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xe6>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xf5>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x108>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x22>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x13b>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x46>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x121>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x82>",
+        "count": 1
+      }
+    ],
+    "encodings_equal": false
+  },
+  {
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "reference": "moverfix",
+    "candidate": "merged",
+    "sizes": [
+      [
+        23221
+      ],
+      [
+        23183
+      ]
+    ],
+    "removed": [
+      {
+        "kind": "call",
+        "target": "<pthread_mutex_lock@plt>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<__stack_chk_fail@plt>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<_ZSt20__throw_system_errori@plt>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x32>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xbf>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x40>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xed>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x113>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x12b>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x135>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x120>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x157>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x16b>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x74>",
+        "count": 1
+      }
+    ],
+    "added": [
+      {
+        "kind": "call",
+        "target": "<std::mutex::lock()>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x51>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xcd>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xd7>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xe6>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0xf5>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x108>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x22>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x13b>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x46>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x121>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]+0x82>",
+        "count": 1
+      }
+    ],
+    "encodings_equal": false
+  },
+  {
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+    "reference": "headline",
+    "candidate": "merged",
+    "sizes": [
+      [
+        408
+      ],
+      [
+        380
+      ]
+    ],
+    "removed": [
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)+0x7f2>",
+        "count": 1
+      },
+      {
+        "kind": "call",
+        "target": "<tomo_db0::FlatStore::ForeignReadKeyGuard::~ForeignReadKeyGuard()>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)+0x3a20>",
+        "count": 1
+      }
+    ],
+    "added": [
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)+0xeb0>",
+        "count": 1
+      },
+      {
+        "kind": "jmp",
+        "target": "<tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)+0x3c80>",
+        "count": 1
+      }
+    ],
+    "encodings_equal": false
+  },
+  {
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+    "reference": "moverfix",
+    "candidate": "merged",
+    "sizes": [
+      [
+        383
+      ],
+      [
+        380
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": false
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+    "reference": "headline",
+    "candidate": "merged",
+    "sizes": [
+      [
+        3064
+      ],
+      [
+        3192
+      ]
+    ],
+    "removed": [
+      {
+        "kind": "call",
+        "target": "<tomo::FlatStore::deadline(unsigned long, tomo::KvObj const*) const [clone .isra.0]>",
+        "count": 1
+      }
+    ],
+    "added": [],
+    "encodings_equal": false
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)",
+    "reference": "moverfix",
+    "candidate": "merged",
+    "sizes": [
+      [
+        3064
+      ],
+      [
+        3192
+      ]
+    ],
+    "removed": [
+      {
+        "kind": "call",
+        "target": "<tomo::FlatStore::deadline(unsigned long, tomo::KvObj const*) const [clone .isra.0]>",
+        "count": 1
+      }
+    ],
+    "added": [],
+    "encodings_equal": false
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+    "reference": "headline",
+    "candidate": "merged",
+    "sizes": [
+      [
+        15981
+      ],
+      [
+        15981
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+    "reference": "moverfix",
+    "candidate": "merged",
+    "sizes": [
+      [
+        15981
+      ],
+      [
+        15981
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+    "reference": "headline",
+    "candidate": "merged",
+    "sizes": [
+      [
+        17097
+      ],
+      [
+        17097
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+    "reference": "moverfix",
+    "candidate": "merged",
+    "sizes": [
+      [
+        17097
+      ],
+      [
+        17097
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "reference": "headline",
+    "candidate": "merged",
+    "sizes": [
+      [
+        4399
+      ],
+      [
+        4279
+      ]
+    ],
+    "removed": [],
+    "added": [
+      {
+        "kind": "call",
+        "target": "<tomo_db0::KvObj::key() const>",
+        "count": 2
+      }
+    ],
+    "encodings_equal": false
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "reference": "moverfix",
+    "candidate": "merged",
+    "sizes": [
+      [
+        4399
+      ],
+      [
+        4279
+      ]
+    ],
+    "removed": [],
+    "added": [
+      {
+        "kind": "call",
+        "target": "<tomo_db0::KvObj::key() const>",
+        "count": 2
+      }
+    ],
+    "encodings_equal": false
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "reference": "headline",
+    "candidate": "merged",
+    "sizes": [
+      [
+        15739
+      ],
+      [
+        15739
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "reference": "moverfix",
+    "candidate": "merged",
+    "sizes": [
+      [
+        15739
+      ],
+      [
+        15739
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "reference": "headline",
+    "candidate": "merged",
+    "sizes": [
+      [
+        17145
+      ],
+      [
+        17145
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "reference": "moverfix",
+    "candidate": "merged",
+    "sizes": [
+      [
+        17145
+      ],
+      [
+        17145
+      ]
+    ],
+    "removed": [],
+    "added": [],
+    "encodings_equal": true
+  }
+]

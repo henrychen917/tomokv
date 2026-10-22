@@ -1,0 +1,39 @@
+{
+  "total": 16706,
+  "equal": 16597,
+  "changed": 109,
+  "handlers": 1211,
+  "handlers_equal": 1210,
+  "hot": 1218,
+  "hot_equal": 1218,
+  "changed_handlers": [
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_setnxILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_setnx<true>(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 455,
+      "post_size": 421,
+      "classification": "other"
+    }
+  ],
+  "changed_hot": [],
+  "hot_nonerror_equal": 1218,
+  "handlers_nonerror_equal": 1210,
+  "other_handlers": [
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_setnxILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_setnx<true>(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 455,
+      "post_size": 421,
+      "classification": "other"
+    }
+  ],
+  "other_hot": []
+}

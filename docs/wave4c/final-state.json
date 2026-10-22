@@ -1,0 +1,10 @@
+{
+  "time_utc": "2026-10-22T06:43:46.699786+00:00",
+  "allocated_tcp_listeners": [],
+  "owned_servers": [],
+  "sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+  "expected_constants": [
+    "EXPECT_QUICK=685",
+    "EXPECT_FULL=702                 # ABBA reports only; self-test remains counted."
+  ]
+}

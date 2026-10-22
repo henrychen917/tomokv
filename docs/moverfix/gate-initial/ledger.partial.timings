@@ -1,0 +1,148 @@
+ok	0.010000	release build (+footprint locks)
+ok	0.410000	configuration docs match parser
+ok	5.080000	Redis config quoting + mid-value #
+ok	4.570000	flip controller model unit
+ok	0.290000	B+ counting-fingerprint filter unit
+ok	1.090000	read-local write ring + arming transient unit
+ok	0.170000	climon 128-owner delivery mask
+ok	0.890000	read-local MGET fence symmetry unit
+ok	0.010000	storage unlinked regression
+ok	0.000000	storage randomkey regression
+ok	0.000000	storage rehash regression
+ok	0.010000	storage rollback regression
+ok	0.000000	storage snapshot-eviction regression
+ok	0.070000	storage flags regression
+ok	0.000000	storage aof-eviction regression
+ok	0.010000	storage intents regression
+ok	0.000000	storage imported-hash regression
+ok	0.000000	storage field-index-failure regression
+ok	0.010000	storage hash-bytes regression
+ok	0.000000	storage deadline-allocation-failure regression
+ok	0.000000	storage flush-prepared-capacity regression
+ok	0.050000	generated Redis 7.4 ACL categories
+ok	0.070000	cmdmeta covers every registered command
+FAIL	198.040000	ABBA comparison + saturation negative controls
+ok	9.160000	plain-write lost updates (atomic 0)
+ok	0.160000	lbsignals battery (atomic 0)
+ok	1.490000	slowlog battery (atomic 0)
+ok	0.040000	atomfix battery (atomic 0)
+ok	0.040000	scriptatomic battery (atomic 0)
+ok	14.460000	execatomic battery (atomic 0)
+ok	11.860000	execiso battery (atomic 0)
+ok	0.420000	execfix battery (atomic 0)
+ok	0.110000	multires battery (atomic 0)
+ok	0.630000	multirace battery (atomic 0)
+ok	30.470000	session_monotonic battery (atomic 0)
+ok	0.300000	xacct battery (atomic 0)
+ok	0.270000	xmove battery (atomic 0)
+ok	1.860000	xscript battery (atomic 0)
+ok	6.160000	plain-write lost updates (atomic 1)
+ok	0.160000	lbsignals battery (atomic 1)
+ok	1.480000	slowlog battery (atomic 1)
+ok	0.030000	atomfix battery (atomic 1)
+ok	0.040000	scriptatomic battery (atomic 1)
+ok	14.460000	execatomic battery (atomic 1)
+ok	11.860000	execiso battery (atomic 1)
+ok	0.430000	execfix battery (atomic 1)
+ok	0.090000	multires battery (atomic 1)
+ok	0.620000	multirace battery (atomic 1)
+ok	30.470000	session_monotonic battery (atomic 1)
+ok	0.300000	xacct battery (atomic 1)
+ok	0.270000	xmove battery (atomic 1)
+ok	1.870000	xscript battery (atomic 1)
+ok	0.870000	R7 generated envelope parity
+ok	12.150000	R7 production engagement (both database runtimes)
+FAIL	63.830000	R7 FIFO twin off-path identity + negative controls
+ok	0.110000	core concurrency watch
+ok	0.200000	core concurrency lifetime
+ok	0.100000	core concurrency drain
+ok	6.930000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.160000	core concurrency config
+ok	0.160000	core concurrency notify
+ok	0.540000	read-local topology demotion (1s)
+ok	0.540000	read-local topology demotion (2s)
+ok	0.120000	FLIP planned-connection close lifetime (ASAN+TSAN)
+ok	0.120000	FLIP fingerprint publication (ASAN+TSAN)
+ok	0.050000	AOF publication/shutdown witnesses + negative controls
+ok	0.130000	perfex clock binary regression
+ok	0.120000	perfex batch binary regression
+ok	0.210000	LB sampler exceptional cleanup + negative control
+ok	0.200000	LB monitor plan handoff + negative controls
+ok	14.030000	exbatch publication unit + negative controls
+ok	35.610000	exbatch watch unit + negative controls
+ok	15.250000	exbatch metadata unit + negative controls
+ok	0.110000	writeback c12 policy witnesses + negative controls
+ok	4.550000	writeback c12 phase witnesses + negative controls
+ok	1.780000	writeback c12 stages witnesses + negative controls
+ok	4.910000	writeback c12 split-phase witnesses + negative controls
+ok	5.600000	writeback policy clauses witnesses + negative controls
+ok	1.870000	writeback policy paths witnesses + negative controls
+ok	0.880000	splitlocal template forwarding + old-argument controls
+ok	0.000000	atomic commit publication catches up at quiescence
+ok	2.330000	flushfix flush witnesses
+ok	0.050000	flushfix headers witnesses
+ok	3.330000	multidb serverless owners
+ok	0.050000	multidb global namespace boundary
+ok	10.550000	storesize published monitoring
+ok	0.210000	MULTI admin command replies
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.010000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.000000	atomic survivor: script_keys
+ok	0.000000	atomic survivor: rename_overlay
+ok	0.000000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.000000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.020000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.000000	armed resize retirement: atomic-growth
+ok	0.010000	armed resize retirement: flush-prepared
+ok	0.000000	netcmd regression build
+ok	0.010000	netcmd streams regression
+ok	0.000000	netcmd zpop regression
+ok	0.010000	netcmd notify-oom regression
+ok	0.010000	netcmd notify-retry regression
+ok	0.000000	netcmd flush regression
+ok	0.010000	netcmd output regression
+ok	0.000000	netcmd pubsub regression
+ok	0.000000	netcmd receive regression
+ok	0.040000	netcmd config regression
+ok	0.010000	netcmd wb-small-pipe regression
+ok	0.010000	netcmd wb-complete-visits regression
+ok	0.010000	netcmd hexpire-oom regression
+ok	0.010000	encodingfix knob
+ok	0.010000	encodingfix precedence
+ok	0.010000	NET1 serverless bounds + scan + reclamation
+ok	0.050000	waits config publication + admission unit
+ok	1.010000	reads never wait for retirement quiescence
+ok	2.560000	moverfix conservation (1s, uring, databases 1, atomic 0)
+ok	2.590000	moverfix conservation (1s, uring, databases 16, atomic 0)
+ok	2.530000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+ok	2.540000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+ok	2.570000	moverfix conservation (2s, uring, databases 1, atomic 0)
+ok	2.550000	moverfix conservation (2s, uring, databases 16, atomic 0)
+ok	2.510000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+ok	2.510000	moverfix conservation (2s, epoll, databases 16, atomic 0)
+ok	0.260000	fused boot line (atomic 0)
+ok	1.150000	fused s6 battery (atomic 0)
+ok	2.080000	fused multi_exec battery (atomic 0)
+ok	0.740000	fused edgeproto battery (atomic 0)
+ok	0.040000	fused atomfix battery (atomic 0)
+ok	2.230000	fused spinprobe battery (atomic 0)
+ok	1.170000	fused shutdown report (atomic 0)
+ok	0.250000	fused boot line (atomic 1)
+ok	1.160000	fused s6 battery (atomic 1)
+ok	2.070000	fused multi_exec battery (atomic 1)
+ok	0.740000	fused edgeproto battery (atomic 1)
+ok	0.050000	fused atomfix battery (atomic 1)
+ok	2.230000	fused spinprobe battery (atomic 1)
+ok	1.170000	fused shutdown report (atomic 1)

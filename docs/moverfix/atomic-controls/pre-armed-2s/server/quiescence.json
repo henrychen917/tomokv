@@ -1,0 +1,26 @@
+{
+  "seconds": 0.09111832361668348,
+  "samples": [
+    {
+      "seconds": 0.00019759126007556915,
+      "connected_clients": 7
+    },
+    {
+      "seconds": 0.010416530072689056,
+      "connected_clients": 7
+    },
+    {
+      "seconds": 0.020619668997824192,
+      "connected_clients": 7
+    },
+    {
+      "seconds": 0.03084033913910389,
+      "connected_clients": 4
+    },
+    {
+      "seconds": 0.041036698035895824,
+      "connected_clients": 1
+    }
+  ],
+  "observer_eof": true
+}

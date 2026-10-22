@@ -1,0 +1,17 @@
+[
+  {
+    "name": "gates-test",
+    "argv": [
+      "taskset",
+      "-c",
+      "73-79",
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "env": {
+      "GATE_TEST_PORT": "26899",
+      "REDIS74_ROOT": "/home/user/Projects/redis74"
+    },
+    "returncode": 0
+  }
+]

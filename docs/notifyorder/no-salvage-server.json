@@ -1,0 +1,22 @@
+{
+  "control": "S disabled: return null instead of salvaging physical records",
+  "limitation": "Short-lived negative control leaks the discarded batch; never a production or merit arm",
+  "source": "build/tomokv",
+  "output": "build/notifyorder/tomokv-no-salvage",
+  "sha256": "23a1b88a1b98b939a29b50447eb43a827fdde475f662c4d169e6f0d964d2b40d",
+  "source_sha256": "704b8fd4a5362a096269764df7cc546f87676df33c9aca0aff40c5382c4a8e7c",
+  "patches": [
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE",
+      "offset": 1200000,
+      "before": "4885ff",
+      "after": "31c0c3"
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_120notify_keep_physicalEPNS_11NotifyBatchE",
+      "offset": 4915568,
+      "before": "4885ff",
+      "after": "31c0c3"
+    }
+  ]
+}

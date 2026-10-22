@@ -1,0 +1,65 @@
+0000 [ 2] push %r13 | 41 55
+0002 [ 2] push %r12 | 41 54
+0004 [ 1] push %rbp | 55
+0005 [ 3] mov %r8d,%ebp | 44 89 c5
+0008 [ 1] push %rbx | 53
+0009 [ 3] mov %rdi,%rbx | 48 89 fb
+000c [ 4] sub $0x18,%rsp | 48 83 ec 18
+0010 [ 3] mov (%rdi),%rax | 48 8b 07
+0013 [ 4] mov 0x8(%rdi),%r13 | 4c 8b 6f 08
+0017 [ 3] cmpb $0x0,(%rax) | 80 38 00
+001a [ 2] jne <+0x70> | 75 54
+001c [ 4] mov 0x10(%rdi),%rax | 48 8b 47 10
+0020 [ 4] lea 0x38(%r13),%rdi | 49 8d 7d 38
+0024 [ 3] cmpb $0x0,(%rax) | 80 38 00
+0027 [ 2] jne <+0x60> | 75 37
+0029 [ 5] call <tomo::FlatStore::find(unsigned long, tomo::Slice)> | e8 ?? ?? ?? ??
+002e [ 3] test %bpl,%bpl | 40 84 ed
+0031 [ 2] je <+0x47> | 74 14
+0033 [ 4] mov 0x8(%rbx),%rdx | 48 8b 53 08
+0037 [ 3] test %rax,%rax | 48 85 c0
+003a [ 6] je <+0xd0> | 0f 84 90 00 00 00
+0040 [ 7] incq 0x3f0(%rdx) | 48 ff 82 f0 03 00 00
+0047 [ 4] add $0x18,%rsp | 48 83 c4 18
+004b [ 1] pop %rbx | 5b
+004c [ 1] pop %rbp | 5d
+004d [ 2] pop %r12 | 41 5c
+004f [ 2] pop %r13 | 41 5d
+0051 [ 1] ret | c3
+0052 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+005d [ 3] nopl (%rax) | 0f 1f 00
+0060 [ 7] lea 0x538(%r13),%r8 | 4d 8d 85 38 05 00 00
+0067 [ 5] call <tomo::FlatStore::find_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*)> | e8 ?? ?? ?? ??
+006c [ 2] jmp <+0x2e> | eb c0
+006e [ 2] xchg %ax,%ax | 66 90
+0070 [ 7] mov 0xa0(%r13),%r8 | 4d 8b 85 a0 00 00 00
+0077 [ 4] lea 0x38(%r13),%r12 | 4d 8d 65 38
+007b [ 6] mov $0x1,%r9d | 41 b9 01 00 00 00
+0081 [ 3] mov %r12,%rdi | 4c 89 e7
+0084 [ 5] call <tomo::FlatStore::atomic_resolve_internal(unsigned long, tomo::Slice, unsigned long, bool)> | e8 ?? ?? ?? ??
+0089 [ 8] cmpb $0x0,0x12a(%r13) | 41 80 bd 2a 01 00 00 00
+0091 [ 2] je <+0x2e> | 74 9b
+0093 [ 3] test %rax,%rax | 48 85 c0
+0096 [ 2] je <+0xc0> | 74 28
+0098 [ 3] mov %rax,%rsi | 48 89 c6
+009b [ 3] mov %r12,%rdi | 4c 89 e7
+009e [ 5] mov %rax,0x8(%rsp) | 48 89 44 24 08
+00a3 [ 5] call <tomo::FlatStore::touch(tomo::KvObj*)> | e8 ?? ?? ?? ??
+00a8 [ 3] test %bpl,%bpl | 40 84 ed
+00ab [ 5] mov 0x8(%rsp),%rax | 48 8b 44 24 08
+00b0 [ 2] je <+0x47> | 74 95
+00b2 [ 4] mov 0x8(%rbx),%rdx | 48 8b 53 08
+00b6 [ 2] jmp <+0x40> | eb 88
+00b8 [ 8] nopl 0x0(%rax,%rax,1) | 0f 1f 84 00 00 00 00 00
+00c0 [ 3] test %bpl,%bpl | 40 84 ed
+00c3 [ 2] je <+0xd7> | 74 12
+00c5 [ 4] mov 0x8(%rbx),%rdx | 48 8b 53 08
+00c9 [ 7] nopl 0x0(%rax) | 0f 1f 80 00 00 00 00
+00d0 [ 7] incq 0x3f8(%rdx) | 48 ff 82 f8 03 00 00
+00d7 [ 4] add $0x18,%rsp | 48 83 c4 18
+00db [ 2] xor %eax,%eax | 31 c0
+00dd [ 1] pop %rbx | 5b
+00de [ 1] pop %rbp | 5d
+00df [ 2] pop %r12 | 41 5c
+00e1 [ 2] pop %r13 | 41 5d
+00e3 [ 1] ret | c3

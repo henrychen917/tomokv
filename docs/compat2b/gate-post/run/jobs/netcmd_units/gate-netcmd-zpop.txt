@@ -1,0 +1,12 @@
+ok: empty snapshot set encoding=0 rejected=1 result_null=1
+ok: empty snapshot set encoding=0 rejected=1 result_null=1
+ok: empty snapshot zset encoding=0 rejected=1 result_null=1
+ok: empty snapshot zset encoding=0 rejected=1 result_null=1
+ok: empty snapshot hash encoding=0 rejected=1 result_null=1
+ok: empty snapshot hash encoding=0 rejected=1 result_null=1
+ok: empty snapshot hash-ttl encoding=1 rejected=1 result_null=1
+ok: empty snapshot hash-ttl encoding=1 rejected=1 result_null=1
+ok: empty snapshot list encoding=0 rejected=1 result_null=1
+ok: empty snapshot list encoding=0 rejected=1 result_null=1
+ok: empty random/pop 336 direct calls (RESP2/3, clean/notify, four shapes)
+ok: netcmd zpop

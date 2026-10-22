@@ -1,0 +1,4 @@
+  row budget: 900s; median=0.05s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); waits config publication + admission unit
+  waits config publication + admission unit            ok
+  row budget: 900s; median=1.01s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); reads never wait for retirement quiescence
+  reads never wait for retirement quiescence           ok

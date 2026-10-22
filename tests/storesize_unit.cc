@@ -263,7 +263,9 @@ void routing(Server& server, bool legacy) {
         Request request(server, 0, args);
         require(command_config_routes_all_shards(request.op), "NOW remains exact");
     }
-    require(run(server, 0, {"DBSIZE", "bad"}) == "-ERR unknown DBSIZE option\r\n", "DBSIZE grammar");
+    // C1 follows Redis's advertised arity; only the explicit NOW extension is exempt.
+    require(run(server, 0, {"DBSIZE", "bad"}) ==
+            "-ERR wrong number of arguments for 'dbsize' command\r\n", "DBSIZE advertised arity");
 }
 void witness(Server& server, bool legacy, unsigned n) {
     require(run(server, 0, {"FLUSHALL"}) == "+OK\r\n", "witness flush");

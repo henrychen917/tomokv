@@ -1,0 +1,288 @@
+{
+  "compat2": {
+    "rows": 3,
+    "failures": 0,
+    "legs": [
+      {
+        "case": "autharity",
+        "mode": "1s",
+        "engine": "epoll",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-autharity-1s-epoll/results.json",
+        "sha256": "0acc11d6ab8e4e03c0d5c4b698d116338f3f11f03af1db64b62e6c5cb1f66e52",
+        "comparisons": 1522,
+        "failures": 0
+      },
+      {
+        "case": "autharity",
+        "mode": "1s",
+        "engine": "uring",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-autharity-1s-uring/results.json",
+        "sha256": "024f06c1c6d2b3ceb831cead82ca1e225238c42d1de3dc160ebebe9091659aea",
+        "comparisons": 1522,
+        "failures": 0
+      },
+      {
+        "case": "autharity",
+        "mode": "2s",
+        "engine": "epoll",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-autharity-2s-epoll/results.json",
+        "sha256": "50ac7be777f1f174f8ffe35f806ed05089cef0eb4f210981c314fd566871516e",
+        "comparisons": 1522,
+        "failures": 0
+      },
+      {
+        "case": "autharity",
+        "mode": "2s",
+        "engine": "uring",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-autharity-2s-uring/results.json",
+        "sha256": "7a4fa6ee21002efefa169c168fe1775a160edcfe0439bc202062d9d86b7324db",
+        "comparisons": 1522,
+        "failures": 0
+      },
+      {
+        "case": "expire_notify",
+        "mode": "1s",
+        "engine": "epoll",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-expire_notify-1s-epoll/results.json",
+        "sha256": "c78fe23e4b1adfe85f7175a1fedb0dfc7ef99bd35a6db28de2952ad6d77e8e76"
+      },
+      {
+        "case": "expire_notify",
+        "mode": "1s",
+        "engine": "uring",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-expire_notify-1s-uring/results.json",
+        "sha256": "d82da5faf191c3394fbb84e273a7e59b97b56dedafa40bf67d3947d79d039e37"
+      },
+      {
+        "case": "expire_notify",
+        "mode": "2s",
+        "engine": "epoll",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-expire_notify-2s-epoll/results.json",
+        "sha256": "f9db1e42e8eec55b2cf74dbbffe5e515df92db0143af229ee819c9c49877b04f"
+      },
+      {
+        "case": "expire_notify",
+        "mode": "2s",
+        "engine": "uring",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-expire_notify-2s-uring/results.json",
+        "sha256": "0842f29d75e325e4a8f2d33f610970f207d0af9af6c0e39e0db77ca5c85b8266"
+      },
+      {
+        "case": "ktls_lifetime",
+        "mode": "1s",
+        "engine": "epoll",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-ktls_lifetime-1s-epoll/results.json",
+        "sha256": "df9595fd8b8c08c397ed2536e8b1d90bda64a8df6d25586a62d6f8c050d867c5",
+        "tls_legs": 2
+      },
+      {
+        "case": "ktls_lifetime",
+        "mode": "1s",
+        "engine": "uring",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-ktls_lifetime-1s-uring/results.json",
+        "sha256": "34f32d2973da33be855e52d5e90d3cf1780916e09d5c9ecb572c691c5fb3736d",
+        "tls_legs": 2
+      },
+      {
+        "case": "ktls_lifetime",
+        "mode": "2s",
+        "engine": "epoll",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-ktls_lifetime-2s-epoll/results.json",
+        "sha256": "f4e926df9ca66f84d6a6b3d304b1407bd4912bdc94a8bc514d2872fb3900c3cc",
+        "tls_legs": 2
+      },
+      {
+        "case": "ktls_lifetime",
+        "mode": "2s",
+        "engine": "uring",
+        "path": "build/gate-run.lpGEqJ/jobs/compat2/compat2-ktls_lifetime-2s-uring/results.json",
+        "sha256": "2e3a4b1d9c6c717759ab6e08d1c0f0fc6805e686c9b675e9f5df9e2616f8b97d",
+        "tls_legs": 2
+      }
+    ]
+  },
+  "moverfix": {
+    "rows": 8,
+    "failures": 0,
+    "unit_legs": 56,
+    "live_legs": 72,
+    "cells": [
+      {
+        "mode": "1s",
+        "engine": "epoll",
+        "databases": 1,
+        "atomic": 0
+      },
+      {
+        "mode": "1s",
+        "engine": "epoll",
+        "databases": 16,
+        "atomic": 0
+      },
+      {
+        "mode": "1s",
+        "engine": "uring",
+        "databases": 1,
+        "atomic": 0
+      },
+      {
+        "mode": "1s",
+        "engine": "uring",
+        "databases": 16,
+        "atomic": 0
+      },
+      {
+        "mode": "2s",
+        "engine": "epoll",
+        "databases": 1,
+        "atomic": 0
+      },
+      {
+        "mode": "2s",
+        "engine": "epoll",
+        "databases": 16,
+        "atomic": 0
+      },
+      {
+        "mode": "2s",
+        "engine": "uring",
+        "databases": 1,
+        "atomic": 0
+      },
+      {
+        "mode": "2s",
+        "engine": "uring",
+        "databases": 16,
+        "atomic": 0
+      }
+    ]
+  },
+  "ntnew4_live": {
+    "rows": 3,
+    "failures": 0,
+    "legs": [
+      {
+        "mode": "2s",
+        "engine": "uring",
+        "json_records": 30,
+        "lines": 30
+      },
+      {
+        "mode": "1s",
+        "engine": "uring",
+        "json_records": 30,
+        "lines": 30
+      },
+      {
+        "mode": "2s",
+        "engine": "epoll",
+        "json_records": 30,
+        "lines": 30
+      }
+    ]
+  },
+  "notify_order": {
+    "rows": 1,
+    "failures": 0,
+    "legs": [
+      {
+        "file": "order-1s-epoll-a0-rl0.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      },
+      {
+        "file": "order-1s-epoll-a0-rl1.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      },
+      {
+        "file": "order-1s-epoll-a1-rl0.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      },
+      {
+        "file": "order-1s-epoll-a1-rl1.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      },
+      {
+        "file": "order-1s-uring-a0-rl0.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      },
+      {
+        "file": "order-1s-uring-a0-rl1.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      },
+      {
+        "file": "order-1s-uring-a1-rl0.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      },
+      {
+        "file": "order-1s-uring-a1-rl1.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      },
+      {
+        "file": "order-2s-epoll-a0-rl0.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      },
+      {
+        "file": "order-2s-epoll-a1-rl0.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      },
+      {
+        "file": "order-2s-uring-a0-rl0.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      },
+      {
+        "file": "order-2s-uring-a1-rl0.log",
+        "summary": "notifyorder: 23 cases passed; 0 failures"
+      }
+    ]
+  },
+  "notify_aof": {
+    "rows": 1,
+    "failures": 0,
+    "legs": [
+      {
+        "file": "order-1s-epoll-a0-rl1.log",
+        "summary": "PASS local script notifications + grouped AOF + reload vs Redis"
+      },
+      {
+        "file": "order-1s-epoll-a1-rl1.log",
+        "summary": "PASS local script notifications + grouped AOF + reload vs Redis"
+      },
+      {
+        "file": "order-1s-uring-a0-rl1.log",
+        "summary": "PASS local script notifications + grouped AOF + reload vs Redis"
+      },
+      {
+        "file": "order-1s-uring-a1-rl1.log",
+        "summary": "PASS local script notifications + grouped AOF + reload vs Redis"
+      },
+      {
+        "file": "order-2s-epoll-a0-rl0.log",
+        "summary": "PASS local script notifications + grouped AOF + reload vs Redis"
+      },
+      {
+        "file": "order-2s-epoll-a1-rl0.log",
+        "summary": "PASS local script notifications + grouped AOF + reload vs Redis"
+      },
+      {
+        "file": "order-2s-uring-a0-rl0.log",
+        "summary": "PASS local script notifications + grouped AOF + reload vs Redis"
+      },
+      {
+        "file": "order-2s-uring-a1-rl0.log",
+        "summary": "PASS local script notifications + grouped AOF + reload vs Redis"
+      }
+    ]
+  },
+  "auth": {
+    "rows": 7,
+    "failures": 0
+  },
+  "tls": {
+    "rows": 20,
+    "failures": 0
+  },
+  "perfex_live": {
+    "rows": 2,
+    "failures": 0
+  }
+}

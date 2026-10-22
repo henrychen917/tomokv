@@ -1,0 +1,427 @@
+{
+  "scope": "Data-byte diagnostic only; strict linked identity remains residual.",
+  "groups": 6,
+  "same_data_bytes": true,
+  "rows": [
+    {
+      "arm": "headline",
+      "binary_sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+      "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+      "operands": [
+        {
+          "offset": 136,
+          "label": "CSWTCH.6571",
+          "target": "0x79fd98",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 163,
+          "label": "CSWTCH.6571",
+          "target": "0x79fd98",
+          "width": 4,
+          "bytes": "00040605"
+        }
+      ]
+    },
+    {
+      "arm": "headline",
+      "binary_sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+      "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+      "operands": [
+        {
+          "offset": 136,
+          "label": "CSWTCH.6563",
+          "target": "0x7983d8",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 163,
+          "label": "CSWTCH.6563",
+          "target": "0x7983d8",
+          "width": 4,
+          "bytes": "00040605"
+        }
+      ]
+    },
+    {
+      "arm": "headline",
+      "binary_sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+      "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+      "operands": [
+        {
+          "offset": 1315,
+          "label": "CSWTCH.6571",
+          "target": "0x79fd98",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 5710,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6d8",
+          "target": "0x797180",
+          "width": 8,
+          "bytes": "0200000001000000"
+        },
+        {
+          "offset": 6341,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6a0",
+          "target": "0x797148",
+          "width": 8,
+          "bytes": "0100000002000000"
+        },
+        {
+          "offset": 11665,
+          "label": "CSWTCH.6571",
+          "target": "0x79fd98",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 13818,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6a0",
+          "target": "0x797148",
+          "width": 8,
+          "bytes": "0100000002000000"
+        }
+      ]
+    },
+    {
+      "arm": "headline",
+      "binary_sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+      "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+      "operands": [
+        {
+          "offset": 1441,
+          "label": "CSWTCH.6571",
+          "target": "0x79fd98",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 6010,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6d8",
+          "target": "0x797180",
+          "width": 8,
+          "bytes": "0200000001000000"
+        },
+        {
+          "offset": 7461,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6a0",
+          "target": "0x797148",
+          "width": 8,
+          "bytes": "0100000002000000"
+        },
+        {
+          "offset": 12956,
+          "label": "CSWTCH.6571",
+          "target": "0x79fd98",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 14904,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6a0",
+          "target": "0x797148",
+          "width": 8,
+          "bytes": "0100000002000000"
+        }
+      ]
+    },
+    {
+      "arm": "headline",
+      "binary_sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+      "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "operands": [
+        {
+          "offset": 1267,
+          "label": "CSWTCH.6563",
+          "target": "0x7983d8",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 5524,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6d8",
+          "target": "0x797180",
+          "width": 8,
+          "bytes": "0200000001000000"
+        },
+        {
+          "offset": 6460,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6a0",
+          "target": "0x797148",
+          "width": 8,
+          "bytes": "0100000002000000"
+        },
+        {
+          "offset": 11450,
+          "label": "CSWTCH.6563",
+          "target": "0x7983d8",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 13393,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6a0",
+          "target": "0x797148",
+          "width": 8,
+          "bytes": "0100000002000000"
+        }
+      ]
+    },
+    {
+      "arm": "headline",
+      "binary_sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0",
+      "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "operands": [
+        {
+          "offset": 1467,
+          "label": "CSWTCH.6563",
+          "target": "0x7983d8",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 6015,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6d8",
+          "target": "0x797180",
+          "width": 8,
+          "bytes": "0200000001000000"
+        },
+        {
+          "offset": 6801,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6a0",
+          "target": "0x797148",
+          "width": 8,
+          "bytes": "0100000002000000"
+        },
+        {
+          "offset": 12983,
+          "label": "CSWTCH.6563",
+          "target": "0x7983d8",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 14999,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6a0",
+          "target": "0x797148",
+          "width": 8,
+          "bytes": "0100000002000000"
+        }
+      ]
+    },
+    {
+      "arm": "wave4",
+      "binary_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+      "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+      "operands": [
+        {
+          "offset": 136,
+          "label": "CSWTCH.6623",
+          "target": "0x7a1ff0",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 163,
+          "label": "CSWTCH.6623",
+          "target": "0x7a1ff0",
+          "width": 4,
+          "bytes": "00040605"
+        }
+      ]
+    },
+    {
+      "arm": "wave4",
+      "binary_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+      "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+      "operands": [
+        {
+          "offset": 136,
+          "label": "CSWTCH.6615",
+          "target": "0x79a570",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 163,
+          "label": "CSWTCH.6615",
+          "target": "0x79a570",
+          "width": 4,
+          "bytes": "00040605"
+        }
+      ]
+    },
+    {
+      "arm": "wave4",
+      "binary_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+      "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+      "operands": [
+        {
+          "offset": 1315,
+          "label": "CSWTCH.6623",
+          "target": "0x7a1ff0",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 5710,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6e8",
+          "target": "0x799290",
+          "width": 8,
+          "bytes": "0200000001000000"
+        },
+        {
+          "offset": 6341,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6b0",
+          "target": "0x799258",
+          "width": 8,
+          "bytes": "0100000002000000"
+        },
+        {
+          "offset": 11665,
+          "label": "CSWTCH.6623",
+          "target": "0x7a1ff0",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 13818,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6b0",
+          "target": "0x799258",
+          "width": 8,
+          "bytes": "0100000002000000"
+        }
+      ]
+    },
+    {
+      "arm": "wave4",
+      "binary_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+      "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+      "operands": [
+        {
+          "offset": 1441,
+          "label": "CSWTCH.6623",
+          "target": "0x7a1ff0",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 6010,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6e8",
+          "target": "0x799290",
+          "width": 8,
+          "bytes": "0200000001000000"
+        },
+        {
+          "offset": 7461,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6b0",
+          "target": "0x799258",
+          "width": 8,
+          "bytes": "0100000002000000"
+        },
+        {
+          "offset": 12956,
+          "label": "CSWTCH.6623",
+          "target": "0x7a1ff0",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 14904,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6b0",
+          "target": "0x799258",
+          "width": 8,
+          "bytes": "0100000002000000"
+        }
+      ]
+    },
+    {
+      "arm": "wave4",
+      "binary_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+      "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "operands": [
+        {
+          "offset": 1267,
+          "label": "CSWTCH.6615",
+          "target": "0x79a570",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 5524,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6e8",
+          "target": "0x799290",
+          "width": 8,
+          "bytes": "0200000001000000"
+        },
+        {
+          "offset": 6460,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6b0",
+          "target": "0x799258",
+          "width": 8,
+          "bytes": "0100000002000000"
+        },
+        {
+          "offset": 11450,
+          "label": "CSWTCH.6615",
+          "target": "0x79a570",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 13393,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6b0",
+          "target": "0x799258",
+          "width": 8,
+          "bytes": "0100000002000000"
+        }
+      ]
+    },
+    {
+      "arm": "wave4",
+      "binary_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+      "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "operands": [
+        {
+          "offset": 1467,
+          "label": "CSWTCH.6615",
+          "target": "0x79a570",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 6015,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6e8",
+          "target": "0x799290",
+          "width": 8,
+          "bytes": "0200000001000000"
+        },
+        {
+          "offset": 6801,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6b0",
+          "target": "0x799258",
+          "width": 8,
+          "bytes": "0100000002000000"
+        },
+        {
+          "offset": 12983,
+          "label": "CSWTCH.6615",
+          "target": "0x79a570",
+          "width": 4,
+          "bytes": "00040605"
+        },
+        {
+          "offset": 14999,
+          "label": "_ZN8tomo_db09kNoThreadE+0x6b0",
+          "target": "0x799258",
+          "width": 8,
+          "bytes": "0100000002000000"
+        }
+      ]
+    }
+  ]
+}

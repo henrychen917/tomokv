@@ -1,0 +1,3 @@
+0000 [ 4] endbr64 | f3 0f 1e fa
+0004 [ 7] lea <rip>(%rip),%rdx # <void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)> | 48 8d 15 ?? ?? ?? ??
+000b [ 5] jmp <tomo_db0::notify_execute_handler(tomo_db0::Shard&, tomo_db0::Op&, void (*)(tomo_db0::Shard&, tomo_db0::Op&))> | e9 ?? ?? ?? ??

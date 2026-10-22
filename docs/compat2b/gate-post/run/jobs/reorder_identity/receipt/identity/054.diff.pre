@@ -1,0 +1,137 @@
+0000 [ 4] endbr64 | f3 0f 1e fa
+0004 [ 3] test %rsi,%rsi | 48 85 f6
+0007 [ 6] je <+0x1f0> | 0f 84 e3 01 00 00
+000d [ 2] push %r15 | 41 57
+000f [ 2] push %r14 | 41 56
+0011 [ 2] push %r13 | 41 55
+0013 [ 3] mov %rdi,%r14 | 49 89 fe
+0016 [ 2] push %r12 | 41 54
+0018 [ 1] push %rbp | 55
+0019 [ 1] push %rbx | 53
+001a [ 3] mov %rsi,%r12 | 49 89 f4
+001d [ 4] sub $0x28,%rsp | 48 83 ec 28
+0021 [ 3] mov %rdx,%r15 | 49 89 d7
+0024 [ 2] jmp <+0x39> | eb 13
+0026 [10] cs nopw 0x0(%rax,%rax,1) | 66 2e 0f 1f 84 00 00 00 00 00
+0030 [ 3] test %r12,%r12 | 4d 85 e4
+0033 [ 6] je <+0xd7> | 0f 84 9e 00 00 00
+0039 [ 5] tzcnt %r12,%rdi | f3 49 0f bc fc
+003e [ 3] mov (%r14),%r9 | 4d 8b 0e
+0041 [ 5] blsr %r12,%r12 | c4 c2 98 f3 cc
+0046 [ 3] mov %rdi,%rax | 48 89 f8
+0049 [ 3] or %r15,%rax | 4c 09 f8
+004c [ 2] mov %eax,%esi | 89 c6
+004e [ 3] mov %rax,%rbx | 48 89 c3
+0051 [ 3] shr $0x3,%esi | c1 ee 03
+0054 [ 3] and $0x7,%ebx | 83 e3 07
+0057 [ 3] and $0x7,%esi | 83 e6 07
+005a [ 7] imul $0x150,%rbx,%rbx | 48 69 db 50 01 00 00
+0061 [ 4] add (%r9,%rsi,8),%rbx | 49 03 1c f1
+0065 [ 7] movzbl 0xb8(%rbx),%esi | 0f b6 b3 b8 00 00 00
+006c [ 4] cmp $0x2,%sil | 40 80 fe 02
+0070 [ 2] je <+0xf0> | 74 7e
+0072 [ 4] mov 0x8(%r14),%rsi | 49 8b 76 08
+0076 [ 3] sub (%rsi),%rax | 48 2b 06
+0079 [ 4] mov 0x10(%r14),%rsi | 49 8b 76 10
+007d [ 3] cmp (%rsi),%rax | 48 3b 06
+0080 [ 2] jae <+0x30> | 73 ae
+0082 [ 4] mov 0x18(%r14),%r13 | 4d 8b 6e 18
+0086 [ 4] mov 0x0(%r13),%rax | 49 8b 45 00
+008a [ 3] mov (%rax),%rax | 48 8b 00
+008d [ 3] mov (%rax),%rax | 48 8b 00
+0090 [ 5] mov %rax,0x8(%rsp) | 48 89 44 24 08
+0095 [ 3] mov (%rbx),%rax | 48 8b 03
+0098 [ 3] test %rax,%rax | 48 85 c0
+009b [ 6] je <+0x200> | 0f 84 5f 01 00 00
+00a1 [ 3] mov 0x10(%rax),%esi | 8b 70 10
+00a4 [ 2] mov %esi,%edi | 89 f7
+00a6 [ 2] not %edi | f7 d7
+00a8 [ 6] and $0x4000200,%edi | 81 e7 00 02 00 04
+00ae [ 6] je <+0x140> | 0f 84 8c 00 00 00
+00b4 [ 6] and $0x126af0,%esi | 81 e6 f0 6a 12 00
+00ba [ 2] je <+0x110> | 74 54
+00bc [ 4] mov 0x8(%r13),%rsi | 49 8b 75 08
+00c0 [ 5] mov $0x1,%eax | b8 01 00 00 00
+00c5 [ 2] mov %al,(%rsi) | 88 06
+00c7 [ 4] mov 0x20(%r14),%rax | 49 8b 46 20
+00cb [ 3] movb $0x1,(%rax) | c6 00 01
+00ce [ 3] test %r12,%r12 | 4d 85 e4
+00d1 [ 6] jne <+0x39> | 0f 85 62 ff ff ff
+00d7 [ 4] add $0x28,%rsp | 48 83 c4 28
+00db [ 1] pop %rbx | 5b
+00dc [ 1] pop %rbp | 5d
+00dd [ 2] pop %r12 | 41 5c
+00df [ 2] pop %r13 | 41 5d
+00e1 [ 2] pop %r14 | 41 5e
+00e3 [ 2] pop %r15 | 41 5f
+00e5 [ 1] ret | c3
+00e6 [10] cs nopw 0x0(%rax,%rax,1) | 66 2e 0f 1f 84 00 00 00 00 00
+00f0 [ 3] mov (%r14),%rax | 49 8b 06
+00f3 [ 5] mov $0x1,%edx | ba 01 00 00 00
+00f8 [ 5] shlx %rdi,%rdx,%rdi | c4 e2 c1 f7 fa
+00fd [ 3] not %rdi | 48 f7 d7
+0100 [ 7] and %rdi,0x90(%rax) | 48 21 b8 90 00 00 00
+0107 [ 5] jmp <+0x30> | e9 24 ff ff ff
+010c [ 4] nopl 0x0(%rax) | 0f 1f 40 00
+0110 [ 4] movzwl 0x20(%rax),%edi | 0f b7 78 20
+0114 [ 3] test %di,%di | 66 85 ff
+0117 [ 2] jle <+0xbc> | 7e a3
+0119 [ 4] cmp %di,0x22(%rax) | 66 39 78 22
+011d [ 6] je <+0x1d0> | 0f 84 ad 00 00 00
+0123 [ 4] mov 0x8(%r13),%rsi | 49 8b 75 08
+0127 [ 4] cmp 0x22(%rax),%di | 66 3b 78 22
+012b [ 2] jne <+0xc0> | 75 93
+012d [ 5] cmpw $0x1,0x24(%rax) | 66 83 78 24 01
+0132 [ 3] setne %al | 0f 95 c0
+0135 [ 2] or (%rsi),%al | 0a 06
+0137 [ 2] jmp <+0xc5> | eb 8c
+0139 [ 7] nopl 0x0(%rax) | 0f 1f 80 00 00 00 00
+0140 [ 4] movswl 0x24(%rax),%edx | 0f bf 50 24
+0144 [ 4] movswl 0x20(%rax),%ebp | 0f bf 68 20
+0148 [ 6] mov 0xcc(%rbx),%eax | 8b 83 cc 00 00 00
+014e [ 4] mov %edx,0x18(%rsp) | 89 54 24 18
+0152 [ 4] mov %eax,0x1c(%rsp) | 89 44 24 1c
+0156 [ 2] cmp %eax,%ebp | 39 c5
+0158 [ 6] jae <+0x30> | 0f 83 d2 fe ff ff
+015e [ 7] mov 0xc0(%rbx),%rax | 48 8b 83 c0 00 00 00
+0165 [ 5] mov %rax,0x10(%rsp) | 48 89 44 24 10
+016a [ 2] jmp <+0x19c> | eb 30
+016c [ 4] nopl 0x0(%rax) | 0f 1f 40 00
+0170 [ 4] shl $0x4,%rax | 48 c1 e0 04
+0174 [ 3] add %rcx,%rax | 48 01 c8
+0177 [ 3] mov (%rax),%rdi | 48 8b 38
+017a [ 4] mov 0x8(%rax),%rsi | 48 8b 70 08
+017e [ 5] call <tomo::FlatStore::hash_key(tomo::Slice)> | e8 ?? ?? ?? ??
+0183 [ 5] cmp %rax,0x8(%rsp) | 48 39 44 24 08
+0188 [ 2] je <+0x1c0> | 74 36
+018a [ 4] mov 0x18(%rsp),%eax | 8b 44 24 18
+018e [ 2] add %eax,%ebp | 01 c5
+0190 [ 4] mov 0x1c(%rsp),%eax | 8b 44 24 1c
+0194 [ 2] cmp %eax,%ebp | 39 c5
+0196 [ 6] jae <+0x30> | 0f 83 94 fe ff ff
+019c [ 5] mov 0x10(%rsp),%rcx | 48 8b 4c 24 10
+01a1 [ 2] mov %ebp,%eax | 89 e8
+01a3 [ 3] test %rcx,%rcx | 48 85 c9
+01a6 [ 2] jne <+0x170> | 75 c8
+01a8 [ 4] add $0xd,%rax | 48 83 c0 0d
+01ac [ 4] shl $0x4,%rax | 48 c1 e0 04
+01b0 [ 3] add %rbx,%rax | 48 01 d8
+01b3 [ 2] jmp <+0x177> | eb c2
+01b5 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+01c0 [ 4] mov 0x8(%r13),%rsi | 49 8b 75 08
+01c4 [ 3] movzbl (%rsi),%eax | 0f b6 06
+01c7 [ 5] jmp <+0xc5> | e9 f9 fe ff ff
+01cc [ 4] nopl 0x0(%rax) | 0f 1f 40 00
+01d0 [ 5] cmpw $0x1,0x24(%rax) | 66 83 78 24 01
+01d5 [ 6] jne <+0x123> | 0f 85 48 ff ff ff
+01db [ 5] mov 0x8(%rsp),%rdx | 48 8b 54 24 08
+01e0 [ 4] cmp 0x10(%rbx),%rdx | 48 3b 53 10
+01e4 [ 6] je <+0x123> | 0f 84 39 ff ff ff
+01ea [ 5] jmp <+0x30> | e9 41 fe ff ff
+01ef [ 1] nop | 90
+01f0 [ 1] ret | c3
+01f1 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+01fc [ 4] nopl 0x0(%rax) | 0f 1f 40 00
+0200 [ 4] mov 0x8(%r13),%rsi | 49 8b 75 08
+0204 [ 5] mov $0x1,%eax | b8 01 00 00 00
+0209 [ 5] jmp <+0xc5> | e9 b7 fe ff ff

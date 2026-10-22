@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=notify_aof; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	11.930000	local script notification AOF vs Redis 7.4

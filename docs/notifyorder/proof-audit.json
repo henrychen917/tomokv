@@ -1,0 +1,338 @@
+{
+  "runs": [
+    {
+      "log": "gate-verified-post.log",
+      "run": "build/gate-run.pFePnr",
+      "stage": "final proof or explicit control",
+      "jobs": 3,
+      "rows": {
+        "ok": 3
+      },
+      "failures": []
+    },
+    {
+      "log": "gate-verified-pre.log",
+      "run": "build/gate-run.tjXuJx",
+      "stage": "final proof or explicit control",
+      "jobs": 3,
+      "rows": {
+        "FAIL": 2,
+        "ok": 1
+      },
+      "failures": [
+        "keyspace lazy-expiry order vs Redis 7.4",
+        "local script notification AOF vs Redis 7.4"
+      ]
+    },
+    {
+      "log": "gate-verified-pad-a.log",
+      "run": "build/gate-run.GBASo6",
+      "stage": "final proof or explicit control",
+      "jobs": 3,
+      "rows": {
+        "ok": 2,
+        "FAIL": 1
+      },
+      "failures": [
+        "keyspace lazy-expiry order vs Redis 7.4"
+      ]
+    },
+    {
+      "log": "gate-verified-no-salvage.log",
+      "run": "build/gate-run.p83xXJ",
+      "stage": "final proof or explicit control",
+      "jobs": 2,
+      "rows": {
+        "FAIL": 1,
+        "ok": 1
+      },
+      "failures": [
+        "keyspace lazy-expiry order vs Redis 7.4"
+      ]
+    },
+    {
+      "log": "gate-broad-post.log",
+      "run": "build/gate-run.WCCNcs",
+      "stage": "final proof or explicit control",
+      "jobs": 145,
+      "rows": {
+        "FAIL": 1,
+        "ok": 658
+      },
+      "failures": [
+        "ABBA comparison + saturation negative controls"
+      ]
+    },
+    {
+      "log": "gate-broad-pre.log",
+      "run": "build/gate-run.JvJ1w2",
+      "stage": "final proof or explicit control",
+      "jobs": 145,
+      "rows": {
+        "FAIL": 1,
+        "ok": 658
+      },
+      "failures": [
+        "ABBA comparison + saturation negative controls"
+      ]
+    },
+    {
+      "log": "differ-post-uring.log",
+      "run": "build/gate-run.KIp47c",
+      "stage": "final proof or explicit control",
+      "jobs": 6,
+      "rows": {
+        "ok": 6
+      },
+      "failures": []
+    },
+    {
+      "log": "differ-post-epoll.log",
+      "run": "build/gate-run.LkCwVd",
+      "stage": "final proof or explicit control",
+      "jobs": 6,
+      "rows": {
+        "ok": 6
+      },
+      "failures": []
+    },
+    {
+      "log": "differ-pre-uring.log",
+      "run": "build/gate-run.VxoCHZ",
+      "stage": "final proof or explicit control",
+      "jobs": 6,
+      "rows": {
+        "ok": 6
+      },
+      "failures": []
+    },
+    {
+      "log": "differ-pre-epoll.log",
+      "run": "build/gate-run.mZ59OT",
+      "stage": "final proof or explicit control",
+      "jobs": 6,
+      "rows": {
+        "ok": 6
+      },
+      "failures": []
+    },
+    {
+      "log": "gate-unit-post.log",
+      "run": "build/gate-run.O28jo4",
+      "stage": "final proof or explicit control",
+      "jobs": 3,
+      "rows": {
+        "ok": 17
+      },
+      "failures": []
+    },
+    {
+      "log": "gate-unit-pre.log",
+      "run": "build/gate-run.Ynya0J",
+      "stage": "final proof or explicit control",
+      "jobs": 3,
+      "rows": {
+        "ok": 17
+      },
+      "failures": []
+    },
+    {
+      "log": "gate-unit-pre-new-assertions.log",
+      "run": "build/gate-run.8qWzW9",
+      "stage": "final proof or explicit control",
+      "jobs": 3,
+      "rows": {
+        "ok": 16,
+        "FAIL": 1
+      },
+      "failures": [
+        "netcmd notify-oom regression"
+      ]
+    },
+    {
+      "log": "gate-unit-no-salvage-final.log",
+      "run": "build/gate-run.fqlx2V",
+      "stage": "final proof or explicit control",
+      "jobs": 3,
+      "rows": {
+        "ok": 16,
+        "FAIL": 1
+      },
+      "failures": [
+        "netcmd notify-oom regression"
+      ]
+    },
+    {
+      "log": "gate-serverless-post.log",
+      "run": "build/gate-run.sy1vfA",
+      "stage": "final proof or explicit control",
+      "jobs": 28,
+      "rows": {
+        "ok": 98
+      },
+      "failures": []
+    },
+    {
+      "log": "gate-callback-before.log",
+      "run": "build/gate-run.oX6Gir",
+      "stage": "final proof or explicit control",
+      "jobs": 3,
+      "rows": {
+        "ok": 27,
+        "FAIL": 1
+      },
+      "failures": [
+        "flushfix flush witnesses"
+      ]
+    },
+    {
+      "log": "gate-callback-pre.log",
+      "run": "build/gate-run.fhZGPH",
+      "stage": "final proof or explicit control",
+      "jobs": 5,
+      "rows": {
+        "ok": 30
+      },
+      "failures": []
+    },
+    {
+      "log": "gate-atomic-correctness-post.log",
+      "run": "build/gate-run.DUrwvb",
+      "stage": "final proof or explicit control",
+      "jobs": 2,
+      "rows": {
+        "ok": 5
+      },
+      "failures": []
+    },
+    {
+      "log": "gate-abba-fenced.log",
+      "run": "build/gate-run.RJln6q",
+      "stage": "final proof or explicit control",
+      "jobs": 1,
+      "rows": {
+        "FAIL": 1
+      },
+      "failures": [
+        "ABBA comparison + saturation negative controls"
+      ]
+    },
+    {
+      "log": "gate-unit-post-early.log",
+      "run": "build/gate-run.5V3U8u",
+      "stage": "final proof or explicit control",
+      "jobs": 3,
+      "rows": {
+        "ok": 17
+      },
+      "failures": []
+    },
+    {
+      "log": "gate-held-overwrite-before.log",
+      "run": "build/gate-run.7GlIY1",
+      "stage": "superseded implementation regression receipt",
+      "jobs": 3,
+      "rows": {
+        "ok": 16,
+        "FAIL": 1
+      },
+      "failures": [
+        "netcmd notify-oom regression"
+      ]
+    },
+    {
+      "log": "gate-held-overwrite-after.log",
+      "run": "build/gate-run.VatOxh",
+      "stage": "superseded implementation regression receipt",
+      "jobs": 3,
+      "rows": {
+        "ok": 17
+      },
+      "failures": []
+    },
+    {
+      "log": "gate-metadata-before.log",
+      "run": "build/gate-run.2Mb0n9",
+      "stage": "superseded implementation regression receipt",
+      "jobs": 3,
+      "rows": {
+        "ok": 16,
+        "FAIL": 1
+      },
+      "failures": [
+        "netcmd notify-oom regression"
+      ]
+    },
+    {
+      "log": "gate-lfu-before.log",
+      "run": "build/gate-run.QFaGzm",
+      "stage": "superseded implementation regression receipt",
+      "jobs": 3,
+      "rows": {
+        "ok": 16,
+        "FAIL": 1
+      },
+      "failures": [
+        "netcmd notify-oom regression"
+      ]
+    }
+  ],
+  "differential": [
+    {
+      "arm": "post",
+      "engine": "uring",
+      "comparisons": 938,
+      "equivalence_cells": 16,
+      "multi_repeats": 8,
+      "actual_boot_engines": {
+        "uring": 36
+      },
+      "placement": [
+        "domain  0: 8 cpus [96,97,98,99,100,101,102,103]"
+      ]
+    },
+    {
+      "arm": "post",
+      "engine": "epoll",
+      "comparisons": 938,
+      "equivalence_cells": 16,
+      "multi_repeats": 8,
+      "actual_boot_engines": {
+        "epoll": 36
+      },
+      "placement": [
+        "domain  0: 8 cpus [96,97,98,99,100,101,102,103]"
+      ]
+    },
+    {
+      "arm": "pre",
+      "engine": "uring",
+      "comparisons": 938,
+      "equivalence_cells": 16,
+      "multi_repeats": 8,
+      "actual_boot_engines": {
+        "uring": 36
+      },
+      "placement": [
+        "domain  0: 8 cpus [96,97,98,99,100,101,102,103]"
+      ]
+    },
+    {
+      "arm": "pre",
+      "engine": "epoll",
+      "comparisons": 938,
+      "equivalence_cells": 16,
+      "multi_repeats": 8,
+      "actual_boot_engines": {
+        "epoll": 36
+      },
+      "placement": [
+        "domain  0: 8 cpus [96,97,98,99,100,101,102,103]"
+      ]
+    }
+  ],
+  "comparisons": 3752,
+  "equivalence_cells": 64,
+  "unexpected_failures": [],
+  "note": "Intentional PRE/negative controls and immutable EXPECT guard remain red; no full-gate receipt."
+}

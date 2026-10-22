@@ -1,0 +1,5 @@
+wave4 result=0 (Complete=0 Retry=1 Defer=2) shard=5 owner=5
+wave4 result=0 (Complete=0 Retry=1 Defer=2) shard=15 owner=7
+wave4 result=2 (Complete=0 Retry=1 Defer=2) shard=5 owner=5
+FAIL aclkeys-wake: stream scatter gather
+aclkeys-wake mode=fused atomic=0 db=16 command=BLMOVE parked=1 final_notification=1

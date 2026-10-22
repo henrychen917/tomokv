@@ -1,0 +1,36 @@
+[
+  {
+    "name": "hot",
+    "argv": [
+      "python3",
+      "tools/lbstall_artifacts.py",
+      "compare",
+      "/home/user/Projects/cx-compat2/build/compat2b/headline-src/build",
+      "/home/user/Projects/cx-compat2/build",
+      "/home/user/Projects/cx-compat2/docs/compat2b/identity/hot.json"
+    ],
+    "returncode": 1
+  },
+  {
+    "name": "full",
+    "argv": [
+      "python3",
+      "tools/ccfix_audit.py",
+      "/home/user/Projects/cx-compat2/build/compat2b/headline-src/build",
+      "/home/user/Projects/cx-compat2/build",
+      "/home/user/Projects/cx-compat2/docs/compat2b/identity/full"
+    ],
+    "returncode": 1
+  },
+  {
+    "name": "linked",
+    "argv": [
+      "python3",
+      "docs/deadswitch/linked_bytes.py",
+      "/home/user/Projects/cx-compat2/build/compat2b/headline-src/build/tomokv",
+      "/home/user/Projects/cx-compat2/build/tomokv",
+      "/home/user/Projects/cx-compat2/docs/compat2b/identity/linked.json"
+    ],
+    "returncode": 1
+  }
+]
