@@ -1093,7 +1093,10 @@ private:
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::DatabaseWake:
                     srv_->databases().consume_wake(self_->id(), ring_); break;
-                case UrKind::Shutdown: break;
+                case UrKind::Shutdown:
+                    if (!self_->stop_flag().load(std::memory_order_relaxed))
+                        ring_.rearm_shutdown_poll();
+                    break;
                 case UrKind::SnapshotStart:
                     if constexpr (Fused)
                         fused_executor_->fused_snapshot_start(
@@ -1142,7 +1145,10 @@ private:
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::DatabaseWake:
                     srv_->databases().consume_wake(self_->id(), ring_); break;
-                case UrKind::Shutdown: break;
+                case UrKind::Shutdown:
+                    if (!self_->stop_flag().load(std::memory_order_relaxed))
+                        ring_.rearm_shutdown_poll();
+                    break;
                 case UrKind::SnapshotStart:
                     if constexpr (Fused)
                         fused_executor_->fused_snapshot_start(

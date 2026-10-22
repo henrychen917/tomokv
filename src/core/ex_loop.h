@@ -2952,7 +2952,10 @@ private:
             begin_snapshot(ur_ptr<SnapshotManager>(cqe->user_data));
         else if (ur_kind(cqe->user_data) == UrKind::DatabaseWake)
             srv_->databases().consume_wake(self_->id(), ring_);
-        else if (ur_kind(cqe->user_data) == UrKind::Shutdown) return;
+        else if (ur_kind(cqe->user_data) == UrKind::Shutdown) {
+            if (!self_->stop_flag().load(std::memory_order_relaxed))
+                ring_.rearm_shutdown_poll();
+        }
     }
 
     Server*    srv_  = nullptr;
