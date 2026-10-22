@@ -29,5 +29,25 @@
     "if [ \"$TIER\" = quick ]": [
       4303
     ]
-  }
+  },
+  "headline_source": 686,
+  "added": {
+    "NT-new-4 command clock after dequeue (2s)": 1,
+    "NT-new-4 command clock after dequeue (1s)": 1,
+    "NT-new-4 command clock after dequeue (2s, epoll)": 1,
+    "moverfix conservation (1s, uring, databases 1, atomic 0)": 1,
+    "moverfix conservation (1s, uring, databases 16, atomic 0)": 1,
+    "moverfix conservation (1s, epoll, databases 1, atomic 0)": 1,
+    "moverfix conservation (1s, epoll, databases 16, atomic 0)": 1,
+    "moverfix conservation (2s, uring, databases 1, atomic 0)": 1,
+    "moverfix conservation (2s, uring, databases 16, atomic 0)": 1,
+    "moverfix conservation (2s, epoll, databases 1, atomic 0)": 1,
+    "moverfix conservation (2s, epoll, databases 16, atomic 0)": 1,
+    "compat2 autharity": 1,
+    "compat2 expire_notify": 1,
+    "compat2 ktls_lifetime": 1,
+    "keyspace lazy-expiry order vs Redis 7.4": 1,
+    "local script notification AOF vs Redis 7.4": 1
+  },
+  "removed": {}
 }

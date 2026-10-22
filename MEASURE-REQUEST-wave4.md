@@ -24,9 +24,10 @@ records pre-AUTH `XGROUP x` as `ERR unknown subcommand 'x'. Try XGROUP HELP.`.
 receipts agree. Thus the retained evidence covers all three corrected rows in
 `cd1423c97`, not just one ACL mode. No further assertion change is assumed.
 
-The initial whole-test-tree textual sweep is retained in `docs/wave4/sweep-hits.json`.
-Final job coverage, interaction findings, identity trials and proof outcomes
-will be appended here after execution.
+The whole-test-tree textual sweep retains 255 matching lines in
+`docs/wave4/sweep-hits.json`. `sweep-job-map.json` maps 81 matching or touched
+files to their owning jobs, standalone suites, or documented exclusions.
+No additional assertion was changed during this integration.
 
 ### Merge composition and semantic checks
 
@@ -70,6 +71,15 @@ or an intentional lane POST (6). The broader hot inventory is **489** groups:
 394 headline-identical, 78 lane-identical, **17 residual**. Strict universal
 identity is therefore **not achieved** and is not presented as a performance result.
 
+The expanded command-path inventory includes prebuilt SET, string storage,
+notification/TLS wrappers and generic MGET/MSET scatter handlers, not just the
+12 directly named groups: **77 groups = 50 headline + 17 lane + 10 residual**.
+Residuals are both `store_xstring_selected` copies, both armed
+`cmd_set_prebuilt<true>` copies, four `cmd_xshard_only_impl` copies, and DB0
+`xshard_execute` plus its cold fragment. They are included in the complete
+changed-body table; `docs/wave4/identity/command-paths.json` makes this broader
+command-path limitation explicit.
+
 Every changed group is named with sizes, matching lanes and reason in
 `docs/wave4/identity/changed-bodies.{json,md}`. The residuals include **73**
 resolved-target/literal-only differences with identical instruction encodings,
@@ -81,6 +91,72 @@ The gate's `reorder_identity` job passes the merged candidate, including all
 negative controls: **293/293 = 146 normal + 147 DB0**. Missing policy symbols,
 missing split-local parser and changed-opcode controls fail as required.
 Receipt: `docs/wave4/proof/r7-final` (`build/gate-run.bzQ8Hu`).
+
+### Build and correctness execution
+
+`make -k -j32 all` plus every `job_production_units` file target (37), and
+`mdbqsbr-live-arms`, completed successfully. **39/39 `make -q` freshness checks**
+passed. Commands and individual statuses: `docs/wave4/production-build.json`.
+
+The proof driver invokes the original `tests/gate.sh quick` with
+`GATE_ONLY_JOBS`; its ledgers remain PARTIAL and cannot earn a full receipt.
+The broad sweep uses server slots 64–71, 72–79 and 80–87; clients 89–109;
+oracle CPU 88. Ports 26800–26879 belong to gate slots, 26880–26898 to ephemeral
+serverless fixtures, and 26899 to the tree's configurable socket fixtures.
+Build invocations use `-j32`. The adapter passes the battery's existing
+`--no-rate-assertions` option to `atomic_ryow.py`, preserving all correctness
+assertions. It also refuses any accidental `memtier_benchmark` launch.
+No gate row, clock double, correctness deadline or assertion is changed.
+
+The main selected-job run completed **576 rows, zero failures, 72 completed
+jobs** (including build prerequisites). Its full ledger and archived text
+receipts are in `docs/wave4/proof/merged-post`; original run directory:
+`build/gate-run.lpGEqJ`. A second invocation of the same auth and notify jobs
+boots the same POST in armed fused mode and passes **14/14** rows; receipts:
+`docs/wave4/proof/fused-auth-notify`. These are explicitly PARTIAL gate runs,
+not a landing or performance receipt.
+
+| Lane | Gate rows | Required legs observed on merged POST |
+|---|---:|---|
+| compat2 | 3/3 | Each case runs 1s/2s × epoll/uring: 12 live cells. C1 has 1,522 oracle comparisons per cell; C2 includes its reservation unit; C3 includes two lifetime units and TLS 1.2/1.3 in every cell. |
+| moverfix | 8/8 | 1s/2s × epoll/uring × databases 1/16, atomic 0; 56 unit family legs and 72 live legs including T05/G5. |
+| clockcut | 3/3 | Unmodified `ntnew4_live` and existing clock double: 2s/uring, 1s/uring, 2s/epoll; 30 successful checks per row. |
+| notifyorder | 2/2 | Ordering: 12 legs × 23 cases plus target/oracle NOLOOP checks. Script/AOF: all eight mode/engine/atomic legs, including reload. |
+
+`docs/wave4/lane-leg-inventory.json` identifies every lane receipt. C1's
+unchanged inventory explicitly excludes 24 variadic commands with no invalid
+advertised arity and the local FLIP extension with no Redis counterpart;
+these are not missing declared legs.
+
+The main proof includes auth **7/7** (all three corrected rows), TLS **20/20**,
+R7 identity and negative controls, `perfex_live` **2/2**, storage/core/atomic/
+network/wait units, all four feature mode/atomic combinations, both fused
+batteries, and all eight multidb combinations. The keyspace-notification,
+hash-TTL, expiry, TRACKING, MULTI/EXEC, script, blocking, AOF and ACL batteries
+pass in both modes. Snapshot and AOF jobs retain both engines and all their
+declared mode/atomic legs. TLS receipts show real kTLS 1.2 engagement and the
+TLS 1.3 userspace/key-update path; no TLS leg was silently skipped.
+
+Independent serverless suites pass: `gates_test.py` **67/67**,
+`debug_load_test.py` **13/13**, `differ_test.py` **24/24**,
+`infofields_test.py` **9/9**, and `loading_ready_test.py` **22/22**.
+Receipts and commands are in `docs/wave4/serverless`.
+
+### Sweep findings outside the gate inventory
+
+The unchanged standalone `dumpttl.py` cross-wire oracle battery passes all
+eight mode/engine/atomic cells. `respresume_flip.py` passes all four split-mode
+engine/atomic cells. These scripts have no gate job; they supplement, rather
+than substitute for, the gate-owned rows.
+
+The standalone `cmdgap2.py` battery **fails one of 41 checks in all eight
+cells**: its architectural inventory check expects 245 commands and says
+MOVE/SWAPDB are present, while its following forbidden-command assertion still
+forbids MOVE/SWAPDB. The same unchanged test produces **byte-identical output
+on the frozen headline binary in all eight cells**. The remaining 40 checks
+pass in each cell. This is a pre-existing fixture contradiction, not a green
+result; no assertion was changed. POST, headline, command and owned-server
+receipts are under `docs/wave4/supplemental`.
 
 ### Scope of existing findings
 

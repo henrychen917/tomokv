@@ -1,485 +1,718 @@
 [
   {
     "file": "tests/_differ_ccfix.py",
-    "jobs": []
+    "jobs": [
+      "differ-split",
+      "differ-armed"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/_lib.py",
-    "jobs": [
-      "set_slot"
-    ]
+    "jobs": [],
+    "note": "Lexical false positives: socket-readiness deadlines, not key expiry. Helper covered by callers.",
+    "hits": 3
   },
   {
     "file": "tests/abba_worker_affinity.py",
-    "jobs": []
+    "jobs": [
+      "abba_selftest"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/abbagate.py",
     "jobs": [
-      "job_abba_selftest",
-      "job_ready"
-    ]
+      "abba_selftest"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/acl.py",
     "jobs": [
-      "job_release_batteries",
-      "job_auth"
-    ]
+      "auth",
+      "release_batteries"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/aclfix.py",
     "jobs": [
-      "plan_jobs",
-      "job_aclfix",
-      "job_ready"
-    ]
+      "aclfix"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/aclkeys_wake_unit.cc",
-    "jobs": []
+    "jobs": [],
+    "note": "Source reviewed: unsupported DEBUG subcommand assertion is unaffected. Blocking ACL proof runs through aclfix/acl_recheck and multidb wake-state jobs.",
+    "hits": 1
   },
   {
     "file": "tests/aclreply.py",
     "jobs": [
-      "set_slot",
-      "job_acl_recheck"
-    ]
+      "acl_recheck"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 3
   },
   {
     "file": "tests/aclsel.py",
     "jobs": [
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 2
   },
   {
     "file": "tests/arity.py",
     "jobs": [
-      "shutdown_value",
-      "job_authfix"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 5
   },
   {
     "file": "tests/at15_unit.cc",
-    "jobs": []
+    "jobs": [
+      "atomic_units"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 3
   },
   {
     "file": "tests/atomicwindow.py",
-    "jobs": []
+    "jobs": [
+      "atomic_batteries"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/auth.py",
     "jobs": [
-      "plan_jobs",
-      "job_auth",
-      "job_tls",
-      "job_ready"
-    ]
+      "auth",
+      "tls"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 18
   },
   {
     "file": "tests/autharity.py",
     "jobs": [
-      "job_compat2"
-    ]
+      "compat2"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/authfix.py",
     "jobs": [
-      "plan_jobs",
-      "job_authfix",
-      "job_ready"
-    ]
+      "authfix"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 6
   },
   {
     "file": "tests/clientfix.py",
     "jobs": [
-      "plan_jobs",
-      "job_clientfix",
-      "job_ready"
-    ]
+      "clientfix"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/climon2.py",
     "jobs": [
-      "set_slot",
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 1
   },
   {
     "file": "tests/climon_128.py",
-    "jobs": []
+    "jobs": [],
+    "note": "NOT RUN: requires more than 64 IO owners, beyond this lane's 48 authorized CPUs. Ordinary tracking/climon gate batteries are covered.",
+    "hits": 3
   },
   {
     "file": "tests/cmdgap.py",
     "jobs": [
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 1
   },
   {
     "file": "tests/cmdgap2.py",
-    "jobs": []
+    "jobs": [],
+    "note": "No gate job; additional unchanged standalone live battery.",
+    "hits": 1
   },
   {
     "file": "tests/compat2_support.py",
-    "jobs": []
+    "jobs": [
+      "compat2"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/contarity.py",
     "jobs": [
-      "set_slot",
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 5
   },
   {
     "file": "tests/debug.py",
     "jobs": [
-      "job_bplus",
-      "job_debug",
-      "job_auth",
-      "job_atomic_floor",
-      "job_rldbg"
-    ]
+      "auth",
+      "debug-0",
+      "debug-1",
+      "bplus"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/debug_load_test.py",
-    "jobs": []
+    "jobs": [],
+    "note": "No gate job; additional unchanged serverless regression suite.",
+    "hits": 1
   },
   {
     "file": "tests/differ.py",
     "jobs": [
-      "set_slot",
-      "program_state"
-    ]
+      "differ-split",
+      "differ-armed"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 27
   },
   {
     "file": "tests/differ_test.py",
-    "jobs": []
+    "jobs": [],
+    "note": "No gate job; additional unchanged serverless regression suite.",
+    "hits": 14
   },
   {
     "file": "tests/dumpttl.py",
-    "jobs": []
+    "jobs": [],
+    "note": "No gate job; additional unchanged standalone live battery with Redis cross-wire oracle.",
+    "hits": 7
   },
   {
     "file": "tests/edgeenc.py",
     "jobs": [
-      "set_slot",
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 1
   },
   {
     "file": "tests/edgeproto.py",
     "jobs": [
-      "shutdown_value",
-      "job_fused"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 12
   },
   {
     "file": "tests/edgetime.py",
     "jobs": [
-      "set_slot",
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 10
   },
   {
     "file": "tests/expire_notify.py",
     "jobs": [
-      "job_compat2"
-    ]
+      "compat2"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 3
   },
   {
     "file": "tests/expire_notify_unit.cc",
-    "jobs": []
+    "jobs": [
+      "compat2"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/expwide.py",
     "jobs": [
-      "set_slot",
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 5
   },
   {
     "file": "tests/fixtures/nullrefresh-ledger-labels.json",
     "jobs": [
-      "job_ready"
-    ]
+      "abba_selftest"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/flip_ttl.py",
     "jobs": [
-      "job_flip"
-    ]
+      "flip"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/gate.sh",
-    "jobs": [
-      "job_body",
-      "job_ready"
-    ]
+    "jobs": [],
+    "note": "Harness exercised through all selected GATE_ONLY_JOBS families; full iteration and performance jobs remain maintainer-owned.",
+    "hits": 0
   },
   {
     "file": "tests/gate_history.py",
     "jobs": [
-      "set_slot",
-      "row_watch",
-      "row_unwatch",
-      "row_begin",
-      "row_save_history",
-      "program_state",
-      "pausable",
-      "reap_children",
-      "job_abba_selftest",
-      "job_ready"
-    ]
+      "abba_selftest"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/gate_quiet.py",
     "jobs": [
-      "job_abba_selftest"
-    ]
+      "abba_selftest"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/gates_test.py",
     "jobs": [
-      "job_abba_selftest"
-    ]
+      "abba_selftest"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/hexpire.py",
     "jobs": [
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 18
   },
   {
     "file": "tests/hexpire_oom_checks.inc",
-    "jobs": []
+    "jobs": [
+      "netcmd_units"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 4
   },
   {
     "file": "tests/hexpire_persist.sh",
-    "jobs": []
+    "jobs": [
+      "snapshot-epoll",
+      "snapshot-uring",
+      "aof-epoll",
+      "aof-uring"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/hexpread.py",
     "jobs": [
-      "set_slot",
-      "plan_jobs",
-      "job_hexpread",
-      "job_ready"
-    ]
+      "hexpread"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/infofields_test.py",
-    "jobs": []
+    "jobs": [],
+    "note": "No gate job; additional unchanged serverless regression suite.",
+    "hits": 2
   },
   {
     "file": "tests/infofix.py",
     "jobs": [
-      "set_slot",
-      "shutdown_value",
-      "job_ntfix_input"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 1
   },
   {
     "file": "tests/ktls_lifetime.py",
     "jobs": [
-      "job_compat2"
-    ]
+      "compat2"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/ktls_lifetime_unit.cc",
-    "jobs": []
+    "jobs": [
+      "compat2"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/kvobj_header_unit.cc",
-    "jobs": []
+    "jobs": [
+      "atomic_units"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 7
   },
   {
     "file": "tests/l4prebuild_unit.cc",
-    "jobs": []
+    "jobs": [],
+    "note": "Source reviewed: stored-deadline observation, not a deadline-equality assertion. Prebuilt SET/MSET semantics are covered by feature and atomic unit jobs.",
+    "hits": 1
   },
   {
     "file": "tests/lcs.py",
     "jobs": [
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 1
   },
   {
     "file": "tests/loading_ready_test.py",
-    "jobs": []
+    "jobs": [],
+    "note": "No gate job; additional unchanged serverless regression suite.",
+    "hits": 3
   },
   {
     "file": "tests/mdbqsbr_live.py",
     "jobs": [
-      "job_multidb"
-    ]
+      "multidb-1s-0-0",
+      "multidb-1s-0-1",
+      "multidb-1s-1-0",
+      "multidb-1s-1-1",
+      "multidb-2s-0-0",
+      "multidb-2s-0-1",
+      "multidb-2s-1-0",
+      "multidb-2s-1-1"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/mdbqsbr_unit.cc",
-    "jobs": []
+    "jobs": [
+      "atomic_units"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/moverfix.py",
     "jobs": [
-      "set_slot",
-      "plan_jobs",
-      "job_moverfix",
-      "job_ready"
-    ]
+      "moverfix"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/moverfix_unit.cc",
-    "jobs": []
+    "jobs": [
+      "moverfix"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/multidb_unit.cc",
-    "jobs": []
+    "jobs": [
+      "multidb-1s-0-0",
+      "multidb-1s-0-1",
+      "multidb-1s-1-0",
+      "multidb-1s-1-1",
+      "multidb-2s-0-0",
+      "multidb-2s-0-1",
+      "multidb-2s-1-0",
+      "multidb-2s-1-1"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/mutants.py",
-    "jobs": []
+    "jobs": [],
+    "note": "Lexical false positives: watchdog deadlines, not key expiry. Mutation/performance campaigns are outside this integration.",
+    "hits": 2
   },
   {
     "file": "tests/netcap.py",
     "jobs": [
-      "plan_jobs",
-      "job_netcap",
-      "job_ready"
-    ]
+      "netcap"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/netcmd.py",
-    "jobs": []
+    "jobs": [
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 1
   },
   {
     "file": "tests/netcmd_unit.cc",
-    "jobs": []
+    "jobs": [
+      "netcmd_units"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/notify.py",
     "jobs": [
-      "plan_jobs",
-      "job_notify",
-      "job_ready"
-    ]
+      "notify"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 3
   },
   {
     "file": "tests/notify_order.py",
     "jobs": [
-      "plan_jobs",
-      "job_notify_order",
-      "job_notify_aof",
-      "job_ready"
-    ]
+      "notify_order",
+      "notify_aof"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 3
   },
   {
     "file": "tests/notify_order_checks.inc",
-    "jobs": []
+    "jobs": [
+      "netcmd_units"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/ntnew4_clock.py",
     "jobs": [
-      "ntnew4_live_leg"
-    ]
+      "ntnew4_live"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 12
   },
   {
     "file": "tests/objectpread.py",
     "jobs": [
-      "job_hexpread"
-    ]
+      "hexpread"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/perfex_checks.py",
     "jobs": [
-      "job_perfex_units",
-      "job_perfex_live"
-    ]
+      "perfex_units",
+      "perfex_live"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/pubsub.py",
     "jobs": [
-      "shutdown_value",
-      "job_netcmd_units",
-      "job_notify"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 3
   },
   {
     "file": "tests/pushtear.py",
     "jobs": [
-      "set_slot",
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 5
   },
   {
     "file": "tests/r7shadow_noop.py",
-    "jobs": []
+    "jobs": [
+      "reorder_identity"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   },
   {
     "file": "tests/rehash_waits_unit.cc",
-    "jobs": []
+    "jobs": [
+      "wait_units"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/respcompat.py",
     "jobs": [
-      "plan_jobs",
-      "job_respcompat",
-      "tlsboot",
-      "job_ready"
-    ]
+      "respcompat",
+      "tls"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/respresume.py",
     "jobs": [
-      "set_slot",
-      "job_respresume"
-    ]
+      "respresume-fragment-1s-epoll",
+      "respresume-fragment-1s-uring",
+      "respresume-fragment-2s-epoll",
+      "respresume-fragment-2s-uring",
+      "respresume-cpu-1s-epoll",
+      "respresume-cpu-1s-uring",
+      "respresume-cpu-2s-epoll",
+      "respresume-cpu-2s-uring",
+      "respresume-neighbour-1s-epoll",
+      "respresume-neighbour-1s-uring",
+      "respresume-neighbour-2s-epoll",
+      "respresume-neighbour-2s-uring"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/respresume_flip.py",
-    "jobs": []
+    "jobs": [],
+    "note": "No gate job; additional unchanged standalone live battery.",
+    "hits": 1
   },
   {
     "file": "tests/rltopo_unit.cc",
-    "jobs": []
+    "jobs": [
+      "core_units"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/scriptsurf.py",
     "jobs": [
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 2
   },
   {
     "file": "tests/servertail.py",
     "jobs": [
-      "shutdown_value",
-      "plan_jobs"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 4
   },
   {
     "file": "tests/slowlog.py",
     "jobs": [
-      "job_debug",
-      "job_authfix"
-    ]
+      "authfix",
+      "debug-0",
+      "debug-1"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 2
   },
   {
     "file": "tests/store_regression.cc",
     "jobs": [
-      "store_build"
-    ]
+      "storage_units"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 4
   },
   {
     "file": "tests/storesize_unit.cc",
-    "jobs": []
+    "jobs": [
+      "atomic_units"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 1
   },
   {
     "file": "tests/tracking.py",
     "jobs": [
-      "shutdown_value"
-    ]
+      "feature-split-0",
+      "feature-split-1",
+      "feature-armed-0",
+      "feature-armed-1"
+    ],
+    "note": "Full feature battery, both modes and atomic settings.",
+    "hits": 9
   },
   {
     "file": "tests/txn_movers.py",
     "jobs": [
-      "job_moverfix"
-    ]
+      "moverfix"
+    ],
+    "note": "Original gate job and every declared leg.",
+    "hits": 0
   }
 ]

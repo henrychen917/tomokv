@@ -1,0 +1,2 @@
+FAIL architectural handoff inventory control: got False, want True
+CMDGAP2 FAIL: 41 checks, 1 failures

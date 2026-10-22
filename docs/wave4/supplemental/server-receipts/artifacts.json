@@ -1,0 +1,270 @@
+{
+  "source": "build/wave4/supplemental",
+  "files": [
+    {
+      "path": "1s-epoll-a0/command.json",
+      "bytes": 539,
+      "included": true,
+      "sha256": "8323a374a96d2cb9140a17773ddbe91c31bbd2c48e0882c2b51a4e55e3bb0780"
+    },
+    {
+      "path": "1s-epoll-a0/dump.tomo",
+      "bytes": 1431,
+      "included": false,
+      "reason": "binary/object/disassembly; linked inputs separately identified"
+    },
+    {
+      "path": "1s-epoll-a0/pre-stop-ps.txt",
+      "bytes": 379,
+      "included": true,
+      "sha256": "63731b2e884b0dc71c4c233eaaa868da288e69052ea9d878c4e49a6aaa5653a6"
+    },
+    {
+      "path": "1s-epoll-a0/server.log",
+      "bytes": 7665,
+      "included": true,
+      "sha256": "6dbaa3d489c76b4100e16faa9ab617e1896c89cd17dcb56cb619a988fe2396ef"
+    },
+    {
+      "path": "1s-epoll-a0/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "04d795bf915932bf403af5781dfc29b46054b02886204949e5fd41a9a46d0a95"
+    },
+    {
+      "path": "1s-epoll-a1/command.json",
+      "bytes": 539,
+      "included": true,
+      "sha256": "06b2ae339c24c31216c6b79ec80c078ec53b64e573b86a5bf1856d26c1be66de"
+    },
+    {
+      "path": "1s-epoll-a1/dump.tomo",
+      "bytes": 1431,
+      "included": false,
+      "reason": "binary/object/disassembly; linked inputs separately identified"
+    },
+    {
+      "path": "1s-epoll-a1/pre-stop-ps.txt",
+      "bytes": 379,
+      "included": true,
+      "sha256": "4f119876adfbb9212bada0309c109b90b6a6855d2c587a060091b05211ffaddd"
+    },
+    {
+      "path": "1s-epoll-a1/server.log",
+      "bytes": 7686,
+      "included": true,
+      "sha256": "3500066ee6dbb2fe9e2281319bc5112423b9d0ebb40ab07a4588cf2894152bf2"
+    },
+    {
+      "path": "1s-epoll-a1/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "1b0a54dc901af21256e4ee2125d2ee6f9d16920384bae5e0d4f8081a2f13e782"
+    },
+    {
+      "path": "1s-uring-a0/command.json",
+      "bytes": 539,
+      "included": true,
+      "sha256": "674a4ff51c3fabaa753f5b384efc4786a864f72e3c49a11cf5da2137a1776f5c"
+    },
+    {
+      "path": "1s-uring-a0/dump.tomo",
+      "bytes": 1431,
+      "included": false,
+      "reason": "binary/object/disassembly; linked inputs separately identified"
+    },
+    {
+      "path": "1s-uring-a0/pre-stop-ps.txt",
+      "bytes": 379,
+      "included": true,
+      "sha256": "5c761e1f769d670b48f0f43b9c044b8349dbc03b7ee84d0c15e117abc9baac34"
+    },
+    {
+      "path": "1s-uring-a0/server.log",
+      "bytes": 7564,
+      "included": true,
+      "sha256": "aa35febdb8b4eee4cd3629a75b2a664d3d9d5c078bcd1a9db0c5c5be5e31f703"
+    },
+    {
+      "path": "1s-uring-a0/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "6aba32c95551c4a8ae90ce5a50ce0f89624496afb29eb1e4c03132dfa975a15c"
+    },
+    {
+      "path": "1s-uring-a1/command.json",
+      "bytes": 539,
+      "included": true,
+      "sha256": "4fa3dd51ede442c9a38f25c002a44a652df38f7d0103f8876b8ff480a7c4cb94"
+    },
+    {
+      "path": "1s-uring-a1/dump.tomo",
+      "bytes": 1431,
+      "included": false,
+      "reason": "binary/object/disassembly; linked inputs separately identified"
+    },
+    {
+      "path": "1s-uring-a1/pre-stop-ps.txt",
+      "bytes": 379,
+      "included": true,
+      "sha256": "8e2b546cc62c1604e0d8bf63f01b9567886cbc978a519b6325414a0fd1733323"
+    },
+    {
+      "path": "1s-uring-a1/server.log",
+      "bytes": 7575,
+      "included": true,
+      "sha256": "1cc89aa734790043e2aaeee62f195136924194dc9848ea4f9af7639361927c40"
+    },
+    {
+      "path": "1s-uring-a1/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "8a3cd3eb892f224ff688e6f0580afaab52d02486f3f5a199d6bd332aac60c8a5"
+    },
+    {
+      "path": "2s-epoll-a0/command.json",
+      "bytes": 561,
+      "included": true,
+      "sha256": "2c0dbbb4431ed874393b62ecfaba930efefdbce5d6e91335283e8c6a3b1433bd"
+    },
+    {
+      "path": "2s-epoll-a0/dump.tomo",
+      "bytes": 1431,
+      "included": false,
+      "reason": "binary/object/disassembly; linked inputs separately identified"
+    },
+    {
+      "path": "2s-epoll-a0/pre-stop-ps.txt",
+      "bytes": 391,
+      "included": true,
+      "sha256": "0537fb11d78822fcba5e72b85ed837113509477300f489baa166875c9a809c18"
+    },
+    {
+      "path": "2s-epoll-a0/server.log",
+      "bytes": 7247,
+      "included": true,
+      "sha256": "3465cfa81b4f477e782fda6dca4ee04727a8fdaf0c2f445dd743a11bac306b98"
+    },
+    {
+      "path": "2s-epoll-a0/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "9db7bf8bed31f7a08479f0eea8cba983d97ef958075f6f244d5825caff9c111c"
+    },
+    {
+      "path": "2s-epoll-a1/command.json",
+      "bytes": 561,
+      "included": true,
+      "sha256": "6c1c6509a772db929d2afda1f0ef75e529924245ab4074b1a3ff77d6260ff460"
+    },
+    {
+      "path": "2s-epoll-a1/dump.tomo",
+      "bytes": 1431,
+      "included": false,
+      "reason": "binary/object/disassembly; linked inputs separately identified"
+    },
+    {
+      "path": "2s-epoll-a1/pre-stop-ps.txt",
+      "bytes": 391,
+      "included": true,
+      "sha256": "627ca7aa5ae919a0b9ac061e833ddfd6677acf445d858a9dc2412658708367ef"
+    },
+    {
+      "path": "2s-epoll-a1/server.log",
+      "bytes": 7242,
+      "included": true,
+      "sha256": "8df908be3302ba6bb9e82aa9bc438c526d506de8deeea6173c519250eedaee0c"
+    },
+    {
+      "path": "2s-epoll-a1/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "90916cf361fe911bd1f92d93d46b297428a5c7f476e796a161ec9ebddc839b76"
+    },
+    {
+      "path": "2s-uring-a0/command.json",
+      "bytes": 561,
+      "included": true,
+      "sha256": "89a1e875f5a2c34333f04751106bfa8c6a9cbad9d7042f5e463252b033a5af23"
+    },
+    {
+      "path": "2s-uring-a0/dump.tomo",
+      "bytes": 1431,
+      "included": false,
+      "reason": "binary/object/disassembly; linked inputs separately identified"
+    },
+    {
+      "path": "2s-uring-a0/pre-stop-ps.txt",
+      "bytes": 391,
+      "included": true,
+      "sha256": "37311355702a55db3431510fb51498bfeaf9ae08a02b19bb9fda8e965e27622e"
+    },
+    {
+      "path": "2s-uring-a0/server.log",
+      "bytes": 7142,
+      "included": true,
+      "sha256": "653a144c5bc4c1f4e0f8d823288b83d05a5b6f7be2dfc95d091960283bf6a3d3"
+    },
+    {
+      "path": "2s-uring-a0/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "fa50daaa0d4f7d0570abf4787260c5e8edea62b0c38efd9b658e62db754ef4d0"
+    },
+    {
+      "path": "2s-uring-a1/command.json",
+      "bytes": 561,
+      "included": true,
+      "sha256": "36f99095329b8c8dcfd8d410f0498e3de280bc5414ac4892709a39f38e8434fb"
+    },
+    {
+      "path": "2s-uring-a1/dump.tomo",
+      "bytes": 1431,
+      "included": false,
+      "reason": "binary/object/disassembly; linked inputs separately identified"
+    },
+    {
+      "path": "2s-uring-a1/pre-stop-ps.txt",
+      "bytes": 391,
+      "included": true,
+      "sha256": "2c268bb83775bbac22cd88e623af641581d4b27cad1fae927d138f9dcca1ee8a"
+    },
+    {
+      "path": "2s-uring-a1/server.log",
+      "bytes": 7151,
+      "included": true,
+      "sha256": "0fd861d87d884dd4d0430c3f971bbaf37944e6eb142b656cbecaba16cc8fee1c"
+    },
+    {
+      "path": "2s-uring-a1/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "0e07f2a7c0dc23f74b4eddb54363491986ae4194b152d13894ecf80cc17e08ef"
+    },
+    {
+      "path": "redis74/command.json",
+      "bytes": 322,
+      "included": true,
+      "sha256": "5ce14877e53bcc0a998d6749a3e2330093a3c90cbd38cb8203f8a475e307996c"
+    },
+    {
+      "path": "redis74/pre-stop-ps.txt",
+      "bytes": 102,
+      "included": true,
+      "sha256": "aba50d7eafa456d999786e95dfdb256382c0da10e4391ce76b9178e5dcd2a1cf"
+    },
+    {
+      "path": "redis74/server.log",
+      "bytes": 1203,
+      "included": true,
+      "sha256": "0541edd472cce7e537467a672493ce7ee2204f8b1389d0e55a6fc098d222dcba"
+    },
+    {
+      "path": "redis74/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "6d4ce7d6b080b8ee06f60d3735120cb2f180b818a91a135f6bb68e5f52c0b0d9"
+    }
+  ],
+  "archive_sha256": "d0947071db1b612860277e73a5414ddeda8fa1c14e43c31977a887f3a1bd69f8"
+}

@@ -63,7 +63,8 @@ exit 125
 def main():
     p=argparse.ArgumentParser(); p.add_argument('label'); p.add_argument('--jobs',default='')
     p.add_argument('--cwd',type=Path,default=ROOT); p.add_argument('--binary',type=Path,default=ROOT/'build/tomokv')
-    p.add_argument('--single',action='store_true'); a=p.parse_args()
+    p.add_argument('--single',action='store_true')
+    p.add_argument('--server-cores'); p.add_argument('--load-cores'); a=p.parse_args()
     dest=DOC/'proof'/a.label; dest.mkdir(parents=True,exist_ok=False)
     env=setup(); jobs=a.jobs.split() if a.jobs else BROAD
     env.update(GATE_ONLY_JOBS=' '.join(jobs),GATE_LEDGER=str(dest/'ledger'),
@@ -71,6 +72,8 @@ def main():
     # Three disjoint eight-core server slots, with seven client CPUs each.
     servers,clients=('64-72','73-95') if a.single else ('64-87','89-109')
     if a.single: env.update(GATE_DIFFER_ORACLE_CORES='72',GATE_NOTIFY_ORACLE_CORES='72')
+    if a.server_cores: servers=a.server_cores
+    if a.load_cores: clients=a.load_cores
     argv=['taskset','-c','64-111','bash','tests/gate.sh','quick',
           '--server-cores',servers,'--load-cores',clients,'--server-smt','','--load-smt','',
           '--ports','26800-26879','--candidate-binary',str(a.binary.resolve())]

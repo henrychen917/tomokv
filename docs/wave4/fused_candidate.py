@@ -1,0 +1,24 @@
+#!/usr/bin/python3
+"""Additional auth/notify gate boots in 1s + read-local, using the same POST.
+
+The existing gate jobs default to split. This launcher changes only that boot
+geometry for their supplemental mode proof; batteries and assertions are intact.
+"""
+import os
+from pathlib import Path
+import sys
+
+args=[]
+index=1
+while index<len(sys.argv):
+    arg=sys.argv[index]
+    if arg in ('--ratio','--thread-mode','--read-local'):
+        index+=2
+        continue
+    if any(arg.startswith(key+'=') for key in ('--ratio','--thread-mode','--read-local')):
+        index+=1
+        continue
+    args.append(arg)
+    index+=1
+binary=Path(__file__).resolve().parents[2]/'build/tomokv'
+os.execv(binary,[str(binary),*args,'--thread-mode','1s','--read-local','1'])

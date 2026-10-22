@@ -1,0 +1,198 @@
+{
+  "source": "build/wave4/headline-cmdgap",
+  "files": [
+    {
+      "path": "1s-epoll-a0/command.json",
+      "bytes": 556,
+      "included": true,
+      "sha256": "1179f670e97e4d13049c61ff6cda6799a3f70a76b58b7300286a97ccf6a730cd"
+    },
+    {
+      "path": "1s-epoll-a0/pre-stop-ps.txt",
+      "bytes": 397,
+      "included": true,
+      "sha256": "735ac449de914a733972ab0c85d5bfa8665b153329adccaa27d5afe25f93b565"
+    },
+    {
+      "path": "1s-epoll-a0/server.log",
+      "bytes": 7605,
+      "included": true,
+      "sha256": "d684b68006996e58f537534bf3ba027e496ec04452606bede50790c6e94b9b66"
+    },
+    {
+      "path": "1s-epoll-a0/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "b31a425f3e9096f320e2e707018ff6db69ed2cbc6661d16845d26eb723648774"
+    },
+    {
+      "path": "1s-epoll-a1/command.json",
+      "bytes": 556,
+      "included": true,
+      "sha256": "494cdcd5a687a03a653dc4d5d351a9f1be08798ee9461f511228eede237126e4"
+    },
+    {
+      "path": "1s-epoll-a1/pre-stop-ps.txt",
+      "bytes": 397,
+      "included": true,
+      "sha256": "7d501c8341857a0c0215cccf38bde07a661299537b3474a666eec9261ef51808"
+    },
+    {
+      "path": "1s-epoll-a1/server.log",
+      "bytes": 7604,
+      "included": true,
+      "sha256": "36d23a916cb14c7e940205309f61b09a275c8257a5d04f47cf855b457317f352"
+    },
+    {
+      "path": "1s-epoll-a1/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "0288c4cd1b4dfef9d4c7605c44a831c533506baa638869fa11829a17d59fcb6b"
+    },
+    {
+      "path": "1s-uring-a0/command.json",
+      "bytes": 556,
+      "included": true,
+      "sha256": "a8f266c02c1c2e726e5cb23fe18e8b0aec039d7e8ce3e708fef3e803a2c9dc33"
+    },
+    {
+      "path": "1s-uring-a0/pre-stop-ps.txt",
+      "bytes": 397,
+      "included": true,
+      "sha256": "906bce55975c34927cc9b70a2e14ab7c0a3a3ff5305ce098000ca5589a739bfd"
+    },
+    {
+      "path": "1s-uring-a0/server.log",
+      "bytes": 7512,
+      "included": true,
+      "sha256": "68f5f19e141956b3d2e2796fe3aac689b10ab421a9bb1e96cfcf7174548f1b69"
+    },
+    {
+      "path": "1s-uring-a0/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "678497860d52147b1b195b4a33d374fde265350a7b48849b5db2257695599f50"
+    },
+    {
+      "path": "1s-uring-a1/command.json",
+      "bytes": 556,
+      "included": true,
+      "sha256": "1ff4b434a765387d1cd417cea0ef44178e4a58e6f30106c5c224289713fafba9"
+    },
+    {
+      "path": "1s-uring-a1/pre-stop-ps.txt",
+      "bytes": 397,
+      "included": true,
+      "sha256": "3ad48323ec7c093494b31aee4093aa93e3423c436f392c3af1817a79ab730b06"
+    },
+    {
+      "path": "1s-uring-a1/server.log",
+      "bytes": 7520,
+      "included": true,
+      "sha256": "9a77beae06b1830470e59915966a5b11aa725ced8c2072d81aeee1184a672749"
+    },
+    {
+      "path": "1s-uring-a1/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "8fe44c5c87f05669c5c2b43401ed806de9e39b333a0f86f7afa6e8fbbfcdc1aa"
+    },
+    {
+      "path": "2s-epoll-a0/command.json",
+      "bytes": 578,
+      "included": true,
+      "sha256": "0623e6d946acc7a18272e8eea735e61aadfde291bb9bdbe4c4a7badfd3a4143b"
+    },
+    {
+      "path": "2s-epoll-a0/pre-stop-ps.txt",
+      "bytes": 409,
+      "included": true,
+      "sha256": "90f0d27d0897b4b53e0d168b62e3730403126625a76bd34da544ca72bfa56e91"
+    },
+    {
+      "path": "2s-epoll-a0/server.log",
+      "bytes": 6689,
+      "included": true,
+      "sha256": "bac02a47d94430bf1aaefec8ecad4f022c634d734953435868f87fc2c0fcf766"
+    },
+    {
+      "path": "2s-epoll-a0/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "b7c21b40a06efe935c1f412bca4d3179c9e757ee7dbc7ed35fbf8d4a27a109d4"
+    },
+    {
+      "path": "2s-epoll-a1/command.json",
+      "bytes": 578,
+      "included": true,
+      "sha256": "811a03c17e76a6119c3d14f4e36558c084babf472b14b04226cf98c3bbc54be9"
+    },
+    {
+      "path": "2s-epoll-a1/pre-stop-ps.txt",
+      "bytes": 409,
+      "included": true,
+      "sha256": "7273012cc5a5a8f6899dc4fa402f86e780f8f6a27d0729227b8c431bc9e83f24"
+    },
+    {
+      "path": "2s-epoll-a1/server.log",
+      "bytes": 6687,
+      "included": true,
+      "sha256": "8ac91a4613a9788932246c22e877d814348ad103d8ecb1809d3061afb72013da"
+    },
+    {
+      "path": "2s-epoll-a1/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "e3bc9cbd9e1fbb85c54ecf398b19aafbb59ae7c3ef115bff563e199c9fb5457d"
+    },
+    {
+      "path": "2s-uring-a0/command.json",
+      "bytes": 578,
+      "included": true,
+      "sha256": "9d097e078f6b9f49c7503e9dd49c802d907d0f27c2aaafa988e78b7b0f06a77a"
+    },
+    {
+      "path": "2s-uring-a0/pre-stop-ps.txt",
+      "bytes": 409,
+      "included": true,
+      "sha256": "6b3b4ebd9b7bdff27e0f83f9282bce5f3880be26fcb2b7a39f6360eec09c674b"
+    },
+    {
+      "path": "2s-uring-a0/server.log",
+      "bytes": 6601,
+      "included": true,
+      "sha256": "ca078f88cb986260907339fd367debff40da26261a54d023ed3f84ebfc6228ae"
+    },
+    {
+      "path": "2s-uring-a0/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "1936d1d582466c45921a7944ade0961cea46917559c91ce61f644a63bcd9a481"
+    },
+    {
+      "path": "2s-uring-a1/command.json",
+      "bytes": 578,
+      "included": true,
+      "sha256": "cf05f80eda6dcff9c8cee2f248d1ba44862483bc335d945b2fdd41aac2aabe16"
+    },
+    {
+      "path": "2s-uring-a1/pre-stop-ps.txt",
+      "bytes": 409,
+      "included": true,
+      "sha256": "a2450f5f309fa148df919a844ca7914c0d7a884bed38b0fcb474ead8dbe63770"
+    },
+    {
+      "path": "2s-uring-a1/server.log",
+      "bytes": 6608,
+      "included": true,
+      "sha256": "a372fbd87d1955f06389fa8d94eb8c02dd23e8ce3f03e4b8cc804dfba29557c5"
+    },
+    {
+      "path": "2s-uring-a1/server.pid",
+      "bytes": 8,
+      "included": true,
+      "sha256": "bd5a4e958364f3ec48462be4253566d369b95541a235f6aa0ddf1ba275b0ed2c"
+    }
+  ],
+  "archive_sha256": "6daab66882a5678392bad4d79f640e355bbda9bc926e41b16a6e54582ae71b1c"
+}
