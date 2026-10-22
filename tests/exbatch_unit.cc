@@ -132,12 +132,21 @@ void watch_lifecycle() {
     sh.watch_reserve_write(key, &b, gb, &token, &epoch, &aborted, &refs);
     sh.watch_reserve_write(key, &b, gb, &other, &epoch, &aborted, &refs);
     check(refs == 2 && sh.stats().watch_reservation_coexist > 0, "coexisting reservations armed");
-    sh.watch_validate_and_reserve(key, &a, ga, &sh, &epoch, &aborted, &refs, true);
-    check(a.watch_dirty() && sh.stats().watch_reservation_precommit_aborts > 0,
-          "conflicting EXEC observes pending writer");
+    // Version ordering places claims before validation. Calling validation
+    // directly here would bypass that gate and manufacture an impossible unit.
+    // Test this registry's actual contract at the writer's decision instead:
+    // an aborted private write stays invisible; a committed write dirties WATCH.
+    check(!a.watch_dirty(), "undecided private writers do not dirty WATCH");
     aborted = true;
-    check(sh.watch_finalize_reservation(owned) && refs == 0 && watches(sh),
+    check(sh.watch_finalize_reservation(owned) && refs == 0 && watches(sh) && !a.watch_dirty(),
           "abort finalization retains remaining watcher");
+    aborted = false;
+    sh.watch_reserve_write(key, &b, gb, &token, &epoch, &aborted, &refs);
+    sh.watch_reserve_write(key, &b, gb, &other, &epoch, &aborted, &refs);
+    check(refs == 2 && !a.watch_dirty(), "fresh private writer reservations armed");
+    epoch = 1;
+    check(sh.watch_finalize_reservation(owned) && refs == 0 && watches(sh) && a.watch_dirty(),
+          "committed private writers dirty WATCH");
     a.next_watch_generation();
     sh.watch_prune_stale(owned);
     check(!watches(sh), "stale last watcher pruning clears gate");
@@ -149,7 +158,7 @@ void watch_lifecycle() {
           "database swap preserves gate and dirties matching watch");
     sh.watch_remove(key, &a, ga);
     check(!watches(sh), "swap watcher cleanup");
-    std::puts("PASS exbatch watch: add/remove/reserve/finalize/prune/swap; all reservation counters");
+    std::puts("PASS exbatch watch: add/remove/reserve/finalize/prune/swap; commit and abort lifetimes");
 }
 
 void watch_loads() {
