@@ -1107,7 +1107,7 @@ plan_jobs(){
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 bplus acl_recheck aclfix sort script_bounds scriptfix
-              efficiency dump_restore auth authfix notify notify_order notify_aof flip flip_saturated atomic_floor
+              efficiency dump_restore auth authfix notify notify_order notify_aof flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
@@ -3014,6 +3014,24 @@ for CASE in epoll-flip epoll-lb; do
 done
 }
 
+# IO4.3 / NT4.4: four rows, each includes both engines and both atomic modes.
+# Collected before the quick-tier exit: DQ=DF=+4. EXPECT remains owner-owned.
+job_fliplisten(){
+  local direction outcome
+  for direction in io-ex ex-io; do
+    for outcome in complete rollback; do
+      row_begin "FLIP listener conservation ($direction, $outcome)"
+      py tests/fliplisten.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+          --direction "$direction" --outcome "$outcome" \
+          --output "$TMPDIR/fliplisten-$direction-$outcome" \
+          >"$TMPDIR/gate-fliplisten-$direction-$outcome.txt" 2>&1 \
+          && ok "FLIP listener conservation ($direction, $outcome)" \
+          || bad "FLIP listener conservation ($direction, $outcome)" \
+              "see $TMPDIR/gate-fliplisten-$direction-$outcome.txt"
+    done
+  done
+}
+
 job_flip_saturated(){
 boot "$CANDIDATE_BINARY" --enable-debug-command yes || bad "flip battery reboot"
 quiet_wait
@@ -4246,6 +4264,7 @@ collect_job notify_order
 collect_job notify_aof
 
 collect_job flip
+collect_job fliplisten
 
 collect_job flipctl
 collect_job flip_saturated
