@@ -1,0 +1,492 @@
+{
+  "build_argv": [
+    "taskset",
+    "-c",
+    "48-63",
+    "make",
+    "-j16",
+    "all",
+    "build/aoforder-scheduled",
+    "build/at15-db0-unit",
+    "build/at15-unit",
+    "build/atomic-survivors-unit",
+    "build/core-concurrency-unit",
+    "build/encodingfix-unit",
+    "build/exbatch-db0-unit",
+    "build/exbatch-unit",
+    "build/execabort-watch-db0-unit",
+    "build/execabort-watch-unit",
+    "build/expire-notify-unit",
+    "build/flushfix-units",
+    "build/ktls-keyupdate",
+    "build/ktls-keyupdate-unit",
+    "build/ktls-lifetime-unit",
+    "build/lbplanner-units",
+    "build/moverfix-db0-unit",
+    "build/moverfix-unit",
+    "build/multidb-boundary-unit",
+    "build/multidb-unit",
+    "build/netcap-unit",
+    "build/netcmd-unit",
+    "build/persistfix-units",
+    "build/publishfix-unit",
+    "build/racefix-climon",
+    "build/rehash-waits-unit",
+    "build/reorder-engagement-unit",
+    "build/reorder-engagement-unit-db0",
+    "build/respresume-migration",
+    "build/respresume-unit",
+    "build/rltopo-unit",
+    "build/shutdown-unit",
+    "build/splitlocal-unit",
+    "build/storesize-unit",
+    "build/waits-unit",
+    "build/wb-rule-units",
+    "build/wbland-units",
+    "mdbqsbr-live-arms"
+  ],
+  "targets": [
+    {
+      "target": "build/tomokv",
+      "argv": [
+        "make",
+        "-q",
+        "build/tomokv"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/aoforder-scheduled",
+      "argv": [
+        "make",
+        "-q",
+        "build/aoforder-scheduled"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/at15-db0-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/at15-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/at15-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/atomic-survivors-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/core-concurrency-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/encodingfix-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/exbatch-db0-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/exbatch-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/exbatch-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/execabort-watch-db0-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/execabort-watch-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/expire-notify-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/expire-notify-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/flushfix-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/flushfix-units"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-keyupdate-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/ktls-lifetime-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/ktls-lifetime-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/lbplanner-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/lbplanner-units"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/moverfix-db0-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/moverfix-db0-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/moverfix-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/moverfix-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/multidb-boundary-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/multidb-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/multidb-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/netcap-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/netcap-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/netcmd-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/netcmd-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/persistfix-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/persistfix-units"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/publishfix-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/publishfix-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/racefix-climon",
+      "argv": [
+        "make",
+        "-q",
+        "build/racefix-climon"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/rehash-waits-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "argv": [
+        "make",
+        "-q",
+        "build/reorder-engagement-unit-db0"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/respresume-migration",
+      "argv": [
+        "make",
+        "-q",
+        "build/respresume-migration"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/respresume-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/respresume-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/rltopo-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/rltopo-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/shutdown-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/shutdown-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/splitlocal-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/storesize-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/storesize-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/waits-unit",
+      "argv": [
+        "make",
+        "-q",
+        "build/waits-unit"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/wb-rule-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/wb-rule-units"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/wbland-units",
+      "argv": [
+        "make",
+        "-q",
+        "build/wbland-units"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/mdbqsbr2-park/tomokv",
+      "argv": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-park",
+        "build/mdbqsbr2-park/tomokv"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "target": "build/mdbqsbr2-no-wake/tomokv",
+      "argv": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-no-wake",
+        "build/mdbqsbr2-no-wake/tomokv"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

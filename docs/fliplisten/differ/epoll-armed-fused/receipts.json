@@ -1,0 +1,10 @@
+{
+  "result": {
+    "engine": "epoll",
+    "geometry": "armed-fused",
+    "returncode": 0
+  },
+  "files": 933,
+  "source": "build/fliplisten/differ/epoll-armed-fused-results",
+  "sha256": "740d9abcd7612db839518f197af28cfa1a5ee3fb1fb7db0ce028f643a9e5c528"
+}

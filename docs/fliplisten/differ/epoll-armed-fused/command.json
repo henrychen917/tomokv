@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "56-63",
+    "bash",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-fliplisten/build/fliplisten/differ/epoll-armed-fused",
+    "21856",
+    "21857",
+    "48-55",
+    "6:2"
+  ],
+  "geometry": "armed-fused",
+  "engine": "epoll",
+  "binary": "/home/user/Projects/cx-fliplisten/build/tomokv",
+  "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+}
