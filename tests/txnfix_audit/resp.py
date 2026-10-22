@@ -12,6 +12,7 @@ _parser.add_argument("--host", default="127.0.0.1")
 _parser.add_argument("--operations", type=int)
 _parser.add_argument("--clients", type=int)
 _parser.add_argument("--port", type=int)
+_parser.add_argument("--port-range", default=os.environ.get("TXNFIX_PORT_RANGE", "22600-22699"))
 _parser.add_argument("--cores", default="112-119")
 _parser.add_argument("--atomic", choices=("0", "1"))
 _parser.add_argument("--mode", choices=("1s", "2s"))
@@ -154,7 +155,8 @@ class Server:
         self.port = port
         if self.attached:
             return
-        assert 22600 <= port <= 22699, "port outside the server-atomics range"
+        low, high = map(int, _options.port_range.split("-"))
+        assert low <= port <= high, "port outside the assigned server-atomics range"
         if port_open(port):
             raise RuntimeError("port %d already in use" % port)
         self.port = port

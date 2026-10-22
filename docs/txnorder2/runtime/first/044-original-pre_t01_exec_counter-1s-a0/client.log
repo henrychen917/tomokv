@@ -1,0 +1,16 @@
+geometry k1 [0, 0] k2 [11, 3]
+tomo atomic=0 mode=1s N=2000: k1=15939 (expected 16000, lost 61)  k2=7770 (expected 8000, lost 230)  errors=0  0.4s
+  atomic_groups 0 -> 8000
+  atomic_commit_windows 0 -> 0
+  atomic_promotions 0 -> 16078
+  atomic_entries 0 -> 16078
+  atomic_exec_order_holds 0 -> 0
+  atomic_exec_order_late 0 -> 0
+  atomic_window_stalls 0 -> 0
+  stale-cut counter 0
+server rc 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t01_exec_counter.py", line 74, in <module>
+    assert not errors and (v1, v2) == (exp1, exp2), "acknowledged INCR lost"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: acknowledged INCR lost

@@ -652,6 +652,15 @@ build/atomic-survivors-unit: tests/atomic_survivors_unit.cc src/cmd/xshard.cc $(
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. tests/atomic_survivors_unit.cc \
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 
+# Deterministic A' schedules and WATCH windows use the production owner code.
+TXNORDER_UNIT_DEPS := tests/atomic_survivors_unit.cc tests/atomiccollapse_checks.inc tests/atomic_plain_checks.inc tests/txnorder_checks.inc $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+build/txnorder-episodes: tests/txnorder_episodes.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
+	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/txnorder-episodes-debug: tests/txnorder_episodes.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
+	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -DTOMO_TXNORDER_DEBUG -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/txnorder-watch-unit: tests/txnorder_watch_unit.cc $(TXNORDER_UNIT_DEPS) $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ))
+	$(CXX) $(filter-out -O3,$(CXXFLAGS)) -O0 $(JEFLAGS) -I. $< $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+
 # Inspect real record/header allocation arenas on pinned owner threads, including abort cleanup
 # and quiesced shard handoff. JE=1 is required; no server or io_uring instance is started.
 build/owner-arena-unit: tests/owner_arena_unit.cc tests/at_recycle_checks.inc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile

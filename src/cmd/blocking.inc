@@ -739,6 +739,9 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         return false;
     }
     if (result == XshardPopResult::Popped) {
+        // The async serve bypasses the producing command's epilogue. Like
+        // Redis's successful list/zset pop, it modifies the served key too.
+        shard.watch_write_committed(key_slice);
         // Parked completions bypass ExLoop's ordinary command epilogue. Journal
         // the selected physical key before Done, including after a map remap.
         AofOwnerContext context{self.id(), &ring, &self.sig()};

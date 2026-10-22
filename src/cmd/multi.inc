@@ -1653,7 +1653,7 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
         state.final_reply != MultiFinalReply::ExecAbort &&
         !state.decision.aborted.load(std::memory_order_acquire)) {
         uint8_t& noted = state.execution_noted[shard.id()];
-        if (!(noted & 4u)) {
+        if (state.shards.size() != 1 && !(noted & 4u)) {
             // No shard holds anything until every participant has passed
             // program order and its blind-candidate arrival scan.
             if (txn_blind_scan(shard, state.claims[shard.id()], &state) != TxnBlind::Clear)
@@ -1661,7 +1661,8 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
             noted |= 4u;
             state.watch_arrived.fetch_add(1, std::memory_order_acq_rel);
         }
-        if (state.watch_arrived.load(std::memory_order_acquire) != state.shards.size()) return false;
+        if (state.shards.size() != 1 &&
+            state.watch_arrived.load(std::memory_order_acquire) != state.shards.size()) return false;
         if (state.debug_place_deadline && shard.id() != state.shards.front() &&
             now_ns() < state.debug_place_deadline) return false;
         const auto blind = txn_blind_scan(shard, state.claims[shard.id()], &state);
@@ -2869,6 +2870,11 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             bool expected = false;
             if (state.finalizer_claimed.compare_exchange_strong(
                     expected, true, std::memory_order_acq_rel)) {
+                // A read-only unit has no validation claim. All fragment reads
+                // happen-before this last join; catch a write after placement
+                // before discarding WATCH entries or publishing a non-null reply.
+                if (state.read_only && !state.watched.empty() && state.client->watch_dirty())
+                    state.watch_failed.store(true, std::memory_order_release);
                 if (state.watch_failed.load(std::memory_order_acquire))
                     state.decision.aborted.store(true, std::memory_order_release);
                 if (!state.decision.aborted.load(std::memory_order_acquire) &&
@@ -3131,17 +3137,11 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
     const auto own = txn_unit_view(unit);
     try {
         for (const auto& key : keys) {
-            std::vector<std::string> inspect;
-            if (key.key.empty()) {
-                inspect.reserve(watch_reservations_.size());
-                for (const auto& [name, entries] : watch_reservations_) inspect.push_back(name);
-            } else {
-                inspect = {"", key.key};
-            }
-            for (const auto& name : inspect) {
+            const auto inspect = [&](const std::string& name) {
                 watch_finalize_reservation(name);
                 auto found = watch_reservations_.find(name);
-                if (found == watch_reservations_.end()) continue;
+                if (found == watch_reservations_.end()) return;
+                bool wounded = false;
                 for (const auto& holder : found->second) {
                     if (holder.token == unit.token || !txn_reservation_live(holder)) continue;
                     if (holder.entry_kind == 2) {
@@ -3161,8 +3161,21 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
                     if (foreign.phase->load(std::memory_order_acquire) == TxnPhase::Executing ||
                         !txn_version_before(own, foreign) || !txn_wound(holder, *this, *server_))
                         ready = false;
+                    else wounded = true;
                 }
-                watch_finalize_reservation(name);
+                // The first scan already retired every previously decided entry.
+                // Only a successful wound creates more work in this owner turn.
+                if (wounded) watch_finalize_reservation(name);
+            };
+            if (key.key.empty()) {
+                // FLUSH visits a registry which finalization may erase from.
+                std::vector<std::string> names;
+                names.reserve(watch_reservations_.size());
+                for (const auto& [name, entries] : watch_reservations_) names.push_back(name);
+                for (const auto& name : names) inspect(name);
+            } else {
+                inspect("");
+                inspect(key.key);
             }
         }
         if (!txn_reservation_live(unit)) return true;
@@ -3537,17 +3550,27 @@ bool Shard::watch_all_write_ready(const void* token) {
     return true;
 }
 
-void Shard::watch_all_write_committed(int physical_db) {
-    if (!has_watches()) return;
-    if (!watch_all_write_ready()) return;
-    for (auto& item : watchers_) {
-        const uint8_t ns = static_cast<uint8_t>(item.first[0]);
-        if (physical_db >= 0 && ns != physical_db) continue;
-        const uint8_t logical = server_ ? server_->databases().logical(ns) : ns;
-        for (const WatchEntry& entry : item.second)
-            if (entry.db == logical && entry.client && entry.client->watch_generation() == entry.generation)
-                entry.client->set_watch_dirty();
-    }
+bool Shard::watch_flush(int physical_db) {
+    // Capture existence before tombstones/clear erase it. WATCH registrations
+    // pin these clients for this owner turn. Failed preparation dirties nobody.
+    std::vector<Client*> dirty;
+    try {
+        for (const auto& [owned, entries] : watchers_) {
+            const uint8_t ns = static_cast<uint8_t>(owned[0]);
+            if (physical_db >= 0 && ns != physical_db) continue;
+            const uint8_t logical = server_ ? server_->databases().logical(ns) : ns;
+            const Slice key(owned.data() + 1, owned.size() - 1, ns);
+            const bool present = store_.find_no_touch(FlatStore::hash_key(key), key) != nullptr;
+            for (const auto& entry : entries)
+                if (entry.db == logical && entry.client &&
+                    entry.client->watch_generation() == entry.generation &&
+                    (present || (entry.expire_at_ms >= 0 && entry.expire_at_ms < now_ms_)))
+                    dirty.push_back(entry.client);
+        }
+    } catch (const std::bad_alloc&) { return false; }
+    if (!store_.atomic_tombstone_all(physical_db)) return false;
+    for (Client* client : dirty) client->set_watch_dirty();
+    return true;
 }
 
 void Shard::watch_database_swap(uint8_t first, uint8_t second) {
@@ -3588,10 +3611,7 @@ void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
     ScatterState& state = *task.scatter;
     if (!xshard_owner_mutation_phase(state, op) || state.atomic_group || state.kind == Kind::Swapdb) return;
     ShardGroup* group = group_for(state, shard.id());
-    if (!group || group->count == 0) {
-        shard.watch_all_write_committed(op.cmd_name().eq_icase("flushdb") ? op.physical_db : -1);
-        return;
-    }
+    if (!group || group->count == 0) return; // FLUSH records existence before clearing.
     for (uint32_t i = 0; i < group->count; i++) {
         const uint32_t pos = state.key_order[group->begin + i];
         shard.watch_write_committed(op.arg(state.keys[pos].arg));

@@ -2795,12 +2795,7 @@ void xshard_visit_task_hashes(const Task& task, void* context,
 
 ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                                  uint32_t owner_thread_id) {
-    // Only atomic arms need this argument. Retain DB0's PRE stack residence:
-    // keeping it in a register after extracting the claim gate spills a
-    // notification input on every MGET fragment. The ordinary-path fixtures
-    // count this store as well as every executed NOP (docs/txnorder).
-    std::conditional_t<TOMO_SINGLE_DATABASE, const volatile uint32_t, const uint32_t>
-        execution_owner = owner_thread_id;
+    const uint32_t execution_owner = owner_thread_id;
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     NotifyExecutionScope notify_scope(shard, op, notify, shard.notify_order_base());
     ScatterState& state = *task.scatter;
@@ -3310,7 +3305,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 // owner-local tombstone cut first so clear() cannot free a protected predecessor.
                 // Allocation happens before the ticket or any relink; OOM retries are deferrable.
                 if ((op.cmd_name().eq_icase("flushdb") || op.cmd_name().eq_icase("flushall")) &&
-                    !shard.store().atomic_tombstone_all(op.cmd_name().eq_icase("flushdb")
+                    !shard.watch_flush(op.cmd_name().eq_icase("flushdb")
                         ? op.physical_db : -1)) return ScatterTaskResult::Retry;
                 op.spec->handler(shard, op);
                 return ScatterTaskResult::Complete;
