@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "64-111",
+    "env",
+    "GATE_TEST_PORT=26897",
+    "PYTHONPATH=/home/user/Projects/cx-wave4/docs/wave4/fixture_site",
+    "WAVE4_FIXTURE_PORT_LOG=/home/user/Projects/cx-wave4/build/wave4d/gates-test-ports.log",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "returncode": 1,
+  "tests": 67,
+  "failures": 2,
+  "seconds_reported": 125.288,
+  "overlap": "initial production/PAD builds, selected jobs and ABBA scheduler selftests"
+}

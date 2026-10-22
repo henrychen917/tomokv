@@ -64,7 +64,7 @@ def main():
     p=argparse.ArgumentParser(); p.add_argument('label'); p.add_argument('--jobs',default='')
     p.add_argument('--cwd',type=Path,default=ROOT); p.add_argument('--binary',type=Path,default=ROOT/'build/tomokv')
     p.add_argument('--single',action='store_true')
-    p.add_argument('--server-cores'); p.add_argument('--load-cores'); a=p.parse_args()
+    p.add_argument('--server-cores'); p.add_argument('--load-cores'); p.add_argument('--ports',default='26800-26879'); a=p.parse_args()
     dest=DOC/'proof'/a.label; dest.mkdir(parents=True,exist_ok=False)
     env=setup(); jobs=a.jobs.split() if a.jobs else BROAD
     env.update(GATE_ONLY_JOBS=' '.join(jobs),GATE_LEDGER=str(dest/'ledger'),
@@ -76,7 +76,7 @@ def main():
     if a.load_cores: clients=a.load_cores
     argv=['taskset','-c','64-111','bash','tests/gate.sh','quick',
           '--server-cores',servers,'--load-cores',clients,'--server-smt','','--load-smt','',
-          '--ports','26800-26879','--candidate-binary',str(a.binary.resolve())]
+          '--ports',a.ports,'--candidate-binary',str(a.binary.resolve())]
     receipt=dict(argv=argv,cwd=str(a.cwd),jobs=jobs,binary=str(a.binary),
                  binary_sha256=hashlib.sha256(a.binary.read_bytes()).hexdigest(),
                  env={k:v for k,v in env.items() if k.startswith(('GATE_','REDIS74','WAVE4','PYTHONPATH'))})

@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=reorder_identity abba_selftest; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	583.340000	ABBA comparison + saturation negative controls
+ok	92.930000	R7 FIFO twin off-path identity + negative controls

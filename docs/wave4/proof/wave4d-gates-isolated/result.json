@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "104-111",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "returncode": 0,
+  "seconds": 183.2857111627236,
+  "port": 26897,
+  "fixture_port_range": "26880-26898"
+}
