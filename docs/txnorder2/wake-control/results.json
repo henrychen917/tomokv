@@ -1,0 +1,54 @@
+[
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "command": [
+      "taskset",
+      "-c",
+      "64-95",
+      "build/txnorder2/wake-control/pre",
+      "1s"
+    ],
+    "exit_code": 1,
+    "sha256": "062236b5b4f9a14d8b395e01350641293136b07f0c336bc6183fffe026882cf1"
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "command": [
+      "taskset",
+      "-c",
+      "64-95",
+      "build/txnorder2/wake-control/pre",
+      "2s"
+    ],
+    "exit_code": 0,
+    "sha256": "062236b5b4f9a14d8b395e01350641293136b07f0c336bc6183fffe026882cf1"
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "command": [
+      "taskset",
+      "-c",
+      "64-95",
+      "build/txnorder-wake-unit",
+      "1s"
+    ],
+    "exit_code": 0,
+    "sha256": "d7c0df31e6160f628eb44aa4148f91e9e227d3ee188c6a28867a0a06885b06a9"
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "command": [
+      "taskset",
+      "-c",
+      "64-95",
+      "build/txnorder-wake-unit",
+      "2s"
+    ],
+    "exit_code": 0,
+    "sha256": "d7c0df31e6160f628eb44aa4148f91e9e227d3ee188c6a28867a0a06885b06a9"
+  }
+]

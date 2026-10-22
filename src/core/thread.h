@@ -821,7 +821,10 @@ public:
         uint64_t d = 0;
         uint64_t inbox_age_us = 0;
         bool inbox_age_observed = false;
-        const bool task_consumer = role() == Role::Ex;
+        // A fused IO also consumes tasks. A parked transaction can keep it
+        // busy forever, so its idle-only unmasked drain is not a liveness
+        // fallback. Include it in the existing periodic summary repair.
+        const bool task_consumer = role() == Role::Ex || fused_executor_context_;
         const bool sample_inbox_age = sig_.age_sample_rate && task_consumer;
         for (uint32_t i = 0; i < nchan_; i++) {
             const uint32_t task_depth = task_in_->sample_depth(i);

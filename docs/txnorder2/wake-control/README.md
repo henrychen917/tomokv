@@ -1,0 +1,9 @@
+# Busy fused owner inbox recovery
+
+The repeated gate NX timeout was reproduced on POST ff624f2797214e1cf79afc0a5da619a2baf3066c8f1333e1f08b9e9abdd84db7. The third captured occurrence is in `../nx-progress-repro-owned-attach-third/3/`: producer 0 / consumer 7 has tail 2005, head 2004, zero notification mask, and its pending phase-two RENAMENX task remains in the inbox. The older group is Executing, pending=1; the younger group is Placing and correctly waits on the destination claim. No writer episode is involved.
+
+`NotifyMask::set` deliberately permits a relaxed already-set shortcut. A producer can publish its queue tail while the consumer takes the old bit; without a new RMW, this summary is not a complete queue invariant. Existing split liveness relies on the periodic depth sweep and idle unmasked drain. The sweep classified only Role::Ex as a task consumer. Fused workers have Role::Ifid; with a parked dependency they stay busy, so neither recovery path ran. The fix includes bound fused executors in the existing 100us depth sweep. It adds no per-command queue scan and changes no claim ordering.
+
+The deterministic unit constructs that queue state with a quiet publication, proves the masked drain misses it, runs the real periodic sweep, and requires exactly one execution. Against merged origin/cpp a7dfb9d2332d4c4e9d8bca983e439ba4b2bbba7e, fused fails and split passes; POST passes both. `results.json` records commands and digests. A new gate row runs both modes. No server or client is started by the unit.
+
+The core remains in ignored build/txnorder2/nx-progress-repro-owned-attach/3/stall.core. The committed logs include all claims, owner queues, record-wave counts and inbox cursors needed for the diagnosis. LD_PRELOAD only enabled ptrace of the owned diagnostic child; no host ptrace setting was changed. The two-listener detached-debugger experiment is explicitly invalid and is preserved separately.
