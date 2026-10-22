@@ -206,9 +206,23 @@ the port fence (the machine's ephemeral range is 32768–60999). Its short-lived
 listener was outside the assigned range; the target and Redis listeners remained
 on 26860–26863. This is a launcher error, not a test assertion change. The driver
 now passes the fixture environment and records the bound ports. All four complete
-standard matrices are being replayed in four disjoint 12-CPU groups (eight server,
-one oracle, three client CPUs) on ports 26860–26867, with fixture listeners in
-26880–26898. Original receipts remain separate from the constrained replay.
+standard matrices pass in four disjoint 12-CPU groups (eight server, one oracle,
+three client CPUs) on ports 26860–26867. All **40** fixture listeners are recorded
+on 26880–26883. Original receipts remain separate from this constrained replay.
+
+| Constrained standard matrix | PASS | FAIL |
+|---|---:|---:|
+| uring split | 475 | 0 |
+| epoll split | 475 | 0 |
+| uring armed-fused | 466 | 0 |
+| epoll armed-fused | 466 | 0 |
+
+`docs/wave4/differ-constrained/summary.json` records the unchanged five standard
+seeds, all four MULTI repeats per matrix, both armed non-vacuity witnesses per
+engine, the 16-configuration/32-boot equivalence proofs, and all commands and
+ports. The differential inventory observes 232 of 245 registered commands;
+the 13 unobserved names remain explicit in each coverage receipt. This passing
+replay does **not** clear the earlier duplicate invalidation.
 
 ### Sweep findings outside the gate inventory
 
