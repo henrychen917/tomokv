@@ -687,18 +687,18 @@ void cmd_fcall(Shard& shard, Op& op) {
     lua_replace(state, -3);      // callback takes the function-table slot
     lua_pop(state, 1);           // drop the entry table; the callback is now on top
 
+    if (!(flags & (kFlagAllowOom | kFlagNoWrites)) &&
+        !FunctionMemoryScope::admit(shard, key_count ? op.arg(key_first) : Slice{})) {
+        lua_settop(state, 0);
+        reply_maxmemory_oom(op);
+        return;
+    }
+
     if (kReadonly && !(flags & kFlagNoWrites)) {
         lua_settop(state, 0);
         g_ro_rejections.fetch_add(1, std::memory_order_relaxed);
         reply_text_error(op, "ERR",
                          "Can not execute a script with write flag using *_ro command.");
-        return;
-    }
-
-    if (!(flags & (kFlagAllowOom | kFlagNoWrites)) &&
-        !FunctionMemoryScope::admit(shard, key_count ? op.arg(key_first) : Slice{})) {
-        lua_settop(state, 0);
-        reply_maxmemory_oom(op);
         return;
     }
 

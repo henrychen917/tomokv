@@ -62,7 +62,7 @@ def probe(c, case):
     for name in ("plain", "allowed", "read", "readonly_write", "stale", "stale_allowed", "constant"):
         out[name] = c.cmd("FCALL", name, 1, "k", name)
         out[name + ":value"] = c.cmd("GET", "k")
-    for name in ("allowed", "read", "readonly_write"):
+    for name in ("plain", "allowed", "stale", "read", "readonly_write"):
         out["ro:" + name] = c.cmd("FCALL_RO", name, 1, "k", "ro")
     # Both endpoints must leave completed writes intact on a later Lua error.
     failed = c.cmd("FCALL", "allowed_error", 1, "k", "partial")
