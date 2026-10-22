@@ -79,7 +79,11 @@ pick bound is a wall-time latency guarantee; see `src/core/wb_rule.h:75` and
 
 ## Network and TLS
 
-automatically and falls back to OpenSSL; there is no `tls-ktls` switch. TLS 1.2
+The default cipher lists retain the complete OpenSSL/system default set, with AES-GCM
+first. TLS session caching follows Redis 7.4 defaults (enabled, 20480 sessions,
+300 seconds). TLS configuration remains boot-only; optional Redis TLS key/password,
+client identity, DH-file and session-cache configuration knobs are not implemented.
+TomoKV attempts kernel TLS offload automatically and falls back to OpenSSL; there is no `tls-ktls` switch. TLS 1.2
 can offload both TX and RX. TLS 1.3 retains OpenSSL's receive record layer so
 KeyUpdate and other post-handshake messages cannot enter the RESP parser. TomoKV
 does **not** install a TLS 1.3 RX key from the initial client traffic secret or
@@ -133,8 +137,8 @@ select the built-in defaults, not the example file paths in tomokv.conf
 | `tls-ca-cert-dir` | R | CA directory path | Unset | Boot/GET | — | Trusted client CA directory; `src/core/config.h:622`. |
 | `tls-auth-clients` | R | `yes`, `no`, `optional` (case-insensitive) | `yes` | Boot/GET | — | Require, omit, or optionally verify client certificates; `src/core/config.h:623`. |
 | `tls-protocols` | R | Quoted space-separated TLSv1/TLSv1.1/TLSv1.2/TLSv1.3, case-insensitive | Empty → TLSv1.2 + TLSv1.3 | Boot/GET | — | Allowed protocol versions; `src/core/config.h:634`, `src/net/tls.cc:37`. |
-| `tls-ciphers` | R | OpenSSL cipher-list string | Empty → `ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256` | Boot/GET | — | TLS ≤1.2 cipher list; `src/core/config.h:635`, `src/net/tls.cc:150`. |
-| `tls-ciphersuites` | R | OpenSSL TLS 1.3 suite-list string | Empty → `TLS_AES_128_GCM_SHA256` | Boot/GET | — | TLS 1.3 suites; `src/core/config.h:636`, `src/net/tls.cc:157`. |
+| `tls-ciphers` | R | OpenSSL cipher-list string | Empty → OpenSSL defaults, AES-GCM first | Boot/GET | — | TLS ≤1.2 cipher list; `src/core/config.h:635`, `src/net/tls.cc:150`. |
+| `tls-ciphersuites` | R | OpenSSL TLS 1.3 suite-list string | Empty → OpenSSL defaults, AES-GCM first | Boot/GET | — | TLS 1.3 suites; `src/core/config.h:636`, `src/net/tls.cc:157`. |
 | `tls-prefer-server-ciphers` | R | `yes` or `no` (case-insensitive) | `no` | Boot/GET | — | Prefer server cipher order; `src/core/config.h:637`. |
 
 Output limits count TomoKV's growable buffers and retained borrow segments;

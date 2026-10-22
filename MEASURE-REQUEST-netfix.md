@@ -39,3 +39,15 @@ the independent uint32 receive/Slice frame bound remains enforced.
 Evidence: `docs/netfix/evidence/{pre,post}-config/`. DQ +1 / DF +1.
 Runtime bind/port machinery is deliberately not implemented: the handoff and
 rollback requirements are in `docs/netfix/runtime-bind-port.md`.
+
+NT4.7: default cipher acceptance and session caching now match Redis's defaults.
+All four mode/engine legs accept the same 23 suites as the TLS oracle with the
+RSA test certificate, and TLS 1.2 sessions resume. PRE accepts only two suites.
+The entire installed OpenSSL default set is retained, with AES-GCM moved first.
+TLS 1.2 AES-128/256-GCM and ChaCha20 offload on this kernel/OpenSSL; CBC falls
+back to userspace. TLS 1.3 remains RX-userspace, with eligible TX offload; the
+active kTLS gauge measures the two-direction TLS 1.2 engine, not TX-only TLS 1.3.
+The default-acceptance proof is not a claim of full TLS configuration parity:
+optional key-password/client-identity/DH/cache controls and live TLS reload from
+NT4.7(b/c) remain absent. Cluster/replication stay outside the architecture.
+Evidence: docs/netfix/evidence/{pre,post}-tls/. DQ +1 / DF +1.

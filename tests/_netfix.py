@@ -2,6 +2,7 @@
 import argparse
 from contextlib import contextmanager
 import json
+from functools import lru_cache
 import os
 from pathlib import Path
 import socket
@@ -36,6 +37,13 @@ def certificates(a):
     return certs
 
 
+@lru_cache(maxsize=8)
+def client_context(certs):
+    ctx = ssl.create_default_context(cafile=str(certs / 'ca.crt'))
+    ctx.check_hostname = False
+    return ctx
+
+
 def connect(port, certs=None, unix=None):
     c = _lib.Conn.__new__(_lib.Conn)
     c.host, c.port = '127.0.0.1', port
@@ -47,9 +55,7 @@ def connect(port, certs=None, unix=None):
         s = socket.create_connection(('127.0.0.1', port), timeout=5)
         s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     if certs:
-        ctx = ssl.create_default_context(cafile=str(certs / 'ca.crt'))
-        ctx.check_hostname = False
-        s = ctx.wrap_socket(s, server_hostname='localhost')
+        s = client_context(certs).wrap_socket(s, server_hostname='localhost')
     c.sock, c.file = s, s.makefile('rb')
     return c
 
