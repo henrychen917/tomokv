@@ -1,0 +1,22 @@
+{
+  "PRE": {
+    "Op": 336,
+    "Client": 1984,
+    "ClimonConn": 184,
+    "NotifyBatch": 416,
+    "NotifyOut": 40,
+    "PubSubEventItem": 48
+  },
+  "POST": {
+    "Op": 336,
+    "Client": 1984,
+    "ClimonConn": 240,
+    "TrackingRead": 152,
+    "TrackingPending": 40,
+    "NotifyBatch": 424,
+    "NotifyOut": 48,
+    "PubSubEventItem": 48
+  },
+  "method": "gdb -batch (DWARF sizeof only; no inferior start)",
+  "tracking_read_variable_storage": "8 bytes per server shard + 4 bytes per subscribed key + existing owned key strings and vector nodes"
+}

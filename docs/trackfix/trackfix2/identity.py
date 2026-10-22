@@ -15,13 +15,9 @@ def main():
     after = audit.inventory(ROOT / 'build/tomokv')
     rows = audit.compare(after, {'headline': before})
     changed = [row for row in rows if not row['equal']]
+    from identity_reasons import reason
     for row in changed:
-        if 'notify_retire_batch_entry' in row['name']:
-            row['reason'] = 'CC4.4: an empty tracking-only pub/sub chain counts no drop; count only publication records when reservation returns no chain.'
-        elif 'NotifyRecordImpl' in row['name']:
-            row['reason'] = 'Notification-record compiler instantiation changed after adding the pub/sub route count; compare strict normalized instructions.'
-        else:
-            row['reason'] = 'Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.'
+        row["reason"] = reason(row)
     result = dict(pre={k: v for k, v in before.items() if k != 'groups'},
                   post={k: v for k, v in after.items() if k != 'groups'},
                   total=len(rows), identical=sum(row['equal'] for row in rows),
@@ -34,7 +30,7 @@ def main():
     (dest / 'summary.json').write_text(json.dumps(result, indent=2) + '\n')
     (dest / 'changed-bodies.md').write_text('# PRE versus POST changed bodies\n\n' + ''.join(
         '- `' + row['name'] + '`: ' + row['reason'] + '\n' for row in changed))
-    print(json.dumps({k: v for k, v in result.items() if k != 'changed'}), flush=True)
+    print(json.dumps({k: v for k, v in result.items() if k not in ('changed', 'all_commands')}), flush=True)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,555 @@
+[
+  {
+    "name": "tomo::(anonymous namespace)::cmd_auth(tomo::Shard&, tomo::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x16f",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0700000000000000"
+        }
+      }
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_geodist_armed(tomo::Shard&, tomo::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x2b",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_geodist_clean(tomo::Shard&, tomo::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x2b",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x38f6",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_memory(tomo::Shard&, tomo::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x3bd",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f83f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "tomo::cmd_geo_xshard_local(tomo::Shard&, tomo::Op&, bool)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x56",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_geodist_armed(tomo_db0::Shard&, tomo_db0::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x2b",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_geodist_clean(tomo_db0::Shard&, tomo_db0::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x2b",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x39d4",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_memory(tomo_db0::Shard&, tomo_db0::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x3bd",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f83f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::cmd_geo_xshard_local(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x56",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x2c2",
+        "verified": {
+          "kind": "six jump destinations",
+          "function_offsets": [
+            1145,
+            808,
+            1169,
+            1193,
+            1181,
+            1157
+          ]
+        }
+      },
+      {
+        "offset": "0x317",
+        "verified": {
+          "kind": "six jump destinations",
+          "function_offsets": [
+            1133,
+            998,
+            1241,
+            1229,
+            1217,
+            1205
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x295",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "00000000008066c0"
+        }
+      },
+      {
+        "offset": "0x357",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "007fa5b1454355c0"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_geoadd<true>(tomo::Shard&, tomo::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x295",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "00000000008066c0"
+        }
+      },
+      {
+        "offset": "0x357",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "007fa5b1454355c0"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_geosearch<false>(tomo::Shard&, tomo::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x51",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_geosearch<true>(tomo::Shard&, tomo::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x51",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<false>(tomo::Shard&, tomo::Op&, bool)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x1071",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "ffffffffffffef7f"
+        }
+      },
+      {
+        "offset": "0x1089",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0000000000001000"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x1081",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "ffffffffffffef7f"
+        }
+      },
+      {
+        "offset": "0x1099",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0000000000001000"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x523",
+        "verified": {
+          "kind": "complete switch table",
+          "bytes": "00040605"
+        }
+      },
+      {
+        "offset": "0x164e",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0200000001000000"
+        }
+      },
+      {
+        "offset": "0x18c5",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0100000002000000"
+        }
+      },
+      {
+        "offset": "0x2d91",
+        "verified": {
+          "kind": "complete switch table",
+          "bytes": "00040605"
+        }
+      },
+      {
+        "offset": "0x35fa",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0100000002000000"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x5a1",
+        "verified": {
+          "kind": "complete switch table",
+          "bytes": "00040605"
+        }
+      },
+      {
+        "offset": "0x177a",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0200000001000000"
+        }
+      },
+      {
+        "offset": "0x1d25",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0100000002000000"
+        }
+      },
+      {
+        "offset": "0x329c",
+        "verified": {
+          "kind": "complete switch table",
+          "bytes": "00040605"
+        }
+      },
+      {
+        "offset": "0x3a38",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0100000002000000"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x28d",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "00000000008066c0"
+        }
+      },
+      {
+        "offset": "0x347",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "007fa5b1454355c0"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x28d",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "00000000008066c0"
+        }
+      },
+      {
+        "offset": "0x347",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "007fa5b1454355c0"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x51",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x51",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "000000000000f03f"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x1071",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "ffffffffffffef7f"
+        }
+      },
+      {
+        "offset": "0x1089",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0000000000001000"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x1081",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "ffffffffffffef7f"
+        }
+      },
+      {
+        "offset": "0x1099",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0000000000001000"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x4f3",
+        "verified": {
+          "kind": "complete switch table",
+          "bytes": "00040605"
+        }
+      },
+      {
+        "offset": "0x1594",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0200000001000000"
+        }
+      },
+      {
+        "offset": "0x193c",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0100000002000000"
+        }
+      },
+      {
+        "offset": "0x2cba",
+        "verified": {
+          "kind": "complete switch table",
+          "bytes": "00040605"
+        }
+      },
+      {
+        "offset": "0x3451",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0100000002000000"
+        }
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "status": "PASS",
+    "references": [
+      {
+        "offset": "0x5bb",
+        "verified": {
+          "kind": "complete switch table",
+          "bytes": "00040605"
+        }
+      },
+      {
+        "offset": "0x177f",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0200000001000000"
+        }
+      },
+      {
+        "offset": "0x1a91",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0100000002000000"
+        }
+      },
+      {
+        "offset": "0x32b7",
+        "verified": {
+          "kind": "complete switch table",
+          "bytes": "00040605"
+        }
+      },
+      {
+        "offset": "0x3a97",
+        "verified": {
+          "kind": "64-bit scalar literal",
+          "bytes": "0100000002000000"
+        }
+      }
+    ]
+  }
+]
