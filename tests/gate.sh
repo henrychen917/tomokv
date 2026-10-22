@@ -1080,7 +1080,7 @@ plan_jobs(){
   JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit storage_units
-              production_units acl_metadata cmd_metadata abba_selftest)
+              production_units acl_metadata cmd_metadata abba_selftest bugs5)
   # Start long waits and whole boot families early; short jobs occupy the slots they release.
   if [ "$TIER" = full ]; then
     # Each target already rebooted between atomic modes. Those four independent lifetimes can
@@ -2449,6 +2449,29 @@ for AT in 0 1; do
       || bad "cross-owner SORT battery (atomic $AT)" "see $TMPDIR/gate-sort-$AT.txt"
   stop
 done
+}
+
+job_bugs5(){
+  # Each row contains every declared mode/engine/atomic leg. Collection is
+  # before the quick exit: DQ=+3, DF=+3; EXPECT_* remains owner-maintained.
+  local test mode engine atomic boot_fn failed label
+  for test in scancompact slowlog_identity read_local_lfu; do
+    label="bugs5 $test (both modes, both engines, atomic 0/1)"
+    row_begin "$label"
+    failed=0
+    for mode in 1s 2s; do for engine in uring epoll; do for atomic in 0 1; do
+      boot_fn=boot
+      [ "$mode" != 1s ] || boot_fn=boot_fused
+      if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --atomic "$atomic" \
+          --read-local 1 --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0; then
+        py "tests/$test.py" 127.0.0.1 "$PORT" \
+            >"$TMPDIR/$test-$mode-$engine-$atomic.log" 2>&1 || failed=1
+      else failed=1; fi
+      stop
+    done; done; done
+    if [ "$failed" = 0 ]; then ok "$label"
+    else bad "$label" "see $TMPDIR/$test-*.log"; fi
+  done
 }
 
 job_debug(){
@@ -4195,6 +4218,7 @@ collect_job moverfix
 collect_job hexpread
 # Three compat2 rows, collected before the quick-tier exit: DQ=+3, DF=+3.
 collect_job compat2
+collect_job bugs5
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done
