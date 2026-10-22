@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=fliplisten flip flipctl flip_saturated flip_unit flipfix_units tls compat2 climonfix clientfix feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 netio-1s netio-2s reorder_sync aof-epoll aof-uring snapshot-epoll snapshot-uring core_units boot_grammar bplus netcap lbplanner_units; NOT A RECEIPT

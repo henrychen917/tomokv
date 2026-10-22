@@ -1,0 +1,12 @@
+[
+  {
+    "path": "build/fliplisten/budgets",
+    "bytes_removed": 2943552377,
+    "reason": "Compile trial outputs retained as text receipts"
+  },
+  {
+    "path": "build/gate-run.S7BGou",
+    "bytes_removed": 1549202475,
+    "reason": "Completed gate archived; remove ephemeral databases"
+  }
+]

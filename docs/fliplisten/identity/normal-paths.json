@@ -1,4 +1,8 @@
 {
+  "sha256": {
+    "tomokv-PRE": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+    "tomokv": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+  },
   "scope": "Idle phase; current generation; active IO; successful native accept. Callee admission is audited separately. Includes emitted NOPs. Resource-starvation retry remains on the existing cold branch.",
   "loops": [
     {

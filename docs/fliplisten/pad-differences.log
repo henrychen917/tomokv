@@ -7,7 +7,7 @@ tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambd
 
  0033 [ 6] jne <+0x143>
 -0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x94e>
-+0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x22371>
++0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x223b1>
  003e [ 7] mov %rax,0x88(%rdx)
 tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const 0
 --- 
@@ -18,7 +18,7 @@ tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda
 
  0033 [ 6] jne <+0x143>
 -0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x96a>
-+0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x2238d>
++0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x223cd>
  003e [ 7] mov %rax,0x88(%rdx)
 tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const 0
 --- 
@@ -29,7 +29,7 @@ tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{l
 
  0033 [ 6] jne <+0x143>
 -0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x916>
-+0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x22339>
++0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x22379>
  003e [ 7] mov %rax,0x88(%rdx)
 tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const 0
 --- 
@@ -40,7 +40,7 @@ tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{la
 
  0033 [ 6] jne <+0x143>
 -0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x932>
-+0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x22355>
++0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x22395>
  003e [ 7] mov %rax,0x88(%rdx)
 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool) 0
 --- 

@@ -1,5 +1,5 @@
 """Oracle and FLIP reproductions; no performance load or private gate substitute."""
-import importlib.util,json,subprocess,sys,time
+import hashlib,importlib.util,json,subprocess,sys,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tests'))
@@ -9,6 +9,8 @@ support=importlib.util.module_from_spec(spec);spec.loader.exec_module(support)
 support.ROOT=ROOT; arm=sys.argv[1] if len(sys.argv)>1 else 'PRE'
 support.OUT=ROOT/('build/fliplisten/'+arm.lower()+'-controls')
 DOC=ROOT/('docs/fliplisten/'+arm.lower()+'-controls');DOC.mkdir(parents=True,exist_ok=True)
+binary=ROOT/('build/tomokv-PRE' if arm=='PRE' else 'build/tomokv')
+(DOC/'binary.json').write_text(json.dumps(dict(path=str(binary),sha256=hashlib.sha256(binary.read_bytes()).hexdigest()),indent=2)+'\n')
 rows=[]
 def report(c):
     r=c.must('FLIP');return dict(zip(r[::2],r[1::2]))
@@ -60,6 +62,9 @@ for mode in ('1s','2s'):
                    remaining_quiesce_s=ended-started,post_flip_drain_s=time.monotonic()-ended,
                    established=repr(probe),new_connections=results)
           rows.append(row);print(json.dumps(row),flush=True)
+          if arm=='POST':
+            assert probe==b'PONG' and results==["b'PONG'"]*24,row
+            assert reply==b'OK' if outcome=='complete' else isinstance(reply,RespError) and b'timed out' in reply.message,row
           blocker.close();issuer.close()
         admin.close()
       (DOC/'results.json').write_text(json.dumps(rows,indent=2)+'\n')

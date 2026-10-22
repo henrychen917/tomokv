@@ -2,8 +2,8 @@
   "status": "PASS",
   "strict_identity": "8635/8641; six residuals retained",
   "pre_sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
-  "pad_sha256": "f9e60cb6c4d873ac28e298570f47417651fee15b33a9daf927279926f5cd74c5",
-  "padding_bytes": 137763,
+  "pad_sha256": "49a12a2ec184348e84cc4856cd71f62bb6a3357280d0740e65fab66808631966",
+  "padding_bytes": 137827,
   "all_pre_text_function_addresses_and_sizes_equal": true,
   "gnu_properties_equal": true,
   "trampolines": [

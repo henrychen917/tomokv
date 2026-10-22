@@ -543,7 +543,7 @@
       1737,
       2023,
       1737,
-      1956
+      1889
     ],
     "matches": [],
     "changed_lanes": [],
@@ -561,7 +561,7 @@
     "post_sizes": [
       1737,
       2023,
-      1889
+      1956
     ],
     "matches": [],
     "changed_lanes": [],
@@ -3117,7 +3117,7 @@
       9922,
       12232,
       9973,
-      10378
+      10394
     ],
     "matches": [],
     "changed_lanes": [],
@@ -3437,7 +3437,7 @@
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      806
+      822
     ],
     "matches": [],
     "changed_lanes": [],
@@ -5695,7 +5695,7 @@
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      3542
+      3526
     ],
     "matches": [],
     "changed_lanes": [],
@@ -5869,7 +5869,7 @@
     ],
     "post_sizes": [
       21385,
-      19886
+      19907
     ],
     "matches": [],
     "changed_lanes": [],
@@ -6125,7 +6125,7 @@
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      806
+      822
     ],
     "matches": [],
     "changed_lanes": [],
@@ -8561,7 +8561,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
+    "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
   },
   {
     "name": "void tomo::IoLoop::r7_run_loop<false, true, false, true, false>()",
@@ -8576,7 +8576,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
+    "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
   },
   {
     "name": "void tomo::IoLoop::r7_run_loop<true, false, false, true, false>()",
@@ -8591,7 +8591,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
+    "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
   },
   {
     "name": "void tomo::IoLoop::r7_run_loop<true, true, false, true, false>()",
@@ -8606,7 +8606,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
+    "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
   },
   {
     "name": "void tomo::IoLoop::run_loop<false, false, false, false, false>()",
@@ -9416,7 +9416,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
+    "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
   },
   {
     "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, false, true, false>()",
@@ -9431,7 +9431,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
+    "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
   },
   {
     "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, false, true, false>()",
@@ -9446,7 +9446,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
+    "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
   },
   {
     "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()",
@@ -9461,7 +9461,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler/template or linker propagation from the cold listener implementation and budget changes. Exact difference retained; no single optimizer decision isolated."
+    "reason": "The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json."
   },
   {
     "name": "void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()",

@@ -1,5 +1,5 @@
 """Path audit over the unchanged gate normalizer's disassembly; not a rate claim."""
-import json,re
+import hashlib,json,re
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2];DOC=ROOT/'docs/fliplisten/identity/io'
 rows=json.loads((DOC/'summary.json').read_text())
@@ -68,7 +68,7 @@ for r in rows:
    assert len(b)<=len(a),(r['name'],kind,more,len(a),len(b))
    accept_rows.append(dict(name=r['name'],kind=kind,multishot_continues=more,
                            pre_instructions=len(a),post_instructions=len(b)))
-result=dict(scope='Idle phase; current generation; active IO; successful native accept. Callee admission is audited separately. Includes emitted NOPs. Resource-starvation retry remains on the existing cold branch.',
+result=dict(sha256={name:hashlib.sha256((ROOT/'build'/name).read_bytes()).hexdigest() for name in ('tomokv-PRE','tomokv')},scope='Idle phase; current generation; active IO; successful native accept. Callee admission is audited separately. Includes emitted NOPs. Resource-starvation retry remains on the existing cold branch.',
             loops=loop_rows,normal_accept_paths=accept_rows,
             native_arm_identical=[r['name'] for r in rows if '::arm_accept(' in r['name'] and r['equal']])
 assert len(result['native_arm_identical'])==2

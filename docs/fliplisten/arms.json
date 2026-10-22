@@ -1,7 +1,7 @@
 {
   "kind": "A: behaviour twin",
   "scope": "PAD-A: PRE behaviour with POST total .text size, not per-function placement.",
-  "padding_bytes": 137763,
+  "padding_bytes": 137827,
   "link_argv": [
     "g++",
     "-std=c++20",
@@ -136,13 +136,13 @@
     },
     "POST": {
       "path": "/home/user/Projects/cx-fliplisten/build/tomokv",
-      "sha256": "d6e4880f567e8b39da64d8e7caff3bbf102f74ad1a92e9b5669021fe58f48a6a",
-      "text_bytes": 7885289
+      "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+      "text_bytes": 7885353
     },
     "PAD-A": {
       "path": "/home/user/Projects/cx-fliplisten/build/tomokv-PAD-A",
-      "sha256": "f9e60cb6c4d873ac28e298570f47417651fee15b33a9daf927279926f5cd74c5",
-      "text_bytes": 7885289
+      "sha256": "49a12a2ec184348e84cc4856cd71f62bb6a3357280d0740e65fab66808631966",
+      "text_bytes": 7885353
     }
   }
 }

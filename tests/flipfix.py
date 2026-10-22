@@ -123,6 +123,12 @@ def boot(args, label, save='', directory=None, extra=()):
             hits = [mark for mark in SANITIZER_MARKS if mark in text]
             assert not hits, f'sanitizer report {hits} in {path}:\n' + text[-20000:]
             assert 'Aborted' not in text, f'abort in {path}:\n' + text[-4000:]
+            # io_uring releases its last kernel file references asynchronously
+            # after process exit. The next owned leg must not race that teardown.
+            # Keep the pre-boot foreign-port refusal and every live FLIP bound.
+            wait_for(lambda: not subprocess.check_output(
+                ['ss', '-H', '-ltn', f'sport = :{args.port}']).strip(),
+                3, 'the exited owned process to release its listener')
     assert process.returncode in (0, 1, -signal.SIGTERM), \
         f'unclean process exit {process.returncode}: {text[-4000:]}'
 
