@@ -1,8 +1,8 @@
-// Process-wide sticky shutdown doorbell.
+// Process-wide shutdown doorbell: a save request wake, then a sticky terminal wake.
 //
 // eventfd accepts only an eight-byte counter write.  A signal contributes one logical event by
-// writing uint64_t{1}; workers deliberately never drain the shared fd, so readiness remains true
-// until every independently registered ring/epoll waiter has observed shutdown.
+// writing uint64_t{1}. Only the elected save owner consumes a nonterminal request before doing
+// the save. finish_shutdown publishes stop and rings again; nobody consumes that terminal edge.
 #pragma once
 
 #include <cerrno>
@@ -45,6 +45,13 @@ private:
 
 inline int signal_doorbell_fd() {
     return static_cast<int>(g_signal_doorbell_fd);
+}
+
+inline void signal_doorbell_consume_request() {
+    const int fd = signal_doorbell_fd();
+    if (fd < 0) return;
+    uint64_t count;
+    while (::read(fd, &count, sizeof(count)) == static_cast<ssize_t>(sizeof(count))) {}
 }
 
 inline void signal_doorbell_notify() {

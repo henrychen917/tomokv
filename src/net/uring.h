@@ -122,7 +122,9 @@ public:
         if (shutdown_fd_ >= 0) {
             io_uring_sqe* shutdown = io_uring_get_sqe(&r_);
             if (!shutdown) return false;
-            io_uring_prep_poll_add(shutdown, shutdown_fd_, POLLIN);
+            // The save owner may consume a request before shutdown succeeds (or fails).
+            // Keep this subscription for the later terminal edge and for a retried signal.
+            io_uring_prep_poll_multishot(shutdown, shutdown_fd_, POLLIN);
             shutdown->user_data = ur_tag(UrKind::Shutdown, nullptr);
             if (io_uring_submit(&r_) < 1) return false;
         }

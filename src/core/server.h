@@ -1858,7 +1858,7 @@ public:
     }
     // Bound coordination, not filesystem IO: a failed/overdue save must leave the server alive.
     static constexpr uint64_t kShutdownSaveWaitNs = 10'000'000'000ull;
-    // Signal-safe request. The existing one-second IO save cron owns all allocation and IO.
+    // Signal-safe request. The elected IO owns allocation and IO, woken by the signal doorbell.
     // Keeping request and policy in the same byte prevents CONFIG SET save from losing a stop.
     bool request_signal_shutdown() {
         if (loading()) return false; // retain the existing interrupted-boot teardown

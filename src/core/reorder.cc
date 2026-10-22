@@ -905,7 +905,8 @@ void IoLoop::r7_run_loop() {
                 client_cron_beat_ms_ = cached_now_ms_ + 1000 / hz;
             }
             if (__builtin_expect(save_cron_armed &&
-                                 cached_now_ms_ >= save_cron_beat_ms_, false)) {
+                                 (srv_->signal_shutdown_pending() ||
+                                  cached_now_ms_ >= save_cron_beat_ms_), false)) {
                 did += srv_->save_cron_pass(*self_, ring_);
                 save_cron_beat_ms_ = cached_now_ms_ + 1000;
             }
@@ -1646,8 +1647,8 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
                 work++;
                 break;
             case UrKind::Shutdown:
-                // Sticky and shared: never drain it, or this loop could steal the terminal
-                // edge from another ring/epoll set. The signal handler published stop first.
+                // Only the elected save owner consumes a request wake. The later terminal
+                // wake is sticky so every ring/epoll set observes the published stop flags.
                 work++;
                 break;
             case UrKind::Recv: {
