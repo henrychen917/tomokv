@@ -1,0 +1,57 @@
+[
+  {
+    "path": "tests/gate.sh",
+    "sha256": "5b199073eec2bb690347443548402294d443bee55131af25427e3b890d1c6953",
+    "same_as_PRE": false
+  },
+  {
+    "path": "tests/debug.py",
+    "sha256": "981287833302de8f084ffe292950cc90984e1e35baaa8f8b4db01cc3de5e5c4b",
+    "same_as_PRE": false
+  },
+  {
+    "path": "tests/_iofix.py",
+    "sha256": "a0ce337335a335bd468025c9d86bb4f94feaf5442f63651e963546eca827b248",
+    "same_as_PRE": false
+  },
+  {
+    "path": "tests/iofix_deferred.py",
+    "sha256": "4fff823343e86c079f56244299a7f1e48e8ee90fba58d68dd518338cef074b8e",
+    "same_as_PRE": false
+  },
+  {
+    "path": "tests/iofix_hz.py",
+    "sha256": "f2c26258389b0be2b711dee4702ca95a936841704f4c07e5427f8dbe2a311176",
+    "same_as_PRE": false
+  },
+  {
+    "path": "tests/iofix_sleep.py",
+    "sha256": "f66f6e1689008f070a442d66dfba3a02ea0e4bb1afd8b8b4387f1cc6f8b7e6f7",
+    "same_as_PRE": false
+  },
+  {
+    "path": "tests/iofix_signal.py",
+    "sha256": "9ea203ae705539fdab5b9f12edace890f2c2c212e32e6d09064f8057d6cd0c5a",
+    "same_as_PRE": false
+  },
+  {
+    "path": "tests/wb_rule_checks.py",
+    "sha256": "b825fa92aa3f00ee0e6b906dcffd3bd60758bdce916b49d33dbc2f463677f92d",
+    "same_as_PRE": false
+  },
+  {
+    "path": "tests/wb_rule_phase_unit.cc",
+    "sha256": "71187ec8f3f9d415be3a2c2615e0bf57eb3c8f775721e6aa875362f0872d8f35",
+    "same_as_PRE": false
+  },
+  {
+    "path": "tests/splitlocal_checks.py",
+    "sha256": "1bd0f054fc44d3c3fef2e8528a9edef48d71d313a48a284a5991465227fbb430",
+    "same_as_PRE": false
+  },
+  {
+    "path": "tests/netcmd_unit.cc",
+    "sha256": "544a96b66b840d27daee90eac7c4272ef9bf33f460e251c8673cdf2e403015a8",
+    "same_as_PRE": true
+  }
+]

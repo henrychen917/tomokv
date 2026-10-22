@@ -27,6 +27,7 @@ def main():
     output = root / 'build/tomokv-pad-a'
     directory = root / 'build/iofix/full-pad'
     directory.mkdir(parents=True, exist_ok=True)
+    staged = directory / 'tomokv-pad-a.pending'
     receipt = json.loads((root / 'docs/iofix/pre-map-receipt.json').read_text())
     cwd = Path(receipt['cwd'])
     command = [x for x in receipt['command'] if not x.startswith('-Wl,-Map=')]
@@ -55,10 +56,10 @@ def main():
                       '.section .note.gnu.property,"a",@note\n.p2align 3\n.byte ' +
                       ','.join(hex(byte) for byte in properties) + '\n')
     subprocess.run(['g++', '-c', str(source), '-o', str(obj)], check=True)
-    command[destination] = str(output)
+    command[destination] = str(staged)
     command.insert(command.index('-o'), str(obj))
     subprocess.run(command, cwd=cwd, check=True)
-    twin = Elf(output)
+    twin = Elf(staged)
     assert twin.sections[twin.names.index('.text')][5] == post_text[5]
     twin_note = twin.sections[twin.names.index('.note.gnu.property')]
     assert twin.data[twin_note[4]:twin_note[4] + twin_note[5]] == properties
@@ -74,13 +75,14 @@ def main():
               if x.endswith('.o') and x != str(obj)]
     result = dict(kind='A: full PRE behavior with exact POST text size',
                   limitation='PRE function addresses retained; not POST function placement',
-                  pre_sha256=sha(pre), post_sha256=sha(post), pad_sha256=sha(output),
+                  pre_sha256=sha(pre), post_sha256=sha(post), pad_sha256=sha(staged),
                   baseline_relink_identical=True, pre_text_bytes=pre_text[5],
                   post_text_bytes=post_text[5], pad_text_bytes=post_text[5],
                   padding_bytes=extra, original_text_symbols=sum(old.values()),
                   all_original_function_addresses_sizes_equal=True,
                   added_functions=added, source=source.read_text(),
-                  command=command, cwd=str(cwd), inputs=inputs)
+                  command=command, cwd=str(cwd), output=str(output), inputs=inputs)
+    staged.replace(output)
     (root / 'docs/iofix/pad-a.json').write_text(json.dumps(result, indent=2) + '\n')
     baseline.unlink()
     print(json.dumps({k:v for k,v in result.items() if k not in ('inputs','command','source')}, indent=2))
