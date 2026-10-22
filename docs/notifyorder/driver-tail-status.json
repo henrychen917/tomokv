@@ -1,0 +1,12 @@
+{
+  "wrapper_exit": 127,
+  "log": "docs/notifyorder/frozen-driver.log",
+  "old_revision": "12b5d6a63^",
+  "old_bytes": 1886,
+  "current_bytes": 1904,
+  "tail_at_old_eof": "un-final-proof.sh\n",
+  "cause": "The driver file grew while its Bash process was awaiting the completed proof child; the old EOF offset points into the current final command.",
+  "all_child_statuses": "docs/notifyorder/final-unit-status.log",
+  "independent_receipt_audit": "docs/notifyorder/proof-audit.json",
+  "current_driver_bash_n": 0
+}

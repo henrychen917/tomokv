@@ -1,0 +1,77 @@
+{
+  "source_declarations": 688,
+  "observed_job_labels": 682,
+  "canonical_covered": 679,
+  "source_labels_without_direct_match": [
+    {
+      "label": "FLIP applies under saturated load",
+      "multiplicity": 1,
+      "reason": "reserved performance/mixed performance job or unavailable tailgen main-collector row"
+    },
+    {
+      "label": "Redis 7.4 differential matrix",
+      "multiplicity": 1,
+      "reason": "replaced by all five supported differential part jobs"
+    },
+    {
+      "label": "Redis 7.4 differential matrix (armed fused + read-local)",
+      "multiplicity": 1,
+      "reason": "replaced by all five supported differential part jobs"
+    },
+    {
+      "label": "atomic MGET/MSET floor (N/s >= 120k)",
+      "multiplicity": 1,
+      "reason": "reserved performance/mixed performance job or unavailable tailgen main-collector row"
+    },
+    {
+      "label": "borrow-registry growth bound",
+      "multiplicity": 1,
+      "reason": "reserved performance/mixed performance job or unavailable tailgen main-collector row"
+    },
+    {
+      "label": "cross-shard dispatch scaling",
+      "multiplicity": 1,
+      "reason": "reserved performance/mixed performance job or unavailable tailgen main-collector row"
+    },
+    {
+      "label": "expire-index growth bound",
+      "multiplicity": 1,
+      "reason": "reserved performance/mixed performance job or unavailable tailgen main-collector row"
+    },
+    {
+      "label": "flip battery shutdown invariants",
+      "multiplicity": 1,
+      "reason": "reserved performance/mixed performance job or unavailable tailgen main-collector row"
+    },
+    {
+      "label": "pipelined same-conn program order (400 rolls)",
+      "multiplicity": 1,
+      "reason": "reserved performance/mixed performance job or unavailable tailgen main-collector row"
+    },
+    {
+      "label": "tailgen client-lb outstanding bound",
+      "multiplicity": 1,
+      "reason": "reserved performance/mixed performance job or unavailable tailgen main-collector row"
+    },
+    {
+      "label": "tripwire arm/disarm round-trip",
+      "multiplicity": 1,
+      "reason": "reserved performance/mixed performance job or unavailable tailgen main-collector row"
+    }
+  ],
+  "differential_part_labels": {
+    "Redis 7.4 differential part (armed fused, atomic 1)": 1,
+    "Redis 7.4 differential part (armed fused, atomic 0)": 1,
+    "Redis 7.4 differential part (split, atomic 1)": 1,
+    "Redis 7.4 differential part (split, atomic 0)": 1,
+    "mode equivalence part (all execution modes and knobs)": 1
+  },
+  "proof_runs": [
+    "differ-post-uring.log",
+    "gate-broad-post.log",
+    "gate-serverless-post.log",
+    "gate-unit-post-early.log",
+    "gate-verified-post.log"
+  ],
+  "note": "Coverage inventory, not a full-gate receipt. The ABBA count guard is exercised but red."
+}

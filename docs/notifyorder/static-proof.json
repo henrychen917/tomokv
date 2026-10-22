@@ -1,0 +1,33 @@
+{
+  "src/store/flatstore.h": {
+    "unchanged": true,
+    "sha256": "dbe9a96ff05d1ba5d99c2e812c900aa2a940ca38e6f91629db6453e148ea0570"
+  },
+  "src/core/shard.h": {
+    "unchanged": true,
+    "sha256": "e95e589a7314b05d2901fc9ae1df3dff737682a51e54b794ebabce89bbc805b4"
+  },
+  "src/exec/op.h": {
+    "unchanged": true,
+    "sha256": "04866c8b69854e551ba49e3e5a7c730e6a1716e1fbd7b6c7b5153ff45098efa9"
+  },
+  "src/core/ex_loop.h": {
+    "unchanged": true,
+    "sha256": "79ce567b958472ae3be32e226511e9a5423102d56f8bf2ad595f4b16fb250f6d"
+  },
+  "src/core/io_loop.h": {
+    "unchanged": true,
+    "sha256": "092f362d99050e86ad5278fc83cda3b66b3a07837836dd1e6b5b7661d7f2b2a3"
+  },
+  "src/core/pubsub.inc": {
+    "unchanged": true,
+    "sha256": "00b82ee9374f1c9ce8d4ab660590ab8e4fb09b26c8d25ed3e66d42442234030b"
+  },
+  "src/core/thread.h": {
+    "unchanged": true,
+    "sha256": "c67c4be83589ee44d2784ca77a2b259f2bc642e7b727283862ba555dd485237f"
+  },
+  "unattributed_body": "verbatim PRE body; only function name/linkage moved",
+  "keyless_drain": "verbatim PRE function body",
+  "script_discard_sites": 5
+}

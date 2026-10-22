@@ -213,12 +213,16 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # moverfix: compile-only per-unit re-derivation restores all selected hot bodies;
 # 128550 / 127250 leave 77 explicitly inventoried xshard bodies for merit review.
 # See docs/moverfix/identity-budgets and identity-tuned/README.md.
-# wave4 merge (provisional, additive lane deltas): compat2 +76/+68 and moverfix +508/+540;
-# the wave-4 budget commit re-derives both values with compile-only trials.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128626
+# notifyorder: physical-record routing/salvage, overwrite expiry observation and
+# opaque sink callbacks grow IPA by 390/395 instructions. Per-unit dumps and trials
+# (docs/notifyorder/budgets-callback) retain the audited command bodies at 128432/127105.
+# Remaining cold spillover is enumerated for merit review, not treated as identity.
+# wave4 merge (provisional, additive lane deltas over 128042/126710): compat2 +76/+68,
+# moverfix +508/+540, notifyorder +390/+395; the wave-4 budget commit re-derives both.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129016
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127318
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127713
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
@@ -743,7 +747,7 @@ clean:
 # omit their production objects from this serverless binary. No server threads or gate are started.
 NETCMD_TEST_SRC := tests/netcmd_unit.cc tests/netcmd_stream_unit.cc tests/netcmd_zset_unit.cc tests/netcmd_config_unit.cc
 NETCMD_TEST_OBJ := $(NETCMD_TEST_SRC:tests/%.cc=build/tests/%.o)
-build/tests/netcmd_unit.o build/db0/tests/netcmd_unit.o: tests/tlsserve_checks.inc tests/hexpire_oom_checks.inc
+build/tests/netcmd_unit.o build/db0/tests/netcmd_unit.o: tests/tlsserve_checks.inc tests/hexpire_oom_checks.inc tests/notify_order_checks.inc
 NETCMD_LIB_OBJ := $(filter-out build/src/main.o build/src/cmd/xshard.o build/src/cmd/t_stream_groups.o build/src/cmd/t_zset.o build/src/cmd/server_tail.o,$(OBJ))
 build/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(filter-out $(SERVER_ONLY_SRC),$(wildcard src/*/*.cc)) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p $(dir $@)

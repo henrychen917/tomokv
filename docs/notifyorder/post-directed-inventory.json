@@ -1,0 +1,142 @@
+[
+  {
+    "job": "notify_order",
+    "leg": "order-1s-epoll-a0-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_order",
+    "leg": "order-1s-epoll-a0-rl1.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_order",
+    "leg": "order-1s-epoll-a1-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 1
+  },
+  {
+    "job": "notify_order",
+    "leg": "order-1s-epoll-a1-rl1.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 3
+  },
+  {
+    "job": "notify_order",
+    "leg": "order-1s-uring-a0-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_order",
+    "leg": "order-1s-uring-a0-rl1.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_order",
+    "leg": "order-1s-uring-a1-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_order",
+    "leg": "order-1s-uring-a1-rl1.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_order",
+    "leg": "order-2s-epoll-a0-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_order",
+    "leg": "order-2s-epoll-a1-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_order",
+    "leg": "order-2s-uring-a0-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_order",
+    "leg": "order-2s-uring-a1-rl0.log",
+    "summary": "notifyorder: 23 cases passed; 0 failures",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_aof",
+    "leg": "order-1s-epoll-a0-rl1.log",
+    "summary": "PASS local script notifications + grouped AOF + reload vs Redis",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_aof",
+    "leg": "order-1s-epoll-a1-rl1.log",
+    "summary": "PASS local script notifications + grouped AOF + reload vs Redis",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_aof",
+    "leg": "order-1s-uring-a0-rl1.log",
+    "summary": "PASS local script notifications + grouped AOF + reload vs Redis",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_aof",
+    "leg": "order-1s-uring-a1-rl1.log",
+    "summary": "PASS local script notifications + grouped AOF + reload vs Redis",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_aof",
+    "leg": "order-2s-epoll-a0-rl0.log",
+    "summary": "PASS local script notifications + grouped AOF + reload vs Redis",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_aof",
+    "leg": "order-2s-epoll-a1-rl0.log",
+    "summary": "PASS local script notifications + grouped AOF + reload vs Redis",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_aof",
+    "leg": "order-2s-uring-a0-rl0.log",
+    "summary": "PASS local script notifications + grouped AOF + reload vs Redis",
+    "failures": [],
+    "c7_arm_misses": 0
+  },
+  {
+    "job": "notify_aof",
+    "leg": "order-2s-uring-a1-rl0.log",
+    "summary": "PASS local script notifications + grouped AOF + reload vs Redis",
+    "failures": [],
+    "c7_arm_misses": 0
+  }
+]

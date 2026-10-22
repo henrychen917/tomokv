@@ -1,0 +1,22 @@
+{
+  "failed_run": "build/gate-run.cB97sf",
+  "failed_row": "flushfix flush witnesses",
+  "failure": "FLUSHDB retains lazy-expiry notification and counter",
+  "cause": "Maintenance entry bypassed opaque custom callback, treating its context as Shard",
+  "fix": "Only the known production emit pointer routes directly to the unattributed Shard sink; all custom emit callbacks retain PRE dispatch",
+  "unchanged_assertions": [
+    "tests/flushfix_unit.cc",
+    "tests/rehash_waits_unit.cc"
+  ],
+  "before_binary_sha256": "5321f7548d24f1f2d2054cdd0445835ee0ec278090218c437db013ed1aa01fcb",
+  "pre_units": {
+    "flushfix-unit": {
+      "path": "build/notifyorder/preunit/flushfix-unit",
+      "sha256": "dca22a28c2316c0b62abaf5188df1edd0b2da3f973933ba11d0017463cfd7be2"
+    },
+    "rehash-waits-unit": {
+      "path": "build/notifyorder/preunit/rehash-waits-unit",
+      "sha256": "81aabc82542f452206bbc7d8bafb2d36f40de4a7c47a3d1bcf0b73db2da80969"
+    }
+  }
+}

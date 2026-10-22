@@ -1,0 +1,12 @@
+[
+  {
+    "path": "build/gate-run.WCCNcs/jobs/atomic_batteries/gate-atomic-ryow.txt",
+    "sha256": "a82b987ed212bdfb677ead2aac550ca1381cf38a10d71e8dcea5b64be0edb36f",
+    "assertion": "24-command pipelined-versus-serial speed assertion ran; excluded from merit evidence"
+  },
+  {
+    "path": "build/gate-run.cB97sf/jobs/atomic_batteries/gate-atomic-ryow.txt",
+    "sha256": "255b34b001ee4109ad11138431867e0549c652b602f384aed91a59bc458bea1f",
+    "assertion": "24-command pipelined-versus-serial speed assertion ran; excluded from merit evidence"
+  }
+]

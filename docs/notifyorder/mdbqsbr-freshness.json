@@ -1,0 +1,33 @@
+[
+  {
+    "argv": [
+      "make",
+      "-q",
+      "mdbqsbr-live-arms"
+    ],
+    "returncode": 0,
+    "output": "make BUILD_ROOT=build/mdbqsbr2-park CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK' all\nmake[1]: Entering directory '/home/user/Projects/cx-notifyorder'\nmake[1]: Leaving directory '/home/user/Projects/cx-notifyorder'\nmake BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all\nmake[1]: Entering directory '/home/user/Projects/cx-notifyorder'\nmake[1]: Leaving directory '/home/user/Projects/cx-notifyorder'\n"
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "BUILD_ROOT=build/mdbqsbr2-park",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+      "all"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "make",
+      "-q",
+      "BUILD_ROOT=build/mdbqsbr2-no-wake",
+      "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE",
+      "all"
+    ],
+    "returncode": 0,
+    "output": ""
+  }
+]
