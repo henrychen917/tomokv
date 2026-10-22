@@ -229,6 +229,9 @@ struct NetcmdRegression {
     static void suppressed_retire_scope() {
         Sender sender;
         Server server; ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
+        // Tracking receipts index the routed shard even in this serverless fixture.
+        server.shards_.push_back(std::make_unique<Shard>());
+        server.router_.build_uniform(1);
         IoLoop loop; loop.srv_ = &server; loop.self_ = &self;
         RetireProbe probe; probe.loop = &loop; probe.bind(sender, loop.wb_);
         const auto issue = [](Client& client, std::initializer_list<const char*> command,
