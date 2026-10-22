@@ -3026,6 +3026,18 @@ static const CommandSpec kTable[] = {
 
 }  // namespace
 
+bool debug_sleep_exec(Server& server, Shard& shard, std::atomic<long long>& state,
+                      uint32_t owner_thread_id) {
+    const int64_t value = state.load(std::memory_order_acquire);
+    if (value >= 0) {
+        if (shard.id() != 0) return false;
+        const uint64_t ticket = server.debug_sleep_start(static_cast<uint64_t>(value), owner_thread_id);
+        if (ticket) state.store(-static_cast<int64_t>(ticket), std::memory_order_release);
+        return false;
+    }
+    return server.debug_sleep_complete(static_cast<uint64_t>(-value));
+}
+
 DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
                                      uint64_t& delay_us) {
     if (op.argc() != 3 || !eq_icase(op.arg(1), "sleep"))

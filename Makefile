@@ -223,10 +223,13 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # Remaining cold spillover is enumerated for merit review, not treated as identity.
 # wave4 merge (provisional, additive lane deltas over 128042/126710): compat2 +76/+68,
 # moverfix +508/+540, notifyorder +390/+395; the wave-4 budget commit re-derives both.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128705
+# iofix: the cold EXEC sleep helper lives in t_server.cc. The remaining +28 IPA
+# instructions use re-derived budgets preserving ordinary MGET/MSET prepare,
+# execute, completion and reply-assembly bodies (docs/iofix/budgets/xshard-isolation*).
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128800
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 # perfex2: compensate the inline cold clear reset; every other emitted body is PRE-identical.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127713
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127741
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 # aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this

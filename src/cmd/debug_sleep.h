@@ -13,6 +13,7 @@ namespace tomo {
 class Client;
 class Op;
 class Server;
+class Shard;
 
 template <unsigned Workers, unsigned WaitMs> class DebugSleepCoordinator {
     using Clock = std::chrono::steady_clock;
@@ -139,5 +140,9 @@ enum class DebugSleepResult : uint8_t { NotSleep, Handled, Deferred };
 // truncated to microseconds just as Redis 7.4's strtod -> long long -> nanosleep path does.
 DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
                                      uint64_t& delay_us);
+
+// Keep the EXEC-only coordination out of the ordinary scatter-gather translation unit.
+bool debug_sleep_exec(Server& server, Shard& shard, std::atomic<long long>& state,
+                      uint32_t owner_thread_id);
 
 }  // namespace tomo

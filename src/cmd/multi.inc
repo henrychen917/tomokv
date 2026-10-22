@@ -1186,16 +1186,8 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
     // DEBUG SLEEP requests the global pause after the first all-owner join.
     if (command.kind == MultiCommandKind::Admin || command.kind == MultiCommandKind::DebugSleep) {
         if (stage == 0) return true;
-        if (command.kind == MultiCommandKind::DebugSleep) {
-            const int64_t value = command.integer.load(std::memory_order_acquire);
-            if (value >= 0) {
-                if (shard.id() != 0) return false;
-                const uint64_t ticket = server.debug_sleep_start(static_cast<uint64_t>(value), owner_thread_id);
-                if (ticket) command.integer.store(-static_cast<int64_t>(ticket), std::memory_order_release);
-                return false;
-            }
-            return server.debug_sleep_complete(static_cast<uint64_t>(-value));
-        }
+        if (command.kind == MultiCommandKind::DebugSleep)
+            return debug_sleep_exec(server, shard, command.integer, owner_thread_id);
         if (shard.id() == 0) {
             Client* previous_client = command_local_client();
             ThreadCtx* previous_thread = command_local_thread();
