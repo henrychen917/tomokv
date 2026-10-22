@@ -247,3 +247,220 @@ without matching workload keys; record the fired/dropped counters as well.
 Full `tests/gate.sh iteration`, performance load generators and throughput
 measurements are **NOT RUN**, reserved for the maintainer. The still-failing
 DIFF-TRK-1 row prevents treating any merit result as complete task acceptance.
+
+
+## trackfix2
+
+Production implementation: `d46a9be20`, following design `782df9881` and the
+initial implementation `c97c118a2`. Serverless fixture routing is corrected in
+`e16dd6169`. This section supersedes the unresolved DIFF-TRK-1 status in trackfix
+above; it does not erase that section's failures. No push and no performance
+measurement were performed by this lane. All new commands, builds and runtime
+children are confined to CPUs 96–111; listeners use 22800–22899.
+
+### Change and size boundary
+
+[causal-design.md](docs/trackfix/causal-design.md) specifies the certificate,
+observation, retirement and migration rules. Completed tracking mutations get a
+process-wide release certificate. Only subscribed remembering reads allocate
+an owned spec copy with per-shard observations. Pending obligations retain every
+reader, and a reader invalidated by a newer change never re-enrolls its stale
+result. Old certified events leave newer enrollments intact. Local capture,
+MVCC snapshot bounds, OFF/RESET draining, REDIRECT, NOLOOP, FLUSH and client
+migration are covered without adding a reader retry or seqlock.
+
+No locked structure grows: Op remains **336**, Client **1984**, and the other
+existing footprint assertions pass. Compiled side-state changes, stated before
+implementation and verified in `docs/trackfix/trackfix2/sizes.json`:
+
+| Tracking/notification state | PRE | POST |
+|---|---:|---:|
+| ClimonConn | 184 | 240 |
+| Pending-key value | 8 | 40 |
+| New per-read object | — | 152 + 8/shard + 4/key, plus owned key strings |
+| NotifyBatch | 416 | 424 |
+| NotifyOut | 40 | 48 |
+| PubSubEventItem | 48 | 48 |
+
+Tracking-disarmed operations allocate no per-read, pending-key or enrollment
+nodes and do not sample or increment the clock. Common executor dispatch gains
+an armed guard. The shared notification batch/keyless and ClimonConn objects
+have the footprint increases above even when another feature allocates them
+without tracking (keyspace notifications or MONITOR); their tracking maps stay
+empty and stamp fields inactive. These shared footprint costs are not claimed
+to disappear when tracking is off and require the merit measurements below.
+
+The certificate is conservative: a physically published mutation not yet at its
+completion hook, or an old MVCC cut lacking a suitable certificate, may still
+produce an unnecessary invalidation. This is not a proof of exact physical
+version ordering for every possible schedule. Existing NotifyBatch/owned-key/
+spill allocation failure, keyless queue exhaustion and retirement allocation
+failure can drop notifications; those pre-existing paths remain reported in
+the design. No claim of losslessness under resource exhaustion is made.
+
+### Binaries and identity
+
+| Arm | SHA-256 | .text bytes |
+|---|---|---:|
+| `build/tomokv-PRE` | `da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26` | 7,747,526 |
+| `build/tomokv` | `787031f023997cd3e5ce2330e9d11794819c4799202714f5a1d7299c9b39a181` | 7,751,350 |
+| `build/tomokv-PAD-A` | `a564613eb192b16301960a6a45e780118f6e7ebbb72c5ad3ab71a14702ca16c0` | 7,751,350 |
+
+PRE is the existing `a7dfb9d23` baseline, before CC4.4. A fresh relink of its
+frozen objects reproduces its SHA exactly (`trackfix2/pre-rebuild.json`).
+**PAD type A — behaviour twin:** PRE objects and behavior, with 3,824 unreachable
+NOP bytes appended to .text. This matches POST's **total text size only**; it
+does not reproduce POST's individual function placement. It is a size control,
+not a complete layout control. Construction and link commands are retained in
+`trackfix2/pad.py` and `pad.json`; no unlabelled PAD is requested.
+
+The unchanged strict identity tools report **8,189/8,701** linked groups equal,
+including **12/12 selected GET/SET/MGET/MSET groups**. Across all **1,216 cmd_
+groups**, 1,188 are strictly equal and the remaining 28 differ only in reference
+labels. Independent checks verify every instruction and normalized encoding,
+all referenced scalar/switch-table bytes, and every relevant jump destination.
+There are **zero unexplained command-body differences**. This proves command
+body identity under the gate's address normalization, not whole-server identity.
+
+Every one of the **512** strict linked residuals retains its reason, defining
+object provenance, sizes and full instruction/encoding diff under
+`docs/trackfix/trackfix2/identity/`. Executor hooks, notification structures,
+armed side-state helpers, container instantiations and compiler propagation
+remain visible for merit review. No instruction-budget or expectation constant
+was changed to obtain identity.
+
+### Correctness evidence
+
+Final POST's whole `trackfix_order` job runs 16 fresh boots spanning both thread
+modes, epoll/uring, atomic 0/1 and read-local 0/1, each with RESP2/RESP3 and default,
+BCAST, OPTIN, OPTOUT and NOLOOP cases. **480/480 pass**: all **128** old-write
+windows, **256** remembering overlap windows (single and twin pending readers),
+and **96** BCAST controls. Receipts require an actual held event or Done read;
+the overlap setup's initial notification must arrive before the newer write.
+No missing window is skipped. Real transport events are replayed through the
+real consumer in a disposable build; production contains no scheduling hooks.
+
+The disposable suppress-pending-delivery control changes only the two machine
+calls that emit pending-reader frames, one per namespace. On a full 30-case
+fused/epoll/atomic-0/read-local-0 boot, it gives **14 pass / 16 fail**: all 16
+remembering overlap controls fail specifically on a missing required frame.
+Patch offsets, original bytes, binary hashes and exact transcripts are retained
+under `trackfix2/suppress-pending/`. This control is never a production arm.
+
+Twenty fresh climon seed-19 epoll/armed-fused/atomic-0 POST boots pass with
+**zero duplicates**. Twenty fresh PRE boots produce **14 duplicate frames in
+10 runs**. Every mismatch is independently checked as two identical target
+frames against one oracle frame; `trackfix2/control-counts.json` retains every
+run, including zeros. These are correctness cohorts, not comparative failure
+probability or throughput estimates.
+
+PRE's same final fixture records **96 pass / 384 fail**: all 128 old-write
+windows and all 256 remembering stale-enrollment controls fail, while BCAST
+controls pass. All 128 held/replayed and 256 primed/pending/overlapped receipts
+are present in both arms. The final accounting job passes **160/160** on POST;
+PRE and the PAD-A behavior twin each reproduce **160/160** baseline counter
+failures. Every declared leg runs through `tests/gate.sh`'s whole-job interface.
+
+Unmodified `tests/differ_gate.sh` standard seeds 7/19/20/23 plus rotating seed 21
+complete with both atomic settings and the full 32-combination split-mode
+matrix:
+
+| Engine / geometry | Final POST pass / fail |
+|---|---:|
+| epoll / split | 475 / 0 |
+| uring / split | 475 / 0 |
+| epoll / armed fused | 466 / 0 |
+| uring / armed fused | 466 / 0 |
+
+The earlier `PRE-final` standard receipts in the preceding section still refer
+to the identical frozen PRE binary. They are retained as baseline evidence;
+this refinement reran all four POST standard legs and the fresh 20-boot PRE
+seed-19 cohort. Complete final transcripts, seed plans, coverage and boot logs
+are archived under `docs/trackfix/differ/POST-trackfix2-final-*`.
+
+Whole-job partial ledgers, including tracking, climon/climon2, pushtear,
+keyspace notifications and all jobs owning the edited test/fixture files:
+
+| Cohort | Pass / fail | Disposition |
+|---|---:|---|
+| POST trackfix_order + trackfix_accounting | 3 / 0 | Includes release prerequisite |
+| uring feature split/armed atomic 0/1, clientfix, notify, fused 0/1 | 173 / 0 | All requested batteries |
+| epoll same broad cohort | 172 / 1 | Tracking `broken_redirect` flag absent on first atomic-1 armed run |
+| epoll whole feature-armed-1 + notify_order recheck | 37 / 0 | Both complete jobs, every leg |
+| netcmd, notify order/AOF, metadata, debug 0/1, ring, splitlocal | 50 / 2 | Serverless fixture crash and notify-order setup acceptance count |
+| netcmd after initializing the fixture's shard router | 17 / 0 | Whole job; no assertion removed |
+| supplementary fused notify, epoll | 7 / 0 | Whole job |
+| supplementary fused notify, uring | 7 / 0 | Whole job |
+
+The initial notify-order failure was during setup (`one accepted publisher:
+2, expected 1`), before its ordering assertions. The tracking flag failure passes its whole-job recheck but **does reproduce**
+in isolated fresh batteries: **POST 1/5 failures, PRE 3/5 failures** at the same
+`broken_redirect` assertion. It is a baseline defect, not a green battery claim.
+A disposable trace establishes the path: the new write's stamp 46 correctly
+invalidates enrollment 45; the source resolves REDIRECT while its directory
+entry still exists and posts to the remote IO; delivery then finds that target
+already gone and silently returns. The existing transport sends no failure
+acknowledgment to set the tracking source's broken-redirect flag. That code path
+is unchanged from PRE. This remaining REDIRECT-close compatibility defect is
+reported separately from the fixed duplicate and stale-enrollment bugs; no
+unconditional all-batteries-green acceptance claim is made.
+The netcmd crash was reproduced under GDB: its synthetic server had zero
+shards, so the new per-shard observation vector was empty. Its fixture now
+constructs one shard and its routing table, matching the other tracking unit
+fixtures. The main production binary remained frozen throughout final runs.
+
+Earlier invalid scheduling attempts also remain visible: an initial fixture
+ran after ROB retirement, and a second inspected argv after writeback had
+consumed it. The final fixture reads owned keys before retirement and verifies
+priming. These exploratory results are not counted as passing evidence.
+
+`make -j16 all` and every `job_production_units` target completed. All **39**
+production targets pass final `make -q` (`trackfix2/freshness-final.json`).
+The exact PRE/POST/PAD-A hashes remain unchanged after the gate jobs.
+
+`python3 tests/gates_test.py` passes all **67 tests** on the isolated rerun,
+including its nested 14-test persistence self-test. The first run's two
+scheduler-fixture timeouts under concurrent correctness workloads remain in
+`gates-test.log`; no deadline, expectation or assertion was relaxed. The green
+receipt is `gates-test-quiet.log` with return code zero.
+
+`climon_128.py` remains **NOT RUN**: its live owner-distance-64 geometry cannot
+be provided on CPUs 96–111. The whole ring-unit job runs its 128-owner mask
+arithmetic and negative control instead. The full gate iteration and all
+performance instrumentation remain with the maintainer.
+
+Receipts and failure history are under `docs/trackfix/trackfix2/`, with raw
+whole-job transcripts under `docs/trackfix/proof/trackfix2-*`. About 3.16 GB of
+obsolete source copies, trial binaries, duplicate PRE objects and disassembly
+caches were pruned; frozen PRE objects, current production targets and the
+three merit binaries remain. No required production target was pruned.
+
+
+### Gate count and maintainer merit request
+
+This refinement adds cases to the existing rows, not counted rows. Cumulative
+with CC4.4: **DQ=+2, DF=+2**. `trackfix_order` and `trackfix_accounting` remain at
+`tests/gate.sh` lines **4389/4390**, both before the quick exit at **4461**. The
+owner's 685/702 constants should remain destined for **687/704** for the whole
+trackfix lane. `EXPECT_QUICK` and `EXPECT_FULL` are untouched.
+
+Measure the unchanged **14 cells** in `docs/trackfix/generic14-cells.txt` using
+the gate's own ABBA instrument: PRE/PRE null, PRE/POST and PRE/PAD-A, with matched
+offered load, data, warmup, affinity and geometry. Report rate, cycles/op,
+instructions/op and IPC together, plus each declared depth-one latency score.
+Use 96–103 for eight-core server cells, 96–99 for four-core cells and 105–111 for
+clients. Rate at matched offered load decides rate cells; declared latency
+scores decide latency cells. Every main-command cell must avoid a reproducible
+regression relative to the PRE/PRE control. PAD-A's limited layout control must
+be considered when interpreting any difference.
+
+The generic ABBA workload schema/driver has no CLIENT TRACKING setup option.
+The extra tracking-enabled cell is **NOT RUN / unsupported by that instrument
+as shipped**. If the maintainer supplies tracking setup, add a `d8s_l1` twin with
+a held RESP3 `BCAST PREFIX never:` tracker to arm collection without matching
+workload keys, and retain fired/dropped counters. The separate clientfix latency
+probe was not substituted for the generic instrument.
+
+Full `tests/gate.sh iteration`, performance benchmarks and measurement load
+generators are **NOT RUN**, reserved for the maintainer. No throughput claim is
+made. All gate receipts here are explicitly partial whole-job receipts.
