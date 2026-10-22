@@ -1,0 +1,5 @@
+GEOMETRY observed={"thread_mode": "1s", "net_io": "epoll", "atomic": "0", "read_local": "1", "shards": "16", "key_lb": "0", "client_lb": "0", "flip_auto": "0"}
+GEOMETRY publisher_io=6 keyless_owner=6
+{"target": true, "keys": ["notifyorder:aof:0000", "notifyorder:aof:0007"], "records": "[(3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (3, '', 0), (5, 'notifyorder:aof:0000', 1), (5, 'notifyorder:aof:0007', 1), (7, '', 1)]", "grouped": true, "live": "[b'one', b'two']", "recovered": "[b'one', b'two']"}
+{"target": false, "keys": ["notifyorder:aof:0000", "notifyorder:aof:0007"], "records": "[[b'MULTI'], [b'SET', b'notifyorder:aof:0000', b'one'], [b'SET', b'notifyorder:aof:0007', b'two'], [b'EXEC']]", "grouped": true, "live": "[b'one', b'two']", "recovered": "[b'one', b'two']"}
+PASS local script notifications + grouped AOF + reload vs Redis

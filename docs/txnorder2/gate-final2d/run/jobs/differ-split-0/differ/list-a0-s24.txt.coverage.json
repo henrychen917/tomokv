@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "commands": {
+    "DEL": 1,
+    "EXISTS": 1,
+    "LINDEX": 240,
+    "LINSERT": 223,
+    "LLEN": 217,
+    "LPOP": 202,
+    "LPOS": 234,
+    "LPUSH": 409,
+    "LPUSHX": 237,
+    "LRANGE": 206,
+    "LREM": 221,
+    "LSET": 222,
+    "LTRIM": 202,
+    "RPOP": 213,
+    "RPUSH": 466,
+    "RPUSHX": 226,
+    "SET": 1
+  },
+  "kinds": {
+    "DEL": [
+      "reply"
+    ],
+    "EXISTS": [
+      "reply"
+    ],
+    "LINDEX": [
+      "reply"
+    ],
+    "LINSERT": [
+      "reply"
+    ],
+    "LLEN": [
+      "reply"
+    ],
+    "LPOP": [
+      "reply"
+    ],
+    "LPOS": [
+      "reply"
+    ],
+    "LPUSH": [
+      "reply"
+    ],
+    "LPUSHX": [
+      "reply"
+    ],
+    "LRANGE": [
+      "reply"
+    ],
+    "LREM": [
+      "reply"
+    ],
+    "LSET": [
+      "reply"
+    ],
+    "LTRIM": [
+      "reply"
+    ],
+    "RPOP": [
+      "reply"
+    ],
+    "RPUSH": [
+      "reply"
+    ],
+    "RPUSHX": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ]
+  }
+}

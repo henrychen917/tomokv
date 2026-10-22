@@ -1,0 +1,36 @@
+{
+  "status": "NOT RUN: performance is reserved for the maintainer",
+  "inputs": {
+    "/home/user/Projects/calib/exec-merit.py": {
+      "sha256": "260a9dacfbb507ee99eff30fb871c6505ca268186d2a5b66b4335e6d471d1ac5",
+      "bytes": 12347
+    },
+    "tools/benchtxn.cc": {
+      "sha256": "2d6eda1fa9fc4b20a8da5f3f37336cc2b47a8d93d2f791e747dafa242b5e9c2d",
+      "bytes": 31968
+    },
+    "build/benchtxn": {
+      "sha256": "12d5b674dd058dfbd89571e542d4ccb3a765d2130378aec3e8cf5d6fb23cea68",
+      "bytes": 1202856
+    }
+  },
+  "shape": {
+    "connections": 64,
+    "threads": 16,
+    "pipeline": 4,
+    "incr_per_exec": 2,
+    "blocks": 3,
+    "seconds": 20,
+    "cells": [
+      "x2s_a0_unc",
+      "x2s_a0_hot",
+      "x2s_a1_unc",
+      "x2s_a1_hot",
+      "x1s_a0_unc",
+      "x1s_a0_hot",
+      "x1s_a1_unc",
+      "x1s_a1_hot"
+    ]
+  },
+  "counter_requirement": "Hardware cycles/EXEC, instructions/EXEC and IPC require the maintainer profiler; exec-merit is fixed-concurrency throughput, not an offered-load-cap instrument."
+}

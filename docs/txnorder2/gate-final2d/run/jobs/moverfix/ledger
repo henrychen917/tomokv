@@ -1,0 +1,8 @@
+ok	2.930000	moverfix conservation (1s, uring, databases 1, atomic 0)
+ok	2.910000	moverfix conservation (1s, uring, databases 16, atomic 0)
+ok	2.800000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+ok	2.910000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+ok	2.920000	moverfix conservation (2s, uring, databases 1, atomic 0)
+ok	2.910000	moverfix conservation (2s, uring, databases 16, atomic 0)
+ok	2.810000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+ok	2.860000	moverfix conservation (2s, epoll, databases 16, atomic 0)

@@ -40,6 +40,9 @@ def main():
         (ROOT / 'docs/txnorder2/resume/scope.json').read_text())['gate_jobs'])
     binary = Path(args.binary).resolve()
     env = dict(GATE_ONLY_JOBS=jobs, GATE_LEDGER=str(out / 'ledger.tsv'),
+               # Serverless bind/TIME_WAIT controls must obey the lane's port
+               # allocation too; their upstream default is ephemeral port 0.
+               GATE_TEST_PORT='27899',
                GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',
                GATE_DIFFER_REDIS_CLI='/home/user/Projects/redis/src/redis-cli',
                # redis74 contains only the pinned executables. The gate also

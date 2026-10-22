@@ -1,0 +1,4 @@
+TOMOAOF-MANIFEST 1
+file appendonly.aof.2.base.tomo seq 2 type b epoch 1 commit 0 size 173488
+file appendonly.aof.2.incr.tomo seq 2 type i start 14,15,13,15,13,13,13,11,14,14,14,14,14,13,14,15
+rewrite-base-size 192443

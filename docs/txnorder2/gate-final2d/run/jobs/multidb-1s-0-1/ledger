@@ -1,0 +1,3 @@
+ok	4.440000	multidb (1s, read-local 0, atomic 1)
+ok	0.100000	multidb (1s, read-local 0, atomic 1) SWAPDB serial order
+ok	0.280000	multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB

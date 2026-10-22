@@ -1,0 +1,5 @@
+TOMOAOF-MANIFEST 1
+file appendonly.aof.2.base.tomo seq 2 type b epoch 1 commit 32 size 169840
+file appendonly.aof.2.incr.tomo seq 2 type i start 23,16,27,18,19,18,25,21,24,24,21,17,25,19,25,19
+rewrite-base-size 169920
+invalid manifest line

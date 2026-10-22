@@ -1,0 +1,32 @@
+  row budget: 900s; median=0.66s; correctness-plan-fallback; snapshot concurrent cut (epoll)
+  snapshot concurrent cut (epoll)                      ok
+  row budget: 900s; median=0.43s; correctness-plan-fallback; snapshot cut reload (epoll)
+  snapshot cut reload (epoll)                          ok
+  row budget: 900s; median=2.75s; correctness-plan-fallback; snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+  snapshot never tears a cross-shard MSET group (epoll, atomic 1) ok
+  row budget: 900s; median=5.185s; correctness-plan-fallback; snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+  snapshot never tears a MULTI/EXEC group (epoll, default atomic 0) ok
+  row budget: 900s; median=0.07s; correctness-plan-fallback; typed snapshot save (epoll)
+  typed snapshot save (epoll)                          ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot reload (epoll)
+  typed snapshot reload (epoll)                        ok
+  row budget: 900s; median=0.195s; correctness-plan-fallback; typed snapshot preimage race (epoll)
+  typed snapshot preimage race (epoll)                 ok
+  row budget: 900s; median=0.055s; correctness-plan-fallback; typed snapshot race reload (epoll)
+  typed snapshot race reload (epoll)                   ok
+  row budget: 900s; median=1.625s; correctness-plan-fallback; shutdown keeps acknowledged writes (1s, sigterm, epoll)
+  shutdown keeps acknowledged writes (1s, sigterm, epoll) ok
+  row budget: 900s; median=0.775s; correctness-plan-fallback; shutdown keeps acknowledged writes (1s, command, epoll)
+  shutdown keeps acknowledged writes (1s, command, epoll) ok
+  row budget: 900s; median=0.94s; correctness-plan-fallback; shutdown cancels BGSAVE capture (1s, atomic 0, epoll)
+  shutdown cancels BGSAVE capture (1s, atomic 0, epoll) ok
+  row budget: 900s; median=0.925s; correctness-plan-fallback; shutdown cancels BGSAVE capture (1s, atomic 1, epoll)
+  shutdown cancels BGSAVE capture (1s, atomic 1, epoll) ok
+  row budget: 900s; median=1.57s; correctness-plan-fallback; shutdown keeps acknowledged writes (2s, sigterm, epoll)
+  shutdown keeps acknowledged writes (2s, sigterm, epoll) ok
+  row budget: 900s; median=0.785s; correctness-plan-fallback; shutdown keeps acknowledged writes (2s, command, epoll)
+  shutdown keeps acknowledged writes (2s, command, epoll) ok
+  row budget: 900s; median=1.04s; correctness-plan-fallback; shutdown cancels BGSAVE capture (2s, atomic 0, epoll)
+  shutdown cancels BGSAVE capture (2s, atomic 0, epoll) ok
+  row budget: 900s; median=1.065s; correctness-plan-fallback; shutdown cancels BGSAVE capture (2s, atomic 1, epoll)
+  shutdown cancels BGSAVE capture (2s, atomic 1, epoll) ok

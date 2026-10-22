@@ -1,0 +1,1 @@
+PASS exbatch 2s: non-last shard gauges, WATCH/UNWATCH/EXEC/DISCARD/SWAPDB

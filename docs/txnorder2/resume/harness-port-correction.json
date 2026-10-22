@@ -1,0 +1,7 @@
+{
+  "reason": "Serverless harness socket controls defaulted GATE_TEST_PORT to ephemeral port 0; this violates the lane listening-port allocation. Stop and rerun with GATE_TEST_PORT=27899. No candidate performance load ran.",
+  "pid": 495913,
+  "signal": "SIGTERM",
+  "time": 1792684880.5601687,
+  "receipt": "gate-harness-final/result.json"
+}

@@ -99,5 +99,14 @@
     "differ-armed-0",
     "differ-armed-1",
     "differ-equivalence"
-  ]
+  ],
+  "additional_gate_jobs": [
+    "abba_selftest"
+  ],
+  "additional_serverless_checks": [
+    "tests/infofields_test.py",
+    "tests/gate_ledger_fixture.py",
+    "tests/gate_ledger_fixture.py --self-test"
+  ],
+  "additional_note": "The label fixture was missing the new wake row. It now matches 733 declarations exactly. EXPECT_FULL=702 is protected, so the source/receipt check must still refuse pending maintainer count update; do not rewrite that result as PASS."
 }

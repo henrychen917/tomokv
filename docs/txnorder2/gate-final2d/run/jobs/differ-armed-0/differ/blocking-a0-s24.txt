@@ -1,0 +1,2 @@
+  coverage: multi_ready_cases=614 timeout_zero_arms=8 fifo_waiters=6
+DIFFER blocking: 5301 logical ops, 5364 checks, 0 diffs -> PASS
