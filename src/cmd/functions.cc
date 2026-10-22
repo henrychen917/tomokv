@@ -47,9 +47,9 @@ constexpr const char* kRegistryGeneration = "tomo_fn_generation";
 constexpr const char* kRegistryRevisions = "tomo_fn_revisions";
 constexpr char kDumpMagic[8] = {'T', 'O', 'M', 'O', 'F', 'U', 'N', '1'};
 
-// Redis 7 function flags. Only no-writes has behaviour here (it makes every activation of the
-// function read-only, exactly as Redis does); the rest are parsed, stored and echoed by
-// FUNCTION LIST so a library written for Redis loads unchanged.
+// Redis 7 function flags. no-writes implies OOM admission; allow-oom permits writes
+// over the cap. Replica/cluster-specific flags have no additional effect on this
+// single-node server (there is no stale-replica or cluster state).
 constexpr uint32_t kFlagNoWrites       = 1u << 0;
 constexpr uint32_t kFlagAllowOom       = 1u << 1;
 constexpr uint32_t kFlagAllowStale     = 1u << 2;
@@ -692,6 +692,17 @@ void cmd_fcall(Shard& shard, Op& op) {
         g_ro_rejections.fetch_add(1, std::memory_order_relaxed);
         reply_text_error(op, "ERR",
                          "Can not execute a script with write flag using *_ro command.");
+        return;
+    }
+
+    // A scatter callback executes on a private workbench with the coordinator's
+    // shard id. Admission must inspect that real owner shard, not the uncapped copy.
+    FlatStore& admission = shard.server()
+        ? shard.server()->shard(shard.id()).store() : shard.store();
+    if (!(flags & (kFlagAllowOom | kFlagNoWrites)) &&
+        !admission.budget_admit(key_count ? op.arg(key_first) : Slice{})) {
+        lua_settop(state, 0);
+        reply_maxmemory_oom(op);
         return;
     }
 

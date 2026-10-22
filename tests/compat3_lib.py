@@ -20,7 +20,7 @@ def equal(got, want, label):
     assert got == want, f"{label}: {got!r} != {want!r}"
 
 
-def run(probe, cases):
+def run(probe, cases, prepare=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("host")
     p.add_argument("port", type=int)
@@ -31,6 +31,8 @@ def run(probe, cases):
     p.add_argument("--atomic", type=int, required=True)
     p.add_argument("--read-local", type=int, required=True)
     args = p.parse_args()
+    if prepare:
+        prepare(args)
     outputs = []
     for name, host, port in (("oracle", *args.oracle), ("target", args.host, args.port)):
         c = Conn(host, port, timeout=8, buffering=0)

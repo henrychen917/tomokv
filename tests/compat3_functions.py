@@ -1,7 +1,21 @@
 #!/usr/bin/env python3
 """CC4.5/17: library glob discovery and FUNCTION memory flag semantics."""
 from compat3_lib import equal, run
-from _lib import RespError
+from _lib import Conn, RespError, cross_owner_pair, info
+
+CROSS_KEYS = []
+
+def prepare(args):
+    if args.case != "flags":
+        return
+    c = Conn(args.host, args.port, buffering=0)
+    try:
+        a, b, ao, bo = cross_owner_pair(c, "compat3:cross")
+        assert ao != bo
+        CROSS_KEYS[:] = [a, b]
+        print(f"CROSS keys={CROSS_KEYS!r} owners={ao},{bo}", flush=True)
+    finally:
+        c.close()
 
 
 def libraries(reply):
@@ -30,12 +44,17 @@ def probe(c, case):
         ("stale", ["allow-stale"], "return redis.call(\"SET\", keys[1], args[1])"),
         ("stale_allowed", ["allow-stale", "allow-oom"], "return redis.call(\"SET\", keys[1], args[1])"),
         ("constant", [], "return 42"),
+        ("plain_cross", [], "redis.call(\"SET\",keys[1],args[1]); return redis.call(\"SET\",keys[2],args[1])"),
+        ("allowed_cross", ["allow-oom"], "redis.call(\"SET\",keys[1],args[1]); return redis.call(\"SET\",keys[2],args[1])"),
+        ("error_cross", ["allow-oom"], "redis.call(\"SET\",keys[1],args[1]); redis.call(\"SET\",keys[2],args[1]); error(\"after-write\")"),
     ):
         flags_lua = ",".join(repr(f) for f in flags)
         source += f"redis.register_function{{function_name=\"{name}\",flags={{{flags_lua}}},callback=function(keys,args) {body} end}}\n"
     equal(c.cmd("FUNCTION", "LOAD", source), b"flags", "load flags")
     equal(c.cmd("SET", "k", "before"), b"OK", "seed")
     equal(c.cmd("FCALL", "allowed", 1, "k", "control"), b"OK", "before cap")
+    for key in CROSS_KEYS:
+        equal(c.cmd("SET", key, "before"), b"OK", "cross seed")
     equal(c.cmd("CONFIG", "SET", "maxmemory-policy", "noeviction"), b"OK", "policy")
     equal(c.cmd("CONFIG", "SET", "maxmemory", 1), b"OK", "cap")
     out = {"direct": c.cmd("SET", "k", "denied")}
@@ -49,6 +68,19 @@ def probe(c, case):
     failed = c.cmd("FCALL", "allowed_error", 1, "k", "partial")
     assert isinstance(failed, RespError), failed
     out["error-effect"] = c.cmd("GET", "k")
+    stats = info(c)
+    before_apply = int(stats.get("script_apply_owner_tasks", 0))
+    for name in ("plain_cross", "allowed_cross", "error_cross"):
+        reply = c.cmd("FCALL", name, 2, *CROSS_KEYS, name)
+        if name == "error_cross":
+            assert isinstance(reply, RespError), reply
+        else:
+            out[name] = reply
+        out[name + ":values"] = [c.cmd("GET", key) for key in CROSS_KEYS]
+    if "script_apply_owner_tasks" in stats:
+        after = int(info(c)["script_apply_owner_tasks"])
+        print(f"CROSS apply-owner tasks {before_apply}->{after}", flush=True)
+        assert after >= before_apply + 4, "both owners must apply both successful/partial callbacks"
     out["cap-restored"] = c.cmd("SET", "k", "must-still-fail")
     out["cap"] = c.cmd("CONFIG", "GET", "maxmemory")
     equal(c.cmd("CONFIG", "SET", "maxmemory", 0), b"OK", "remove cap")
@@ -57,4 +89,4 @@ def probe(c, case):
 
 
 if __name__ == "__main__":
-    run(probe, ("glob", "flags"))
+    run(probe, ("glob", "flags"), prepare)
