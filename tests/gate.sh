@@ -2454,9 +2454,14 @@ done
 job_bugs5(){
   # Each row contains every declared mode/engine/atomic leg. Collection is
   # before the quick exit: DQ=+3, DF=+3; EXPECT_* remains owner-maintained.
-  local test mode engine atomic boot_fn failed label
+  local test mode engine atomic boot_fn failed label battery
   for test in scancompact slowlog_identity read_local_lfu; do
     label="bugs5 $test (both modes, both engines, atomic 0/1)"
+    case "$test" in
+      scancompact) battery=concur;;
+      slowlog_identity) battery=slowlog;;
+      read_local_lfu) battery=read_local_lane;;
+    esac
     row_begin "$label"
     failed=0
     for mode in 1s 2s; do for engine in uring epoll; do for atomic in 0 1; do
@@ -2466,6 +2471,10 @@ job_bugs5(){
           --read-local 1 --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0; then
         py "tests/$test.py" 127.0.0.1 "$PORT" \
             >"$TMPDIR/$test-$mode-$engine-$atomic.log" 2>&1 || failed=1
+        # Retain the established battery in every declared leg, even when the
+        # new witness fails on PRE. A failed arm must not skip its controls.
+        py "tests/$battery.py" 127.0.0.1 "$PORT" \
+            >"$TMPDIR/$test-control-$mode-$engine-$atomic.log" 2>&1 || failed=1
       else failed=1; fi
       stop
     done; done; done
