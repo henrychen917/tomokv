@@ -1,0 +1,45 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "64-111",
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-72",
+    "--load-cores",
+    "73-95",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26879",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave4/build/tomokv"
+  ],
+  "cwd": "/home/user/Projects/cx-wave4",
+  "jobs": [
+    "reorder_identity"
+  ],
+  "binary": "/home/user/Projects/cx-wave4/build/tomokv",
+  "binary_sha256": "3dfe9e510917cc12e320e6e31ca9f22f8ac498c2e5353ce162ff273b2f01f8e5",
+  "env": {
+    "PYTHONPATH": "/home/user/Projects/cx-wave4/docs/wave4/fixture_site",
+    "WAVE4_FIXTURE_PORT_LOG": "/home/user/Projects/cx-wave4/build/wave4/fixture-ports.log",
+    "GATE_TEST_PORT": "26899",
+    "REDIS74_ROOT": "/home/user/Projects/cx-wave4/build/wave4/oracle",
+    "GATE_DIFFER_ORACLE_CORES": "72",
+    "GATE_NOTIFY_ORACLE_CORES": "72",
+    "GATE_ONLY_JOBS": "reorder_identity",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave4/docs/wave4/proof/r7-final/ledger",
+    "GATE_HISTORY": "/home/user/Projects/cx-wave4/build/wave4/history-r7-final"
+  },
+  "returncode": 0,
+  "run_directory": "/home/user/Projects/cx-wave4/build/gate-run.bzQ8Hu",
+  "jobs_done": {
+    "reorder_identity": "0\t1\t0",
+    "release": "0\t1\t0"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "root": "/home/user/Projects/cx-wave4/build/wave4/landing-sim",
+  "changes": [
+    "throwaway tests/gate.sh: EXPECT_QUICK 672 -> 685",
+    "throwaway tests/gate.sh: EXPECT_FULL 689 -> 702"
+  ],
+  "fixture": "source already matches all 702 labels; no fixture change"
+}

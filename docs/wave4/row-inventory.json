@@ -1,0 +1,33 @@
+{
+  "source": 702,
+  "fixture": 702,
+  "match": true,
+  "expected_current": {
+    "quick": 672,
+    "full": 689
+  },
+  "expected_landing": {
+    "quick": 685,
+    "full": 702
+  },
+  "collection_lines": {
+    "collect_job compat2": [
+      4189
+    ],
+    "collect_job moverfix": [
+      4184
+    ],
+    "collect_job ntnew4_live": [
+      4124
+    ],
+    "collect_job notify_order": [
+      4237
+    ],
+    "collect_job notify_aof": [
+      4238
+    ],
+    "if [ \"$TIER\" = quick ]": [
+      4303
+    ]
+  }
+}
