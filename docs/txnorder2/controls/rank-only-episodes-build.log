@@ -1,0 +1,5 @@
+In file included from /home/user/Projects/cx-txnfix/build/txnorder2/control-rank-only/tests/txnorder_episodes.cc:4:
+/home/user/Projects/cx-txnfix/build/txnorder2/control-rank-only/tests/atomic_survivors_unit.cc: In function ‘int atomic_survivors_unused_main(int, char**)’:
+/home/user/Projects/cx-txnfix/build/txnorder2/control-rank-only/tests/atomic_survivors_unit.cc:859:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  859 | }
+      | ^

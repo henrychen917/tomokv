@@ -1,0 +1,3339 @@
+{
+  "plan": "docs/txnorder/owner-proof-plan.json",
+  "plan_sha256": "f4b4b3d720174d0e8a812626817b486dd0e5b2956363ea1261a12fbe4b05915a",
+  "rows": [
+    {
+      "index": 0,
+      "name": "txniso-2s-a0-db1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/000-txniso-2s-a0-db1/result.json",
+      "receipt_sha256": "ec7277f4cd312e2f5fd3bd3d6ddb4beaa40fce5fa733a85ced57c593cfbd633e",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/000-txniso-2s-a0-db1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 1,
+      "name": "txniso-2s-a0-db16",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/001-txniso-2s-a0-db16/result.json",
+      "receipt_sha256": "10507cb0e2787ce15fe1fce4e459993ac94f3745344cb641bf831e5bc3908d99",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/001-txniso-2s-a0-db16/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 2,
+      "name": "nx-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/002-nx-2s-a0/result.json",
+      "receipt_sha256": "7fbcb04ecc5bc1f3a61bd8f05e8a8d67422d6a88ab88823ca7b5b59e224ec249",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/002-nx-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 3,
+      "name": "txniso-aof-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/003-txniso-aof-2s-a0/result.json",
+      "receipt_sha256": "d7432410d60d5db216838e2e7c86e6a7a11980f3cfd8210f97cdf9e2e3bc73b9",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/003-txniso-aof-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 4,
+      "name": "txniso-2s-a1-db1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/004-txniso-2s-a1-db1/result.json",
+      "receipt_sha256": "ee6659cab92fcbd6fbac828bfd2df710d863dc327f87ca62faf24d3c81f09100",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/004-txniso-2s-a1-db1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 5,
+      "name": "txniso-2s-a1-db16",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/005-txniso-2s-a1-db16/result.json",
+      "receipt_sha256": "b6823fb77f72653fc835169b43e4e4d4928a728f99805b54d42d5a7218659902",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/005-txniso-2s-a1-db16/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 6,
+      "name": "nx-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/006-nx-2s-a1/result.json",
+      "receipt_sha256": "012a87afc739acd39344456a5f570934fee11faf463f67dfd2b5f82c93583d1a",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/006-nx-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 7,
+      "name": "nx-bare-2s",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/007-nx-bare-2s/result.json",
+      "receipt_sha256": "a7d0ed4e7728e7e1262a5eff39ec92f0710026c0581da2305cb1969e629da045",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/007-nx-bare-2s/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 8,
+      "name": "txniso-aof-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/008-txniso-aof-2s-a1/result.json",
+      "receipt_sha256": "d159d9d5d6886ab4c10de98127ec1ec4b630afe46cfe0ec67ec2ddddfa8b649d",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/008-txniso-aof-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 9,
+      "name": "movers-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/009-movers-2s-a0/result.json",
+      "receipt_sha256": "6cffb47cf5b338595d8e35ba9170bbfbd23180217108a1660bc89c453dd80a6d",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/009-movers-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 10,
+      "name": "G5-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/010-G5-2s-a0/result.json",
+      "receipt_sha256": "3c8eb3d2236c5fc93e8150c27ea5644932c80038011c3edd22d7e026b9faacab",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/010-G5-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 11,
+      "name": "txngroup-2s-db1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/011-txngroup-2s-db1/result.json",
+      "receipt_sha256": "57c3f35445b065539c3907d0115906ad67e52a4c18c88d8f1669aa07995976d2",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/011-txngroup-2s-db1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 12,
+      "name": "txngroup-2s-db16",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/012-txngroup-2s-db16/result.json",
+      "receipt_sha256": "5f7cc722646990a0d4dda47b859e823c09b74178fba22243bb3bdc35451c43f9",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/012-txngroup-2s-db16/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 13,
+      "name": "txngroup-aof-2s",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/013-txngroup-aof-2s/result.json",
+      "receipt_sha256": "30676ceec3ca440445051e68205c477bc859361a51cb86e1ef65c82648a40667",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/013-txngroup-aof-2s/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 14,
+      "name": "txniso-1s-a0-db1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/014-txniso-1s-a0-db1/result.json",
+      "receipt_sha256": "c29fa15d7f974cc61dd3493b4bf5c41e55c0ef4d0eb03031af069ca73939a00a",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/014-txniso-1s-a0-db1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 15,
+      "name": "txniso-1s-a0-db16",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/015-txniso-1s-a0-db16/result.json",
+      "receipt_sha256": "3fce85d890b4bddfedb75d08b6ad7ecda8a9170ee7a44fbc3647138049d9a380",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/015-txniso-1s-a0-db16/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 16,
+      "name": "nx-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/016-nx-1s-a0/result.json",
+      "receipt_sha256": "07d41b66a4a44d4bf12f30ba3e3a314bb43f982e6152bae8c3dc04814eea10b1",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/016-nx-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 17,
+      "name": "txniso-aof-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/017-txniso-aof-1s-a0/result.json",
+      "receipt_sha256": "e1f75cd1c8b4e779758b002456ce4f8a261f411afbdec0652c8a28c5e17abdf3",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/017-txniso-aof-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 18,
+      "name": "txniso-1s-a1-db1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/018-txniso-1s-a1-db1/result.json",
+      "receipt_sha256": "d336eece1158a50de62c0da474405060b5f4610c61744e34e70e2b756a87d16d",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/018-txniso-1s-a1-db1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 19,
+      "name": "txniso-1s-a1-db16",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/019-txniso-1s-a1-db16/result.json",
+      "receipt_sha256": "7234117192429b3809ab9ffccbf18439c492beced66ad45608d3d313b8b4e646",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/019-txniso-1s-a1-db16/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 20,
+      "name": "nx-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/020-nx-1s-a1/result.json",
+      "receipt_sha256": "c1108f9d2e42a713b567bc4cdef117f537e02a206068ce562f936359bbe178f7",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/020-nx-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 21,
+      "name": "nx-bare-1s",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/021-nx-bare-1s/result.json",
+      "receipt_sha256": "ee35ab7c605a85d03d68776f1aae1a3ae12ce18963a55ee99739652f4f428b31",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/021-nx-bare-1s/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 22,
+      "name": "txniso-aof-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/022-txniso-aof-1s-a1/result.json",
+      "receipt_sha256": "3b0276961fa45d22d13cde4dbb62a7f3af285bc0f4fd7377a4fdf568fe5d895f",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/022-txniso-aof-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 23,
+      "name": "movers-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/023-movers-1s-a0/result.json",
+      "receipt_sha256": "e29d2042e2006b3eb864de287e849d11865a06208e02f0e240d138eab20ad2ff",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/023-movers-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 24,
+      "name": "G5-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/024-G5-1s-a0/result.json",
+      "receipt_sha256": "a10e8df01eee0d2db3a606103396ca7fdd08fd91131c87f21e6574edc20df0ab",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/024-G5-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 25,
+      "name": "txngroup-1s-db1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/025-txngroup-1s-db1/result.json",
+      "receipt_sha256": "027ea6fd052e331a250d839c6daee518301677964b8a9a230575dc56d0805921",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/025-txngroup-1s-db1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 26,
+      "name": "txngroup-1s-db16",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/026-txngroup-1s-db16/result.json",
+      "receipt_sha256": "55904f599c3a7d29d89e3357142f473031bf22c961b70d2a3a211e45650ad005",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/026-txngroup-1s-db16/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 27,
+      "name": "txngroup-aof-1s",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/027-txngroup-aof-1s/result.json",
+      "receipt_sha256": "dbe4a58b7d6b33d999a044b943e7f75ab2a95865295d6b9a791a5c56608baaf5",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/027-txngroup-aof-1s/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 28,
+      "name": "differ-split",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/last/028-differ-split/result.json",
+      "receipt_sha256": "0bc1977d4588730900a7081e6f621de45d88fff48837c3c7b3a88415b8db6769",
+      "binary_sha256": "eb6e80dcd30e77584fc34adda7d2c01a91041bf706ecda0dd73be484b01884a1",
+      "client_log": "docs/txnorder2/runtime/last/028-differ-split/client.log",
+      "returncode": 0,
+      "notes": [
+        "Completed focused differential receipt from earlier POST; final full gate differential jobs provide additional final-binary coverage."
+      ],
+      "failure_lines": [
+        "  not observed in compared replies/properties: ACL, ASKING, AUTH, BGREWRITEAOF, BGSAVE, BITCOUNT, BITFIELD, BITFIELD_RO, BITPOS, CLIENT, COMMAND, CONFIG, DECR, DECRBY, DUMP, ECHO, EXPIRE, EXPIREAT, EXPIRETIME, FAILOVER, FLIP, GEODIST, GEOHASH, GEOPOS, GEORADIUS, GEORADIUSBYMEMBER, GEORADIUSBYMEMBER_RO, GEORADIUS_RO, GEOSEARCH, GETBIT, GETEX, HDEL, HELLO, HEXISTS, HEXPIRE, HEXPIREAT, HEXPIRETIME, HGET, HGETALL, HINCRBY, HINCRBYFLOAT, HKEYS, HLEN, HMGET, HMSET, HPERSIST, HPEXPIRE, HPEXPIREAT, HPEXPIRETIME, HPTTL, HSCAN, HSETNX, HSTRLEN, HTTL, HVALS, INCR, INCRBYFLOAT, LASTSAVE, LATENCY, LINDEX, LINSERT, LMPOP, LOLWUT, LPOS, LPUSHX, LREM, LSET, MEMORY, MONITOR, OBJECT, PERSIST, PEXPIRE, PEXPIREAT, PEXPIRETIME, PFCOUNT, PFDEBUG, PFSELFTEST, PING, PSETEX, PSUBSCRIBE, PTTL, PUBLISH, PUBSUB, PUNSUBSCRIBE, QUIT, RANDOMKEY, READONLY, READWRITE, REPLICAOF, RESET, RESTORE, RESTORE-ASKING, ROLE, RPUSHX, SAVE, SCAN, SETBIT, SETEX, SETRANGE, SHUTDOWN, SISMEMBER, SLAVEOF, SLOWLOG, SORT_RO, SPUBLISH, SSCAN, SSUBSCRIBE, SUBSCRIBE, SUBSTR, SUNSUBSCRIBE, TIME, TTL, UNSUBSCRIBE, UNWATCH, WAITAOF, WATCH, XACK, XADD, XAUTOCLAIM, XCLAIM, XDEL, XGROUP, XINFO, XLEN, XPENDING, XRANGE, XREAD, XREADGROUP, XREVRANGE, XSETID, XTRIM, ZCOUNT, ZDIFF, ZINCRBY, ZINTER, ZINTERCARD, ZLEXCOUNT, ZMPOP, ZMSCORE, ZPOPMAX, ZPOPMIN, ZRANGEBYLEX, ZRANGEBYSCORE, ZRANK, ZREM, ZREMRANGEBYLEX, ZREMRANGEBYRANK, ZREMRANGEBYSCORE, ZREVRANGE, ZREVRANGEBYLEX, ZREVRANGEBYSCORE, ZREVRANK, ZSCAN, ZSCORE, ZUNION"
+      ]
+    },
+    {
+      "index": 29,
+      "name": "differ-armed-fused",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/last/029-differ-armed-fused/result.json",
+      "receipt_sha256": "31f507ed893b0bf978353e607cf947933636bcf3bf7a50e0ce07bd5339dac82d",
+      "binary_sha256": "eb6e80dcd30e77584fc34adda7d2c01a91041bf706ecda0dd73be484b01884a1",
+      "client_log": "docs/txnorder2/runtime/last/029-differ-armed-fused/client.log",
+      "returncode": 0,
+      "notes": [
+        "Completed focused differential receipt from earlier POST; final full gate differential jobs provide additional final-binary coverage."
+      ],
+      "failure_lines": [
+        "  not observed in compared replies/properties: ACL, ASKING, AUTH, BGREWRITEAOF, BGSAVE, BITCOUNT, BITFIELD, BITFIELD_RO, BITPOS, CLIENT, COMMAND, CONFIG, DECR, DECRBY, DUMP, ECHO, EXPIRE, EXPIREAT, EXPIRETIME, FAILOVER, FLIP, GEODIST, GEOHASH, GEOPOS, GEORADIUS, GEORADIUSBYMEMBER, GEORADIUSBYMEMBER_RO, GEORADIUS_RO, GEOSEARCH, GETBIT, GETEX, HDEL, HELLO, HEXISTS, HEXPIRE, HEXPIREAT, HEXPIRETIME, HGET, HGETALL, HINCRBY, HINCRBYFLOAT, HKEYS, HLEN, HMGET, HMSET, HPERSIST, HPEXPIRE, HPEXPIREAT, HPEXPIRETIME, HPTTL, HSCAN, HSETNX, HSTRLEN, HTTL, HVALS, INCR, INCRBYFLOAT, LASTSAVE, LATENCY, LINDEX, LINSERT, LMPOP, LOLWUT, LPOS, LPUSHX, LREM, LSET, MEMORY, MONITOR, OBJECT, PERSIST, PEXPIRE, PEXPIREAT, PEXPIRETIME, PFCOUNT, PFDEBUG, PFSELFTEST, PING, PSETEX, PSUBSCRIBE, PTTL, PUBLISH, PUBSUB, PUNSUBSCRIBE, QUIT, RANDOMKEY, READONLY, READWRITE, REPLICAOF, RESET, RESTORE, RESTORE-ASKING, ROLE, RPUSHX, SAVE, SCAN, SETBIT, SETEX, SETRANGE, SHUTDOWN, SISMEMBER, SLAVEOF, SLOWLOG, SORT_RO, SPUBLISH, SSCAN, SSUBSCRIBE, SUBSCRIBE, SUBSTR, SUNSUBSCRIBE, TIME, TTL, UNSUBSCRIBE, UNWATCH, WAITAOF, WATCH, XACK, XADD, XAUTOCLAIM, XCLAIM, XDEL, XGROUP, XINFO, XLEN, XPENDING, XRANGE, XREAD, XREADGROUP, XREVRANGE, XSETID, XTRIM, ZCOUNT, ZDIFF, ZINCRBY, ZINTER, ZINTERCARD, ZLEXCOUNT, ZMPOP, ZMSCORE, ZPOPMAX, ZPOPMIN, ZRANGEBYLEX, ZRANGEBYSCORE, ZRANK, ZREM, ZREMRANGEBYLEX, ZREMRANGEBYRANK, ZREMRANGEBYSCORE, ZREVRANGE, ZREVRANGEBYLEX, ZREVRANGEBYSCORE, ZREVRANK, ZSCAN, ZSCORE, ZUNION"
+      ]
+    },
+    {
+      "index": 30,
+      "name": "original-pre/t01_exec_counter-2s-a0",
+      "arm": "pre",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/first/030-original-pre_t01_exec_counter-2s-a0/result.json",
+      "receipt_sha256": "def59fc86cf89cd2cbb8ea8cab241c188c3e1e081e285a485d60aa06cfae7bc3",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/030-original-pre_t01_exec_counter-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "PRE passes this row; it is a baseline/regression control, not a demonstrated PRE defect."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 31,
+      "name": "original-pre/t02_exec_directed-2s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/031-original-pre_t02_exec_directed-2s-a0/result.json",
+      "receipt_sha256": "f8377b140e7c43bc3a6e8a95e7ad35bce5893301e6e2631955f907fd81d854e2",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/031-original-pre_t02_exec_directed-2s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: acknowledged INCR lost"
+      ]
+    },
+    {
+      "index": 32,
+      "name": "original-pre/t02b_exec_vs_exec-2s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/032-original-pre_t02b_exec_vs_exec-2s-a0/result.json",
+      "receipt_sha256": "5e22f1dfb6d90efc3e07d4651685d4891fd01689ddffb994dd7ee9c5a4c9358f",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/032-original-pre_t02b_exec_vs_exec-2s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: acknowledged INCR lost"
+      ]
+    },
+    {
+      "index": 33,
+      "name": "original-pre/t14_exec_window-2s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/033-original-pre_t14_exec_window-2s-a0/result.json",
+      "receipt_sha256": "89fe90aac03d1013ffab7a0dc3498699ad75dd8c0e7d218b5658daea35befeb4",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/033-original-pre_t14_exec_window-2s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: ('acknowledged INCR lost', [69, 50])"
+      ]
+    },
+    {
+      "index": 34,
+      "name": "original-pre/t15_exec_only_stress-2s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/034-original-pre_t15_exec_only_stress-2s-a0/result.json",
+      "receipt_sha256": "b0e2675d2d1d81d43cbd907ce8df9f6512554b410b6e61c80bc6865a72d4f602",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/034-original-pre_t15_exec_only_stress-2s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: lost or duplicated INCR"
+      ]
+    },
+    {
+      "index": 35,
+      "name": "original-pre/t17_queue_exec-2s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/035-original-pre_t17_queue_exec-2s-a0/result.json",
+      "receipt_sha256": "e7ab177bacfdf8f83af0166077d05155daa55a084421b8741e341708b0c3f492",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/035-original-pre_t17_queue_exec-2s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: queue accounting"
+      ]
+    },
+    {
+      "index": 36,
+      "name": "original-pre/t18_watch_cas-2s-a0",
+      "arm": "pre",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/first/036-original-pre_t18_watch_cas-2s-a0/result.json",
+      "receipt_sha256": "6e15cc0689033bc706c9fd3504965bfebe8a4bf05bbaf7d4c421011348cde9bc",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/036-original-pre_t18_watch_cas-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "PRE passes this row; it is a baseline/regression control, not a demonstrated PRE defect."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 37,
+      "name": "original-pre/t01_exec_counter-2s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/037-original-pre_t01_exec_counter-2s-a1/result.json",
+      "receipt_sha256": "a74746422d64bf06ef1dbfbb6ef3ca58311ae6a773e7457cf12531fd22a7e53d",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/037-original-pre_t01_exec_counter-2s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: acknowledged INCR lost"
+      ]
+    },
+    {
+      "index": 38,
+      "name": "original-pre/t02_exec_directed-2s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/038-original-pre_t02_exec_directed-2s-a1/result.json",
+      "receipt_sha256": "4252d2d07f5533566a41286f9b382bf128b0ee3967953bca237b8999bbabf1a5",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/038-original-pre_t02_exec_directed-2s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: acknowledged INCR lost"
+      ]
+    },
+    {
+      "index": 39,
+      "name": "original-pre/t02b_exec_vs_exec-2s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/039-original-pre_t02b_exec_vs_exec-2s-a1/result.json",
+      "receipt_sha256": "c154a243babc86b8d2978df4457140fac700035f2fd733568fbdccc0dcc529bd",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/039-original-pre_t02b_exec_vs_exec-2s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: acknowledged INCR lost"
+      ]
+    },
+    {
+      "index": 40,
+      "name": "original-pre/t14_exec_window-2s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/040-original-pre_t14_exec_window-2s-a1/result.json",
+      "receipt_sha256": "5caceabf02e0a240ce590f7651620146648ae3d3a73d5e58b641019bbf846b9c",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/040-original-pre_t14_exec_window-2s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: ('acknowledged INCR lost', [23, 278])"
+      ]
+    },
+    {
+      "index": 41,
+      "name": "original-pre/t15_exec_only_stress-2s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/041-original-pre_t15_exec_only_stress-2s-a1/result.json",
+      "receipt_sha256": "09fd5bd17552d82c7518ce74816ce1760c65760ca7617bb6028c8c7749fa5d1e",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/041-original-pre_t15_exec_only_stress-2s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: lost or duplicated INCR"
+      ]
+    },
+    {
+      "index": 42,
+      "name": "original-pre/t17_queue_exec-2s-a1",
+      "arm": "pre",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/first/042-original-pre_t17_queue_exec-2s-a1/result.json",
+      "receipt_sha256": "61ff58c80d534fd242fcf74b93a7d4fcbc761e6bc69f32af7806207cc9d829e8",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/042-original-pre_t17_queue_exec-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "PRE passes this row; it is a baseline/regression control, not a demonstrated PRE defect."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 43,
+      "name": "original-pre/t18_watch_cas-2s-a1",
+      "arm": "pre",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/first/043-original-pre_t18_watch_cas-2s-a1/result.json",
+      "receipt_sha256": "7992d90ae04e0f561cfedcc42b8e6755e425d98402c4c26b4f86868b514bfcbc",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/043-original-pre_t18_watch_cas-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "PRE passes this row; it is a baseline/regression control, not a demonstrated PRE defect."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 44,
+      "name": "original-pre/t01_exec_counter-1s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/044-original-pre_t01_exec_counter-1s-a0/result.json",
+      "receipt_sha256": "529871b4add3a6a1abde3dd607432c16fd11045f1354ca6c81246c375fba7313",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/044-original-pre_t01_exec_counter-1s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: acknowledged INCR lost"
+      ]
+    },
+    {
+      "index": 45,
+      "name": "original-pre/t02_exec_directed-1s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/045-original-pre_t02_exec_directed-1s-a0/result.json",
+      "receipt_sha256": "f39be8246ccb96a7fd2b36d98c0f40899f94f2621b034a9e9ac1a214010b72ad",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/045-original-pre_t02_exec_directed-1s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: acknowledged INCR lost"
+      ]
+    },
+    {
+      "index": 46,
+      "name": "original-pre/t02b_exec_vs_exec-1s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/046-original-pre_t02b_exec_vs_exec-1s-a0/result.json",
+      "receipt_sha256": "d75cf261ca9bd0e8319d551989bd3db1633d9bece72d3c1d244a9f3bd0a9bea1",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/046-original-pre_t02b_exec_vs_exec-1s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: acknowledged INCR lost"
+      ]
+    },
+    {
+      "index": 47,
+      "name": "original-pre/t14_exec_window-1s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/047-original-pre_t14_exec_window-1s-a0/result.json",
+      "receipt_sha256": "8e4458cab91e848f0c212f331f86ca3e6efb7cbb09c3f616e675fecfd261e64b",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/047-original-pre_t14_exec_window-1s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: ('acknowledged INCR lost', [295, 3])"
+      ]
+    },
+    {
+      "index": 48,
+      "name": "original-pre/t15_exec_only_stress-1s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/048-original-pre_t15_exec_only_stress-1s-a0/result.json",
+      "receipt_sha256": "18cfd1e708ce3ec4c165c32e656bdf3f3a3998753573ae868161a506aad85231",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/048-original-pre_t15_exec_only_stress-1s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: lost or duplicated INCR"
+      ]
+    },
+    {
+      "index": 49,
+      "name": "original-pre/t17_queue_exec-1s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/049-original-pre_t17_queue_exec-1s-a0/result.json",
+      "receipt_sha256": "06fac4b23ee675d9f1f6ba9116cd3b59acd8e7eb2a434686f62f47e2fecd3054",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/049-original-pre_t17_queue_exec-1s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: queue accounting"
+      ]
+    },
+    {
+      "index": 50,
+      "name": "original-pre/t18_watch_cas-1s-a0",
+      "arm": "pre",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/first/050-original-pre_t18_watch_cas-1s-a0/result.json",
+      "receipt_sha256": "b12542a0dae55ad9e29381c33ae242a73b5059816179ee3df436dd6be54acdd3",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/050-original-pre_t18_watch_cas-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "PRE passes this row; it is a baseline/regression control, not a demonstrated PRE defect."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 51,
+      "name": "original-pre/t01_exec_counter-1s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/051-original-pre_t01_exec_counter-1s-a1/result.json",
+      "receipt_sha256": "4ac07998c6f4a1ab270cc360e89c9ee8e5faa12ee1ec405484ef889361b1e084",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/051-original-pre_t01_exec_counter-1s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: acknowledged INCR lost"
+      ]
+    },
+    {
+      "index": 52,
+      "name": "original-pre/t02_exec_directed-1s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/052-original-pre_t02_exec_directed-1s-a1/result.json",
+      "receipt_sha256": "58b8db4d30d1065b34a2f2ed1612446b2c8ee93f1bf36a154991a3276dbaa6fb",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/052-original-pre_t02_exec_directed-1s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: acknowledged INCR lost"
+      ]
+    },
+    {
+      "index": 53,
+      "name": "original-pre/t02b_exec_vs_exec-1s-a1",
+      "arm": "pre",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/first/053-original-pre_t02b_exec_vs_exec-1s-a1/result.json",
+      "receipt_sha256": "1397f07413d6202b8fb0fbe3ce2f52f774a0bbe3d3cafaf7bf4e50230f432a40",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/053-original-pre_t02b_exec_vs_exec-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "PRE passes this row; it is a baseline/regression control, not a demonstrated PRE defect."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 54,
+      "name": "original-pre/t14_exec_window-1s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/054-original-pre_t14_exec_window-1s-a1/result.json",
+      "receipt_sha256": "13bcc32ed09d6b67616bbef473c51cf936540256eb07c86326acde9752096a4f",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/054-original-pre_t14_exec_window-1s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: ('acknowledged INCR lost', [27, 285])"
+      ]
+    },
+    {
+      "index": 55,
+      "name": "original-pre/t15_exec_only_stress-1s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/055-original-pre_t15_exec_only_stress-1s-a1/result.json",
+      "receipt_sha256": "cb83eb1657eab3aee7573ccfaae75f34119e4bcac9e980ebd0032d3b7aadb698",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/055-original-pre_t15_exec_only_stress-1s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: lost or duplicated INCR"
+      ]
+    },
+    {
+      "index": 56,
+      "name": "original-pre/t17_queue_exec-1s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/056-original-pre_t17_queue_exec-1s-a1/result.json",
+      "receipt_sha256": "f960b231b6c137f81813286adcaabcede22d1f09291169bce18370f6376a59a9",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/056-original-pre_t17_queue_exec-1s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: queue accounting"
+      ]
+    },
+    {
+      "index": 57,
+      "name": "original-pre/t18_watch_cas-1s-a1",
+      "arm": "pre",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/first/057-original-pre_t18_watch_cas-1s-a1/result.json",
+      "receipt_sha256": "0a2d2d6b135e640e0955258b4c068c302d2458a9840e8f959e18b73813edc065",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/057-original-pre_t18_watch_cas-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "PRE passes this row; it is a baseline/regression control, not a demonstrated PRE defect."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 58,
+      "name": "original-post/t01_exec_counter-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/058-original-post_t01_exec_counter-2s-a0/result.json",
+      "receipt_sha256": "0e5ead8f18adafa79120a4049a509556c8742517830d0ccb89778c7a938afdba",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/058-original-post_t01_exec_counter-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 59,
+      "name": "original-post/t02_exec_directed-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/059-original-post_t02_exec_directed-2s-a0/result.json",
+      "receipt_sha256": "759654921a57d832ffba5d1e9c5a81b6c02e93d3ec2f3f3301f247ae70baa570",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/059-original-post_t02_exec_directed-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 60,
+      "name": "original-post/t02b_exec_vs_exec-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/060-original-post_t02b_exec_vs_exec-2s-a0/result.json",
+      "receipt_sha256": "1427af71cb8d2d8df4f451b2d65208af899e33e7ca4e08066393451654f06279",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/060-original-post_t02b_exec_vs_exec-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 61,
+      "name": "original-post/t14_exec_window-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/061-original-post_t14_exec_window-2s-a0/result.json",
+      "receipt_sha256": "8ae9be794e6028d8341f9ab6431223f1c05b3bbf8e9c8bc9c0e165914a4de5ce",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/061-original-post_t14_exec_window-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 62,
+      "name": "original-post/t15_exec_only_stress-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/062-original-post_t15_exec_only_stress-2s-a0/result.json",
+      "receipt_sha256": "619710185866840dc647dcbeda0c07a86ae507e7d03cc283776a5e65e848ef8c",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/062-original-post_t15_exec_only_stress-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 63,
+      "name": "original-post/t17_queue_exec-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/063-original-post_t17_queue_exec-2s-a0/result.json",
+      "receipt_sha256": "d992acdc169a40a2116cef665c795b661f367e32431de2e0eb1fc844a566e73e",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/063-original-post_t17_queue_exec-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 64,
+      "name": "original-post/t18_watch_cas-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/064-original-post_t18_watch_cas-2s-a0/result.json",
+      "receipt_sha256": "e696533932064ee7942cd00654f6fc9c54b838c9e7677d76424ae9adecbeb918",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/064-original-post_t18_watch_cas-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 65,
+      "name": "original-post/t01_exec_counter-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/065-original-post_t01_exec_counter-2s-a1/result.json",
+      "receipt_sha256": "6e59a4330e44ea617481627eaefd6d0857dde9edabafb25fb000e8a911348471",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/065-original-post_t01_exec_counter-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 66,
+      "name": "original-post/t02_exec_directed-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/066-original-post_t02_exec_directed-2s-a1/result.json",
+      "receipt_sha256": "87d64213c147391ba4bcab6b84fa28a26f6d17a01bd357045bf4c35d9d01820f",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/066-original-post_t02_exec_directed-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 67,
+      "name": "original-post/t02b_exec_vs_exec-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/067-original-post_t02b_exec_vs_exec-2s-a1/result.json",
+      "receipt_sha256": "083333ed7fb139d5e8d4bf29180388a7b367fae401f594bf9ef95a0b25f4f933",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/067-original-post_t02b_exec_vs_exec-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 68,
+      "name": "original-post/t14_exec_window-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/068-original-post_t14_exec_window-2s-a1/result.json",
+      "receipt_sha256": "822dba9657c9aae6f076bd7a33862320a20db78f5f3bc1cf4ab7503076b61434",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/068-original-post_t14_exec_window-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 69,
+      "name": "original-post/t15_exec_only_stress-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/069-original-post_t15_exec_only_stress-2s-a1/result.json",
+      "receipt_sha256": "0617ed859913f8631cb3be186ba33078d0c540aefabfb50cc47d73c6cfe51cb1",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/069-original-post_t15_exec_only_stress-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 70,
+      "name": "original-post/t17_queue_exec-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/070-original-post_t17_queue_exec-2s-a1/result.json",
+      "receipt_sha256": "42946060040d4b77cd76f024b0741c04a4c4c958f9caf7189dcf3769c9ee724f",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/070-original-post_t17_queue_exec-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 71,
+      "name": "original-post/t18_watch_cas-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/071-original-post_t18_watch_cas-2s-a1/result.json",
+      "receipt_sha256": "3ae745cfaf04045768f53c5ba91c7ab439c1915cd6e312659b9eebba0c8c4e9d",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/071-original-post_t18_watch_cas-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 72,
+      "name": "original-post/t01_exec_counter-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/072-original-post_t01_exec_counter-1s-a0/result.json",
+      "receipt_sha256": "7c0b774030fbfd7fa1306335723eb49aac216e9f17d66e4236fdc892f07ade69",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/072-original-post_t01_exec_counter-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 73,
+      "name": "original-post/t02_exec_directed-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/073-original-post_t02_exec_directed-1s-a0/result.json",
+      "receipt_sha256": "bbb7c6f12480ea0c5a68f6597776f85335aba6a719215a7394c34f481a64757d",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/073-original-post_t02_exec_directed-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 74,
+      "name": "original-post/t02b_exec_vs_exec-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/074-original-post_t02b_exec_vs_exec-1s-a0/result.json",
+      "receipt_sha256": "30b51aebee3d20aa44a62eb71073c68594da4a4d5b8f5b244866f08fc0d13c4a",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/074-original-post_t02b_exec_vs_exec-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 75,
+      "name": "original-post/t14_exec_window-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/075-original-post_t14_exec_window-1s-a0/result.json",
+      "receipt_sha256": "5ef52a9054adbc8a9fe5c3261e2ef9f4e4f6818d49ff958457945b435552eeb2",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/075-original-post_t14_exec_window-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 76,
+      "name": "original-post/t15_exec_only_stress-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/076-original-post_t15_exec_only_stress-1s-a0/result.json",
+      "receipt_sha256": "f87148d4523b34d4488ccef8f010ae52fd7e20a657b0cb880c59003007d930aa",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/076-original-post_t15_exec_only_stress-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 77,
+      "name": "original-post/t17_queue_exec-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/077-original-post_t17_queue_exec-1s-a0/result.json",
+      "receipt_sha256": "f29dc4dba70284bc5bb2f9076efec68bdb0b9117f86e3594c1b53873be76d743",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/077-original-post_t17_queue_exec-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 78,
+      "name": "original-post/t18_watch_cas-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/078-original-post_t18_watch_cas-1s-a0/result.json",
+      "receipt_sha256": "8e08e10c17ff9875909bb69d3a3adfe93ddd24aa14346ed2c32b48305d5f138d",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/078-original-post_t18_watch_cas-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 79,
+      "name": "original-post/t01_exec_counter-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/079-original-post_t01_exec_counter-1s-a1/result.json",
+      "receipt_sha256": "f305fed7f87cde7b0470c294f7b2734548562e6ccfe0fa7cebc860f091a4ec92",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/079-original-post_t01_exec_counter-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 80,
+      "name": "original-post/t02_exec_directed-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/080-original-post_t02_exec_directed-1s-a1/result.json",
+      "receipt_sha256": "85ec91ef5f593052ed97c38e033cab00ce71288bb269e7dc2d8d2432213ad492",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/080-original-post_t02_exec_directed-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 81,
+      "name": "original-post/t02b_exec_vs_exec-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/081-original-post_t02b_exec_vs_exec-1s-a1/result.json",
+      "receipt_sha256": "923734573282ffc198714f16a7e881bea68a253e9eb07815573e5d18b68391ea",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/081-original-post_t02b_exec_vs_exec-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 82,
+      "name": "original-post/t14_exec_window-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/082-original-post_t14_exec_window-1s-a1/result.json",
+      "receipt_sha256": "22a229adf3b2abf9dd7d80785e0af8671820a333f9e4f5ca031d423b195f48ce",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/082-original-post_t14_exec_window-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 83,
+      "name": "original-post/t15_exec_only_stress-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/083-original-post_t15_exec_only_stress-1s-a1/result.json",
+      "receipt_sha256": "68d73847a6abefee6aea9c2778fb8faa8f90146a5d0f56a861745ebba9907335",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/083-original-post_t15_exec_only_stress-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 84,
+      "name": "original-post/t17_queue_exec-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/084-original-post_t17_queue_exec-1s-a1/result.json",
+      "receipt_sha256": "72c3537ac303951e0fb6e3e1e9f462d30d61739517ea23c0492ab94d3befa843",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/084-original-post_t17_queue_exec-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 85,
+      "name": "original-post/t18_watch_cas-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/085-original-post_t18_watch_cas-1s-a1/result.json",
+      "receipt_sha256": "f82e4d3a41275ec6f89af8d3d55f8d9181c2ceb358757d9f66eda9e110b359c4",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/085-original-post_t18_watch_cas-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 86,
+      "name": "stage-b/T03-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/086-stage-b_T03-2s-a0/result.json",
+      "receipt_sha256": "437b78588988973f063a50a397b6f2cabad9648b8b3e30376cafd12b4811cdeb",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/086-stage-b_T03-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 87,
+      "name": "stage-b/T04-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/087-stage-b_T04-2s-a0/result.json",
+      "receipt_sha256": "d95f7dcc9f2af7e370f11c202385195576fa0cfcb23dc55386b8f9a88883e6c9",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/087-stage-b_T04-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 88,
+      "name": "stage-b/T05-smove-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/088-stage-b_T05-smove-2s-a0/result.json",
+      "receipt_sha256": "325a20c8d5858713185699a65964dd48cc2b335a294c1c6290b3905d0e4d369e",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/088-stage-b_T05-smove-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 89,
+      "name": "stage-b/T05-rpoplpush-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/089-stage-b_T05-rpoplpush-2s-a0/result.json",
+      "receipt_sha256": "4adf2e65a385d26f7130c304a443566ed6cf6e0c2aeebec6f12452b200389c04",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/089-stage-b_T05-rpoplpush-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 90,
+      "name": "stage-b/T03-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/090-stage-b_T03-2s-a1/result.json",
+      "receipt_sha256": "2afa27e5d9f0472b4a00d15abe5a658b055d4b6afbb22b6638cb8ab78908f8d0",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/090-stage-b_T03-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 91,
+      "name": "stage-b/T04-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/091-stage-b_T04-2s-a1/result.json",
+      "receipt_sha256": "c12ae5b60a5a1d10072ea618ebb033e1ceb508484f95104e634aa5d72ad7624c",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/091-stage-b_T04-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 92,
+      "name": "stage-b/T05-smove-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/092-stage-b_T05-smove-2s-a1/result.json",
+      "receipt_sha256": "642977952f30fd758dbe26e1de0c9850e35ab5ae3d4dd04bc64fab363ee8d135",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/092-stage-b_T05-smove-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 93,
+      "name": "stage-b/T05-rpoplpush-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/093-stage-b_T05-rpoplpush-2s-a1/result.json",
+      "receipt_sha256": "819c3d44eabfe6e25b2126bdb049a912cf9a7616544a7b335fd258e693c8ca63",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/093-stage-b_T05-rpoplpush-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 94,
+      "name": "stage-b/T10-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/094-stage-b_T10-2s-a1/result.json",
+      "receipt_sha256": "0f9c9d16d529f4e69f7357840d44275cd54239d312dbbc8593ceb5cc1e29215a",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/094-stage-b_T10-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 95,
+      "name": "stage-b/T03-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/095-stage-b_T03-1s-a0/result.json",
+      "receipt_sha256": "87bfe9a2323d395bd63e2c6eeab9add06a75ef98334d4e69a9a80fe76bc27d59",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/095-stage-b_T03-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 96,
+      "name": "stage-b/T04-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/096-stage-b_T04-1s-a0/result.json",
+      "receipt_sha256": "b8fbe0e2c8940b4584c8bec894fa05536f6749c67e5fc12e4220a7d16a4c5de1",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/096-stage-b_T04-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 97,
+      "name": "stage-b/T05-smove-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/097-stage-b_T05-smove-1s-a0/result.json",
+      "receipt_sha256": "20397db5ac3e819e2f32f676642a638acee32755f5730957531d76e78efe06dd",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/097-stage-b_T05-smove-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 98,
+      "name": "stage-b/T05-rpoplpush-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/098-stage-b_T05-rpoplpush-1s-a0/result.json",
+      "receipt_sha256": "ac8787102ade2624ce559df46b11452e4e56771c3f5b79479a87629dc4bf9d9a",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/098-stage-b_T05-rpoplpush-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 99,
+      "name": "stage-b/T03-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/099-stage-b_T03-1s-a1/result.json",
+      "receipt_sha256": "79351de0974fabd01f08140ae011c0be88bb683d7bd232352083d1df55999af6",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/099-stage-b_T03-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 100,
+      "name": "stage-b/T04-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/100-stage-b_T04-1s-a1/result.json",
+      "receipt_sha256": "dff31abc08c3e9b90229523c9f580402d9a7d60872f2934376ba96588d993534",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/100-stage-b_T04-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 101,
+      "name": "stage-b/T05-smove-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/101-stage-b_T05-smove-1s-a1/result.json",
+      "receipt_sha256": "958d7fc3afdd2bd983df5d2bfe1cf7011bb3b808d7a9e084d6c9439b60b1c1b9",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/101-stage-b_T05-smove-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 102,
+      "name": "stage-b/T05-rpoplpush-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/102-stage-b_T05-rpoplpush-1s-a1/result.json",
+      "receipt_sha256": "7b4d0f47abbac070725603342a6a3e487a863bcb70833367ebd1a5b951d35e09",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/102-stage-b_T05-rpoplpush-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 103,
+      "name": "stage-b/T10-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/103-stage-b_T10-1s-a1/result.json",
+      "receipt_sha256": "fb7d52adbbe9bfb20b260773f333f3de907cdd37d1f8f29bc38bc2ae0b946947",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/103-stage-b_T10-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 104,
+      "name": "stage-b/t10_msetnx_hold-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/104-stage-b_t10_msetnx_hold-2s-a0/result.json",
+      "receipt_sha256": "0158984b6f01ef49307cc6582fd4cd12c1229012e119e2852a8d0d564467b086",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/104-stage-b_t10_msetnx_hold-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 105,
+      "name": "stage-b/t10_msetnx_hold-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/105-stage-b_t10_msetnx_hold-1s-a0/result.json",
+      "receipt_sha256": "e4efd70ecb8a421882072b0447ffd896fc519fbb1642273dcb44210025e6ef81",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/105-stage-b_t10_msetnx_hold-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 106,
+      "name": "broad-2s/multi_exec",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/106-broad-2s_multi_exec/result.json",
+      "receipt_sha256": "52fde44b99701932f7da0d7d184a67e81b3e16e01be1460802a5bd161a94fc63",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/106-broad-2s_multi_exec/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 107,
+      "name": "broad-2s/execfix",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/107-broad-2s_execfix/result.json",
+      "receipt_sha256": "5e446f612fb1ac6800e7af20ffdaab001f23cc04645a8d6872923c4906164e06",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/107-broad-2s_execfix/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 108,
+      "name": "broad-2s/execiso",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/108-broad-2s_execiso/result.json",
+      "receipt_sha256": "81f8094b26f9ae90ff344dcee534f758d2913758866e14e90672e72c5bcc0f73",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/108-broad-2s_execiso/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 109,
+      "name": "broad-2s/execatomic",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/109-broad-2s_execatomic/result.json",
+      "receipt_sha256": "da4f82af22339f3004d454df9af6ba09d68348e44c078b3cce3b4b25d835b807",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/109-broad-2s_execatomic/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 110,
+      "name": "broad-2s/multirace",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/110-broad-2s_multirace/result.json",
+      "receipt_sha256": "3a9fcddd73ebf77610a1838504d0c3f6cff06f05d3e3762d74f862650e225e4c",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/110-broad-2s_multirace/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 111,
+      "name": "broad-2s/multires",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/111-broad-2s_multires/result.json",
+      "receipt_sha256": "e1023593aa74ad330de7d830c567a1f950d36cdd3ee9dafa5db0563baa5733dc",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/111-broad-2s_multires/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 112,
+      "name": "broad-2s/watchlive",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/112-broad-2s_watchlive/result.json",
+      "receipt_sha256": "af7c7bdeb46231cd0d25186f02591e5f56ab19ca916443d0cb72b05ddbbd22e3",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/112-broad-2s_watchlive/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 113,
+      "name": "broad-2s/blockmulti",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/113-broad-2s_blockmulti/result.json",
+      "receipt_sha256": "3e71b74841a45885ef1f6b0d79f98cf3037717399fd87da11a6430f08aaf75dc",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/113-broad-2s_blockmulti/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 114,
+      "name": "broad-2s/pipeorder",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/114-broad-2s_pipeorder/result.json",
+      "receipt_sha256": "c2c9d4799e5cfd1c166fff131754b800e31ab16092b137e67582ec228d9544c6",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/114-broad-2s_pipeorder/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 115,
+      "name": "broad-2s/session_monotonic",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/115-broad-2s_session_monotonic/result.json",
+      "receipt_sha256": "9bf9cbe9b5e214aab3e8e9ccebe89ff8f659b6de94b792cc4b51c775c2d2eea8",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/115-broad-2s_session_monotonic/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 116,
+      "name": "broad-2s/xmove",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/116-broad-2s_xmove/result.json",
+      "receipt_sha256": "c2b84e61387adf8eea62bacff37f415a9b41be3a2e3bece3c33955947d05cd7a",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/116-broad-2s_xmove/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 117,
+      "name": "broad-2s/xscript",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/117-broad-2s_xscript/result.json",
+      "receipt_sha256": "f59654fb95091f6514d8387e04108f56473df9b544e4bb811456d1a9aef8e3f7",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/117-broad-2s_xscript/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 118,
+      "name": "broad-2s/scriptatomic",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/118-broad-2s_scriptatomic/result.json",
+      "receipt_sha256": "f95323682970ce31da38e786dbe554876c0fa4d7e65d8182a13179e473bdb4ed",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/118-broad-2s_scriptatomic/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": [
+        "SCRIPTATOMIC: 0 FAIL (0 vacuous)"
+      ]
+    },
+    {
+      "index": 119,
+      "name": "broad-2s/atomic_torn",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/119-broad-2s_atomic_torn/result.json",
+      "receipt_sha256": "724692fec0fae25d697570714b78791132085635da987b78a6f31c0b5025a0e4",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/119-broad-2s_atomic_torn/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 120,
+      "name": "broad-2s/atomic_ryow",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/120-broad-2s_atomic_ryow/result.json",
+      "receipt_sha256": "5655658737120f3ccebad800a94bc1a258cf507454ccb35cbd5e29bb5a7ca2c6",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/120-broad-2s_atomic_ryow/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 121,
+      "name": "broad-2s/atomic_hazards",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/121-broad-2s_atomic_hazards/result.json",
+      "receipt_sha256": "0644516cd44bb6d9a3c89b92881b628db4ee3a823577c08c54adbc116101b4e3",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/121-broad-2s_atomic_hazards/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": [
+        "FAIL=0"
+      ]
+    },
+    {
+      "index": 122,
+      "name": "broad-2s/atomic_plain",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/122-broad-2s_atomic_plain/result.json",
+      "receipt_sha256": "048e02dddae5aabf02ac1a0fd9a357c47026ec83e240bec9a07f028063947626",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/122-broad-2s_atomic_plain/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 123,
+      "name": "broad-2s/storeorder",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/123-broad-2s_storeorder/result.json",
+      "receipt_sha256": "f514708c3cf761477c45a12a23ce75de92c083eea61ba97fd7b1b878d73d9fd3",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/123-broad-2s_storeorder/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 124,
+      "name": "broad-2s/atomic_plain-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/124-broad-2s_atomic_plain-a0/result.json",
+      "receipt_sha256": "d3bdd4523dce09bb9e11fcbc874f890b059356d48712a0ae4125365235a74e13",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/124-broad-2s_atomic_plain-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 125,
+      "name": "watchlive-2s",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/125-watchlive-2s/result.json",
+      "receipt_sha256": "c52ead716b05d97a12e7bb646c836397fd5d513affdf170ebfad68934f8e7a1b",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/125-watchlive-2s/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 126,
+      "name": "broad-1s/multi_exec",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/126-broad-1s_multi_exec/result.json",
+      "receipt_sha256": "0895c662d3fe95dd7a4a8a5fb8aca881bcdf85e8f39f728a9f0e1fe01f38376b",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/126-broad-1s_multi_exec/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 127,
+      "name": "broad-1s/execfix",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/127-broad-1s_execfix/result.json",
+      "receipt_sha256": "8aac84d0a2a9815c67775b1178e4e4db57faf6a3d0e673e26012a712cb9792e5",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/127-broad-1s_execfix/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 128,
+      "name": "broad-1s/execiso",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/128-broad-1s_execiso/result.json",
+      "receipt_sha256": "ef00c5c913e21952a3516b1571ebaebe7a89dec77c78b80f9229a0dea7685698",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/128-broad-1s_execiso/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 129,
+      "name": "broad-1s/execatomic",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/129-broad-1s_execatomic/result.json",
+      "receipt_sha256": "63edb8638f32506eec6493d80e912739e041e3e3ba0cd4aa166f6e74a24cd326",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/129-broad-1s_execatomic/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 130,
+      "name": "broad-1s/multirace",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/130-broad-1s_multirace/result.json",
+      "receipt_sha256": "8108ed407f5da53bdaf71bbe173da333fdc44d938967c35ee916a31a4d0fa0b3",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/130-broad-1s_multirace/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 131,
+      "name": "broad-1s/multires",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/131-broad-1s_multires/result.json",
+      "receipt_sha256": "2de555c88cdf41d03f94225d41263e59c9d837fedfae4b73a545f479063c35f0",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/131-broad-1s_multires/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 132,
+      "name": "broad-1s/watchlive",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/132-broad-1s_watchlive/result.json",
+      "receipt_sha256": "ff9a953ca776ab9a148939846d36304f37c7f41c30e91da94b2040a06184d8f9",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/132-broad-1s_watchlive/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 133,
+      "name": "broad-1s/blockmulti",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/133-broad-1s_blockmulti/result.json",
+      "receipt_sha256": "99303885b1bcfbcbb750f1d285a38752170e0fe46bc56e37c0e62d51a58eaa33",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/133-broad-1s_blockmulti/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 134,
+      "name": "broad-1s/pipeorder",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/134-broad-1s_pipeorder/result.json",
+      "receipt_sha256": "17ef0a702bc084329dcf38ec4b518f657e5c55c4af0f417b4e5b85ab8b4a3176",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/134-broad-1s_pipeorder/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 135,
+      "name": "broad-1s/session_monotonic",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/135-broad-1s_session_monotonic/result.json",
+      "receipt_sha256": "0a8b6411c8fed3e258e3bc4e4c8a49db64cf3672a6a94d8775c90f49f3b12bc8",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/135-broad-1s_session_monotonic/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 136,
+      "name": "broad-1s/xmove",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/136-broad-1s_xmove/result.json",
+      "receipt_sha256": "d764ed64924533c2c1ae20d4418a1703ccb8c06b33e761ddd89eb2d978b327a4",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/136-broad-1s_xmove/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 137,
+      "name": "broad-1s/xscript",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/137-broad-1s_xscript/result.json",
+      "receipt_sha256": "cf84729dc5d8b3e0baf600c1492894a5c5bb7876ef63275df57a7c905d061e51",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/137-broad-1s_xscript/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 138,
+      "name": "broad-1s/scriptatomic",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/138-broad-1s_scriptatomic/result.json",
+      "receipt_sha256": "a947f0dcb88af61ae1dfd2e3515bc6c736f098592032a34b229275c73af84de8",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/138-broad-1s_scriptatomic/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": [
+        "SCRIPTATOMIC: 0 FAIL (0 vacuous)"
+      ]
+    },
+    {
+      "index": 139,
+      "name": "broad-1s/atomic_torn",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/139-broad-1s_atomic_torn/result.json",
+      "receipt_sha256": "2e3175150a9c7e66ad97f1aa8cdaba0a9e0bf4ef71b925c76f7c7683c056a979",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/139-broad-1s_atomic_torn/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 140,
+      "name": "broad-1s/atomic_ryow",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/140-broad-1s_atomic_ryow/result.json",
+      "receipt_sha256": "8b3d472fa520a92931b4c7317b12a262fea92217ed699218231b3a54b89ebfb9",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/140-broad-1s_atomic_ryow/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 141,
+      "name": "broad-1s/atomic_hazards",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/141-broad-1s_atomic_hazards/result.json",
+      "receipt_sha256": "1fb31a8d4c62419808069a2dd3d72bd28436fa500d9fea76e427260dbff0e397",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/141-broad-1s_atomic_hazards/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": [
+        "FAIL=0"
+      ]
+    },
+    {
+      "index": 142,
+      "name": "broad-1s/atomic_plain",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/142-broad-1s_atomic_plain/result.json",
+      "receipt_sha256": "1c09867b08010c244a15751dff12a2e641ffbb54151cc91f6e4d52dddc7c3573",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/142-broad-1s_atomic_plain/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 143,
+      "name": "broad-1s/storeorder",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/143-broad-1s_storeorder/result.json",
+      "receipt_sha256": "22f5f1b860db74a71343040fb6bf02e42c60132d27b57188482d1c64e44400e2",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/143-broad-1s_storeorder/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 144,
+      "name": "broad-1s/atomic_plain-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/144-broad-1s_atomic_plain-a0/result.json",
+      "receipt_sha256": "43482f264c9484604aba1a47a5dd541bddbc50ef52d807444530b1211d08fb58",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/144-broad-1s_atomic_plain-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 145,
+      "name": "watchlive-1s",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/145-watchlive-1s/result.json",
+      "receipt_sha256": "dcc69e3dd23f31846a2b3a8a1774789457af6cd13c62e308a29bba5c02669cc8",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/145-watchlive-1s/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 146,
+      "name": "writer-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/146-writer-2s-a0/result.json",
+      "receipt_sha256": "207f69e2fe00c2b4436ffbaeaff6ba3770f89cbf745a554730c155e0842c658e",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/146-writer-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 147,
+      "name": "writer-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/147-writer-2s-a1/result.json",
+      "receipt_sha256": "84422c399b616c3ef773ed07c9d3be29a6edcdc5269d5839305c0ff2a6ad0682",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/147-writer-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 148,
+      "name": "aof-2s-prepare",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/148-aof-2s-prepare/result.json",
+      "receipt_sha256": "a27bea6cb7d834cbec28b655b8da5d1cd98667d0aac17ba685429d7f23a60da1",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/148-aof-2s-prepare/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 149,
+      "name": "aof-2s-verify",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/149-aof-2s-verify/result.json",
+      "receipt_sha256": "5b46ccaa7a8be09123ecdd0f2fd2272b8fed5f5944f99c8b02932b8b270e6643",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/149-aof-2s-verify/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 150,
+      "name": "aof-2s-scan",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/150-aof-2s-scan/result.json",
+      "receipt_sha256": "7feb4f3978e8f2100d6e85b22377887ac5a2e564dabcbcc9cfda5489d96367d7",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/150-aof-2s-scan/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 151,
+      "name": "snapshot-2s-mset",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/151-snapshot-2s-mset/result.json",
+      "receipt_sha256": "3f7f501c878d22c1ec15a63242bff1a729bee76cfc2aa746cb371f65d90a746c",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/151-snapshot-2s-mset/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 152,
+      "name": "snapshot-2s-exec",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/152-snapshot-2s-exec/result.json",
+      "receipt_sha256": "5bdc5fcdee1df93e9c63658b35467d5d989ced50c72a8d84101f4bf1e4d4bb98",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/152-snapshot-2s-exec/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 153,
+      "name": "writer-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/153-writer-1s-a0/result.json",
+      "receipt_sha256": "eb124b6ec449eb368d97a43037823e23cdb273e25d2b7203289310a804a56eea",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/153-writer-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 154,
+      "name": "writer-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/154-writer-1s-a1/result.json",
+      "receipt_sha256": "e8ff443a17f41aec42aaa908ba06abd5fd5c57dd0476899c9a0b2a30a505ff0e",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/154-writer-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 155,
+      "name": "aof-1s-prepare",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/155-aof-1s-prepare/result.json",
+      "receipt_sha256": "0dc80283d9855fc7d2a55fc97a078de3e63e874bb2143d801ccde32395669cbb",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/155-aof-1s-prepare/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 156,
+      "name": "aof-1s-verify",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/156-aof-1s-verify/result.json",
+      "receipt_sha256": "56b152693c7f5068401e05dc06f9eea4571471a61501da11dc4d00d7aeb4698b",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/156-aof-1s-verify/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 157,
+      "name": "aof-1s-scan",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/157-aof-1s-scan/result.json",
+      "receipt_sha256": "d0f08bcfaa8a6b35b88784483a617bf853365d33d74c16d399d967cb8c129cb4",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/157-aof-1s-scan/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 158,
+      "name": "snapshot-1s-mset",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/158-snapshot-1s-mset/result.json",
+      "receipt_sha256": "24a4d6ea0eca94620c525fa0e5692539f202089ff3d942ca2acb36a4e1c56a91",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/158-snapshot-1s-mset/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 159,
+      "name": "snapshot-1s-exec",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/159-snapshot-1s-exec/result.json",
+      "receipt_sha256": "9186a1f31f41856db80bb44d5ba40360156dce44a01df142723c38377a7cb50d",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/159-snapshot-1s-exec/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 160,
+      "name": "flip",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/160-flip/result.json",
+      "receipt_sha256": "0e6480ccf494d1931c3b9b8c4d01c10e9d7d7b32ce1a8eaa82a0b960db035de2",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/160-flip/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 161,
+      "name": "pre-txniso-2s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/161-pre-txniso-2s-a0/result.json",
+      "receipt_sha256": "53183035555b443b34f69d47572269a6533b92d93f47ef0d41d2d8dd5421e142",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/161-pre-txniso-2s-a0/client.log",
+      "returncode": 1,
+      "notes": [
+        "Full battery ran. X1 instrumentation sub-arm NOT RUN as a semantic PRE proof: origin lacks its DEBUG hook. W3/Z1 failures are retained as liveness/window evidence, not exact-data negative controls. Other D/V/S rows show actual semantic failures."
+      ],
+      "failure_lines": [
+        "FAIL D4b AssertionError(('changed WATCH must yield null', [1, [b'1', b'0'], 1]))",
+        "FAIL D1b AssertionError(([1, 1], (1, 0.0001734597608447075), (2, 0.15875890292227268)))",
+        "FAIL D5 AssertionError()",
+        "AssertionError: ('acknowledged INCR lost', [2, 130])",
+        "FAIL S3 AssertionError(('t14_exec_window.py', 1))",
+        "FAIL W3 TimeoutError('timed out')",
+        "FAIL V1 AssertionError([1, [b'1', b'0'], 1])",
+        "FAIL V2 AssertionError([1, [b'1', b'0'], 1, RespError(b'ERR internal pubsub routing error')])",
+        "FAIL V3 AssertionError([1, b'13', [b'1', b'0'], 1])",
+        "FAIL X1 RespError(b\"ERR unknown subcommand or wrong number of arguments for 'debug' command\")",
+        "FAIL X2 AssertionError()",
+        "FAIL Z1 WindowMiss('pending entries did not drain')"
+      ]
+    },
+    {
+      "index": 162,
+      "name": "pre-txniso-2s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/162-pre-txniso-2s-a1/result.json",
+      "receipt_sha256": "6a29fc3ee1765d68ea18b636c44b1717dd365b32f01c2127dc3af0288ec4f38c",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/162-pre-txniso-2s-a1/client.log",
+      "returncode": 1,
+      "notes": [
+        "Full battery ran. X1 instrumentation sub-arm NOT RUN as a semantic PRE proof: origin lacks its DEBUG hook. W3/Z1 failures are retained as liveness/window evidence, not exact-data negative controls. Other D/V/S rows show actual semantic failures."
+      ],
+      "failure_lines": [
+        "FAIL D5 AssertionError()",
+        "AssertionError: acknowledged INCR lost",
+        "FAIL S2 AssertionError(('t01_exec_counter.py', 1))",
+        "AssertionError: ('acknowledged INCR lost', [2, 149])",
+        "FAIL S3 AssertionError(('t14_exec_window.py', 1))",
+        "FAIL W3 TimeoutError('timed out')",
+        "FAIL V1 AssertionError([1, [b'1', b'0'], 1])",
+        "FAIL V2 AssertionError([1, [b'1', b'0'], 1, RespError(b'ERR internal pubsub routing error')])",
+        "FAIL V3 AssertionError([1, b'1', [b'1', b'0'], 1])",
+        "FAIL X1 RespError(b\"ERR unknown subcommand or wrong number of arguments for 'debug' command\")",
+        "FAIL X2 AssertionError()",
+        "FAIL Z1 WindowMiss('pending entries did not drain')"
+      ]
+    },
+    {
+      "index": 163,
+      "name": "pre-txniso-1s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/163-pre-txniso-1s-a0/result.json",
+      "receipt_sha256": "e08d1d6161a527e523c19dbf2e9489f8a644e3d935ef54bc047f2d9fb37d2a97",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/163-pre-txniso-1s-a0/client.log",
+      "returncode": 1,
+      "notes": [
+        "Full battery ran. X1 instrumentation sub-arm NOT RUN as a semantic PRE proof: origin lacks its DEBUG hook. W3/Z1 failures are retained as liveness/window evidence, not exact-data negative controls. Other D/V/S rows show actual semantic failures."
+      ],
+      "failure_lines": [
+        "AssertionError: ('acknowledged INCR lost', [1, 128])",
+        "FAIL S3 AssertionError(('t14_exec_window.py', 1))",
+        "AssertionError: queue accounting",
+        "FAIL S4 AssertionError(('t17_queue_exec.py', 1))",
+        "FAIL S5 AssertionError(15)",
+        "FAIL W3 TimeoutError('timed out')",
+        "FAIL V1 AssertionError([1, [b'1', b'0'], 1])",
+        "FAIL V2 AssertionError([1, [b'1', b'0'], 1, RespError(b'ERR internal pubsub routing error')])",
+        "FAIL V3 AssertionError([1, b'4', [b'1', b'0'], 1])",
+        "FAIL X1 RespError(b\"ERR unknown subcommand or wrong number of arguments for 'debug' command\")",
+        "FAIL X2 AssertionError()",
+        "FAIL Z1 WindowMiss('pending entries did not drain')"
+      ]
+    },
+    {
+      "index": 164,
+      "name": "pre-txniso-1s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/164-pre-txniso-1s-a1/result.json",
+      "receipt_sha256": "87f3d30f41801c5fe828750071c911c705ab82e216e9d56a22b394203811a216",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/164-pre-txniso-1s-a1/client.log",
+      "returncode": 1,
+      "notes": [
+        "Full battery ran. X1 instrumentation sub-arm NOT RUN as a semantic PRE proof: origin lacks its DEBUG hook. W3/Z1 failures are retained as liveness/window evidence, not exact-data negative controls. Other D/V/S rows show actual semantic failures."
+      ],
+      "failure_lines": [
+        "AssertionError: ('acknowledged INCR lost', [1, 195])",
+        "FAIL S3 AssertionError(('t14_exec_window.py', 1))",
+        "AssertionError: queue accounting",
+        "FAIL S4 AssertionError(('t17_queue_exec.py', 1))",
+        "FAIL S5 AssertionError(188)",
+        "FAIL W3 TimeoutError('timed out')",
+        "FAIL V1 AssertionError([1, [b'1', b'0'], 1])",
+        "FAIL V2 AssertionError([1, [b'1', b'0'], 1, RespError(b'ERR internal pubsub routing error')])",
+        "FAIL V3 AssertionError([1, b'4', [b'1', b'0'], 1])",
+        "FAIL X1 RespError(b\"ERR unknown subcommand or wrong number of arguments for 'debug' command\")",
+        "FAIL X2 AssertionError()",
+        "FAIL Z1 WindowMiss('pending entries did not drain')"
+      ]
+    },
+    {
+      "index": 165,
+      "name": "pre-1s-execatomic",
+      "arm": "pre",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/165-pre-1s-execatomic/result.json",
+      "receipt_sha256": "5810b0f0b997856fc656dd3ce8c8b72bf18bfa3f7d1529d61d162b120772e925",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/final2b/165-pre-1s-execatomic/client.log",
+      "returncode": 0,
+      "notes": [
+        "PRE passes this row; it is a baseline/regression control, not a demonstrated PRE defect."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 166,
+      "name": "pre-1s-atomic_torn",
+      "arm": "pre",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/166-pre-1s-atomic_torn/result.json",
+      "receipt_sha256": "06951a77117c2a70c4d9dc0ce682d7c2b6f1b927fd9114f03abadc117997e4dd",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/final2b/166-pre-1s-atomic_torn/client.log",
+      "returncode": 0,
+      "notes": [
+        "PRE passes this row; it is a baseline/regression control, not a demonstrated PRE defect."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 167,
+      "name": "pre-2s-G5",
+      "arm": "pre",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/167-pre-2s-G5/result.json",
+      "receipt_sha256": "4c6ecd6ce201f136d9d66003f0d33bbfc82014a541ff73641b71cb81e444ea19",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/final2b/167-pre-2s-G5/client.log",
+      "returncode": 0,
+      "notes": [
+        "PRE passes this row; it is a baseline/regression control, not a demonstrated PRE defect."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 168,
+      "name": "post-2s-G5",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/168-post-2s-G5/result.json",
+      "receipt_sha256": "74d10955c1367dc8c1888f6cc598b24b861145110c0763783f88662187ca325f",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/168-post-2s-G5/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 169,
+      "name": "pre-1s-G5",
+      "arm": "pre",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/169-pre-1s-G5/result.json",
+      "receipt_sha256": "89da1227a7275a392f9bde3f55de78bef44c342bb5e874a08193a139689fbd46",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/final2b/169-pre-1s-G5/client.log",
+      "returncode": 0,
+      "notes": [
+        "PRE passes this row; it is a baseline/regression control, not a demonstrated PRE defect."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 170,
+      "name": "post-1s-G5",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/170-post-1s-G5/result.json",
+      "receipt_sha256": "e1adf029dc511790f6d0ace502cefe8add1c330461d72b180d98f452795ecd28",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/170-post-1s-G5/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 171,
+      "name": "pre-2s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/final2b/171-pre-2s-a0/result.json",
+      "receipt_sha256": "5cf261760d7f489ccd53a869f2bb8539ad56d2e8ca10c7c145969eebe54e285e",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/final2b/171-pre-2s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: crossed WATCH did not decide within 20 s"
+      ]
+    },
+    {
+      "index": 172,
+      "name": "pre-2s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/final2b/172-pre-2s-a1/result.json",
+      "receipt_sha256": "4a1917e62efdd0c92af50829156c46a022004420fd0aa7dbaa8160f029a2735d",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/final2b/172-pre-2s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: crossed WATCH did not decide within 20 s"
+      ]
+    },
+    {
+      "index": 173,
+      "name": "pre-1s-a0",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/final2b/173-pre-1s-a0/result.json",
+      "receipt_sha256": "1770b76444a77495eff73d56823729409a1a646b7ff7b99c8b65df56b9696ed3",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/final2b/173-pre-1s-a0/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: crossed WATCH did not decide within 20 s"
+      ]
+    },
+    {
+      "index": 174,
+      "name": "pre-1s-a1",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/final2b/174-pre-1s-a1/result.json",
+      "receipt_sha256": "b32cb5a958a1b415b219752bcde3e677032515f0ad40a00a801e5eaf626bd55b",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/final2b/174-pre-1s-a1/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "AssertionError: crossed WATCH did not decide within 20 s"
+      ]
+    },
+    {
+      "index": 175,
+      "name": "post-2s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/175-post-2s-a0/result.json",
+      "receipt_sha256": "83d4bdf4960280016c0de6b1cff325a73471da7ecb186a37bab64f74f40b6293",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/175-post-2s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 176,
+      "name": "post-2s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/176-post-2s-a1/result.json",
+      "receipt_sha256": "4a1a4ada5ec32426e1d614e0f3f61d7bf300e11024668112d580f8092775e9f5",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/176-post-2s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 177,
+      "name": "post-1s-a0",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/177-post-1s-a0/result.json",
+      "receipt_sha256": "e334542b7ba42ae226fb5d54a71ca1afca46bd44180cf6751657b40606c88ca1",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/177-post-1s-a0/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 178,
+      "name": "post-1s-a1",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/178-post-1s-a1/result.json",
+      "receipt_sha256": "5af186b9ea90691728739e3bef3e90c0736bb24547127d4348d281f1b4eba1c8",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/178-post-1s-a1/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 179,
+      "name": "multirace-2s",
+      "arm": "barrier-off",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/final-negative/179-multirace-2s/result.json",
+      "receipt_sha256": "d80a90db8a51244ef127f664942cb6604f50ad2734048364c574f5ab57c0e04f",
+      "binary_sha256": "3f88f79811aaf664117722be74f40fd4032307fe58d3985421f57425610abd1d",
+      "client_log": "docs/txnorder2/runtime/final-negative/179-multirace-2s/client.log",
+      "returncode": 1,
+      "notes": [
+        "Negative mechanism/witness control: mandatory barrier witness is zero and the row fails. Exact data may still pass through the remaining placement protocol; no lost-update failure is claimed."
+      ],
+      "failure_lines": [
+        "  FAIL the armed cases recorded atomic_group_barriers=[0, 0] across 4 attempt(s) on fresh keys/connections: BOTH abort and commit must meet the MSETNX dispatch barrier retaining the following MULTI; a missing witness is vacuous",
+        "multirace: FAIL (1 failing case(s))"
+      ]
+    },
+    {
+      "index": 180,
+      "name": "multires-2s",
+      "arm": "barrier-off",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/final-negative/180-multires-2s/result.json",
+      "receipt_sha256": "fd73c5654f1450aacc709b2e7a88ea4d5fdab1d3a1c68664338b08f25a8cd27e",
+      "binary_sha256": "3f88f79811aaf664117722be74f40fd4032307fe58d3985421f57425610abd1d",
+      "client_log": "docs/txnorder2/runtime/final-negative/180-multires-2s/client.log",
+      "returncode": 1,
+      "notes": [
+        "Negative mechanism/witness control: mandatory barrier witness is zero and the row fails. Exact data may still pass through the remaining placement protocol; no lost-update failure is claimed."
+      ],
+      "failure_lines": [
+        "  FAIL MSETNX dispatch barrier never ordered the pair",
+        "multires: FAIL"
+      ]
+    },
+    {
+      "index": 181,
+      "name": "multirace-1s",
+      "arm": "barrier-off",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/final-negative/181-multirace-1s/result.json",
+      "receipt_sha256": "330ba3e525d2b67ad53ad6c05c74dea1099d4d13df33dfb0a88e653072ffefcf",
+      "binary_sha256": "3f88f79811aaf664117722be74f40fd4032307fe58d3985421f57425610abd1d",
+      "client_log": "docs/txnorder2/runtime/final-negative/181-multirace-1s/client.log",
+      "returncode": 1,
+      "notes": [
+        "Negative mechanism/witness control: mandatory barrier witness is zero and the row fails. Exact data may still pass through the remaining placement protocol; no lost-update failure is claimed."
+      ],
+      "failure_lines": [
+        "  FAIL the armed cases recorded atomic_group_barriers=[0, 0] across 4 attempt(s) on fresh keys/connections: BOTH abort and commit must meet the MSETNX dispatch barrier retaining the following MULTI; a missing witness is vacuous",
+        "multirace: FAIL (1 failing case(s))"
+      ]
+    },
+    {
+      "index": 182,
+      "name": "multires-1s",
+      "arm": "barrier-off",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/final-negative/182-multires-1s/result.json",
+      "receipt_sha256": "60ed077290187d20c25d2a809874bddb7caf49f5e06eafd167132ec12855b73d",
+      "binary_sha256": "3f88f79811aaf664117722be74f40fd4032307fe58d3985421f57425610abd1d",
+      "client_log": "docs/txnorder2/runtime/final-negative/182-multires-1s/client.log",
+      "returncode": 1,
+      "notes": [
+        "Negative mechanism/witness control: mandatory barrier witness is zero and the row fails. Exact data may still pass through the remaining placement protocol; no lost-update failure is claimed."
+      ],
+      "failure_lines": [
+        "  FAIL MSETNX dispatch barrier never ordered the pair",
+        "multires: FAIL"
+      ]
+    },
+    {
+      "index": 183,
+      "name": "txnorder-pre-2s-a0-a",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/183-txnorder-pre-2s-a0-a/result.json",
+      "receipt_sha256": "3fbd9d17d32069f9eeabfdfb9ab0773ed95ec170bd2daee659af5a2f08cb1766",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/183-txnorder-pre-2s-a0-a/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "FAIL a AssertionError([42000, 42000])"
+      ]
+    },
+    {
+      "index": 184,
+      "name": "txnorder-pre-2s-a0-b",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/b-pre-last/184-txnorder-pre-2s-a0-b/result.json",
+      "receipt_sha256": "eb589418fd45be0018efa00351c7263b4a7e7906e2ba1c5c13f93fb67a7bfc76",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/b-pre-last/184-txnorder-pre-2s-a0-b/client.log",
+      "returncode": 1,
+      "notes": [
+        "Supersedes invalid first-attempt failure on a missing INFO counter; this receipt fails the exact final-data assertion."
+      ],
+      "failure_lines": [
+        "FAIL b AssertionError([6, 6, 6, 6])"
+      ]
+    },
+    {
+      "index": 185,
+      "name": "txnorder-pre-2s-a0-c",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/c-final/185-txnorder-pre-2s-a0-c/result.json",
+      "receipt_sha256": "0bb00eade962716ea15c38a6258157d0c393a349a2bbef735eed48a559fd4197",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/c-final/185-txnorder-pre-2s-a0-c/client.log",
+      "returncode": 1,
+      "notes": [
+        "Corrected churn accounting checks only keys incremented by the test; exact final-data assertion fails on PRE."
+      ],
+      "failure_lines": [
+        "FAIL c AssertionError(('txnorder:1792670791464150509:1', 193651))"
+      ]
+    },
+    {
+      "index": 186,
+      "name": "txnorder-pre-2s-a0-aof",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/186-txnorder-pre-2s-a0-aof/result.json",
+      "receipt_sha256": "f82c52c3bc483b748293e160ac9a549dad34f9674b25d79adf0ca7fc5a8dd4c7",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/186-txnorder-pre-2s-a0-aof/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "FAIL d AssertionError([92182, 90794])"
+      ]
+    },
+    {
+      "index": 187,
+      "name": "txnorder-pre-2s-a1-a",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/187-txnorder-pre-2s-a1-a/result.json",
+      "receipt_sha256": "49f5836b073993df7273cc4892db6e80d74264b1c46fde147fa38e0de727fc0d",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/187-txnorder-pre-2s-a1-a/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "FAIL a AssertionError([42000, 42000])"
+      ]
+    },
+    {
+      "index": 188,
+      "name": "txnorder-pre-2s-a1-b",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/b-pre-last/188-txnorder-pre-2s-a1-b/result.json",
+      "receipt_sha256": "8a5246fe70888ef9fe1918a852f5b347ad5e5ced5d17381e08586c0d478f749c",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/b-pre-last/188-txnorder-pre-2s-a1-b/client.log",
+      "returncode": 1,
+      "notes": [
+        "Supersedes invalid first-attempt failure on a missing INFO counter; this receipt fails the exact final-data assertion."
+      ],
+      "failure_lines": [
+        "FAIL b AssertionError([6, 6, 6, 6])"
+      ]
+    },
+    {
+      "index": 189,
+      "name": "txnorder-pre-2s-a1-c",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/c-final/189-txnorder-pre-2s-a1-c/result.json",
+      "receipt_sha256": "6d70e93cb7ae84c4b6eeb9446768a6c2d162c018c686e7b7be90fb2acfaabf6e",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/c-final/189-txnorder-pre-2s-a1-c/client.log",
+      "returncode": 1,
+      "notes": [
+        "Corrected churn accounting checks only keys incremented by the test; exact final-data assertion fails on PRE."
+      ],
+      "failure_lines": [
+        "FAIL c AssertionError(('txnorder:1792670821946513971:8', 138144))"
+      ]
+    },
+    {
+      "index": 190,
+      "name": "txnorder-pre-2s-a1-aof",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/190-txnorder-pre-2s-a1-aof/result.json",
+      "receipt_sha256": "fa286488f0714b0514554c570bf4373d2340d3ef3fa3d0740b978bf36f7966f0",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/190-txnorder-pre-2s-a1-aof/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "FAIL d AssertionError([37218, 36606])"
+      ]
+    },
+    {
+      "index": 191,
+      "name": "txnorder-pre-1s-a0-a",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/191-txnorder-pre-1s-a0-a/result.json",
+      "receipt_sha256": "0157ed2fe5d609941904c82afa96464f906636fc0434d5a7d5dedb3391af9672",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/191-txnorder-pre-1s-a0-a/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "FAIL a AssertionError([42000, 42000])"
+      ]
+    },
+    {
+      "index": 192,
+      "name": "txnorder-pre-1s-a0-b",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/b-pre-last/192-txnorder-pre-1s-a0-b/result.json",
+      "receipt_sha256": "f7711ec9494626ab7544fb82606c7b5fe57acb365db6be7cebadedae32f61715",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/b-pre-last/192-txnorder-pre-1s-a0-b/client.log",
+      "returncode": 1,
+      "notes": [
+        "Supersedes invalid first-attempt failure on a missing INFO counter; this receipt fails the exact final-data assertion."
+      ],
+      "failure_lines": [
+        "FAIL b AssertionError([5, 5, 5, 5])"
+      ]
+    },
+    {
+      "index": 193,
+      "name": "txnorder-pre-1s-a0-c",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/c-final/193-txnorder-pre-1s-a0-c/result.json",
+      "receipt_sha256": "fb3d3f4a916ccc98a7a2dcd4d64b8cd5d8f1a94a74667a954569403930cb6a5f",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/c-final/193-txnorder-pre-1s-a0-c/client.log",
+      "returncode": 1,
+      "notes": [
+        "Corrected churn accounting checks only keys incremented by the test; exact final-data assertion fails on PRE."
+      ],
+      "failure_lines": [
+        "FAIL c AssertionError(('txnorder:1792670852341631337:4', 157072))"
+      ]
+    },
+    {
+      "index": 194,
+      "name": "txnorder-pre-1s-a0-aof",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/194-txnorder-pre-1s-a0-aof/result.json",
+      "receipt_sha256": "72cbe67693b79b8c554aa4d7706bbb27f8a0ab1b4065c4b62dbb2ac3b83fce7d",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/194-txnorder-pre-1s-a0-aof/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "FAIL d AssertionError([578561, 580453])"
+      ]
+    },
+    {
+      "index": 195,
+      "name": "txnorder-pre-1s-a1-a",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/195-txnorder-pre-1s-a1-a/result.json",
+      "receipt_sha256": "78ab77c8e61f90227c765f71b988da6b6c7a141828bc7b8905b4a0771b04129e",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/195-txnorder-pre-1s-a1-a/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "FAIL a AssertionError([42000, 42000])"
+      ]
+    },
+    {
+      "index": 196,
+      "name": "txnorder-pre-1s-a1-b",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/b-pre-last/196-txnorder-pre-1s-a1-b/result.json",
+      "receipt_sha256": "da976d8a71871b45210d586db0e22eca6760238e1ff715b71d7f049c4027577f",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/b-pre-last/196-txnorder-pre-1s-a1-b/client.log",
+      "returncode": 1,
+      "notes": [
+        "Supersedes invalid first-attempt failure on a missing INFO counter; this receipt fails the exact final-data assertion."
+      ],
+      "failure_lines": [
+        "FAIL b AssertionError([5, 5, 5, 5])"
+      ]
+    },
+    {
+      "index": 197,
+      "name": "txnorder-pre-1s-a1-c",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/c-final/197-txnorder-pre-1s-a1-c/result.json",
+      "receipt_sha256": "1746ec302fa480223b98614dc6e973fb2f83cb79d72c2503fbc635ee1c7f33ad",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/c-final/197-txnorder-pre-1s-a1-c/client.log",
+      "returncode": 1,
+      "notes": [
+        "Corrected churn accounting checks only keys incremented by the test; exact final-data assertion fails on PRE."
+      ],
+      "failure_lines": [
+        "FAIL c AssertionError(('txnorder:1792670883066737102:16', 95817))"
+      ]
+    },
+    {
+      "index": 198,
+      "name": "txnorder-pre-1s-a1-aof",
+      "arm": "pre",
+      "status": "FAIL",
+      "receipt": "docs/txnorder2/runtime/first/198-txnorder-pre-1s-a1-aof/result.json",
+      "receipt_sha256": "13243b9f48a6cfeb8a723078022fceb6c6fbb5d9a1b2e80bf6ae68ee4e0b4e41",
+      "binary_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+      "client_log": "docs/txnorder2/runtime/first/198-txnorder-pre-1s-a1-aof/client.log",
+      "returncode": 1,
+      "notes": [],
+      "failure_lines": [
+        "FAIL d AssertionError([522927, 523443])"
+      ]
+    },
+    {
+      "index": 199,
+      "name": "txnorder-post-2s-a0-a",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/199-txnorder-post-2s-a0-a/result.json",
+      "receipt_sha256": "5681344b0602c1e4581b7d181f0b97b7a9a35522c4e295b7d3e7d020f4fab647",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/199-txnorder-post-2s-a0-a/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 200,
+      "name": "txnorder-post-2s-a0-b",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/200-txnorder-post-2s-a0-b/result.json",
+      "receipt_sha256": "b7cb9af9b5a850771bc4adc142f5e52951a22756d24b7585daa1b6dc1f8ab194",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/200-txnorder-post-2s-a0-b/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 201,
+      "name": "txnorder-post-2s-a0-c",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/201-txnorder-post-2s-a0-c/result.json",
+      "receipt_sha256": "f7db057c4773408f32ccee955f811aa5cf4fee9f027f9d5b42d0183a9bd163d1",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/201-txnorder-post-2s-a0-c/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 202,
+      "name": "txnorder-post-2s-a0-aof",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/202-txnorder-post-2s-a0-aof/result.json",
+      "receipt_sha256": "13bff15ff9030720dca02ab0753b4b4b1ed5c5dd396f5e8e595791d7c8c20f39",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/202-txnorder-post-2s-a0-aof/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 203,
+      "name": "txnorder-post-2s-a1-a",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/203-txnorder-post-2s-a1-a/result.json",
+      "receipt_sha256": "228687daf9e5d399c084a7963825c2ed0dbf51b69ca6eeb72b08995cd841d1db",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/203-txnorder-post-2s-a1-a/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 204,
+      "name": "txnorder-post-2s-a1-b",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/204-txnorder-post-2s-a1-b/result.json",
+      "receipt_sha256": "d18e27a2d6050ab05335889744d6a8d1b7f871ab2605be5be3f6b3a0817ef147",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/204-txnorder-post-2s-a1-b/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 205,
+      "name": "txnorder-post-2s-a1-c",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/205-txnorder-post-2s-a1-c/result.json",
+      "receipt_sha256": "3d953a0a1d215788d8786c942147cc83060a2b10c4507e31646d65236c16d4ec",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/205-txnorder-post-2s-a1-c/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 206,
+      "name": "txnorder-post-2s-a1-aof",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/206-txnorder-post-2s-a1-aof/result.json",
+      "receipt_sha256": "0b71a541794ff7202628c6d282f6f659ccbcc38071323a59defd2674e43aac75",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/206-txnorder-post-2s-a1-aof/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 207,
+      "name": "txnorder-post-1s-a0-a",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/207-txnorder-post-1s-a0-a/result.json",
+      "receipt_sha256": "c05a0800cd6b717e61dc28810c13517051d56b8288b51a4249efc28ef6e24990",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/207-txnorder-post-1s-a0-a/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 208,
+      "name": "txnorder-post-1s-a0-b",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/208-txnorder-post-1s-a0-b/result.json",
+      "receipt_sha256": "0a5cd5805c5bbe7f948578efcb9bcb20097fd98d1c317d2935c82b4e005f5c68",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/208-txnorder-post-1s-a0-b/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 209,
+      "name": "txnorder-post-1s-a0-c",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/209-txnorder-post-1s-a0-c/result.json",
+      "receipt_sha256": "693063e2569c957c0a9f851b2399cdeecd84662c6444f383a741ba1dcb6ab226",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/209-txnorder-post-1s-a0-c/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 210,
+      "name": "txnorder-post-1s-a0-aof",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/210-txnorder-post-1s-a0-aof/result.json",
+      "receipt_sha256": "f88c981454beffcaa01ef13cfc5354c261a3925e55000f69693242ef1b4629b3",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/210-txnorder-post-1s-a0-aof/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 211,
+      "name": "txnorder-post-1s-a1-a",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/211-txnorder-post-1s-a1-a/result.json",
+      "receipt_sha256": "c0a1e2044ebf32d61943a8b12f9d50c0d01ab1457cb4d0bfc65c945c7c80b530",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/211-txnorder-post-1s-a1-a/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 212,
+      "name": "txnorder-post-1s-a1-b",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/212-txnorder-post-1s-a1-b/result.json",
+      "receipt_sha256": "7c5e2f2d17f0a00cb4f766c4eaf51bc92994d7442fbfdfc059f7623e80af6aca",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/212-txnorder-post-1s-a1-b/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 213,
+      "name": "txnorder-post-1s-a1-c",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/213-txnorder-post-1s-a1-c/result.json",
+      "receipt_sha256": "5bf8ad316dc8917d0b855fa559876c61d209dec953cdc3f33f14b13791f8a931",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/213-txnorder-post-1s-a1-c/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    },
+    {
+      "index": 214,
+      "name": "txnorder-post-1s-a1-aof",
+      "arm": "post",
+      "status": "PASS",
+      "receipt": "docs/txnorder2/runtime/final2b/214-txnorder-post-1s-a1-aof/result.json",
+      "receipt_sha256": "d1a687c3b0c0c6171ca9c88dac51afcd44900a8d079e6e08b9cf594c64001df3",
+      "binary_sha256": "5950eb30f9d56c6b31bb8c534df603991a46d464401444ef7ed65476ef39c497",
+      "client_log": "docs/txnorder2/runtime/final2b/214-txnorder-post-1s-a1-aof/client.log",
+      "returncode": 0,
+      "notes": [
+        "Resumed POST 5950eb30, before the final DB0 register/stack-only spelling; exact final binary additionally runs the full touched-job gate matrix."
+      ],
+      "failure_lines": []
+    }
+  ],
+  "counts": {
+    "post": {
+      "PASS": 155
+    },
+    "pre": {
+      "PASS": 11,
+      "FAIL": 45
+    },
+    "barrier-off": {
+      "FAIL": 4
+    }
+  },
+  "limitations": [
+    "All 215 rows were invoked; results span the explicitly recorded binary digests. They are not relabelled as 215 passes on the final binary.",
+    "The literal merged-origin R-family/readonly WATCH mechanism control is inapplicable: those mechanisms were introduced in the lane. Use the pre-amendment 73e35f754 control, with its disclosed instrumentation, and origin controls where expressible."
+  ]
+}

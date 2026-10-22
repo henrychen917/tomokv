@@ -1,0 +1,1995 @@
+{
+  "created_at": 1792670566.4178858,
+  "defaults": {
+    "fallback_seconds": 900,
+    "floor_seconds": 30.0,
+    "multiplier": 4.0
+  },
+  "legacy_sources": [],
+  "rows": {
+    "ACL LOAD/SAVE no-file errors": {
+      "basis": "no-own-row-history-conservative-default",
+      "max_over_median": null,
+      "max_seconds": null,
+      "median_seconds": null,
+      "min_seconds": null,
+      "samples": 0,
+      "timeout_seconds": 900
+    },
+    "ACL category runtime table": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF always recovery after quiescent SIGKILL": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF always sync + reply gate fired": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF atomic-group recovery + writer order": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1111111111111112,
+      "max_seconds": 0.05,
+      "median_seconds": 0.045,
+      "min_seconds": 0.04,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.47,
+      "median_seconds": 0.47,
+      "min_seconds": 0.47,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.43,
+      "median_seconds": 0.43,
+      "min_seconds": 0.43,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.41,
+      "median_seconds": 0.41,
+      "min_seconds": 0.41,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.43,
+      "median_seconds": 0.43,
+      "min_seconds": 0.43,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF commit order crossing": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.12,
+      "median_seconds": 4.12,
+      "min_seconds": 4.12,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF commit order rewrite": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.32,
+      "median_seconds": 4.32,
+      "min_seconds": 4.32,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF commit order single": {
+      "basis": "no-own-row-history-conservative-default",
+      "max_over_median": null,
+      "max_seconds": null,
+      "median_seconds": null,
+      "min_seconds": null,
+      "samples": 0,
+      "timeout_seconds": 900
+    },
+    "AOF control frame never inside a large record (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.32,
+      "median_seconds": 0.32,
+      "min_seconds": 0.32,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF control frame never inside a large record (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.32,
+      "median_seconds": 0.32,
+      "min_seconds": 0.32,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF directed group interruption fired": {
+      "basis": "own-row-history",
+      "max_over_median": 1.6774193548387097,
+      "max_seconds": 0.26,
+      "median_seconds": 0.155,
+      "min_seconds": 0.05,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF everysec durability window + tail warning": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF everysec write gate + idle sync fired": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.3,
+      "median_seconds": 1.3,
+      "min_seconds": 1.3,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF group shutdown invariants": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF in-window kill recovery (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.99,
+      "median_seconds": 0.99,
+      "min_seconds": 0.99,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF in-window kill recovery (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.87,
+      "median_seconds": 0.87,
+      "min_seconds": 0.87,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF in-window kill recovery (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.85,
+      "median_seconds": 0.85,
+      "min_seconds": 0.85,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF in-window kill recovery (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.87,
+      "median_seconds": 0.87,
+      "min_seconds": 0.87,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF in-window term recovery (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.11,
+      "median_seconds": 2.11,
+      "min_seconds": 2.11,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF in-window term recovery (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.92,
+      "median_seconds": 2.92,
+      "min_seconds": 2.92,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF in-window term recovery (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.2,
+      "median_seconds": 2.2,
+      "min_seconds": 2.2,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF in-window term recovery (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.2,
+      "median_seconds": 3.2,
+      "min_seconds": 3.2,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF native snapshot streams byte-exact": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.03,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "AOF no-sync bypassed sync + reply gate": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF process-restart script replay (epoll, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF process-restart script replay (epoll, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF process-restart script replay (uring, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF process-restart script replay (uring, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "AOF replay fired (records=N skipped=N)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "AOF rewrite atomic/stage/corruption matrix": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0028382213812677,
+      "max_seconds": 5.3,
+      "median_seconds": 5.285,
+      "min_seconds": 5.27,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF rewrite triggers + observability matrix": {
+      "basis": "own-row-history",
+      "max_over_median": 1.047945205479452,
+      "max_seconds": 6.12,
+      "median_seconds": 5.84,
+      "min_seconds": 5.56,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF writer fired (records=N)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.1111111111111112,
+      "max_seconds": 0.05,
+      "median_seconds": 0.045,
+      "min_seconds": 0.04,
+      "samples": 4,
+      "timeout_seconds": 30
+    },
+    "AOF-off negative control lost data": {
+      "basis": "own-row-history",
+      "max_over_median": 2.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.005,
+      "min_seconds": 0.0,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "AOF-off negative-control seed landed": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 2,
+      "timeout_seconds": 30
+    },
+    "EXECABORT releases WATCH reservation": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.07,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "Lua feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "MULTI admin command replies": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.22,
+      "median_seconds": 0.22,
+      "min_seconds": 0.22,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "MULTI feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.07,
+      "median_seconds": 2.07,
+      "min_seconds": 2.07,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "RYOW battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.0,
+      "median_seconds": 1.0,
+      "min_seconds": 1.0,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 error (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.18,
+      "median_seconds": 0.18,
+      "min_seconds": 0.18,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 error (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.18,
+      "median_seconds": 0.18,
+      "min_seconds": 0.18,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 error (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.17,
+      "median_seconds": 0.17,
+      "min_seconds": 0.17,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 error (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.22,
+      "median_seconds": 0.22,
+      "min_seconds": 0.22,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 exec_tickets (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.55,
+      "median_seconds": 0.55,
+      "min_seconds": 0.55,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 exec_tickets (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.62,
+      "median_seconds": 0.62,
+      "min_seconds": 0.62,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 exec_tickets (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.55,
+      "median_seconds": 0.55,
+      "min_seconds": 0.55,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 exec_tickets (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.75,
+      "median_seconds": 0.75,
+      "min_seconds": 0.75,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 filename (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.52,
+      "median_seconds": 1.52,
+      "min_seconds": 1.52,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 filename (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.58,
+      "median_seconds": 1.58,
+      "min_seconds": 1.58,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 filename (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.52,
+      "median_seconds": 1.52,
+      "min_seconds": 1.52,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 filename (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.96,
+      "median_seconds": 1.96,
+      "min_seconds": 1.96,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 large (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.34,
+      "median_seconds": 0.34,
+      "min_seconds": 0.34,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 large (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.48,
+      "median_seconds": 0.48,
+      "min_seconds": 0.48,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 large_placed (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.19,
+      "median_seconds": 0.19,
+      "min_seconds": 0.19,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 large_placed (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.26,
+      "median_seconds": 0.26,
+      "min_seconds": 0.26,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 manifest_missing (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.3,
+      "median_seconds": 0.3,
+      "min_seconds": 0.3,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 manifest_missing (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.34,
+      "median_seconds": 0.34,
+      "min_seconds": 0.34,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 manifest_missing (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.3,
+      "median_seconds": 0.3,
+      "min_seconds": 0.3,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 manifest_missing (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.4,
+      "median_seconds": 0.4,
+      "min_seconds": 0.4,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement always (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.28,
+      "median_seconds": 0.28,
+      "min_seconds": 0.28,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement always (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.42,
+      "median_seconds": 0.42,
+      "min_seconds": 0.42,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement always (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.28,
+      "median_seconds": 0.28,
+      "min_seconds": 0.28,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement always (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.42,
+      "median_seconds": 0.42,
+      "min_seconds": 0.42,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement everysec (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.28,
+      "median_seconds": 0.28,
+      "min_seconds": 0.28,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement everysec (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.43,
+      "median_seconds": 0.43,
+      "min_seconds": 0.43,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement everysec (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.28,
+      "median_seconds": 0.28,
+      "min_seconds": 0.28,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 off-writer acknowledgement everysec (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.41,
+      "median_seconds": 0.41,
+      "min_seconds": 0.41,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 resurrection (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.54,
+      "median_seconds": 0.54,
+      "min_seconds": 0.54,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 resurrection (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.57,
+      "median_seconds": 0.57,
+      "min_seconds": 0.57,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 resurrection (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.54,
+      "median_seconds": 0.54,
+      "min_seconds": 0.54,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 resurrection (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.75,
+      "median_seconds": 0.75,
+      "min_seconds": 0.75,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 rewrite_fail2 (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.43,
+      "median_seconds": 0.43,
+      "min_seconds": 0.43,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 rewrite_fail2 (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.44,
+      "median_seconds": 0.44,
+      "min_seconds": 0.44,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 rewrite_fail2 (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.43,
+      "median_seconds": 0.43,
+      "min_seconds": 0.43,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 rewrite_fail2 (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.52,
+      "median_seconds": 0.52,
+      "min_seconds": 0.52,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 snapshot (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.42,
+      "median_seconds": 0.42,
+      "min_seconds": 0.42,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 snapshot (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.43,
+      "median_seconds": 0.43,
+      "min_seconds": 0.43,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 snapshot (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.43,
+      "median_seconds": 0.43,
+      "min_seconds": 0.43,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 snapshot (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.57,
+      "median_seconds": 0.57,
+      "min_seconds": 0.57,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 tickets (1s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.54,
+      "median_seconds": 0.54,
+      "min_seconds": 0.54,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 tickets (1s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.57,
+      "median_seconds": 0.57,
+      "min_seconds": 0.57,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 tickets (2s, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.55,
+      "median_seconds": 0.55,
+      "min_seconds": 0.55,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "aoffix2 tickets (2s, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.76,
+      "median_seconds": 0.76,
+      "min_seconds": 0.76,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "armed resize retirement: atomic-growth": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "armed resize retirement: flush-prepared": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomfix battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomfix battery (atomic 1)": {
+      "basis": "no-own-row-history-conservative-default",
+      "max_over_median": null,
+      "max_seconds": null,
+      "median_seconds": null,
+      "min_seconds": null,
+      "samples": 0,
+      "timeout_seconds": 900
+    },
+    "atomic RYOW/mixed-write battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.06,
+      "median_seconds": 4.06,
+      "min_seconds": 4.06,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic commit publication catches up at quiescence": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic owner-local hazard battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.24,
+      "median_seconds": 4.24,
+      "min_seconds": 4.24,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic shutdown invariants": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: admission": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: closure": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: instruction_limit": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: library_limit": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: lua_conversion": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: lua_lines": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: mset_arity": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: post_apply_probe": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: rename_overlay": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: script_apply": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: script_keys": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: stage_flag": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: watch_cycle": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: watch_oom": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: watch_parent": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivor: write_latest": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "atomic survivors unit build": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "atomic torn/window battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 32.55,
+      "median_seconds": 32.55,
+      "min_seconds": 32.55,
+      "samples": 1,
+      "timeout_seconds": 131
+    },
+    "blocking feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.52,
+      "median_seconds": 1.52,
+      "min_seconds": 1.52,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "build dependency: make build/aoforder-scheduled,build/at15-db0-unit,build/at15-unit,build/atomic-survivors-unit,build/core-concurrency-unit,build/encodingfix-unit,build/exbatch-db0-unit,build/exbatch-unit,build/execabort-watch-db0-unit,build/execabort-watch-unit,build/expire-notify-unit,build/flushfix-units,build/ktls-keyupdate,build/ktls-keyupdate-unit,build/ktls-lifetime-unit,build/lbplanner-units,build/moverfix-db0-unit,build/moverfix-unit,build/multidb-boundary-unit,build/multidb-unit,build/netcap-unit,build/netcmd-unit,build/persistfix-units,build/publishfix-unit,build/racefix-climon,build/rehash-waits-unit,build/reorder-engagement-unit,build/reorder-engagement-unit-db0,build/respresume-migration,build/respresume-unit,build/rltopo-unit,build/shutdown-unit,build/splitlocal-unit,build/storesize-unit,build/txnorder-episodes,build/txnorder-episodes-debug,build/txnorder-watch-db0-unit,build/txnorder-watch-unit,build/waits-unit,build/wb-rule-units,build/wbland-units": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 166.75,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 166.75,
+      "min_seconds": 166.75,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "build dependency: make default": {
+      "basis": "own-row-history; mechanism-floor=900s (cold cache state not distinguished)",
+      "max_over_median": 1.0,
+      "max_seconds": 103.88,
+      "mechanism_floor_seconds": 900.0,
+      "median_seconds": 103.88,
+      "min_seconds": 103.88,
+      "samples": 1,
+      "timeout_seconds": 900.0
+    },
+    "configuration reduction + actual geometry (epoll, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.09,
+      "median_seconds": 0.09,
+      "min_seconds": 0.09,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "configuration reduction + actual geometry (epoll, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.07,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "configuration reduction + actual geometry (uring, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.07,
+      "median_seconds": 0.07,
+      "min_seconds": 0.07,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "configuration reduction + actual geometry (uring, atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.06,
+      "median_seconds": 0.06,
+      "min_seconds": 0.06,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "direct-reply fired (direct=N)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "dispatched==executed (N)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "execatomic battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 14.5,
+      "median_seconds": 14.5,
+      "min_seconds": 14.5,
+      "samples": 1,
+      "timeout_seconds": 58
+    },
+    "execatomic battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 14.46,
+      "median_seconds": 14.46,
+      "min_seconds": 14.46,
+      "samples": 1,
+      "timeout_seconds": 58
+    },
+    "execfix battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.35,
+      "median_seconds": 1.35,
+      "min_seconds": 1.35,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "execfix battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.43,
+      "median_seconds": 0.43,
+      "min_seconds": 0.43,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "execiso battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 11.97,
+      "median_seconds": 11.97,
+      "min_seconds": 11.97,
+      "samples": 1,
+      "timeout_seconds": 48
+    },
+    "execiso battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 11.87,
+      "median_seconds": 11.87,
+      "min_seconds": 11.87,
+      "samples": 1,
+      "timeout_seconds": 48
+    },
+    "feature battery shutdown invariants": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "flushfix flush witnesses": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.32,
+      "median_seconds": 2.32,
+      "min_seconds": 2.32,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "flushfix headers witnesses": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused atomfix battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused atomfix battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused boot line (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.26,
+      "median_seconds": 0.26,
+      "min_seconds": 0.26,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused boot line (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.27,
+      "median_seconds": 0.27,
+      "min_seconds": 0.27,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused edgeproto battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.74,
+      "median_seconds": 0.74,
+      "min_seconds": 0.74,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused edgeproto battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.74,
+      "median_seconds": 0.74,
+      "min_seconds": 0.74,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused multi_exec battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.09,
+      "median_seconds": 2.09,
+      "min_seconds": 2.09,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused multi_exec battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.08,
+      "median_seconds": 2.08,
+      "min_seconds": 2.08,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused s6 battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.2,
+      "median_seconds": 1.2,
+      "min_seconds": 1.2,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused s6 battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.21,
+      "median_seconds": 1.21,
+      "min_seconds": 1.21,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused shutdown report (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.16,
+      "median_seconds": 1.16,
+      "min_seconds": 1.16,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused shutdown report (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.16,
+      "median_seconds": 1.16,
+      "min_seconds": 1.16,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused spinprobe battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.23,
+      "median_seconds": 2.23,
+      "min_seconds": 2.23,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused spinprobe battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.24,
+      "median_seconds": 2.24,
+      "min_seconds": 2.24,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused txn_nx battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.81,
+      "median_seconds": 1.81,
+      "min_seconds": 1.81,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused txn_nx battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.94,
+      "median_seconds": 2.94,
+      "min_seconds": 2.94,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "fused txngroup battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 12.65,
+      "median_seconds": 12.65,
+      "min_seconds": 12.65,
+      "samples": 1,
+      "timeout_seconds": 51
+    },
+    "fused txniso battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 8.8,
+      "median_seconds": 8.8,
+      "min_seconds": 8.8,
+      "samples": 1,
+      "timeout_seconds": 36
+    },
+    "fused txniso battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 9.05,
+      "median_seconds": 9.05,
+      "min_seconds": 9.05,
+      "samples": 1,
+      "timeout_seconds": 37
+    },
+    "idle loop ceiling (LBSIGNALS, 1s)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.03,
+      "median_seconds": 1.03,
+      "min_seconds": 1.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "keyspace lazy-expiry order vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 65.68,
+      "median_seconds": 65.68,
+      "min_seconds": 65.68,
+      "samples": 1,
+      "timeout_seconds": 263
+    },
+    "keyspace notification battery (atomic 0/1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 22.66,
+      "median_seconds": 22.66,
+      "min_seconds": 22.66,
+      "samples": 1,
+      "timeout_seconds": 91
+    },
+    "lbsignals battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.17,
+      "median_seconds": 0.17,
+      "min_seconds": 0.17,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "lbsignals battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.17,
+      "median_seconds": 0.17,
+      "min_seconds": 0.17,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "local script notification AOF vs Redis 7.4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 11.68,
+      "median_seconds": 11.68,
+      "min_seconds": 11.68,
+      "samples": 1,
+      "timeout_seconds": 47
+    },
+    "moverfix conservation (1s, epoll, databases 1, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.49,
+      "median_seconds": 2.49,
+      "min_seconds": 2.49,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (1s, epoll, databases 16, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.51,
+      "median_seconds": 2.51,
+      "min_seconds": 2.51,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (1s, uring, databases 1, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.53,
+      "median_seconds": 2.53,
+      "min_seconds": 2.53,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (1s, uring, databases 16, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.51,
+      "median_seconds": 2.51,
+      "min_seconds": 2.51,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (2s, epoll, databases 1, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.5,
+      "median_seconds": 2.5,
+      "min_seconds": 2.5,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (2s, epoll, databases 16, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.51,
+      "median_seconds": 2.51,
+      "min_seconds": 2.51,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (2s, uring, databases 1, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.55,
+      "median_seconds": 2.55,
+      "min_seconds": 2.55,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "moverfix conservation (2s, uring, databases 16, atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.55,
+      "median_seconds": 2.55,
+      "min_seconds": 2.55,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "multidb global namespace boundary": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "multidb serverless owners": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 3.31,
+      "median_seconds": 3.31,
+      "min_seconds": 3.31,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "multirace battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.82,
+      "median_seconds": 1.82,
+      "min_seconds": 1.82,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "multirace battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.74,
+      "median_seconds": 0.74,
+      "min_seconds": 0.74,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "multires battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.33,
+      "median_seconds": 0.33,
+      "min_seconds": 0.33,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "multires battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.1,
+      "median_seconds": 0.1,
+      "min_seconds": 0.1,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "plain-write lost updates (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 9.17,
+      "median_seconds": 9.17,
+      "min_seconds": 9.17,
+      "samples": 1,
+      "timeout_seconds": 37
+    },
+    "plain-write lost updates (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 6.16,
+      "median_seconds": 6.16,
+      "min_seconds": 6.16,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "pubsub feature battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.9,
+      "median_seconds": 0.9,
+      "min_seconds": 0.9,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "release build (+footprint locks) [external-candidate]": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "scriptatomic battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "scriptatomic battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.05,
+      "median_seconds": 0.05,
+      "min_seconds": 0.05,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "session_monotonic battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 31.39,
+      "median_seconds": 31.39,
+      "min_seconds": 31.39,
+      "samples": 1,
+      "timeout_seconds": 126
+    },
+    "session_monotonic battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 30.48,
+      "median_seconds": 30.48,
+      "min_seconds": 30.48,
+      "samples": 1,
+      "timeout_seconds": 122
+    },
+    "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.72,
+      "median_seconds": 1.72,
+      "min_seconds": 1.72,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.79,
+      "median_seconds": 1.79,
+      "min_seconds": 1.79,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.79,
+      "median_seconds": 1.79,
+      "min_seconds": 1.79,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.82,
+      "median_seconds": 1.82,
+      "min_seconds": 1.82,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.89,
+      "median_seconds": 1.89,
+      "min_seconds": 1.89,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.97,
+      "median_seconds": 1.97,
+      "min_seconds": 1.97,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.99,
+      "median_seconds": 1.99,
+      "min_seconds": 1.99,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.99,
+      "median_seconds": 1.99,
+      "min_seconds": 1.99,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "shutdown invariants (nothing stuck)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.04,
+      "median_seconds": 0.04,
+      "min_seconds": 0.04,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "slowlog battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.49,
+      "median_seconds": 1.49,
+      "min_seconds": 1.49,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "slowlog battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.49,
+      "median_seconds": 1.49,
+      "min_seconds": 1.49,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "storesize published monitoring": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 10.68,
+      "median_seconds": 10.68,
+      "min_seconds": 10.68,
+      "samples": 1,
+      "timeout_seconds": 43
+    },
+    "torture battery": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 6.64,
+      "median_seconds": 6.64,
+      "min_seconds": 6.64,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txn_nx battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 4.44,
+      "median_seconds": 4.44,
+      "min_seconds": 4.44,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txn_nx battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 2.21,
+      "median_seconds": 2.21,
+      "min_seconds": 2.21,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txngroup battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 12.95,
+      "median_seconds": 12.95,
+      "min_seconds": 12.95,
+      "samples": 1,
+      "timeout_seconds": 52
+    },
+    "txniso battery (atomic 0)": {
+      "basis": "no-own-row-history-conservative-default",
+      "max_over_median": null,
+      "max_seconds": null,
+      "median_seconds": null,
+      "min_seconds": null,
+      "samples": 0,
+      "timeout_seconds": 900
+    },
+    "txniso battery (atomic 1)": {
+      "basis": "no-own-row-history-conservative-default",
+      "max_over_median": null,
+      "max_seconds": null,
+      "median_seconds": null,
+      "min_seconds": null,
+      "samples": 0,
+      "timeout_seconds": 900
+    },
+    "txnorder battery (fused, atomic 0)": {
+      "basis": "no-own-row-history-conservative-default",
+      "max_over_median": null,
+      "max_seconds": null,
+      "median_seconds": null,
+      "min_seconds": null,
+      "samples": 0,
+      "timeout_seconds": 900
+    },
+    "txnorder battery (fused, atomic 1)": {
+      "basis": "no-own-row-history-conservative-default",
+      "max_over_median": null,
+      "max_seconds": null,
+      "median_seconds": null,
+      "min_seconds": null,
+      "samples": 0,
+      "timeout_seconds": 900
+    },
+    "txnorder2 WATCH flush": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 14.43,
+      "median_seconds": 14.43,
+      "min_seconds": 14.43,
+      "samples": 1,
+      "timeout_seconds": 58
+    },
+    "txnorder2 WATCH readonly": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 13.64,
+      "median_seconds": 13.64,
+      "min_seconds": 13.64,
+      "samples": 1,
+      "timeout_seconds": 55
+    },
+    "txnorder2 WATCH serve": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 10.84,
+      "median_seconds": 10.84,
+      "min_seconds": 10.84,
+      "samples": 1,
+      "timeout_seconds": 44
+    },
+    "txnorder2 direct RENAME owner join": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.02,
+      "median_seconds": 0.02,
+      "min_seconds": 0.02,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R1": {
+      "basis": "own-row-history",
+      "max_over_median": null,
+      "max_seconds": 0.0,
+      "median_seconds": 0.0,
+      "min_seconds": 0.0,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R10": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R11": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R12": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.14,
+      "median_seconds": 1.14,
+      "min_seconds": 1.14,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R2": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R3": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R4": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R5": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R6": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R7": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R8": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.03,
+      "median_seconds": 0.03,
+      "min_seconds": 0.03,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "txnorder2 writer episode R9": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.01,
+      "median_seconds": 0.01,
+      "min_seconds": 0.01,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "xacct battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.51,
+      "median_seconds": 0.51,
+      "min_seconds": 0.51,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "xacct battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.36,
+      "median_seconds": 0.36,
+      "min_seconds": 0.36,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "xmove battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.29,
+      "median_seconds": 0.29,
+      "min_seconds": 0.29,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "xmove battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 0.28,
+      "median_seconds": 0.28,
+      "min_seconds": 0.28,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "xscript battery (atomic 0)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.86,
+      "median_seconds": 1.86,
+      "min_seconds": 1.86,
+      "samples": 1,
+      "timeout_seconds": 30
+    },
+    "xscript battery (atomic 1)": {
+      "basis": "own-row-history",
+      "max_over_median": 1.0,
+      "max_seconds": 1.87,
+      "median_seconds": 1.87,
+      "min_seconds": 1.87,
+      "samples": 1,
+      "timeout_seconds": 30
+    }
+  },
+  "schema": 1
+}

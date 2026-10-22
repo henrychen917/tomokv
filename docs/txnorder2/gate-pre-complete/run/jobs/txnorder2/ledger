@@ -1,0 +1,16 @@
+FAIL	0.010000	txnorder2 writer episode R1
+FAIL	0.000000	txnorder2 writer episode R2
+FAIL	0.010000	txnorder2 writer episode R3
+FAIL	0.010000	txnorder2 writer episode R4
+FAIL	0.010000	txnorder2 writer episode R5
+FAIL	0.010000	txnorder2 writer episode R6
+FAIL	0.010000	txnorder2 writer episode R7
+FAIL	0.030000	txnorder2 writer episode R8
+FAIL	0.010000	txnorder2 writer episode R9
+FAIL	0.010000	txnorder2 writer episode R10
+FAIL	0.010000	txnorder2 writer episode R11
+FAIL	0.020000	txnorder2 writer episode R12
+FAIL	0.010000	txnorder2 direct RENAME owner join
+FAIL	11.370000	txnorder2 WATCH serve
+FAIL	11.180000	txnorder2 WATCH flush
+FAIL	13.650000	txnorder2 WATCH readonly

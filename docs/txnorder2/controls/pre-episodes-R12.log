@@ -1,0 +1,8 @@
+R1 exhaustive: 4 owner states, 20 transitions, fair cycle=1
+R2 exhaustive: 4 owner states, 20 transitions, fair cycle=1
+R3 exhaustive: 4 owner states, 20 transitions, fair cycle=1
+R4 exhaustive: 4 owner states, 20 transitions, fair cycle=1
+R5 exhaustive: 2 owner states, 10 transitions, fair cycle=1
+R6 exhaustive: 2 owner states, 10 transitions, fair cycle=1
+R7 exhaustive: 2 owner states, 10 transitions, fair cycle=1
+PASS R12

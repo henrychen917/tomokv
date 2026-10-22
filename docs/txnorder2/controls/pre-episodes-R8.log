@@ -1,0 +1,2 @@
+R8 negative controls: started-only, read-before-CAS, Dekker all falsified
+PASS R8

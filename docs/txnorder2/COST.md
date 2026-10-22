@@ -20,6 +20,8 @@ The counted region includes EXEC preparation, the scheduled owner turns,
 decision and retirement. It excludes networking, prior command queueing and
 later record reclamation. One shape has two keys on one shard; the other has
 one key on each of two owners. Atomic mode is 1, with no competing operation.
+It is the first EXEC after seeding those keys, not a steady-state hardware
+counter measurement of the maintainer's 64-connection workload.
 
 The second audit follows **all calls, including indirect calls and libraries**.
 It counts debugger instruction steps in that region, including fixture glue.
