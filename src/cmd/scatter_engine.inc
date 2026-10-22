@@ -2208,7 +2208,8 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
     // The attempt and AOF setup share this predicate; ordinary scatters never
     // inspect the attempt's ownership bit or pointer here.
     if (__builtin_expect(state->atomic_group && !force_atomic, false) &&
-        ((!txn_group_prepare(*state, server, owner_io, &pool)) ||
+        (((state->atomic_apply || state->kind == Kind::Msetnx) &&
+          !txn_group_prepare(*state, server, owner_io, &pool)) ||
          ((state->atomic_write || state->atomic_direct) &&
           !aof_prepare_scatter_group(*state)))) {
         xshard_abandon_unpublished(state, pool, owner_io);
@@ -4278,7 +4279,7 @@ void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, 
         }
     }
     if (state->atomic_group) {
-        txn_group_barrier_witness(*state, client);
+        if (state->kind == Kind::Msetnx) txn_group_barrier_witness(*state, client);
         // Installed nodes retain only the compact group decision fields. Reclamation is batched by
         // each owner on later passes; retirement posts no per-group cleanup fan-out.
         free_state_contents(*state);
