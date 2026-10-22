@@ -1,0 +1,45 @@
+tests/infofields_unit.cc:48:    // Actual elapsed time, not an assumed 100 ms, determines a delayed sample.
+tests/psfix_test.py:44:                self.assertRaisesRegex(AssertionError, 'never armed for >100 ms on oracle'):
+tests/gate.sh:950:    iofix-hz) job_iofix_hz "$name";;
+tests/gate.sh:1110:              iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
+tests/gate.sh:1758:  row_begin "iofix IO4.9 Redis hz cron"
+tests/gate.sh:1759:  iofix_legs hz "iofix IO4.9 Redis hz cron"
+tests/gate.sh:4148:collect_job iofix-hz
+tests/perf_gate.py:244:            hz = os.sysconf('SC_CLK_TCK')
+tests/perf_gate.py:247:                workers += [(a[tid] - b[tid]) / hz / result['wall_seconds'] for tid in a]
+tests/iofix_hz.py:2:"""IO4.9: Redis hz grammar, clamps, live updates, dynamic cadence and file/rewrite."""
+tests/iofix_hz.py:11:        actual = int(info(c, 'server')[b'hz'])
+tests/iofix_hz.py:15:    raise AssertionError(('effective hz', actual, value))
+tests/iofix_hz.py:28:    commands = [('CONFIG', 'GET', 'hz'), ('CONFIG', 'GET', 'dynamic-hz')]
+tests/iofix_hz.py:31:        commands += [('CONFIG', 'SET', 'hz', value), ('CONFIG', 'GET', 'hz')]
+tests/iofix_hz.py:33:        commands += [('CONFIG', 'SET', 'dynamic-hz', value), ('CONFIG', 'GET', 'dynamic-hz')]
+tests/iofix_hz.py:34:    commands += [('CONFIG', 'SET', 'hz', '10', 'HZ', '30'),
+tests/iofix_hz.py:35:                 ('CONFIG', 'SET', 'dynamic-hz', 'yes', 'DYNAMIC-HZ', 'no'),
+tests/iofix_hz.py:36:                 ('CONFIG', 'SET', 'HZ', 'junk'),
+tests/iofix_hz.py:37:                 ('CONFIG', 'SET', 'DYNAMIC-HZ', 'junk'),
+tests/iofix_hz.py:38:                 ('CONFIG', 'SET', 'hz', '20', 'dynamic-hz', 'invalid'),
+tests/iofix_hz.py:39:                 ('CONFIG', 'GET', 'hz'), ('CONFIG', 'GET', 'dynamic-hz')]
+tests/iofix_hz.py:50:            assert c.cmd('CONFIG', 'SET', 'hz', '1', 'dynamic-hz', 'yes') == b'OK'
+tests/iofix_hz.py:56:            assert c.cmd('CONFIG', 'SET', 'dynamic-hz', 'no') == b'OK'
+tests/iofix_hz.py:60:        # Witness the scheduler, not just CONFIG/INFO strings: a fixed 10 Hz client cron
+tests/iofix_hz.py:63:        for hz in (10, 100):
+tests/iofix_hz.py:64:            assert t.cmd('CONFIG', 'SET', 'hz', hz) == b'OK'
+tests/iofix_hz.py:65:            time.sleep(1.1)  # the previous 1 Hz timer is allowed to finish
+tests/iofix_hz.py:68:            samples[hz] = switches(target.process.pid) - before
+tests/iofix_hz.py:70:        assert samples[100] > 2 * samples[10], ('client cron stayed at 10 Hz', samples)
+tests/iofix_hz.py:74:        config.write_text('hz 0\ndynamic-hz no\n')
+tests/iofix_hz.py:77:            assert c.cmd('CONFIG', 'GET', 'hz') == [b'hz', b'1']
+tests/iofix_hz.py:78:            assert c.cmd('CONFIG', 'GET', 'dynamic-hz') == [b'dynamic-hz', b'no']
+tests/iofix_hz.py:79:            assert c.cmd('CONFIG', 'SET', 'hz', '2147483647', 'dynamic-hz', 'yes') == b'OK'
+tests/iofix_hz.py:83:            assert c.cmd('CONFIG', 'GET', 'hz') == [b'hz', b'500']
+tests/iofix_hz.py:84:            assert c.cmd('CONFIG', 'GET', 'dynamic-hz') == [b'dynamic-hz', b'yes']
+tests/netcmd_unit.cc:329:            check(loop.client_cron_pass(ClientHz::kDefault) == 1 && !client.closing(), "timeout 0 keeps subscribers open");
+tests/netcmd_unit.cc:332:            check(loop.client_cron_pass(ClientHz::kDefault) == 1 && !client.closing(), "exact idle timeout keeps subscribers open");
+tests/netcmd_unit.cc:335:            check(loop.client_cron_pass(ClientHz::kDefault) == 1 && !client.closing(), "blocked subscribers remain exempt");
+tests/netcmd_unit.cc:337:            check(loop.client_cron_pass(ClientHz::kDefault) == 1, "idle subscriber visited by client cron");
+tests/netcmd_unit.cc:348:            check(loop.client_cron_pass(ClientHz::kDefault) == 2, "subscriber and plain idle client visited by cron");
+tests/psfix.py:72:                'PSFIX save-load never armed for >100 ms on %s; increase --bgsave-load-keys' % label)
+tests/fixtures/nullrefresh-ledger-labels.json:709:    "iofix IO4.9 Redis hz cron",
+tests/differ.py:6106:    """Observe batch publication every 1 ms, with a hard 100 ms reply deadline."""
+tests/abbagate.py:632:                        raise RuntimeError("INFO poller missed an entire 1 Hz period")
+tests/abbagate.py:2057:                    raise RuntimeError("INFO poller did not cover the whole central window at 1 Hz")

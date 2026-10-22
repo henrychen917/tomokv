@@ -1,0 +1,20 @@
+[
+  {
+    "path": "build/tomokv-pre",
+    "sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+    "file_bytes": 192601888,
+    "text_bytes": 7747526
+  },
+  {
+    "path": "build/tomokv",
+    "sha256": "19e3a98b148a5537d211986b2ed16a7c89601ee37ae83e48bc5db709cf4d9fd3",
+    "file_bytes": 193532536,
+    "text_bytes": 7795286
+  },
+  {
+    "path": "build/tomokv-pad-a",
+    "sha256": "ab026810b1fc3e87278be18a7ffbd187f6e908ec5908cd541386e2be15c01b6b",
+    "file_bytes": 193532536,
+    "text_bytes": 7795286
+  }
+]

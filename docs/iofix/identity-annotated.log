@@ -1,0 +1,11 @@
+{
+  "changed_emitted_bodies": 720,
+  "changed_linked_pre": 409,
+  "changed_linked_post": 459,
+  "main_linked_bodies": 143,
+  "main_equal": 143,
+  "binaries": {
+    "build/tomokv-pre": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+    "build/tomokv": "19e3a98b148a5537d211986b2ed16a7c89601ee37ae83e48bc5db709cf4d9fd3"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "source_rows": 706,
+  "fixture_rows": 706,
+  "multiset_equal": true,
+  "collection_lines": {
+    "iofix-deferred": 4147,
+    "iofix-hz": 4148,
+    "iofix-sleep": 4149,
+    "iofix-signal": 4150
+  },
+  "quick_exit_line": 4351,
+  "DQ": 4,
+  "DF": 4,
+  "unchanged_expect": {
+    "EXPECT_QUICK": 685,
+    "EXPECT_FULL": 702
+  },
+  "maintainer_counts": {
+    "EXPECT_QUICK": 689,
+    "EXPECT_FULL": 706
+  },
+  "full_check_expected_refusal": "tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=706, source declarations=706\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth."
+}

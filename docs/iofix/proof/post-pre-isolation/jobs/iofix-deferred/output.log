@@ -1,0 +1,2 @@
+  row budget: 900s; median=26.685s; correctness-plan-fallback; iofix WB4.1 deferred IO parks
+  iofix WB4.1 deferred IO parks                        ok

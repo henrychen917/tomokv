@@ -1,0 +1,2 @@
+  row budget: 900s; median=31.05s; correctness-plan-fallback; iofix IO4.10 global DEBUG SLEEP
+  iofix IO4.10 global DEBUG SLEEP                      ok

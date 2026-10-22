@@ -1,0 +1,146 @@
+[
+  {
+    "feature": "deferred",
+    "mode": "2s",
+    "engine": "uring",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-deferred/deferred-2s-uring.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-deferred/deferred-2s-uring.log"
+  },
+  {
+    "feature": "deferred",
+    "mode": "2s",
+    "engine": "epoll",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-deferred/deferred-2s-epoll.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-deferred/deferred-2s-epoll.log"
+  },
+  {
+    "feature": "deferred",
+    "mode": "1s",
+    "engine": "uring",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-deferred/deferred-1s-uring.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-deferred/deferred-1s-uring.log"
+  },
+  {
+    "feature": "deferred",
+    "mode": "1s",
+    "engine": "epoll",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-deferred/deferred-1s-epoll.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-deferred/deferred-1s-epoll.log"
+  },
+  {
+    "feature": "hz",
+    "mode": "2s",
+    "engine": "uring",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-hz/hz-2s-uring.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-hz/hz-2s-uring.log"
+  },
+  {
+    "feature": "hz",
+    "mode": "2s",
+    "engine": "epoll",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-hz/hz-2s-epoll.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-hz/hz-2s-epoll.log"
+  },
+  {
+    "feature": "hz",
+    "mode": "1s",
+    "engine": "uring",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-hz/hz-1s-uring.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-hz/hz-1s-uring.log"
+  },
+  {
+    "feature": "hz",
+    "mode": "1s",
+    "engine": "epoll",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-hz/hz-1s-epoll.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-hz/hz-1s-epoll.log"
+  },
+  {
+    "feature": "sleep",
+    "mode": "2s",
+    "engine": "uring",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-sleep/sleep-2s-uring.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-sleep/sleep-2s-uring.log"
+  },
+  {
+    "feature": "sleep",
+    "mode": "2s",
+    "engine": "epoll",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-sleep/sleep-2s-epoll.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-sleep/sleep-2s-epoll.log"
+  },
+  {
+    "feature": "sleep",
+    "mode": "1s",
+    "engine": "uring",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-sleep/sleep-1s-uring.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-sleep/sleep-1s-uring.log"
+  },
+  {
+    "feature": "sleep",
+    "mode": "1s",
+    "engine": "epoll",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-sleep/sleep-1s-epoll.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-sleep/sleep-1s-epoll.log"
+  },
+  {
+    "feature": "signal",
+    "mode": "2s",
+    "engine": "uring",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-signal/signal-2s-uring.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-signal/signal-2s-uring.log"
+  },
+  {
+    "feature": "signal",
+    "mode": "2s",
+    "engine": "epoll",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-signal/signal-2s-epoll.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-signal/signal-2s-epoll.log"
+  },
+  {
+    "feature": "signal",
+    "mode": "1s",
+    "engine": "uring",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-signal/signal-1s-uring.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-signal/signal-1s-uring.log"
+  },
+  {
+    "feature": "signal",
+    "mode": "1s",
+    "engine": "epoll",
+    "pre": "FAIL intended mechanism",
+    "post": "PASS",
+    "pre_log": "docs/iofix/proof/pre-release-witnesses/jobs/iofix-signal/signal-1s-epoll.log",
+    "post_log": "docs/iofix/proof/post-release-witnesses/jobs/iofix-signal/signal-1s-epoll.log"
+  }
+]
