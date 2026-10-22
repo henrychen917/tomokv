@@ -494,3 +494,11 @@ gate rows; EXPECT remains **685/702**, counted at the same quick-tier boundary.
 - **Armed fused EXEC witness: FAIL**, as recorded above. Passing selected
   correctness rows does not clear this finding or the retained findings from
   the earlier wave-4 integration report.
+
+## wave4d
+
+Started from `a44aef25c` on `cx-wave4`. CPUs 64–111 only; builds `-j32`;
+ports 26800–26899. Correctness servers and individual gate jobs are authorized.
+Performance load generators and the full iteration gate remain with the maintainer.
+No EXPECT or assertion change, no push. Call-site diagnosis and source trials
+are retained under `docs/wave4d`; final evidence will be appended here.
