@@ -1,0 +1,17 @@
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants an integer in 0..64
+--wb-small-pipe wants 0..64; --wb-complete-visits wants 0..255
+ok: netcmd wb-small-pipe

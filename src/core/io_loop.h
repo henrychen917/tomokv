@@ -547,7 +547,8 @@ private:
             const bool client_cron_armed = !flip_dispatch_paused() &&
                                            srv_->client_cron_armed();
             const bool client_lb_signal_armed = client_lb_signal_armed_;
-            // The elected IO alone checks live save/shutdown policy on the one-second beat.
+            // The elected IO checks periodic saves on the one-second beat and signal stops
+            // every pass, so a signal request does not wait for the next save-cron deadline.
             // Election is private: never read Placement's mutable vectors on a hot pass.
             const bool save_cron_armed = !flip_dispatch_paused() &&
                                          save_cron_writer_;
@@ -947,6 +948,13 @@ private:
         }
     }
 
+    // Only the elected observer drains request edges: other workers must leave the wake
+    // available even if its poll is between completion and rearm. Observe late writes here
+    // even after shutdown_from_cron cleared the pending bit following a failed save.
+    __attribute__((noinline)) void signal_shutdown_wake() {
+        if (save_cron_writer_) signal_doorbell_consume_request();
+    }
+
     // ---- epoll engine: the readiness pass -------------------------------------------------------
     //
     // What this does NOT do is as important as what it does: for a connection it records readiness
@@ -997,8 +1005,7 @@ private:
                     work++;
                     break;
                 case UrKind::Shutdown:
-                    // Only the elected save owner consumes a request wake. The later terminal
-                    // wake is sticky so every ring/epoll set observes the published stop flags.
+                    signal_shutdown_wake();
                     work++;
                     break;
                 case UrKind::Recv: {
@@ -1094,8 +1101,10 @@ private:
                 case UrKind::DatabaseWake:
                     srv_->databases().consume_wake(self_->id(), ring_); break;
                 case UrKind::Shutdown:
-                    if (!self_->stop_flag().load(std::memory_order_relaxed))
+                    if (!self_->stop_flag().load(std::memory_order_relaxed)) {
+                        signal_shutdown_wake();
                         ring_.rearm_shutdown_poll();
+                    }
                     break;
                 case UrKind::SnapshotStart:
                     if constexpr (Fused)
@@ -1146,8 +1155,10 @@ private:
                 case UrKind::DatabaseWake:
                     srv_->databases().consume_wake(self_->id(), ring_); break;
                 case UrKind::Shutdown:
-                    if (!self_->stop_flag().load(std::memory_order_relaxed))
+                    if (!self_->stop_flag().load(std::memory_order_relaxed)) {
+                        signal_shutdown_wake();
                         ring_.rearm_shutdown_poll();
+                    }
                     break;
                 case UrKind::SnapshotStart:
                     if constexpr (Fused)

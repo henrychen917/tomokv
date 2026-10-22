@@ -1,2 +1,3 @@
 a7dfb9d23 source/Makefile/tests plus current gate job interface, four new directed batteries, wb_rule_checks.py/wb_rule_phase_unit.cc and splitlocal_checks.py. netcmd fixture uses its PRE call signature with unchanged assertions. No POST unit binaries are reused.
 PRE compatibility adaptations: splitlocal uses PRE epoll literal-50 extraction with original policy assertions, but make inherits lane affinity. WB work negative mutation targets PRE unconditional work clause; new positive parked-progress assertions are unchanged. Current debug.py and final hz client-share/file sublegs are overlaid.
+Late-wake follow-up: the same six-variant netcmd config witness is overlaid on PRE; only its unrelated client_cron_pass signature is adapted. All signal assertions are identical.

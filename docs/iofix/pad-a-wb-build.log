@@ -1,0 +1,14 @@
+readelf: Warning: Corrupt file name list
+{
+  "kind": "A: scoped PRE deferred-work behaviour with exact POST ELF/text layout",
+  "scope": "nominated 512-client merit cells, default hz, no DEBUG SLEEP or signal-save operation",
+  "limitation": "hz, DEBUG SLEEP and signal-stop admin behaviour remains POST; not a full four-feature PRE twin",
+  "pre_sha256": "41d90251d14de51c081a9d489469c47deda62b4bca3923eb5d8bde655e2b9e76",
+  "post_sha256": "19e3a98b148a5537d211986b2ed16a7c89601ee37ae83e48bc5db709cf4d9fd3",
+  "pad_sha256": "ab026810b1fc3e87278be18a7ffbd187f6e908ec5908cd541386e2be15c01b6b",
+  "post_text_bytes": 7795286,
+  "pad_text_bytes": 7795286,
+  "all_sections_and_symbol_addresses_sizes_equal": true,
+  "bytes_changed": 312,
+  "functions_patched": 104
+}

@@ -1,4 +1,3 @@
-diff --git a/tests/gate.sh b/tests/gate.sh
 --- a/tests/gate.sh
 +++ b/tests/gate.sh
 @@ -946,6 +946,10 @@
@@ -71,7 +70,6 @@ diff --git a/tests/gate.sh b/tests/gate.sh
  
  collect_job flip_unit
  
-diff --git a/tests/debug.py b/tests/debug.py
 --- a/tests/debug.py
 +++ b/tests/debug.py
 @@ -78,65 +78,38 @@
@@ -167,8 +165,7 @@ diff --git a/tests/debug.py b/tests/debug.py
 -print("debug: PASS (connection-timer sleep, toggle fired, batched shard ownership, LOADAOF off guard, "
 +print("debug: PASS (process-wide sleep, toggle fired, batched shard ownership, LOADAOF off guard, "
        "mixed snapshot RELOAD atomic=0/1)")
-diff --git a/tests/_iofix.py b/tests/_iofix.py
---- /dev/null
+--- a/tests/_iofix.py
 +++ b/tests/_iofix.py
 @@ -0,0 +1,114 @@
 +"""Owned correctness listeners and raw replies shared by the four IO regressions."""
@@ -285,8 +282,7 @@ diff --git a/tests/_iofix.py b/tests/_iofix.py
 +        except FileNotFoundError:
 +            pass
 +    return out
-diff --git a/tests/iofix_deferred.py b/tests/iofix_deferred.py
---- /dev/null
+--- a/tests/iofix_deferred.py
 +++ b/tests/iofix_deferred.py
 @@ -0,0 +1,81 @@
 +#!/usr/bin/env python3
@@ -370,8 +366,7 @@ diff --git a/tests/iofix_deferred.py b/tests/iofix_deferred.py
 +    args = arguments(__doc__).parse_args()
 +    args.output.mkdir(parents=True, exist_ok=True)
 +    run(args)
-diff --git a/tests/iofix_hz.py b/tests/iofix_hz.py
---- /dev/null
+--- a/tests/iofix_hz.py
 +++ b/tests/iofix_hz.py
 @@ -0,0 +1,133 @@
 +#!/usr/bin/env python3
@@ -507,8 +502,7 @@ diff --git a/tests/iofix_hz.py b/tests/iofix_hz.py
 +    args = arguments(__doc__).parse_args()
 +    args.output.mkdir(parents=True, exist_ok=True)
 +    run(args)
-diff --git a/tests/iofix_sleep.py b/tests/iofix_sleep.py
---- /dev/null
+--- a/tests/iofix_sleep.py
 +++ b/tests/iofix_sleep.py
 @@ -0,0 +1,164 @@
 +#!/usr/bin/env python3
@@ -675,8 +669,7 @@ diff --git a/tests/iofix_sleep.py b/tests/iofix_sleep.py
 +    args = arguments(__doc__).parse_args()
 +    args.output.mkdir(parents=True, exist_ok=True)
 +    run(args)
-diff --git a/tests/iofix_signal.py b/tests/iofix_signal.py
---- /dev/null
+--- a/tests/iofix_signal.py
 +++ b/tests/iofix_signal.py
 @@ -0,0 +1,115 @@
 +#!/usr/bin/env python3
@@ -794,7 +787,6 @@ diff --git a/tests/iofix_signal.py b/tests/iofix_signal.py
 +    args = arguments(__doc__).parse_args()
 +    args.output.mkdir(parents=True, exist_ok=True)
 +    run(args)
-diff --git a/tests/wb_rule_checks.py b/tests/wb_rule_checks.py
 --- a/tests/wb_rule_checks.py
 +++ b/tests/wb_rule_checks.py
 @@ -54,7 +54,7 @@
@@ -806,7 +798,6 @@ diff --git a/tests/wb_rule_checks.py b/tests/wb_rule_checks.py
      "split-policy": ("split-phase", POLICY, "!c->dead() && defer(*c, loop.wb_config_)", "false", "split-policy", "2s uses exact composite fraction"),
      "split-local": ("split-phase", POLICY, "!c->dead() && defer(*c, loop.wb_config_)", "false", "split-local", "2s reader capability shares composite writeback"),
      "split-budget": ("split-phase", POLICY, "const size_t serve_budget = ready_now", "const size_t serve_budget = 16", "split-budget", "exact mode-specific budget"),
-diff --git a/tests/wb_rule_phase_unit.cc b/tests/wb_rule_phase_unit.cc
 --- a/tests/wb_rule_phase_unit.cc
 +++ b/tests/wb_rule_phase_unit.cc
 @@ -255,9 +255,14 @@
@@ -827,7 +818,6 @@ diff --git a/tests/wb_rule_phase_unit.cc b/tests/wb_rule_phase_unit.cc
          phase(f, r7); // Deliberately no new request or completion enqueue.
          require(c.rob().quiesced() && !c.serve_pending(), "completion releases without fresh arrival");
      }
-diff --git a/tests/splitlocal_checks.py b/tests/splitlocal_checks.py
 --- a/tests/splitlocal_checks.py
 +++ b/tests/splitlocal_checks.py
 @@ -107,7 +107,7 @@
@@ -839,3 +829,70 @@ diff --git a/tests/splitlocal_checks.py b/tests/splitlocal_checks.py
                                  text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
          (dest / 'compile.log').write_text(result.stdout)
          assert result.returncode != 0 and marker in result.stdout, (name, result.stdout)
+--- a/tests/netcmd_unit.cc
++++ b/tests/netcmd_unit.cc
+@@ -480,6 +480,56 @@
+         command_bind_server(nullptr);
+         std::filesystem::remove_all(directory);
+     }
++    static void late_signal_wakes() {
++        unsigned failures = 0;
++        auto exercise = [&]<bool Fused, bool Tls>(bool epoll) {
++            SignalDoorbell doorbell;
++            check(doorbell.init(), "late signal private doorbell");
++            Server server; ThreadCtx self; IoLoop loop;
++            loop.srv_ = &server; loop.self_ = &self;
++            if (epoll) {
++                check(loop.ep_.init(), "late signal private epoll set");
++                check(loop.ep_.add(doorbell.fd(), EPOLLIN, ur_tag(UrKind::Shutdown, nullptr)),
++                      "late signal epoll registration");
++            }
++            io_uring_cqe completion{};
++            completion.user_data = ur_tag(UrKind::Shutdown, nullptr);
++            completion.res = POLLIN;
++            auto deliver = [&] {
++                if (epoll) loop.epoll_pass<false, Tls, Fused>(0);
++                else loop.on_cqe<Tls, false, Fused>(&completion);
++            };
++            // The publisher can be descheduled between setting the pending bit and write(2).
++            // A failed save may have cleared that bit before this late write becomes visible.
++            check(!server.signal_shutdown_pending(), "late signal pending request already ended");
++            const uint64_t one = 1;
++            check(::write(doorbell.fd(), &one, sizeof(one)) == sizeof(one) &&
++                      signal_doorbell_wait(0), "late signal request window opened");
++            loop.save_cron_writer_ = false;
++            deliver();
++            const bool nonwriter_kept = signal_doorbell_wait(0);
++            loop.save_cron_writer_ = true;
++            deliver();
++            const bool writer_drained = !signal_doorbell_wait(0);
++            // This also exercises restoration after the elected observer reads a terminal
++            // pulse: a concurrent stop must remain visible to every other waiter.
++            signal_doorbell_notify();
++            check(signal_doorbell_wait(0), "late signal terminal window opened");
++            deliver();
++            const bool terminal_kept = signal_doorbell_wait(0);
++            std::printf("signal wake %s %s tls=%d: nonwriter=%d late-drained=%d terminal=%d\n",
++                        Fused ? "1s" : "2s", epoll ? "epoll" : "uring", Tls,
++                        nonwriter_kept, writer_drained, terminal_kept);
++            failures += !nonwriter_kept || !writer_drained || !terminal_kept;
++        };
++        exercise.template operator()<false, false>(false);
++        exercise.template operator()<false, true>(false);
++        exercise.template operator()<false, false>(true);
++        exercise.template operator()<true, false>(false);
++        exercise.template operator()<true, true>(false);
++        exercise.template operator()<true, false>(true);
++        check(failures == 0, "late request wakes drain without consuming terminal shutdown");
++    }
+     static void config() {
+         atomic_fingerprint(0);
+         atomic_fingerprint(1);
+@@ -488,6 +538,7 @@
+         tracking_eviction();
+         zero_copy("zc-all");
+         config_knobs();
++        late_signal_wakes();
+     }
+     static void config_knobs() {
+         Server server;

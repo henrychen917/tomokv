@@ -80,10 +80,10 @@ def reason(row):
         return 'IO4.10: worker membership and the global pause check at executor pass entry.'
     if 'parse_and_dispatch' in name:
         return 'IO4.10: direct DEBUG SLEEP uses a global ticket; parser templates and nested lambdas are re-emitted.'
-    if 'on_cqe' in name or 'rearm_shutdown_poll' in name:
-        return 'IO4.17: rearm the one-shot signal poll after a nonterminal request.'
-    if any(word in name for word in ('on_signal(', 'shutdown_from_cron', 'signal_doorbell')):
-        return 'IO4.17: signal request wake/consumption and terminal wake; interrupt any global sleep.'
+    if any(word in name for word in ('on_cqe', 'epoll_pass', 'rearm_shutdown_poll', 'signal_shutdown_wake')):
+        return 'IO4.17: elected IO drains late request wakes, restores terminal wakes and rearms the one-shot signal poll.'
+    if any(word in name for word in ('on_signal(', 'shutdown_from_cron', 'signal_doorbell', 'finish_shutdown')):
+        return 'IO4.17: separate request and latched terminal wakes; restore concurrent terminal edges and interrupt global sleep.'
     if any(word in name for word in ('client_cron_pass', 'idle_timeout_ms', 'ClientHz')):
         return 'IO4.9: effective Redis hz controls cron cadence, client share and idle wait deadline.'
     if any(word in name for word in ('deferred_timer', 'close_client')):

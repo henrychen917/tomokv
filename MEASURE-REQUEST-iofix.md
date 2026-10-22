@@ -39,7 +39,9 @@ measurement. No throughput claim is made here.
   Elected IO begins the shutdown save on its next pass, independent of the
   one-second cron. Drain the request edge before saving and retain a terminal
   wake after success. IO/executor polls are one-shot and rearmed only for a
-  nonterminal request, so failed saves do not leave an idle CPU spinning.
+  nonterminal request. The elected IO also drains a late request write after
+  a failed save cleared the pending bit. A separate terminal latch restores
+  a stop edge caught by that drain. Other observers never consume the wake.
   Oracle/target assertions cover SIGTERM/SIGINT, saved-data reload, failed-save
   service/retry, NOSAVE and signal during sleep. Existing FLIP tests cover
   shutdown during a role change and second SIGINT.
@@ -73,7 +75,7 @@ and every DEBUG SLEEP grep user is mapped to its owning gate job in
 `docs/iofix/affected-jobs.md`. The corrected debug assertions and all new
 oracle reply comparisons retain their oracle runs.
 
-The final release directed run (`6SXO6t`) passed **63 rows, zero failures**.
+The pre-follow-up release directed run (`6SXO6t`) passed **63 rows, zero failures**.
 The identical new batteries on PRE (`1FCQ6x`) produced **39 passes and seven
 expected failures**: four new rows, two existing writeback phase/split-phase
 rows containing the stronger park assertion, and the corrected global DEBUG
@@ -81,6 +83,13 @@ SLEEP row. Every new mode/engine leg ran. PRE hz also attempted file/rewrite/
 reload phases despite the missing knob; PRE sleep attempted every direct,
 EXEC, read-local and R7 variant despite earlier phase failures. The PRE signal
 row reaches the target and fails specifically on the forced save-cron wait.
+
+Review then found a late-writer race in the signal eventfd. The new deterministic
+`netcmd config` witness failed all six dispatch variants on that release
+(`dCuZVC`: 16 passes, one expected failure). It explicitly opens the late-write
+window and checks elected-owner draining and terminal-edge retention. The
+follow-up rebuild and its proof results are being recorded separately; the
+earlier passing runs do not establish this stronger property.
 
 Actual connection-owner CPU, default policy=1/S16/D3, 16 remote LPOS windows:
 
@@ -174,7 +183,9 @@ ABBA. Its 8-core 6:2 entry is correctness geometry only. Use the maintainer's
 reviewed quiet-box ABBA allocation, or first review/calibrate an 8-core 6:2
 performance entry and matched nulls; do not silently invent a performance
 ratio. All lane-executed work stays on 80–95. The 18 cells were parsed without
-starting servers; no performance process was launched for this request.
+starting servers; none of these ABBA/PMU commands was executed in this lane.
+The gate's FLIP saturation job uses its own load generator solely to assert
+correct role changes; its traffic is not used as performance evidence.
 
 After the maintainer assigns reviewed masks in IOFIX_MERIT_SERVER and
 IOFIX_MERIT_LOAD and supplies the instrument's matched nulls, the comparison

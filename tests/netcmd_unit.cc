@@ -480,6 +480,56 @@ struct NetcmdRegression {
         command_bind_server(nullptr);
         std::filesystem::remove_all(directory);
     }
+    static void late_signal_wakes() {
+        unsigned failures = 0;
+        auto exercise = [&]<bool Fused, bool Tls>(bool epoll) {
+            SignalDoorbell doorbell;
+            check(doorbell.init(), "late signal private doorbell");
+            Server server; ThreadCtx self; IoLoop loop;
+            loop.srv_ = &server; loop.self_ = &self;
+            if (epoll) {
+                check(loop.ep_.init(), "late signal private epoll set");
+                check(loop.ep_.add(doorbell.fd(), EPOLLIN, ur_tag(UrKind::Shutdown, nullptr)),
+                      "late signal epoll registration");
+            }
+            io_uring_cqe completion{};
+            completion.user_data = ur_tag(UrKind::Shutdown, nullptr);
+            completion.res = POLLIN;
+            auto deliver = [&] {
+                if (epoll) loop.epoll_pass<false, Tls, Fused>(0);
+                else loop.on_cqe<Tls, false, Fused>(&completion);
+            };
+            // The publisher can be descheduled between setting the pending bit and write(2).
+            // A failed save may have cleared that bit before this late write becomes visible.
+            check(!server.signal_shutdown_pending(), "late signal pending request already ended");
+            const uint64_t one = 1;
+            check(::write(doorbell.fd(), &one, sizeof(one)) == sizeof(one) &&
+                      signal_doorbell_wait(0), "late signal request window opened");
+            loop.save_cron_writer_ = false;
+            deliver();
+            const bool nonwriter_kept = signal_doorbell_wait(0);
+            loop.save_cron_writer_ = true;
+            deliver();
+            const bool writer_drained = !signal_doorbell_wait(0);
+            // This also exercises restoration after the elected observer reads a terminal
+            // pulse: a concurrent stop must remain visible to every other waiter.
+            signal_doorbell_notify();
+            check(signal_doorbell_wait(0), "late signal terminal window opened");
+            deliver();
+            const bool terminal_kept = signal_doorbell_wait(0);
+            std::printf("signal wake %s %s tls=%d: nonwriter=%d late-drained=%d terminal=%d\n",
+                        Fused ? "1s" : "2s", epoll ? "epoll" : "uring", Tls,
+                        nonwriter_kept, writer_drained, terminal_kept);
+            failures += !nonwriter_kept || !writer_drained || !terminal_kept;
+        };
+        exercise.template operator()<false, false>(false);
+        exercise.template operator()<false, true>(false);
+        exercise.template operator()<false, false>(true);
+        exercise.template operator()<true, false>(false);
+        exercise.template operator()<true, true>(false);
+        exercise.template operator()<true, false>(true);
+        check(failures == 0, "late request wakes drain without consuming terminal shutdown");
+    }
     static void config() {
         atomic_fingerprint(0);
         atomic_fingerprint(1);
@@ -488,6 +538,7 @@ struct NetcmdRegression {
         tracking_eviction();
         zero_copy("zc-all");
         config_knobs();
+        late_signal_wakes();
     }
     static void config_knobs() {
         Server server;

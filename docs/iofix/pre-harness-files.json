@@ -51,7 +51,7 @@
   },
   {
     "path": "tests/netcmd_unit.cc",
-    "sha256": "544a96b66b840d27daee90eac7c4272ef9bf33f460e251c8673cdf2e403015a8",
-    "same_as_PRE": true
+    "sha256": "b090ae1ccf03d7307fc04a089800aee280cae24793b824d2e1cea3d53c09ea34",
+    "same_as_PRE": false
   }
 ]

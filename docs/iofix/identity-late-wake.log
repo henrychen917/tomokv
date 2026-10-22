@@ -1,0 +1,4 @@
+db0/src/cmd/acl.o 271 bodies
+db0/src/cmd/aclkeys.o 3 bodies
+db0/src/cmd/autharity.o 7 bodies
+db0/src/cmd/blocking_debug.o 3 bodies
