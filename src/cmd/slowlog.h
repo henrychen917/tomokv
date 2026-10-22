@@ -10,6 +10,7 @@
 // Unlike redis's per-command timing, a one-off slow op in that first multi-op batch is not logged.
 #pragma once
 #include <cstdint>
+#include <memory>
 
 namespace tomo {
 
@@ -39,6 +40,8 @@ inline constexpr uint32_t kSlowlogMaxArgBytes = 128;
 // can even realloc that buffer. Reading argv from the executor after execute() returns is
 // therefore a use-after-retire race -- so the bytes are copied while they are provably alive, into
 // a per-executor scratch that is reused for every op and never allocates.
+struct SlowlogIdentity;
+
 struct SlowlogCapture {
     uint32_t total_argc = 0;                 // argc before truncation
     uint32_t captured = 0;                   // arguments actually stored
@@ -47,6 +50,8 @@ struct SlowlogCapture {
     uint32_t len[kSlowlogMaxArgs] = {};      // stored length, <= kSlowlogMaxArgBytes
     uint32_t full[kSlowlogMaxArgs] = {};     // original length, for the truncation marker
     char     bytes[kSlowlogMaxArgs * kSlowlogMaxArgBytes];
+    // Immutable directory version retained before Done permits rename/close.
+    std::shared_ptr<const SlowlogIdentity> identity;
 };
 
 // One executor's recorder state. Lives at the cold tail of ExLoop.
@@ -58,7 +63,7 @@ struct SlowlogExState {
 
 // Copies the argument bytes out of the op while they are still pinned. Cheap: bounded by 32
 // arguments of 128 bytes, and for an ordinary GET/SET it is two short memcpys.
-void slowlog_capture(const Op& op, SlowlogCapture& out);
+void slowlog_capture(const Op& op, SlowlogCapture& out, uint64_t client_id);
 
 // The executor-side recorder, fed from a capture rather than from the (possibly retired) op.
 void slowlog_record_captured(uint32_t thread_id, uint64_t client_id, const SlowlogCapture& capture,

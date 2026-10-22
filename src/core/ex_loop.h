@@ -2216,7 +2216,8 @@ private:
                 // IO thread may retire the op and compact the read buffer the Slices point into.
                 Client* client = batch[i].client;
                 if (client)
-                    slowlog_capture(client->rob().at(batch[i].op_id), slowlog_state_.capture);
+                    slowlog_capture(client->rob().at(batch[i].op_id), slowlog_state_.capture,
+                                    client->id());
                 const uint64_t started = now_ns();
                 const bool ok = execute<IofusedPrivateQueue>(batch[i]);
                 // Done is deliberately delayed with the commit. Armed per-op timing must include
