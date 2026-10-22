@@ -386,6 +386,11 @@ public:
     void bind_client_capacity_hook(ClientCapacityPrepareFn prepare) {
         client_capacity_prepare_ = prepare;
     }
+    // Request-side reservation uses the already-bound IO hook. Serverless role
+    // models have no network loop; a real worker always binds this before Ready.
+    bool reserve_listener_handover() {
+        return !io_role_prepare_ || io_role_prepare_(io_role_context_);
+    }
     bool prepare_io_role() {
         return io_role_prepare_ && io_role_prepare_(io_role_context_);
     }

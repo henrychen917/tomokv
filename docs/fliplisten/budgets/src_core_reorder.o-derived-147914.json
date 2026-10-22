@@ -1,0 +1,356 @@
+{
+  "object": "src/core/reorder.o",
+  "arm": "derived",
+  "budget": 147914,
+  "initial": 114713,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=147914",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-fliplisten/build/fliplisten/budgets/src_core_reorder.o-derived-147914.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-fliplisten/build/fliplisten/budgets/src_core_reorder.o-derived-147914"
+  ],
+  "total": 858,
+  "hot": 132,
+  "changed": 35,
+  "hot_changed": 0,
+  "hot_differing_bytes": 0,
+  "rows": [
+    {
+      "symbol": "_ZN4tomo6IoLoop10arm_acceptENS_6UrKindE",
+      "name": "tomo::IoLoop::arm_accept(tomo::UrKind)",
+      "hot": false,
+      "pre_size": 648,
+      "post_size": 663,
+      "differing_bytes": 542,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop11r7_admit_fdILb0ELb1EEEviNS_6UrKindE",
+      "name": "void tomo::IoLoop::r7_admit_fd<false, true>(int, tomo::UrKind)",
+      "hot": false,
+      "pre_size": 1637,
+      "post_size": 1622,
+      "differing_bytes": 662,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop11r7_admit_fdILb1ELb1EEEviNS_6UrKindE",
+      "name": "void tomo::IoLoop::r7_admit_fd<true, true>(int, tomo::UrKind)",
+      "hot": false,
+      "pre_size": 1637,
+      "post_size": 1814,
+      "differing_bytes": 842,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop12r7_on_acceptILb0ELb1EEEvP12io_uring_cqeNS_6UrKindE",
+      "name": "void tomo::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "hot": false,
+      "pre_size": 359,
+      "post_size": 303,
+      "differing_bytes": 328,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop12r7_on_acceptILb1ELb1EEEvP12io_uring_cqeNS_6UrKindE",
+      "name": "void tomo::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "hot": false,
+      "pre_size": 359,
+      "post_size": 303,
+      "differing_bytes": 328,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop12rearm_acceptEP12io_uring_cqeNS_6UrKindE.part.0",
+      "name": "tomo::IoLoop::rearm_accept(io_uring_cqe*, tomo::UrKind) [clone .part.0]",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 59,
+      "differing_bytes": 59,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop13r7_epoll_passILb0ELb0ELb1EEEji",
+      "name": "unsigned int tomo::IoLoop::r7_epoll_pass<false, false, true>(int)",
+      "hot": false,
+      "pre_size": 633,
+      "post_size": 646,
+      "differing_bytes": 463,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop13r7_epoll_passILb0ELb1ELb1EEEji",
+      "name": "unsigned int tomo::IoLoop::r7_epoll_pass<false, true, true>(int)",
+      "hot": false,
+      "pre_size": 729,
+      "post_size": 732,
+      "differing_bytes": 411,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop13r7_epoll_passILb1ELb0ELb1EEEji",
+      "name": "unsigned int tomo::IoLoop::r7_epoll_pass<true, false, true>(int)",
+      "hot": false,
+      "pre_size": 681,
+      "post_size": 713,
+      "differing_bytes": 536,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop13r7_epoll_passILb1ELb1ELb1EEEji",
+      "name": "unsigned int tomo::IoLoop::r7_epoll_pass<true, true, true>(int)",
+      "hot": false,
+      "pre_size": 777,
+      "post_size": 717,
+      "differing_bytes": 572,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop17flip_control_passILb0EEEjv",
+      "name": "unsigned int tomo::IoLoop::flip_control_pass<false>()",
+      "hot": false,
+      "pre_size": 4360,
+      "post_size": 4494,
+      "differing_bytes": 3960,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop17flip_control_passILb1EEEjv",
+      "name": "unsigned int tomo::IoLoop::flip_control_pass<true>()",
+      "hot": false,
+      "pre_size": 4360,
+      "post_size": 4494,
+      "differing_bytes": 3960,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop18prepare_activationEv",
+      "name": "tomo::IoLoop::prepare_activation()",
+      "hot": false,
+      "pre_size": 1093,
+      "post_size": 1283,
+      "differing_bytes": 1137,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop28request_client_transfer_implILb1EEEbPNS_6ClientEjbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "name": "bool tomo::IoLoop::request_client_transfer_impl<true>(tomo::Client*, unsigned int, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "hot": false,
+      "pre_size": 2155,
+      "post_size": 2155,
+      "differing_bytes": 1,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop30quiesce_accepts_for_conversionEv",
+      "name": "tomo::IoLoop::quiesce_accepts_for_conversion()",
+      "hot": false,
+      "pre_size": 903,
+      "post_size": 0,
+      "differing_bytes": 903,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop30restore_accepts_after_rollbackEv",
+      "name": "tomo::IoLoop::restore_accepts_after_rollback()",
+      "hot": false,
+      "pre_size": 322,
+      "post_size": 0,
+      "differing_bytes": 322,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop8activateEv",
+      "name": "tomo::IoLoop::activate()",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 348,
+      "differing_bytes": 348,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop8arm_recvILb0EEEvPNS_6ClientE",
+      "name": "void tomo::IoLoop::arm_recv<false>(tomo::Client*)",
+      "hot": false,
+      "pre_size": 437,
+      "post_size": 645,
+      "differing_bytes": 397,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop9r7_on_cqeILb0ELb0ELb1EEEvP12io_uring_cqe",
+      "name": "void tomo::IoLoop::r7_on_cqe<false, false, true>(io_uring_cqe*)",
+      "hot": false,
+      "pre_size": 507,
+      "post_size": 502,
+      "differing_bytes": 355,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop9r7_on_cqeILb0ELb1ELb1EEEvP12io_uring_cqe",
+      "name": "void tomo::IoLoop::r7_on_cqe<false, true, true>(io_uring_cqe*)",
+      "hot": false,
+      "pre_size": 507,
+      "post_size": 502,
+      "differing_bytes": 355,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop9r7_on_cqeILb1ELb0ELb1EEEvP12io_uring_cqe",
+      "name": "void tomo::IoLoop::r7_on_cqe<true, false, true>(io_uring_cqe*)",
+      "hot": false,
+      "pre_size": 681,
+      "post_size": 696,
+      "differing_bytes": 590,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop9r7_on_cqeILb1ELb1ELb1EEEvP12io_uring_cqe",
+      "name": "void tomo::IoLoop::r7_on_cqe<true, true, true>(io_uring_cqe*)",
+      "hot": false,
+      "pre_size": 681,
+      "post_size": 696,
+      "differing_bytes": 590,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoopD1Ev",
+      "name": "tomo::IoLoop::~IoLoop()",
+      "hot": false,
+      "pre_size": 3440,
+      "post_size": 3456,
+      "differing_bytes": 3047,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoopD2Ev",
+      "name": "tomo::IoLoop::~IoLoop()",
+      "hot": false,
+      "pre_size": 3440,
+      "post_size": 3456,
+      "differing_bytes": 3047,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6Server10flip_beginEjjjRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "name": "tomo::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "hot": false,
+      "pre_size": 4301,
+      "post_size": 4689,
+      "differing_bytes": 4482,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6Server18flip_finish_activeEv",
+      "name": "tomo::Server::flip_finish_active()",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 45,
+      "differing_bytes": 45,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6Server20flip_complete_activeEv",
+      "name": "tomo::Server::flip_complete_active()",
+      "hot": false,
+      "pre_size": 778,
+      "post_size": 0,
+      "differing_bytes": 778,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore15atomic_collapseEmm",
+      "name": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
+      "hot": false,
+      "pre_size": 7311,
+      "post_size": 7039,
+      "differing_bytes": 5385,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore26atomic_collapse_read_localEmm",
+      "name": "tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)",
+      "hot": false,
+      "pre_size": 7820,
+      "post_size": 7872,
+      "differing_bytes": 3015,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNK4tomo6IoLoop16accepts_quiescedEv",
+      "name": "tomo::IoLoop::accepts_quiesced() const",
+      "hot": false,
+      "pre_size": 44,
+      "post_size": 0,
+      "differing_bytes": 44,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNSt5dequeIPN4tomo11PubSubEventESaIS2_EE13_M_insert_auxISt15_Deque_iteratorIS2_RS2_PS2_EEEvS9_T_SA_m",
+      "name": "void std::deque<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_insert_aux<std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**> >(std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, unsigned long)",
+      "hot": false,
+      "pre_size": 2583,
+      "post_size": 2519,
+      "differing_bytes": 2155,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN4tomoL26run_fused_server_reorderedERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv",
+      "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server_reordered(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+      "hot": false,
+      "pre_size": 4587,
+      "post_size": 4649,
+      "differing_bytes": 1205,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN4tomoL26run_fused_server_reorderedERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv.cold",
+      "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server_reordered(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+      "hot": false,
+      "pre_size": 332,
+      "post_size": 332,
+      "differing_bytes": 268,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIS7_SaIS7_EEEElNS0_5__ops15_Iter_less_iterEEvT_SF_T0_T1_.isra.0",
+      "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 2674,
+      "post_size": 2674,
+      "differing_bytes": 938,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZZN4tomoL26run_fused_server_reorderedERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineEENKUlvE0_clEvENUlPvE0_4_FUNESM_",
+      "name": "tomo::run_fused_server_reordered(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}::operator()() const::{lambda(void*)#2}::_FUN(void*)",
+      "hot": false,
+      "pre_size": 97,
+      "post_size": 34,
+      "differing_bytes": 84,
+      "targets_equal": false
+    }
+  ],
+  "score": [
+    0,
+    0,
+    35
+  ]
+}

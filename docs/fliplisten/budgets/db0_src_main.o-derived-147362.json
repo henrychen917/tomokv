@@ -1,0 +1,387 @@
+{
+  "object": "db0/src/main.o",
+  "arm": "derived",
+  "budget": 147362,
+  "initial": 96882,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=147362",
+    "--param",
+    "max-inline-insns-auto=18",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/main.cc",
+    "-o",
+    "/home/user/Projects/cx-fliplisten/build/fliplisten/budgets/db0_src_main.o-derived-147362.o",
+    "-fdump-ipa-inline",
+    "-dumpbase",
+    "/home/user/Projects/cx-fliplisten/build/fliplisten/budgets/db0_src_main.o-derived-147362"
+  ],
+  "total": 675,
+  "hot": 69,
+  "changed": 38,
+  "hot_changed": 5,
+  "hot_differing_bytes": 4645,
+  "rows": [
+    {
+      "symbol": "_ZN8tomo_db06IoLoop10arm_acceptENS_6UrKindE",
+      "name": "tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)",
+      "hot": false,
+      "pre_size": 648,
+      "post_size": 663,
+      "differing_bytes": 542,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb0ELb0ELb0EEEji",
+      "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, false, false>(int)",
+      "hot": false,
+      "pre_size": 781,
+      "post_size": 817,
+      "differing_bytes": 629,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb0ELb1ELb0EEEji",
+      "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, true, false>(int)",
+      "hot": false,
+      "pre_size": 941,
+      "post_size": 958,
+      "differing_bytes": 479,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb1ELb0ELb0EEEji",
+      "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, false>(int)",
+      "hot": false,
+      "pre_size": 877,
+      "post_size": 894,
+      "differing_bytes": 515,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop10epoll_passILb1ELb1ELb0EEEji",
+      "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, false>(int)",
+      "hot": false,
+      "pre_size": 1053,
+      "post_size": 1054,
+      "differing_bytes": 738,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb0EEEjv",
+      "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<false>()",
+      "hot": false,
+      "pre_size": 7182,
+      "post_size": 6969,
+      "differing_bytes": 6586,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop17flip_control_passILb1EEEjv",
+      "name": "unsigned int tomo_db0::IoLoop::flip_control_pass<true>()",
+      "hot": false,
+      "pre_size": 6914,
+      "post_size": 6681,
+      "differing_bytes": 6326,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb0ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "pre_size": 12559,
+      "post_size": 12559,
+      "differing_bytes": 4,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop18prepare_activationEv",
+      "name": "tomo_db0::IoLoop::prepare_activation()",
+      "hot": false,
+      "pre_size": 1541,
+      "post_size": 1696,
+      "differing_bytes": 1454,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop28request_client_transfer_implILb1EEEbPNS_6ClientEjbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "name": "bool tomo_db0::IoLoop::request_client_transfer_impl<true>(tomo_db0::Client*, unsigned int, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "hot": false,
+      "pre_size": 2349,
+      "post_size": 2349,
+      "differing_bytes": 1,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop30quiesce_accepts_for_conversionEv",
+      "name": "tomo_db0::IoLoop::quiesce_accepts_for_conversion()",
+      "hot": false,
+      "pre_size": 903,
+      "post_size": 0,
+      "differing_bytes": 903,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop30restore_accepts_after_rollbackEv",
+      "name": "tomo_db0::IoLoop::restore_accepts_after_rollback()",
+      "hot": false,
+      "pre_size": 322,
+      "post_size": 0,
+      "differing_bytes": 322,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop4initEPNS_6ServerEPNS_9ThreadCtxEPKctiPKNS_10TlsContextEb.isra.0",
+      "name": "tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 1006,
+      "post_size": 1051,
+      "differing_bytes": 236,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop6on_cqeILb0ELb0ELb0EEEvP12io_uring_cqe",
+      "name": "void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "pre_size": 459,
+      "post_size": 830,
+      "differing_bytes": 779,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop6on_cqeILb0ELb1ELb0EEEvP12io_uring_cqe",
+      "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "pre_size": 459,
+      "post_size": 830,
+      "differing_bytes": 779,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop6on_cqeILb1ELb0ELb0EEEvP12io_uring_cqe",
+      "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "pre_size": 1223,
+      "post_size": 1796,
+      "differing_bytes": 1663,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop6on_cqeILb1ELb1ELb0EEEvP12io_uring_cqe",
+      "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "pre_size": 891,
+      "post_size": 1484,
+      "differing_bytes": 1420,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop8admit_fdILb0ELb0EEEviNS_6UrKindE",
+      "name": "void tomo_db0::IoLoop::admit_fd<false, false>(int, tomo_db0::UrKind)",
+      "hot": false,
+      "pre_size": 1884,
+      "post_size": 1869,
+      "differing_bytes": 893,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop8admit_fdILb1ELb0EEEviNS_6UrKindE",
+      "name": "void tomo_db0::IoLoop::admit_fd<true, false>(int, tomo_db0::UrKind)",
+      "hot": false,
+      "pre_size": 1884,
+      "post_size": 1869,
+      "differing_bytes": 893,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop9on_acceptILb0ELb0EEEvP12io_uring_cqeNS_6UrKindE",
+      "name": "void tomo_db0::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "hot": false,
+      "pre_size": 359,
+      "post_size": 0,
+      "differing_bytes": 359,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop9on_acceptILb0ELb0EEEvP12io_uring_cqeNS_6UrKindE.part.0",
+      "name": "void tomo_db0::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo_db0::UrKind) [clone .part.0]",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 110,
+      "differing_bytes": 110,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop9on_acceptILb1ELb0EEEvP12io_uring_cqeNS_6UrKindE",
+      "name": "void tomo_db0::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "hot": false,
+      "pre_size": 359,
+      "post_size": 0,
+      "differing_bytes": 359,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop9on_acceptILb1ELb0EEEvP12io_uring_cqeNS_6UrKindE.part.0",
+      "name": "void tomo_db0::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo_db0::UrKind) [clone .part.0]",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 110,
+      "differing_bytes": 110,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoopD1Ev",
+      "name": "tomo_db0::IoLoop::~IoLoop()",
+      "hot": false,
+      "pre_size": 3920,
+      "post_size": 3936,
+      "differing_bytes": 3523,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoopD2Ev",
+      "name": "tomo_db0::IoLoop::~IoLoop()",
+      "hot": false,
+      "pre_size": 3920,
+      "post_size": 3936,
+      "differing_bytes": 3523,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06Server10flip_beginEjjjRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "name": "tomo_db0::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "hot": false,
+      "pre_size": 6255,
+      "post_size": 6403,
+      "differing_bytes": 6090,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06Server18flip_finish_activeEv",
+      "name": "tomo_db0::Server::flip_finish_active()",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 45,
+      "differing_bytes": 45,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06Server20flip_complete_activeEv",
+      "name": "tomo_db0::Server::flip_complete_active()",
+      "hot": false,
+      "pre_size": 778,
+      "post_size": 0,
+      "differing_bytes": 778,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06ServerD1Ev",
+      "name": "tomo_db0::Server::~Server()",
+      "hot": false,
+      "pre_size": 2032,
+      "post_size": 2154,
+      "differing_bytes": 1971,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06ServerD2Ev",
+      "name": "tomo_db0::Server::~Server()",
+      "hot": false,
+      "pre_size": 2032,
+      "post_size": 2154,
+      "differing_bytes": 1971,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNK8tomo_db06IoLoop16accepts_quiescedEv",
+      "name": "tomo_db0::IoLoop::accepts_quiesced() const",
+      "hot": false,
+      "pre_size": 44,
+      "post_size": 0,
+      "differing_bytes": 44,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNK8tomo_db06IoLoop21flip_io_drain_orderedEv",
+      "name": "tomo_db0::IoLoop::flip_io_drain_ordered() const",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 126,
+      "differing_bytes": 126,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZ4mainEUlvE0_EEEEE6_M_runEv",
+      "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#2}> > >::_M_run()",
+      "hot": false,
+      "pre_size": 3230,
+      "post_size": 3224,
+      "differing_bytes": 1908,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZ4mainEUlvE2_EEEEE6_M_runEv",
+      "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#4}> > >::_M_run()",
+      "hot": false,
+      "pre_size": 2429,
+      "post_size": 2413,
+      "differing_bytes": 1299,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZZ4mainENKUlvE0_clEvENUlPvE0_4_FUNES0_",
+      "name": "main::{lambda()#2}::operator()() const::{lambda(void*)#2}::_FUN(void*)",
+      "hot": false,
+      "pre_size": 97,
+      "post_size": 34,
+      "differing_bytes": 84,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZZ4mainENKUlvE2_clEvENUlPvE0_4_FUNES0_",
+      "name": "main::{lambda()#4}::operator()() const::{lambda(void*)#2}::_FUN(void*)",
+      "hot": false,
+      "pre_size": 97,
+      "post_size": 34,
+      "differing_bytes": 84,
+      "targets_equal": false
+    },
+    {
+      "symbol": "main",
+      "name": "main",
+      "hot": false,
+      "pre_size": 8469,
+      "post_size": 8483,
+      "differing_bytes": 2571,
+      "targets_equal": false
+    },
+    {
+      "symbol": "main.cold",
+      "name": "main.cold",
+      "hot": false,
+      "pre_size": 5434,
+      "post_size": 5434,
+      "differing_bytes": 50,
+      "targets_equal": false
+    }
+  ],
+  "score": [
+    1,
+    4645,
+    38
+  ]
+}

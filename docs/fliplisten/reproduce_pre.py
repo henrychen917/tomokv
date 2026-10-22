@@ -6,8 +6,9 @@ sys.path.insert(0,str(ROOT/'tests'))
 from _lib import Conn,info,RespError
 spec=importlib.util.spec_from_file_location('support',ROOT/'docs/wave4/run_supplemental.py')
 support=importlib.util.module_from_spec(spec);spec.loader.exec_module(support)
-support.ROOT=ROOT; support.OUT=ROOT/'build/fliplisten/pre-controls'
-DOC=ROOT/'docs/fliplisten/pre-controls';DOC.mkdir(parents=True,exist_ok=True)
+support.ROOT=ROOT; arm=sys.argv[1] if len(sys.argv)>1 else 'PRE'
+support.OUT=ROOT/('build/fliplisten/'+arm.lower()+'-controls')
+DOC=ROOT/('docs/fliplisten/'+arm.lower()+'-controls');DOC.mkdir(parents=True,exist_ok=True)
 rows=[]
 def report(c):
     r=c.must('FLIP');return dict(zip(r[::2],r[1::2]))
@@ -18,7 +19,10 @@ for mode in ('1s','2s'):
       shape=['--thread-mode',mode,'--shards','16','--net-io',engine,
              '--atomic',str(atomic),'--key-lb','0','--client-lb','0','--flip-auto','0']
       if mode=='2s':shape+=['--ratio','6:2']
-      with support.owned(label,ROOT/'build/tomokv-PRE','48-55',21800,shape):
+      deadline=time.monotonic()+10
+      while subprocess.check_output(['ss','-ltnH','sport = :21800']).strip():
+        assert time.monotonic()<deadline;time.sleep(.05)
+      with support.owned(label,ROOT/('build/tomokv-PRE' if arm=='PRE' else 'build/tomokv'),'48-55',21800,shape):
         admin=Conn('127.0.0.1',21800)
         if mode=='1s':
           reply=admin.cmd('FLIP',4,4)

@@ -2991,9 +2991,17 @@ stop
 # armed a SIGTERM during a FLIP was not served and a second SIGINT was absorbed.
 for NET_IO in uring epoll; do
   row_begin "FLIP close during FLIP ($NET_IO)"
-  py tests/flipfix.py close --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
-      --ratio "$GATE_RATIO" --net-io "$NET_IO" --output "$TMPDIR/flipfix-close-$NET_IO" \
-      >"$TMPDIR/gate-flipfix-close-$NET_IO.txt" 2>&1 \
+  # Keep both legs even on PRE: the strict churn leg also witnesses arrivals
+  # while the automatic controller is enabled. No added ledger row.
+  FLIPFIX_OK=1
+  for FLIPFIX_CASE in close churn; do
+    FLIPFIX_AUTO=0; [ "$FLIPFIX_CASE" != churn ] || FLIPFIX_AUTO=1
+    py tests/flipfix.py "$FLIPFIX_CASE" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+        --ratio "$GATE_RATIO" --net-io "$NET_IO" --flip-auto "$FLIPFIX_AUTO" \
+        --output "$TMPDIR/flipfix-$FLIPFIX_CASE-$NET_IO" \
+        >"$TMPDIR/gate-flipfix-$FLIPFIX_CASE-$NET_IO.txt" 2>&1 || FLIPFIX_OK=0
+  done
+  [ "$FLIPFIX_OK" = 1 ] \
       && ok "FLIP close during FLIP ($NET_IO)" \
       || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-close-$NET_IO.txt"
 done

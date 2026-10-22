@@ -1,0 +1,898 @@
+{
+  "pre": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+  "post": "922be5e9d938b8ae94c5f775dbbb13d7daa36a3f90cb216eac1993812d01c973",
+  "bodies": 8725,
+  "changed": 583,
+  "hot_commands": [
+    {
+      "name": "tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        4854
+      ],
+      "post_sizes": [
+        4854
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::prepare_captured_local_mget(tomo_db0::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        5089
+      ],
+      "post_sizes": [
+        5089
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        1072
+      ],
+      "post_sizes": [
+        1072
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        792
+      ],
+      "post_sizes": [
+        792
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, true>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        1088
+      ],
+      "post_sizes": [
+        1088
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        2201
+      ],
+      "post_sizes": [
+        2201
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        2182
+      ],
+      "post_sizes": [
+        2182
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        1072
+      ],
+      "post_sizes": [
+        1072
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        776
+      ],
+      "post_sizes": [
+        776
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        1088
+      ],
+      "post_sizes": [
+        1088
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        2201
+      ],
+      "post_sizes": [
+        2201
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    },
+    {
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": true,
+      "command_hot": true,
+      "equal": true,
+      "headline_sizes": [
+        2182
+      ],
+      "post_sizes": [
+        2182
+      ],
+      "matches": [
+        "headline"
+      ],
+      "changed_lanes": []
+    }
+  ],
+  "changed_hot": [
+    {
+      "name": "auto tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}&&) const",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        441
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "auto tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}&&) const",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        812
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        441
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(tomo_db0::Op const&)#1}&&) const",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        812
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2023,
+        1737,
+        2023,
+        1737
+      ],
+      "post_sizes": [
+        2023,
+        1737,
+        2023,
+        1737,
+        1956
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "bool tomo::IoLoop::drive_tls<true, true>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1737,
+        2023
+      ],
+      "post_sizes": [
+        1737,
+        2023,
+        1956
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2023,
+        1737,
+        2023,
+        1721
+      ],
+      "post_sizes": [
+        2023,
+        1737,
+        2023,
+        1721,
+        1889
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "bool tomo_db0::IoLoop::drive_tls<true, true>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1737,
+        2023
+      ],
+      "post_sizes": [
+        1737,
+        2023,
+        1889
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2249
+      ],
+      "post_sizes": [
+        2249
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12714
+      ],
+      "post_sizes": [
+        12714
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21049
+      ],
+      "post_sizes": [
+        21221
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        190
+      ],
+      "post_sizes": [
+        190
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21239
+      ],
+      "post_sizes": [
+        21410
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        9922,
+        12232,
+        9973
+      ],
+      "post_sizes": [
+        9922,
+        12084,
+        9973,
+        10378
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        166,
+        166
+      ],
+      "post_sizes": [
+        166,
+        166,
+        166,
+        166
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21185
+      ],
+      "post_sizes": [
+        21442,
+        19292
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        197
+      ],
+      "post_sizes": [
+        197,
+        210
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21252
+      ],
+      "post_sizes": [
+        21372
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        12559
+      ],
+      "post_sizes": [
+        12559
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        10014,
+        12450,
+        9794
+      ],
+      "post_sizes": [
+        10014,
+        12450,
+        9794,
+        10951
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        166,
+        170,
+        166
+      ],
+      "post_sizes": [
+        166,
+        170,
+        166,
+        196
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        21385
+      ],
+      "post_sizes": [
+        21385,
+        19907
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        204
+      ],
+      "post_sizes": [
+        204,
+        230
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1412
+      ],
+      "post_sizes": [
+        1614
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2372
+      ],
+      "post_sizes": [
+        2628
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2388
+      ],
+      "post_sizes": [
+        2628
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1066
+      ],
+      "post_sizes": [
+        1263
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        2581
+      ],
+      "post_sizes": [
+        2647
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Compiler/link propagation from cold FLIP implementation; inspect and rederive budgets."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        459
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        507
+      ],
+      "post_sizes": [
+        491
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        459
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        507
+      ],
+      "post_sizes": [
+        491
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1223
+      ],
+      "post_sizes": [
+        1191
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1159
+      ],
+      "post_sizes": [
+        1159
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        891
+      ],
+      "post_sizes": [
+        891
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        865
+      ],
+      "post_sizes": [
+        889
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        459
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        507
+      ],
+      "post_sizes": [
+        491
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        459
+      ],
+      "post_sizes": [
+        459
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        507
+      ],
+      "post_sizes": [
+        491
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1223
+      ],
+      "post_sizes": [
+        1191
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1159
+      ],
+      "post_sizes": [
+        1159
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        891
+      ],
+      "post_sizes": [
+        891
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+      "hot": true,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        865
+      ],
+      "post_sizes": [
+        889
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Existing cold paused/stale/default accept branch delegates to the listener protocol; audit ordinary instruction path."
+    }
+  ]
+}

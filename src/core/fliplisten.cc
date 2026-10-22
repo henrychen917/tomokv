@@ -232,6 +232,7 @@ uint32_t IoLoop::fliplisten_epoll(uint64_t tag) {
 }
 
 bool IoLoop::fliplisten_plan() {
+    if (!srv_->flip_listeners_) return true; // serverless role models
     auto& state = *srv_->flip_listeners_;
     // All old IOs acknowledged cancel + drain. Create at most one TCP/TLS
     // listener per physical thread, reusing its existing listener on later FLIPs.
@@ -282,6 +283,7 @@ bool IoLoop::fliplisten_plan() {
 }
 
 bool IoLoop::fliplisten_prepare() {
+    if (!srv_->flip_listeners_) return true; // serverless role models
     auto& state = *srv_->flip_listeners_;
     for (unsigned i = 0; i < kListeners; ++i) {
         const auto& listener = state.listeners[i];
@@ -307,6 +309,7 @@ void IoLoop::fliplisten_cancel_activation() {
 }
 
 void IoLoop::fliplisten_commit() {
+    if (!srv_->flip_listeners_) return; // no listeners in serverless role models
     auto& state = *srv_->flip_listeners_;
     // Every source is cancelled, and every target registered, before this
     // publication. No ring can still produce a completion naming the old owner.
@@ -325,6 +328,7 @@ void IoLoop::fliplisten_commit() {
 }
 
 void IoLoop::fliplisten_install() {
+    if (!srv_->flip_listeners_) return; // no listeners in serverless role models
     auto& state = *srv_->flip_listeners_;
     state.unregister_epoll(*this);
     for (unsigned k = 0; k < 3; ++k) {
@@ -335,6 +339,10 @@ void IoLoop::fliplisten_install() {
 }
 
 bool IoLoop::fliplisten_finish(bool rollback) {
+    if (!srv_->flip_listeners_) {
+        if (!rollback) srv_->flip_validate_active();
+        return true;
+    }
     auto& state = *srv_->flip_listeners_;
     const uint64_t epoch = srv_->flip_epoch();
     if (state.admission.load(std::memory_order_acquire) != epoch) {
@@ -349,6 +357,7 @@ bool IoLoop::fliplisten_finish(bool rollback) {
 }
 
 void IoLoop::fliplisten_resume() {
+    if (!srv_->flip_listeners_) return; // no listeners in serverless role models
     auto& state = *srv_->flip_listeners_;
     const uint64_t epoch = srv_->flip_epoch();
     auto& own = state.local[self_->id()];
@@ -381,16 +390,22 @@ void IoLoop::fliplisten_resume() {
 }
 
 void IoLoop::fliplisten_retry_accept() {
+    // The pre-existing per-pass accept_pending_ branch is the only caller.
+    // Keep arm_accept itself unchanged: even a cold call in its quiescing branch
+    // made GCC save another register on every ordinary native accept rearm.
+    if (!accept_quiescing_) { arm_accept(UrKind::Accept); return; }
     if (!srv_->flip_listeners_ || self_->role() != Role::Ifid || accepts_paused()) return;
     accept_quiescing_ = false;
+    bool pending = false;
     for (auto& listener : srv_->flip_listeners_->listeners) {
         if (listener.fd < 0 || listener.owner != self_->id()) continue;
         if (listener.home == self_->id()) {
             if (!accept_armed_ref(listener.kind)) arm_accept(listener.kind);
-        } else if (!srv_->flip_listeners_->arm(*this, listener)) {
-            accept_quiescing_ = accept_pending_ = true;
-        }
+        } else if (!srv_->flip_listeners_->arm(*this, listener)) pending = true;
     }
+    // Publish only after the walk; setting quiescing before a later native
+    // rearm used to suppress that rearm (or recurse through an arm hook).
+    if (pending) accept_quiescing_ = accept_pending_ = true;
 }
 
 void IoLoop::fliplisten_shutdown() {

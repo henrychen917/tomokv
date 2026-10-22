@@ -1,0 +1,14 @@
+{"label": "flip-2s-uring-0", "direction": "io-ex", "case": "complete", "flip_reply": "b'OK'", "remaining_quiesce_s": 0.0005274219438433647, "post_flip_drain_s": 0.00035471096634864807, "established": "b'PONG'", "new_connections": ["b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'"]}
+{"label": "flip-2s-uring-0", "direction": "io-ex", "case": "rollback", "flip_reply": "RespError(b'ERR FLIP timed out before the ownership commit')", "remaining_quiesce_s": 4.999299238435924, "post_flip_drain_s": 0.0004258202388882637, "established": "b'PONG'", "new_connections": ["b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'"]}
+{"label": "flip-2s-uring-0", "direction": "ex-io", "case": "complete", "flip_reply": "b'OK'", "remaining_quiesce_s": 0.00033778976649045944, "post_flip_drain_s": 0.00029833149164915085, "established": "b'PONG'", "new_connections": ["b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'"]}
+{"label": "flip-2s-uring-0", "direction": "ex-io", "case": "rollback", "flip_reply": "RespError(b'ERR FLIP timed out before the ownership commit')", "remaining_quiesce_s": 4.999335174448788, "post_flip_drain_s": 0.00045439042150974274, "established": "b'PONG'", "new_connections": ["b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'", "b'PONG'"]}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-fliplisten/docs/fliplisten/reproduce_pre.py", line 22, in <module>
+    with support.owned(label,ROOT/('build/tomokv-PRE' if arm=='PRE' else 'build/tomokv'),'48-55',21800,shape):
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-fliplisten/docs/wave4/run_supplemental.py", line 22, in owned
+    assert not subprocess.check_output(['ss','-ltnH',f'sport = :{port}']).strip()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

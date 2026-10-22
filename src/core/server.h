@@ -1092,7 +1092,7 @@ public:
         // Cross-thread read of every IO's private client vector (IO4.4a). It is frozen here: each
         // IO acknowledged IoDrain (release; this coordinator acquired every ack) only after its own
         // closes, LB move and UNIX hand-offs settled, and from that ack its closes stop before
-        // remove_client (flip_close_pin_), accepts are refused and no transfer is posted. The next
+        // remove_client (flip_close_pin_), accepted fds are retained and no transfer is posted. The next
         // write to any vector follows this plan's IoPrepare publication.
         flip_dropped_client_transfers_.store(0, std::memory_order_relaxed);
         try {
@@ -1481,7 +1481,12 @@ public:
             lb_stage_.store(LbStage::Idle, std::memory_order_release);
             lb_deadline_ns_.store(0, std::memory_order_release);
         }
-        if (!fliplisten_reserve(*this, error)) return false;
+        if (coordinator < nthreads() && thread(coordinator).role() == Role::Ifid &&
+            flip_stage() == FlipStage::Idle &&
+            !thread(coordinator).reserve_listener_handover()) {
+            error = "ERR FLIP could not reserve listener and descriptor state";
+            return false;
+        }
         FlipStage expected = FlipStage::Idle;
         if (!flip_stage_.compare_exchange_strong(expected, FlipStage::Planning,
                                                  std::memory_order_acq_rel)) {

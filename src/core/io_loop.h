@@ -74,7 +74,7 @@ public:
         return scatter_pool_.reap_deferred() + multi_owner_reap_entry(*this);
     }
 
-    // ONE LISTENING SOCKET PER IO THREAD, via SO_REUSEPORT.
+    // BOOT: ONE LISTENING SOCKET PER IO THREAD, via SO_REUSEPORT (FLIP transfers them intact).
     //
     // Sharing a single listen fd across io threads does NOT distribute connections: every thread
     // arms a multishot accept on it and the kernel satisfies them all from one ring. Measured
@@ -231,6 +231,12 @@ public:
     // type-erased role hook on the physical thread that owns this IoLoop.
     bool prepare_activation() {
         if (!initialized_) return false;
+        // The request-side hook only reserves shared cold storage on an active
+        // IO. It never mutates that physical owner's ring or tenure.
+        if (active_role_) {
+            std::string error;
+            return fliplisten_reserve(*srv_, error);
+        }
         if (prepared_role_) return true;
         if (accepts_paused()) return fliplisten_prepare_activation();
         auto fail = [&]() {
@@ -592,7 +598,7 @@ private:
                 // A dropped accept re-arm means the server stops taking connections entirely, so it
                 // is retried every pass until it lands.
                 if constexpr (!kEp) {
-                    if (accept_pending_) arm_accept(UrKind::Accept);
+                    if (accept_pending_) fliplisten_retry_accept();
                     if constexpr (HasTls) if (tls_accept_pending_) arm_accept(UrKind::TlsAccept);
                     if constexpr (HasUnix)
                         if (unix_accept_pending_) arm_accept(UrKind::UnixAccept);
@@ -773,10 +779,7 @@ private:
 
     // ---- submission -----------------------------------------------------------------------------
     void arm_accept(UrKind kind) {
-        if (self_->role() != Role::Ifid || accept_quiescing_) {
-            fliplisten_retry_accept();
-            return;
-        }
+        if (self_->role() != Role::Ifid || accept_quiescing_) return;
         const bool unix_socket = kind == UrKind::UnixAccept;
         const bool tls_socket = kind == UrKind::TlsAccept;
         io_uring_sqe* s = ring_.sqe();
@@ -2191,8 +2194,8 @@ private:
             // EX is frozen now, so this second full IO drain is the transit barrier for notify,
             // pub/sub, tracking, and client-scatter messages which were posted just after a peer's
             // earlier IoDrain acknowledgement. The global event count prevents every consumer
-            // from acknowledging while a payload is still between queues. Only a converting IO
-            // closes its listener; surviving IO rings deliberately retain their armed accepts.
+            // from acknowledging while a payload is still between queues. Listener accepts stay
+            // cancelled until the final quota check and retained-descriptor admission barrier.
             if (flip_io_drained() && self_->client_transfers_quiesced() &&
                 (!converting_to_ex || accepts_quiesced()))
                 srv_->flip_ack(self_->id(), stage);
