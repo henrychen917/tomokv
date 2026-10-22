@@ -1,0 +1,7 @@
+ok	0.010000	release build (+footprint locks)
+FAIL	41.530000	compat3 CC4.12 pubsub vs Redis 7.4
+FAIL	38.960000	compat3 CC4.13 pending vs Redis 7.4
+FAIL	34.980000	compat3 CC4.14 history vs Redis 7.4
+FAIL	34.970000	compat3 CC4.16 grammar vs Redis 7.4
+FAIL	35.020000	compat3 CC4.5 glob vs Redis 7.4
+FAIL	35.170000	compat3 CC4.17 flags vs Redis 7.4

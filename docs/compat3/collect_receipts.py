@@ -1,10 +1,28 @@
 #!/usr/bin/env python3
 """Preserve completed gate job evidence; never launches a server or measurement."""
-import gzip, hashlib, json, re, tarfile
+import argparse, gzip, hashlib, json, re, tarfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 DOC=ROOT/"docs/compat3"
 OUT=DOC/"receipts"; OUT.mkdir(exist_ok=True)
+p=argparse.ArgumentParser()
+p.add_argument("--interrupted",action="append",default=[],help="Also retain an explicitly interrupted gate log")
+args=p.parse_args()
+large=[]
+
+def digest(path):
+    with path.open("rb") as source:
+        return hashlib.file_digest(source,"sha256").hexdigest()
+
+def size_guard(dest):
+    if dest.stat().st_size<=1_000_000:return str(dest.relative_to(DOC))
+    retained=ROOT/"build/compat3/large-receipts"/dest.name
+    retained.parent.mkdir(parents=True,exist_ok=True)
+    large.append(dict(source=str(dest.relative_to(ROOT)),retained=str(retained.relative_to(ROOT)),
+                      bytes=dest.stat().st_size,sha256=digest(dest),reason="archive exceeds 1 MB"))
+    dest.replace(retained)
+    return None
+
 index=[]
 for log in sorted(DOC.glob("*.log")):
     found=re.search(r"artifacts: (.+/build/gate-run\.\w+)",log.read_text(errors="replace"))
@@ -12,7 +30,8 @@ for log in sorted(DOC.glob("*.log")):
     run=Path(found[1])
     if not (run/"phases.tsv").exists(): continue
     phases=(run/"phases.tsv").read_text()
-    if not any(x.startswith("end\t") for x in phases.splitlines()):
+    complete=any(x.startswith("end\t") for x in phases.splitlines())
+    if not complete and log.name not in args.interrupted:
         print("INCOMPLETE",log.name,run); continue
     jobs=[]
     for job in sorted((run/"jobs").iterdir()):
@@ -32,12 +51,19 @@ for log in sorted(DOC.glob("*.log")):
                   p.name.startswith("gate-srv"))
             if not keep: continue
             # Snapshots, AOF payloads, private TLS keys and compiled executables are excluded.
-            if p.stat().st_size>32*1024*1024: continue
+            if p.stat().st_size>1_000_000:
+                large.append(dict(source=str(p.relative_to(ROOT)),bytes=p.stat().st_size,
+                                  sha256=digest(p),reason="individual receipt exceeds 1 MB"))
+                continue
+            with p.open("rb") as source:
+                if source.read(4)==b"\x7fELF":continue
             selected.append(str(p.relative_to(run)))
             archive.add(p,arcname=str(p.relative_to(run)),recursive=False)
-    index.append(dict(log=str(log.relative_to(DOC)),run=str(run),archive=str(dest.relative_to(DOC)),
-                      sha256=hashlib.sha256(dest.read_bytes()).hexdigest(),files=len(selected),jobs=jobs))
-    print(log.stem,len(jobs),len(selected),dest.stat().st_size)
+    sha=digest(dest);size=dest.stat().st_size
+    archive=size_guard(dest)
+    index.append(dict(log=str(log.relative_to(DOC)),run=str(run),archive=archive,
+                      sha256=sha,bytes=size,complete=complete,files=len(selected),jobs=jobs))
+    print(log.stem,len(jobs),len(selected),size,"complete" if complete else "INTERRUPTED")
 (DOC/"gate-receipts.json").write_text(json.dumps(index,indent=2)+"\n")
 
 # Keep the original self-test timeout artifacts as evidence too.
@@ -49,5 +75,7 @@ for log in sorted(DOC.glob("gates-test*.log")):
         dest=OUT/(source.name+".tar.gz")
         with tarfile.open(dest,"w:gz",compresslevel=9) as archive:
             archive.add(source,arcname=source.name)
-        failures.append(dict(log=log.name,source=str(source),archive=str(dest.relative_to(DOC)),sha256=hashlib.sha256(dest.read_bytes()).hexdigest()))
+        sha=digest(dest)
+        failures.append(dict(log=log.name,source=str(source),archive=size_guard(dest),sha256=sha))
 (DOC/"scheduler-failure-receipts.json").write_text(json.dumps(failures,indent=2)+"\n")
+(DOC/"large-receipts.json").write_text(json.dumps(large,indent=2)+"\n")

@@ -1,0 +1,23 @@
+GATE(iteration): 16 physical cores; 1 correctness slots = min(9/8 server, 7/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 9 server + 7 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-compat3/build/gate-run.by8Xte
+PARTIAL jobs (including prerequisites): release compat3
+GATE PREFLIGHT: /home/user/Projects/redis74 is not a built vanilla Redis 7.4 checkout (missing: src/server.h src/acl.c src/commands.def).
+  Expected: symlink /tmp/claude-1000/redis74 -> <redis 7.4 source tree with src/ built>,
+  or export REDIS74_ROOT=/path/to/redis-7.4.
+  The 'generated Redis 7.4 ACL categories' row FAILS with this reason; every other row runs.
+PARTIAL jobs (including prerequisites): release compat3
+  row budget: 900s; median=-s; no-history-conservative-default; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.12 pubsub vs Redis 7.4
+  compat3 CC4.12 pubsub vs Redis 7.4                   FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/pubsub-*.log)
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.13 pending vs Redis 7.4
+  compat3 CC4.13 pending vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/pending-*.log)
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.14 history vs Redis 7.4
+  compat3 CC4.14 history vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/history-*.log)
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.16 grammar vs Redis 7.4
+  compat3 CC4.16 grammar vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/grammar-*.log)
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.5 glob vs Redis 7.4
+  compat3 CC4.5 glob vs Redis 7.4                      FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/glob-*.log)
+  row budget: 900s; median=-s; no-history-conservative-default; compat3 CC4.17 flags vs Redis 7.4
+  compat3 CC4.17 flags vs Redis 7.4                    FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/flags-*.log)
+GATE(PARTIAL): 1 ok, 6 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-compat3/docs/compat3/PRE-directed.ledger.partial

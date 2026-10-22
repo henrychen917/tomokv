@@ -13,12 +13,15 @@ ENV={**os.environ,"REDIS74_ROOT":"/home/user/Projects/redis",
 RESULTS=[]
 
 def execute(name,argv,extra=None):
+    name=ARGS.prefix+name
+    if extra and "GATE_LEDGER" in extra:
+        extra={**extra,"GATE_LEDGER":str(DOC/(name+".ledger"))}
     with (DOC/(name+".log")).open("w") as log:
         rc=subprocess.run(["taskset","-c","96-111",*map(str,argv)],cwd=ROOT,
             env={**ENV,**(extra or {})},stdout=log,stderr=subprocess.STDOUT).returncode
     RESULTS.append(dict(name=name,argv=list(map(str,argv)),extra=extra,returncode=rc))
     (DOC/(name+".rc")).write_text(str(rc)+"\n")
-    (DOC/(ARGS.phase+"-results.json")).write_text(json.dumps(RESULTS,indent=2)+"\n")
+    (DOC/(ARGS.prefix+ARGS.phase+"-results.json")).write_text(json.dumps(RESULTS,indent=2)+"\n")
     print(name,rc,flush=True)
     return rc
 
@@ -27,7 +30,10 @@ def gate(name,jobs,binary):
         "--load-cores","105-111","--load-smt","","--ports","25800-25821",
         "--candidate-binary",binary],dict(GATE_ONLY_JOBS=jobs,GATE_LEDGER=str(DOC/(name+".ledger"))))
 
-p=argparse.ArgumentParser();p.add_argument("phase",choices=("units","post","pre","differ","selftest","flags"));ARGS=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument("phase",choices=("units","post","pre","differ","selftest","flags"))
+p.add_argument("--prefix",default="",help="Keep continuation receipts separate from earlier attempts")
+p.add_argument("--engine",choices=("uring","epoll"),action="append",help="Differential engines; default both")
+ARGS=p.parse_args()
 if ARGS.phase=="units":
     body=(ROOT/"tests/gate.sh").read_text().split("job_production_units(){",1)[1].split("\n}",1)[0]
     targets=re.findall(r"build/[\w-]+",body.split('>"$TMPDIR/build.log"',1)[0])
@@ -55,7 +61,7 @@ elif ARGS.phase=="post":
     wrapper.chmod(0o755)
     gate("POST-auth-fused","auth",wrapper)
 elif ARGS.phase=="differ":
-    for engine in ("uring","epoll"):
+    for engine in ARGS.engine or ("uring","epoll"):
         wrapper=BUILD/(engine+"-server")
         wrapper.write_text('#!/bin/bash\nexec '+str(ROOT/"build/tomokv")+' --net-io '+engine+' "$@"\n')
         wrapper.chmod(0o755)

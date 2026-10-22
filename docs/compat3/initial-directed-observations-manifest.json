@@ -1,0 +1,7 @@
+{
+  "source": "docs/compat3/directed-observations.json",
+  "retained": "build/compat3/large-receipts/initial-directed-observations.json",
+  "bytes": 7267275,
+  "sha256": "565fe0bb53e42c0419516af62bb71ec8d8929a20da9dc73d222ce58417120752",
+  "reason": "Initial directed observations exceed 1 MB; exact per-leg logs remain in the small receipt archives."
+}

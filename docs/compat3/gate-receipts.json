@@ -1,0 +1,555 @@
+[
+  {
+    "log": "PAD-A-directed.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.D6kNSs",
+    "archive": "receipts/PAD-A-directed.tar.gz",
+    "sha256": "f883860b31cbdc7a52e7083a65b0c6c0c959c9202df4f06db50c8662ee2ba56b",
+    "bytes": 134906,
+    "complete": true,
+    "files": 301,
+    "jobs": [
+      {
+        "job": "compat3",
+        "done": "0\t0\t6",
+        "ledger": "FAIL\t34.780000\tcompat3 CC4.12 pubsub vs Redis 7.4\nFAIL\t34.670000\tcompat3 CC4.13 pending vs Redis 7.4\nFAIL\t34.780000\tcompat3 CC4.14 history vs Redis 7.4\nFAIL\t34.840000\tcompat3 CC4.16 grammar vs Redis 7.4\nFAIL\t35.280000\tcompat3 CC4.5 glob vs Redis 7.4\nFAIL\t35.010000\tcompat3 CC4.17 flags vs Redis 7.4\n",
+        "failures": [
+          "  compat3 CC4.12 pubsub vs Redis 7.4                   FAIL (see /home/user/Projects/cx-compat3/build/gate-run.D6kNSs/jobs/compat3/pubsub-*.log)",
+          "  compat3 CC4.13 pending vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.D6kNSs/jobs/compat3/pending-*.log)",
+          "  compat3 CC4.14 history vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.D6kNSs/jobs/compat3/history-*.log)",
+          "  compat3 CC4.16 grammar vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.D6kNSs/jobs/compat3/grammar-*.log)",
+          "  compat3 CC4.5 glob vs Redis 7.4                      FAIL (see /home/user/Projects/cx-compat3/build/gate-run.D6kNSs/jobs/compat3/glob-*.log)",
+          "  compat3 CC4.17 flags vs Redis 7.4                    FAIL (see /home/user/Projects/cx-compat3/build/gate-run.D6kNSs/jobs/compat3/flags-*.log)"
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "POST-auth-fused.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.A3EZDR",
+    "archive": "receipts/POST-auth-fused.tar.gz",
+    "sha256": "9b929210f018b2ffdc174bc79e886f26be3009a2a11c326d034cbbac41c2b151",
+    "bytes": 24226,
+    "complete": true,
+    "files": 22,
+    "jobs": [
+      {
+        "job": "auth",
+        "done": "0\t7\t0",
+        "ledger": "ok\t0.020000\treject bad protected-mode\nok\t0.020000\treject bad enable-debug-command\nok\t0.150000\tAUTH/HELLO/protected state machine\nok\t0.030000\tACL battery (atomic off)\nok\t0.040000\tACL battery (atomic on)\nok\t0.970000\tDEBUG toggle/reload battery\nok\t0.130000\ttyped snapshot round-trip incl stream\n",
+        "failures": []
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "POST-complete.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.vUdsCA",
+    "archive": null,
+    "sha256": "f10ed9ad92e242c301d4b63dc139cb067dea721cd8aa917b25aa039e7a19efc8",
+    "bytes": 1180485,
+    "complete": true,
+    "files": 1276,
+    "jobs": [
+      {
+        "job": "acl_recheck",
+        "done": "0\t2\t0",
+        "ledger": "ok\t6.090000\tACL recheck one-reply battery (2s)\nok\t6.040000\tACL recheck one-reply battery (1s)\n",
+        "failures": []
+      },
+      {
+        "job": "aclfix",
+        "done": "0\t12\t0",
+        "ledger": "ok\t0.070000\taclfix sort (1s)\nok\t0.060000\taclfix streams-name (1s)\nok\t0.070000\taclfix save-load (1s)\nok\t2.000000\taclfix capacity (1s)\nok\t0.080000\taclfix wake-pop (1s)\nok\t0.070000\taclfix wake-scatter (1s)\nok\t0.070000\taclfix sort (2s)\nok\t0.060000\taclfix streams-name (2s)\nok\t0.070000\taclfix save-load (2s)\nok\t1.860000\taclfix capacity (2s)\nok\t0.080000\taclfix wake-pop (2s)\nok\t0.070000\taclfix wake-scatter (2s)\n",
+        "failures": []
+      },
+      {
+        "job": "aof-epoll",
+        "done": "0\t54\t0",
+        "ledger": "ok\t0.060000\tconfiguration reduction + actual geometry (epoll, atomic 0)\nok\t0.410000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)\nok\t0.040000\tAOF writer fired (records=N)\nok\t0.040000\tAOF process-restart script replay (epoll, atomic 0)\nok\t0.040000\tAOF native snapshot streams byte-exact\nok\t0.010000\tAOF replay fired (records=N skipped=N)\nok\t0.070000\tconfiguration reduction + actual geometry (epoll, atomic 1)\nok\t0.430000\tAOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)\nok\t0.040000\tAOF writer fired (records=N)\nok\t0.050000\tAOF process-restart script replay (epoll, atomic 1)\nok\t0.030000\tAOF native snapshot streams byte-exact\nok\t0.010000\tAOF replay fired (records=N skipped=N)\nok\t0.040000\tAOF directed group interruption fired\nok\t0.050000\tAOF atomic-group recovery + writer order\nok\t0.020000\tAOF group shutdown invariants\nok\t0.030000\tAOF always sync + reply gate fired\nok\t0.030000\tAOF always recovery after quiescent SIGKILL\nok\t0.860000\tAOF in-window kill recovery (2s, epoll)\nok\t1.990000\tAOF in-window term recovery (2s, epoll)\nok\t0.860000\tAOF in-window kill recovery (1s, epoll)\nok\t2.030000\tAOF in-window term recovery (1s, epoll)\nok\t1.710000\tshutdown cancels AOF rewrite capture (1s, atomic 0, epoll)\nok\t1.740000\tshutdown cancels AOF rewrite capture (1s, atomic 1, epoll)\nok\t1.950000\tshutdown cancels AOF rewrite capture (2s, atomic 0, epoll)\nok\t2.040000\tshutdown cancels AOF rewrite capture (2s, atomic 1, epoll)\nok\t1.300000\tAOF everysec write gate + idle sync fired\nok\t0.030000\tAOF everysec durability window + tail warning\nok\t0.020000\tAOF no-sync bypassed sync + reply gate\nok\t5.230000\tAOF rewrite atomic/stage/corruption matrix\nok\t5.410000\tAOF rewrite triggers + observability matrix\nok\t0.010000\tAOF-off negative-control seed landed\nok\t0.000000\tAOF-off negative control lost data\nok\t0.410000\taoffix2 snapshot (1s, epoll)\nok\t1.510000\taoffix2 filename (1s, epoll)\nok\t0.170000\taoffix2 error (1s, epoll)\nok\t0.530000\taoffix2 tickets (1s, epoll)\nok\t0.540000\taoffix2 exec_tickets (1s, epoll)\nok\t0.540000\taoffix2 resurrection (1s, epoll)\nok\t0.420000\taoffix2 rewrite_fail2 (1s, epoll)\nok\t0.300000\taoffix2 manifest_missing (1s, epoll)\nok\t0.280000\taoffix2 off-writer acknowledgement everysec (1s, epoll)\nok\t0.280000\taoffix2 off-writer acknowledgement always (1s, epoll)\nok\t0.420000\taoffix2 snapshot (2s, epoll)\nok\t1.360000\taoffix2 filename (2s, epoll)\nok\t0.170000\taoffix2 error (2s, epoll)\nok\t0.540000\taoffix2 tickets (2s, epoll)\nok\t0.540000\taoffix2 exec_tickets (2s, epoll)\nok\t0.540000\taoffix2 resurrection (2s, epoll)\nok\t0.320000\taoffix2 rewrite_fail2 (2s, epoll)\nok\t0.300000\taoffix2 manifest_missing (2s, epoll)\nok\t0.270000\taoffix2 off-writer acknowledgement everysec (2s, epoll)\nok\t0.280000\taoffix2 off-writer acknowledgement always (2s, epoll)\nok\t0.330000\taoffix2 large (1s, epoll)\nok\t0.200000\taoffix2 large_placed (1s, epoll)\n",
+        "failures": []
+      },
+      {
+        "job": "aof-uring",
+        "done": "0\t54\t0",
+        "ledger": "ok\t0.060000\tconfiguration reduction + actual geometry (uring, atomic 0)\nok\t0.430000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)\nok\t0.040000\tAOF writer fired (records=N)\nok\t0.040000\tAOF process-restart script replay (uring, atomic 0)\nok\t0.040000\tAOF native snapshot streams byte-exact\nok\t0.010000\tAOF replay fired (records=N skipped=N)\nok\t0.070000\tconfiguration reduction + actual geometry (uring, atomic 1)\nok\t0.430000\tAOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)\nok\t0.040000\tAOF writer fired (records=N)\nok\t0.040000\tAOF process-restart script replay (uring, atomic 1)\nok\t0.040000\tAOF native snapshot streams byte-exact\nok\t0.010000\tAOF replay fired (records=N skipped=N)\nok\t0.060000\tAOF directed group interruption fired\nok\t0.050000\tAOF atomic-group recovery + writer order\nok\t0.020000\tAOF group shutdown invariants\nok\t0.030000\tAOF always sync + reply gate fired\nok\t0.030000\tAOF always recovery after quiescent SIGKILL\nok\t0.860000\tAOF in-window kill recovery (2s, uring)\nok\t3.150000\tAOF in-window term recovery (2s, uring)\nok\t0.860000\tAOF in-window kill recovery (1s, uring)\nok\t2.480000\tAOF in-window term recovery (1s, uring)\nok\t1.770000\tshutdown cancels AOF rewrite capture (1s, atomic 0, uring)\nok\t1.800000\tshutdown cancels AOF rewrite capture (1s, atomic 1, uring)\nok\t1.870000\tshutdown cancels AOF rewrite capture (2s, atomic 0, uring)\nok\t1.950000\tshutdown cancels AOF rewrite capture (2s, atomic 1, uring)\nok\t1.300000\tAOF everysec write gate + idle sync fired\nok\t0.030000\tAOF everysec durability window + tail warning\nok\t0.030000\tAOF no-sync bypassed sync + reply gate\nok\t5.180000\tAOF rewrite atomic/stage/corruption matrix\nok\t5.580000\tAOF rewrite triggers + observability matrix\nok\t0.000000\tAOF-off negative-control seed landed\nok\t0.000000\tAOF-off negative control lost data\nok\t0.420000\taoffix2 snapshot (1s, uring)\nok\t1.460000\taoffix2 filename (1s, uring)\nok\t0.180000\taoffix2 error (1s, uring)\nok\t0.540000\taoffix2 tickets (1s, uring)\nok\t0.540000\taoffix2 exec_tickets (1s, uring)\nok\t0.540000\taoffix2 resurrection (1s, uring)\nok\t0.420000\taoffix2 rewrite_fail2 (1s, uring)\nok\t0.300000\taoffix2 manifest_missing (1s, uring)\nok\t0.280000\taoffix2 off-writer acknowledgement everysec (1s, uring)\nok\t0.270000\taoffix2 off-writer acknowledgement always (1s, uring)\nok\t0.420000\taoffix2 snapshot (2s, uring)\nok\t1.520000\taoffix2 filename (2s, uring)\nok\t0.170000\taoffix2 error (2s, uring)\nok\t0.540000\taoffix2 tickets (2s, uring)\nok\t0.540000\taoffix2 exec_tickets (2s, uring)\nok\t0.540000\taoffix2 resurrection (2s, uring)\nok\t0.420000\taoffix2 rewrite_fail2 (2s, uring)\nok\t0.300000\taoffix2 manifest_missing (2s, uring)\nok\t0.280000\taoffix2 off-writer acknowledgement everysec (2s, uring)\nok\t0.270000\taoffix2 off-writer acknowledgement always (2s, uring)\nok\t0.340000\taoffix2 large (1s, uring)\nok\t0.190000\taoffix2 large_placed (1s, uring)\n",
+        "failures": []
+      },
+      {
+        "job": "atomic_batteries",
+        "done": "0\t4\t0",
+        "ledger": "ok\t32.540000\tatomic torn/window battery\nok\t4.050000\tatomic RYOW/mixed-write battery\nok\t4.240000\tatomic owner-local hazard battery\nok\t0.020000\tatomic shutdown invariants\n",
+        "failures": []
+      },
+      {
+        "job": "atomic_units",
+        "done": "0\t27\t0",
+        "ledger": "ok\t0.010000\tatomic commit publication catches up at quiescence\nok\t2.290000\tflushfix flush witnesses\nok\t0.050000\tflushfix headers witnesses\nok\t3.320000\tmultidb serverless owners\nok\t0.040000\tmultidb global namespace boundary\nok\t9.870000\tstoresize published monitoring\nok\t0.210000\tMULTI admin command replies\nok\t0.070000\tEXECABORT releases WATCH reservation\nok\t0.000000\tatomic survivors unit build\nok\t0.010000\tatomic survivor: admission\nok\t0.010000\tatomic survivor: closure\nok\t0.010000\tatomic survivor: script_keys\nok\t0.010000\tatomic survivor: rename_overlay\nok\t0.000000\tatomic survivor: write_latest\nok\t0.010000\tatomic survivor: script_apply\nok\t0.000000\tatomic survivor: post_apply_probe\nok\t0.010000\tatomic survivor: lua_conversion\nok\t0.000000\tatomic survivor: watch_parent\nok\t0.010000\tatomic survivor: watch_cycle\nok\t0.000000\tatomic survivor: mset_arity\nok\t0.010000\tatomic survivor: watch_oom\nok\t0.000000\tatomic survivor: lua_lines\nok\t0.010000\tatomic survivor: library_limit\nok\t0.010000\tatomic survivor: stage_flag\nok\t0.010000\tatomic survivor: instruction_limit\nok\t0.010000\tarmed resize retirement: atomic-growth\nok\t0.000000\tarmed resize retirement: flush-prepared\n",
+        "failures": []
+      },
+      {
+        "job": "auth",
+        "done": "0\t7\t0",
+        "ledger": "ok\t0.010000\treject bad protected-mode\nok\t0.010000\treject bad enable-debug-command\nok\t0.150000\tAUTH/HELLO/protected state machine\nok\t0.030000\tACL battery (atomic off)\nok\t0.040000\tACL battery (atomic on)\nok\t0.960000\tDEBUG toggle/reload battery\nok\t0.120000\ttyped snapshot round-trip incl stream\n",
+        "failures": []
+      },
+      {
+        "job": "clientfix",
+        "done": "0\t14\t0",
+        "ledger": "ok\t1.740000\tclientfix tracking-cap (1s)\nok\t6.840000\tclientfix tracking-pipeline (1s)\nok\t11.590000\tclientfix reply-skip (1s)\nok\t0.300000\tclientfix pattern-cleanup (1s)\nok\t1.100000\tclientfix pause-deadline (1s)\nok\t0.100000\tclientfix geo-count (1s)\nok\t0.100000\tclientfix geo-store (1s)\nok\t1.750000\tclientfix tracking-cap (2s)\nok\t6.850000\tclientfix tracking-pipeline (2s)\nok\t11.590000\tclientfix reply-skip (2s)\nok\t0.300000\tclientfix pattern-cleanup (2s)\nok\t1.100000\tclientfix pause-deadline (2s)\nok\t0.110000\tclientfix geo-count (2s)\nok\t0.100000\tclientfix geo-store (2s)\n",
+        "failures": []
+      },
+      {
+        "job": "debug-0",
+        "done": "0\t14\t0",
+        "ledger": "ok\t9.160000\tplain-write lost updates (atomic 0)\nok\t0.160000\tlbsignals battery (atomic 0)\nok\t1.490000\tslowlog battery (atomic 0)\nok\t0.030000\tatomfix battery (atomic 0)\nok\t0.040000\tscriptatomic battery (atomic 0)\nok\t14.460000\texecatomic battery (atomic 0)\nok\t11.860000\texeciso battery (atomic 0)\nok\t0.430000\texecfix battery (atomic 0)\nok\t0.110000\tmultires battery (atomic 0)\nok\t0.630000\tmultirace battery (atomic 0)\nok\t30.480000\tsession_monotonic battery (atomic 0)\nok\t0.300000\txacct battery (atomic 0)\nok\t0.270000\txmove battery (atomic 0)\nok\t1.860000\txscript battery (atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "debug-1",
+        "done": "0\t14\t0",
+        "ledger": "ok\t6.160000\tplain-write lost updates (atomic 1)\nok\t0.160000\tlbsignals battery (atomic 1)\nok\t1.490000\tslowlog battery (atomic 1)\nok\t0.040000\tatomfix battery (atomic 1)\nok\t0.040000\tscriptatomic battery (atomic 1)\nok\t14.460000\texecatomic battery (atomic 1)\nok\t11.860000\texeciso battery (atomic 1)\nok\t0.430000\texecfix battery (atomic 1)\nok\t0.090000\tmultires battery (atomic 1)\nok\t0.630000\tmultirace battery (atomic 1)\nok\t30.490000\tsession_monotonic battery (atomic 1)\nok\t0.300000\txacct battery (atomic 1)\nok\t0.270000\txmove battery (atomic 1)\nok\t1.870000\txscript battery (atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "feature-armed-0",
+        "done": "0\t35\t0",
+        "ledger": "ok\t0.250000\tfused+armed boot line (atomic 0)\nok\t1.170000\tfused+armed s6 battery (atomic 0)\nok\t2.070000\tfused+armed multi_exec battery (atomic 0)\nok\t1.450000\tfused+armed blocking battery (atomic 0)\nok\t0.480000\tfused+armed blockmulti battery (atomic 0)\nok\t0.490000\tfused+armed stream battery (atomic 0)\nok\t0.030000\tfused+armed streamgroups battery (atomic 0)\nok\t0.890000\tfused+armed pubsub battery (atomic 0)\nok\t0.020000\tfused+armed lua_scripting battery (atomic 0)\nok\t0.050000\tfused+armed scriptsurf battery (atomic 0)\nok\t15.120000\tfused+armed limits battery (atomic 0)\nok\t0.030000\tfused+armed resp3 battery (atomic 0)\nok\t0.030000\tfused+armed bitfield battery (atomic 0)\nok\t0.060000\tfused+armed dumprestore battery (atomic 0)\nok\t0.050000\tfused+armed zsetops battery (atomic 0)\nok\t0.020000\tfused+armed geo battery (atomic 0)\nok\t1.120000\tfused+armed climon battery (atomic 0)\nok\t3.320000\tfused+armed climon2 battery (atomic 0)\nok\t13.270000\tfused+armed tracking battery (atomic 0)\nok\t3.040000\tfused+armed hexpire battery (atomic 0)\nok\t2.440000\tfused+armed servertail battery (atomic 0)\nok\t0.160000\tfused+armed lcs battery (atomic 0)\nok\t2.790000\tfused+armed concur battery (atomic 0)\nok\t0.740000\tfused+armed edgeproto battery (atomic 0)\nok\t0.370000\tfused+armed edgeenc battery (atomic 0)\nok\t3.780000\tfused+armed edgetime battery (atomic 0)\nok\t0.020000\tfused+armed arity battery (atomic 0)\nok\t0.020000\tfused+armed contarity battery (atomic 0)\nok\t0.030000\tfused+armed cmdgap battery (atomic 0)\nok\t0.030000\tfused+armed aclsel battery (atomic 0)\nok\t57.050000\tfused+armed expwide battery (atomic 0)\nok\t4.200000\tfused+armed infofix battery (atomic 0)\nok\t2.930000\tfused+armed pushtear battery (atomic 0)\nok\t0.030000\tfused+armed netcmd battery (atomic 0)\nok\t1.170000\tfused+armed shutdown report + lane fired (hits=N, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "feature-armed-1",
+        "done": "0\t35\t0",
+        "ledger": "ok\t0.260000\tfused+armed boot line (atomic 1)\nok\t1.160000\tfused+armed s6 battery (atomic 1)\nok\t2.070000\tfused+armed multi_exec battery (atomic 1)\nok\t1.410000\tfused+armed blocking battery (atomic 1)\nok\t0.480000\tfused+armed blockmulti battery (atomic 1)\nok\t0.490000\tfused+armed stream battery (atomic 1)\nok\t0.030000\tfused+armed streamgroups battery (atomic 1)\nok\t0.880000\tfused+armed pubsub battery (atomic 1)\nok\t0.030000\tfused+armed lua_scripting battery (atomic 1)\nok\t0.050000\tfused+armed scriptsurf battery (atomic 1)\nok\t15.280000\tfused+armed limits battery (atomic 1)\nok\t0.030000\tfused+armed resp3 battery (atomic 1)\nok\t0.030000\tfused+armed bitfield battery (atomic 1)\nok\t0.060000\tfused+armed dumprestore battery (atomic 1)\nok\t0.050000\tfused+armed zsetops battery (atomic 1)\nok\t0.020000\tfused+armed geo battery (atomic 1)\nok\t1.120000\tfused+armed climon battery (atomic 1)\nok\t3.320000\tfused+armed climon2 battery (atomic 1)\nok\t13.270000\tfused+armed tracking battery (atomic 1)\nok\t3.050000\tfused+armed hexpire battery (atomic 1)\nok\t2.540000\tfused+armed servertail battery (atomic 1)\nok\t0.160000\tfused+armed lcs battery (atomic 1)\nok\t2.840000\tfused+armed concur battery (atomic 1)\nok\t0.740000\tfused+armed edgeproto battery (atomic 1)\nok\t0.370000\tfused+armed edgeenc battery (atomic 1)\nok\t3.770000\tfused+armed edgetime battery (atomic 1)\nok\t0.020000\tfused+armed arity battery (atomic 1)\nok\t0.020000\tfused+armed contarity battery (atomic 1)\nok\t0.020000\tfused+armed cmdgap battery (atomic 1)\nok\t0.030000\tfused+armed aclsel battery (atomic 1)\nok\t49.790000\tfused+armed expwide battery (atomic 1)\nok\t4.190000\tfused+armed infofix battery (atomic 1)\nok\t2.930000\tfused+armed pushtear battery (atomic 1)\nok\t0.030000\tfused+armed netcmd battery (atomic 1)\nok\t1.170000\tfused+armed shutdown report + lane fired (hits=N, atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "feature-split-0",
+        "done": "0\t34\t0",
+        "ledger": "ok\t2.440000\ts6 battery (atomic 0)\nok\t2.070000\tmulti_exec battery (atomic 0)\nok\t1.480000\tblocking battery (atomic 0)\nok\t0.480000\tblockmulti battery (atomic 0)\nok\t0.490000\tstream battery (atomic 0)\nok\t0.020000\tstreamgroups battery (atomic 0)\nok\t0.880000\tpubsub battery (atomic 0)\nok\t0.020000\tlua_scripting battery (atomic 0)\nok\t0.050000\tscriptsurf battery (atomic 0)\nok\t15.380000\tlimits battery (atomic 0)\nok\t0.030000\tresp3 battery (atomic 0)\nok\t0.030000\tbitfield battery (atomic 0)\nok\t0.060000\tdumprestore battery (atomic 0)\nok\t0.040000\tzsetops battery (atomic 0)\nok\t0.020000\tgeo battery (atomic 0)\nok\t1.130000\tclimon battery (atomic 0)\nok\t3.270000\tclimon2 battery (atomic 0)\nok\t13.360000\ttracking battery (atomic 0)\nok\t3.050000\thexpire battery (atomic 0)\nok\t2.540000\tservertail battery (atomic 0)\nok\t0.160000\tlcs battery (atomic 0)\nok\t2.780000\tconcur battery (atomic 0)\nok\t0.660000\tedgeproto battery (atomic 0)\nok\t0.340000\tedgeenc battery (atomic 0)\nok\t3.790000\tedgetime battery (atomic 0)\nok\t0.020000\tarity battery (atomic 0)\nok\t0.020000\tcontarity battery (atomic 0)\nok\t0.030000\tcmdgap battery (atomic 0)\nok\t0.030000\taclsel battery (atomic 0)\nok\t55.400000\texpwide battery (atomic 0)\nok\t4.200000\tinfofix battery (atomic 0)\nok\t2.930000\tpushtear battery (atomic 0)\nok\t0.030000\tnetcmd battery (atomic 0)\nok\t0.020000\tfeature shutdown invariants (atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "feature-split-1",
+        "done": "0\t34\t0",
+        "ledger": "ok\t2.460000\ts6 battery (atomic 1)\nok\t2.070000\tmulti_exec battery (atomic 1)\nok\t1.520000\tblocking battery (atomic 1)\nok\t0.480000\tblockmulti battery (atomic 1)\nok\t0.500000\tstream battery (atomic 1)\nok\t0.050000\tstreamgroups battery (atomic 1)\nok\t0.880000\tpubsub battery (atomic 1)\nok\t0.020000\tlua_scripting battery (atomic 1)\nok\t0.050000\tscriptsurf battery (atomic 1)\nok\t15.370000\tlimits battery (atomic 1)\nok\t0.020000\tresp3 battery (atomic 1)\nok\t0.030000\tbitfield battery (atomic 1)\nok\t0.060000\tdumprestore battery (atomic 1)\nok\t0.040000\tzsetops battery (atomic 1)\nok\t0.030000\tgeo battery (atomic 1)\nok\t1.130000\tclimon battery (atomic 1)\nok\t3.270000\tclimon2 battery (atomic 1)\nok\t13.210000\ttracking battery (atomic 1)\nok\t3.300000\thexpire battery (atomic 1)\nok\t2.430000\tservertail battery (atomic 1)\nok\t0.160000\tlcs battery (atomic 1)\nok\t2.750000\tconcur battery (atomic 1)\nok\t0.570000\tedgeproto battery (atomic 1)\nok\t0.340000\tedgeenc battery (atomic 1)\nok\t3.830000\tedgetime battery (atomic 1)\nok\t0.020000\tarity battery (atomic 1)\nok\t0.030000\tcontarity battery (atomic 1)\nok\t0.020000\tcmdgap battery (atomic 1)\nok\t0.030000\taclsel battery (atomic 1)\nok\t62.430000\texpwide battery (atomic 1)\nok\t4.200000\tinfofix battery (atomic 1)\nok\t2.930000\tpushtear battery (atomic 1)\nok\t0.030000\tnetcmd battery (atomic 1)\nok\t0.020000\tfeature shutdown invariants (atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "globcase",
+        "done": "0\t1\t0",
+        "ledger": "ok\t2.050000\tglob/scan grammar parity vs Redis 7.4\n",
+        "failures": []
+      },
+      {
+        "job": "multidb-1s-0-0",
+        "done": "0\t3\t0",
+        "ledger": "ok\t4.450000\tmultidb (1s, read-local 0, atomic 0)\nok\t0.100000\tmultidb (1s, read-local 0, atomic 0) SWAPDB serial order\nok\t0.280000\tmultidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB\n",
+        "failures": []
+      },
+      {
+        "job": "multidb-1s-0-1",
+        "done": "0\t3\t0",
+        "ledger": "ok\t4.450000\tmultidb (1s, read-local 0, atomic 1)\nok\t0.100000\tmultidb (1s, read-local 0, atomic 1) SWAPDB serial order\nok\t0.270000\tmultidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB\n",
+        "failures": []
+      },
+      {
+        "job": "multidb-1s-1-0",
+        "done": "0\t3\t0",
+        "ledger": "ok\t4.380000\tmultidb (1s, read-local 1, atomic 0)\nok\t0.100000\tmultidb (1s, read-local 1, atomic 0) SWAPDB serial order\nok\t0.280000\tmultidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB\n",
+        "failures": []
+      },
+      {
+        "job": "multidb-1s-1-1",
+        "done": "0\t3\t0",
+        "ledger": "ok\t4.390000\tmultidb (1s, read-local 1, atomic 1)\nok\t0.090000\tmultidb (1s, read-local 1, atomic 1) SWAPDB serial order\nok\t0.280000\tmultidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB\n",
+        "failures": []
+      },
+      {
+        "job": "multidb-2s-0-0",
+        "done": "0\t3\t0",
+        "ledger": "ok\t4.310000\tmultidb (2s, read-local 0, atomic 0)\nok\t0.100000\tmultidb (2s, read-local 0, atomic 0) SWAPDB serial order\nok\t0.280000\tmultidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB\n",
+        "failures": []
+      },
+      {
+        "job": "multidb-2s-0-1",
+        "done": "0\t3\t0",
+        "ledger": "ok\t4.310000\tmultidb (2s, read-local 0, atomic 1)\nok\t0.100000\tmultidb (2s, read-local 0, atomic 1) SWAPDB serial order\nok\t0.270000\tmultidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB\n",
+        "failures": []
+      },
+      {
+        "job": "multidb-2s-1-0",
+        "done": "0\t3\t0",
+        "ledger": "ok\t4.280000\tmultidb (2s, read-local 1, atomic 0)\nok\t0.100000\tmultidb (2s, read-local 1, atomic 0) SWAPDB serial order\nok\t0.270000\tmultidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB\n",
+        "failures": []
+      },
+      {
+        "job": "multidb-2s-1-1",
+        "done": "0\t3\t0",
+        "ledger": "ok\t4.300000\tmultidb (2s, read-local 1, atomic 1)\nok\t0.100000\tmultidb (2s, read-local 1, atomic 1) SWAPDB serial order\nok\t0.280000\tmultidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB\n",
+        "failures": []
+      },
+      {
+        "job": "netcmd_units",
+        "done": "0\t16\t0",
+        "ledger": "ok\t0.000000\tnetcmd regression build\nok\t0.000000\tnetcmd streams regression\nok\t0.010000\tnetcmd zpop regression\nok\t0.010000\tnetcmd notify-oom regression\nok\t0.000000\tnetcmd notify-retry regression\nok\t0.010000\tnetcmd flush regression\nok\t0.010000\tnetcmd output regression\nok\t0.000000\tnetcmd pubsub regression\nok\t0.010000\tnetcmd receive regression\nok\t0.030000\tnetcmd config regression\nok\t0.010000\tnetcmd wb-small-pipe regression\nok\t0.010000\tnetcmd wb-complete-visits regression\nok\t0.000000\tnetcmd hexpire-oom regression\nok\t0.010000\tencodingfix knob\nok\t0.010000\tencodingfix precedence\nok\t0.010000\tNET1 serverless bounds + scan + reclamation\n",
+        "failures": []
+      },
+      {
+        "job": "netio-1s",
+        "done": "0\t1\t0",
+        "ledger": "ok\t2.930000\tepoll directed correctness (1s)\n",
+        "failures": []
+      },
+      {
+        "job": "netio-2s",
+        "done": "0\t1\t0",
+        "ledger": "ok\t2.920000\tepoll directed correctness (2s)\n",
+        "failures": []
+      },
+      {
+        "job": "notify",
+        "done": "0\t6\t0",
+        "ledger": "ok\t2.070000\tMULTI feature battery\nok\t1.470000\tblocking feature battery\nok\t0.870000\tpubsub feature battery\nok\t0.030000\tLua feature battery\nok\t22.650000\tkeyspace notification battery (atomic 0/1)\nok\t0.020000\tfeature battery shutdown invariants\n",
+        "failures": []
+      },
+      {
+        "job": "notify_aof",
+        "done": "0\t1\t0",
+        "ledger": "ok\t11.910000\tlocal script notification AOF vs Redis 7.4\n",
+        "failures": []
+      },
+      {
+        "job": "notify_order",
+        "done": "0\t1\t0",
+        "ledger": "ok\t65.750000\tkeyspace lazy-expiry order vs Redis 7.4\n",
+        "failures": []
+      },
+      {
+        "job": "perfio_stream",
+        "done": "0\t2\t0",
+        "ledger": "ok\t0.410000\tperfio XREADGROUP bounded delivery + Redis metadata (1s)\nok\t0.400000\tperfio XREADGROUP bounded delivery + Redis metadata (2s)\n",
+        "failures": []
+      },
+      {
+        "job": "production_units",
+        "done": "0\t0\t0",
+        "ledger": "",
+        "failures": []
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      },
+      {
+        "job": "script_bounds",
+        "done": "0\t2\t0",
+        "ledger": "ok\t0.050000\txscript limit control\nok\t0.540000\txscript window control\n",
+        "failures": []
+      },
+      {
+        "job": "scriptfix",
+        "done": "0\t8\t0",
+        "ledger": "ok\t0.140000\tscriptfix sandbox (1s)\nok\t0.110000\tscriptfix functions (1s)\nok\t0.700000\tscriptfix replies (1s)\nok\t0.820000\tscriptfix dump (1s)\nok\t0.140000\tscriptfix sandbox (2s)\nok\t0.140000\tscriptfix functions (2s)\nok\t0.700000\tscriptfix replies (2s)\nok\t0.820000\tscriptfix dump (2s)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "POST-directed-complete.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.8uPBJf",
+    "archive": "receipts/POST-directed-complete.tar.gz",
+    "sha256": "19ea569836b3d54b6b7a9a35c15d0705e70366481b5782a544b49c8ab5cf7710",
+    "bytes": 130730,
+    "complete": true,
+    "files": 301,
+    "jobs": [
+      {
+        "job": "compat3",
+        "done": "0\t6\t0",
+        "ledger": "ok\t34.230000\tcompat3 CC4.12 pubsub vs Redis 7.4\nok\t33.450000\tcompat3 CC4.13 pending vs Redis 7.4\nok\t33.440000\tcompat3 CC4.14 history vs Redis 7.4\nok\t33.550000\tcompat3 CC4.16 grammar vs Redis 7.4\nok\t33.700000\tcompat3 CC4.5 glob vs Redis 7.4\nok\t33.590000\tcompat3 CC4.17 flags vs Redis 7.4\n",
+        "failures": []
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "POST-directed.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.KxComm",
+    "archive": "receipts/POST-directed.tar.gz",
+    "sha256": "c80cd909264a984a2b256cd6fcc948cab2f1740e967527f65e6bede4fac6f808",
+    "bytes": 123127,
+    "complete": true,
+    "files": 301,
+    "jobs": [
+      {
+        "job": "compat3",
+        "done": "0\t5\t1",
+        "ledger": "ok\t33.350000\tcompat3 CC4.12 pubsub vs Redis 7.4\nok\t33.520000\tcompat3 CC4.13 pending vs Redis 7.4\nok\t33.480000\tcompat3 CC4.14 history vs Redis 7.4\nok\t33.570000\tcompat3 CC4.16 grammar vs Redis 7.4\nFAIL\t34.840000\tcompat3 CC4.5 glob vs Redis 7.4\nok\t33.700000\tcompat3 CC4.17 flags vs Redis 7.4\n",
+        "failures": [
+          "  compat3 CC4.5 glob vs Redis 7.4                      FAIL (see /home/user/Projects/cx-compat3/build/gate-run.KxComm/jobs/compat3/glob-*.log)"
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "POST-eviction.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.UWb0NE",
+    "archive": "receipts/POST-eviction.tar.gz",
+    "sha256": "69978a3eca3a1be154f2b602ab3290c28e1f7e22ca663396bff69eb75a599f79",
+    "bytes": 19390,
+    "complete": true,
+    "files": 56,
+    "jobs": [
+      {
+        "job": "evict-lfu-armed-0",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.310000\teviction lfu battery (fused+armed, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "evict-lfu-armed-1",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.310000\teviction lfu battery (fused+armed, atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "evict-lfu-split-0",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.300000\teviction lfu battery (split, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "evict-lfu-split-1",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.310000\teviction lfu battery (split, atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "evict-lruclock-armed-0",
+        "done": "0\t1\t0",
+        "ledger": "ok\t254.230000\teviction lruclock battery (fused+armed, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "evict-lruclock-armed-1",
+        "done": "0\t1\t0",
+        "ledger": "ok\t254.140000\teviction lruclock battery (fused+armed, atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "evict-lruclock-split-0",
+        "done": "0\t1\t0",
+        "ledger": "ok\t121.670000\teviction lruclock battery (split, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "evict-lruclock-split-1",
+        "done": "0\t1\t0",
+        "ledger": "ok\t254.270000\teviction lruclock battery (split, atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "PRE-complete.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.Lu7I67",
+    "archive": "receipts/PRE-complete.tar.gz",
+    "sha256": "8755cf68e80dd4ee8d2b077af22718f31a84a54246f86f3f5559b913c47013ba",
+    "bytes": 139751,
+    "complete": true,
+    "files": 301,
+    "jobs": [
+      {
+        "job": "compat3",
+        "done": "0\t0\t6",
+        "ledger": "FAIL\t34.700000\tcompat3 CC4.12 pubsub vs Redis 7.4\nFAIL\t34.700000\tcompat3 CC4.13 pending vs Redis 7.4\nFAIL\t34.690000\tcompat3 CC4.14 history vs Redis 7.4\nFAIL\t34.990000\tcompat3 CC4.16 grammar vs Redis 7.4\nFAIL\t35.030000\tcompat3 CC4.5 glob vs Redis 7.4\nFAIL\t35.160000\tcompat3 CC4.17 flags vs Redis 7.4\n",
+        "failures": [
+          "  compat3 CC4.12 pubsub vs Redis 7.4                   FAIL (see /home/user/Projects/cx-compat3/build/gate-run.Lu7I67/jobs/compat3/pubsub-*.log)",
+          "  compat3 CC4.13 pending vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.Lu7I67/jobs/compat3/pending-*.log)",
+          "  compat3 CC4.14 history vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.Lu7I67/jobs/compat3/history-*.log)",
+          "  compat3 CC4.16 grammar vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.Lu7I67/jobs/compat3/grammar-*.log)",
+          "  compat3 CC4.5 glob vs Redis 7.4                      FAIL (see /home/user/Projects/cx-compat3/build/gate-run.Lu7I67/jobs/compat3/glob-*.log)",
+          "  compat3 CC4.17 flags vs Redis 7.4                    FAIL (see /home/user/Projects/cx-compat3/build/gate-run.Lu7I67/jobs/compat3/flags-*.log)"
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.010000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "PRE-directed.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.by8Xte",
+    "archive": "receipts/PRE-directed.tar.gz",
+    "sha256": "995ff5d70d0340b0fb1c9312921a1cc4f46669425e22f1cbbf860e5b32af20dd",
+    "bytes": 125828,
+    "complete": true,
+    "files": 301,
+    "jobs": [
+      {
+        "job": "compat3",
+        "done": "0\t0\t6",
+        "ledger": "FAIL\t34.550000\tcompat3 CC4.12 pubsub vs Redis 7.4\nFAIL\t34.780000\tcompat3 CC4.13 pending vs Redis 7.4\nFAIL\t34.440000\tcompat3 CC4.14 history vs Redis 7.4\nFAIL\t34.780000\tcompat3 CC4.16 grammar vs Redis 7.4\nFAIL\t34.630000\tcompat3 CC4.5 glob vs Redis 7.4\nFAIL\t34.940000\tcompat3 CC4.17 flags vs Redis 7.4\n",
+        "failures": [
+          "  compat3 CC4.12 pubsub vs Redis 7.4                   FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/pubsub-*.log)",
+          "  compat3 CC4.13 pending vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/pending-*.log)",
+          "  compat3 CC4.14 history vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/history-*.log)",
+          "  compat3 CC4.16 grammar vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/grammar-*.log)",
+          "  compat3 CC4.5 glob vs Redis 7.4                      FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/glob-*.log)",
+          "  compat3 CC4.17 flags vs Redis 7.4                    FAIL (see /home/user/Projects/cx-compat3/build/gate-run.by8Xte/jobs/compat3/flags-*.log)"
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "PRE-final.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.SdsGO3",
+    "archive": "receipts/PRE-final.tar.gz",
+    "sha256": "d88be9d182f5cb31fb68fe1f51fd137aeb51f1a57c228665abc6c77b4dad3f6f",
+    "bytes": 137730,
+    "complete": true,
+    "files": 301,
+    "jobs": [
+      {
+        "job": "compat3",
+        "done": "0\t0\t6",
+        "ledger": "FAIL\t41.530000\tcompat3 CC4.12 pubsub vs Redis 7.4\nFAIL\t38.960000\tcompat3 CC4.13 pending vs Redis 7.4\nFAIL\t34.980000\tcompat3 CC4.14 history vs Redis 7.4\nFAIL\t34.970000\tcompat3 CC4.16 grammar vs Redis 7.4\nFAIL\t35.020000\tcompat3 CC4.5 glob vs Redis 7.4\nFAIL\t35.170000\tcompat3 CC4.17 flags vs Redis 7.4\n",
+        "failures": [
+          "  compat3 CC4.12 pubsub vs Redis 7.4                   FAIL (see /home/user/Projects/cx-compat3/build/gate-run.SdsGO3/jobs/compat3/pubsub-*.log)",
+          "  compat3 CC4.13 pending vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.SdsGO3/jobs/compat3/pending-*.log)",
+          "  compat3 CC4.14 history vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.SdsGO3/jobs/compat3/history-*.log)",
+          "  compat3 CC4.16 grammar vs Redis 7.4                  FAIL (see /home/user/Projects/cx-compat3/build/gate-run.SdsGO3/jobs/compat3/grammar-*.log)",
+          "  compat3 CC4.5 glob vs Redis 7.4                      FAIL (see /home/user/Projects/cx-compat3/build/gate-run.SdsGO3/jobs/compat3/glob-*.log)",
+          "  compat3 CC4.17 flags vs Redis 7.4                    FAIL (see /home/user/Projects/cx-compat3/build/gate-run.SdsGO3/jobs/compat3/flags-*.log)"
+        ]
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.010000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "differ-epoll.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.V1vlM8",
+    "archive": "receipts/differ-epoll.tar.gz",
+    "sha256": "4381ebb17a09f41f0286b093b77894162d5af2a42d6bf8a518f308e47dcfc0ab",
+    "bytes": 138985,
+    "complete": false,
+    "files": 1148,
+    "jobs": [
+      {
+        "job": "differ-armed-0",
+        "done": null,
+        "ledger": "",
+        "failures": []
+      },
+      {
+        "job": "differ-split-0",
+        "done": "0\t1\t0",
+        "ledger": "ok\t527.050000\tRedis 7.4 differential part (split, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "differ-split-1",
+        "done": "0\t1\t0",
+        "ledger": "ok\t526.040000\tRedis 7.4 differential part (split, atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
+    "log": "differ-uring.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.VxQ8Ji",
+    "archive": "receipts/differ-uring.tar.gz",
+    "sha256": "8ee3443bcc78c3adb9a9af7498aae8da3f125d2e22da7fd294cddc665488b051",
+    "bytes": 348937,
+    "complete": true,
+    "files": 2108,
+    "jobs": [
+      {
+        "job": "differ-armed-0",
+        "done": "0\t1\t0",
+        "ledger": "ok\t525.710000\tRedis 7.4 differential part (armed fused, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "differ-armed-1",
+        "done": "0\t1\t0",
+        "ledger": "ok\t524.180000\tRedis 7.4 differential part (armed fused, atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "differ-equivalence",
+        "done": "0\t1\t0",
+        "ledger": "ok\t21.120000\tmode equivalence part (all execution modes and knobs)\n",
+        "failures": []
+      },
+      {
+        "job": "differ-split-0",
+        "done": "0\t1\t0",
+        "ledger": "ok\t527.500000\tRedis 7.4 differential part (split, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "differ-split-1",
+        "done": "0\t1\t0",
+        "ledger": "ok\t528.610000\tRedis 7.4 differential part (split, atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  }
+]
