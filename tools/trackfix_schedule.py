@@ -2,7 +2,7 @@
 """Delay a real tracking notification until its reader is Done, before retirement.
 
 Disposable source copy only. No scheduling hook, branch or test state is linked
-into production. Rebuild only tracking.cc in the selected arm's two namespaces.
+into production. Rebuild only tracking.cc and climon.cc in the selected arm's two namespaces.
 """
 import argparse
 from concurrent.futures import ThreadPoolExecutor
@@ -20,6 +20,8 @@ STATE = r'''
 namespace {
 thread_local std::unordered_map<std::string, PubSubEvent> trackfix_held;
 thread_local std::unordered_set<std::string> trackfix_seen;
+thread_local std::unordered_map<std::string, std::vector<std::pair<Client*, Op*>>> trackfix_late;
+thread_local std::unordered_set<std::string> trackfix_late_released;
 void trackfix_receipt(const std::string& key, const char* suffix, unsigned state) {
     const char* directory = std::getenv("TOMO_TRACKFIX_SCHEDULE_DIR");
     if (!directory) return;
@@ -65,6 +67,46 @@ REPLAY = r'''
 '''
 
 
+LATE = r'''
+            for (const PubSubEventItem& item : event.items) {
+                auto held = trackfix_late.find(item.value);
+                if (held == trackfix_late.end()) continue;
+                auto reads = std::move(held->second);
+                trackfix_late.erase(held);
+                trackfix_late_released.insert(item.value);
+                for (auto [client, op] : reads) {
+                    if (op->state.load(std::memory_order_acquire) != OpState::Done) std::abort();
+                    enqueue_serve(client);
+                }
+                trackfix_receipt(item.value, ".overlapped", reads.size());
+            }
+'''
+
+SERVE = r'''
+bool trackfix_hold_serve(Client* client) {
+    if (!std::getenv("TOMO_TRACKFIX_SCHEDULE_DIR")) return false;
+    auto& rob = client->rob();
+    if (!rob.in_flight()) return false;
+    Op& head = rob.at(rob.flush_id());
+    if (head.state.load(std::memory_order_acquire) != OpState::Done || head.argc() != 2 ||
+        !head.cmd_name().eq_icase("GET")) return false;
+    const std::string key(head.key().p, head.key().n);
+    if (!key.starts_with("trackfix:overlap:") || key.find("BCAST") != std::string::npos ||
+        trackfix_late_released.count(key)) return false;
+    auto& held = trackfix_late[key];
+    held.clear();
+    for (uint64_t id = rob.flush_id(); id < rob.dispatch_id(); ++id) {
+        Op& op = rob.at(id);
+        if (op.state.load(std::memory_order_acquire) != OpState::Done) continue;
+        if (op.argc() == 2 && op.cmd_name().eq_icase("GET") &&
+            std::string(op.key().p, op.key().n) == key) held.emplace_back(client, &op);
+    }
+    trackfix_receipt(key, ".pending", held.size());
+    return true;
+}
+'''
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--objects', type=Path, required=True)
@@ -86,17 +128,35 @@ def main():
         shutil.copy2(root / 'Makefile', source / 'Makefile')
     path = source / 'src/cmd/tracking.cc'
     text = path.read_text()
-    patches = [('namespace tomo {', 'namespace tomo {\n' + STATE),
+    patches = [('namespace tomo {', 'namespace tomo {\n' + STATE + SERVE),
                ('void IoLoop::tracking_handle_event(PubSubEvent& event) {', HOLD),
                ('    if (read == state->tracking_reads.end()) return;', REPLAY)]
     for anchor, addition in patches:
         assert text.count(anchor) == 1, anchor
         text = text.replace(anchor, addition if anchor == 'namespace tomo {' else anchor + '\n' + addition)
+    # PRE has a vector and one pending Op; POST has side-owned read receipts
+    # and all readers of a key. The schedule and real consumer call stay the same.
+    if 'read->second->keys' in text or 'auto& receipt = *read->second;' in text:
+        text = text.replace('for (const std::string& key : read->second)',
+                            'for (const std::string& key : read->second->keys)')
+        text = text.replace('pending->second != &op',
+            'std::find(pending->second.reads.begin(), pending->second.reads.end(), &op) == pending->second.reads.end()')
+    anchor = '            tracking_forward_stale(event);'
+    assert anchor in text
+    text = text.replace(anchor, LATE + anchor, 1)
+    path.write_text(text)
+    path = source / 'src/cmd/climon.cc'
+    text = path.read_text().replace('namespace tomo {',
+        'namespace tomo {\nbool trackfix_hold_serve(Client*);', 1)
+    for anchor in ('uint32_t IoLoop::climon_serve_suppressed(Client* client) {',
+                   'uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed) {'):
+        assert text.count(anchor) == 1
+        text = text.replace(anchor, anchor + '\n    if (trackfix_hold_serve(client)) return 0;')
     path.write_text(text)
     dry = subprocess.check_output(['make', '-n', '-B', f'BUILD_ROOT={objects}', 'all'], cwd=source, text=True)
     commands = [shlex.split(line) for line in dry.splitlines() if line.startswith(('g++ ', 'c++ ', 'clang++ '))]
-    compiles = [cmd for cmd in commands if '-c' in cmd and 'src/cmd/tracking.cc' in cmd]
-    assert len(compiles) == 2
+    compiles = [cmd for cmd in commands if '-c' in cmd and any(p in cmd for p in ('src/cmd/tracking.cc', 'src/cmd/climon.cc'))]
+    assert len(compiles) == 4
     replacements = {}
     for index, cmd in enumerate(compiles):
         pos = cmd.index('-o') + 1

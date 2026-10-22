@@ -188,6 +188,80 @@ class Peer:
             if listener is not reader:
                 listener.close()
 
+    def overlap(self, protocol, mode, twins=False):
+        key = f'trackfix:overlap:{protocol}:{mode}:{int(twins)}'.encode()
+        reader = self.connect()
+        listener = reader if protocol == 3 else self.connect()
+        try:
+            equal(self.writer.cmd('CLIENT', 'TRACKING', 'ON', 'BCAST', 'PREFIX',
+                                  'trackfix-never:'), b'OK', 'writer observation armed')
+            equal(self.writer.cmd('SET', key, 'before'), b'OK', 'initial value')
+            if protocol == 3:
+                reader.cmd('HELLO', 3)
+                redirect = []
+            else:
+                redirect = ['REDIRECT', listener.cmd('CLIENT', 'ID')]
+                equal(listener.cmd('SUBSCRIBE', '__redis__:invalidate'),
+                      [b'subscribe', b'__redis__:invalidate', 1], 'RESP2 redirect subscriber')
+            equal(reader.cmd('CLIENT', 'TRACKING', 'ON', *redirect,
+                             *([] if mode == 'default' else [mode])), b'OK', 'tracking on')
+            # OPTIN needs a CACHING command before each read; queue the pair in
+            # one packet so no extra reader command reuses a held ROB slot.
+            commands = []
+            for _ in range(2 if twins else 1):
+                if mode == 'OPTIN': commands.append(('CLIENT', 'CACHING', 'YES'))
+                commands.append(('GET', key))
+            reader.send(*commands[0]) if len(commands) == 1 else None
+            if len(commands) > 1:
+                from _lib import encode
+                reader.sock.sendall(b''.join(encode(*command) for command in commands))
+            if self.target and mode != 'BCAST':
+                receipt = Path(self.args.schedule_dir) / (key.decode() + '.pending')
+                end = time.monotonic() + 5
+                wanted = str(2 if twins else 1) + '\n'
+                while not receipt.exists() or receipt.read_text() != wanted:
+                    assert time.monotonic() < end, 'all pending windows must open'
+                    time.sleep(.002)
+                equal(receipt.read_text(), wanted, 'all pending windows opened')
+            else:
+                for command in commands:
+                    equal(reader.read(), b'OK' if command[0] == 'CLIENT' else b'before',
+                          'oracle/BCAST read before mutation')
+            equal(self.writer.cmd('SET', key, 'changed'), b'OK', 'write overlaps tracking retirement')
+            if self.target and mode != 'BCAST':
+                for command in commands:
+                    equal(reader.read(), b'OK' if command[0] == 'CLIENT' else b'before',
+                          'real held read reply')
+            first = drain(listener, 1, 'required overlapping invalidation')
+            if self.target and mode != 'BCAST':
+                receipt = Path(self.args.schedule_dir) / (key.decode() + '.overlapped')
+                end = time.monotonic() + 5
+                while not receipt.exists():
+                    assert time.monotonic() < end, 'overlap event never resumed retirement'
+                    time.sleep(.002)
+                equal(receipt.read_text(), str(2 if twins else 1) + '\n', 'all held reads retired')
+            equal(self.writer.cmd('SET', key, 'newer'), b'OK', 'second write without another read')
+            second = drain(listener, 1 if mode == 'BCAST' else 0, 'no stale reenrollment')
+            if mode == 'OPTIN':
+                equal(reader.cmd('CLIENT', 'CACHING', 'YES'), b'OK', 'fresh opt in')
+            equal(reader.cmd('GET', key), b'newer', 'fresh read reenrolls')
+            equal(self.writer.cmd('DEL', key), 1, 'fresh later write')
+            third = drain(listener, 1, 'fresh enrollment invalidates')
+            actual = [first, second, third]
+            expected = [[invalidation(key, protocol)],
+                        [invalidation(key, protocol)] if mode == 'BCAST' else [],
+                        [invalidation(key, protocol)]]
+            print(('TARGET ' if self.target else 'ORACLE ') + json.dumps(dict(
+                protocol=protocol, mode=mode, twins=twins,
+                overlap_frames=[[f.hex() for f in stage] for stage in actual])), flush=True)
+            equal(actual, expected, 'non-loss and retirement exact frames')
+            return actual
+        finally:
+            reader.cmd('CLIENT', 'TRACKING', 'OFF')
+            self.writer.cmd('CLIENT', 'TRACKING', 'OFF')
+            reader.close()
+            if listener is not reader: listener.close()
+
     def close(self):
         self.writer.close()
         self.admin.close()
@@ -208,20 +282,22 @@ def main():
     oracle = Peer(args.oracle[0], int(args.oracle[1]), False, args)
     target = Peer(args.host, args.port, True, args)
     failures = []
+    checks = [('case', ())] if args.case == 'accounting' else [
+        ('ordered', ()), ('overlap', (False,)), ('overlap', (True,))]
     try:
-        for protocol in (2, 3):
-            for mode in ('default', 'BCAST', 'OPTIN', 'OPTOUT', 'NOLOOP'):
-                try:
-                    method = 'case' if args.case == 'accounting' else 'ordered'
-                    expected = getattr(oracle, method)(protocol, mode)
-                    equal(getattr(target, method)(protocol, mode), expected, 'Redis oracle exact frames')
-                except Exception as error:
-                    failures.append(f'RESP{protocol} {mode}: {error}')
-                    print('FAIL ' + failures[-1], flush=True)
+        for method, extra in checks:
+            for protocol in (2, 3):
+                for mode in ('default', 'BCAST', 'OPTIN', 'OPTOUT', 'NOLOOP'):
+                    try:
+                        expected = getattr(oracle, method)(protocol, mode, *extra)
+                        equal(getattr(target, method)(protocol, mode, *extra), expected, 'Redis oracle exact frames')
+                    except Exception as error:
+                        failures.append(f'{method}{extra} RESP{protocol} {mode}: {error}')
+                        print('FAIL ' + failures[-1], flush=True)
     finally:
         target.close()
         oracle.close()
-    print(f'trackfix {args.case}: {10-len(failures)} passed, {len(failures)} failed')
+    print(f'trackfix {args.case}: {10*len(checks)-len(failures)} passed, {len(failures)} failed')
     return bool(failures)
 
 

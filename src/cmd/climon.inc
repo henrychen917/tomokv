@@ -30,11 +30,30 @@
     // Per-connection lane state. Deliberately NOT in Client: Client is footprint-locked at 1984
     // bytes and its io-hot head is layout-tuned, and an entry is created only for a connection
     // that actually uses one of these features. An idle server holds an empty map.
+    // Per-read storage is reached through an armed spec copy, never Op padding.
+    struct TrackingRead : CommandSpec {
+        const CommandSpec* original;
+        uint64_t dispatch_stamp;
+        uint64_t dispatch_epoch;
+        std::vector<std::string> keys;
+        std::vector<uint32_t> shards;
+        std::vector<uint64_t> observed;
+        bool canceled = false;
+        TrackingRead(const CommandSpec* spec, uint64_t stamp, uint64_t epoch, size_t shards)
+            : CommandSpec(*spec), original(spec), dispatch_stamp(stamp), dispatch_epoch(epoch),
+              observed(shards, UINT64_MAX) {}
+    };
+    struct TrackingPending {
+        std::vector<Op*> reads;
+        uint64_t invalidated = 0;
+        uint64_t delivered = 0;
+    };
     struct ClimonConn {
         Client* client = nullptr;
         uint8_t reply_mode = kClimonReplyOn;
         bool monitor = false;
         bool tracking_on = false;
+        bool tracking_draining = false;
         bool bcast = false;
         bool optin = false;
         bool optout = false;
@@ -47,13 +66,13 @@
         // armed connections carry this retry receipt, outside the locked Client.
         uint64_t gate_op_id = UINT64_MAX;
         bool gate_reply_skip = false;
-        std::unordered_map<Op*, std::vector<std::string>> tracking_reads;
-        // key -> latest pending read. Both maps move with the existing
-        // connection migration node in its ownership commit section.
-        std::unordered_map<std::string, Op*> tracking_pending;
+        std::unordered_map<Op*, std::unique_ptr<TrackingRead>> tracking_reads;
+        // All three tables move in the existing connection ownership commit section.
+        std::unordered_map<std::string, TrackingPending> tracking_pending;
+        std::unordered_map<std::string, uint64_t> tracking_enrolled;
 
         bool idle() const {
-            return reply_mode == kClimonReplyOn && !monitor && !tracking_on && !broken_redirect;
+            return reply_mode == kClimonReplyOn && !monitor && !tracking_on && !tracking_draining && !broken_redirect && tracking_reads.empty();
         }
     };
 
@@ -124,16 +143,18 @@
     void climon_monitor_stop(Client* client, uint64_t id);
 
     // ---- CLIENT TRACKING (tracking.cc) ----------------------------------------------------------
+    friend void tracking_observe_read(Shard&, Op&);
+    friend void tracking_observe_local(Server&, Op&);
     void tracking_reply_trackinginfo(Client* client, Op& op);
     ClimonStartResult tracking_client_subcommand(Client* client, Op& op);
     void tracking_register_read(Client* client, ClimonConn& state, Op& op);
     void tracking_retire_read(Client& client, Op& op);
     bool tracking_retire_plain(Client* client);
-    void tracking_register_key(uint64_t id, const std::string& key);
+    void tracking_register_key(uint64_t id, const std::string& key, uint64_t stamp);
     void tracking_forget_client(uint64_t id, ClimonConn& state);
-    void tracking_invalidate_local(Slice key, uint64_t writer_id);
+    void tracking_invalidate_local(Slice key, uint64_t writer_id, uint64_t stamp);
     void tracking_handle_event(PubSubEvent& event);
-    void tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id);
+    void tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id, uint64_t stamp);
     void tracking_broadcast_flush();
     void tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush);
     void tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush);
