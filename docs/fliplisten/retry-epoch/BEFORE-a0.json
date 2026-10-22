@@ -1,0 +1,56 @@
+{
+  "arm": "BEFORE",
+  "atomic": 0,
+  "argv": [
+    "taskset",
+    "-c",
+    "48-55",
+    "gdb",
+    "-nx",
+    "-q",
+    "-x",
+    "/home/user/Projects/cx-fliplisten/build/fliplisten/retry-epoch/BEFORE-a0/force.gdb",
+    "--args",
+    "/home/user/Projects/cx-fliplisten/build/tomokv-before-retry-fix",
+    "--port",
+    "21860",
+    "--bind",
+    "127.0.0.1",
+    "--dir",
+    "/home/user/Projects/cx-fliplisten/build/fliplisten/retry-epoch/BEFORE-a0",
+    "--save",
+    "",
+    "--thread-mode",
+    "2s",
+    "--ratio",
+    "6:2",
+    "--shards",
+    "16",
+    "--databases",
+    "1",
+    "--atomic",
+    "0",
+    "--net-io",
+    "uring",
+    "--flip-auto",
+    "0",
+    "--key-lb",
+    "0",
+    "--client-lb",
+    "0"
+  ],
+  "sha256": "d6e4880f567e8b39da64d8e7caff3bbf102f74ad1a92e9b5669021fe58f48a6a",
+  "reply": "socket deadline after 8 seconds",
+  "seconds": 8.008240759372711,
+  "witness": {
+    "pid": 3061027,
+    "tid": 1,
+    "borrowed": [
+      15
+    ],
+    "old_cancel_fences": [
+      true
+    ]
+  },
+  "passed": false
+}

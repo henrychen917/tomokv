@@ -14,7 +14,7 @@ def reason(name):
   return 'Listener lifecycle, bounded pending descriptors, independent cancellation fences and quota-before-admission acknowledgements.'
  if any(x in name for x in ('flip_', 'prepare_activation', 'cancel_prepared_activation', 'deactivate', 'IoLoop::activate(', '~IoLoop', '~Server')):
   return 'Existing FLIP prepare/install/rollback or process teardown now includes listener ownership and retained descriptors.'
- if '::run_loop<' in name:
+ if name.startswith('void ') and any(x in name for x in ('::run_loop<','::r7_run_loop<')):
   return 'The only instruction difference is the existing accept_pending_ cold call target; same widths, offsets and all other instructions. See normal-paths.json.'
  if '::on_accept<' in name or '::r7_on_accept<' in name:
   return 'Paused and stale accept completions enter retention instead of close. Normal successful paths use no more instructions; all 72 emitted kind/MORE cases are traced in normal-paths.json.'

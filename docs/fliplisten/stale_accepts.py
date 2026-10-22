@@ -103,6 +103,7 @@ def run(atomic,trial):
    (DOC/f'a{atomic}-{trial}.server.log').write_text((out/'server.log').read_text(errors='replace'))
    if events.exists():(DOC/f'a{atomic}-{trial}.events.jsonl').write_bytes(events.read_bytes())
 if __name__=='__main__':
+ for p in DOC.glob('a*'):p.unlink() # older trials are archived separately
  for atomic in (0,1):
   for trial in range(4):
    deadline=time.monotonic()+10

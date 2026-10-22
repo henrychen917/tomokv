@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=flip flipctl flip_saturated tls compat2 climonfix clientfix feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 netio-1s netio-2s core_units boot_grammar; NOT A RECEIPT

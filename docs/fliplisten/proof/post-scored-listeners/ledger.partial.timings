@@ -1,0 +1,5 @@
+ok	0.000000	release build (+footprint locks)
+ok	26.800000	FLIP listener conservation (io-ex, complete)
+ok	30.520000	FLIP listener conservation (io-ex, rollback)
+ok	29.230000	FLIP listener conservation (ex-io, complete)
+ok	28.200000	FLIP listener conservation (ex-io, rollback)

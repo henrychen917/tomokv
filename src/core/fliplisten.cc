@@ -25,6 +25,7 @@ struct FlipListenerState {
         int head = -1, tail = -1;
         bool registered[kListeners] = {};
         bool files_registered = false;
+        uint64_t quiesce_epoch = 0;
         std::atomic<uint64_t> resumed{0};
     };
     std::array<Listener, kListeners> listeners;
@@ -159,7 +160,12 @@ void IoLoop::fliplisten_stale(io_uring_cqe* cqe, UrKind kind) {
 void IoLoop::fliplisten_quiesce() {
     if (!srv_->flip_listeners_) return;
     auto& state = *srv_->flip_listeners_;
-    if (!accept_quiescing_) {
+    auto& own = state.local[self_->id()];
+    // Borrowed-listener SQ starvation also sets accept_quiescing_. It is not
+    // evidence that this epoch cancelled anything: initialize the cancellation
+    // generation and per-listener fences once per FLIP, independently of it.
+    if (own.quiesce_epoch != srv_->flip_epoch()) {
+        own.quiesce_epoch = srv_->flip_epoch();
         accept_quiescing_ = true;
         accept_cancel_generation_ = accept_generation_++;
         accept_pending_ = tls_accept_pending_ = unix_accept_pending_ = false;
@@ -396,6 +402,7 @@ void IoLoop::fliplisten_retry_accept(UrKind kind) {
     if (!accept_quiescing_) { arm_accept(kind); return; }
     if (!srv_->flip_listeners_ || self_->role() != Role::Ifid || accepts_paused()) return;
     accept_quiescing_ = false;
+    accept_pending_ = false; // the retry may own only borrowed/TLS listeners
     bool pending = false;
     for (auto& listener : srv_->flip_listeners_->listeners) {
         if (listener.fd < 0 || listener.owner != self_->id()) continue;

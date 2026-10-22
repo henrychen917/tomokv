@@ -7,7 +7,7 @@ loop_rows=[];accept_rows=[]
 def lines(r,arm):
  return (DOC/(r['artifact']+'.'+arm)).read_text().splitlines()[1:]
 for r in rows:
- if '::run_loop<' not in r['name']:continue
+ if not r['name'].startswith('void ') or not any(x in r['name'] for x in ('::run_loop<','::r7_run_loop<')):continue
  if r['equal']:loop_rows.append(dict(name=r['name'],identical=True));continue
  pre,post=lines(r,'pre'),lines(r,'post')
  assert len(pre)==len(post),r
@@ -28,7 +28,7 @@ for r in rows:
  assert len(guards)==1,(r,guards)
  loop_rows.append(dict(name=r['name'],identical=False,sole_difference=a+' -> '+b,
                        existing_pending_branch=guards[0]))
-assert len(loop_rows)==48
+assert len(loop_rows)==64
 def path(text,kind,more):
  instructions={}
  for line in text:
@@ -73,5 +73,5 @@ result=dict(scope='Idle phase; current generation; active IO; successful native 
             native_arm_identical=[r['name'] for r in rows if '::arm_accept(' in r['name'] and r['equal']])
 assert len(result['native_arm_identical'])==2
 (ROOT/'docs/fliplisten/identity/normal-paths.json').write_text(json.dumps(result,indent=2)+'\n')
-print(len(loop_rows),'loop variants:',sum(x['identical'] for x in loop_rows),'strict identical, other 24 only existing cold retry call target;',
+print(len(loop_rows),'loop variants:',sum(x['identical'] for x in loop_rows),'strict identical, other 32 only existing cold retry call target;',
       len(accept_rows),'successful accept paths have no instruction-count increase')

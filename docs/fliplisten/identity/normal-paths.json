@@ -2,6 +2,58 @@
   "scope": "Idle phase; current generation; active IO; successful native accept. Callee admission is audited separately. Includes emitted NOPs. Resource-starvation retry remains on the existing cold branch.",
   "loops": [
     {
+      "name": "void tomo::IoLoop::r7_run_loop<false, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "02c6 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 02c6 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02b5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02bc [ 2] je <+0x2cb>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<false, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<false, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0a28 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0a28 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02c5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02cc [ 6] jne <+0xa20>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<false, true, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<true, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0a48 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0a48 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02d5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02dc [ 6] jne <+0xa40>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<true, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<true, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0a08 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0a08 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02e5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02ec [ 6] jne <+0xa00>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<true, true, true, true, false>()",
+      "identical": true
+    },
+    {
       "name": "void tomo::IoLoop::run_loop<false, false, false, false, false>()",
       "identical": false,
       "sole_difference": "02b6 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 02b6 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
@@ -155,6 +207,58 @@
     },
     {
       "name": "void tomo::IoLoop::run_loop<true, true, true, true, true>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0958 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0958 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "02fe [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0305 [ 6] jne <+0x950>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0988 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0988 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "030e [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0315 [ 6] jne <+0x980>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0998 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0998 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "030e [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0315 [ 6] jne <+0x990>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "09d8 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 09d8 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "031e [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0325 [ 6] jne <+0x9d0>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, true, true, false>()",
       "identical": true
     },
     {
