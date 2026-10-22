@@ -1,0 +1,148 @@
+[
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/abbagate.py",
+      "--self-test"
+    ],
+    "seconds": 285.696162304841,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/gate_quiet.py",
+      "--self-test"
+    ],
+    "seconds": 0.10208478942513466,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/gate_measurements.py",
+      "--self-test"
+    ],
+    "seconds": 2.688993953168392,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/gate_receipt.py",
+      "--self-test"
+    ],
+    "seconds": 130.490880520083,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/abba_instrument.py",
+      "--self-test"
+    ],
+    "seconds": 1.2976893167942762,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/background_environment_test.py"
+    ],
+    "seconds": 0.05821843817830086,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/gate_history.py",
+      "self-test"
+    ],
+    "seconds": 21.486606813967228,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/gate_process_test.py"
+    ],
+    "seconds": 0.5413879258558154,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/gates_test.py"
+    ],
+    "seconds": 97.05592033732682,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/gate_subset_test.py"
+    ],
+    "seconds": 0.11661165487021208,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/wb_policy.py",
+      "--self-test"
+    ],
+    "seconds": 0.05599731206893921,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/lb_stationary.py",
+      "--self-test"
+    ],
+    "seconds": 0.21905041858553886,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/netio.py",
+      "--self-test"
+    ],
+    "seconds": 0.051225848495960236,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/gateprod.py",
+      "--self-test"
+    ],
+    "seconds": 1.9442330114543438,
+    "returncode": 0
+  },
+  {
+    "argv": [
+      "/usr/bin/python3",
+      "/home/user/Projects/cx-wave4/docs/wave4c/time_suite.py",
+      "tests/tailgen_stall.py",
+      "--self-test"
+    ],
+    "seconds": 0.09069450106471777,
+    "returncode": 0
+  }
+]

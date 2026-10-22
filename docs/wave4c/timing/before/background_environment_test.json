@@ -1,0 +1,102 @@
+{
+  "argv": [
+    "tests/background_environment_test.py"
+  ],
+  "seconds": 0.009523525834083557,
+  "cpus": [
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111
+  ],
+  "tests": [
+    {
+      "test": "__main__.Controls.test_cpu_budget_overrun_never_becomes_green",
+      "seconds": 0.00016742106527090073
+    },
+    {
+      "test": "__main__.Controls.test_latched_failure_and_unfinished_observer_fail",
+      "seconds": 0.00016949046403169632
+    },
+    {
+      "test": "__main__.Controls.test_missing_samples_or_artifact_fail",
+      "seconds": 0.00012144166976213455
+    },
+    {
+      "test": "__main__.Controls.test_old_inventory_policy_cannot_certify_current_observations",
+      "seconds": 6.312131881713867e-05
+    },
+    {
+      "test": "__main__.Controls.test_port_checks_cannot_be_omitted",
+      "seconds": 0.00015962962061166763
+    },
+    {
+      "test": "__main__.Controls.test_runtime_cpu_observations_cannot_claim_foreign_attribution",
+      "seconds": 5.8620236814022064e-05
+    },
+    {
+      "test": "__main__.Controls.test_selected_core_preflight_needs_no_process_inventory",
+      "seconds": 3.329012542963028e-05
+    },
+    {
+      "test": "__main__.Controls.test_selected_cpu_rows_cannot_disappear",
+      "seconds": 0.000118231400847435
+    },
+    {
+      "test": "__main__.Controls.test_short_preflight_is_not_complete",
+      "seconds": 5.3969211876392365e-05
+    },
+    {
+      "test": "__main__.Controls.test_stored_budget_cannot_relax_the_fixed_screening_policy",
+      "seconds": 0.00010860990732908249
+    },
+    {
+      "test": "__main__.Controls.test_unselected_cpu_rows_cannot_enter_the_accounting",
+      "seconds": 2.400018274784088e-05
+    }
+  ]
+}

@@ -1,0 +1,279 @@
+{
+  "argv": [
+    "tests/gate_history.py",
+    "self-test"
+  ],
+  "seconds": 21.42771310172975,
+  "cpus": [
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111
+  ],
+  "tests": [
+    {
+      "test": "__main__.HistoryTests.test_abba_context_uses_actual_geometry_window_and_cell_bytes",
+      "seconds": 0.0287278788164258
+    },
+    {
+      "test": "__main__.HistoryTests.test_actual_abba_timeout_publishes_fragment_at_its_original_position",
+      "seconds": 0.8905683252960443
+    },
+    {
+      "test": "__main__.HistoryTests.test_actual_job_term_ignoring_teardown_is_bounded_and_reaped",
+      "seconds": 5.440501038916409
+    },
+    {
+      "test": "__main__.HistoryTests.test_actual_job_timeout_preserves_partial_ledger_and_publishes_done",
+      "seconds": 1.1892674220725894
+    },
+    {
+      "test": "__main__.HistoryTests.test_cancel_receipt_rejects_stale_generation_or_extra_records",
+      "seconds": 0.003602788783609867
+    },
+    {
+      "test": "__main__.HistoryTests.test_cancel_request_survives_preexec_first_term_loss",
+      "seconds": 3.490294484421611
+    },
+    {
+      "test": "__main__.HistoryTests.test_canonical_preserves_geometry",
+      "seconds": 0.0002554105594754219
+    },
+    {
+      "test": "__main__.HistoryTests.test_correctness_context_falls_back_to_its_explicit_base_plan",
+      "seconds": 0.0003450606018304825
+    },
+    {
+      "test": "__main__.HistoryTests.test_correctness_uses_fixed_fallback_and_keeps_explicit_plan_entries",
+      "seconds": 0.01094552967697382
+    },
+    {
+      "test": "__main__.HistoryTests.test_corrupt_history_cannot_be_read_or_appended",
+      "seconds": 0.00046457070857286453
+    },
+    {
+      "test": "__main__.HistoryTests.test_corrupt_middle_with_restored_mtime_and_truncated_tail_are_never_appended",
+      "seconds": 0.00523336511105299
+    },
+    {
+      "test": "__main__.HistoryTests.test_crash_after_append_or_index_commit_recovers_authoritative_record",
+      "seconds": 0.13992895372211933
+    },
+    {
+      "test": "__main__.HistoryTests.test_duplicate_in_external_history_edit_fails_before_rebuilding_index",
+      "seconds": 0.003033459186553955
+    },
+    {
+      "test": "__main__.HistoryTests.test_first_cold_cache_and_unseen_clock_phase_keep_mechanism_floors",
+      "seconds": 0.007451550103724003
+    },
+    {
+      "test": "__main__.HistoryTests.test_floor_and_cold_build_guard",
+      "seconds": 0.00605141744017601
+    },
+    {
+      "test": "__main__.HistoryTests.test_forced_watcher_signal_rejects_reuse_and_foreign_parent",
+      "seconds": 0.0013687824830412865
+    },
+    {
+      "test": "__main__.HistoryTests.test_healthy_index_appends_and_deduplicates_without_decoding_old_history",
+      "seconds": 0.013836978934705257
+    },
+    {
+      "test": "__main__.HistoryTests.test_hidden_build_names_are_independent_of_cpu_slot_and_source_line",
+      "seconds": 0.0003796713426709175
+    },
+    {
+      "test": "__main__.HistoryTests.test_index_preserves_all_json_string_ids_including_escaped_surrogates",
+      "seconds": 0.00861535407602787
+    },
+    {
+      "test": "__main__.HistoryTests.test_inherited_exit_trap_cannot_finalize_the_workers_active_row",
+      "seconds": 0.43169910553842783
+    },
+    {
+      "test": "__main__.HistoryTests.test_inherited_root_cleanup_cannot_publish_the_parents_abba_fragment",
+      "seconds": 0.2515234015882015
+    },
+    {
+      "test": "__main__.HistoryTests.test_invalid_duration_or_expired_pass_rejected",
+      "seconds": 0.0005153613165020943
+    },
+    {
+      "test": "__main__.HistoryTests.test_late_cancellation_cannot_override_expiry",
+      "seconds": 0.0023285867646336555
+    },
+    {
+      "test": "__main__.HistoryTests.test_legacy_never_becomes_exact_and_duplicates_count_once",
+      "seconds": 0.00046347081661224365
+    },
+    {
+      "test": "__main__.HistoryTests.test_malformed_legacy_refused",
+      "seconds": 0.000552712008357048
+    },
+    {
+      "test": "__main__.HistoryTests.test_modified_missing_and_corrupt_indexes_rebuild_without_losing_duplicate_checks",
+      "seconds": 0.011596431024372578
+    },
+    {
+      "test": "__main__.HistoryTests.test_no_history_says_default",
+      "seconds": 0.00023127160966396332
+    },
+    {
+      "test": "__main__.HistoryTests.test_parallel_indexed_appends_preserve_every_observation",
+      "seconds": 0.12298852764070034
+    },
+    {
+      "test": "__main__.HistoryTests.test_pause_rearm_has_distinct_cancellation_generations",
+      "seconds": 0.16570138558745384
+    },
+    {
+      "test": "__main__.HistoryTests.test_real_cli_records_prepares_and_resolves",
+      "seconds": 0.2914440715685487
+    },
+    {
+      "test": "__main__.HistoryTests.test_real_hidden_build_scope_records_success_and_failure_without_gate_rows",
+      "seconds": 0.5317873125895858
+    },
+    {
+      "test": "__main__.HistoryTests.test_real_shell_missing_scope_is_a_failure",
+      "seconds": 0.005940107628703117
+    },
+    {
+      "test": "__main__.HistoryTests.test_real_shell_records_only_the_rows_own_duration",
+      "seconds": 1.2071406124159694
+    },
+    {
+      "test": "__main__.HistoryTests.test_real_shell_scope_expiry_cannot_report_success",
+      "seconds": 0.49174696393311024
+    },
+    {
+      "test": "__main__.HistoryTests.test_recovery_never_overwrites_partial_rows_or_writes_old_two_columns",
+      "seconds": 0.010586989112198353
+    },
+    {
+      "test": "__main__.HistoryTests.test_replaced_history_file_forces_full_validation",
+      "seconds": 0.006174107082188129
+    },
+    {
+      "test": "__main__.HistoryTests.test_stalled_cancellation_is_bounded_reaped_and_red",
+      "seconds": 5.268962485715747
+    },
+    {
+      "test": "__main__.HistoryTests.test_success_median_and_hang_cannot_enlarge_it",
+      "seconds": 0.007266719825565815
+    },
+    {
+      "test": "__main__.HistoryTests.test_unexpected_watchdog_exit_still_fails_after_ownership_guards",
+      "seconds": 0.17709622904658318
+    },
+    {
+      "test": "__main__.HistoryTests.test_watch_cancelled_completed_row",
+      "seconds": 0.0020341360941529274
+    },
+    {
+      "test": "__main__.HistoryTests.test_watch_interrupts_infinite_builtin_loop",
+      "seconds": 0.27471773885190487
+    },
+    {
+      "test": "__main__.HistoryTests.test_watch_kills_owned_term_ignorer_and_leaves_outsider_alive",
+      "seconds": 0.37752633169293404
+    },
+    {
+      "test": "__main__.HistoryTests.test_watchdog_exit_zero_without_receipt_is_still_red",
+      "seconds": 0.17627187632024288
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_duplicate_event_is_rejected_without_changing_denominator",
+      "seconds": 0.003569439984858036
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_empty_history_reports_zero_without_creating_or_truncating_it",
+      "seconds": 0.00017168093472719193
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_every_flipping_label_is_printed_without_truncation",
+      "seconds": 0.051312852650880814
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_incomplete_append_is_loud_and_preserves_existing_bytes",
+      "seconds": 0.004124410450458527
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_interrupted_run_keeps_completed_observations",
+      "seconds": 0.0038511808961629868
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_parallel_process_appends_keep_every_observation",
+      "seconds": 0.0282838586717844
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_pass_fail_pass_across_runs_keeps_both_transitions_and_rate",
+      "seconds": 0.005433324724435806
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_report_cli_surfaces_flips_without_overriding_current_gate_verdict",
+      "seconds": 0.21995928790420294
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_run_order_uses_first_durable_observation_not_wall_clock",
+      "seconds": 0.005533996038138866
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_same_run_duplicates_are_observations_not_extra_runs",
+      "seconds": 0.004929604008793831
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_single_mixed_run_is_still_a_loud_defect",
+      "seconds": 0.0038059307262301445
+    },
+    {
+      "test": "__main__.FlakeHistoryTests.test_stable_pass_and_stable_fail_are_not_verdict_flips",
+      "seconds": 0.007981652393937111
+    }
+  ]
+}

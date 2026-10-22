@@ -508,6 +508,14 @@ row_begin(){
   if [ "$ROW_ID" = 'tailgen client-lb outstanding bound' ]; then
     ROW_TIMEOUT=90; ROW_BASIS=tailgen-populate-3s-warmup-20s-window
   fi
+  if [ "$ROW_ID" = 'ABBA comparison + saturation negative controls' ]; then
+    # Landing worktrees have no history: cx-compat2 measured 851.44s and wave4
+    # exhausted the 900s default. The serial wave4c breakdown is 541.90s; its
+    # exhaustive 64-cell/two-arm argv test takes only 1.68s. Allow the measured
+    # landing runtime +40%, rounded up to a minute (1200s), for all 15 suites.
+    # Timing receipts and per-test breakdown: docs/wave4c/timing/README.md.
+    ROW_TIMEOUT=1200; ROW_BASIS=abba-selftest-cx-compat2-851.44s-plus-40pct-rounded
+  fi
   ROW_MARKER="$TMPDIR/row-timeout-$BASHPID.json"
   rm -f "$ROW_MARKER"
   row_clock
