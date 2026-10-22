@@ -294,6 +294,8 @@ public:
         live_maxmemory_samples_.store(cfg.maxmemory_samples, std::memory_order_relaxed);
         live_maxclients_.store(cfg.maxclients, std::memory_order_relaxed);
         live_timeout_.store(cfg.timeout, std::memory_order_relaxed);
+        client_hz_.configured.store(cfg.hz, std::memory_order_relaxed);
+        client_hz_.dynamic.store(cfg.dynamic_hz != 0, std::memory_order_relaxed);
         live_tcp_keepalive_.store(cfg.tcp_keepalive, std::memory_order_relaxed);
         store_client_output_buffer_limits(cfg.client_output_buffer_limits);
         refresh_client_cron_armed();
@@ -2199,6 +2201,14 @@ public:
         live_tcp_keepalive_.store(value, std::memory_order_relaxed);
     }
     uint32_t timeout() const { return live_timeout_.load(std::memory_order_relaxed); }
+    uint32_t configured_hz() const { return client_hz_.configured.load(std::memory_order_relaxed); }
+    uint32_t client_hz() const {
+        return client_hz_.effective(live_clients_.load(std::memory_order_relaxed));
+    }
+    void set_hz(uint32_t hz) { client_hz_.configured.store(hz, std::memory_order_relaxed); }
+    void set_dynamic_hz(bool dynamic) {
+        client_hz_.dynamic.store(dynamic, std::memory_order_relaxed);
+    }
     bool client_cron_armed() const {
         return client_cron_armed_.load(std::memory_order_relaxed);
     }
@@ -3649,6 +3659,8 @@ private:
         std::atomic<uint32_t> client_readers{0}; // cold record lifetime; absent when LB=0
     };
     std::unique_ptr<LbPlan> lb_plan_; // absent with both balancers off
+    // Cold cron policy at the tail: all prior owner/publication offsets stay fixed.
+    ClientHz client_hz_;
 
 };
 

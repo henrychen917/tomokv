@@ -14,7 +14,7 @@ from _lib import Conn, RespError, encode
 def arguments(description):
     p = argparse.ArgumentParser(description=description)
     p.add_argument('--binary', required=True)
-    p.add_argument('--oracle', default=os.environ.get('REDIS74_ROOT', '/home/user/Projects/redis74') + '/src/redis-server')
+    p.add_argument('--oracle', default=os.environ.get('GATE_DIFFER_ORACLE_BIN', '/home/user/Projects/redis74/src/redis-server'))
     p.add_argument('--port', type=int, required=True)
     p.add_argument('--cores', required=True)
     p.add_argument('--ratio', default='6:2')

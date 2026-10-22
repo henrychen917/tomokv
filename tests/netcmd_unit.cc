@@ -326,15 +326,15 @@ struct NetcmdRegression {
             client.set_last_interaction_s(100);
             loop.cached_now_s_ = 106;
             server.set_timeout(0);
-            check(loop.client_cron_pass() == 1 && !client.closing(), "timeout 0 keeps subscribers open");
+            check(loop.client_cron_pass(ClientHz::kDefault) == 1 && !client.closing(), "timeout 0 keeps subscribers open");
             server.set_timeout(5);
             loop.cached_now_s_ = 105;
-            check(loop.client_cron_pass() == 1 && !client.closing(), "exact idle timeout keeps subscribers open");
+            check(loop.client_cron_pass(ClientHz::kDefault) == 1 && !client.closing(), "exact idle timeout keeps subscribers open");
             loop.cached_now_s_ = 106;
             client.set_blocked(true);
-            check(loop.client_cron_pass() == 1 && !client.closing(), "blocked subscribers remain exempt");
+            check(loop.client_cron_pass(ClientHz::kDefault) == 1 && !client.closing(), "blocked subscribers remain exempt");
             client.set_blocked(false);
-            check(loop.client_cron_pass() == 1, "idle subscriber visited by client cron");
+            check(loop.client_cron_pass(ClientHz::kDefault) == 1, "idle subscriber visited by client cron");
             check(!client.closing(),
                   resp3 ? "idle RESP3 SUBSCRIBE client must remain exempt from timeout"
                         : "idle RESP2 SUBSCRIBE client must remain exempt from timeout");
@@ -345,7 +345,7 @@ struct NetcmdRegression {
             // No receive is submitted; the control has no subscription or blocking command.
             idle.set_recv_armed(true);
             self.add_client(&idle);
-            check(loop.client_cron_pass() == 2, "subscriber and plain idle client visited by cron");
+            check(loop.client_cron_pass(ClientHz::kDefault) == 2, "subscriber and plain idle client visited by cron");
             check(!client.closing(), "subscriber stays open alongside the plain idle control");
             check(idle.closing(),
                   resp3 ? "plain idle RESP3 client must be closed after timeout"

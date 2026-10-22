@@ -32,6 +32,7 @@
 #include <vector>
 
 #include "wb_rule.h"
+#include "client_hz.h"
 #include "../base/slice.h"       // Slice (notify flag parsing)
 #include "../cmd/notify.h"       // parse_notify_flags
 #include "../store/eviction.h"   // MaxmemoryPolicy + parse_maxmemory_policy
@@ -460,7 +461,9 @@ struct Config {
     // Boot token length; zero also permits ordinary C-string callers of Config.
     // Password bytes remain owned by the config token store (or argv).
     uint32_t requirepass_size = 0;
-    uint8_t layout_reserved[40]{};
+    uint32_t hz = ClientHz::kDefault;
+    uint32_t dynamic_hz = 1;
+    uint8_t layout_reserved[32]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
 
@@ -710,6 +713,23 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
         else if (!std::strcmp(a, "--timeout")) {
             if (!cfg_parse_u32(next(nullptr), cfg.timeout) || cfg.timeout > INT_MAX) {
                 std::fprintf(stderr, "--timeout must be between 0 and %d\n", INT_MAX);
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--hz")) {
+            const char* value = next(nullptr);
+            const char* error = "wrong number of arguments";
+            if (!value || !ClientHz::parse(Slice(value, std::strlen(value)), cfg.hz, error)) {
+                std::fprintf(stderr, "--hz: %s\n", error);
+                return kConfigError;
+            }
+        }
+        else if (!std::strcmp(a, "--dynamic-hz")) {
+            const char* value = next(nullptr);
+            if (cfg_eq_icase(value, "yes")) cfg.dynamic_hz = 1;
+            else if (cfg_eq_icase(value, "no")) cfg.dynamic_hz = 0;
+            else {
+                std::fprintf(stderr, "--dynamic-hz: argument must be 'yes' or 'no'\n");
                 return kConfigError;
             }
         }
@@ -1173,6 +1193,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY\n"
                         "         --maxmemory-samples N (1..64, default 5)\n"
                         "  limits: --maxclients N --timeout SECONDS --tcp-keepalive SECONDS\n"
+                        "  client cron: --hz N (0..2147483647, clamped to 1..500) --dynamic-hz yes|no\n"
                         "          --tcp-backlog N --client-output-buffer-limit CLASS HARD SOFT SECONDS ...\n"
                         "          --unixsocket PATH --unixsocketperm OCTAL\n"
                         "  network engine: --net-io uring|epoll (boot-only; default uring)\n"

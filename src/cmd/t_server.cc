@@ -290,7 +290,7 @@ enum class ConfigKind : uint8_t {
     String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so an unsigned representation would not round-trip.
-    Signed, Encoding, Uint32, Uint32Bytes
+    Signed, Encoding, Uint32, Uint32Bytes, Hz
 };
 struct ConfigValue {
     const char* name;
@@ -365,6 +365,8 @@ void init_config(const Config& cfg) {
     add_config("maxmemory-samples", ConfigKind::Unsigned, cfg.maxmemory_samples);
     add_config("maxclients", ConfigKind::Unsigned, cfg.maxclients);
     add_config("timeout", ConfigKind::Unsigned, cfg.timeout);
+    add_config("hz", ConfigKind::Hz, cfg.hz);
+    g_config.push_back({"dynamic-hz", ConfigKind::Bool, cfg.dynamic_hz ? "yes" : "no"});
     add_config("tcp-keepalive", ConfigKind::Unsigned, cfg.tcp_keepalive);
     add_config("tcp-backlog", ConfigKind::Unsigned, cfg.tcp_backlog);
     g_config.push_back({"tls-port", ConfigKind::Unsigned, std::to_string(cfg.tls_port), true});
@@ -483,6 +485,12 @@ bool parse_client_output_buffer_limit_slice(Slice input,
 bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
                       const char*& error, bool legacy_compact = false) {
     switch (entry.kind) {
+        case ConfigKind::Hz: {
+            uint32_t value = 0;
+            if (!ClientHz::parse(input, value, error)) return false;
+            out = std::to_string(value);
+            return true;
+        }
         case ConfigKind::Uint32:
         case ConfigKind::Uint32Bytes: {
             uint32_t value = 0;
@@ -519,7 +527,8 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         case ConfigKind::Bool:
             if (eq_icase(input, "yes")) { out = "yes"; return true; }
             if (eq_icase(input, "no")) { out = "no"; return true; }
-            if (!std::strcmp(entry.name, "aof-load-truncated")) {
+            if (!std::strcmp(entry.name, "aof-load-truncated") ||
+                !std::strcmp(entry.name, "dynamic-hz")) {
                 error = "argument must be 'yes' or 'no'";
                 return false;
             }
@@ -622,12 +631,14 @@ bool collect_config_updates(Op& op,
         // Redis rejects a repeated spelling but accepts canonical + historical aliases in
         // argument order (last value wins). The original TomoKV aliases allowed repetition.
         if ((item->kind == ConfigKind::Encoding && !legacy_compact) ||
+            item->kind == ConfigKind::Hz || !std::strcmp(item->name, "dynamic-hz") ||
             !std::strcmp(item->name, "aof-load-truncated") ||
             !std::strcmp(item->name, "client-query-buffer-limit")) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2) {
                 if (!eq_icase(op.arg(previous), requested.c_str())) continue;
                 if (!std::strcmp(item->name, "aof-load-truncated") ||
+                    item->kind == ConfigKind::Hz || !std::strcmp(item->name, "dynamic-hz") ||
                     encoding == EncodingConfig::SetIntsetEntries) {
                     std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
                     msg += requested;
@@ -668,7 +679,8 @@ bool collect_config_updates(Op& op,
         if (!normalized) {
             if (config_error) {
                 std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
-                if (encoding == EncodingConfig::SetIntsetEntries)
+                if (encoding == EncodingConfig::SetIntsetEntries || item->kind == ConfigKind::Hz ||
+                    !std::strcmp(item->name, "dynamic-hz"))
                     msg.append(op.arg(i).p, op.arg(i).n);
                 else msg += item->name;
                 msg += "') - "; msg += config_error;
@@ -1595,6 +1607,10 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->aof().set_timestamp_enabled(update.second == "yes");
                     continue;
                 }
+                if (!std::strcmp(update.first->name, "dynamic-hz")) {
+                    g_server->set_dynamic_hz(update.second == "yes");
+                    continue;
+                }
                 if (!std::strcmp(update.first->name, "appendfsync")) {
                     const AppendFsyncPolicy policy = update.second == "always"
                         ? AppendFsyncPolicy::Always
@@ -1616,6 +1632,8 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->set_maxclients(static_cast<uint32_t>(value));
                 else if (!std::strcmp(update.first->name, "timeout"))
                     g_server->set_timeout(static_cast<uint32_t>(value));
+                else if (!std::strcmp(update.first->name, "hz"))
+                    g_server->set_hz(static_cast<uint32_t>(value));
                 else if (!std::strcmp(update.first->name, "tcp-keepalive"))
                     g_server->set_tcp_keepalive(static_cast<uint32_t>(value));
                 else if (!std::strcmp(update.first->name, "acllog-max-len"))
@@ -2128,6 +2146,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(uptime),
                 static_cast<unsigned long long>(uptime / 86400),
                 info_executable(), info_config_file());
+        appendf(body, "hz:%u\r\nconfigured_hz:%u\r\n",
+                g_server ? g_server->client_hz() : ClientHz::kDefault,
+                g_server ? g_server->configured_hz() : ClientHz::kDefault);
         appendf(body, "key_lb:%u\r\nclient_lb:%u\r\nflip_auto:%u\r\n"
                       "flip_fingerprint_window:%u\r\nnet_io:%s\r\nhash:%s\r\nzc_min:%s\r\n"
                       "pin_threads:%u\r\n",

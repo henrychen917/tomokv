@@ -898,8 +898,9 @@ void IoLoop::r7_run_loop() {
             did += lb_wake_all_pass();
             if (__builtin_expect(client_cron_armed &&
                                  cached_now_ms_ >= client_cron_beat_ms_, false)) {
-                did += client_cron_pass();
-                client_cron_beat_ms_ = cached_now_ms_ + 1000 / kClientCronBeatsPerSecond;
+                const uint32_t hz = srv_->client_hz();
+                did += client_cron_pass(hz);
+                client_cron_beat_ms_ = cached_now_ms_ + 1000 / hz;
             }
             if (__builtin_expect(save_cron_armed &&
                                  cached_now_ms_ >= save_cron_beat_ms_, false)) {
@@ -941,6 +942,7 @@ void IoLoop::r7_run_loop() {
         // Preserve the established classification: publication, inbound recheck,
         // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
         Span idle(sig.idle_ns);
+        const unsigned wait_ms = idle_timeout_ms();
         if constexpr (Fused) {
             if (__builtin_expect(srv_->read_local_enabled(), false))
                 self_->publish_read_local_parked(srv_->read_local_epoch());
@@ -955,13 +957,13 @@ void IoLoop::r7_run_loop() {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    r7_epoll_pass<HasUnix, HasTls, Fused>(Ring::kWaitTimeoutMs);
+                    r7_epoll_pass<HasUnix, HasTls, Fused>(wait_ms);
                 }
             } else if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                 tenure.park();
 #endif
-                r7_epoll_pass<HasUnix, HasTls, false>(Ring::kWaitTimeoutMs);
+                r7_epoll_pass<HasUnix, HasTls, false>(wait_ms);
             }
         } else {
             if constexpr (Fused) {
@@ -969,14 +971,14 @@ void IoLoop::r7_run_loop() {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    ring_.submit_and_wait(1);
+                    ring_.submit_and_wait(1, wait_ms);
                 } else                            ring_.submit_and_reap();
             } else {
                 if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    ring_.submit_and_wait(1);
+                    ring_.submit_and_wait(1, wait_ms);
                 } else                         ring_.submit_and_reap();
             }
         }

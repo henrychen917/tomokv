@@ -645,8 +645,9 @@ private:
                 did += lb_wake_all_pass();
                 if (__builtin_expect(client_cron_armed &&
                                      cached_now_ms_ >= client_cron_beat_ms_, false)) {
-                    did += client_cron_pass();
-                    client_cron_beat_ms_ = cached_now_ms_ + 1000 / kClientCronBeatsPerSecond;
+                    const uint32_t hz = srv_->client_hz();
+                    did += client_cron_pass(hz);
+                    client_cron_beat_ms_ = cached_now_ms_ + 1000 / hz;
                 }
                 if (__builtin_expect(save_cron_armed &&
                                      cached_now_ms_ >= save_cron_beat_ms_, false)) {
@@ -688,6 +689,7 @@ private:
             // Preserve the established classification: publication, inbound recheck,
             // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
             Span idle(sig.idle_ns);
+            const unsigned wait_ms = idle_timeout_ms();
             if constexpr (Fused) {
                 if (__builtin_expect(srv_->read_local_enabled(), false))
                     self_->publish_read_local_parked(srv_->read_local_epoch());
@@ -702,13 +704,13 @@ private:
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
-                        epoll_pass<HasUnix, HasTls, Fused>(Ring::kWaitTimeoutMs);
+                        epoll_pass<HasUnix, HasTls, Fused>(wait_ms);
                     }
                 } else if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    epoll_pass<HasUnix, HasTls, false>(Ring::kWaitTimeoutMs);
+                    epoll_pass<HasUnix, HasTls, false>(wait_ms);
                 }
             } else {
                 if constexpr (Fused) {
@@ -716,14 +718,14 @@ private:
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
-                        ring_.submit_and_wait(1);
+                        ring_.submit_and_wait(1, wait_ms);
                     } else                            ring_.submit_and_reap();
                 } else {
                     if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
-                        ring_.submit_and_wait(1);
+                        ring_.submit_and_wait(1, wait_ms);
                     } else                         ring_.submit_and_reap();
                 }
             }
@@ -4750,11 +4752,21 @@ ordinary_shard_ready:
         return true;
     }
 
-    uint32_t client_cron_pass() {
+    unsigned idle_timeout_ms() const {
+        const uint64_t now_ms = now_ns() / 1000000ull;
+        uint64_t deadline = now_ms + Ring::kWaitTimeoutMs;
+        if (client_cron_was_armed_) deadline = std::min(deadline, client_cron_beat_ms_);
+        // Connection timers have no external producer to wake their owner.
+        for (const auto& timer : deferred_timers_)
+            if (timer.deadline_ms) deadline = std::min(deadline, timer.deadline_ms);
+        return deadline > now_ms ? static_cast<unsigned>(deadline - now_ms) : 0;
+    }
+
+    uint32_t client_cron_pass(uint32_t hz) {
         auto& clients = self_->clients();
         const size_t initial = clients.size();
         if (!initial) { client_cron_cursor_ = 0; return 0; }
-        size_t visits = initial / kClientCronBeatsPerSecond;
+        size_t visits = initial / hz;
         if (visits < kClientCronMinVisits)
             visits = std::min(initial, static_cast<size_t>(kClientCronMinVisits));
 
@@ -5028,7 +5040,6 @@ ordinary_shard_ready:
     uint32_t flush_tick_ = 0;
     bool     backstop_pass_ = false;
     wb_rule::Settings wb_config_; // three bytes of existing padding, fixed for this IO lifetime
-    static constexpr uint32_t kClientCronBeatsPerSecond = 10;
     static constexpr uint32_t kClientCronMinVisits = 5;
     uint64_t client_cron_beat_ms_ = 0;
     uint64_t lb_client_signal_beat_ms_ = 0;
