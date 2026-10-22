@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Correctness-only lane driver. Every gate job uses gate.sh's own selector."""
-import argparse, json, os, re, subprocess
+import argparse, json, os, re, shlex, subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 DOC=ROOT/"docs/compat3"
@@ -36,6 +36,8 @@ p=argparse.ArgumentParser();p.add_argument("phase",choices=("units","post","pre"
 p.add_argument("--prefix",default="",help="Keep continuation receipts separate from earlier attempts")
 p.add_argument("--engine",choices=("uring","epoll"),action="append",help="Differential engines; default both")
 p.add_argument("--ports",default="25800-25821",help="Reserved gate ports within 25800-25899")
+p.add_argument("--binary",type=Path,default=ROOT/"build/tomokv",help="Differential target arm")
+p.add_argument("--differ-jobs",default="differ-split differ-armed",help="Whole gate differential jobs, including baseline counterproofs")
 ARGS=p.parse_args()
 port_bounds=ARGS.ports.split("-")
 assert len(port_bounds)==2 and 25800<=int(port_bounds[0])<int(port_bounds[1])<=25899
@@ -67,10 +69,10 @@ elif ARGS.phase=="post":
     gate("POST-auth-fused","auth",wrapper)
 elif ARGS.phase=="differ":
     for engine in ARGS.engine or ("uring","epoll"):
-        wrapper=BUILD/(engine+"-server")
-        wrapper.write_text('#!/bin/bash\nexec '+str(ROOT/"build/tomokv")+' --net-io '+engine+' "$@"\n')
+        wrapper=BUILD/(ARGS.prefix+engine+"-server")
+        wrapper.write_text('#!/bin/bash\nexec '+shlex.quote(str(ARGS.binary.resolve()))+' --net-io '+engine+' "$@"\n')
         wrapper.chmod(0o755)
-        gate("differ-"+engine,"differ-split differ-armed",wrapper)
+        gate("differ-"+engine,ARGS.differ_jobs,wrapper)
 elif ARGS.phase=="flags":
     execute("flags-audit",["python3",DOC/"flags_audit.py"])
     for name,binary in (("POST-final",ROOT/"build/tomokv"),

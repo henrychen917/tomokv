@@ -17,7 +17,7 @@ Implemented all six assigned marks on branch `cx-compat3`, based on `a7dfb9d23`.
 
 Final POST directed gate: **7 ok / 0 FAIL** (six new rows plus release prerequisite), with all 144 target legs passing. The earlier invalid glob fixture used case-colliding function names, which Redis rejects; that attempt is retained and superseded by unique callback names and the complete final controls. The oracle also exposed case-insensitive library matching, which was fixed before the final POST run.
 
-**Proof results (compat3b continuation).** The resource-constrained differential reruns are still in progress; all other required proof below is recorded. This table will be finalized when both engine matrices finish.
+**Proof results (compat3b continuation).** The resource-constrained epoll differential is still in progress; all other required proof below is recorded. This table will be finalized when that matrix finishes.
 
 | Proof | Result and retained evidence |
 |---|---|
@@ -25,7 +25,7 @@ Final POST directed gate: **7 ok / 0 FAIL** (six new rows plus release prerequis
 | Final PRE and PAD-A `compat3` controls | Each **1 ok / 6 expected FAIL**, including release; **144/144** target legs fail in each arm. All 144 PRE/PAD-A oracle and target observation pairs agree. Same final test files and complete gate jobs as POST. |
 | Affected gate families | **404 ok / 0 FAIL** across the complete selectors in [POST results](docs/compat3/post-results.json), including stream, pub/sub, scripting/FUNCTION, ACL, both atomic modes, multidb, AOF and the other grep-mapped jobs. [Ledger](docs/compat3/POST-complete.ledger.partial). |
 | Additional fused ACL and eviction jobs | **8 ok / 0 FAIL** for fused auth/ACL; **9 ok / 0 FAIL** for all eight eviction jobs plus release. [Gate receipts](docs/compat3/gate-receipts.json). |
-| Standard differential, io_uring | **PENDING** final reserved-port run; the original completed matrix is retained as historical evidence. |
+| Standard differential, io_uring | **PASS: 954 comparisons** = 938 suite/seed/repeat legs plus 16 mode-equivalence cells. Split and armed-fused, atomic 0/1; permanent seeds 7/19/20/23 plus rotating 25; four extra MULTI seed-19 repetitions per atomic=1 geometry. Both read-local witnesses pass. [Strict gate folds](docs/compat3/bounded-uring-proof.json). |
 | Standard differential, epoll | **PENDING** final reserved-port run; interrupted attempts are retained and not counted as passes. |
 | `python3 tests/gates_test.py` | **67 tests pass**, unchanged assertions/deadlines, on CPUs 108–111. [Final log](docs/compat3/resume-gates-test.log). Earlier four scheduler-fixture timeouts remain in the receipts. |
 | Build and freshness | `make -j16 all` plus all **37** `job_production_units` targets succeed; all **38** `make -q` checks return 0. [Build](docs/compat3/resume-build.json), [freshness](docs/compat3/resume-freshness.json). The earlier build/freshness receipts also cover both mdbqsbr live-arm builds. |

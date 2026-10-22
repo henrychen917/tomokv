@@ -691,6 +691,54 @@
     ]
   },
   {
+    "log": "bounded-differ-uring.log",
+    "run": "/home/user/Projects/cx-compat3/build/gate-run.1E9ADa",
+    "archive": "receipts/bounded-differ-uring.tar.gz",
+    "sha256": "439e76f49022852077905d71fbb33018351dd6131b55b46fe162059342641e01",
+    "bytes": 348971,
+    "parts": [],
+    "complete": true,
+    "files": 2108,
+    "jobs": [
+      {
+        "job": "differ-armed-0",
+        "done": "0\t1\t0",
+        "ledger": "ok\t520.960000\tRedis 7.4 differential part (armed fused, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "differ-armed-1",
+        "done": "0\t1\t0",
+        "ledger": "ok\t521.410000\tRedis 7.4 differential part (armed fused, atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "differ-equivalence",
+        "done": "0\t1\t0",
+        "ledger": "ok\t21.120000\tmode equivalence part (all execution modes and knobs)\n",
+        "failures": []
+      },
+      {
+        "job": "differ-split-0",
+        "done": "0\t1\t0",
+        "ledger": "ok\t524.230000\tRedis 7.4 differential part (split, atomic 0)\n",
+        "failures": []
+      },
+      {
+        "job": "differ-split-1",
+        "done": "0\t1\t0",
+        "ledger": "ok\t526.750000\tRedis 7.4 differential part (split, atomic 1)\n",
+        "failures": []
+      },
+      {
+        "job": "release",
+        "done": "0\t1\t0",
+        "ledger": "ok\t0.000000\trelease build (+footprint locks)\n",
+        "failures": []
+      }
+    ]
+  },
+  {
     "log": "differ-epoll.log",
     "run": "/home/user/Projects/cx-compat3/build/gate-run.V1vlM8",
     "archive": "receipts/differ-epoll.tar.gz",
