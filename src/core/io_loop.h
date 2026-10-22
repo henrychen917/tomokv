@@ -58,6 +58,8 @@ namespace tomo {
 //   ex    ExLoop    execute+notify; never sends
 
 class IoLoop {
+    friend struct FlipListenerState;
+    friend bool fliplisten_reserve(Server&, std::string&);
     friend struct CoreConcurrencyTest;
     friend struct LbPlannerTest;
 #ifdef TOMO_CORE_CONCURRENCY_TEST
@@ -150,6 +152,7 @@ public:
 
     ~IoLoop() {
         if (self_) pubsub_shutdown_events();
+        fliplisten_shutdown();
         if (listen_fd_ >= 0) ::close(listen_fd_);
         if (tls_listen_fd_ >= 0) ::close(tls_listen_fd_);
         if (unix_listen_fd_ >= 0) ::close(unix_listen_fd_);
@@ -214,7 +217,8 @@ public:
             return true;
         }
         if (!prepare_activation()) return false;
-        accept_quiescing_ = false;
+        accept_quiescing_ = accepts_paused();
+        if (accept_quiescing_) fliplisten_install();
         accept_cancel_submitted_ = tls_accept_cancel_submitted_ = false;
         self_->set_ring(&ring_);
         self_->set_wb_engine(&wb_);
@@ -228,6 +232,7 @@ public:
     bool prepare_activation() {
         if (!initialized_) return false;
         if (prepared_role_) return true;
+        if (accepts_paused()) return fliplisten_prepare_activation();
         auto fail = [&]() {
             if (listen_fd_ >= 0) { ::close(listen_fd_); listen_fd_ = -1; }
             if (tls_listen_fd_ >= 0) { ::close(tls_listen_fd_); tls_listen_fd_ = -1; }
@@ -259,10 +264,8 @@ public:
     }
 
     void cancel_prepared_activation() {
-        if (active_role_ || !prepared_role_) return;
-        if (listen_fd_ >= 0) { ::close(listen_fd_); listen_fd_ = -1; }
-        if (tls_listen_fd_ >= 0) { ::close(tls_listen_fd_); tls_listen_fd_ = -1; }
-        accept_generation_++;
+        if (active_role_) return;
+        fliplisten_cancel_activation();
         prepared_role_ = false;
     }
 
@@ -272,11 +275,9 @@ public:
         // Channel homes are members of the live IO set. A thread leaving that set retires its
         // owner-local indexes here; every new/surviving IO rebuilds the next epoch in RoleReady.
         pubsub_clear_home_indexes();
-        // The UNIX listener is pinned to its boot IO and that thread is never a conversion
-        // candidate. TCP/TLS SO_REUSEPORT listeners are per-role-tenure resources.
-        if (unix_listen_fd_ >= 0) std::abort();
-        if (listen_fd_ >= 0) { ::close(listen_fd_); listen_fd_ = -1; }
-        if (tls_listen_fd_ >= 0) { ::close(tls_listen_fd_); tls_listen_fd_ = -1; }
+        // ClientCommit installed the listeners on surviving IO rings. Closing a listener
+        // here would destroy its accept/SYN queues; only process shutdown closes one.
+        if (unix_listen_fd_ >= 0 || listen_fd_ >= 0 || tls_listen_fd_ >= 0) std::abort();
         accept_generation_++; // makes any late multishot CQE recognisably stale
         accept_cancel_submitted_ = tls_accept_cancel_submitted_ = false;
         active_role_ = false;
@@ -772,7 +773,10 @@ private:
 
     // ---- submission -----------------------------------------------------------------------------
     void arm_accept(UrKind kind) {
-        if (self_->role() != Role::Ifid || accept_quiescing_) return;
+        if (self_->role() != Role::Ifid || accept_quiescing_) {
+            fliplisten_retry_accept();
+            return;
+        }
         const bool unix_socket = kind == UrKind::UnixAccept;
         const bool tls_socket = kind == UrKind::TlsAccept;
         io_uring_sqe* s = ring_.sqe();
@@ -1027,7 +1031,7 @@ private:
                     work++;
                     break;
                 }
-                default: break;
+                default: work += fliplisten_epoll(ev.data.u64); break;
             }
         }
         return work;
@@ -1104,7 +1108,7 @@ private:
                 case UrKind::MigrateCancel: break;
                 case UrKind::TlsReadPoll: break;
                 case UrKind::TlsWritePoll: break;
-                default: break;
+                default: fliplisten_cqe(cqe); break;
             }
         } else {
             switch (ur_kind(cqe->user_data)) {
@@ -1151,6 +1155,7 @@ private:
                                                     cqe->res); break;
                 case UrKind::Close: break;
                 case UrKind::MigrateCancel: break;
+                default: fliplisten_cqe(cqe); break;
             }
         }
     }
@@ -1170,7 +1175,7 @@ private:
     }
 
     bool accepts_quiesced() const {
-        return epoll_ || (!accept_armed_ && !tls_accept_armed_ && !unix_accept_armed_);
+        return fliplisten_quiet();
     }
 
     bool accepts_paused() const {
@@ -1186,51 +1191,18 @@ private:
         return stage != FlipStage::Idle;
     }
 
-    void quiesce_accepts_for_conversion() {
-        // UNIX owns a unique pathname and its boot owner is never selected for conversion.
-        if (unix_listen_fd_ >= 0) std::abort();
-        if (!accept_quiescing_) {
-            accept_quiescing_ = true;
-            accept_cancel_generation_ = accept_generation_;
-            accept_generation_++; // every completion from the old tenure is now recognisably stale
-            accept_pending_ = tls_accept_pending_ = false;
-        }
-        if (epoll_) return; // registration stays armed and is immediately reusable on rollback
-        auto cancel = [&](UrKind kind, bool armed, bool& submitted) {
-            if (!armed || submitted) return;
-            io_uring_sqe* sqe = ring_.sqe();
-            if (!sqe) { self_->sig().sqe_starved++; return; }
-            io_uring_prep_cancel64(
-                sqe, ur_tag(kind, reinterpret_cast<void*>(
-                                      static_cast<uintptr_t>(accept_cancel_generation_))), 0);
-            sqe->user_data = ur_tag(UrKind::MigrateCancel, nullptr);
-            submitted = true;
-        };
-        cancel(UrKind::Accept, accept_armed_, accept_cancel_submitted_);
-        cancel(UrKind::TlsAccept, tls_accept_armed_, tls_accept_cancel_submitted_);
-    }
+    void quiesce_accepts_for_conversion() { fliplisten_quiesce(); }
 
     bool restore_accepts_after_rollback() {
-        if (accept_quiescing_) {
-            if (!accepts_quiesced()) return false;
-            accept_quiescing_ = false;
-            accept_cancel_submitted_ = tls_accept_cancel_submitted_ = false;
-        }
-        if (epoll_) return true; // tenure registrations were deliberately left installed
-        if (listen_fd_ >= 0 && !accept_armed_) arm_accept(UrKind::Accept);
-        if (tls_listen_fd_ >= 0 && !tls_accept_armed_) arm_accept(UrKind::TlsAccept);
-        // Do not publish the old shape as restored while SQ starvation still leaves one of its
-        // listeners unarmed. arm_accept records a pending retry, so the next pass makes progress.
-        return (listen_fd_ < 0 || accept_armed_) &&
-               (tls_listen_fd_ < 0 || tls_accept_armed_);
+        // Admission and rearming follow the rollback acknowledgement barrier.
+        return accepts_quiesced();
     }
 
     template <bool kEp, bool Fused = false>
     void on_accept(io_uring_cqe* cqe, UrKind kind) {
         const uint64_t generation = reinterpret_cast<uintptr_t>(ur_ptr<void>(cqe->user_data));
         if (generation != accept_generation_ || self_->role() != Role::Ifid) {
-            if (cqe->res >= 0) ::close(cqe->res);
-            if (!(cqe->flags & IORING_CQE_F_MORE)) accept_armed_ref(kind) = false;
+            fliplisten_stale(cqe, kind);
             return;
         }
         if (cqe->res < 0) {
@@ -1241,7 +1213,7 @@ private:
             return;
         }
         if (accepts_paused()) {
-            ::close(cqe->res);
+            fliplisten_retain(cqe->res, kind);
             rearm_accept(cqe, kind);
             return;
         }
@@ -1276,7 +1248,12 @@ private:
     // round-robin handoff. Only the way the fd ARRIVED differs, which is the whole engine boundary.
     template <bool kEp, bool Fused = false>
     void admit_fd(int fd, UrKind kind) {
-        if (accepts_paused()) { ::close(fd); return; }
+        if (accepts_paused()) { fliplisten_retain(fd, kind); return; }
+        admit_retained_fd<kEp, Fused>(fd, kind);
+    }
+
+    template <bool kEp, bool Fused = false>
+    __attribute__((always_inline)) void admit_retained_fd(int fd, UrKind kind) {
         const bool unix_socket = kind == UrKind::UnixAccept;
         const bool tls_socket = kind == UrKind::TlsAccept;
         self_->sig().accepts++;
@@ -2110,11 +2087,13 @@ private:
         if constexpr (!kSingleDatabase)
             if (stage <= FlipStage::DatabaseRun) return database_control_pass();
         flip_reflag_inbound();
+        fliplisten_resume();
 
         if (stage == FlipStage::IoDrain && !srv_->flip_acked(self_->id(), stage)) {
             // A pin left by an earlier FLIP must not hide a detached close from this drain.
             flip_close_pin_ = false;
-            if (flip_io_drained() && flip_io_drain_ordered()) {
+            fliplisten_quiesce();
+            if (accepts_quiesced() && flip_io_drained() && flip_io_drain_ordered()) {
                 // From this acknowledgement the plan reads this IO's client vector: hold every
                 // close before it leaves ThreadCtx::clients until the FLIP retires (a converting
                 // IO releases the pin once its ClientPrepare is decided).
@@ -2123,6 +2102,8 @@ private:
             }
         } else if (stage == FlipStage::IoPrepare &&
                    !srv_->flip_acked(self_->id(), stage)) {
+            if (!fliplisten_prepare())
+                srv_->flip_note_failure("ERR FLIP could not register destination listeners");
             if (!prepare_client_transfer_capacity(srv_->flip_incoming_clients(self_->id())))
                 srv_->flip_note_failure("ERR FLIP could not reserve destination connection state");
             srv_->flip_ack(self_->id(), stage);
@@ -2199,6 +2180,7 @@ private:
                     "ERR FLIP source connection set changed during reversible preflight");
         } else if (stage == FlipStage::ClientCommit &&
                    !srv_->flip_acked(self_->id(), stage)) {
+            fliplisten_install();
             if (srv_->flip_source_clients(self_->id()))
                 commit_prepared_client_transfers_impl<kEp>();
             srv_->flip_ack(self_->id(), stage);
@@ -2229,10 +2211,8 @@ private:
                    !srv_->flip_acked(self_->id(), stage)) {
             const bool converting_to_ex =
                 srv_->flip_candidate_target(self_->id()) == Role::Ex;
-            if (converting_to_ex && accept_quiescing_ && !accepts_quiesced())
-                quiesce_accepts_for_conversion();
-            if (client_transfers_prepared() &&
-                (!converting_to_ex || !accept_quiescing_ || accepts_quiesced())) {
+            fliplisten_quiesce();
+            if (client_transfers_prepared() && accepts_quiesced()) {
                 cancel_prepared_client_transfers_impl<kEp>();
                 if (converting_to_ex && !restore_accepts_after_rollback()) return 1;
                 srv_->flip_ack(self_->id(), stage);
@@ -2262,6 +2242,8 @@ private:
                 if (srv_->flip_all_role_acked(Role::Ifid, stage)) {
                     if (!srv_->flip_build_client_plan(flip_client_, failure))
                         flip_enter_rollback(failure);
+                    else if (!fliplisten_plan())
+                        flip_enter_rollback("ERR FLIP could not reserve listener handover");
                     else
                         flip_publish_stage(FlipStage::IoPrepare);
                 }
@@ -2284,8 +2266,10 @@ private:
                 }
                 break;
             case FlipStage::ClientPrepare:
-                if (srv_->flip_all_role_acked(Role::Ifid, stage))
+                if (srv_->flip_all_role_acked(Role::Ifid, stage)) {
+                    fliplisten_commit();
                     flip_publish_stage(FlipStage::ClientCommit);
+                }
                 break;
             case FlipStage::ClientCommit:
                 if (srv_->flip_all_role_acked(Role::Ifid, stage))
@@ -2311,14 +2295,14 @@ private:
                 break;
             }
             case FlipStage::ExInstall:
-                if (srv_->flip_all_role_acked(Role::Ex, stage)) {
-                    srv_->flip_complete_active();
+                if (srv_->flip_all_role_acked(Role::Ex, stage) && fliplisten_finish(false)) {
+                    srv_->flip_finish_active();
                     finish_flip_command();
                 }
                 break;
             case FlipStage::Rollback:
                 if (srv_->flip_all_role_acked(Role::Ifid, stage) &&
-                    srv_->flip_all_role_acked(Role::Ex, stage)) {
+                    srv_->flip_all_role_acked(Role::Ex, stage) && fliplisten_finish(true)) {
                     srv_->flip_refuse_active();
                     finish_flip_command(failure.empty() ? "ERR FLIP refused" : failure.c_str());
                 }
@@ -5200,6 +5184,8 @@ public:
     template <bool kEp, bool Fused = false>
     void r7_admit_fd(int fd, UrKind kind);
     template <bool kEp, bool Fused = false>
+    __attribute__((always_inline)) void r7_admit_retained_fd(int fd, UrKind kind);
+    template <bool kEp, bool Fused = false>
     void r7_adopt_client(Client* c, bool unix_socket, bool tls_socket = false);
     template <bool kEp, bool Fused = false>
     void r7_arm_tls_recv(Client* c);
@@ -5227,6 +5213,24 @@ public:
                                        uint32_t probed_count, uint32_t& demoted);
 // END R7 GENERATED ENVELOPES
     void run_fused_reordered();
+
+    // FLIP-only resource protocol; definitions stay out of hot translation units.
+    void fliplisten_shutdown();
+    void fliplisten_retain(int fd, UrKind kind);
+    void fliplisten_stale(io_uring_cqe*, UrKind);
+    void fliplisten_cqe(io_uring_cqe*);
+    uint32_t fliplisten_epoll(uint64_t);
+    void fliplisten_quiesce();
+    bool fliplisten_quiet() const;
+    bool fliplisten_plan();
+    bool fliplisten_prepare();
+    bool fliplisten_prepare_activation();
+    void fliplisten_cancel_activation();
+    void fliplisten_commit();
+    void fliplisten_install();
+    bool fliplisten_finish(bool rollback);
+    void fliplisten_resume();
+    void fliplisten_retry_accept();
 
     // Cold config cache at the tail: established IO members retain their offsets.
     uint64_t client_query_buffer_limit_ = 1024ull * 1024 * 1024;

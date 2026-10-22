@@ -303,6 +303,7 @@ static_assert(sizeof(ReadLocalThreadState) == 376,
               "dead retry counter removed only from the armed sidecar, never ThreadCtx");
 
 class ThreadCtx {
+    friend struct FlipListenerState;
 public:
     using RolePrepareFn = bool (*)(void*);
     using RoleCancelFn = void (*)(void*);

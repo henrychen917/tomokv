@@ -143,7 +143,13 @@ struct alignas(64) AtomicApplySlot {
 static_assert(sizeof(AtomicApplySlot) == 64);
 static_assert(alignof(AtomicApplySlot) == 64);
 
+struct FlipListenerState;
+bool fliplisten_reserve(Server&, std::string&);
+
 class Server {
+    friend class IoLoop;
+    friend struct FlipListenerState;
+    friend bool fliplisten_reserve(Server&, std::string&);
     friend struct CoreConcurrencyTest;
     friend struct LbPlannerTest;
 public:
@@ -1475,6 +1481,7 @@ public:
             lb_stage_.store(LbStage::Idle, std::memory_order_release);
             lb_deadline_ns_.store(0, std::memory_order_release);
         }
+        if (!fliplisten_reserve(*this, error)) return false;
         FlipStage expected = FlipStage::Idle;
         if (!flip_stage_.compare_exchange_strong(expected, FlipStage::Planning,
                                                  std::memory_order_acq_rel)) {
@@ -1714,6 +1721,10 @@ public:
         flip_deadline_ns_.store(0, std::memory_order_release);
     }
     void flip_complete_active() {
+        flip_validate_active();
+        flip_finish_active();
+    }
+    void flip_validate_active() {
         flip_conservation_check();
         flip_conservation_check(true);
         if (!flip_shard_ownership_conserved()) std::abort();
@@ -1756,7 +1767,10 @@ public:
                                    flip_planned_client_transfers_)
             std::abort();
 
-        flip_last_transfers_.store(transfers, std::memory_order_relaxed);
+    }
+    void flip_finish_active() {
+        flip_last_transfers_.store(flip_active_transfers_.load(std::memory_order_relaxed),
+                                   std::memory_order_relaxed);
         flip_completed_.fetch_add(1, std::memory_order_relaxed);
         flip_stage_.store(FlipStage::Idle, std::memory_order_release);
         flip_deadline_ns_.store(0, std::memory_order_release);
@@ -3649,6 +3663,7 @@ private:
         std::atomic<uint32_t> client_readers{0}; // cold record lifetime; absent when LB=0
     };
     std::unique_ptr<LbPlan> lb_plan_; // absent with both balancers off
+    std::shared_ptr<FlipListenerState> flip_listeners_; // first real FLIP; never on an operation
 
 };
 

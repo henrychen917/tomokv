@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 import reorder_sync as base
 
-IO = ('run_loop', 'sweep', 'flush_ready', 'admit_fd', 'adopt_client',
+IO = ('run_loop', 'sweep', 'flush_ready', 'admit_fd', 'admit_retained_fd', 'adopt_client',
       'arm_tls_recv', 'drive_tls', 'epoll_accept', 'epoll_pass',
       'on_accept', 'on_cqe', 'on_recv', 'on_tls_recv',
       'on_tls_socket_poll', 'parse_and_dispatch', 'fused_demote_local_read_batch')
@@ -56,7 +56,7 @@ def removal_inventory(root):
 def function(source, name, member=True):
     if not member:
         return base.function(source, name, False)
-    match = re.search(r'^    (?:__attribute__\(\(noinline\)\) )?'
+    match = re.search(r'^    (?:__attribute__\(\((?:noinline|always_inline)\)\) )?'
                       r'(?:uint32_t|void|bool|DispatchResult) ' + re.escape(name) + r'\(', source, re.M)
     if not match:
         raise ValueError('missing source method ' + name)

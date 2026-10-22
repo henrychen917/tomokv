@@ -1283,7 +1283,13 @@ uint32_t IoLoop::r7_flush_ready() {
 template <bool kEp, bool Fused>
 void IoLoop::r7_admit_fd(int fd, UrKind kind) {
     TOMO_R7_PATH();
-    if (accepts_paused()) { ::close(fd); return; }
+    if (accepts_paused()) { fliplisten_retain(fd, kind); return; }
+    r7_admit_retained_fd<kEp, Fused>(fd, kind);
+}
+
+template <bool kEp, bool Fused>
+__attribute__((always_inline)) void IoLoop::r7_admit_retained_fd(int fd, UrKind kind) {
+    TOMO_R7_PATH();
     const bool unix_socket = kind == UrKind::UnixAccept;
     const bool tls_socket = kind == UrKind::TlsAccept;
     self_->sig().accepts++;
@@ -1677,7 +1683,7 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
                 work++;
                 break;
             }
-            default: break;
+            default: work += fliplisten_epoll(ev.data.u64); break;
         }
     }
     return work;
@@ -1688,8 +1694,7 @@ void IoLoop::r7_on_accept(io_uring_cqe* cqe, UrKind kind) {
     TOMO_R7_PATH();
     const uint64_t generation = reinterpret_cast<uintptr_t>(ur_ptr<void>(cqe->user_data));
     if (generation != accept_generation_ || self_->role() != Role::Ifid) {
-        if (cqe->res >= 0) ::close(cqe->res);
-        if (!(cqe->flags & IORING_CQE_F_MORE)) accept_armed_ref(kind) = false;
+        fliplisten_stale(cqe, kind);
         return;
     }
     if (cqe->res < 0) {
@@ -1700,7 +1705,7 @@ void IoLoop::r7_on_accept(io_uring_cqe* cqe, UrKind kind) {
         return;
     }
     if (accepts_paused()) {
-        ::close(cqe->res);
+        fliplisten_retain(cqe->res, kind);
         rearm_accept(cqe, kind);
         return;
     }
@@ -1745,7 +1750,7 @@ void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
             case UrKind::MigrateCancel: break;
             case UrKind::TlsReadPoll: break;
             case UrKind::TlsWritePoll: break;
-            default: break;
+            default: fliplisten_cqe(cqe); break;
         }
     } else {
         switch (ur_kind(cqe->user_data)) {
@@ -1792,6 +1797,7 @@ void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
                                                 cqe->res); break;
             case UrKind::Close: break;
             case UrKind::MigrateCancel: break;
+            default: fliplisten_cqe(cqe); break;
         }
     }
 }
