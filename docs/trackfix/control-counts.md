@@ -11,19 +11,19 @@ first accounting revision remain in control-counts.json, with all raw logs.
 | 4 | 14 | 0 | 2 |
 | 5 | 15 | 1 | 0 |
 | 6 | 16 | 1 | 4 |
-| 7 | 17 | 1 | RUNNING |
-| 8 | 18 | 0 | RUNNING |
-| 9 | 19 | 0 | RUNNING |
-| 10 | 20 | 0 | RUNNING |
-| 11 | 21 | 2 | RUNNING |
-| 12 | 22 | 2 | RUNNING |
-| 13 | 23 | 1 | RUNNING |
-| 14 | 24 | 1 | RUNNING |
-| 15 | 25 | 0 | RUNNING |
-| 16 | 26 | 0 | RUNNING |
-| 17 | 27 | 0 | RUNNING |
-| 18 | 28 | 0 | RUNNING |
-| 19 | 29 | 0 | RUNNING |
-| 20 | 30 | 2 | RUNNING |
+| 7 | 17 | 1 | 0 |
+| 8 | 18 | 0 | 0 |
+| 9 | 19 | 0 | 0 |
+| 10 | 20 | 0 | 0 |
+| 11 | 21 | 2 | 0 |
+| 12 | 22 | 2 | 0 |
+| 13 | 23 | 1 | 0 |
+| 14 | 24 | 1 | 0 |
+| 15 | 25 | 0 | 0 |
+| 16 | 26 | 0 | 2 |
+| 17 | 27 | 0 | 0 |
+| 18 | 28 | 0 | 0 |
+| 19 | 29 | 0 | 0 |
+| 20 | 30 | 2 | 1 |
 
-Final POST runs completed: 6/20.
+Final POST runs completed: 20/20.

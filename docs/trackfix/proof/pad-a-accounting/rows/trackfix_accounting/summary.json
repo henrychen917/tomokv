@@ -1,0 +1,8 @@
+{
+  "legs": 16,
+  "failures": {
+    "CC4.4 delivered tracking event is not dropped": 160
+  },
+  "held": 0,
+  "replayed": 0
+}

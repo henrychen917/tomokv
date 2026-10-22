@@ -321,7 +321,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "reason": "Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained.",
       "source_objects": [
         {
           "object": "src/cmd/xshard.o",
@@ -342,7 +342,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "reason": "Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained.",
       "source_objects": [
         {
           "object": "src/cmd/xshard.o",
@@ -363,7 +363,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "reason": "Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained.",
       "source_objects": [
         {
           "object": "db0/src/cmd/xshard.o",
@@ -384,7 +384,7 @@
       ],
       "matches": [],
       "changed_lanes": [],
-      "reason": "Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review.",
+      "reason": "Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained.",
       "source_objects": [
         {
           "object": "db0/src/cmd/xshard.o",

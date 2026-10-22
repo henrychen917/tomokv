@@ -82,6 +82,15 @@ def main():
         differ_results.append(result)
     (DOC / 'differ-results.json').write_text(json.dumps(differ_results, indent=2) + '\n')
 
+    for dest in sorted((DOC / 'tracking-controls').iterdir()):
+        rows = json.loads((dest / 'results.json').read_text())
+        wanted = 10 if dest.name == 'PRE-extra' else 20
+        if len(rows) == wanted:
+            archive(ROOT / 'build/trackfix/tracking-controls' / dest.name, dest / 'boots.tar.gz')
+    schema = DOC / 'replyschema'
+    if (schema / 'results.json').exists() and len(json.loads((schema / 'results.json').read_text())) == 16:
+        archive(ROOT / 'build/trackfix/replyschema', schema / 'boots.tar.gz')
+
 
 if __name__ == '__main__':
     main()

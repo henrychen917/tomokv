@@ -99,7 +99,7 @@ receipts are retained as the earlier CC4-v1 revision, not final acceptance.
 ### Gate inventory
 
 Two new rows are collected at `tests/gate.sh` lines 4389–4390, **before** the
-quick-tier exit at line 4457: **DQ=+2, DF=+2**. The owner must change 685/702 to
+quick-tier branch at 4457 and exit at 4461: **DQ=+2, DF=+2**. The owner must change 685/702 to
 **687/704** if both rows are retained. `EXPECT_QUICK` and `EXPECT_FULL` are
 unchanged. The explicit label fixture contains exactly the source's 704 labels,
 including multiplicities. Its count guard intentionally fails against the
@@ -128,6 +128,11 @@ GET/SET/MGET/MSET groups identical**. Every changed body has a reason and comple
 strict instruction/encoding differences under `docs/trackfix/identity/`.
 Only the two xshard object files differ; one reported linked residual originates
 solely in a byte-identical object. All 18 residuals remain reported with reasons.
+The four generic multi-key dispatchers differ only in compiler switch-table
+labels: an independent check verifies all instructions, encodings and complete
+referenced table bytes. It also verifies all 18 CQE jump-table destinations
+relative to their function. These checks explain residuals without removing
+them from the strict identity result (`identity/literal-controls.json`).
 
 Ten compile-only xshard budget trials were performed for CC4-v1 and are retained
 under `budget-trials-CC4-v1.json`. The final source already preserves all selected
@@ -138,24 +143,69 @@ change is needed. Identity remains a proxy, and every residual goes to merit.
 including `all` and `mdbqsbr-live-arms`, pass `make -q` in
 `docs/trackfix/freshness.json`.
 
-### Validation still collecting
+### Final validation
 
-The unchanged standard differential is running as `PRE-final` and `POST-final`
-on both engines and geometries, including both atomic settings. It retains the
-standard permanent seeds, rotating seed 21, repeated MULTI legs, and split-mode
-equivalence matrix. The final seed-19 POST cohort is also still running; actual
-duplicate frame counts, including zeros, are in `control-counts.md/json`.
+The unchanged standard differential completed as `PRE-final` and `POST-final`
+on both engines and geometries, including both atomic settings. It retained
+permanent seeds 7/19/20/23, rotating seed 21, repeated MULTI legs, and the full
+32-combination split-mode equivalence matrix.
+
+| Engine / geometry | PRE pass / fail | Final POST pass / fail |
+|---|---:|---:|
+| epoll / split | 475 / 0 | 475 / 0 |
+| uring / split | 475 / 0 | 475 / 0 |
+| epoll / armed fused | 464 / 2 | 463 / 3 |
+| uring / armed fused | 466 / 0 | 466 / 0 |
+
+Every failed standard leg is climon, and every mismatch is exactly two identical
+target invalidation frames versus one oracle frame. PRE failures: atomic 1,
+seeds 19 and 20 (six extra frames). Final POST failures: atomic 0, seeds 7 and 21;
+atomic 1, seed 23 (ten extra frames). The exact bytes are in
+`docs/trackfix/standard-failures.json`; complete transcripts, coverage artifacts,
+seed plans and boot logs are archived under `docs/trackfix/differ/`.
+
+The final seed-19 POST cohort completed all 20 fresh runs:
+seven runs contain 14 duplicate frames. The 20 confined PRE controls have 14
+duplicates in ten runs. Every per-run count, including zeros, is in
+`control-counts.md/json`. **The required zero-duplicate POST result is not met.**
+These are concurrent correctness runs, not estimates of comparative failure
+probability or performance. All duplicate counts were checked against actual
+two-identical-frame target bytes and one-frame oracle bytes.
 
 All new rows use `GATE_ONLY_JOBS` through `tests/gate.sh` with all declared legs.
-Whole feature, clientfix, notification, netcmd-unit, metadata, debug, fused and
-ring jobs are being rerun on the final binary. Earlier CC4-v1 whole-job results
-were 173/173 epoll, 220/220 uring, both supplementary fused notification jobs
-7/7, and ring units 3/3. They are retained but do not stand in for final reruns.
+Final whole-job results:
+
+| Job set | Pass / fail |
+|---|---:|
+| epoll: feature split/armed atomic 0/1, clientfix, notify, fused 0/1 | 173 / 0 |
+| uring: same, plus netcmd units, notify order/AOF, metadata, debug 0/1, ring unit | 223 / 0 |
+| supplementary fused `notify`, epoll | 7 / 0 |
+| supplementary fused `notify`, uring | 7 / 0 |
+
+These are whole-job partial ledgers, not a full-gate receipt. The new primary
+tracking-order row remains red as recorded above. Earlier CC4-v1 results are
+retained under their separate run names; all final rows name the final binary's
+SHA in `command.json`. Canonical results and raw job logs are in
+`docs/trackfix/gate-results.json` and `docs/trackfix/proof/`.
 
 `python3 tests/gates_test.py` passed all **67 tests** on its quiet rerun, including
 the nested 14-test persistence self-test. The first run's seven scheduler-fixture
 timeouts during concurrent compilation/checks remain in `gates-test.log`.
 No test deadline or expectation was relaxed.
+
+The tracking assertion sweep and job mapping are in
+`docs/trackfix/tracking-coverage.md`; the unchanged source-input proof is
+`source-proof.json`. `replyschema.py` has no gate job, so its unchanged standalone
+census ran on 16 fresh PRE/POST × mode × engine × atomic boots. Each covers
+423 canonical invocations in RESP2 and RESP3. Tracking endpoints have zero
+mismatches. Each boot still reports the same 17 non-tracking mismatches: stale
+MOVE/SWAPDB inventory/case expectations, BGSAVE SCHEDULE, replication stubs,
+ACL DRYRUN, LATENCY HISTOGRAM, and MEMORY STATS schema additions. Logs are kept;
+no assertion was changed and this census is not labelled green.
+
+`climon_128.py` is **NOT RUN**: it needs two live IO owners separated by 64,
+which the required eight-server-CPU topology cannot provide, and has no gate
+job. Its registered 128-owner mask arithmetic and negative-control job ran.
 
 An early auxiliary-listener deviation is retained explicitly: climon's Python
 reader-control fixture used `bind(0)` before the confinement shim existed. Its
@@ -163,7 +213,15 @@ first PRE seed-19 runs and the early PRE standard runs are preliminary. The shim
 confines Python fixture listeners to 22880–22898 and logs them in
 `fixture-ports.log`; main server/oracle listeners use their assigned lane ports.
 PRE runs 11–30 supply the 20 fresh, confined seed-19 controls. All four standard
-PRE legs are being rerun from scratch with confinement as `PRE-final`.
+PRE legs were rerun from scratch with confinement as `PRE-final`. Earlier
+failures remain preserved, including the invalid first fixture, the four v2
+arming failures, the initial explicit build-only-job selection rejection, and
+the first supplemental fused notification boot's split-only ratio error. Their
+corrected whole-job runs are distinct receipts, never overwritten passes.
+
+No lane listener or owned TomoKV process remains (`docs/trackfix/cleanup.json`).
+The oracle executable SHA-256 is
+`ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b`.
 
 ### Maintainer merit request
 
@@ -171,8 +229,11 @@ Use the unchanged 14 cells in `docs/trackfix/generic14-cells.txt`, with the gate
 own quiet-box instrument: PRE/PRE null, PRE/POST, and PRE/PAD-A, identical affinity,
 offered load, warmup, data, geometry and ABBA ordering. Report PRE and POST rate
 at matched load, cycles/op, instructions/op, IPC, and the existing depth-one
-latency score for every cell. The verdict is the existing no-regression rule,
-not an instruction-count improvement. Final PAD-A matches POST's exact layout;
+latency score for every cell. Use 96–103 for eight-server-core cells, 96–99 for
+four-core cells, and 105–111 for clients. Rate at matched offered load decides
+rate cells; the declared latency score decides depth-one latency cells. Every
+main-command cell must show no reproducible regression against the PRE/PRE
+control; instruction count alone cannot accept a change. Final PAD-A matches POST's exact layout;
 a real effect should move POST while the PRE-behavior PAD-A remains flat.
 
 The generic ABBA workload schema/driver has no CLIENT TRACKING setup option.

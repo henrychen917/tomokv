@@ -16,6 +16,7 @@ of its batteries. Every declared leg in each selected job runs.
 | `tests/notify_order_checks.inc` | Whole `netcmd_units`; its `notify-oom` case calls `check_notify_order_failures` |
 | `tests/differ.py` | Unchanged standard `tests/differ_gate.sh`, both geometries and engines, PRE-final and POST-final; fresh seed-19 repeats separately |
 | `tests/cmdmeta.py` | Whole `cmd_metadata`, plus standard differential command metadata |
+| `tests/replyschema.py` | Unchanged standalone census, since no gate job exists: PRE/POST × 1s/2s × epoll/uring × atomic 0/1. All tracking cases pass; every boot has the same 17 non-tracking mismatches, retained in `replyschema/` |
 
 `core_concurrency`, `rlfix`, `execatomic`, `execiso`, and script-cache references
 to tracking/invalidation describe other mechanisms; they are not CLIENT
@@ -27,10 +28,6 @@ Explicit limitations:
 * `climon_128.py`: **NOT RUN**. It needs two live IO owners separated by 64 and
   has no registered gate job. The required eight-server-CPU lane geometry cannot
   supply that topology. The registered 128-owner mask arithmetic row did run.
-* `replyschema.py`: **NOT RUN**. It has tracking command-shape cases but no
-  registered gate job. Tracking commands are covered by the existing feature,
-  command-metadata and differential jobs; this standalone schema census is not
-  claimed as run.
 * `clientfix_widths.py` and benchmark/ABBA helpers: **NOT RUN**. They are
   performance probes reserved for the maintainer.
 

@@ -66,10 +66,34 @@
     "failed": 0
   },
   {
+    "label": "post-v2-broad-epoll",
+    "returncode": 0,
+    "passed": 173,
+    "failed": 0
+  },
+  {
+    "label": "post-v2-broad-uring",
+    "returncode": 0,
+    "passed": 223,
+    "failed": 0
+  },
+  {
     "label": "post-v2-newrows-final",
     "returncode": 1,
     "passed": 2,
     "failed": 1
+  },
+  {
+    "label": "post-v2-notify-fused-epoll",
+    "returncode": 0,
+    "passed": 7,
+    "failed": 0
+  },
+  {
+    "label": "post-v2-notify-fused-uring",
+    "returncode": 0,
+    "passed": 7,
+    "failed": 0
   },
   {
     "label": "pre-accounting",

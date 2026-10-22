@@ -2,5 +2,21 @@
   "fixture_rows": 704,
   "source_rows": 704,
   "source_matches_fixture": true,
-  "expected_owner_count_failure": "tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=704, source declarations=704\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth."
+  "expected_owner_count_failure": "tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=704, source declarations=704\nMissing fixture labels: none\nExtra fixture labels: none\nReview the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.",
+  "collection_lines": [
+    {
+      "line": 4389,
+      "source": "collect_job trackfix_order"
+    },
+    {
+      "line": 4390,
+      "source": "collect_job trackfix_accounting"
+    }
+  ],
+  "quick_exit_lines": [
+    {
+      "line": 4461,
+      "source": "  echo; echo \"GATE(quick): $PASS ok, $FAIL FAIL (wall $((SECONDS-GATE_STARTED))s)\"; [ $FAIL -eq 0 ] || exit 1; exit 0"
+    }
+  ]
 }

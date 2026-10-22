@@ -1,6 +1,6 @@
 # Every changed linked body
 
-Strict comparisons retain opcode, register, offsets, immediates and clone multiplicity.
+All 18 strict residuals remain reported. Literal controls independently verify table payloads.
 
 | Body | PRE sizes | POST sizes | Reason |
 |---|---|---|---|
@@ -18,7 +18,7 @@ Strict comparisons retain opcode, register, offsets, immediates and clone multip
 | `tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)` | [3974] | [3958] | CC4.4: an empty tracking-only pub/sub chain counts no drop; count only publication records when reservation returns no chain. |
 | `tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long) [clone .cold]` | [287] | [294] | CC4.4: an empty tracking-only pub/sub chain counts no drop; count only publication records when reservation returns no chain. |
 | `void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)` | [865] | [865] | All defining PRE/POST object files are byte-identical; the linked strict difference is relocation/literal-label normalization. The full difference remains reported. |
-| `void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)` | [15981] | [15981] | Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review. |
-| `void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)` | [17097] | [17097] | Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review. |
-| `void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)` | [15739] | [15739] | Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review. |
-| `void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)` | [17145] | [17145] | Unedited body: compiler/link propagation from notify.inc in xshard.cc; strict difference retained for merit review. |
+| `void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)` | [15981] | [15981] | Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained. |
+| `void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)` | [17097] | [17097] | Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained. |
+| `void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)` | [15739] | [15739] | Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained. |
+| `void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)` | [17145] | [17145] | Only two compiler switch-table label references differ in the strict report; all normalized encodings/other instructions and the entire referenced table bytes match. Verified independently in literal-controls.json; the strict residual is retained. |

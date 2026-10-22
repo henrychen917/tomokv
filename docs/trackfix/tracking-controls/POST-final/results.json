@@ -218,5 +218,185 @@
     "returncode": 0,
     "duplicate_comparisons": 0,
     "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 12,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 13,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 14,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 15,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 16,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 2,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 17,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 18,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 19,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 20,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
   }
 ]

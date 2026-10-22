@@ -1,0 +1,306 @@
+[
+  {
+    "label": "PRE-1s-epoll-a0",
+    "arm": "PRE",
+    "mode": "1s",
+    "engine": "epoll",
+    "atomic": 0,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "PRE-1s-epoll-a1",
+    "arm": "PRE",
+    "mode": "1s",
+    "engine": "epoll",
+    "atomic": 1,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "PRE-1s-uring-a0",
+    "arm": "PRE",
+    "mode": "1s",
+    "engine": "uring",
+    "atomic": 0,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "PRE-1s-uring-a1",
+    "arm": "PRE",
+    "mode": "1s",
+    "engine": "uring",
+    "atomic": 1,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "PRE-2s-epoll-a0",
+    "arm": "PRE",
+    "mode": "2s",
+    "engine": "epoll",
+    "atomic": 0,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "PRE-2s-epoll-a1",
+    "arm": "PRE",
+    "mode": "2s",
+    "engine": "epoll",
+    "atomic": 1,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "PRE-2s-uring-a0",
+    "arm": "PRE",
+    "mode": "2s",
+    "engine": "uring",
+    "atomic": 0,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "PRE-2s-uring-a1",
+    "arm": "PRE",
+    "mode": "2s",
+    "engine": "uring",
+    "atomic": 1,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "POST-1s-epoll-a0",
+    "arm": "POST",
+    "mode": "1s",
+    "engine": "epoll",
+    "atomic": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "POST-1s-epoll-a1",
+    "arm": "POST",
+    "mode": "1s",
+    "engine": "epoll",
+    "atomic": 1,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "POST-1s-uring-a0",
+    "arm": "POST",
+    "mode": "1s",
+    "engine": "uring",
+    "atomic": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "POST-1s-uring-a1",
+    "arm": "POST",
+    "mode": "1s",
+    "engine": "uring",
+    "atomic": 1,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "POST-2s-epoll-a0",
+    "arm": "POST",
+    "mode": "2s",
+    "engine": "epoll",
+    "atomic": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "POST-2s-epoll-a1",
+    "arm": "POST",
+    "mode": "2s",
+    "engine": "epoll",
+    "atomic": 1,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "POST-2s-uring-a0",
+    "arm": "POST",
+    "mode": "2s",
+    "engine": "uring",
+    "atomic": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  },
+  {
+    "label": "POST-2s-uring-a1",
+    "arm": "POST",
+    "mode": "2s",
+    "engine": "uring",
+    "atomic": 1,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/replyschema.py",
+      "127.0.0.1",
+      "22870",
+      "/home/user/Projects/cx-trackfix/build/trackfix/oracle"
+    ],
+    "returncode": 1
+  }
+]
