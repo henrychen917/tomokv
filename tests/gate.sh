@@ -339,6 +339,9 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # notifyorder: job_notify_order is collected before the quick exit: DQ=+1, DF=+1.
 # notifyorder A5: job_notify_aof is also before the quick exit: another +1/+1.
 # Maintainer count update: 669/686 -> 671/688 (combined DQ=+2, DF=+2).
+# wave4 (compat2 +3, moverfix +8, clockcut +3, notifyorder +2, all collected before the
+# quick exit): DQ=+16, DF=+16 over 8656f9fa9's 669/686, so required counts are 685/702.
+# The constants below read 672/689 from the maintainer's compat2 commit a7e318a14.
 EXPECT_QUICK=672
 EXPECT_FULL=689                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
