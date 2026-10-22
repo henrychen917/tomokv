@@ -946,6 +946,7 @@ job_label(){
 job_body(){
   local name=$1 label; label=$(job_label "$name")
   case "$name" in
+    iofix-*) job_iofix "$name";;
     multidb-*) job_multidb "$name";;
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
@@ -1103,7 +1104,7 @@ plan_jobs(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
+              iofix-deferred wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 bplus acl_recheck aclfix sort script_bounds scriptfix
@@ -1734,6 +1735,21 @@ job_reorder_identity(){
   py tests/reorder_receipt.py "$CANDIDATE_BINARY" "$TMPDIR/receipt" >"$TMPDIR/receipt.log" 2>&1 \
       && ok "$label" || bad "$label" "see $TMPDIR/receipt.log"
 }
+job_iofix(){
+  local feature=${1#iofix-} mode engine failed=0 label
+  case "$feature" in
+    deferred) label='iofix WB4.1 deferred IO parks';;
+  esac
+  row_begin "$label"
+  for mode in 2s 1s; do for engine in uring epoll; do
+    py "tests/iofix_${feature}.py" --binary "$CANDIDATE_BINARY" --port "$PORT" \
+        --cores "$CORES" --ratio "$GATE_RATIO" --mode "$mode" --net-io "$engine" \
+        --output "$TMPDIR/$feature-$mode-$engine" \
+        >"$TMPDIR/$feature-$mode-$engine.log" 2>&1 || failed=1
+  done; done
+  [ "$failed" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/$feature-*.log"
+}
+
 job_wb_policy(){
   local label='writeback policies 0/1: 22 standard fixtures'
   local mode policy boot_fn rc=0
@@ -4108,6 +4124,8 @@ collect_job release
 
 collect_job asan
 collect_job config_unit
+# iofix rows are collected before the quick-tier exit; EXPECT remains owner-maintained.
+collect_job iofix-deferred
 
 collect_job flip_unit
 

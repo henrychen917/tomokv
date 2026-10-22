@@ -1,0 +1,31 @@
+tests/at15.py:91:    out.append(('sleep', transaction(connection, [['DEBUG', 'SLEEP', '0']])))
+tests/at15.py:110:                                      ['CONFIG', 'RESETSTAT'], ['DEBUG', 'SLEEP', '0']])
+tests/at15.py:141:    print('  AT15: INFO sections, DEBUG SLEEP, controls and admin replies agree (RESP%d)' % (3 if resp3 else 2))
+tests/lottery_calibration.py:33:    'debug': 'W7 DEBUG SLEEP entered/release latch',
+tests/slowlog.py:118:    return c.cmd("DEBUG", "SLEEP", "0.05")
+tests/slowlog.py:134:    # Real work through BOTH paths: keyspace commands reach the executor arm, DEBUG SLEEP the
+tests/slowlog.py:166:    check("entry argv is the command", [a.upper() for a in entry[3][:2]], ["DEBUG", "SLEEP"])
+tests/pubsub.py:439:    # There is no applicable deterministic DEBUG hook: SLEEP stops the connection before the
+tests/debug.py:79:expect(client.command("DEBUG", "SLEEP", "0"), b"OK", "DEBUG SLEEP")
+tests/debug.py:94:    raise AssertionError("could not place DEBUG SLEEP probe on IO owner %r" % (owner,))
+tests/debug.py:101:sleep_client.sock.sendall(frame("DEBUG", "SLEEP", ".5") + frame("PING"))
+tests/debug.py:107:    raise AssertionError("same-owner connection did not make progress while DEBUG SLEEP parked")
+tests/debug.py:108:expect(client.command("PING"), b"PONG", "same-owner progress during DEBUG SLEEP")
+tests/debug.py:109:expect(sleep_client.read(), b"OK", "deferred DEBUG SLEEP reply")
+tests/debug.py:111:    raise AssertionError("DEBUG SLEEP deadline fired too early")
+tests/debug.py:112:expect(sleep_client.read(), b"PONG", "pipelined PING stayed behind DEBUG SLEEP")
+tests/debug.py:114:    raise AssertionError("DEBUG SLEEP did not restore blocked_clients")
+tests/debug.py:119:cancel_client.sock.sendall(frame("DEBUG", "SLEEP", ".5"))
+tests/debug.py:133:    raise AssertionError("disconnect did not cancel DEBUG SLEEP")
+tests/debug.py:138:expect(client.command("DEBUG", "SLEEP", str(sleep_cap + 1)),
+tests/debug.py:139:       "ERR value is not a valid float", "DEBUG SLEEP timeout-derived ceiling")
+tests/debug.py:140:expect(client.command("MULTI"), b"OK", "MULTI before DEBUG SLEEP")
+tests/debug.py:141:expect(client.command("DEBUG", "SLEEP", ".01"), b"QUEUED", "queue DEBUG SLEEP")
+tests/debug.py:142:# Redis queues DEBUG SLEEP and returns its OK as an EXEC array element. The
+tests/debug.py:144:expect(client.command("EXEC"), [b"OK"], "DEBUG SLEEP inside EXEC")
+tests/debug.py:224:print("debug: PASS (connection-timer sleep, toggle fired, batched shard ownership, LOADAOF off guard, "
+tests/differ.py:1960:            ["DEBUG", "SLEEP", "0"], ["EXEC"],
+tests/at15_unit.cc:252:        begin(f); queue(f, {"DEBUG", "SLEEP", "0"});
+tests/at15_unit.cc:253:        require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "DEBUG SLEEP 0 EXEC element");
+tests/at15_unit.cc:254:        begin(f); queue(f, {"DEBUG", "SLEEP", "0.01"});
+tests/at15_unit.cc:256:        require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "DEBUG SLEEP positive EXEC element");

@@ -140,7 +140,12 @@ struct Phase2 {
             Client* c = loop.pending_serve_.front();
             loop.pending_serve_.pop_front();
             ++visits;
+            const uint8_t previous_deferrals = c->wb_deferrals();
             if (!c->dead() && defer(*c, loop.wb_config_)) {
+                // Only a counting completion visit can change eligibility without a wake.
+                // Include the Dth increment: the next visit must try the half threshold.
+                // Once saturated (or unbounded), completions wake the ordinary armed park.
+                work += c->wb_deferrals() != previous_deferrals;
                 // Keep the lifetime pin; a younger eligible connection may pass this head.
                 loop.pending_serve_.push_back(c);
                 continue;
@@ -181,7 +186,6 @@ struct Phase2 {
             if constexpr (kEp) if (loop.wb_.take_send_failure()) loop.epoll_close_now(c);
         }
         work += served;
-        if (!loop.pending_serve_.empty()) ++work; // deferred entries must get another phase
         return work;
     }
 };
