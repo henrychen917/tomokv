@@ -1,0 +1,485 @@
+[
+  {
+    "file": "tests/_differ_ccfix.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/_lib.py",
+    "jobs": [
+      "set_slot"
+    ]
+  },
+  {
+    "file": "tests/abba_worker_affinity.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/abbagate.py",
+    "jobs": [
+      "job_abba_selftest",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/acl.py",
+    "jobs": [
+      "job_release_batteries",
+      "job_auth"
+    ]
+  },
+  {
+    "file": "tests/aclfix.py",
+    "jobs": [
+      "plan_jobs",
+      "job_aclfix",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/aclkeys_wake_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/aclreply.py",
+    "jobs": [
+      "set_slot",
+      "job_acl_recheck"
+    ]
+  },
+  {
+    "file": "tests/aclsel.py",
+    "jobs": [
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/arity.py",
+    "jobs": [
+      "shutdown_value",
+      "job_authfix"
+    ]
+  },
+  {
+    "file": "tests/at15_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/atomicwindow.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/auth.py",
+    "jobs": [
+      "plan_jobs",
+      "job_auth",
+      "job_tls",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/autharity.py",
+    "jobs": [
+      "job_compat2"
+    ]
+  },
+  {
+    "file": "tests/authfix.py",
+    "jobs": [
+      "plan_jobs",
+      "job_authfix",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/clientfix.py",
+    "jobs": [
+      "plan_jobs",
+      "job_clientfix",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/climon2.py",
+    "jobs": [
+      "set_slot",
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/climon_128.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/cmdgap.py",
+    "jobs": [
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/cmdgap2.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/compat2_support.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/contarity.py",
+    "jobs": [
+      "set_slot",
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/debug.py",
+    "jobs": [
+      "job_bplus",
+      "job_debug",
+      "job_auth",
+      "job_atomic_floor",
+      "job_rldbg"
+    ]
+  },
+  {
+    "file": "tests/debug_load_test.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/differ.py",
+    "jobs": [
+      "set_slot",
+      "program_state"
+    ]
+  },
+  {
+    "file": "tests/differ_test.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/dumpttl.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/edgeenc.py",
+    "jobs": [
+      "set_slot",
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "jobs": [
+      "shutdown_value",
+      "job_fused"
+    ]
+  },
+  {
+    "file": "tests/edgetime.py",
+    "jobs": [
+      "set_slot",
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/expire_notify.py",
+    "jobs": [
+      "job_compat2"
+    ]
+  },
+  {
+    "file": "tests/expire_notify_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/expwide.py",
+    "jobs": [
+      "set_slot",
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/fixtures/nullrefresh-ledger-labels.json",
+    "jobs": [
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/flip_ttl.py",
+    "jobs": [
+      "job_flip"
+    ]
+  },
+  {
+    "file": "tests/gate.sh",
+    "jobs": [
+      "job_body",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/gate_history.py",
+    "jobs": [
+      "set_slot",
+      "row_watch",
+      "row_unwatch",
+      "row_begin",
+      "row_save_history",
+      "program_state",
+      "pausable",
+      "reap_children",
+      "job_abba_selftest",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/gate_quiet.py",
+    "jobs": [
+      "job_abba_selftest"
+    ]
+  },
+  {
+    "file": "tests/gates_test.py",
+    "jobs": [
+      "job_abba_selftest"
+    ]
+  },
+  {
+    "file": "tests/hexpire.py",
+    "jobs": [
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/hexpire_oom_checks.inc",
+    "jobs": []
+  },
+  {
+    "file": "tests/hexpire_persist.sh",
+    "jobs": []
+  },
+  {
+    "file": "tests/hexpread.py",
+    "jobs": [
+      "set_slot",
+      "plan_jobs",
+      "job_hexpread",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/infofields_test.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/infofix.py",
+    "jobs": [
+      "set_slot",
+      "shutdown_value",
+      "job_ntfix_input"
+    ]
+  },
+  {
+    "file": "tests/ktls_lifetime.py",
+    "jobs": [
+      "job_compat2"
+    ]
+  },
+  {
+    "file": "tests/ktls_lifetime_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/kvobj_header_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/l4prebuild_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/lcs.py",
+    "jobs": [
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/loading_ready_test.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/mdbqsbr_live.py",
+    "jobs": [
+      "job_multidb"
+    ]
+  },
+  {
+    "file": "tests/mdbqsbr_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/moverfix.py",
+    "jobs": [
+      "set_slot",
+      "plan_jobs",
+      "job_moverfix",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/moverfix_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/multidb_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/mutants.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/netcap.py",
+    "jobs": [
+      "plan_jobs",
+      "job_netcap",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/netcmd.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/netcmd_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/notify.py",
+    "jobs": [
+      "plan_jobs",
+      "job_notify",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/notify_order.py",
+    "jobs": [
+      "plan_jobs",
+      "job_notify_order",
+      "job_notify_aof",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/notify_order_checks.inc",
+    "jobs": []
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "jobs": [
+      "ntnew4_live_leg"
+    ]
+  },
+  {
+    "file": "tests/objectpread.py",
+    "jobs": [
+      "job_hexpread"
+    ]
+  },
+  {
+    "file": "tests/perfex_checks.py",
+    "jobs": [
+      "job_perfex_units",
+      "job_perfex_live"
+    ]
+  },
+  {
+    "file": "tests/pubsub.py",
+    "jobs": [
+      "shutdown_value",
+      "job_netcmd_units",
+      "job_notify"
+    ]
+  },
+  {
+    "file": "tests/pushtear.py",
+    "jobs": [
+      "set_slot",
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/r7shadow_noop.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/rehash_waits_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/respcompat.py",
+    "jobs": [
+      "plan_jobs",
+      "job_respcompat",
+      "tlsboot",
+      "job_ready"
+    ]
+  },
+  {
+    "file": "tests/respresume.py",
+    "jobs": [
+      "set_slot",
+      "job_respresume"
+    ]
+  },
+  {
+    "file": "tests/respresume_flip.py",
+    "jobs": []
+  },
+  {
+    "file": "tests/rltopo_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/scriptsurf.py",
+    "jobs": [
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/servertail.py",
+    "jobs": [
+      "shutdown_value",
+      "plan_jobs"
+    ]
+  },
+  {
+    "file": "tests/slowlog.py",
+    "jobs": [
+      "job_debug",
+      "job_authfix"
+    ]
+  },
+  {
+    "file": "tests/store_regression.cc",
+    "jobs": [
+      "store_build"
+    ]
+  },
+  {
+    "file": "tests/storesize_unit.cc",
+    "jobs": []
+  },
+  {
+    "file": "tests/tracking.py",
+    "jobs": [
+      "shutdown_value"
+    ]
+  },
+  {
+    "file": "tests/txn_movers.py",
+    "jobs": [
+      "job_moverfix"
+    ]
+  }
+]

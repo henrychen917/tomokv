@@ -1,0 +1,1277 @@
+[
+  {
+    "file": "tests/_differ_ccfix.py",
+    "line": 302,
+    "text": "              b\"-NOPERM User ccfix_denied has no permissions to run the 'get' command\\r\\n\", denied)"
+  },
+  {
+    "file": "tests/_differ_ccfix.py",
+    "line": 329,
+    "text": "            equal([\"GET\", \"ccfix:absent\"], b\"-NOAUTH Authentication required.\\r\\n\", noauth)"
+  },
+  {
+    "file": "tests/_lib.py",
+    "line": 131,
+    "text": "                raise TimeoutError(\"readiness deadline expired during reply\")"
+  },
+  {
+    "file": "tests/_lib.py",
+    "line": 254,
+    "text": "            raise TimeoutError(\"readiness deadline expired during handshake\")"
+  },
+  {
+    "file": "tests/_lib.py",
+    "line": 290,
+    "text": "                    raise TimeoutError(\"readiness deadline expired during handshake\")"
+  },
+  {
+    "file": "tests/abba_worker_affinity.py",
+    "line": 94,
+    "text": "        require(time.monotonic() < self.deadline, \"global generator startup/pinning deadline expired\")"
+  },
+  {
+    "file": "tests/abba_worker_affinity.py",
+    "line": 416,
+    "text": "                with self.assertRaisesRegex(RuntimeError, \"deadline expired\"):"
+  },
+  {
+    "file": "tests/acl.py",
+    "line": 211,
+    "text": "       \"NOPERM User alice has no permissions to run the 'acl|whoami' command\", \"ACL command bit\")"
+  },
+  {
+    "file": "tests/acl.py",
+    "line": 229,
+    "text": "       \"NOPERM User alice has no permissions to run the 'eval' command\", \"Lua v1 deny\")"
+  },
+  {
+    "file": "tests/aclfix.py",
+    "line": 320,
+    "text": "                    f\"NOPERM User woken has no permissions to run the '{name.lower()}' command\")"
+  },
+  {
+    "file": "tests/aclkeys_wake_unit.cc",
+    "line": 95,
+    "text": "            \"-ERR unknown subcommand or wrong number of arguments for 'debug' command\\r\\n\","
+  },
+  {
+    "file": "tests/aclreply.py",
+    "line": 32,
+    "text": "    b\"*-1\\\\r\\\\n-NOPERM User u has no permissions to run the 'blpop' command\\\\r\\\\n\""
+  },
+  {
+    "file": "tests/aclreply.py",
+    "line": 33,
+    "text": "    b\"_\\\\r\\\\n-NOPERM User u has no permissions to run the 'blpop' command\\\\r\\\\n\""
+  },
+  {
+    "file": "tests/aclreply.py",
+    "line": 146,
+    "text": "    noperm_cmd = (b\"-NOPERM User u has no permissions to run the '%s' command\\r\\n\")"
+  },
+  {
+    "file": "tests/aclsel.py",
+    "line": 226,
+    "text": "       \"NOPERM User aclsel has no permissions to run the 'del' command\","
+  },
+  {
+    "file": "tests/aclsel.py",
+    "line": 254,
+    "text": "       \"NOPERM User aclsel has no permissions to run the 'set' command\","
+  },
+  {
+    "file": "tests/arity.py",
+    "line": 40,
+    "text": "    return b\"-ERR wrong number of arguments for '%s' command\\r\\n\" % name.encode()"
+  },
+  {
+    "file": "tests/arity.py",
+    "line": 44,
+    "text": "    return b\"-ERR unknown subcommand '%s'. Try %s HELP.\\r\\n\" % ("
+  },
+  {
+    "file": "tests/arity.py",
+    "line": 49,
+    "text": "    return b\"-ERR unknown subcommand or wrong number of arguments for '%s'. Try %s HELP.\\r\\n\" % ("
+  },
+  {
+    "file": "tests/arity.py",
+    "line": 157,
+    "text": "    elif got.startswith(b\"-ERR unknown subcommand or wrong number\"):"
+  },
+  {
+    "file": "tests/arity.py",
+    "line": 159,
+    "text": "    elif got.startswith(b\"-ERR unknown subcommand '\"):"
+  },
+  {
+    "file": "tests/at15_unit.cc",
+    "line": 163,
+    "text": "    queue(f, {\"HEXPIREAT\", \"at15:h\", deadline, \"FIELDS\", \"2\", \"a\", \"b\"});"
+  },
+  {
+    "file": "tests/at15_unit.cc",
+    "line": 166,
+    "text": "    queue(f, {\"HEXPIREAT\", \"at15:j\", deadline, \"FIELDS\", \"1\", \"x\"});"
+  },
+  {
+    "file": "tests/at15_unit.cc",
+    "line": 181,
+    "text": "    queue(f, {\"HEXPIREAT\", \"at15:h\", deadline, \"FIELDS\", \"1\", \"a\"});"
+  },
+  {
+    "file": "tests/atomicwindow.py",
+    "line": 212,
+    "text": "                        # Continue observing the bound while that one deadline expires below."
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 85,
+    "text": "    expect(admin.command(\"PING\"), \"NOAUTH Authentication required.\", \"boot password gate\")"
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 116,
+    "text": "expect(unauth.command(\"PING\"), \"NOAUTH Authentication required.\", \"new connection gate\")"
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 118,
+    "text": "# byte-exact against redis 7.4); what this row is about is that it comes out AHEAD of NOAUTH."
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 121,
+    "text": "       \"unknown precedes NOAUTH\")"
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 123,
+    "text": "       \"ERR wrong number of arguments for 'get' command\", \"arity precedes NOAUTH\")"
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 126,
+    "text": "# server.c:3919, ahead of authRequired at :3963), so the unknown-subcommand error precedes NOAUTH."
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 129,
+    "text": "       \"ERR unknown subcommand 'x'. Try XGROUP HELP.\", \"XGROUP unknown subcommand precedes NOAUTH\")"
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 131,
+    "text": "       \"ERR wrong number of arguments for 'xgroup|create' command\","
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 132,
+    "text": "       \"known XGROUP child arity precedes NOAUTH\")"
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 141,
+    "text": "       \"NOAUTH HELLO must be called with the client already authenticated, otherwise the HELLO <proto> AUTH <user> <pass> option can be used to authenticate the client and select the RESP protocol version at the same time\","
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 148,
+    "text": "expect(unauth.command(\"PING\"), \"NOAUTH Authentication required.\","
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 171,
+    "text": "expect(unauth.command(\"PING\"), \"NOAUTH Authentication required.\", \"RESET deauthenticates\")"
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 189,
+    "text": "# the pre-dispatch NOAUTH gate; command syntax is intentionally irrelevant after arity validation."
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 190,
+    "text": "# Redis resolves command existence first: a container probed with the unknown subcommand 'x'"
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 191,
+    "text": "# answers that error ahead of NOAUTH (server.c:3817/3919), and a rejected EXEC carries the"
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 202,
+    "text": "        wanted = \"ERR unknown subcommand 'x'. Try %s HELP.\" % name.decode().upper()"
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 204,
+    "text": "        wanted = \"EXECABORT Transaction discarded because of: NOAUTH Authentication required.\""
+  },
+  {
+    "file": "tests/auth.py",
+    "line": 206,
+    "text": "        wanted = \"NOAUTH Authentication required.\""
+  },
+  {
+    "file": "tests/authfix.py",
+    "line": 111,
+    "text": "                    assert reply == b'PONG' or is_error(reply, 'NOAUTH'), reply"
+  },
+  {
+    "file": "tests/authfix.py",
+    "line": 173,
+    "text": "            self.check(label + ' NOAUTH before AUTH', c.cmd('PING'), lambda v: is_error(v, 'NOAUTH'))"
+  },
+  {
+    "file": "tests/authfix.py",
+    "line": 175,
+    "text": "                       lambda v: is_error(v, 'NOAUTH'))"
+  },
+  {
+    "file": "tests/authfix.py",
+    "line": 215,
+    "text": "                       lambda v: 'wrong number of arguments' in v)"
+  },
+  {
+    "file": "tests/authfix.py",
+    "line": 229,
+    "text": "            reason = 'bad directive or wrong number of arguments' if self.oracle and name in ("
+  },
+  {
+    "file": "tests/authfix.py",
+    "line": 230,
+    "text": "                'ratio', 'shard-home', 'place') else 'wrong number of arguments'"
+  },
+  {
+    "file": "tests/clientfix.py",
+    "line": 157,
+    "text": "        emit(case='tracking-cap', tracked=len(keys), invalidated=len(invalidated),"
+  },
+  {
+    "file": "tests/climon2.py",
+    "line": 220,
+    "text": "               \"ERR wrong number of arguments for 'client|no-touch' command\", \"NO-TOUCH arity\")"
+  },
+  {
+    "file": "tests/climon_128.py",
+    "line": 63,
+    "text": "            before = int(info(writer, 'STATS')['tracking_invalidations'])"
+  },
+  {
+    "file": "tests/climon_128.py",
+    "line": 81,
+    "text": "            require(int(info(writer, 'STATS')['tracking_invalidations']) >= before + 3,"
+  },
+  {
+    "file": "tests/climon_128.py",
+    "line": 82,
+    "text": "                    'tracking invalidation counter witnessed both arms and post-disarm delivery')"
+  },
+  {
+    "file": "tests/cmdgap.py",
+    "line": 112,
+    "text": "                   RespError(b\"ERR wrong number of arguments for '%s' command\" %"
+  },
+  {
+    "file": "tests/cmdgap2.py",
+    "line": 103,
+    "text": "        arity = RespError(b\"ERR wrong number of arguments for 'pfdebug' command\")"
+  },
+  {
+    "file": "tests/contarity.py",
+    "line": 167,
+    "text": "               RespError(b\"ERR wrong number of arguments for 'xgroup' command\"))"
+  },
+  {
+    "file": "tests/contarity.py",
+    "line": 169,
+    "text": "               RespError(b\"ERR unknown subcommand 'BOGUS'. Try XGROUP HELP.\"))"
+  },
+  {
+    "file": "tests/contarity.py",
+    "line": 172,
+    "text": "               RespError(b\"ERR wrong number of arguments for 'xgroup|create' command\"))"
+  },
+  {
+    "file": "tests/contarity.py",
+    "line": 175,
+    "text": "               RespError(b\"ERR wrong number of arguments for 'xgroup|help' command\"))"
+  },
+  {
+    "file": "tests/contarity.py",
+    "line": 178,
+    "text": "               RespError(b\"ERR wrong number of arguments for 'xinfo|help' command\"))"
+  },
+  {
+    "file": "tests/debug.py",
+    "line": 151,
+    "text": "       \"ERR unknown subcommand or wrong number of arguments for 'debug' command\","
+  },
+  {
+    "file": "tests/debug.py",
+    "line": 191,
+    "text": "while info_value(client, \"expired_keys\") == expired_before and time.monotonic() < deadline:"
+  },
+  {
+    "file": "tests/debug_load_test.py",
+    "line": 219,
+    "text": "        deadlines = [int(args[2]) for args in server.commands if args[:2] == (\"HPEXPIREAT\", \"mix\")]"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 187,
+    "text": "deadline_bounded_ttl_checks = 0"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 238,
+    "text": "    \"\"\"Deadlines from successful generated mutations, never inferred from TTL replies."
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 369,
+    "text": "def ttl_within_deadline(name, value, deadline, window):"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 388,
+    "text": "    deadline - remaining_TTL reconstructs a command-time cut. Its offset from"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 393,
+    "text": "    global deadline_bounded_ttl_checks"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 411,
+    "text": "    deadline_bounded_ttl_checks += 1"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 418,
+    "text": "            if value >= 0 and not ttl_within_deadline(name, value, deadline, window):"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 419,
+    "text": "                print(\"  TTL DEADLINE FAIL side=%s command=%r reply=%d deadline_ns=%r window_ns=%r\" %"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 1229,
+    "text": "    # Hash-field TTLs.  Every deadline is ABSOLUTE and either far in the future or definitively in"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 1526,
+    "text": "    # A non-numeric deadline is \"not an integer\"; an unrepresentable one is \"invalid expire time\"."
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 1527,
+    "text": "    for command, deadline in ((\"EXPIRE\", \"abc\"), (\"PEXPIRE\", \"abc\"), (\"EXPIREAT\", \"abc\"),"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 4829,
+    "text": "    deadlines = (TtlDeadlines(), TtlDeadlines())"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 4972,
+    "text": "    print(\"DIFFER wiredump: %d ops, %d diffs, %d deadline-bounded TTL checks -> %s\" %"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 4973,
+    "text": "          (checks, diffs, deadline_bounded_ttl_checks, \"PASS\" if diffs == 0 else \"FAIL\"))"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 4983,
+    "text": "# invalidation frames a tracking connection receives for an identical write script."
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 5077,
+    "text": "    # ---- invalidation stream. RESP3 tracking client + a writer, per side. --------------------"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 5875,
+    "text": "            if b\"has no permissions to run\" in target: fired[\"command_denials\"] += 1"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 6560,
+    "text": "    \"\"\"Admin, skip_monitor, command/key ACL denials, NOAUTH and binary quoting.\"\"\""
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 6581,
+    "text": "        ([\"GET\", \"ifmon:noauth\"], b\"-NOAUTH\", False),"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 6590,
+    "text": "                    if args[0] == \"CONFIG\" or reply not in (b\"-NOPERM\", b\"-NOAUTH\")]"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 6901,
+    "text": "ttl_deadlines = (TtlDeadlines(), TtlDeadlines())"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 6913,
+    "text": "        for state, reply, window in zip(ttl_deadlines, (a, b), (target_window, oracle_window)):"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 6915,
+    "text": "        if not replies_equal(command, a, b, ttl_deadlines, (target_window, oracle_window)):"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 6942,
+    "text": "        for state, reply, window in zip(ttl_deadlines, (a, b), (target_window, oracle_window)):"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 6955,
+    "text": "        if not replies_equal(o, a, b, ttl_deadlines, (target_window, oracle_window)):"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 7302,
+    "text": "print(\"DIFFER %s: %d ops, %d diffs, %d deadline-bounded TTL checks -> %s\" %"
+  },
+  {
+    "file": "tests/differ.py",
+    "line": 7303,
+    "text": "      (SUITE, len(ops), diffs, deadline_bounded_ttl_checks, \"PASS\" if diffs == 0 else \"FAIL\"))"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 41,
+    "text": "        self.enterContext(patch.object(self.differ, 'deadline_bounded_ttl_checks', 0))"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 49,
+    "text": "        states = (self.differ.TtlDeadlines(), self.differ.TtlDeadlines())"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 67,
+    "text": "        self.assertEqual(self.differ.deadline_bounded_ttl_checks, 2)"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 91,
+    "text": "        empty = (self.differ.TtlDeadlines(), self.differ.TtlDeadlines())"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 103,
+    "text": "                    self.assertTrue(self.differ.ttl_within_deadline(name, value, deadline,"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 105,
+    "text": "                    self.assertFalse(self.differ.ttl_within_deadline(name, value + 2, deadline,"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 109,
+    "text": "        self.assertFalse(self.differ.ttl_within_deadline('TTL', 98, deadline, self.window(1000, 0)))"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 110,
+    "text": "        self.assertFalse(self.differ.ttl_within_deadline('HTTL', 100, deadline, self.window(1000, 0)))"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 125,
+    "text": "        self.assertTrue(self.differ.ttl_within_deadline('PTTL', 0, zero, self.window(1000, 0)))"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 136,
+    "text": "        self.assertEqual(self.differ.deadline_bounded_ttl_checks, 0)"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 147,
+    "text": "        self.assertEqual(self.differ.deadline_bounded_ttl_checks, 0)"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 174,
+    "text": "        states = (self.differ.TtlDeadlines(), self.differ.TtlDeadlines())"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 418,
+    "text": "            self.assertIn('2 deadline-bounded TTL checks -> ' + ('FAIL' if wrong else 'PASS'), log.getvalue())"
+  },
+  {
+    "file": "tests/differ_test.py",
+    "line": 482,
+    "text": "            self.assertIn('deadline-bounded TTL checks -> ' + ('PASS' if passed else 'FAIL'), log.getvalue())"
+  },
+  {
+    "file": "tests/dumpttl.py",
+    "line": 115,
+    "text": "               client.cmd(\"HPEXPIREAT\", key, deadline, \"FIELDS\", len(names), *names),"
+  },
+  {
+    "file": "tests/dumpttl.py",
+    "line": 132,
+    "text": "    expect(\"TTL-free deadlines\", field_times(target, \"dt:none:rest\", \"a\", \"b\"), [-1, -1])"
+  },
+  {
+    "file": "tests/dumpttl.py",
+    "line": 143,
+    "text": "    expect(\"partial TTL exact deadlines\", field_times(target, \"dt:some:rest\", \"a\", \"b\", \"c\"),"
+  },
+  {
+    "file": "tests/dumpttl.py",
+    "line": 152,
+    "text": "    expect(\"all-TTL exact deadlines\", field_times(target, \"dt:all:rest\", \"x\", \"y\"), [far, far])"
+  },
+  {
+    "file": "tests/dumpttl.py",
+    "line": 173,
+    "text": "    expect(\"whole-key PEXPIREAT\", target.cmd(\"PEXPIREAT\", \"dt:keyttl\", key_deadline), 1)"
+  },
+  {
+    "file": "tests/dumpttl.py",
+    "line": 177,
+    "text": "           target.cmd(\"RESTORE\", \"dt:keyttl:rest\", key_deadline, after_key_ttl, \"ABSTTL\"), b\"OK\")"
+  },
+  {
+    "file": "tests/dumpttl.py",
+    "line": 179,
+    "text": "           target.cmd(\"PEXPIRETIME\", \"dt:keyttl:rest\"), key_deadline)"
+  },
+  {
+    "file": "tests/edgeenc.py",
+    "line": 315,
+    "text": "# A TTL changes the KvObj's positional layout, so crossing the line WITH a deadline exercises"
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 243,
+    "text": "    expect(c, [\"PFADD\"], b\"-ERR wrong number of arguments for 'pfadd' command\\r\\n\")"
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 244,
+    "text": "    expect(c, [\"GEOPOS\"], b\"-ERR wrong number of arguments for 'geopos' command\\r\\n\")"
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 245,
+    "text": "    expect(c, [\"GEOHASH\"], b\"-ERR wrong number of arguments for 'geohash' command\\r\\n\")"
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 247,
+    "text": "    # HSET's odd-pair message was truncated to \"ERR wrong number of arguments\"."
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 249,
+    "text": "           b\"-ERR wrong number of arguments for 'hset' command\\r\\n\")"
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 251,
+    "text": "           b\"-ERR wrong number of arguments for 'hmset' command\\r\\n\")"
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 263,
+    "text": "        expect(c, argv, b\"-ERR wrong number of arguments for 'xgroup|%s' command\\r\\n\""
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 269,
+    "text": "        expect(c, argv, b\"-ERR wrong number of arguments for 'xinfo|%s' command\\r\\n\""
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 273,
+    "text": "    expect(c, [\"XINFO\", \"NOPE\", \"ep:x\"], b\"-ERR unknown subcommand 'NOPE'. Try XINFO HELP.\\r\\n\")"
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 275,
+    "text": "           b\"-ERR unknown subcommand 'NOPE'. Try XINFO HELP.\\r\\n\")"
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 277,
+    "text": "           b\"-ERR unknown subcommand 'NOPE'. Try XGROUP HELP.\\r\\n\")"
+  },
+  {
+    "file": "tests/edgeproto.py",
+    "line": 458,
+    "text": "    expect(c, [\"GET\"], b\"-ERR wrong number of arguments for 'get' command\\r\\n\")"
+  },
+  {
+    "file": "tests/edgetime.py",
+    "line": 172,
+    "text": "    for command, deadline in ((\"EXPIRE\", \"2592000\"), (\"PEXPIRE\", \"2592000000\"),"
+  },
+  {
+    "file": "tests/edgetime.py",
+    "line": 267,
+    "text": "    check(\"SET KEEPTTL exact deadline\", conn.cmd(\"PEXPIRETIME\", \"keep\"), future_ms)"
+  },
+  {
+    "file": "tests/edgetime.py",
+    "line": 398,
+    "text": "def arm_before_deadline(conn, observer, key, ttl_ms, commands, expected, queued=False):"
+  },
+  {
+    "file": "tests/edgetime.py",
+    "line": 458,
+    "text": "        # A key that was ALREADY past its deadline when WATCH armed is redis's `wk->expired`: its"
+  },
+  {
+    "file": "tests/edgetime.py",
+    "line": 532,
+    "text": "    check(\"whole-key deadline setup\", conn.cmd(\"PEXPIREAT\", \"hwhole\", str(future + 5000)), 1)"
+  },
+  {
+    "file": "tests/edgetime.py",
+    "line": 713,
+    "text": "            conn.cmd(\"PEXPIREAT\", key, str(deadline))"
+  },
+  {
+    "file": "tests/edgetime.py",
+    "line": 730,
+    "text": "            conn.cmd(\"PEXPIREAT\", key, str(deadline))"
+  },
+  {
+    "file": "tests/edgetime.py",
+    "line": 762,
+    "text": "    The control is the same shape without deadlines: TTL-free keys spread over the same owners must"
+  },
+  {
+    "file": "tests/edgetime.py",
+    "line": 825,
+    "text": "        (\"future deadline\", conn.cmd(\"PEXPIRETIME\", \"persist:future\"), future),"
+  },
+  {
+    "file": "tests/edgetime.py",
+    "line": 828,
+    "text": "        (\"field deadline\", conn.cmd(\"HPEXPIRETIME\", \"persist:hash\", \"FIELDS\", \"2\", \"a\", \"b\"),"
+  },
+  {
+    "file": "tests/expire_notify.py",
+    "line": 46,
+    "text": "        sub.send('SUBSCRIBE', '__keyevent@0__:expired', '__keyevent@0__:keymiss')"
+  },
+  {
+    "file": "tests/expire_notify.py",
+    "line": 56,
+    "text": "                assert c.cmd('PEXPIREAT', kb, deadline) == 1"
+  },
+  {
+    "file": "tests/expire_notify.py",
+    "line": 114,
+    "text": "        deadline = c.cmd('PEXPIRETIME', positive)"
+  },
+  {
+    "file": "tests/expire_notify_unit.cc",
+    "line": 36,
+    "text": "            \"reservation-only physical expiry emits expired then keymiss\");"
+  },
+  {
+    "file": "tests/expwide.py",
+    "line": 197,
+    "text": "    PEXPIREAT with a deadline already in the past deletes the key on the spot on both servers, so"
+  },
+  {
+    "file": "tests/expwide.py",
+    "line": 209,
+    "text": "    conn.pipeline([(\"PEXPIREAT\", k, str(deadline)) for k in deadline_keys])"
+  },
+  {
+    "file": "tests/expwide.py",
+    "line": 493,
+    "text": "    # deadline set inside a transaction is measured from the same instant, so a PTTL read after a"
+  },
+  {
+    "file": "tests/expwide.py",
+    "line": 597,
+    "text": "    proves every PEXPIREAT ran before the deadline and none could take the \"deadline already past"
+  },
+  {
+    "file": "tests/expwide.py",
+    "line": 647,
+    "text": "                sets + b\"\".join(encode(\"PEXPIREAT\", k, str(deadline)) for k in keys))"
+  },
+  {
+    "file": "tests/flip_ttl.py",
+    "line": 211,
+    "text": "            print(\"INVALID TTL/FLIP cohort: live read crossed the deadline\", flush=True)"
+  },
+  {
+    "file": "tests/gate_history.py",
+    "line": 716,
+    "text": "        \"deadline\": deadline, \"expired_at\": time.monotonic(), \"descendants\": owned})"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 203,
+    "text": "          b\"-ERR wrong number of arguments for 'hexpire' command\\r\\n\")"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 205,
+    "text": "          b\"-ERR wrong number of arguments for 'httl' command\\r\\n\")"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 281,
+    "text": "    check(\"set absolute deadline\", c.cmd(\"HPEXPIREAT\", \"k\", str(deadline), \"FIELDS\", \"1\", \"a\"), [1])"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 282,
+    "text": "    check(\"HPEXPIRETIME is exact\", c.cmd(\"HPEXPIRETIME\", \"k\", \"FIELDS\", \"1\", \"a\"), [deadline])"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 346,
+    "text": "    check(\"past deadline deletes\", c.cmd(\"HEXPIREAT\", \"k\", \"1\", \"FIELDS\", \"2\", \"a\", \"b\"), [2, 2])"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 348,
+    "text": "    check(\"past deadline on a missing field\", c.cmd(\"HEXPIREAT\", \"k\", \"1\", \"FIELDS\", \"1\", \"zz\"),"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 356,
+    "text": "    check(\"deadline == now deletes\", c.cmd(\"HPEXPIREAT\", \"e\", str(now), \"FIELDS\", \"1\", \"f\"), [2])"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 416,
+    "text": "               \"hash_field_expires is 0 with a live field deadline\")"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 472,
+    "text": "    check(\"future deadline survives the cycle\", info_counter(c, \"expired_hash_fields\"), settled)"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 486,
+    "text": "    check(\"first deadline on a small hash\", c.cmd(\"HEXPIRE\", \"small\", \"100\", \"FIELDS\", \"1\", \"f\"),"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 489,
+    "text": "    check(\"deadline readable\", c.cmd(\"HTTL\", \"small\", \"FIELDS\", \"1\", \"f\"), [100])"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 515,
+    "text": "    check(\"binary field deadline\", c.cmd(\"HPEXPIREAT\", \"bin\", str(far), \"FIELDS\", \"2\","
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 520,
+    "text": "    check(\"empty field keeps its deadline\", c.cmd(\"HPEXPIRETIME\", \"bin\", \"FIELDS\", \"1\", \"\"), [far])"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 554,
+    "text": "    check(\"source deadline untouched\", c.cmd(\"HPEXPIRETIME\", \"src\", \"FIELDS\", \"1\", \"a\"), [far])"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 586,
+    "text": "               \"a reloaded field deadline left hash_field_expires at 0\")"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 618,
+    "text": "    check(\"build: small deadline\", c.cmd(\"HPEXPIRETIME\", \"p:small\", \"FIELDS\", \"2\", \"a\", \"b\"),"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 624,
+    "text": "    check(\"restart: small deadline\", c.cmd(\"HPEXPIRETIME\", \"p:small\", \"FIELDS\", \"2\", \"a\", \"b\"),"
+  },
+  {
+    "file": "tests/hexpire.py",
+    "line": 633,
+    "text": "               \"hash_field_expires is 0 after a restart that restored field deadlines\")"
+  },
+  {
+    "file": "tests/hexpire_oom_checks.inc",
+    "line": 73,
+    "text": "    check(f.ttl(f.first) == (partial || success ? deadline : HashFieldTtl::kNone) &&"
+  },
+  {
+    "file": "tests/hexpire_oom_checks.inc",
+    "line": 74,
+    "text": "          f.ttl(f.second) == (success ? deadline : HashFieldTtl::kNone),"
+  },
+  {
+    "file": "tests/hexpire_oom_checks.inc",
+    "line": 127,
+    "text": "    check(f.ttl(f.first) == (fail ? deadline : HashFieldTtl::kNone) &&"
+  },
+  {
+    "file": "tests/hexpire_oom_checks.inc",
+    "line": 128,
+    "text": "          f.ttl(f.second) == (fail ? deadline : HashFieldTtl::kNone),"
+  },
+  {
+    "file": "tests/hexpire_persist.sh",
+    "line": 51,
+    "text": "DEADLINE=$(python3 \"$ROOT/tests/hexpire.py\" 127.0.0.1 \"$PORT\" persistbuild | sed -n 's/^PERSIST_DEADLINE=//p')"
+  },
+  {
+    "file": "tests/hexpire_persist.sh",
+    "line": 62,
+    "text": "DEADLINE=$(python3 \"$ROOT/tests/hexpire.py\" 127.0.0.1 \"$PORT\" persistbuild | sed -n 's/^PERSIST_DEADLINE=//p')"
+  },
+  {
+    "file": "tests/hexpread.py",
+    "line": 131,
+    "text": "        assert admin.cmd('HPEXPIREAT', a, deadline, 'FIELDS', 1, 'f') == [1]"
+  },
+  {
+    "file": "tests/hexpread.py",
+    "line": 133,
+    "text": "            assert admin.cmd('HPEXPIREAT', b, deadline, 'FIELDS', 1, 'f') == [1]"
+  },
+  {
+    "file": "tests/infofields_test.py",
+    "line": 128,
+    "text": "            self.assertFalse(args[0] != \"CONFIG\" and reply in (b\"-NOPERM\", b\"-NOAUTH\"))"
+  },
+  {
+    "file": "tests/infofields_test.py",
+    "line": 138,
+    "text": "            for error in (b\"-NOPERM\", b\"-NOAUTH\"):"
+  },
+  {
+    "file": "tests/infofix.py",
+    "line": 135,
+    "text": "    while avg_ttl == 0 and time.monotonic() < deadline:"
+  },
+  {
+    "file": "tests/kvobj_header_unit.cc",
+    "line": 17,
+    "text": "                    uint32_t length, bool ttl, uint8_t flags, int64_t deadline) {"
+  },
+  {
+    "file": "tests/kvobj_header_unit.cc",
+    "line": 30,
+    "text": "    require(object->has_ttl_slot() == ttl && object->expire_at_ms() == deadline,"
+  },
+  {
+    "file": "tests/kvobj_header_unit.cc",
+    "line": 31,
+    "text": "            site, \"TTL slot and deadline round trip\");"
+  },
+  {
+    "file": "tests/kvobj_header_unit.cc",
+    "line": 55,
+    "text": "                const bool ttl = reserved || deadline >= 0;"
+  },
+  {
+    "file": "tests/kvobj_header_unit.cc",
+    "line": 60,
+    "text": "                    compare(\"raw\", o, key, Type::String, Enc::Raw, value.n, ttl, 0, deadline);"
+  },
+  {
+    "file": "tests/kvobj_header_unit.cc",
+    "line": 66,
+    "text": "                    compare(\"int\", o, key, Type::String, Enc::Int, 0, ttl, 0, deadline);"
+  },
+  {
+    "file": "tests/kvobj_header_unit.cc",
+    "line": 91,
+    "text": "                        compare(\"embedded\", o, key, type, Enc::Compact, length, ttl, 0, deadline);"
+  },
+  {
+    "file": "tests/l4prebuild_unit.cc",
+    "line": 209,
+    "text": "            out.ttl = f.server.shard(sid).store().deadline(op.hash, object);"
+  },
+  {
+    "file": "tests/lcs.py",
+    "line": 187,
+    "text": "          err(\"ERR wrong number of arguments for 'lcs' command\"))"
+  },
+  {
+    "file": "tests/loading_ready_test.py",
+    "line": 54,
+    "text": "        conn = self.conn(_lib.RespError(b'NOAUTH Authentication required.'))"
+  },
+  {
+    "file": "tests/loading_ready_test.py",
+    "line": 56,
+    "text": "            with self.assertRaisesRegex(AssertionError, 'NOAUTH'):"
+  },
+  {
+    "file": "tests/loading_ready_test.py",
+    "line": 135,
+    "text": "                      _lib.RespError(b'LOADING'), _lib.RespError(b'NOAUTH no')):"
+  },
+  {
+    "file": "tests/mdbqsbr_live.py",
+    "line": 146,
+    "text": "        raise AssertionError('clean shutdown deadline expired') from exc"
+  },
+  {
+    "file": "tests/mdbqsbr_unit.cc",
+    "line": 229,
+    "text": "    DatabaseMapTest::expire_deadline(map); // no wall-clock sleep in this unit"
+  },
+  {
+    "file": "tests/multidb_unit.cc",
+    "line": 69,
+    "text": "                    \"prebuilt TTL replacement retains Extern encoding and deadline\");"
+  },
+  {
+    "file": "tests/multidb_unit.cc",
+    "line": 74,
+    "text": "            const int64_t ttl = deadline < 0 ? -1 : deadline - 1000;"
+  },
+  {
+    "file": "tests/mutants.py",
+    "line": 424,
+    "text": "        return 'ERROR', 'row deadline expired; no mechanism verdict'"
+  },
+  {
+    "file": "tests/mutants.py",
+    "line": 637,
+    "text": "                report['reason'] = 'battery deadline expired'"
+  },
+  {
+    "file": "tests/netcap.py",
+    "line": 82,
+    "text": "        # Only the observer sends AUTH; the victim must witness NOAUTH before the attack."
+  },
+  {
+    "file": "tests/netcap.py",
+    "line": 86,
+    "text": "        require(victim.cmd(\"PING\") == _lib.RespError(b\"NOAUTH Authentication required.\"),"
+  },
+  {
+    "file": "tests/netcmd.py",
+    "line": 88,
+    "text": "            require(t.read() == [b\"invalidate\", None], \"completed flush invalidated tracking client\")"
+  },
+  {
+    "file": "tests/netcmd_unit.cc",
+    "line": 146,
+    "text": "              \"completed flush invalidates foreign tracking IO\");"
+  },
+  {
+    "file": "tests/netcmd_unit.cc",
+    "line": 717,
+    "text": "                              \"each evicted key invalidates every tracking owner exactly once\");"
+  },
+  {
+    "file": "tests/notify.py",
+    "line": 288,
+    "text": "    for command, deadline in ((\"EXPIRE\", \"100\"), (\"PEXPIRE\", \"100000\"),"
+  },
+  {
+    "file": "tests/notify.py",
+    "line": 293,
+    "text": "        expect_e(\"g\", (command, key, deadline), [(\"expire\", key)], command)"
+  },
+  {
+    "file": "tests/notify.py",
+    "line": 486,
+    "text": "            # Redis keyIsExpired(): the key is still live at now == deadline (<= after_arm + 20)."
+  },
+  {
+    "file": "tests/notify_order.py",
+    "line": 191,
+    "text": "        return ('MGET', *args), [None]*3 + [b'live'] + [None]*5, [(ev, k) for k in expired for ev in ('expired', 'keymiss')], 8"
+  },
+  {
+    "file": "tests/notify_order.py",
+    "line": 228,
+    "text": "                    deadline = peer.driver.cmd('HPEXPIRETIME', key, 'FIELDS', 1, 'f')[0]"
+  },
+  {
+    "file": "tests/notify_order.py",
+    "line": 232,
+    "text": "                    deadline = peer.driver.cmd('PEXPIRETIME', key)"
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 3,
+    "text": "NT-new-7: the exact key deadline is still live (Redis keyIsExpired() is now > deadline)."
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 132,
+    "text": "    key once now > deadline, so at now == deadline it is still served and PTTL answers 0."
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 133,
+    "text": "    Setting an already-reached deadline still deletes (checkAlreadyExpired: when <= now)."
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 152,
+    "text": "        require(c.must(\"PEXPIREAT\", \"nt7:exp\", deadline) == 1, \"future PEXPIREAT\")"
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 156,
+    "text": "        note(\"PTTL at deadline\", c.must(\"PTTL\", \"nt7:abs\"), 0)"
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 157,
+    "text": "        note(\"TTL at deadline\", c.must(\"TTL\", \"nt7:abs\"), 0)"
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 158,
+    "text": "        note(\"PEXPIRETIME at deadline\", c.must(\"PEXPIRETIME\", \"nt7:abs\"), deadline)"
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 168,
+    "text": "        note(\"relative PX at deadline\", c.must(\"PTTL\", \"nt7:rel\"), 0)"
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 169,
+    "text": "        note(\"PEXPIREAT deadline reached\", c.must(\"PTTL\", \"nt7:exp\"), 0)"
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 181,
+    "text": "        note(\"PEXPIREAT now deletes\", [c.must(\"PEXPIREAT\", \"nt7:px\", deadline),"
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 188,
+    "text": "        note(\"PTTL past deadline\", c.must(\"PTTL\", \"nt7:abs\"), -2)"
+  },
+  {
+    "file": "tests/ntnew4_clock.py",
+    "line": 281,
+    "text": "            (\"PTTL\", \"GET expired key\", \"EXISTS expired key\", \"HPEXPIREAT past deadline\"),"
+  },
+  {
+    "file": "tests/objectpread.py",
+    "line": 37,
+    "text": "            assert c.cmd('PEXPIREAT', b, deadline) == 1"
+  },
+  {
+    "file": "tests/perfex_checks.py",
+    "line": 234,
+    "text": "            require(pttl == deadlines[0] - now, f\"frozen realtime window did not open: {pttl}\")"
+  },
+  {
+    "file": "tests/pubsub.py",
+    "line": 327,
+    "text": "    expect(str(shardnumpat), \"ERR unknown subcommand 'SHARDNUMPAT'. Try PUBSUB HELP.\","
+  },
+  {
+    "file": "tests/pubsub.py",
+    "line": 330,
+    "text": "           \"ERR wrong number of arguments for 'pubsub|numpat' command\", \"PUBSUB NUMPAT arity\")"
+  },
+  {
+    "file": "tests/pubsub.py",
+    "line": 332,
+    "text": "           \"ERR unknown subcommand or wrong number of arguments for 'CHANNELS'. Try PUBSUB HELP.\","
+  },
+  {
+    "file": "tests/pushtear.py",
+    "line": 24,
+    "text": "  x producer               (pub/sub, tracking invalidation, MONITOR)"
+  },
+  {
+    "file": "tests/pushtear.py",
+    "line": 405,
+    "text": "    if after.get(\"tracking_invalidations\", 0) == before.get(\"tracking_invalidations\", 0):"
+  },
+  {
+    "file": "tests/pushtear.py",
+    "line": 415,
+    "text": "        after.get(\"tracking_invalidations\", 0) - before.get(\"tracking_invalidations\", 0),"
+  },
+  {
+    "file": "tests/pushtear.py",
+    "line": 427,
+    "text": "    Oracle-free check: `tracking_invalidations` counts frames PRODUCED. Count the frames actually"
+  },
+  {
+    "file": "tests/pushtear.py",
+    "line": 469,
+    "text": "        produced = after.get(\"tracking_invalidations\", 0) - before.get(\"tracking_invalidations\", 0)"
+  },
+  {
+    "file": "tests/rehash_waits_unit.cc",
+    "line": 317,
+    "text": "        require(hash_value->ttls->set(Slice(\"f\"), 200), \"expired field deadline\");"
+  },
+  {
+    "file": "tests/respcompat.py",
+    "line": 154,
+    "text": "    noauth = b\"-NOAUTH Authentication required.\\r\\n\""
+  },
+  {
+    "file": "tests/respresume.py",
+    "line": 175,
+    "text": "            assert reply == RespError(\"ERR wrong number of arguments for 'ping' command\"), reply"
+  },
+  {
+    "file": "tests/respresume.py",
+    "line": 217,
+    "text": "                assert a.read() == RespError(\"ERR wrong number of arguments for 'ping' command\")"
+  },
+  {
+    "file": "tests/respresume_flip.py",
+    "line": 85,
+    "text": "            assert b.read() == RespError(b\"ERR wrong number of arguments for 'ping' command\")"
+  },
+  {
+    "file": "tests/rltopo_unit.cc",
+    "line": 209,
+    "text": "        // Fixture now is 1000; a key is expired only once now > deadline (Redis keyIsExpired)."
+  },
+  {
+    "file": "tests/rltopo_unit.cc",
+    "line": 210,
+    "text": "        const int64_t deadline = state == \"expired\" ? 999 : state == \"ttl-live\" ? 1001 : -1;"
+  },
+  {
+    "file": "tests/scriptsurf.py",
+    "line": 255,
+    "text": "    shape(c, \"SCRIPT unknown subcommand\", \"SCRIPT\", \"NOPE\")"
+  },
+  {
+    "file": "tests/scriptsurf.py",
+    "line": 511,
+    "text": "    shape(c, \"FUNCTION unknown subcommand\", \"FUNCTION\", \"NOPE\")"
+  },
+  {
+    "file": "tests/servertail.py",
+    "line": 147,
+    "text": "    check(\"TIME arity\", c.cmd(\"TIME\", \"EXTRA\"), err_prefix(\"ERR wrong number of arguments\"))"
+  },
+  {
+    "file": "tests/servertail.py",
+    "line": 302,
+    "text": "          err(\"ERR unknown subcommand 'BOGUS'. Try OBJECT HELP.\"))"
+  },
+  {
+    "file": "tests/servertail.py",
+    "line": 304,
+    "text": "          err(\"ERR wrong number of arguments for 'object|encoding' command\"))"
+  },
+  {
+    "file": "tests/servertail.py",
+    "line": 342,
+    "text": "          err(\"ERR unknown subcommand 'BOGUS'. Try MEMORY HELP.\"))"
+  },
+  {
+    "file": "tests/slowlog.py",
+    "line": 243,
+    "text": "          err(\"ERR unknown subcommand 'BOGUS'. Try SLOWLOG HELP.\"))"
+  },
+  {
+    "file": "tests/slowlog.py",
+    "line": 292,
+    "text": "          err(\"ERR unknown subcommand 'BOGUS'. Try LATENCY HELP.\"))"
+  },
+  {
+    "file": "tests/store_regression.cc",
+    "line": 413,
+    "text": "    require(value->ttls->set(slice(std::string(\"f\")), 200), \"hash field deadline installed\");"
+  },
+  {
+    "file": "tests/store_regression.cc",
+    "line": 424,
+    "text": "        require(s.field_expire_count() == 0, \"destination has never registered a field deadline\");"
+  },
+  {
+    "file": "tests/store_regression.cc",
+    "line": 477,
+    "text": "    require(o && s.deadline(hash(\"ttl-0\"), o) == 400, \"inline deadline survives index allocation failure\");"
+  },
+  {
+    "file": "tests/store_regression.cc",
+    "line": 479,
+    "text": "    require(s.find(hash(\"ttl-0\"), slice(std::string(\"ttl-0\"))) == nullptr, \"extended deadline still expires\");"
+  },
+  {
+    "file": "tests/storesize_unit.cc",
+    "line": 268,
+    "text": "            \"-ERR wrong number of arguments for 'dbsize' command\\r\\n\", \"DBSIZE advertised arity\");"
+  },
+  {
+    "file": "tests/tracking.py",
+    "line": 8,
+    "text": "the socket and requires emptiness. The tracking_invalidations counter is asserted"
+  },
+  {
+    "file": "tests/tracking.py",
+    "line": 190,
+    "text": "    invalidations_before = stats()[\"tracking_invalidations\"]"
+  },
+  {
+    "file": "tests/tracking.py",
+    "line": 319,
+    "text": "        expect(writer.command(\"PEXPIRE\", expiry_key, \"400\"), 1, \"expiry deadline arm\")"
+  },
+  {
+    "file": "tests/tracking.py",
+    "line": 550,
+    "text": "    invalidations_after = stats()[\"tracking_invalidations\"]"
+  },
+  {
+    "file": "tests/tracking.py",
+    "line": 552,
+    "text": "        \"tracking_invalidations never moved -- the battery proved nothing\""
+  },
+  {
+    "file": "tests/tracking.py",
+    "line": 560,
+    "text": "    quiet = stats()[\"tracking_invalidations\"]"
+  },
+  {
+    "file": "tests/tracking.py",
+    "line": 563,
+    "text": "    assert stats()[\"tracking_invalidations\"] == quiet, \\"
+  },
+  {
+    "file": "tests/tracking.py",
+    "line": 564,
+    "text": "        \"an invalidation fired with tracking fully off\""
+  },
+  {
+    "file": "tests/tracking.py",
+    "line": 567,
+    "text": "    print(f\"tracking: ok ({checks} checks, tracking_invalidations=\""
+  }
+]

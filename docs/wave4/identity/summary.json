@@ -1,0 +1,37 @@
+{
+  "function_groups": 8649,
+  "unchanged": 7928,
+  "changed": 721,
+  "lane_equal": 606,
+  "residual": 115,
+  "hot_groups": 12,
+  "hot_headline": 6,
+  "hot_lane": 6,
+  "hot_residual": [],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bench-bins/tomokv-headline-8656f9fa9",
+      "sha256": "fa4d345732d4d7a0b051e9df9b1c9ae4f3a55411b651eeeeb8ee41c88b693cf0"
+    },
+    "compat2": {
+      "path": "/home/user/Projects/bins/compat2b-d611f499",
+      "sha256": "d611f49909f254fa94e9096283c5ec4921593e8de24b549453e884c0a8a5b8c0"
+    },
+    "moverfix": {
+      "path": "/home/user/Projects/bins/moverfix-post-82a44439",
+      "sha256": "82a44439ba38a5c27ea0c9962fcd02b51f3ae405fbf0d734f3eb327f1c75848f"
+    },
+    "clockcut": {
+      "path": "/home/user/Projects/bins/clockcut-post-bc0f6361",
+      "sha256": "bc0f63619139fdee1b08f7fb3a3e2a47648f2d2f49b5379c9b24f4339ba1fa76"
+    },
+    "notifyorder": {
+      "path": "/home/user/Projects/bins/notifyorder-post-704b8fd4",
+      "sha256": "704b8fd4a5362a096269764df7cc546f87676df33c9aca0aff40c5382c4a8e7c"
+    }
+  },
+  "post": {
+    "path": "/home/user/Projects/cx-wave4/build/tomokv",
+    "sha256": "32632fdbba1ae0327333dea6b3309f062e820b65f74452e6b58d1ea0229724e7"
+  }
+}
