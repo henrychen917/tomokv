@@ -1408,9 +1408,10 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
         unique = storage.data();
         count = storage.size();
     }
-    // Reservation/snapshot checks precede every physical install, so Retry never leaves half of a
-    // command installed merely because another EXEC still owns a watched key.
-    for (size_t i = 0; i < count; ++i) {
+    // Multi-key handlers must preflight every key before the first install.
+    // For one key, prepare_write_key already performs these checks before its
+    // only install, including the ordering falsifiers and snapshot retry.
+    for (size_t i = 0; count > 1 && i < count; ++i) {
         const uint32_t arg = unique[i];
         const Slice key = command.op->arg(arg);
         if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, true) ||

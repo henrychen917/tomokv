@@ -19,7 +19,8 @@ import time
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / 'docs/txnorder2/runtime'
-DATA = ROOT / 'build/txnorder2/runtime-data-wake'
+RUN_ID = os.environ.get('TXNORDER_RUN_ID', 'resume')
+DATA = ROOT / ('build/txnorder2/runtime-data-' + RUN_ID)
 PRE = ROOT / 'build/txnorder2/pre-source/build/tomokv'
 POST = ROOT / 'build/txnorder2/post/tomokv'
 
@@ -35,13 +36,12 @@ def transform(value):
     if re.fullmatch(r'226\d\d', value): value = str(int(value) + 5200)
     value = value.replace(str(ROOT / 'build/txnorder/pre/tomokv'), str(PRE))
     value = value.replace(str(ROOT / 'build/tomokv'), str(POST))
-    value = value.replace('docs/txnorder/runtime-', 'docs/txnorder2/runtime/legacy-wake-')
-    value = value.replace('build/txnorder/runtime-', 'build/txnorder2/runtime-data-wake/legacy-')
+    value = value.replace('docs/txnorder/runtime-', 'docs/txnorder2/runtime/legacy-' + RUN_ID + '-')
+    value = value.replace('build/txnorder/runtime-', 'build/txnorder2/runtime-data-' + RUN_ID + '/legacy-')
     if value.endswith('pre-armed-server'): value = str(DATA / 'pre-armed-server')
     if value.endswith('post-armed-server'): value = str(DATA / 'post-armed-server')
     if '/proof-drivers/watchlive-' in value:
         value = str(DATA / Path(value).name)
-    if value == '/home/user/Projects/redis74': value = '/home/user/Projects/redis'
     return value
 
 def stop(process):
@@ -103,7 +103,9 @@ def run(index, original, suffix):
         if 'tests/watchlive_gate.sh' in command: command[6]='10'
         for arg in command:
             if arg.endswith('.json') and str(ROOT) in arg: Path(arg).parent.mkdir(parents=True,exist_ok=True)
-        env=dict(os.environ,TXNFIX_PORT_RANGE='27800-27899',PYTHONUNBUFFERED='1')
+        env=dict(os.environ,TXNFIX_PORT_RANGE='27800-27899',PYTHONUNBUFFERED='1',
+                 GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',
+                 GATE_DIFFER_REDIS_CLI='/home/user/Projects/redis/src/redis-cli')
         env.update(row.get('env',{}))
         if 'tests/watchlive_gate.sh' in command: env['WATCHLIVE_OUT']=str(out/'boots')
         if 'server' in row:
