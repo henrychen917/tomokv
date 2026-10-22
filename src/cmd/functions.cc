@@ -695,12 +695,8 @@ void cmd_fcall(Shard& shard, Op& op) {
         return;
     }
 
-    // A scatter callback executes on a private workbench with the coordinator's
-    // shard id. Admission must inspect that real owner shard, not the uncapped copy.
-    FlatStore& admission = shard.server()
-        ? shard.server()->shard(shard.id()).store() : shard.store();
     if (!(flags & (kFlagAllowOom | kFlagNoWrites)) &&
-        !admission.budget_admit(key_count ? op.arg(key_first) : Slice{})) {
+        !FunctionMemoryScope::admit(shard, key_count ? op.arg(key_first) : Slice{})) {
         lua_settop(state, 0);
         reply_maxmemory_oom(op);
         return;

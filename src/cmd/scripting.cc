@@ -1135,6 +1135,14 @@ int script_pcall_library(lua_State* state) {
     return status;
 }
 
+bool FunctionMemoryScope::admit(Shard& shard, Slice protected_key) {
+    // A scatter callback runs on a private workbench with the coordinator's shard
+    // id. Inspect the real owner shard rather than the uncapped private copy.
+    FlatStore& admission = shard.server()
+        ? shard.server()->shard(shard.id()).store() : shard.store();
+    return admission.budget_admit(protected_key);
+}
+
 FunctionMemoryScope::FunctionMemoryScope(FlatStore& store, bool admitted)
     : store_(admitted ? &store : nullptr) {
     if (store_) previous_ = store_->script_exchange_memory_limit(UINT64_MAX);

@@ -65,6 +65,7 @@ void script_execute(Shard& shard, Op& op, const ScriptInvocation& call);
 // completed writes to the owner-side scatter APPLY. Never bypass allocator failures.
 class FunctionMemoryScope {
 public:
+    static bool admit(Shard& shard, Slice protected_key);
     explicit FunctionMemoryScope(FlatStore& store, bool admitted);
     ~FunctionMemoryScope();
     FunctionMemoryScope(const FunctionMemoryScope&) = delete;

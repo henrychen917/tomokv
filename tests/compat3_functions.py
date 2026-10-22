@@ -27,8 +27,8 @@ def libraries(reply):
 def probe(c, case):
     equal(c.cmd("FUNCTION", "FLUSH"), b"OK", "fresh registry")
     if case == "glob":
-        for name in ("cc4lib", "cc4alt", "CC4lib", "other"):
-            source = f"#!lua name={name}\nredis.register_function(\"{name}_fn\", function() return 1 end)"
+        for index, name in enumerate(("cc4lib", "cc4alt", "CC4lib", "other")):
+            source = f"#!lua name={name}\nredis.register_function(\"libfn{index}\", function() return 1 end)"
             equal(c.cmd("FUNCTION", "LOAD", source), name.encode(), "library load")
         patterns = ("cc4lib", "cc4*", "*", "cc4???", "[cC][cC]4lib", "[^o]*", "none*", "", "cc4\\lib", "cc4*\x00tail")
         return {str((pattern, code)): libraries(c.cmd("FUNCTION", "LIST", "LIBRARYNAME", pattern,
