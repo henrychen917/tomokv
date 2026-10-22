@@ -51,3 +51,27 @@ The default-acceptance proof is not a claim of full TLS configuration parity:
 optional key-password/client-identity/DH/cache controls and live TLS reload from
 NT4.7(b/c) remain absent. Cluster/replication stay outside the architecture.
 Evidence: docs/netfix/evidence/{pre,post}-tls/. DQ +1 / DF +1.
+
+NT4.19: periodic owner cron applies Redis's 4 KiB spare, >2 second idle,
+32 KiB active-query threshold, half-capacity peak comparison and five-second
+output-peak window. Existing cursors and capacity growth provide conservative
+peak samples without request-path peak stores. Input retains the established
+16 KiB floor; two 512-byte inline outputs provide the 1 KiB floor. Output shrinking retains max(inline floor, recent peak + 1), including
+active clients. Only empty outputs shrink, under ROB/send/TLS-pointer fences. io_uring cancels a pinned
+recv and waits for the ORIGINAL recv CQE before moving input. Migration and
+close retire owner-local peak records. Freed jemalloc pages are purged on the
+cold beat, coalesced across owners, so silent clients do not depend on later
+allocation traffic to drive decay. Existing layout locks still compile.
+
+The 10,000-client matrix passed TCP and TLS on both modes and both engines.
+Every client stays silent during the idle interval, then must answer PING.
+POST resident memory settled 9–12 MiB above the warmed baseline, after peaks
+of roughly 2–3 GiB; PRE retains burst input on all eight legs. The oracle also
+passes. The RSS bound is baseline + max(32 MiB, 5%); the test performs no
+MEMORY PURGE and changes no allocator settings. Additional stream-preservation
+and PAD-A negative-control runs are recorded separately below when complete.
+Evidence: docs/netfix/evidence/{pre,post}-idle/. DQ +1 / DF +1.
+
+All five rows are collected at tests/gate.sh's netcap block, before the quick
+exit: total DQ +5 / DF +5. Proposed EXPECT_QUICK=690, EXPECT_FULL=707.
+Neither constant was edited.

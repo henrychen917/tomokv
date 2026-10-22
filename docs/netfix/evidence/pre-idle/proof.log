@@ -1,0 +1,81 @@
+PASS oracle-oracle-tcp {'clients': 10000, 'baseline': 124235776, 'burst_peak': 1355845632, 'grown': 0, 'idle_rss': 60829696, 'ceiling': 157790208, 'samples': [[0.0, 1313148928], [0.25, 1057181696], [0.5, 794406912], [0.751, 498118656], [1.001, 278745088], [1.251, 278745088], [1.501, 276164608], [1.751, 271863808], [2.001, 265412608], [2.252, 261828608], [2.502, 253657088], [2.752, 251506688], [3.002, 246202368], [3.252, 237170688], [3.502, 229142528], [3.753, 218419200], [4.003, 208941056], [4.253, 195608576], [4.503, 186863616], [4.753, 174964736], [5.003, 166649856], [5.254, 154169344], [5.504, 145997824], [5.754, 133955584], [6.004, 126070784], [6.254, 114274304], [6.504, 106676224], [6.754, 97439744], [7.005, 87441408], [7.255, 77971456], [7.505, 65921024], [7.755, 60829696], [8.005, 60829696]]}
+PASS oracle-oracle-tls {'clients': 10000, 'baseline': 620429312, 'burst_peak': 1369477120, 'grown': 0, 'idle_rss': 620560384, 'ceiling': 653983744, 'samples': [[0.0, 1377648640], [0.25, 1377648640], [0.5, 1377648640], [0.751, 1377648640], [1.001, 1377648640], [1.251, 1369276416], [1.501, 1288019968], [1.751, 620560384], [2.001, 620560384], [2.252, 620560384], [2.502, 620560384], [2.752, 620560384], [3.002, 620560384], [3.252, 620560384], [3.502, 620560384], [3.752, 620560384], [4.003, 620560384], [4.253, 620560384], [4.503, 620560384], [4.753, 620560384], [5.003, 620560384], [5.253, 620560384], [5.504, 620560384], [5.754, 620560384], [6.004, 620560384], [6.254, 620560384], [6.504, 620560384], [6.754, 620560384], [7.005, 620560384], [7.255, 620560384], [7.505, 620560384], [7.755, 620560384], [8.005, 620560384]]}
+FAIL 1s-epoll-tcp Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 68, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
+AssertionError: 10000 clients still retain burst input capacity
+
+FAIL 1s-epoll-tls Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 68, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
+AssertionError: 10001 clients still retain burst input capacity
+
+FAIL 1s-uring-tcp Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 68, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
+AssertionError: 10000 clients still retain burst input capacity
+
+FAIL 1s-uring-tls Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 68, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
+AssertionError: 10001 clients still retain burst input capacity
+
+FAIL 2s-epoll-tcp Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 68, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
+AssertionError: 10000 clients still retain burst input capacity
+
+FAIL 2s-epoll-tls Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 68, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
+AssertionError: 10001 clients still retain burst input capacity
+
+FAIL 2s-uring-tcp Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 68, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
+AssertionError: 10000 clients still retain burst input capacity
+
+FAIL 2s-uring-tls Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
+    results[label] = test(a, a.port + (transport == 'tls'),
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 68, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
+AssertionError: 10001 clients still retain burst input capacity
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 83, in <module>
+    n.matrix(n.arguments(), test)
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 128, in matrix
+    assert not failures, failures
+           ^^^^^^^^^^^^
+AssertionError: ['1s-epoll-tcp', '1s-epoll-tls', '1s-uring-tcp', '1s-uring-tls', '2s-epoll-tcp', '2s-epoll-tls', '2s-uring-tcp', '2s-uring-tls']

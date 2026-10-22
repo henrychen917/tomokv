@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; correctness-plan-fallback; netfix NT4.19 idle buffer reclamation
+  netfix NT4.19 idle buffer reclamation                ok

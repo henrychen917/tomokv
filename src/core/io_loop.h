@@ -6,6 +6,7 @@
 //   in   ready mask / client_in             completed ops to retire and send
 #pragma once
 #include "../net/query_limit_stats.h"
+#include "../net/idle_buffers.h"
 #include <array>
 #include <deque>
 #include <arpa/inet.h>
@@ -1610,6 +1611,7 @@ private:
         // Destination epoll readiness may arrive as soon as the owner store publishes. This
         // sentinel keeps those events inert until the pre-reserved client/catalog/WB install.
         client->set_wb_slot(Client::kWbMigrationInstalling);
+        idle_buffers_.forget(client->id());
         if (!self_->remove_client(client)) std::abort();
 
         const ClientTransfer transfer{client, catalog, routing, self_->id()};
@@ -2443,6 +2445,13 @@ private:
         // parsing and dispatching new Tasks after the teardown quiescence fence.
         if (c->dead()) return;
         if (res <= 0) {
+            // Only the original Recv CQE releases the kernel's raw buffer pointer. A cancel
+            // acknowledgement is insufficient. Migration already consumed its own cancels above.
+            if (res == -ECANCELED && !c->closing()) {
+                client_buffer_cron(c);
+                mark_active(c);
+                return;
+            }
 #ifdef TOMO_CONNRESET_TRACE
             connreset::note(*c, self_->id(), res == 0 ? "recv_eof" : "recv_error",
                             std::source_location::current(), res);
@@ -4759,10 +4768,23 @@ ordinary_shard_ready:
         return true;
     }
 
+    [[gnu::noinline, gnu::cold]] void client_buffer_cron(Client* c) {
+        if (find_client_migration(c)) return;
+        TlsConn* tls = tls_engine(c);
+        // Userspace TLS pins its BIO/poll, not Client::rbuf. kTLS and plaintext recv pin rbuf.
+        const bool pinned = !epoll_ && c->recv_armed() && (!tls || tls->ktls());
+        if (!idle_buffers_.visit(*c, cached_now_ms_, pinned, tls && tls->has_pinned_plain())) return;
+        io_uring_sqe* sqe = ring_.sqe();
+        if (!sqe) return; // the next cron visit retries without touching the pinned allocation
+        io_uring_prep_cancel64(sqe, ur_tag(UrKind::Recv, c), 0);
+        // No Client pointer on the acknowledgement: it can outlive the original Recv CQE.
+        sqe->user_data = ur_tag(UrKind::MigrateCancel, nullptr);
+    }
+
     uint32_t client_cron_pass() {
         auto& clients = self_->clients();
         const size_t initial = clients.size();
-        if (!initial) { client_cron_cursor_ = 0; return 0; }
+        if (!initial) { idle_buffers_.purge_reclaimed(cached_now_ms_); client_cron_cursor_ = 0; return 0; }
         size_t visits = initial / kClientCronBeatsPerSecond;
         if (visits < kClientCronMinVisits)
             visits = std::min(initial, static_cast<size_t>(kClientCronMinVisits));
@@ -4781,11 +4803,13 @@ ordinary_shard_ready:
             } else if (client_obuf_check(c, false)) {
                 closed = true;
             }
+            if (!closed) client_buffer_cron(c);
             work++;
             // close_client removes by swap-with-back. Revisit this index so the swapped-in client
             // is not skipped; if teardown is still pending, advance past the unchanged entry.
             if (!closed || clients.size() == before) client_cron_cursor_++;
         }
+        idle_buffers_.purge_reclaimed(cached_now_ms_);
         return work;
     }
 
@@ -4920,6 +4944,7 @@ ordinary_shard_ready:
         if (!pubsub_disconnect_ready(c)) { mark_active(c); return; }
         c->set_in_active(false);
         active_.erase(c);
+        idle_buffers_.forget(c->id());
         (void)self_->remove_client(c);
         // THE RETRY IS THE LOAD-BEARING PART of this wait: the client left the active set when it
         // went quiet, so nothing revisits it unless mark_active puts it back -- returning without
@@ -5239,6 +5264,7 @@ public:
 
     // Cold config cache at the tail: established IO members retain their offsets.
     uint64_t client_query_buffer_limit_ = 1024ull * 1024 * 1024;
+    IdleBuffers idle_buffers_;
 };
 
 }  // namespace tomo

@@ -1825,6 +1825,11 @@ void IoLoop::r7_on_recv(Client* c, int res) {
     // parsing and dispatching new Tasks after the teardown quiescence fence.
     if (c->dead()) return;
     if (res <= 0) {
+        if (res == -ECANCELED && !c->closing()) {
+            client_buffer_cron(c);
+            mark_active(c);
+            return;
+        }
 #ifdef TOMO_CONNRESET_TRACE
         connreset::note(*c, self_->id(), res == 0 ? "recv_eof" : "recv_error",
                         std::source_location::current(), res);
