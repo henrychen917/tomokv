@@ -1,0 +1,231 @@
+PASS oracle-oracle-regular
+PASS oracle-oracle-stale
+PASS oracle-oracle-live
+PASS oracle-oracle-symlink
+FAIL 1s-epoll-regular Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 1s-epoll-regular: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1s-epoll-regular: exit 1
+
+PASS 1s-epoll-stale
+FAIL 1s-epoll-live Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 1s-epoll-live: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1s-epoll-live: exit 1
+
+FAIL 1s-epoll-symlink Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 1s-epoll-symlink: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1s-epoll-symlink: exit 1
+
+FAIL 1s-uring-regular Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 1s-uring-regular: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1s-uring-regular: exit 1
+
+PASS 1s-uring-stale
+FAIL 1s-uring-live Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 1s-uring-live: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1s-uring-live: exit 1
+
+FAIL 1s-uring-symlink Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 1s-uring-symlink: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1s-uring-symlink: exit 1
+
+FAIL 2s-epoll-regular Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 2s-epoll-regular: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2s-epoll-regular: exit 1
+
+PASS 2s-epoll-stale
+FAIL 2s-epoll-live Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 2s-epoll-live: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2s-epoll-live: exit 1
+
+FAIL 2s-epoll-symlink Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 2s-epoll-symlink: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2s-epoll-symlink: exit 1
+
+FAIL 2s-uring-regular Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 2s-uring-regular: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2s-uring-regular: exit 1
+
+PASS 2s-uring-stale
+FAIL 2s-uring-live Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 2s-uring-live: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2s-uring-live: exit 1
+
+FAIL 2s-uring-symlink Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 82, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: 2s-uring-symlink: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 35, in main
+    with n.server(a, label, oracle=oracle, mode=mode, engine=engine,
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 102, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2s-uring-symlink: exit 1
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 58, in <module>
+    main()
+  File "/home/user/Projects/cx-netfix/tests/netfix_unix.py", line 54, in main
+    assert not failures, failures
+           ^^^^^^^^^^^^
+AssertionError: ['1s-epoll-regular', '1s-epoll-live', '1s-epoll-symlink', '1s-uring-regular', '1s-uring-live', '1s-uring-symlink', '2s-epoll-regular', '2s-epoll-live', '2s-epoll-symlink', '2s-uring-regular', '2s-uring-live', '2s-uring-symlink']

@@ -22,3 +22,10 @@ Its binary is `build/redis74-tls-server`; digests are in
 Current row delta: NT4.6 DQ +1 / DF +1, collected before the quick exit.
 EXPECT_QUICK / EXPECT_FULL remain unchanged. Further item proofs and the
 generic 14-cell PRE/POST/PAD-A request will be appended when ready.
+
+NT4.11: both registers and the round-3 owner paper-constraint list contain no
+ruling to retain path refusal. PRE refuses regular files, symlinks and live
+sockets in all four mode/engine legs; Redis replaces all three. POST matches
+Redis and retains the stale-socket, permissions, serve and exit-cleanup checks.
+`netfix_unix` fails on PRE and passes on POST; evidence in
+`docs/netfix/evidence/{pre,post}-unix/`. Adds DQ +1 / DF +1 before quick exit.

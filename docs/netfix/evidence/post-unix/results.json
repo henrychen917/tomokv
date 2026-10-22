@@ -1,0 +1,22 @@
+{
+  "oracle-oracle-regular": "replaced, served, cleaned",
+  "oracle-oracle-stale": "replaced, served, cleaned",
+  "oracle-oracle-live": "replaced, served, cleaned",
+  "oracle-oracle-symlink": "replaced, served, cleaned",
+  "1s-epoll-regular": "replaced, served, cleaned",
+  "1s-epoll-stale": "replaced, served, cleaned",
+  "1s-epoll-live": "replaced, served, cleaned",
+  "1s-epoll-symlink": "replaced, served, cleaned",
+  "1s-uring-regular": "replaced, served, cleaned",
+  "1s-uring-stale": "replaced, served, cleaned",
+  "1s-uring-live": "replaced, served, cleaned",
+  "1s-uring-symlink": "replaced, served, cleaned",
+  "2s-epoll-regular": "replaced, served, cleaned",
+  "2s-epoll-stale": "replaced, served, cleaned",
+  "2s-epoll-live": "replaced, served, cleaned",
+  "2s-epoll-symlink": "replaced, served, cleaned",
+  "2s-uring-regular": "replaced, served, cleaned",
+  "2s-uring-stale": "replaced, served, cleaned",
+  "2s-uring-live": "replaced, served, cleaned",
+  "2s-uring-symlink": "replaced, served, cleaned"
+}

@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=netfix_unix; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	1.150000	netfix NT4.11 Unix pathname parity
