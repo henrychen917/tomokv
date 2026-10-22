@@ -1,0 +1,23 @@
+{
+  "arm": "post",
+  "namespace": "normal",
+  "mode": "1s",
+  "shape": "cross",
+  "command": [
+    "taskset",
+    "-c",
+    "72-79",
+    "gdb",
+    "-nx",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/exec-instructions-final2c/post-normal-1s-cross.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final2c/exec/post-normal/probe"
+  ],
+  "sha256": "348cdd32ffdb1c8d563857f8bb12d660af6e8d2e5c85fb5e7e1ee0cfb4ef6b87",
+  "returncode": 0,
+  "fixture_completed": true,
+  "steps_per_exec": 27972,
+  "excluded_vdso_calls": 1,
+  "rep_steps": 16
+}

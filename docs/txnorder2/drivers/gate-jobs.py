@@ -42,7 +42,9 @@ def main():
     env = dict(GATE_ONLY_JOBS=jobs, GATE_LEDGER=str(out / 'ledger.tsv'),
                GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',
                GATE_DIFFER_REDIS_CLI='/home/user/Projects/redis/src/redis-cli',
-               REDIS74_ROOT='/home/user/Projects/redis74')
+               # redis74 contains only the pinned executables. The gate also
+               # validates source metadata; this is the matching 7.4.10 tree.
+               REDIS74_ROOT='/home/user/Projects/redis')
     command = ['taskset', '-c', '64-95', 'bash', 'tests/gate.sh', 'full',
                '--server-cores', args.server_cores, '--server-smt', '',
                '--load-cores', args.load_cores, '--load-smt', '',

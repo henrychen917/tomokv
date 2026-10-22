@@ -10,9 +10,11 @@ estimate. Kernel instructions are not visible to GDB. REP single-step iterations
 are debugger steps, not hardware-retired instructions. No sampling/extrapolation.
 """
 import concurrent.futures
+import collections
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -77,6 +79,16 @@ end
         result['steps_per_exec']=trace['steps']
         result['excluded_vdso_calls']=trace['excluded_vdso_calls']
         result['rep_steps']=sum(r['count'] for r in trace['sites'] if r['asm'].startswith(('rep ','repz ','repnz ')))
+        functions=collections.Counter()
+        for site in trace['sites']:
+            name=re.sub(r' \+ \d+ in section.*', '', site['symbol'])
+            name=re.sub(r' in section.*', '', name)
+            if name.startswith('No symbol matches'): name='<no debug symbol>'
+            functions[name]+=site['count']
+        small=OUT/'function-counts';small.mkdir(exist_ok=True)
+        (small/data.name).write_text(json.dumps(dict(steps=trace['steps'],
+            excluded_vdso_calls=trace['excluded_vdso_calls'],
+            functions=dict(functions.most_common())),indent=2)+'\n')
     (OUT/(label+'-result.json')).write_text(json.dumps(result,indent=2)+'\n')
     print(label,rc,complete,result.get('steps_per_exec'),flush=True)
     return result
