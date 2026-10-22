@@ -1,0 +1,2 @@
+  row budget: 900s; median=1.18s; correctness-plan-fallback; netfix NT4.11 Unix pathname parity
+  netfix NT4.11 Unix pathname parity                   ok

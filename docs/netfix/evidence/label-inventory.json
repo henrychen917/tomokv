@@ -1,0 +1,10 @@
+{
+  "source_rows": 707,
+  "fixture_rows": 707,
+  "missing": [],
+  "extra": [],
+  "expected_quick": 685,
+  "expected_full": 702,
+  "proposed_quick": 690,
+  "proposed_full": 707
+}

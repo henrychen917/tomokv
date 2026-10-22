@@ -499,6 +499,13 @@
     ],
     [
       [
+        "protected-mode",
+        "1"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"
+    ],
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -650,6 +657,25 @@
         "normal 0 0 0"
       ],
       "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "9223372036854775807"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "wrapped-bulk-header"
+      ],
+      "ERR Protocol error: invalid bulk length"
+    ],
+    [
+      [
+        "wrapped-bulk-header-complete"
+      ],
+      "ERR Protocol error: invalid bulk length"
     ]
   ],
   "oracle-oracle-tls": [
@@ -1152,6 +1178,13 @@
     ],
     [
       [
+        "protected-mode",
+        "1"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"
+    ],
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -1303,6 +1336,25 @@
         "normal 0 0 0"
       ],
       "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "9223372036854775807"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "wrapped-bulk-header"
+      ],
+      "ERR Protocol error: invalid bulk length"
+    ],
+    [
+      [
+        "wrapped-bulk-header-complete"
+      ],
+      "ERR Protocol error: invalid bulk length"
     ]
   ],
   "1s-epoll-tcp": [
@@ -1805,6 +1857,13 @@
     ],
     [
       [
+        "protected-mode",
+        "1"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"
+    ],
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -1956,6 +2015,25 @@
         "normal 0 0 0"
       ],
       "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "9223372036854775807"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "wrapped-bulk-header"
+      ],
+      "ERR Protocol error: invalid bulk length"
+    ],
+    [
+      [
+        "wrapped-bulk-header-complete"
+      ],
+      "ERR Protocol error: invalid bulk length"
     ]
   ],
   "1s-epoll-tls": [
@@ -2458,6 +2536,13 @@
     ],
     [
       [
+        "protected-mode",
+        "1"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"
+    ],
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -2609,6 +2694,25 @@
         "normal 0 0 0"
       ],
       "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "9223372036854775807"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "wrapped-bulk-header"
+      ],
+      "ERR Protocol error: invalid bulk length"
+    ],
+    [
+      [
+        "wrapped-bulk-header-complete"
+      ],
+      "ERR Protocol error: invalid bulk length"
     ]
   ],
   "1s-uring-tcp": [
@@ -3111,6 +3215,13 @@
     ],
     [
       [
+        "protected-mode",
+        "1"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"
+    ],
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -3262,6 +3373,25 @@
         "normal 0 0 0"
       ],
       "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "9223372036854775807"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "wrapped-bulk-header"
+      ],
+      "ERR Protocol error: invalid bulk length"
+    ],
+    [
+      [
+        "wrapped-bulk-header-complete"
+      ],
+      "ERR Protocol error: invalid bulk length"
     ]
   ],
   "1s-uring-tls": [
@@ -3764,6 +3894,13 @@
     ],
     [
       [
+        "protected-mode",
+        "1"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"
+    ],
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -3915,6 +4052,25 @@
         "normal 0 0 0"
       ],
       "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "9223372036854775807"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "wrapped-bulk-header"
+      ],
+      "ERR Protocol error: invalid bulk length"
+    ],
+    [
+      [
+        "wrapped-bulk-header-complete"
+      ],
+      "ERR Protocol error: invalid bulk length"
     ]
   ],
   "2s-epoll-tcp": [
@@ -4417,6 +4573,13 @@
     ],
     [
       [
+        "protected-mode",
+        "1"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"
+    ],
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -4568,6 +4731,25 @@
         "normal 0 0 0"
       ],
       "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "9223372036854775807"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "wrapped-bulk-header"
+      ],
+      "ERR Protocol error: invalid bulk length"
+    ],
+    [
+      [
+        "wrapped-bulk-header-complete"
+      ],
+      "ERR Protocol error: invalid bulk length"
     ]
   ],
   "2s-epoll-tls": [
@@ -5070,6 +5252,13 @@
     ],
     [
       [
+        "protected-mode",
+        "1"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"
+    ],
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -5221,6 +5410,25 @@
         "normal 0 0 0"
       ],
       "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "9223372036854775807"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "wrapped-bulk-header"
+      ],
+      "ERR Protocol error: invalid bulk length"
+    ],
+    [
+      [
+        "wrapped-bulk-header-complete"
+      ],
+      "ERR Protocol error: invalid bulk length"
     ]
   ],
   "2s-uring-tcp": [
@@ -5723,6 +5931,13 @@
     ],
     [
       [
+        "protected-mode",
+        "1"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"
+    ],
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -5874,6 +6089,25 @@
         "normal 0 0 0"
       ],
       "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "9223372036854775807"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "wrapped-bulk-header"
+      ],
+      "ERR Protocol error: invalid bulk length"
+    ],
+    [
+      [
+        "wrapped-bulk-header-complete"
+      ],
+      "ERR Protocol error: invalid bulk length"
     ]
   ],
   "2s-uring-tls": [
@@ -6376,6 +6610,13 @@
     ],
     [
       [
+        "protected-mode",
+        "1"
+      ],
+      "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"
+    ],
+    [
+      [
         "client-output-buffer-limit",
         "normal"
       ],
@@ -6527,6 +6768,25 @@
         "normal 0 0 0"
       ],
       "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"
+    ],
+    [
+      [
+        "proto-max-bulk-len",
+        "9223372036854775807"
+      ],
+      "OK"
+    ],
+    [
+      [
+        "wrapped-bulk-header"
+      ],
+      "ERR Protocol error: invalid bulk length"
+    ],
+    [
+      [
+        "wrapped-bulk-header-complete"
+      ],
+      "ERR Protocol error: invalid bulk length"
     ]
   ]
 }

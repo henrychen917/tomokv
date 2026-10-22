@@ -1,0 +1,2 @@
+  row budget: 900s; median=2.095s; correctness-plan-fallback; netfix NT4.6 query-limit INFO parity
+  netfix NT4.6 query-limit INFO parity                 FAIL (see /home/user/Projects/cx-netfix/build/gate-run.NtaAGM/jobs/netfix_query_stats/proof.log)

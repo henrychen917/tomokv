@@ -1,0 +1,27 @@
+{
+  "arm": "pad",
+  "phase": "idle",
+  "engine": "uring",
+  "jobs": "netfix_idle_buffers",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20806-20808",
+    "--candidate-binary",
+    "/home/user/Projects/cx-netfix/build/netfix-pad-uring"
+  ],
+  "wrapper": "#!/usr/bin/env python3\nimport os, sys\nargs = sys.argv[1:]\nconfig = [args.pop(0)] if args and not args[0].startswith(\"--\") else []\nos.execv('/home/user/Projects/cx-netfix/build/tomokv-pad-a-netfix', ['/home/user/Projects/cx-netfix/build/tomokv-pad-a-netfix'] + config + [\"--net-io\", 'uring'] + args)\n",
+  "make_q_all_before": null,
+  "actual_binary": "/home/user/Projects/cx-netfix/build/tomokv-pad-a-netfix",
+  "sha256_before": "9f9516081a074eb59f5db61d000e48b27814e63f33e87662d5e4fcde15ee28dc",
+  "sha256_after": "9f9516081a074eb59f5db61d000e48b27814e63f33e87662d5e4fcde15ee28dc",
+  "returncode": 1
+}

@@ -1,0 +1,23 @@
+{
+  "kind": "A: behavior twin of periodic reclamation",
+  "scope": "PAD-A for periodic reclamation: retain POST layout, restore PRE idle retention.\n\nOnly IdleBuffers::visit entry points are replaced by `return false`. The compatibility\nfixes and removal of the old request-time sheds are shared with POST. Thus this is a\nbehavior twin for the new cold periodic mechanism, not a reverse patch of every fix.\nNo shipped binary contains a switch or a test hook.\n",
+  "patches": [
+    {
+      "symbol": "tomo::IdleBuffers::visit(tomo::Client&, unsigned long, bool, bool)",
+      "address": "0x38740",
+      "offset": 231236,
+      "before": "415741",
+      "after": "31c0c3"
+    },
+    {
+      "symbol": "tomo_db0::IdleBuffers::visit(tomo_db0::Client&, unsigned long, bool, bool)",
+      "address": "0x20746",
+      "offset": 132938,
+      "before": "415741",
+      "after": "31c0c3"
+    }
+  ],
+  "changed_bytes": 6,
+  "post_sha256": "9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47",
+  "pad_sha256": "9f9516081a074eb59f5db61d000e48b27814e63f33e87662d5e4fcde15ee28dc"
+}

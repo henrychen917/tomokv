@@ -1,2 +1,2 @@
-  row budget: 900s; median=1.83s; correctness-plan-fallback; netfix NT4.8 network CONFIG error parity
-  netfix NT4.8 network CONFIG error parity             FAIL (see /home/user/Projects/cx-netfix/build/gate-run.T19UcB/jobs/netfix_config/proof.log)
+  row budget: 900s; median=1.865s; correctness-plan-fallback; netfix NT4.8 network CONFIG error parity
+  netfix NT4.8 network CONFIG error parity             FAIL (see /home/user/Projects/cx-netfix/build/gate-run.NtaAGM/jobs/netfix_config/proof.log)

@@ -1,0 +1,50 @@
+# 2026-10-23 03:03:05 netfix reply-text / INFO-field sweep over tests/ (*.py *.sh *.tcl *.json *.cc), excluding tests/netfix_*.py and tests/gateprod-evidence/
+# Both the replaced (PRE) texts and the new (Redis 7.4) texts are searched.
+
+## pattern | files
+parameter is immutable at runtime             | tests/atomic_plain.py tests/debug.py tests/netcmd_config_unit.cc 
+immutable                                     | tests/atomic_survivors_unit.cc tests/mutants.py tests/acl.py tests/rlcache_churn.py tests/gate_history.py tests/abba_calibration.py tests/owner_arena_unit.cc tests/tls.py tests/abba_workloads.py tests/atomiccollapse_controls.py tests/redisgap.py tests/gate_receipt.py tests/lbplanner_unit.cc tests/psfix.py tests/abba_standing_null.py tests/gate.sh tests/gates_test.py tests/respcompat_unit.cc tests/limits.py tests/atomic_plain.py tests/hexpread.py tests/mdbqsbr_checks.py tests/mode_lane.py tests/orthog.py tests/l4prebuild_unit.cc tests/debug.py tests/multidb_boundary_unit.cc tests/_nullrefresh_test.py tests/store_regression.cc tests/nullpublish4_test.py tests/mdbqsbr_unit.cc tests/abba_binaries.py tests/netcmd_config_unit.cc tests/knobs.py tests/aclsel.py tests/abbagate.py 
+can't set immutable config                    | 
+duplicate configuration parameter             | 
+duplicate parameter                           | tests/netcmd_config_unit.cc tests/differ_test.py tests/knobs.py tests/differ.py 
+Invalid argument                              | tests/notify.py 
+client_query_buffer_limit_disconnections      | 
+client_output_buffer_limit_disconnections     | tests/pubsub.py tests/limits.py tests/flip_under_load.py 
+must be 'yes' or 'no'                         | tests/auth.py tests/netcmd_config_unit.cc 
+couldn't be parsed into an integer            | 
+must be between                               | tests/config_parser_test.cc tests/writer_atomic.py tests/netcmd_config_unit.cc tests/netcap_unit.cc tests/knobs.py tests/differ_gate.sh 
+4294901759                                    | 
+unixsocket                                    | tests/config_parser_test.cc tests/authfix.py tests/redisgap.py tests/netcmd_unit.cc tests/boot_failures.py tests/netcmd_config_unit.cc tests/knobs.py 
+ECDHE-ECDSA-AES128-GCM-SHA256                 | 
+TLS_AES_128_GCM_SHA256                        | tests/ktls_keyupdate.cc tests/ktls_keyupdate_unit.cc 
+tls-ciphers                                   | tests/lottery_attempt.py tests/config_parser_test.cc tests/authfix.py tests/gates_test.py tests/gate.sh tests/fixtures/nullrefresh-ledger-labels.json 
+tls-session-cach                              | 
+proto-max-bulk-len                            | tests/netcmd.py tests/respcompat.py 
+Invalid client class                          | tests/limits.py 
+buffer limit configuration                    | tests/limits.py 
+exceeds maximum allowed size                  | 
+bit offset is not an integer                  | tests/bitfield.py 
+invalid bulk length                           | tests/cdfix_unit.cc tests/respcompat.py tests/netcap.py tests/netcap_unit.cc tests/respcompat_unit.cc 
+
+## Disposition (job that runs each asserting file; POST receipts c2-post-required-uring, c2-post-aof-config, c2-post-required-epoll)
+- tests/knobs.py:59 asserted the replaced "ERR duplicate configuration parameter" for a duplicated
+  client-query-buffer-limit: FAILED on POST (aof-epoll/aof-uring, atomic 0/1). Corrected to the Redis 7.4
+  oracle's exact reply (oracle-knobs-duplicate.log); aof-epoll/aof-uring 54/54 each after the correction.
+  knobs.py:74-77 and redisgap.py:161-164 match the substring "immutable", which the Redis text keeps.
+- tests/auth.py: CONFIG SET protected-mode 0/1 now expect Redis's "argument must be 'yes' or 'no'"
+  (oracle: netfix_config cases protected-mode 0 and 1, oracle-tcp.json/oracle-tls.json); auth job 7/7.
+- tests/limits.py (feature batteries): exact Redis client-output-buffer-limit texts (oracle: netfix_config
+  COBL cases); feature-split-0/1, feature-armed-0/1 pass.
+- tests/debug.py:78 (enable-debug-command), tests/atomic_plain.py:306 (a fake), tests/netcmd_config_unit.cc
+  (wb-* knobs; network knobs there assert only an error reply), tests/notify.py:206
+  (notify-keyspace-events): not network parameters, unchanged texts.
+- INFO: no test reads client_query_buffer_limit_disconnections except the NT4.6 row; pubsub.py, limits.py,
+  flip_under_load.py read client_output_buffer_limit_disconnections by name (unchanged field).
+- proto-max-bulk-len: netcmd.py/respcompat.py set 1mb / restore (accepted on both); invalid bulk length texts
+  (netcap.py, respcompat.py, *_unit.cc) unchanged; jobs netcap, netcmd_units, respcompat, respresume-* pass.
+- tls-ciphers / TLS_AES_128_GCM_SHA256: explicit-list rejection rows (tls job) and ktls_keyupdate units
+  (tls job) pass; lottery_attempt.py, authfix.py, gates_test.py, config_parser_test.cc: grammar only.
+- unixsocket: boot_failures.py / redisgap.py / authfix.py: grammar, permissions or immutability only; no
+  test asserted the PRE refusal of an existing path.
+- tests/config_parser_test.cc, tests/netcap_unit.cc, tests/cdfix_unit.cc, tests/respcompat_unit.cc,
+  tests/bitfield.py: unchanged texts; config_unit/netcmd_units/feature batteries pass.

@@ -1,0 +1,27 @@
+{
+  "arm": "prefix",
+  "phase": "new",
+  "engine": "uring",
+  "jobs": "netfix_config",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20800-20802",
+    "--candidate-binary",
+    "/home/user/Projects/cx-netfix/build/netfix-prefix-uring"
+  ],
+  "wrapper": "#!/usr/bin/env python3\nimport os, sys\nargs = sys.argv[1:]\nconfig = [args.pop(0)] if args and not args[0].startswith(\"--\") else []\nos.execv('/home/user/Projects/cx-netfix/build/netfix-prefix-src/build/tomokv', ['/home/user/Projects/cx-netfix/build/netfix-prefix-src/build/tomokv'] + config + [\"--net-io\", 'uring'] + args)\n",
+  "make_q_all_before": null,
+  "actual_binary": "/home/user/Projects/cx-netfix/build/netfix-prefix-src/build/tomokv",
+  "sha256_before": "221fc236c5373f050b99339f6a745f18b39db3145118534f982837f7c2c1f91c",
+  "sha256_after": "221fc236c5373f050b99339f6a745f18b39db3145118534f982837f7c2c1f91c",
+  "returncode": 1
+}

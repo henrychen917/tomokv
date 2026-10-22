@@ -1,0 +1,7 @@
+tests/notify.py:206:        if not isinstance(result, RespError) or "Invalid argument" not in str(result):
+tests/netfix_query_stats.py:7:FIELD = b'client_query_buffer_limit_disconnections'
+tests/atomic_plain.py:306:                raise _lib.RespError("ERR parameter is immutable at runtime")
+tests/debug.py:78:       "ERR parameter is immutable at runtime", "boot-only config")
+tests/netcmd_config_unit.cc:73:                   " - argument must be 'yes' or 'no'\r\n");
+tests/netcmd_config_unit.cc:272:            check(std::string(op.reply.data(), op.reply.size()) == "-ERR parameter is immutable at runtime\r\n",
+tests/netcmd_config_unit.cc:275:                  "-ERR parameter is immutable at runtime\r\n", "writeback handler rejects SET");

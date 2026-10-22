@@ -1,81 +1,81 @@
 PASS policy unit; inline-only shrink control failed at recent-peak assertion
-PASS oracle-oracle-tcp {'clients': 10000, 'baseline': 87076864, 'burst_peak': 528752640, 'grown': 0, 'idle_rss': 64729088, 'ceiling': 120631296, 'samples': [[0.0, 480452608], [0.25, 480452608], [0.501, 480452608], [0.752, 446427136], [1.002, 421330944], [1.252, 327516160], [1.503, 291082240], [1.753, 291082240], [2.004, 288788480], [2.254, 285061120], [2.504, 278609920], [2.754, 274309120], [3.005, 267857920], [3.255, 260689920], [3.505, 253054976], [3.755, 244166656], [4.005, 234422272], [4.255, 222175232], [4.506, 216010752], [4.756, 201142272], [5.006, 191692800], [5.256, 177180672], [5.506, 168435712], [5.757, 153841664], [6.007, 144740352], [6.257, 130387968], [6.507, 122023936], [6.757, 110108672], [7.008, 101236736], [7.258, 93380608], [7.508, 83161088], [7.758, 72335360], [8.008, 64729088]], 'partial_input_and_pending_output': 'preserved across 7 seconds'}
-PASS oracle-oracle-tls {'clients': 10000, 'baseline': 529182720, 'burst_peak': 950243328, 'grown': 0, 'idle_rss': 537030656, 'ceiling': 562737152, 'samples': [[0.0, 855777280], [0.252, 847421440], [0.505, 824889344], [0.756, 816574464], [1.006, 816574464], [1.256, 781635584], [1.506, 639995904], [1.756, 639995904], [2.007, 639995904], [2.257, 639995904], [2.507, 639995904], [2.757, 639995904], [3.007, 639995904], [3.258, 639995904], [3.508, 639995904], [3.76, 639995904], [4.011, 639995904], [4.261, 639995904], [4.511, 639995904], [4.761, 639995904], [5.011, 639995904], [5.262, 635830272], [5.512, 623304704], [5.762, 616513536], [6.012, 603484160], [6.262, 596430848], [6.513, 585654272], [6.763, 580063232], [7.013, 571027456], [7.263, 560553984], [7.514, 553807872], [7.764, 546779136], [8.014, 537030656]], 'partial_input_and_pending_output': 'preserved across 7 seconds'}
+PASS oracle-oracle-tcp {'clients': 10000, 'baseline': 120807424, 'burst_peak': 1347100672, 'grown': 0, 'idle_rss': 73056256, 'ceiling': 154361856, 'samples': [[0.0, 1225981952], [0.25, 1075474432], [0.501, 1040687104], [0.751, 937381888], [1.001, 934649856], [1.251, 820105216], [1.501, 563490816], [1.751, 374644736], [2.002, 293363712], [2.252, 291602432], [2.502, 285380608], [2.752, 281939968], [3.002, 269467648], [3.253, 263876608], [3.503, 255131648], [3.753, 245096448], [4.003, 235347968], [4.253, 224022528], [4.503, 215564288], [4.754, 202969088], [5.004, 194080768], [5.254, 180891648], [5.504, 171143168], [5.754, 158298112], [6.004, 148979712], [6.255, 134320128], [6.505, 127148032], [6.755, 114069504], [7.005, 104472576], [7.255, 96301056], [7.505, 83456000], [7.756, 79671296], [8.006, 73056256]], 'partial_input_and_pending_output': 'preserved across 7 seconds'}
+PASS oracle-oracle-tls {'clients': 10000, 'baseline': 538411008, 'burst_peak': 1328136192, 'grown': 0, 'idle_rss': 540160000, 'ceiling': 571965440, 'samples': [[0.0, 1333977088], [0.25, 1286311936], [0.5, 1206603776], [0.751, 1115856896], [1.001, 988839936], [1.251, 863399936], [1.501, 767635456], [1.751, 660619264], [2.001, 660619264], [2.252, 660619264], [2.502, 660619264], [2.752, 660619264], [3.002, 660619264], [3.252, 660619264], [3.502, 660619264], [3.752, 660619264], [4.003, 660619264], [4.253, 660619264], [4.503, 660619264], [4.753, 660619264], [5.003, 650739712], [5.253, 640761856], [5.504, 628486144], [5.754, 618991616], [6.004, 607428608], [6.254, 599240704], [6.504, 583827456], [6.754, 578093056], [7.004, 569348096], [7.255, 561094656], [7.505, 547471360], [7.755, 547471360], [8.005, 540160000]], 'partial_input_and_pending_output': 'preserved across 7 seconds'}
 FAIL 1s-epoll-tcp Traceback (most recent call last):
   File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 157, in test
-    int(r.get(b'rbs', b'0')) > 16384]
-    ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 159, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
 AssertionError: 10000 clients still retain burst input capacity
 
 FAIL 1s-epoll-tls Traceback (most recent call last):
   File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 157, in test
-    int(r.get(b'rbs', b'0')) > 16384]
-    ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 159, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
 AssertionError: 10000 clients still retain burst input capacity
 
 FAIL 1s-uring-tcp Traceback (most recent call last):
   File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 157, in test
-    int(r.get(b'rbs', b'0')) > 16384]
-    ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 159, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
 AssertionError: 10000 clients still retain burst input capacity
 
 FAIL 1s-uring-tls Traceback (most recent call last):
   File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 157, in test
-    int(r.get(b'rbs', b'0')) > 16384]
-    ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 159, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
 AssertionError: 10000 clients still retain burst input capacity
 
 FAIL 2s-epoll-tcp Traceback (most recent call last):
   File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 157, in test
-    int(r.get(b'rbs', b'0')) > 16384]
-    ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 159, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
 AssertionError: 10000 clients still retain burst input capacity
 
 FAIL 2s-epoll-tls Traceback (most recent call last):
   File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 157, in test
-    int(r.get(b'rbs', b'0')) > 16384]
-    ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 159, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
 AssertionError: 10000 clients still retain burst input capacity
 
 FAIL 2s-uring-tcp Traceback (most recent call last):
   File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 157, in test
-    int(r.get(b'rbs', b'0')) > 16384]
-    ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 159, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
 AssertionError: 10000 clients still retain burst input capacity
 
 FAIL 2s-uring-tls Traceback (most recent call last):
   File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 120, in matrix
     results[label] = test(a, a.port + (transport == 'tls'),
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 157, in test
-    int(r.get(b'rbs', b'0')) > 16384]
-    ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 159, in test
+    assert not retained, f'{len(retained)} clients still retain burst input capacity'
+           ^^^^^^^^^^^^
 AssertionError: 10000 clients still retain burst input capacity
 
 Traceback (most recent call last):
-  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 177, in <module>
-    args = n.arguments()
+  File "/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py", line 179, in <module>
+    n.matrix(args, test)
   File "/home/user/Projects/cx-netfix/tests/_netfix.py", line 128, in matrix
     assert not failures, failures
            ^^^^^^^^^^^^

@@ -1,296 +1,296 @@
 {
   "oracle-oracle-tcp": {
     "clients": 10000,
-    "baseline": 87076864,
-    "burst_peak": 528752640,
+    "baseline": 120807424,
+    "burst_peak": 1347100672,
     "grown": 0,
-    "idle_rss": 64729088,
-    "ceiling": 120631296,
+    "idle_rss": 73056256,
+    "ceiling": 154361856,
     "samples": [
       [
         0.0,
-        480452608
+        1225981952
       ],
       [
         0.25,
-        480452608
+        1075474432
       ],
       [
         0.501,
-        480452608
+        1040687104
       ],
       [
-        0.752,
-        446427136
+        0.751,
+        937381888
       ],
       [
-        1.002,
-        421330944
+        1.001,
+        934649856
       ],
       [
-        1.252,
-        327516160
+        1.251,
+        820105216
       ],
       [
-        1.503,
-        291082240
+        1.501,
+        563490816
       ],
       [
-        1.753,
-        291082240
+        1.751,
+        374644736
       ],
       [
-        2.004,
-        288788480
+        2.002,
+        293363712
       ],
       [
-        2.254,
-        285061120
+        2.252,
+        291602432
       ],
       [
-        2.504,
-        278609920
+        2.502,
+        285380608
       ],
       [
-        2.754,
-        274309120
+        2.752,
+        281939968
       ],
       [
-        3.005,
-        267857920
+        3.002,
+        269467648
       ],
       [
-        3.255,
-        260689920
+        3.253,
+        263876608
       ],
       [
-        3.505,
-        253054976
+        3.503,
+        255131648
       ],
       [
-        3.755,
-        244166656
+        3.753,
+        245096448
       ],
       [
-        4.005,
-        234422272
+        4.003,
+        235347968
       ],
       [
-        4.255,
-        222175232
+        4.253,
+        224022528
       ],
       [
-        4.506,
-        216010752
+        4.503,
+        215564288
       ],
       [
-        4.756,
-        201142272
+        4.754,
+        202969088
       ],
       [
-        5.006,
-        191692800
+        5.004,
+        194080768
       ],
       [
-        5.256,
-        177180672
+        5.254,
+        180891648
       ],
       [
-        5.506,
-        168435712
+        5.504,
+        171143168
       ],
       [
-        5.757,
-        153841664
+        5.754,
+        158298112
       ],
       [
-        6.007,
-        144740352
+        6.004,
+        148979712
       ],
       [
-        6.257,
-        130387968
+        6.255,
+        134320128
       ],
       [
-        6.507,
-        122023936
+        6.505,
+        127148032
       ],
       [
-        6.757,
-        110108672
+        6.755,
+        114069504
       ],
       [
-        7.008,
-        101236736
+        7.005,
+        104472576
       ],
       [
-        7.258,
-        93380608
+        7.255,
+        96301056
       ],
       [
-        7.508,
-        83161088
+        7.505,
+        83456000
       ],
       [
-        7.758,
-        72335360
+        7.756,
+        79671296
       ],
       [
-        8.008,
-        64729088
+        8.006,
+        73056256
       ]
     ],
     "partial_input_and_pending_output": "preserved across 7 seconds"
   },
   "oracle-oracle-tls": {
     "clients": 10000,
-    "baseline": 529182720,
-    "burst_peak": 950243328,
+    "baseline": 538411008,
+    "burst_peak": 1328136192,
     "grown": 0,
-    "idle_rss": 537030656,
-    "ceiling": 562737152,
+    "idle_rss": 540160000,
+    "ceiling": 571965440,
     "samples": [
       [
         0.0,
-        855777280
+        1333977088
       ],
       [
-        0.252,
-        847421440
+        0.25,
+        1286311936
       ],
       [
-        0.505,
-        824889344
+        0.5,
+        1206603776
       ],
       [
-        0.756,
-        816574464
+        0.751,
+        1115856896
       ],
       [
-        1.006,
-        816574464
+        1.001,
+        988839936
       ],
       [
-        1.256,
-        781635584
+        1.251,
+        863399936
       ],
       [
-        1.506,
-        639995904
+        1.501,
+        767635456
       ],
       [
-        1.756,
-        639995904
+        1.751,
+        660619264
       ],
       [
-        2.007,
-        639995904
+        2.001,
+        660619264
       ],
       [
-        2.257,
-        639995904
+        2.252,
+        660619264
       ],
       [
-        2.507,
-        639995904
+        2.502,
+        660619264
       ],
       [
-        2.757,
-        639995904
+        2.752,
+        660619264
       ],
       [
-        3.007,
-        639995904
+        3.002,
+        660619264
       ],
       [
-        3.258,
-        639995904
+        3.252,
+        660619264
       ],
       [
-        3.508,
-        639995904
+        3.502,
+        660619264
       ],
       [
-        3.76,
-        639995904
+        3.752,
+        660619264
       ],
       [
-        4.011,
-        639995904
+        4.003,
+        660619264
       ],
       [
-        4.261,
-        639995904
+        4.253,
+        660619264
       ],
       [
-        4.511,
-        639995904
+        4.503,
+        660619264
       ],
       [
-        4.761,
-        639995904
+        4.753,
+        660619264
       ],
       [
-        5.011,
-        639995904
+        5.003,
+        650739712
       ],
       [
-        5.262,
-        635830272
+        5.253,
+        640761856
       ],
       [
-        5.512,
-        623304704
+        5.504,
+        628486144
       ],
       [
-        5.762,
-        616513536
+        5.754,
+        618991616
       ],
       [
-        6.012,
-        603484160
+        6.004,
+        607428608
       ],
       [
-        6.262,
-        596430848
+        6.254,
+        599240704
       ],
       [
-        6.513,
-        585654272
+        6.504,
+        583827456
       ],
       [
-        6.763,
-        580063232
+        6.754,
+        578093056
       ],
       [
-        7.013,
-        571027456
+        7.004,
+        569348096
       ],
       [
-        7.263,
-        560553984
+        7.255,
+        561094656
       ],
       [
-        7.514,
-        553807872
+        7.505,
+        547471360
       ],
       [
-        7.764,
-        546779136
+        7.755,
+        547471360
       ],
       [
-        8.014,
-        537030656
+        8.005,
+        540160000
       ]
     ],
     "partial_input_and_pending_output": "preserved across 7 seconds"
   },
-  "1s-epoll-tcp": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 157, in test\n    int(r.get(b'rbs', b'0')) > 16384]\n    ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
-  "1s-epoll-tls": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 157, in test\n    int(r.get(b'rbs', b'0')) > 16384]\n    ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
-  "1s-uring-tcp": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 157, in test\n    int(r.get(b'rbs', b'0')) > 16384]\n    ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
-  "1s-uring-tls": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 157, in test\n    int(r.get(b'rbs', b'0')) > 16384]\n    ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
-  "2s-epoll-tcp": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 157, in test\n    int(r.get(b'rbs', b'0')) > 16384]\n    ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
-  "2s-epoll-tls": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 157, in test\n    int(r.get(b'rbs', b'0')) > 16384]\n    ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
-  "2s-uring-tcp": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 157, in test\n    int(r.get(b'rbs', b'0')) > 16384]\n    ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
-  "2s-uring-tls": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 157, in test\n    int(r.get(b'rbs', b'0')) > 16384]\n    ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n"
+  "1s-epoll-tcp": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 159, in test\n    assert not retained, f'{len(retained)} clients still retain burst input capacity'\n           ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
+  "1s-epoll-tls": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 159, in test\n    assert not retained, f'{len(retained)} clients still retain burst input capacity'\n           ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
+  "1s-uring-tcp": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 159, in test\n    assert not retained, f'{len(retained)} clients still retain burst input capacity'\n           ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
+  "1s-uring-tls": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 159, in test\n    assert not retained, f'{len(retained)} clients still retain burst input capacity'\n           ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
+  "2s-epoll-tcp": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 159, in test\n    assert not retained, f'{len(retained)} clients still retain burst input capacity'\n           ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
+  "2s-epoll-tls": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 159, in test\n    assert not retained, f'{len(retained)} clients still retain burst input capacity'\n           ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
+  "2s-uring-tcp": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 159, in test\n    assert not retained, f'{len(retained)} clients still retain burst input capacity'\n           ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n",
+  "2s-uring-tls": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-netfix/tests/_netfix.py\", line 120, in matrix\n    results[label] = test(a, a.port + (transport == 'tls'),\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/user/Projects/cx-netfix/tests/netfix_idle_buffers.py\", line 159, in test\n    assert not retained, f'{len(retained)} clients still retain burst input capacity'\n           ^^^^^^^^^^^^\nAssertionError: 10000 clients still retain burst input capacity\n"
 }

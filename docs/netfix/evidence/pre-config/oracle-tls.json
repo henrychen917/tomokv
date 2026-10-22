@@ -498,6 +498,13 @@
   ],
   [
     [
+      "protected-mode",
+      "1"
+    ],
+    "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - argument must be 'yes' or 'no'"
+  ],
+  [
+    [
       "client-output-buffer-limit",
       "normal"
     ],
@@ -649,5 +656,24 @@
       "normal 0 0 0"
     ],
     "ERR CONFIG SET failed (possibly related to argument 'CLIENT-OUTPUT-BUFFER-LIMIT') - duplicate parameter"
+  ],
+  [
+    [
+      "proto-max-bulk-len",
+      "9223372036854775807"
+    ],
+    "OK"
+  ],
+  [
+    [
+      "wrapped-bulk-header"
+    ],
+    "ERR Protocol error: invalid bulk length"
+  ],
+  [
+    [
+      "wrapped-bulk-header-complete"
+    ],
+    "ERR Protocol error: invalid bulk length"
   ]
 ]

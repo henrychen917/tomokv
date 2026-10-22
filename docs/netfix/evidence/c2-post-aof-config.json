@@ -1,0 +1,25 @@
+{
+  "arm": "post",
+  "phase": "required",
+  "engine": "uring",
+  "jobs": "aof-epoll aof-uring config_unit",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20833-20835"
+  ],
+  "wrapper": null,
+  "make_q_all_before": 0,
+  "actual_binary": "/home/user/Projects/cx-netfix/build/tomokv",
+  "sha256_before": "9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47",
+  "sha256_after": "9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47",
+  "returncode": 0
+}

@@ -1,0 +1,45 @@
+# 2026-10-23 03:20:31 make all + job_production_units targets (from tests/gate.sh), taskset -c 64-79 -j16, then make -q per target
+targets: build/ build/aoforder-scheduled build/at15-db0-unit build/at15-unit build/atomic-survivors-unit build/core-concurrency-unit build/encodingfix-unit build/exbatch-db0-unit build/exbatch-unit build/execabort-watch-db0-unit build/execabort-watch-unit build/expire-notify-unit build/flushfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/ktls-lifetime-unit build/lbplanner-units build/moverfix-db0-unit build/moverfix-unit build/multidb-boundary-unit build/multidb-unit build/netcap-unit build/netcmd-unit build/persistfix-units build/publishfix-unit build/racefix-climon build/rehash-waits-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/respresume-migration build/respresume-unit build/rltopo-unit build/shutdown-unit build/splitlocal-unit build/storesize-unit build/waits-unit build/wbland-units build/wb-rule-units  mdbqsbr-live-arms
+make all rc=0
+make -k units rc=0
+make mdbqsbr-live-arms rc=0
+make -q all rc=0
+make -q build/ rc=0
+make -q build/aoforder-scheduled rc=0
+make -q build/at15-db0-unit rc=0
+make -q build/at15-unit rc=0
+make -q build/atomic-survivors-unit rc=0
+make -q build/core-concurrency-unit rc=0
+make -q build/encodingfix-unit rc=0
+make -q build/exbatch-db0-unit rc=0
+make -q build/exbatch-unit rc=0
+make -q build/execabort-watch-db0-unit rc=0
+make -q build/execabort-watch-unit rc=0
+make -q build/expire-notify-unit rc=0
+make -q build/flushfix-units rc=0
+make -q build/ktls-keyupdate rc=0
+make -q build/ktls-keyupdate-unit rc=0
+make -q build/ktls-lifetime-unit rc=0
+make -q build/lbplanner-units rc=0
+make -q build/moverfix-db0-unit rc=0
+make -q build/moverfix-unit rc=0
+make -q build/multidb-boundary-unit rc=0
+make -q build/multidb-unit rc=0
+make -q build/netcap-unit rc=0
+make -q build/netcmd-unit rc=0
+make -q build/persistfix-units rc=0
+make -q build/publishfix-unit rc=0
+make -q build/racefix-climon rc=0
+make -q build/rehash-waits-unit rc=0
+make -q build/reorder-engagement-unit rc=0
+make -q build/reorder-engagement-unit-db0 rc=0
+make -q build/respresume-migration rc=0
+make -q build/respresume-unit rc=0
+make -q build/rltopo-unit rc=0
+make -q build/shutdown-unit rc=0
+make -q build/splitlocal-unit rc=0
+make -q build/storesize-unit rc=0
+make -q build/waits-unit rc=0
+make -q build/wbland-units rc=0
+make -q build/wb-rule-units rc=0
+stale targets: 0 of 38

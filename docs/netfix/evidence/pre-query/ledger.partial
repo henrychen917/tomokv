@@ -1,3 +1,0 @@
-PARTIAL	0	GATE_ONLY_JOBS=netfix_query_stats; NOT A RECEIPT
-ok	0.010000	release build (+footprint locks)
-FAIL	2.230000	netfix NT4.6 query-limit INFO parity

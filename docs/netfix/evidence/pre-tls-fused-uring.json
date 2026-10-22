@@ -1,0 +1,22 @@
+{
+  "arm": "pre",
+  "phase": "tls-fused",
+  "engine": "uring",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20840-20842",
+    "--candidate-binary",
+    "/home/user/Projects/cx-netfix/build/netfix-pre-uring-fused"
+  ],
+  "wrapper": "#!/usr/bin/env python3\nimport os, sys\nargs = sys.argv[1:]\nconfig = [args.pop(0)] if args and not args[0].startswith(\"--\") else []\nfor option in (\"--ratio\", \"--thread-mode\"):\n    while option in args:\n        i = args.index(option)\n        del args[i:i+2]\nos.execv('/home/user/Projects/cx-netfix/build/tomokv-pre-netfix', ['/home/user/Projects/cx-netfix/build/tomokv-pre-netfix'] + config + [\"--net-io\", 'uring', \"--thread-mode\", \"1s\"] + args)\n",
+  "returncode": 0
+}
