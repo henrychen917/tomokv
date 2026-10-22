@@ -31,3 +31,26 @@ retains all multiplicity differences. The strict normalizer is unchanged.
 
 No finding here establishes a throughput cause. The pending source trials and
 bounded instruction diagnostic must be judged separately from strict identity.
+
+## Inliner dependency and diagnostic control
+
+The final DB0 IPA call graph leaves `std::mutex::lock` with exactly two callers:
+`xshard_execute` (estimated frequency 0.00, SWAPDB) and `Server::lb_forget_client`
+(0.03, connection teardown). The latter's lock is considered late but not inlined;
+this prevents the final called-once inline into SWAPDB. This is a shared helper
+choice, not a newly outlined MGET gather/completion helper. In a source control,
+`noinline,flatten` on the teardown helper restores **both complete DB0 scatter
+bodies strictly to moverfix**, at the existing budgets. The complete-program
+consequences are still being checked; this control alone is not a selected fix.
+
+The command-scope PMU diagnostic uses the exact frozen executables, eight keys
+on eight distinct shards, 64-byte values, 16 shards, eight worker CPUs, one warm
+MGET and then one verified batch of depth 1 or 8. Both modes and atomic settings
+run. A known 129-instruction leaf and 131-instruction nested call establish that
+the return breakpoint retires one extra instruction; it is explicitly subtracted
+from each scope, and raw values are retained. No counter multiplexing is accepted.
+The scoped gather counts are 3724/command on headline and 3700 on moverfix and
+merged; completion is 446 in ordinary cases. Parser/scheduler/network work is
+outside this boundary. Preparation includes allocator-dependent variation, and
+serialized debugger scopes perturb cycles. The figures do not explain the
+maintainer's throughput regression and cannot clear it.
