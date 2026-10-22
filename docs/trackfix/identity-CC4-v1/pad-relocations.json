@@ -1,0 +1,45 @@
+{
+  "status": "PASS",
+  "strict_residuals": 4,
+  "padding_bytes": 224,
+  "all_pre_text_function_addresses_and_sizes_equal": true,
+  "gnu_properties_equal": true,
+  "trampolines": [
+    {
+      "aliases": [
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE_clEj"
+      ],
+      "entry": "0x6a7c90",
+      "offset": 56,
+      "return_to": "0x6a7cce"
+    },
+    {
+      "aliases": [
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+        "_ZZN4tomo7ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE_clEj"
+      ],
+      "entry": "0x6ac280",
+      "offset": 84,
+      "return_to": "0x6ac2be"
+    },
+    {
+      "aliases": [
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE2_clEj",
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb0EEEjjENKUljE_clEj"
+      ],
+      "entry": "0x30c020",
+      "offset": 0,
+      "return_to": "0x30c05e"
+    },
+    {
+      "aliases": [
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE2_clEj",
+        "_ZZN8tomo_db07ExLoopTILb1EE30drain_local_reads_bounded_implILb1EEEjjENKUljE_clEj"
+      ],
+      "entry": "0x310630",
+      "offset": 28,
+      "return_to": "0x31066e"
+    }
+  ]
+}

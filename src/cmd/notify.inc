@@ -768,17 +768,6 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
             }
             loop.tracking_broadcast_keys(changed, writer_id);
         }
-        // An empty pub/sub route is successful tracking-only delivery. Reserve
-        // only real publications, and count records (not route copies) if that
-        // reservation fails. A mixed batch may contain tracking-only records.
-        const uint32_t publication_records = static_cast<uint32_t>(std::count_if(
-            records.begin(), records.end(), [](const NotifyRecordImpl& record) {
-                return record.routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
-            }));
-        if (!publication_records) {
-            delete batch;
-            return;
-        }
         auto building = std::make_unique<PubSubNotificationChain>();
         building->items.reserve(records.size() * 2);
         for (const NotifyRecordImpl& record : records) {
@@ -792,7 +781,14 @@ void notify_retire_batch_entry(IoLoop& loop, NotifyBatch* batch, uint64_t writer
         }
         auto chain = notify_reserve_chain(*loop.srv_, std::move(building));
         if (!chain) {
-            loop.srv_->notify_event_dropped(publication_records);
+            // An empty pub/sub chain is successful tracking-only delivery.
+            // Count only actual publication records on this failure path;
+            // successful publication keeps its existing work unchanged.
+            const uint32_t dropped = static_cast<uint32_t>(std::count_if(
+                records.begin(), records.end(), [](const NotifyRecordImpl& record) {
+                    return record.routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT);
+                }));
+            if (dropped) loop.srv_->notify_event_dropped(dropped);
             delete batch;
             return;
         }

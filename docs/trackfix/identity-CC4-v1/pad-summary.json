@@ -1,0 +1,42 @@
+{
+  "total": 8641,
+  "changed": [
+    {
+      "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "before_sizes": [
+        328
+      ],
+      "after_sizes": [
+        328
+      ]
+    },
+    {
+      "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "before_sizes": [
+        328
+      ],
+      "after_sizes": [
+        328
+      ]
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "before_sizes": [
+        328
+      ],
+      "after_sizes": [
+        328
+      ]
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "before_sizes": [
+        328
+      ],
+      "after_sizes": [
+        328
+      ]
+    }
+  ],
+  "scope": "A: PRE behavior with POST aggregate text size; not every function address/size"
+}

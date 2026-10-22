@@ -42,7 +42,7 @@ missing windows fail rather than skip.
 | Own gate job | Server boots | Exact protocol/option cases | Result |
 |---|---:|---:|---|
 | PRE `trackfix_order` (corrected fixture v2) | 16 | 160 | 128 DIFF-TRK-1 failures; 32 BCAST controls pass |
-| POST `trackfix_order` | 16 | 160 | Same 128 failures; 32 BCAST controls pass |
+| POST `trackfix_order` (v2 fixture) | 16 | 160 | 124 exact-frame failures, four arming failures; 32 BCAST controls pass |
 | PRE `trackfix_accounting` | 16 | 160 | 160 CC4.4 counter failures, correct delivered frames |
 | POST `trackfix_accounting` | 16 | 160 | 160 pass |
 
@@ -56,8 +56,11 @@ stage. BCAST correctly observes both changes and has no pending-read enrollment.
 The first scheduling fixture tried to inspect argv at retirement; those bytes
 are no longer a valid lifetime witness there. Its 128 missing-replay failures
 are retained as `pre-order`, not counted as reproductions. v2 uses the actual
-owned pending-read key and asserts both the Op pointer and Done state. All 128
-required windows open on each arm.
+owned pending-read key and asserts both the Op pointer and Done state. PRE
+opened 128 windows; POST opened 124 and rejected four missing notification
+windows. v3 additionally arms an unmatched BCAST observer on the writer itself
+to establish its notification branch before the scheduled SET. Those fresh
+whole-job reruns are pending; the four failed arms are not skipped or relabelled.
 
 ### CC4.4 implementation and cost boundary
 

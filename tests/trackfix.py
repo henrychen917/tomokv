@@ -131,6 +131,13 @@ class Peer:
         listener = reader if protocol == 3 else self.connect()
         priming = self.connect()
         try:
+            # Arm the writer's own notification branch before the scheduled SET.
+            # A cross-owner TRACKING acknowledgement alone does not establish
+            # that the writer's cached configuration has refreshed. The unmatched
+            # BCAST prefix supplies no extra frame and keeps collection armed
+            # while the filter-priming subscription is removed below.
+            equal(self.writer.cmd('CLIENT', 'TRACKING', 'ON', 'BCAST', 'PREFIX',
+                                  'trackfix-never:'), b'OK', 'writer observation armed')
             equal(self.writer.cmd('SET', key, 'before'), b'OK', 'initial value')
             # Seed the existing monotonic membership filter, then remove its
             # subscription. The actual tracker has never read this key yet.
@@ -175,6 +182,7 @@ class Peer:
             return transcript
         finally:
             reader.cmd('CLIENT', 'TRACKING', 'OFF')
+            self.writer.cmd('CLIENT', 'TRACKING', 'OFF')
             priming.close()
             reader.close()
             if listener is not reader:

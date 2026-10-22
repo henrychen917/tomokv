@@ -35,7 +35,10 @@ HOLD = r'''
     if (std::getenv("TOMO_TRACKFIX_SCHEDULE_DIR") &&
         event.kind == PubSubEventKind::TrackingInvalidate && event.items.size() == 1) {
         const std::string& key = event.items[0].value;
+        const bool remembering = std::any_of(climon_conn_.begin(), climon_conn_.end(),
+            [](const auto& entry) { return entry.second.tracking_on && !entry.second.bcast; });
         if (key.starts_with("trackfix:ordered:") && key.find("BCAST") == std::string::npos &&
+            remembering &&
             trackfix_seen.insert(key).second) {
             trackfix_held.emplace(key, event);
             trackfix_receipt(key, ".held", 0);
