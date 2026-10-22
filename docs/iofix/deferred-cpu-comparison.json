@@ -1,0 +1,866 @@
+[
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "pre": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00053059,
+        "io_owner": 4,
+        "io_tid": 1993106,
+        "list_cpu_seconds": 0.42629462,
+        "list_owner": 6,
+        "list_tid": 1993100,
+        "second_busy_cpu_seconds": 0.00238187,
+        "top_cpu_seconds": [
+          [
+            0.42629462,
+            1993100
+          ],
+          [
+            0.00238187,
+            1993101
+          ],
+          [
+            0.00053059,
+            1993106
+          ]
+        ],
+        "wall_seconds": 0.4262621458619833
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.425999382,
+        "io_owner": 1,
+        "io_tid": 1993250,
+        "list_cpu_seconds": 0.426755342,
+        "list_owner": 6,
+        "list_tid": 1993247,
+        "second_busy_cpu_seconds": 0.425999382,
+        "top_cpu_seconds": [
+          [
+            0.426755342,
+            1993247
+          ],
+          [
+            0.425999382,
+            1993250
+          ],
+          [
+            0.002133698,
+            1993248
+          ]
+        ],
+        "wall_seconds": 0.4266388788819313
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.42570089,
+        "io_owner": 5,
+        "io_tid": 1995136,
+        "list_cpu_seconds": 0.42632493,
+        "list_owner": 7,
+        "list_tid": 1995130,
+        "second_busy_cpu_seconds": 0.42570089,
+        "top_cpu_seconds": [
+          [
+            0.42632493,
+            1995130
+          ],
+          [
+            0.42570089,
+            1995136
+          ],
+          [
+            0.00212641,
+            1995129
+          ]
+        ],
+        "wall_seconds": 0.42617383040487766
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.42550971,
+        "io_owner": 1,
+        "io_tid": 1995145,
+        "list_cpu_seconds": 0.42611215,
+        "list_owner": 7,
+        "list_tid": 1995143,
+        "second_busy_cpu_seconds": 0.42550971,
+        "top_cpu_seconds": [
+          [
+            0.42611215,
+            1995143
+          ],
+          [
+            0.42550971,
+            1995145
+          ],
+          [
+            0.0024004,
+            1995142
+          ]
+        ],
+        "wall_seconds": 0.4259852133691311
+      }
+    },
+    "post": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00052666,
+        "io_owner": 1,
+        "io_tid": 1914334,
+        "list_cpu_seconds": 0.42707122,
+        "list_owner": 6,
+        "list_tid": 1914331,
+        "second_busy_cpu_seconds": 0.00246748,
+        "top_cpu_seconds": [
+          [
+            0.42707122,
+            1914331
+          ],
+          [
+            0.00246748,
+            1914332
+          ],
+          [
+            0.00052666,
+            1914334
+          ]
+        ],
+        "wall_seconds": 0.42704538628458977
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.00046125,
+        "io_owner": 4,
+        "io_tid": 1914410,
+        "list_cpu_seconds": 0.42633756,
+        "list_owner": 6,
+        "list_tid": 1914404,
+        "second_busy_cpu_seconds": 0.00247238,
+        "top_cpu_seconds": [
+          [
+            0.42633756,
+            1914404
+          ],
+          [
+            0.00247238,
+            1914405
+          ],
+          [
+            0.00046125,
+            1914410
+          ]
+        ],
+        "wall_seconds": 0.4263088144361973
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.00045332,
+        "io_owner": 5,
+        "io_tid": 1914488,
+        "list_cpu_seconds": 0.42660836,
+        "list_owner": 7,
+        "list_tid": 1914482,
+        "second_busy_cpu_seconds": 0.00247003,
+        "top_cpu_seconds": [
+          [
+            0.42660836,
+            1914482
+          ],
+          [
+            0.00247003,
+            1914481
+          ],
+          [
+            0.00045332,
+            1914488
+          ]
+        ],
+        "wall_seconds": 0.42656511534005404
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.000463894,
+        "io_owner": 4,
+        "io_tid": 1914549,
+        "list_cpu_seconds": 0.426880911,
+        "list_owner": 7,
+        "list_tid": 1914544,
+        "second_busy_cpu_seconds": 0.00247016,
+        "top_cpu_seconds": [
+          [
+            0.426880911,
+            1914544
+          ],
+          [
+            0.00247016,
+            1914543
+          ],
+          [
+            0.000463894,
+            1914549
+          ]
+        ],
+        "wall_seconds": 0.42684334609657526
+      }
+    }
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "pre": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.0005393,
+        "io_owner": 4,
+        "io_tid": 1995169,
+        "list_cpu_seconds": 0.42661142,
+        "list_owner": 7,
+        "list_tid": 1995164,
+        "second_busy_cpu_seconds": 0.00225349,
+        "top_cpu_seconds": [
+          [
+            0.42661142,
+            1995164
+          ],
+          [
+            0.00225349,
+            1995163
+          ],
+          [
+            0.0005393,
+            1995169
+          ]
+        ],
+        "wall_seconds": 0.42648542765527964
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.42579487,
+        "io_owner": 4,
+        "io_tid": 1995180,
+        "list_cpu_seconds": 0.42631836,
+        "list_owner": 7,
+        "list_tid": 1995175,
+        "second_busy_cpu_seconds": 0.42579487,
+        "top_cpu_seconds": [
+          [
+            0.42631836,
+            1995175
+          ],
+          [
+            0.42579487,
+            1995180
+          ],
+          [
+            0.00226697,
+            1995174
+          ]
+        ],
+        "wall_seconds": 0.42627087235450745
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.425790303,
+        "io_owner": 3,
+        "io_tid": 1995192,
+        "list_cpu_seconds": 0.426424382,
+        "list_owner": 7,
+        "list_tid": 1995188,
+        "second_busy_cpu_seconds": 0.425790303,
+        "top_cpu_seconds": [
+          [
+            0.426424382,
+            1995188
+          ],
+          [
+            0.425790303,
+            1995192
+          ],
+          [
+            0.002248073,
+            1995187
+          ]
+        ],
+        "wall_seconds": 0.4262822736054659
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.425774221,
+        "io_owner": 4,
+        "io_tid": 1995207,
+        "list_cpu_seconds": 0.426370401,
+        "list_owner": 7,
+        "list_tid": 1995202,
+        "second_busy_cpu_seconds": 0.425774221,
+        "top_cpu_seconds": [
+          [
+            0.426370401,
+            1995202
+          ],
+          [
+            0.425774221,
+            1995207
+          ],
+          [
+            0.002266051,
+            1995201
+          ]
+        ],
+        "wall_seconds": 0.4262341260910034
+      }
+    },
+    "post": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00074019,
+        "io_owner": 3,
+        "io_tid": 1914589,
+        "list_cpu_seconds": 0.42684517,
+        "list_owner": 7,
+        "list_tid": 1914585,
+        "second_busy_cpu_seconds": 0.0023222,
+        "top_cpu_seconds": [
+          [
+            0.42684517,
+            1914585
+          ],
+          [
+            0.0023222,
+            1914584
+          ],
+          [
+            0.00074019,
+            1914589
+          ]
+        ],
+        "wall_seconds": 0.42673457600176334
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.00046231,
+        "io_owner": 3,
+        "io_tid": 1914619,
+        "list_cpu_seconds": 0.42673211,
+        "list_owner": 7,
+        "list_tid": 1914615,
+        "second_busy_cpu_seconds": 0.00232981,
+        "top_cpu_seconds": [
+          [
+            0.42673211,
+            1914615
+          ],
+          [
+            0.00232981,
+            1914614
+          ],
+          [
+            0.00046231,
+            1914619
+          ]
+        ],
+        "wall_seconds": 0.42658616602420807
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.00045897,
+        "io_owner": 0,
+        "io_tid": 1914649,
+        "list_cpu_seconds": 0.42676258,
+        "list_owner": 6,
+        "list_tid": 1914647,
+        "second_busy_cpu_seconds": 0.00232731,
+        "top_cpu_seconds": [
+          [
+            0.42676258,
+            1914647
+          ],
+          [
+            0.00232731,
+            1914648
+          ],
+          [
+            0.00045897,
+            1914649
+          ]
+        ],
+        "wall_seconds": 0.42672937735915184
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.00046718,
+        "io_owner": 5,
+        "io_tid": 1914675,
+        "list_cpu_seconds": 0.42602385,
+        "list_owner": 7,
+        "list_tid": 1914669,
+        "second_busy_cpu_seconds": 0.00233549,
+        "top_cpu_seconds": [
+          [
+            0.42602385,
+            1914669
+          ],
+          [
+            0.00233549,
+            1914668
+          ],
+          [
+            0.00046718,
+            1914675
+          ]
+        ],
+        "wall_seconds": 0.42597639560699463
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "pre": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00065738,
+        "io_owner": 1,
+        "io_tid": 1995228,
+        "list_cpu_seconds": 0.43836187,
+        "list_owner": 0,
+        "list_tid": 1995227,
+        "second_busy_cpu_seconds": 0.00065738,
+        "top_cpu_seconds": [
+          [
+            0.43836187,
+            1995227
+          ],
+          [
+            0.00065738,
+            1995228
+          ],
+          [
+            0.0001014,
+            1995232
+          ]
+        ],
+        "wall_seconds": 0.43929531518369913
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.43841677,
+        "io_owner": 1,
+        "io_tid": 1995278,
+        "list_cpu_seconds": 0.438133,
+        "list_owner": 0,
+        "list_tid": 1995277,
+        "second_busy_cpu_seconds": 0.438133,
+        "top_cpu_seconds": [
+          [
+            0.43841677,
+            1995278
+          ],
+          [
+            0.438133,
+            1995277
+          ],
+          [
+            8.689e-05,
+            1995280
+          ]
+        ],
+        "wall_seconds": 0.4389103567227721
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.43896697,
+        "io_owner": 4,
+        "io_tid": 1995292,
+        "list_cpu_seconds": 0.43867752,
+        "list_owner": 5,
+        "list_tid": 1995293,
+        "second_busy_cpu_seconds": 0.43867752,
+        "top_cpu_seconds": [
+          [
+            0.43896697,
+            1995292
+          ],
+          [
+            0.43867752,
+            1995293
+          ],
+          [
+            8.264e-05,
+            1995294
+          ]
+        ],
+        "wall_seconds": 0.4394363211467862
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.438165598,
+        "io_owner": 2,
+        "io_tid": 1995301,
+        "list_cpu_seconds": 0.43790202,
+        "list_owner": 3,
+        "list_tid": 1995302,
+        "second_busy_cpu_seconds": 0.43790202,
+        "top_cpu_seconds": [
+          [
+            0.438165598,
+            1995301
+          ],
+          [
+            0.43790202,
+            1995302
+          ],
+          [
+            8.9051e-05,
+            1995304
+          ]
+        ],
+        "wall_seconds": 0.4386452715843916
+      }
+    },
+    "post": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.000557435,
+        "io_owner": 0,
+        "io_tid": 1914700,
+        "list_cpu_seconds": 0.425539202,
+        "list_owner": 4,
+        "list_tid": 1914704,
+        "second_busy_cpu_seconds": 0.000557435,
+        "top_cpu_seconds": [
+          [
+            0.425539202,
+            1914704
+          ],
+          [
+            0.000557435,
+            1914700
+          ],
+          [
+            0.000130202,
+            1914702
+          ]
+        ],
+        "wall_seconds": 0.42635007575154305
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.000488039,
+        "io_owner": 5,
+        "io_tid": 1914736,
+        "list_cpu_seconds": 0.427729721,
+        "list_owner": 4,
+        "list_tid": 1914735,
+        "second_busy_cpu_seconds": 0.000488039,
+        "top_cpu_seconds": [
+          [
+            0.427729721,
+            1914735
+          ],
+          [
+            0.000488039,
+            1914736
+          ],
+          [
+            9.4628e-05,
+            1914733
+          ]
+        ],
+        "wall_seconds": 0.428485631942749
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.00048433,
+        "io_owner": 0,
+        "io_tid": 1914844,
+        "list_cpu_seconds": 0.42795333,
+        "list_owner": 3,
+        "list_tid": 1914847,
+        "second_busy_cpu_seconds": 0.00048433,
+        "top_cpu_seconds": [
+          [
+            0.42795333,
+            1914847
+          ],
+          [
+            0.00048433,
+            1914844
+          ],
+          [
+            0.0001221,
+            1914846
+          ]
+        ],
+        "wall_seconds": 0.42872344329953194
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.00050545,
+        "io_owner": 0,
+        "io_tid": 1914898,
+        "list_cpu_seconds": 0.42678188,
+        "list_owner": 2,
+        "list_tid": 1914900,
+        "second_busy_cpu_seconds": 0.00050545,
+        "top_cpu_seconds": [
+          [
+            0.42678188,
+            1914900
+          ],
+          [
+            0.00050545,
+            1914898
+          ],
+          [
+            7.376e-05,
+            1914899
+          ]
+        ],
+        "wall_seconds": 0.4275130992755294
+      }
+    }
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "pre": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00060365,
+        "io_owner": 6,
+        "io_tid": 1995338,
+        "list_cpu_seconds": 0.42568163,
+        "list_owner": 1,
+        "list_tid": 1995333,
+        "second_busy_cpu_seconds": 0.00060365,
+        "top_cpu_seconds": [
+          [
+            0.42568163,
+            1995333
+          ],
+          [
+            0.00060365,
+            1995338
+          ],
+          [
+            8.089e-05,
+            1995339
+          ]
+        ],
+        "wall_seconds": 0.42662403266876936
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.42573144,
+        "io_owner": 4,
+        "io_tid": 1995347,
+        "list_cpu_seconds": 0.42546011,
+        "list_owner": 7,
+        "list_tid": 1995350,
+        "second_busy_cpu_seconds": 0.42546011,
+        "top_cpu_seconds": [
+          [
+            0.42573144,
+            1995347
+          ],
+          [
+            0.42546011,
+            1995350
+          ],
+          [
+            8.129e-05,
+            1995343
+          ]
+        ],
+        "wall_seconds": 0.42639588471502066
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.42621715,
+        "io_owner": 0,
+        "io_tid": 1995867,
+        "list_cpu_seconds": 0.42597234,
+        "list_owner": 7,
+        "list_tid": 1995876,
+        "second_busy_cpu_seconds": 0.42597234,
+        "top_cpu_seconds": [
+          [
+            0.42621715,
+            1995867
+          ],
+          [
+            0.42597234,
+            1995876
+          ],
+          [
+            8.473e-05,
+            1995873
+          ]
+        ],
+        "wall_seconds": 0.42666031792759895
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.42506803,
+        "io_owner": 0,
+        "io_tid": 1997234,
+        "list_cpu_seconds": 0.42478871,
+        "list_owner": 6,
+        "list_tid": 1997240,
+        "second_busy_cpu_seconds": 0.42478871,
+        "top_cpu_seconds": [
+          [
+            0.42506803,
+            1997234
+          ],
+          [
+            0.42478871,
+            1997240
+          ],
+          [
+            7.918e-05,
+            1997241
+          ]
+        ],
+        "wall_seconds": 0.4255394693464041
+      }
+    },
+    "post": {
+      "policy-0-S16-D3": {
+        "arm": "policy-0-S16-D3",
+        "holds": 0,
+        "io_cpu_seconds": 0.00056326,
+        "io_owner": 1,
+        "io_tid": 1915422,
+        "list_cpu_seconds": 0.43839511,
+        "list_owner": 5,
+        "list_tid": 1915426,
+        "second_busy_cpu_seconds": 0.00056326,
+        "top_cpu_seconds": [
+          [
+            0.43839511,
+            1915426
+          ],
+          [
+            0.00056326,
+            1915422
+          ],
+          [
+            0.00012057,
+            1915423
+          ]
+        ],
+        "wall_seconds": 0.4392084013670683
+      },
+      "policy-1-S16-D3": {
+        "arm": "policy-1-S16-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.000534626,
+        "io_owner": 1,
+        "io_tid": 1916871,
+        "list_cpu_seconds": 0.438807944,
+        "list_owner": 5,
+        "list_tid": 1916875,
+        "second_busy_cpu_seconds": 0.000534626,
+        "top_cpu_seconds": [
+          [
+            0.438807944,
+            1916875
+          ],
+          [
+            0.000534626,
+            1916871
+          ],
+          [
+            0.00010182,
+            1916872
+          ]
+        ],
+        "wall_seconds": 0.4396173618733883
+      },
+      "policy-1-S0-D3": {
+        "arm": "policy-1-S0-D3",
+        "holds": 16,
+        "io_cpu_seconds": 0.000527311,
+        "io_owner": 7,
+        "io_tid": 1916929,
+        "list_cpu_seconds": 0.438548318,
+        "list_owner": 1,
+        "list_tid": 1916923,
+        "second_busy_cpu_seconds": 0.000527311,
+        "top_cpu_seconds": [
+          [
+            0.438548318,
+            1916923
+          ],
+          [
+            0.000527311,
+            1916929
+          ],
+          [
+            0.000109893,
+            1916924
+          ]
+        ],
+        "wall_seconds": 0.43936990201473236
+      },
+      "policy-1-S16-D0": {
+        "arm": "policy-1-S16-D0",
+        "holds": 16,
+        "io_cpu_seconds": 0.00056917,
+        "io_owner": 2,
+        "io_tid": 1916946,
+        "list_cpu_seconds": 0.43843984,
+        "list_owner": 5,
+        "list_tid": 1916949,
+        "second_busy_cpu_seconds": 0.00056917,
+        "top_cpu_seconds": [
+          [
+            0.43843984,
+            1916949
+          ],
+          [
+            0.00056917,
+            1916946
+          ],
+          [
+            9.275e-05,
+            1916951
+          ]
+        ],
+        "wall_seconds": 0.43929504230618477
+      }
+    }
+  }
+]

@@ -1,0 +1,19 @@
+2003259:C 23 Oct 2026 03:07:29.001 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2003259:C 23 Oct 2026 03:07:29.001 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2003259:C 23 Oct 2026 03:07:29.001 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=2003259, just started
+2003259:C 23 Oct 2026 03:07:29.001 * Configuration loaded
+2003259:M 23 Oct 2026 03:07:29.001 * monotonic clock: POSIX clock_gettime
+2003259:M 23 Oct 2026 03:07:29.002 * Running mode=standalone, port=19801.
+2003259:M 23 Oct 2026 03:07:29.002 * Server initialized
+2003259:M 23 Oct 2026 03:07:29.002 * Ready to accept connections tcp
+2003259:signal-handler (1792696049) Received SIGTERM scheduling shutdown...
+2003259:M 23 Oct 2026 03:07:29.104 * User requested shutdown...
+2003259:M 23 Oct 2026 03:07:29.104 * Saving the final RDB snapshot before exiting.
+2003259:M 23 Oct 2026 03:07:29.104 # Error moving temp DB file temp-2003259.rdb on the final destination saved.rdb (in server root dir /home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x/jobs/iofix-signal/signal-2s-epoll/oracle-failed-save): Is a directory
+2003259:M 23 Oct 2026 03:07:29.104 # Error trying to save the DB, can't exit.
+2003259:M 23 Oct 2026 03:07:29.104 # Errors trying to shut down the server. Check the logs for more information.
+2003259:signal-handler (1792696049) Received SIGTERM scheduling shutdown...
+2003259:M 23 Oct 2026 03:07:29.406 * User requested shutdown...
+2003259:M 23 Oct 2026 03:07:29.406 * Saving the final RDB snapshot before exiting.
+2003259:M 23 Oct 2026 03:07:29.406 * DB saved on disk
+2003259:M 23 Oct 2026 03:07:29.406 # Redis is now ready to exit, bye bye...

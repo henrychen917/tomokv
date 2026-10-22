@@ -1,0 +1,290 @@
+[
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "pre": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11347387731075287,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11345597729086876,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00035433,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0146925691515207,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.014687147922814,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.03400563,
+        "kind": "target"
+      }
+    ],
+    "post": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11344743892550468,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11344664823263884,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.0003486,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.003154638223350048,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.0031537283211946487,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.002517,
+        "kind": "target"
+      }
+    ]
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "pre": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11348294001072645,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11343859042972326,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00035262,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0147662023082376,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0147039806470275,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00251636,
+        "kind": "target"
+      }
+    ],
+    "post": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.1134239798411727,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11346287932246923,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00032642,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.0031660888344049454,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.003150707110762596,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00261634,
+        "kind": "target"
+      }
+    ]
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "pre": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11346512474119663,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.1134569551795721,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00035356,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0146623440086842,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0146919721737504,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00077855,
+        "kind": "target"
+      }
+    ],
+    "post": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11346201971173286,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11345124989748001,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.000351182,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.0031583886593580246,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.007212819531559944,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00074919,
+        "kind": "target"
+      }
+    ]
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "pre": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11346370633691549,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11345723830163479,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00034936,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0146875763311982,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.014725343324244,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00074257,
+        "kind": "target"
+      }
+    ],
+    "post": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11346316058188677,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11343128979206085,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00035286,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.003156588412821293,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.003159118816256523,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.0006549,
+        "kind": "target"
+      }
+    ]
+  }
+]

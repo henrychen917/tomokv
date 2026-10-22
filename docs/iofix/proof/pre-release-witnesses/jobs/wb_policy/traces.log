@@ -1,0 +1,3 @@
+PASS policy-zero always-defer control rejected (multi): trace decision
+PASS policy-zero always-defer control rejected (-db0): trace decision
+PASS 22 exact states x 2 policies x 4 counts x 2 namespaces (serverless)

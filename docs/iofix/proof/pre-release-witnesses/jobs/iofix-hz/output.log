@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; iofix IO4.9 Redis hz cron
+  iofix IO4.9 Redis hz cron                            FAIL (see /home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x/jobs/iofix-hz/hz-*.log)

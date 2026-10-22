@@ -1,0 +1,55 @@
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/redis74/src/redis-server", "--bind", "127.0.0.1", "--port", "19801", "--dir", "/home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x/jobs/iofix-sleep/sleep-1s-uring/oracle", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes"], "pid": 2000760}
+{"reply": "b'OK'", "seconds": 9.304936975240707e-05, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 2.6580877602100372e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 8.150003850460052e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 2.18292698264122e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 2.0720064640045166e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 7.874984294176102e-05, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 0.002082020975649357, "sleep": ".002tail"}
+{"reply": "b'OK'", "seconds": 0.002084331586956978, "sleep": " 0.002"}
+{"reply": "b'OK'", "seconds": 1.0103510562330484, "sleep": "1.01"}
+{"oracle": ["b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", "b'OK'", ["b'OK'", "b'OK'", "b'OK'", "b'after'"], "b'PONG'"]}
+{"oracle": true, "signal_during_sleep_seconds": 0.1135126706212759}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/cx-iofix/build/tomokv-pre", "--bind", "127.0.0.1", "--port", "19800", "--dir", "/home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x/jobs/iofix-sleep/sleep-1s-uring/target-0", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--shards", "16", "--thread-mode", "1s", "--net-io", "uring", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0"], "pid": 2000796}
+{"reply": "b'OK'", "seconds": 6.841029971837997e-05, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 2.6560388505458832e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 1.997966319322586e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 1.909025013446808e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 1.852959394454956e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 0.05010836664587259, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 3.582984209060669e-05, "sleep": ".002tail"}
+{"failure": "AssertionError('Redis numeric prefix must retain the positive delay')", "phase": "oracle replies", "variant": 0}
+{"failure": "AssertionError('sleep replied without an all-worker pause')", "phase": "direct pause", "variant": 0}
+{"failure": "AssertionError('sleep replied without an all-worker pause')", "phase": "EXEC pause", "variant": 0}
+{"failure": "AssertionError('sleep returned before signal window')", "phase": "signal during sleep", "variant": 0}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/cx-iofix/build/tomokv-pre", "--bind", "127.0.0.1", "--port", "19800", "--dir", "/home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x/jobs/iofix-sleep/sleep-1s-uring/target-1", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--shards", "16", "--thread-mode", "1s", "--net-io", "uring", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--read-local", "1"], "pid": 2000895}
+{"reply": "b'OK'", "seconds": 6.651971489191055e-05, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 2.6689842343330383e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 2.0470470190048218e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 2.0269304513931274e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 1.8649734556674957e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 0.0500750383362174, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 4.3179839849472046e-05, "sleep": ".002tail"}
+{"failure": "AssertionError('Redis numeric prefix must retain the positive delay')", "phase": "oracle replies", "variant": 1}
+{"failure": "AssertionError('sleep replied without an all-worker pause')", "phase": "direct pause", "variant": 1}
+{"failure": "AssertionError('sleep replied without an all-worker pause')", "phase": "EXEC pause", "variant": 1}
+{"failure": "AssertionError('sleep returned before signal window')", "phase": "signal during sleep", "variant": 1}
+{"boot": ["taskset", "-c", "80-87", "/home/user/Projects/cx-iofix/build/tomokv-pre", "--bind", "127.0.0.1", "--port", "19800", "--dir", "/home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x/jobs/iofix-sleep/sleep-1s-uring/target-2", "--save", "", "--appendonly", "no", "--enable-debug-command", "yes", "--shards", "16", "--thread-mode", "1s", "--net-io", "uring", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--read-local", "1", "--reorder", "1"], "pid": 2000991}
+{"reply": "b'OK'", "seconds": 6.689038127660751e-05, "sleep": "0"}
+{"reply": "b'OK'", "seconds": 2.5149434804916382e-05, "sleep": "-1"}
+{"reply": "b'OK'", "seconds": 2.0439736545085907e-05, "sleep": "garbage"}
+{"reply": "b'OK'", "seconds": 1.948978751897812e-05, "sleep": "nan"}
+{"reply": "b'OK'", "seconds": 1.8649734556674957e-05, "sleep": "inf"}
+{"reply": "b'OK'", "seconds": 0.050084968097507954, "sleep": "0.0000001"}
+{"reply": "b'OK'", "seconds": 4.092976450920105e-05, "sleep": ".002tail"}
+{"failure": "AssertionError('Redis numeric prefix must retain the positive delay')", "phase": "oracle replies", "variant": 2}
+{"failure": "AssertionError('sleep replied without an all-worker pause')", "phase": "direct pause", "variant": 2}
+{"failure": "AssertionError('sleep replied without an all-worker pause')", "phase": "EXEC pause", "variant": 2}
+{"failure": "AssertionError('sleep returned before signal window')", "phase": "signal during sleep", "variant": 2}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-iofix/build/iofix/pre-source/tests/iofix_sleep.py", line 164, in <module>
+    run(args)
+  File "/home/user/Projects/cx-iofix/build/iofix/pre-source/tests/iofix_sleep.py", line 157, in run
+    assert not failures, failures
+           ^^^^^^^^^^^^
+AssertionError: [(0, 'oracle replies', "AssertionError('Redis numeric prefix must retain the positive delay')"), (0, 'direct pause', "AssertionError('sleep replied without an all-worker pause')"), (0, 'EXEC pause', "AssertionError('sleep replied without an all-worker pause')"), (0, 'signal during sleep', "AssertionError('sleep returned before signal window')"), (1, 'oracle replies', "AssertionError('Redis numeric prefix must retain the positive delay')"), (1, 'direct pause', "AssertionError('sleep replied without an all-worker pause')"), (1, 'EXEC pause', "AssertionError('sleep replied without an all-worker pause')"), (1, 'signal during sleep', "AssertionError('sleep returned before signal window')"), (2, 'oracle replies', "AssertionError('Redis numeric prefix must retain the positive delay')"), (2, 'direct pause', "AssertionError('sleep replied without an all-worker pause')"), (2, 'EXEC pause', "AssertionError('sleep replied without an all-worker pause')"), (2, 'signal during sleep', "AssertionError('sleep returned before signal window')")]
