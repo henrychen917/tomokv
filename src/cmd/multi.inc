@@ -2213,8 +2213,7 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
         queue_session->queue_error = true;
     MultiExecState* dispatch = nullptr;
     const MultiIoAction action =
-        multi_handle_io(*loop.srv_, client, op, loop.self_->id(), dispatch,
-                       now_ns());
+        multi_handle_io(*loop.srv_, client, op, loop.self_->id(), dispatch);
     if (action == MultiIoAction::NotHandled) return false;
     if (action == MultiIoAction::Backpressure) {
         client.set_atomic_backpressure(true);
@@ -3145,7 +3144,11 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
                 if (found == watch_reservations_.end()) continue;
                 for (const auto& holder : found->second) {
                     if (holder.token == unit.token || !txn_reservation_live(holder)) continue;
-                    if (holder.entry_kind == 2) { ready = false; continue; }
+                    if (holder.entry_kind == 2) {
+                        // A' writer episodes: only arrivals after the episode wait.
+                        if (own.age_ns > holder.writer_generation) ready = false;
+                        continue;
+                    }
                     if (!holder.blocking && holder.entry_kind != 3) continue;
                     if (key.mode == TxnClaimMode::Read &&
                         holder.unit_mode == static_cast<uint8_t>(TxnClaimMode::Read)) continue;
@@ -3193,15 +3196,27 @@ void Shard::watch_finish_unit(const std::vector<TxnClaim>& keys, const void*) {
     if (has_blocking_waiters()) set_blocking_dirty();
 }
 
-bool Shard::watch_writer_mark(Slice key, const void* token, bool whole) {
+uint64_t Shard::watch_writer_stamp(Slice key, const void* token, bool whole) const {
+    const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
+    if (found == watch_reservations_.end()) return 0;
+    for (const auto& r : found->second)
+        if (r.entry_kind == 2 && r.token == token) return r.writer_generation;
+    return 0;
+}
+
+bool Shard::watch_writer_mark(Slice key, const void* token, bool whole, uint64_t stamp) {
     const auto owned = whole ? std::string{} : watch_key_string(key);
     if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end())
         for (const auto& r : found->second)
-            if (r.entry_kind == 2 && r.token == token) return true;
+            if (r.entry_kind == 2 && r.token == token) return r.writer_generation == stamp;
     WatchReservation mark;
     mark.token = token;
     mark.entry_kind = 2;
+    mark.writer_generation = stamp;
     if (!watch_append_reservation(owned, mark)) return false;
+#ifdef TOMO_TXNORDER_DEBUG
+    txn_debug_writer_mark(token, 1);
+#endif
     server_->note_txn(server_->worker_of_shard(id()), TxnCounter::WriterMarks);
     return true;
 }
@@ -3210,8 +3225,56 @@ void Shard::watch_writer_unmark(Slice key, const void* token, bool whole) {
     const auto found = watch_reservations_.find(whole ? std::string{} : watch_key_string(key));
     if (found == watch_reservations_.end()) return;
     auto& list = found->second;
-    std::erase_if(list, [&](const auto& r) { return r.entry_kind == 2 && r.token == token; });
+    const auto removed = std::erase_if(list, [&](const auto& r) {
+        return r.entry_kind == 2 && r.token == token;
+    });
+#ifdef TOMO_TXNORDER_DEBUG
+    if (removed) txn_debug_writer_mark(token, -static_cast<int>(removed));
+#else
+    (void)removed;
+#endif
     if (list.empty()) { watch_reservations_.erase(found); refresh_has_watches(); }
+}
+
+// Allocation failure must not leave a partial episode. This fallback does not
+// allocate, including for long keys whose owned spelling could not be built.
+void Shard::watch_writer_forget(const void* token) {
+    for (auto it = watch_reservations_.begin(); it != watch_reservations_.end();) {
+        const auto removed = std::erase_if(it->second, [&](const auto& r) {
+            return r.entry_kind == 2 && r.token == token;
+        });
+#ifdef TOMO_TXNORDER_DEBUG
+        if (removed) txn_debug_writer_mark(token, -static_cast<int>(removed));
+#else
+        (void)removed;
+#endif
+        if (it->second.empty()) it = watch_reservations_.erase(it);
+        else ++it;
+    }
+    refresh_has_watches();
+}
+
+// Invariant I, checked only on the blocked path. A placing validator or a
+// started TO-B claim must predate every episode covering that key.
+void Shard::watch_writer_check(Slice key, bool whole, uint64_t stamp) {
+    const auto check = [&](const auto& entries) {
+        for (const auto& r : entries) {
+            if (!r.unit_kind || !r.blocking || !txn_reservation_live(r)) continue;
+            const auto unit = txn_unit_view(r);
+            if (unit.age_ns <= stamp ||
+                unit.phase->load(std::memory_order_acquire) != TxnPhase::Placing) continue;
+            if (r.entry_kind == 0 || (r.unit_kind == 2 &&
+                (static_cast<const ScatterState*>(r.token)->group_attempt()->arrived[id()] & 4u)))
+                server_->note_txn(server_->worker_of_shard(id()), TxnCounter::OrderViolations);
+        }
+    };
+    if (whole) {
+        for (const auto& [name, entries] : watch_reservations_) check(entries);
+    } else {
+        if (auto it = watch_reservations_.find(""); it != watch_reservations_.end()) check(it->second);
+        if (auto it = watch_reservations_.find(watch_key_string(key));
+            it != watch_reservations_.end()) check(it->second);
+    }
 }
 
 // Retires every reservation on `key` whose unit has DECIDED, applying its effect, and answers
@@ -3535,34 +3598,54 @@ void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
     }
 }
 
+namespace {
+template <typename Fn>
+void for_each_plain_write_key(Op& op, Fn&& fn) {
+    if (op.local_xshard()) for_each_touched_key(op, fn);
+    else if (op.spec->flags & CmdFlags::ScriptRoute)
+        for_each_spec_key(op, [&](Slice key) { fn(0, key); });
+    else fn(op.hash, op_routed_key(op));
+}
+
+// Each enumerator visits the complete mark set on this owner, including "" for
+// FLUSH. The first mark carries the episode stamp; all marks share its lifetime.
+template <typename Each>
+void txn_writer_episode(Shard& shard, Op& op, Each&& each) {
+    try {
+        uint64_t stamp = 0;
+        bool first = true;
+        each([&](Slice key, bool whole) {
+            if (first) { stamp = shard.watch_writer_stamp(key, &op, whole); first = false; }
+        });
+        if (!stamp) stamp = now_ns();
+        bool complete = true;
+        each([&](Slice key, bool whole) {
+            complete &= shard.watch_writer_mark(key, &op, whole, stamp);
+        });
+        if (!complete) { shard.watch_writer_forget(&op); return; }
+        each([&](Slice key, bool whole) { shard.watch_writer_check(key, whole, stamp); });
+    } catch (const std::bad_alloc&) {
+        shard.watch_writer_forget(&op);
+    }
+}
+}
+
 bool multi_plain_write_ready(Shard& shard, Op& op) {
     if (!shard.has_watches()) return true;
     bool ready = true;
-    auto check = [&](uint64_t, Slice key) {
-        if (!shard.watch_write_ready(key)) {
-            ready = false;
-            shard.watch_writer_mark(key, &op);
-        }
-    };
-    if (op.local_xshard()) for_each_touched_key(op, check);
-    else if (op.spec->flags & CmdFlags::ScriptRoute)
-        for_each_spec_key(op, [&](Slice key) { check(0, key); });
-    else check(op.hash, op_routed_key(op));
-    // A group's next owner wave can be behind this writer in the
-    // inbox. On the next retry, the existing hazard seam moves this blocked
-    // writer to atomic_deferred_, which keeps draining that inbox. Mark only
-    // an actual reservation wait; ordinary commands acquire no new check.
-    if (!ready) {
-        op.mark_atomic_hazard();
-        shard.server()->note_txn(shard.server()->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
-    } else {
-        auto unmark = [&](uint64_t, Slice key) { shard.watch_writer_unmark(key, &op); };
-        if (op.local_xshard()) for_each_touched_key(op, unmark);
-        else if (op.spec->flags & CmdFlags::ScriptRoute)
-            for_each_spec_key(op, [&](Slice key) { unmark(0, key); });
-        else unmark(op.hash, op_routed_key(op));
+    for_each_plain_write_key(op, [&](uint64_t, Slice key) {
+        ready &= shard.watch_write_ready(key);
+    });
+    if (ready) {
+        for_each_plain_write_key(op, [&](uint64_t, Slice key) { shard.watch_writer_unmark(key, &op); });
+        return true;
     }
-    return ready;
+    txn_writer_episode(shard, op, [&](auto&& fn) {
+        for_each_plain_write_key(op, [&](uint64_t, Slice key) { fn(key, false); });
+    });
+    op.mark_atomic_hazard();
+    shard.server()->note_txn(shard.server()->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
+    return false;
 }
 
 void multi_plain_write_committed(Shard& shard, Op& op) {
@@ -3589,18 +3672,19 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
     }
     if (!group.count && !state.group_attempt()) {
         ready = shard.watch_all_write_ready(token);
-        if (!ready && !state.atomic_group) shard.watch_writer_mark({}, &op, true);
     }
     for (uint32_t i = 0; i < group.count; ++i) {
         const Slice key = op.arg(state.keys[state.key_order[group.begin + i]].arg);
         const bool key_ready = state.atomic_group && !state.multi_child
             ? shard.watch_group_write_ready(key, token) : shard.watch_write_ready(key, token);
-        if (!key_ready) {
-            ready = false;
-            if (!state.atomic_group) shard.watch_writer_mark(key, &op);
-        }
+        if (!key_ready) ready = false;
     }
     if (!ready) {
+        if (!state.atomic_group) txn_writer_episode(shard, op, [&](auto&& fn) {
+            if (!group.count) fn(Slice{}, true);
+            for (uint32_t i = 0; i < group.count; ++i)
+                fn(op.arg(state.keys[state.key_order[group.begin + i]].arg), false);
+        });
         if (state.kind != Kind::Script) {
             state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::WriterWaits);
             return false;

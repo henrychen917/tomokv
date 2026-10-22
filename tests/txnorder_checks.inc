@@ -22,20 +22,28 @@ void txnorder_checks(Server& server, const std::string& name) {
             r.unit_kind = 1;
             return shard.watch_place_unit(state.claims[0], r);
         };
-        auto young = make(20), old = make(10);
+        const uint64_t base = now_ns();
+        auto young = make(base + 1), old = make(base);
         require(place(*young), "younger places first");
         require(place(*old) && young->decision.phase.load() == TxnPhase::Wounded &&
                 young->decision.epoch.load() == kAtomicCancelledEpoch,
                 "older wounds only a placing holder");
         shard.watch_finish_unit(young->claims[0], young.get());
         old->decision.phase.store(TxnPhase::Executing);
-        auto oldest = make(1);
+        auto oldest = make(base - 1);
         require(!place(*oldest) && !old->decision.aborted.load(), "executing holder is immune");
         old->decision.epoch.store(server.atomic_commit());
         shard.watch_finish_unit(old->claims[0], old.get());
         Request writer({"INCR", src});
-        require(shard.watch_writer_mark(slice(src), &writer.op), "blocked writer leaves a mark");
-        require(!place(*oldest), "a waiting writer cannot be overtaken");
+        require(shard.watch_writer_mark(slice(src), &writer.op, false, now_ns()),
+                "blocked writer leaves a mark");
+        const auto stamp = shard.watch_writer_stamp(slice(src), &writer.op);
+        oldest->decision.age_ns = stamp + 1;
+        require(!place(*oldest), "a later unit waits for the writer episode");
+        oldest->decision.age_ns = stamp;
+        require(place(*oldest), "a unit at the episode stamp passes");
+        oldest->decision.age_ns = stamp - 1;
+        require(place(*oldest), "a unit older than the episode passes");
         shard.watch_writer_unmark(slice(src), &writer.op);
         require(place(*oldest), "placement resumes after writer passes");
         oldest->decision.aborted.store(true);
