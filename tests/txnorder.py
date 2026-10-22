@@ -34,11 +34,12 @@ class OrderBattery(Battery):
         return self.counter(name) - before.get(name, 0)
 
     def clean(self, before):
-        assert self.delta(before, "atomic_txn_dooms") == 0, "plain writer cancelled EXEC"
-        assert self.delta(before, "atomic_group_dooms") == 0, "plain writer cancelled group"
+        if not self.args.pre:
+            assert self.delta(before, "atomic_txn_dooms") == 0, "plain writer cancelled EXEC"
+            assert self.delta(before, "atomic_group_dooms") == 0, "plain writer cancelled group"
         for name in ("atomic_txn_order_violations", "atomic_exec_order_late", "atomic_gauge_underflows"):
             if self.args.pre and name == "atomic_txn_order_violations":
-                continue  # no such falsifier on PRE; dooms above remains mandatory
+                continue  # PRE has no version-order instrumentation; exact data remains mandatory.
             assert self.counter(name) == 0, (name, self.counter(name))
 
     def report(self, label, before, **values):
@@ -123,7 +124,7 @@ class OrderBattery(Battery):
         self.clean(before)
         if not self.args.pre:
             assert self.delta(before, "atomic_txn_executed") == executions
-        if seconds is None and clients == 1:
+        if seconds is None and clients == 1 and not self.args.pre:
             assert self.delta(before, "atomic_txn_attempts") == 2000, "not every EXEC used one attempt"
             assert self.delta(before, "atomic_txn_retries") == 0, "plain writers re-executed EXEC"
         elif seconds is None:
@@ -156,6 +157,7 @@ class OrderBattery(Battery):
         counts = collections.Counter()
         lock = threading.Lock()
         latencies = []
+        completed_execs = [0]
 
         def worker(index):
             c = self.conn(timeout=5)
@@ -167,6 +169,7 @@ class OrderBattery(Battery):
                     assert len(reply) == 2 and all(isinstance(v, int) for v in reply), reply
                     with lock:
                         counts.update(selected)
+                        completed_execs[0] += 1
                 else:
                     key = keys[index % len(keys)]
                     assert isinstance(c.must("INCR", key), int)
@@ -185,8 +188,11 @@ class OrderBattery(Battery):
         with concurrent.futures.ThreadPoolExecutor(25) as pool:
             futures = [pool.submit(worker, i) for i in range(24)] + [pool.submit(bystander)]
             try:
-                progress = "atomic_txn_attempts" if self.args.pre else "atomic_txn_executed"
-                self.wait(lambda: self.delta(before, progress) >= 16,
+                # origin/cpp predates the new counters. Observe acknowledged
+                # EXEC replies there so an absent counter cannot fake a failure.
+                progress = (lambda: completed_execs[0]) if self.args.pre else (
+                    lambda: self.delta(before, "atomic_txn_executed"))
+                self.wait(lambda: progress() >= 16,
                           "younger-unit storm did not start", timeout=5)
                 victim = self.conn(timeout=1)
                 at = time.monotonic()

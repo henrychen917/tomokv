@@ -19,7 +19,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / 'docs/txnorder2/runtime'
-DATA = ROOT / 'build/txnorder2/runtime-data-final'
+DATA = ROOT / 'build/txnorder2/runtime-data-last'
 PRE = ROOT / 'build/txnorder2/pre-source/build/tomokv'
 POST = ROOT / 'build/txnorder2/post/tomokv'
 
@@ -36,7 +36,7 @@ def transform(value):
     value = value.replace(str(ROOT / 'build/txnorder/pre/tomokv'), str(PRE))
     value = value.replace(str(ROOT / 'build/tomokv'), str(POST))
     value = value.replace('docs/txnorder/runtime-', 'docs/txnorder2/runtime/legacy-')
-    value = value.replace('build/txnorder/runtime-', 'build/txnorder2/runtime-data-final/legacy-')
+    value = value.replace('build/txnorder/runtime-', 'build/txnorder2/runtime-data-last/legacy-')
     if value.endswith('pre-armed-server'): value = str(DATA / 'pre-armed-server')
     if value.endswith('post-armed-server'): value = str(DATA / 'post-armed-server')
     if '/proof-drivers/watchlive-' in value:

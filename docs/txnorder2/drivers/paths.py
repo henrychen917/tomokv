@@ -26,6 +26,7 @@ FAMILIES = {
     "prepare": ("probe-prepare.cc", "MGET MSET DEL UNLINK".split()),
     "stream": ("probe-prepare-stream.cc", ["XREADGROUP"]),
     "read": ("probe-read.cc", "MGET MSET DEL UNLINK".split()),
+    "session": (str(ROOT / "docs/txnorder2/drivers/probe-session.cc"), ["GET", "SET", "MGET", "MSET"]),
     "exec": (str(ROOT / "docs/txnorder2/drivers/probe-exec.cc"), ["single", "cross"]),
     "scan": ("probe-scan.cc", ["KEYS", "RANDOMKEY"]),
 }
@@ -115,7 +116,7 @@ def trace(case):
     names = subprocess.check_output(["c++filt"], input="\n".join(r[2] for r in records), text=True).splitlines()
     prefix = "tomo::" if ns == "normal" else "tomo_db0::"
     selected = [[*r, n] for r, n in zip(records, names) if prefix in n and
-                any(word in n for word in ("xshard_", "txn_group_", "Scatter", "free_state_", "finish_phase", "assemble_final", *(("multi_", "Multi", "watch_", "Watch", "atomic_", "FlatStore", "Buffer", "Reply", "Arena") if family == "exec" else ())))]
+                any(word in n for word in ("xshard_", "txn_group_", "Scatter", "free_state_", "finish_phase", "assemble_final", *(("multi_", "Multi", "watch_", "Watch", "atomic_", "FlatStore", "Buffer", "Reply", "Arena") if family in ("exec", "session") else ())))]
     if family == "scan":
         selected = [r for r in selected if "FlatStore::scan_home<" not in r[-1]]
     ranges = folder / (label + "-ranges.json")
