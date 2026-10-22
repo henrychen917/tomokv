@@ -704,7 +704,11 @@
     "moverfix conservation (2s, epoll, databases 1, atomic 0)",
     "moverfix conservation (2s, epoll, databases 16, atomic 0)",
     "keyspace lazy-expiry order vs Redis 7.4",
-    "local script notification AOF vs Redis 7.4"
+    "local script notification AOF vs Redis 7.4",
+    "iofix WB4.1 deferred IO parks",
+    "iofix IO4.9 Redis hz cron",
+    "iofix IO4.10 global DEBUG SLEEP",
+    "iofix IO4.17 immediate signal shutdown"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",

@@ -53,7 +53,9 @@ def run(args):
             deadline = time.monotonic() + 3
             while time.monotonic() < deadline:
                 content = open(server.log.name, 'rb').read()
-                if b'Errors trying to SHUTDOWN' in content:
+                error_line = (b'Errors trying to shut down the server.' if oracle
+                              else b'Errors trying to SHUTDOWN:')
+                if error_line in content:
                     break
                 time.sleep(.01)
             else:

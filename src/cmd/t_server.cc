@@ -679,8 +679,7 @@ bool collect_config_updates(Op& op,
         if (!normalized) {
             if (config_error) {
                 std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
-                if (encoding == EncodingConfig::SetIntsetEntries || item->kind == ConfigKind::Hz ||
-                    !std::strcmp(item->name, "dynamic-hz"))
+                if (encoding == EncodingConfig::SetIntsetEntries)
                     msg.append(op.arg(i).p, op.arg(i).n);
                 else msg += item->name;
                 msg += "') - "; msg += config_error;

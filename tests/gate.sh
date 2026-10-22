@@ -946,7 +946,10 @@ job_label(){
 job_body(){
   local name=$1 label; label=$(job_label "$name")
   case "$name" in
-    iofix-*) job_iofix "$name";;
+    iofix-deferred) job_iofix_deferred "$name";;
+    iofix-hz) job_iofix_hz "$name";;
+    iofix-sleep) job_iofix_sleep "$name";;
+    iofix-signal) job_iofix_signal "$name";;
     multidb-*) job_multidb "$name";;
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
@@ -1735,15 +1738,8 @@ job_reorder_identity(){
   py tests/reorder_receipt.py "$CANDIDATE_BINARY" "$TMPDIR/receipt" >"$TMPDIR/receipt.log" 2>&1 \
       && ok "$label" || bad "$label" "see $TMPDIR/receipt.log"
 }
-job_iofix(){
-  local feature=${1#iofix-} mode engine failed=0 label
-  case "$feature" in
-    deferred) label='iofix WB4.1 deferred IO parks';;
-    hz) label='iofix IO4.9 Redis hz cron';;
-    sleep) label='iofix IO4.10 global DEBUG SLEEP';;
-    signal) label='iofix IO4.17 immediate signal shutdown';;
-  esac
-  row_begin "$label"
+iofix_legs(){
+  local feature=$1 label=$2 mode engine failed=0
   for mode in 2s 1s; do for engine in uring epoll; do
     py "tests/iofix_${feature}.py" --binary "$CANDIDATE_BINARY" --port "$PORT" \
         --cores "$CORES" --ratio "$GATE_RATIO" --mode "$mode" --net-io "$engine" \
@@ -1751,6 +1747,26 @@ job_iofix(){
         >"$TMPDIR/$feature-$mode-$engine.log" 2>&1 || failed=1
   done; done
   [ "$failed" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/$feature-*.log"
+}
+
+job_iofix_deferred(){
+  row_begin "iofix WB4.1 deferred IO parks"
+  iofix_legs deferred "iofix WB4.1 deferred IO parks"
+}
+
+job_iofix_hz(){
+  row_begin "iofix IO4.9 Redis hz cron"
+  iofix_legs hz "iofix IO4.9 Redis hz cron"
+}
+
+job_iofix_sleep(){
+  row_begin "iofix IO4.10 global DEBUG SLEEP"
+  iofix_legs sleep "iofix IO4.10 global DEBUG SLEEP"
+}
+
+job_iofix_signal(){
+  row_begin "iofix IO4.17 immediate signal shutdown"
+  iofix_legs signal "iofix IO4.17 immediate signal shutdown"
 }
 
 job_wb_policy(){
