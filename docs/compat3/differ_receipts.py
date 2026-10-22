@@ -46,8 +46,13 @@ for engine,logname in (("uring",args.uring_log),("epoll",args.epoll_log)):
                 assert (directory.parent/'done').read_text().split()[-1]=='1'
             banner=(directory/f"target-atomic-{atomic}.log").read_text()
             marker=", io_uring," if engine=="uring" else ", epoll,"
-            assert marker in banner and "8 threads" in banner and "16 shard(s)" in banner
+            thread_banner="8 threads (6 io + 2 ex)" if mode=="split" else "8 unified threads"
+            assert marker in banner and thread_banner in banner and "16 shard(s)" in banner
             assert "8 cpus [96,97,98,99,100,101,102,103]" in banner
+            threads=re.findall(r'^  thread t(\d+): role=(\w+) cpu=(\d+)',banner,re.M)
+            assert [int(t[0]) for t in threads]==list(range(8))
+            assert [int(t[2]) for t in threads]==list(range(96,104))
+            assert [t[1] for t in threads]==(['ifid']*6+['ex']*2 if mode=='split' else ['unified']*8)
             assert ("thread-mode=2s" if mode=="split" else "thread-mode=1s") in banner
             if mode=="split":assert "6 io + 2 ex" in banner
             else:assert "read-local=1" in banner

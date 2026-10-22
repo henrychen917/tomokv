@@ -1,0 +1,46 @@
+[
+  {
+    "name": "bounded-differ-uring",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "25800-25821",
+      "--candidate-binary",
+      "/home/user/Projects/cx-compat3/build/compat3/uring-server"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "differ-split differ-armed",
+      "GATE_LEDGER": "/home/user/Projects/cx-compat3/docs/compat3/bounded-differ-uring.ledger"
+    },
+    "returncode": 0
+  },
+  {
+    "name": "bounded-differ-epoll",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "25800-25821",
+      "--candidate-binary",
+      "/home/user/Projects/cx-compat3/build/compat3/epoll-server"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "differ-split differ-armed",
+      "GATE_LEDGER": "/home/user/Projects/cx-compat3/docs/compat3/bounded-differ-epoll.ledger"
+    },
+    "returncode": 0
+  }
+]

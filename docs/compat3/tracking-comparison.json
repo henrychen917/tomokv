@@ -1,0 +1,17 @@
+{
+  "mark": "DIFF-TRK-1",
+  "pre_witness": "tracking-baseline-witness.json",
+  "post": {
+    "binary": "build/tomokv",
+    "binary_sha256": "5319e4705024d7d9ef83cacb56f4399693562bb9fa61eb0a239e91ed9c67ff35",
+    "engine": "epoll",
+    "geometry": "armed-fused",
+    "atomic": 1,
+    "seed": 20,
+    "returncode": 0,
+    "source": "build/gate-run.ffGnzU/jobs/differ-armed-1/differ/climon-a1-s20.txt",
+    "receipt": "docs/compat3/DIFF-TRK-1-POST-climon-a1-s20.txt",
+    "receipt_sha256": "ac325de7006c72c0c75033dddacda635a89ff1e72c6f1b1453e7f76208c2e2a4"
+  },
+  "conclusion": "The duplicate invalidation reproduces on PRE. This POST counterpart passed. These samples do not establish a tracking fix or a failure-rate comparison."
+}
