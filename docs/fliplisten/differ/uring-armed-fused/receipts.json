@@ -1,0 +1,10 @@
+{
+  "result": {
+    "engine": "uring",
+    "geometry": "armed-fused",
+    "returncode": 0
+  },
+  "files": 933,
+  "source": "build/fliplisten/differ/uring-armed-fused-results",
+  "sha256": "f1cf10ae0ed17d1af85427497a869fe0fbad19a4c872486a76e6cf2967f5d844"
+}

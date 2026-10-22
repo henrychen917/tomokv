@@ -1,90 +1,942 @@
+tests/lottery_rows.json:703:    "job": "flip",
+tests/lottery_rows.json:715:    "name": "FLIP applies under saturated load",
+tests/lottery_rows.json:716:    "job": "flip_saturated",
+tests/lottery_rows.json:717:    "family": "flip saturated",
+tests/xshard_dispatch_scale.py:88:                           ("flip_auto", "0"), ("shards", "16")):
+tests/mutants.registry:6:      "name": "fused-flip-guard",
+tests/mutants.registry:8:      "find": "if (cfg.thread_mode == ThreadMode::Fused && cfg.flip_auto) {",
+tests/mutants.registry:14:          "failure": "server BOOTED with --flip-auto in 1s: the config guard is gone"
+tests/signalacct_core_checks.inc:1:    // Actual Server fold/picker and FlipController sampler, no worker or listener.
+tests/signalacct_core_checks.inc:38:        require(f.server.flip_begin(5, 3, 0, error), "physical picker enters real FLIP planning");
+tests/signalacct_core_checks.inc:41:            if (f.server.flip_convert_[tid] != Role::Ex) continue;
+tests/signalacct_core_checks.inc:45:        require(f.server.flip_convert_[0] == Role::Idle, "coordinator excluded despite lowest occupancy");
+tests/signalacct_core_checks.inc:47:            require(f.server.flip_convert_[5] == Role::Idle, "AOF writer excluded despite lowest occupancy");
 tests/signalacct_core_checks.inc:48:            require(f.server.flip_convert_[4] == Role::Idle, "unix owner excluded despite lowest occupancy");
-tests/mode_equivalence.py:5:because fused+flip-auto is a documented refusal, already covered by feature_gate. One connection
-tests/iopass_checks.inc:29:        server.flip_set_stage(FlipStage::ClientInstall);
-tests/flip_ttl.py:11:version: keys carrying live TTLs are spread across every shard, the split is flipped while those
-tests/flip_ttl.py:184:            print("FAIL: FLIP %d %d refused on a lightly loaded server" % (tio, tex))
-tests/flip_ttl.py:244:        print("FAIL: round %d left %d keys alive after their TTLs crossed the flip" % (rnd, alive))
-tests/fliplisten.py:55:    unix_path = Path.cwd() / 'build' / f'fliplisten-{args.port}.sock'
-tests/fliplisten.py:149:            # ClientHello now (TCP_DEFER_ACCEPT), finish only after the FLIP.
-tests/fliplisten.py:188:            assert established_delay < 1, ('established connection stalled after FLIP', established_delay)
-tests/flipfix_abort_probe.py:9:FLIP answers OK, and the held closes finish (and are reaped) once it retires.
-tests/flipctl.py:2:"""Small functional acceptance for the automatic FLIP controller.
-tests/flipctl.py:666:    print("ok: flipctl functional acceptance")
-tests/lottery_evidence_test.py:161:        # Every applied FLIP must be loaded; a refused one (no end) is not counted.
-tests/lottery_evidence_test.py:164:        refused = [E('flip_work', 1, 2, 16), E('flip_begin', 1)]
-tests/config_parser_test.cc:719:        fail("invalid flip controller knob grammar was accepted");
-tests/spscmask_flip.py:205:    # Workers keep posting while FLIP performs ExDrain and ExInstall remasking.
+tests/signalacct_core_checks.inc:61:        FlipController controller;
+tests/signalacct_core_checks.inc:66:            FlipDemandWindow window;
+tests/signalacct_core_checks.inc:82:            const auto choice = flip_choose_split(6, 8, window, 0.02, 3);
 tests/reorder_flip.py:4:Reuses coadapt's flip_fix_acceptance.py protocol; tests/flipctl.py remains the
+tests/reorder_flip.py:23:DRIVER = ROOT / "tests/flipctl.py"
+tests/reorder_flip.py:53:                "flip_auto": "1", "reorder": args.reorder or "0"}
+tests/reorder_flip.py:81:    spec = importlib.util.spec_from_file_location("flipctl", DRIVER)
+tests/reorder_flip.py:82:    flipctl = importlib.util.module_from_spec(spec)
+tests/reorder_flip.py:83:    spec.loader.exec_module(flipctl)
+tests/reorder_flip.py:98:                       "--atomic", "0", "--enable-debug-command", "yes", "--flip-auto", "1"]
+tests/reorder_flip.py:127:                    control = flipctl.Resp("127.0.0.1", port)
+tests/reorder_flip.py:129:                        record["initial_server"] = flipctl.info(control, "SERVER")
+tests/reorder_flip.py:130:                        record["initial_flipctl"] = flipctl.info(control)
+tests/reorder_flip.py:137:                                              "R7_FLIP_TRACE": str(run / "trace.jsonl")})
+tests/reorder_flip.py:141:                control = flipctl.Resp("127.0.0.1", port)
+tests/reorder_flip.py:143:                    record["final_server"] = flipctl.info(control, "SERVER")
+tests/reorder_flip.py:144:                    record["final_flipctl"] = flipctl.info(control)
 tests/reorder_flip.py:150:                    "ok: flipctl functional acceptance" in log)
-tests/rltopo_unit.cc:32:        None, NoFlip, Retry, NoCount, DirtyReply, DropOwner, CorruptReply, NoRetire,
+tests/reorder_flip.py:175:    spec = importlib.util.spec_from_file_location("flipctl", DRIVER)
+tests/reorder_flip.py:180:    with open(os.environ["R7_FLIP_TRACE"], "x", buffering=1) as trace:
+tests/reorder_flip.py:181:        def observed_info(control, section="FLIPCTL"):
+tests/reorder_flip.py:185:            if section == "FLIPCTL" and now - last >= 1:
+tests/reorder_flip.py:189:                    controller=control.command("DEBUG", "FLIPCTL").decode())) + "\n")
+tests/respresume_flip.py:2:"""NT4.2 live witness: partial multibulk frames pending across FLIP client transfers.
+tests/respresume_flip.py:5:--flip-auto 0 --enable-debug-command yes. Every client parks a different partial
+tests/respresume_flip.py:7:and three >1 Mi-argument frames), the IO pool is FLIPped (EX->IO, then back), and
+tests/respresume_flip.py:8:each frame is completed on whichever IO thread now owns it. Required: FLIP
+tests/respresume_flip.py:27:def flip_report(control):
+tests/respresume_flip.py:28:    reply = control.must('FLIP')
+tests/respresume_flip.py:73:        assert control.must('FLIP', target_io, target_ex) == b'OK'
+tests/respresume_flip.py:74:        report = flip_report(control)
+tests/respresume_flip.py:77:        assert transfers > 0, ('FLIP moved nobody', report)
+tests/respresume_flip.py:110:        initial = flip_report(control)
+tests/respresume_flip.py:117:    print('PASS respresume FLIP: parked partial frames completed after owner transfer')
+tests/lottery_attempt.py:57:        shape += ['--key-lb', '0', '--client-lb', '0', '--flip-auto', '0']
+tests/lottery_attempt.py:200:        elif family == 'flip saturated':
+tests/lottery_attempt.py:204:            start = gate.index('  taskset -c "$LOAD_CORES" memtier_benchmark', gate.index('job_flip_saturated(){'))
+tests/lottery_attempt.py:205:            end = gate.index('\n) && ok "FLIP applies under saturated load"', start)
+tests/lottery_attempt.py:206:            script = directory / 'flip.sh'
+tests/lottery_evidence_test.py:141:    def flip(self, flip, begin, end, queued=0):
+tests/lottery_evidence_test.py:142:        events = [E('flip_work', flip, t, epoch, 2, queued) for t, epoch in begin.items()]
+tests/lottery_evidence_test.py:143:        events.append(E('flip_begin', flip))
+tests/lottery_evidence_test.py:144:        events += [E('flip_work_end', flip, t, epoch, 2) for t, epoch in end.items()]
+tests/lottery_evidence_test.py:145:        return events + [E('flip_end', flip)]
+tests/lottery_evidence_test.py:147:    def test_flip_requires_inflight_work_at_request_and_progress_inside_window(self):
+tests/lottery_evidence_test.py:148:        loaded = self.flip(0, {2: 7, 3: 10}, {2: 15, 3: 12})
+tests/lottery_evidence_test.py:151:        self.assertEqual(reduce_events(self.flip(0, {2: 8, 3: 10}, {2: 20, 3: 12}))['W11'], 0)
+tests/lottery_evidence_test.py:152:        self.assertEqual(reduce_events(self.flip(0, {2: 7, 3: 10}, {2: 7, 3: 10}))['W11'], 0)
+tests/lottery_evidence_test.py:153:        self.assertEqual(reduce_events(self.flip(0, {2: 7, 3: 10}, {2: 8, 3: 10}))['W11'], 0)
+tests/lottery_evidence_test.py:155:        self.assertEqual(reduce_events(self.flip(0, {2: 8, 3: 10}, {2: 20, 3: 12}, queued=3))
+tests/lottery_evidence_test.py:158:        io = [E('flip_work', 0, 1, 8, 1, 5), E('flip_begin', 0),
+tests/lottery_evidence_test.py:159:              E('flip_work_end', 0, 1, 20, 1), E('flip_end', 0)]
+tests/lottery_evidence_test.py:161:        # Every applied FLIP must be loaded; a refused one (no end) is not counted.
+tests/lottery_evidence_test.py:162:        idle = self.flip(1, {2: 16, 3: 12}, {2: 16, 3: 12})
+tests/lottery_evidence_test.py:164:        refused = [E('flip_work', 1, 2, 16), E('flip_begin', 1)]
+tests/cd13b_unit.cc:31:        cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/signalacct_live_test.py:46:    def test_modes_use_exact_gate_geometry_and_numeric_flip_grammar(self):
+tests/signalacct_live_test.py:55:                    self.assertIn(mock.call('FLIP', 3, 5), conn.cmd.call_args_list)
+tests/signalacct_live_test.py:56:                    self.assertIn(mock.call('FLIP', 6, 2), conn.cmd.call_args_list)
+tests/signalacct_live_test.py:85:    def test_flip_records_actual_wire_and_elapsed_for_errors_and_unexpected_replies(self):
+tests/signalacct_live_test.py:87:                (b'-ERR a FLIP is already in progress\r\n', 'server-error'),
+tests/signalacct_live_test.py:88:                (b'-ERR FLIP connection ownership count is not conserved\r\n', 'server-error'),
+tests/signalacct_live_test.py:97:                        live.manual_flip(conn, 6, 2, Path(directory), events)
+tests/signalacct_live_test.py:99:                        with self.assertRaisesRegex(AssertionError, 'manual FLIP failed:'):
+tests/signalacct_live_test.py:100:                            live.manual_flip(conn, 6, 2, Path(directory), events)
+tests/signalacct_live_test.py:101:                event = live.json.loads((Path(directory) / 'flips.json').read_text())[0]
+tests/signalacct_live_test.py:106:                conn.send.assert_called_once_with('FLIP', 6, 2)  # Never retry a refusal.
+tests/signalacct_live_test.py:120:                    live.manual_flip(conn, 6, 2, directory, events)
+tests/signalacct_live_test.py:128:                probe.cmd.return_value = b'flip_in_progress:1\r\nflip_target_io:6\r\nio_threads:3\r\n'
+tests/signalacct_live_test.py:141:                    self.assertEqual(receipt['info_flip']['flip_in_progress'], '1')
+tests/stream.py:362:# The one-big-flip migration assert is RETIRED with the implementation it described: under the
+tests/atomic_survivors_unit.cc:482:    cfg.key_lb = cfg.client_lb = 0; cfg.flip_auto = 0;
+tests/flipctl.py:2:"""Small functional acceptance for the automatic FLIP controller.
+tests/flipctl.py:5:  taskset -c 48-55 ./build/tomokv --databases 1 --port 7845 --save '' --flip-auto 1 \
+tests/flipctl.py:96:def info(control, section="FLIPCTL"):
+tests/flipctl.py:102:    """DEBUG FLIPCTL's dump as a flat dict. Lines carry either one `key=value` or several
+tests/flipctl.py:114:    """The controller's own distance metric (src/core/flipctl.cc relative_distance)."""
+tests/flipctl.py:123:    src/core/flipctl.cc: while anchored, sample_anchored_rate() averages each pair of adjacent
+tests/flipctl.py:222:        if anchored_row.get("flipctl_state") == "anchored":
+tests/flipctl.py:227:    base_triggers = int(anchored_row["flipctl_triggers"])
+tests/flipctl.py:228:    base_split = (anchored_row["flipctl_anchor_io"], anchored_row["flipctl_anchor_ex"])
+tests/flipctl.py:229:    band = float(anchored_row["flipctl_rate_band"])
+tests/flipctl.py:230:    controller_anchor = float(anchored_row["flipctl_anchor_rate"])
+tests/flipctl.py:259:             row.get("flipctl_state"), row.get("flipctl_phase"), rate,
+tests/flipctl.py:261:             row.get("flipctl_anchor_io"), row.get("flipctl_anchor_ex"),
+tests/flipctl.py:262:             row.get("flipctl_triggers"), row.get("flipctl_last_trigger")))
+tests/flipctl.py:263:        moved = row.get("flipctl_state") != "anchored" or \
+tests/flipctl.py:264:            int(row["flipctl_triggers"]) != base_triggers or \
+tests/flipctl.py:265:            (row["flipctl_anchor_io"], row["flipctl_anchor_ex"]) != base_split
+tests/flipctl.py:286:                dump = control.command("DEBUG", "FLIPCTL").decode(errors="replace")
+tests/flipctl.py:288:                dump = "DEBUG FLIPCTL unavailable: %r" % (error,)
+tests/flipctl.py:294:                "  DEBUG FLIPCTL at the move:\n    %s" %
+tests/flipctl.py:297:                 row.get("flipctl_last_trigger"), band, row.get("flipctl_anchor_rate"),
+tests/flipctl.py:309:            trigger = row.get("flipctl_last_trigger", "unknown")
+tests/flipctl.py:434:        return encode("BITCOUNT", "flipctl-bits%d" % index)
+tests/flipctl.py:437:        return encode("INCR", "flipctl-count%d" % index)
+tests/flipctl.py:510:            if idle.get("flipctl_state") != "awaiting-load-stability" or \
+tests/flipctl.py:511:                    int(idle.get("flipctl_triggers", "-1")) != 0:
+tests/flipctl.py:521:            if setup.command("SET", "flipctl-bits%d" % index, bitmap) != b"OK":
+tests/flipctl.py:535:                if row.get("flipctl_state") != "awaiting-load-stability" or \
+tests/flipctl.py:536:                        int(row.get("flipctl_triggers", "-1")) != 0:
+tests/flipctl.py:545:            lambda row: int(row.get("flipctl_boot_triggers", "0")) == 1,
+tests/flipctl.py:548:        if boot_started.get("flipctl_state") == "awaiting-load-stability":
+tests/flipctl.py:553:                            lambda row: row.get("flipctl_state") == "anchored", 90)
+tests/flipctl.py:554:        if int(anchored["flipctl_boot_triggers"]) != 1:
+tests/flipctl.py:559:        anchor_split = (anchored["flipctl_anchor_io"], anchored["flipctl_anchor_ex"])
+tests/flipctl.py:562:        trigger_count = int(anchored["flipctl_triggers"])
+tests/flipctl.py:566:               anchored["flipctl_anchor_rate"]))
+tests/flipctl.py:578:        #   * load provably stationary + controller moved  -> FAIL, with flipctl_last_trigger, the
+tests/flipctl.py:592:        trigger_count = int(held_row["flipctl_triggers"])
+tests/flipctl.py:593:        surge_base = int(held_row["flipctl_rate_surge_triggers"])
+tests/flipctl.py:596:        fingerprint_before = int(before_surge["flipctl_fingerprint_triggers"])
+tests/flipctl.py:597:        collapse_before = int(before_surge["flipctl_rate_collapse_triggers"])
+tests/flipctl.py:598:        if int(before_surge["flipctl_rate_surge_triggers"]) != surge_base:
+tests/flipctl.py:606:            return int(row.get("flipctl_triggers", "0")) == trigger_count + 1 and \
+tests/flipctl.py:607:                int(row.get("flipctl_rate_surge_triggers", "0")) == surge_base + 1
+tests/flipctl.py:613:        if int(surged["flipctl_rate_collapse_triggers"]) != collapse_before or \
+tests/flipctl.py:614:                int(surged["flipctl_rate_surge_triggers"]) != surge_base + 1 or \
+tests/flipctl.py:615:                int(surged["flipctl_rate_collapse_triggers"]) != collapse_before:
+tests/flipctl.py:619:            return rate_surge_triggered(row) and row.get("flipctl_state") == "anchored"
+tests/flipctl.py:630:            lambda row: row.get("flipctl_state") == "anchored", 90)
+tests/flipctl.py:633:        if int(held["flipctl_rate_surge_triggers"]) != surge_base + 1 or \
+tests/flipctl.py:634:                held.get("flipctl_state") != "anchored" or \
+tests/flipctl.py:635:                int(held["flipctl_triggers"]) != int(settled["flipctl_triggers"]):
+tests/flipctl.py:637:        trigger_count = int(held["flipctl_triggers"])
+tests/flipctl.py:638:        fingerprint_before = int(held["flipctl_fingerprint_triggers"])
+tests/flipctl.py:641:              (held["flipctl_anchor_io"], held["flipctl_anchor_ex"], trigger_count))
+tests/flipctl.py:646:            lambda row: int(row.get("flipctl_triggers", "0")) >= trigger_count + 1, 30)
+tests/flipctl.py:649:            lambda row: row.get("flipctl_state") == "anchored" and
+tests/flipctl.py:650:                        int(row.get("flipctl_triggers", "0")) >= trigger_count + 1, 90)
+tests/flipctl.py:653:        if held.get("flipctl_state") != "anchored" or \
+tests/flipctl.py:654:                int(held["flipctl_triggers"]) != int(final["flipctl_triggers"]):
+tests/flipctl.py:657:              (final["flipctl_anchor_io"], final["flipctl_anchor_ex"]))
+tests/flipctl.py:666:    print("ok: flipctl functional acceptance")
+tests/flipsettle_checks.inc:3:static void flipsettle_check(const char* site, const char* field, bool ok) {
+tests/flipsettle_checks.inc:5:        std::fprintf(stderr, "FAIL flipsettle %s: %s\n", site, field);
+tests/flipsettle_checks.inc:10:static bool flipsettle_signature_equal(const FlipSignature& a, const FlipSignature& b) {
+tests/flipsettle_checks.inc:17:static bool flipsettle_detector_equal(FlipShiftDetector a, FlipShiftDetector b) {
+tests/flipsettle_checks.inc:23:            !flipsettle_signature_equal(a.smoothed(), b.smoothed()) ||
+tests/flipsettle_checks.inc:24:            !flipsettle_signature_equal(a.anchored_signature(), b.anchored_signature()))
+tests/flipsettle_checks.inc:26:        FlipFingerprintWindow w;
+tests/flipsettle_checks.inc:41:static void flipsettle(const char* site, uint32_t databases = 1) {
+tests/flipsettle_checks.inc:42:    using Phase = FlipController::Phase;
+tests/flipsettle_checks.inc:47:    require(enter || waiting || other || disarm, "known flipsettle transition selector");
+tests/flipsettle_checks.inc:49:    auto& c = f.server.flipctl_;
+tests/flipsettle_checks.inc:50:    require(c.init(true, 8), "initialize flipsettle controller");
+tests/flipsettle_checks.inc:51:    c.phase_ = enter ? Phase::Seeking : disarm ? Phase::Settling : Phase::WaitingFlip;
+tests/flipsettle_checks.inc:52:    c.after_flip_ = other ? Phase::Seeking : Phase::Settling;
+tests/flipsettle_checks.inc:53:    c.seek_ = FlipController::Seek::Returning;
+tests/flipsettle_checks.inc:56:    f.server.flip_completed_.store(47, std::memory_order_relaxed);
+tests/flipsettle_checks.inc:64:    FlipFingerprintWindow w;
+tests/flipsettle_checks.inc:80:    flipsettle_check(site, "detector-seed", c.shift_detector_.anchored() && c.shift_detector_.jitter() > 0 &&
+tests/flipsettle_checks.inc:104:    FlipShiftDetector expected_detector = c.shift_detector_;
+tests/flipsettle_checks.inc:107:    std::array<unsigned char, sizeof(FlipController)> before;
+tests/flipsettle_checks.inc:109:    std::array<bool, sizeof(FlipController)> allowed{};
+tests/flipsettle_checks.inc:135:    flipsettle_check(site, "phase", !issued && c.phase_ == (other ? Phase::Seeking : Phase::Settling));
+tests/flipsettle_checks.inc:136:    flipsettle_check(site, "shift_detector_", flipsettle_detector_equal(c.shift_detector_, expected_detector));
+tests/flipsettle_checks.inc:137:    flipsettle_check(site, "anchor_signature_samples_", c.anchor_signature_samples_ == (other ? 11u : 0u));
+tests/flipsettle_checks.inc:138:    flipsettle_check(site, "maneuver_signature_samples_", c.maneuver_signature_samples_ == (other ? 13u : 0u));
+tests/flipsettle_checks.inc:139:    flipsettle_check(site, "anchor_learning_rate_jitter_", c.anchor_learning_rate_jitter_ == (other ? 0.125 : 0));
+tests/flipsettle_checks.inc:140:    flipsettle_check(site, "anchor_learning_rate_sum_", c.anchor_learning_rate_sum_ == (other ? 17001 : 0));
+tests/flipsettle_checks.inc:141:    flipsettle_check(site, "anchor_learning_rate_min_", c.anchor_learning_rate_min_ == (other ? 17002 : 0));
+tests/flipsettle_checks.inc:142:    flipsettle_check(site, "anchor_learning_rate_max_", c.anchor_learning_rate_max_ == (other ? 17003 : 0));
+tests/flipsettle_checks.inc:143:    flipsettle_check(site, "anchor_learning_rate_samples_", c.anchor_learning_rate_samples_ == (other ? 19u : 0u));
+tests/flipsettle_checks.inc:144:    flipsettle_check(site, "rate_window_ms_", c.rate_window_ms_ == 0);
+tests/flipsettle_checks.inc:145:    flipsettle_check(site, "previous_subwindow_valid_", !c.previous_subwindow_valid_);
+tests/flipsettle_checks.inc:146:    flipsettle_check(site, "sampling-disarmed", c.signal_sample_rate() == (disarm ? 0u : 23u));
+tests/flipsettle_checks.inc:147:    flipsettle_check(site, "anchor_sampling_disabled_", c.anchor_sampling_disabled_ == disarm);
+tests/flipsettle_checks.inc:149:        flipsettle_check(site, "seek-record", c.seek_ == FlipController::Seek::None &&
+tests/flipsettle_checks.inc:157:    flipsettle_check(site, "unrelated-state", preserved);
+tests/flipsettle_checks.inc:158:    std::printf("TRACE flipsettle %s databases=%u phase=%s samples=%u/%u learning=%.3f/%.0f/%.0f/%.0f/%u "
+tests/flipsettle_checks.inc:167:static void flipsettle_all() {
+tests/flipsettle_checks.inc:170:        for (const char* site : {"seek", "waiting", "nonsettling", "disarm"}) flipsettle(site, databases);
+tests/config_parser_test.cc:22:static_assert(tomo::flip_fingerprint_window(false) == 0);
+tests/config_parser_test.cc:23:static_assert(tomo::flip_fingerprint_window(true) == 100);
+tests/config_parser_test.cc:570:        fail("FLIP no longer uses its existing global decision budget");
+tests/config_parser_test.cc:680:        {"--read-local-interleave", "1"}, {"--flip-auto-band", "-1"},
+tests/config_parser_test.cc:688:        {"--lb", "1"}, {"--flip-work-window", "100"},
+tests/config_parser_test.cc:705:    tomo::Config flipctl;
+tests/config_parser_test.cc:706:    tomo::ConfigParseState flipctl_state;
+tests/config_parser_test.cc:707:    const std::vector<const char*> flipctl_args = {
+tests/config_parser_test.cc:708:        "--flip-auto", "1",
+tests/config_parser_test.cc:710:    if (tomo::parse_config_args(flipctl_args, flipctl, flipctl_state, 2, "test") !=
+tests/config_parser_test.cc:712:        flipctl.flip_auto != 1)
+tests/config_parser_test.cc:713:        fail("flip controller knob grammar or zero off posture differs");
+tests/config_parser_test.cc:714:    tomo::Config flipctl_default;
+tests/config_parser_test.cc:715:    if (flipctl_default.flip_auto != 0)
+tests/config_parser_test.cc:716:        fail("flip controller defaults differ");
+tests/config_parser_test.cc:717:    if (!rejects({"--flip-auto", "2"}) ||
+tests/config_parser_test.cc:718:        !rejects({"--flip-auto", "yes"}))
+tests/config_parser_test.cc:719:        fail("invalid flip controller knob grammar was accepted");
+tests/mdbqsbr_live_test.py:41:        # validate_config also rejects flip_auto=1 in fused; the harness leaves
+tests/mdbqsbr_live_test.py:43:        self.assertNotIn('--flip-auto', command)
+tests/spscmask_flip.py:4:Usage: tests/spscmask_flip.py HOST PORT [seconds-per-shape]
+tests/spscmask_flip.py:12:flips 63:1 -> 1:63 -> 63:1 without stopping those streams.  Exact replies and final values prove no
+tests/spscmask_flip.py:99:def flip_report(conn):
+tests/spscmask_flip.py:100:    reply = conn.command("FLIP")
+tests/spscmask_flip.py:104:        raise AssertionError("bad FLIP report %r" % (reply,))
+tests/spscmask_flip.py:188:    report = flip_report(control)
+tests/spscmask_flip.py:205:    # Workers keep posting while FLIP performs ExDrain and ExInstall remasking.
+tests/spscmask_flip.py:206:    if control.command("FLIP", "1", "63") != b"OK":
+tests/spscmask_flip.py:207:        raise AssertionError("63:1 -> 1:63 FLIP did not answer OK")
+tests/spscmask_flip.py:208:    report = flip_report(control)
+tests/spscmask_flip.py:210:        raise AssertionError("first extreme FLIP landed at %d:%d" %
+tests/spscmask_flip.py:216:    if control.command("FLIP", "63", "1") != b"OK":
+tests/spscmask_flip.py:217:        raise AssertionError("1:63 -> 63:1 FLIP did not answer OK")
+tests/spscmask_flip.py:218:    report = flip_report(control)
+tests/spscmask_flip.py:220:        raise AssertionError("return extreme FLIP landed at %d:%d" %
+tests/spscmask_flip.py:249:    print("spscmask_flip: PASS producers=63 -> 1 -> 63 verified_pairs=%d" % total)
+tests/spscmask_flip.py:260:        print("spscmask_flip: FAIL: %s" % exc)
+tests/gateprod.py:90:        command += ["--ratio", ratio, "--flip-auto", "0"]
+tests/lb_stationary.py:117:        if _lib.info(admin, 'server').get('flip_auto') != '0':
+tests/lb_stationary.py:118:            raise AssertionError('stationary LB requires flip-auto 0')
+tests/flipctl_test.py:8:from flipctl import (PRE_HOLD_SECONDS, classify_stable_hold, rate_rule_fires,
+tests/flipctl_test.py:130:        self.patches = [patch("flipctl.time.monotonic", lambda: self.now),
+tests/flipctl_test.py:131:                        patch("flipctl.time.sleep", self.sleep),
+tests/flipctl_test.py:132:                        patch("flipctl.info", self.info), patch("builtins.print")]
+tests/flipctl_test.py:140:    def info(self, control, section="FLIPCTL"):
+tests/flipctl_test.py:141:        row = dict(flipctl_state="maneuvering" if self.now < self.settles else "anchored",
+tests/flipctl_test.py:142:                   flipctl_triggers="1", flipctl_anchor_io="6", flipctl_anchor_ex="2",
+tests/flipctl_test.py:143:                   flipctl_rate_band="0.04", flipctl_anchor_rate="6000")
+tests/flipctl_test.py:146:                row["flipctl_triggers"] = "2"
+tests/flipctl_test.py:148:                row["flipctl_state"] = "maneuvering"
+tests/flipctl_test.py:150:                row["flipctl_anchor_io"], row["flipctl_anchor_ex"] = "5", "3"
+tests/flipctl_test.py:184:        with patch("flipctl.stable_hold_attempt", side_effect=attempt) as observer:
+tests/flipctl_test.py:185:            self.assertEqual(stable_hold(None, 30, self.commands, [])["flipctl_triggers"], "1")
+tests/flipctl_test.py:193:        with patch("flipctl.stable_hold_attempt", side_effect=attempt):
+tests/mdbstamp_checks.cc:273:    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/ccfix2_atomic_unit.cc:15:    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/xshard_dispatch_scale.sh:80:      --key-lb 0 --client-lb 0 --flip-auto 0 --save '' --dir "$DATA_DIR" \
+tests/flip_ttl.py:2:"""TTL state and expiry EVENTS must survive a FLIP.
+tests/flip_ttl.py:4:usage: flip_ttl.py HOST PORT
+tests/flip_ttl.py:10:FLIP moves shards between executors through its own stage machinery, so it gets the directed
+tests/flip_ttl.py:11:version: keys carrying live TTLs are spread across every shard, the split is flipped while those
+tests/flip_ttl.py:15:Shape-agnostic: the test reads the live split from the FLIP report and flips to a materially
+tests/flip_ttl.py:71:def flip_report(s, f):
+tests/flip_ttl.py:72:    send(s, "FLIP")
+tests/flip_ttl.py:158:        rep = flip_report(w, wf)
+tests/flip_ttl.py:182:        send(w, "FLIP", str(tio), str(tex))
+tests/flip_ttl.py:184:            print("FAIL: FLIP %d %d refused on a lightly loaded server" % (tio, tex))
+tests/flip_ttl.py:188:            rep = flip_report(w, wf)
+tests/flip_ttl.py:194:            print("FAIL: flip to %d:%d never landed" % (tio, tex))
+tests/flip_ttl.py:203:            print("INVALID TTL/FLIP cohort: elapsed=%.3fs moved=%r" %
+tests/flip_ttl.py:211:            print("INVALID TTL/FLIP cohort: live read crossed the deadline", flush=True)
+tests/flip_ttl.py:217:    # Every key set BEFORE the flip must now expire on whatever executor owns its shard AFTER it,
+tests/flip_ttl.py:234:        print("FAIL: round %d delivered %d/%d expired events across the flip; missing e.g. %s"
+tests/flip_ttl.py:244:        print("FAIL: round %d left %d keys alive after their TTLs crossed the flip" % (rnd, alive))
+tests/flip_ttl.py:248:print("flip_ttl: %d checks ok -- %d flips, %d expired events delivered across them"
+tests/splitlocal_live.py:79:                             ('key-lb', '0'), ('client-lb', '0'), ('flip-auto', '0')]:
+tests/cmdmeta_test.py:35:    target[b"flip"] = generator.local_commands()[0]
+tests/flip_under_load.py:2:"""Flip the thread split repeatedly WHILE traffic is running, and prove nothing breaks.
+tests/flip_under_load.py:4:usage: flip_under_load.py HOST PORT [seconds]
+tests/flip_under_load.py:6:tests/flip.py exercises FLIP on a quiet server. That is the easy case. Ownership handoff is
+tests/flip_under_load.py:14:    goes BACKWARDS on a key -- a stale read after a flip would show up as a generation regression,
+tests/flip_under_load.py:16:  * A FLIPPER alternates the split every second.
 tests/flip_under_load.py:19:flip that was not supposed to be refused, fails the run.
 tests/flip_under_load.py:24:disconnections, flips completed, clients transferred) so a one-in-twenty drop can be attributed to
+tests/flip_under_load.py:27:FLIP is a 2s-only feature (`ERR FLIP is unavailable with --thread-mode 1s`); on a 1s boot the
 tests/flip_under_load.py:44:            "client_output_buffer_limit_disconnections", "flip_completed",
+tests/flip_under_load.py:45:            "flip_clients_transferred", "flip_last_transfers", "flip_in_progress")
+tests/flip_under_load.py:73:flips_ok = [0]
 tests/flip_under_load.py:74:flips_refused = [0]
+tests/flip_under_load.py:107:        # Keep BUSY distinct so the final report names this FLIP regression directly instead of
+tests/flip_under_load.py:146:            # Write a batch with MSET (multi-key => cross-shard groups in flight during flips).
+tests/flip_under_load.py:195:def flipper():
+tests/flip_under_load.py:197:        fail("no acknowledged load before FLIP deadline")
 tests/flip_under_load.py:202:        fail("flipper could not connect: %r" % e)
 tests/flip_under_load.py:205:    # hardcoded 32-thread shapes made every flip a legal refusal on smaller servers, and the gate
+tests/flip_under_load.py:208:    send(s, "FLIP")
 tests/flip_under_load.py:216:    # SMT mode flips sibling PAIRS: odd targets are legal refusals, so shapes must be multiples of
+tests/flip_under_load.py:232:            send(s, "FLIP", str(io), str(ex))
+tests/flip_under_load.py:236:                    flips_ok[0] += 1
 tests/flip_under_load.py:238:                    flips_refused[0] += 1
 tests/flip_under_load.py:241:                flips_refused[0] += 1
 tests/flip_under_load.py:246:                    flips_refused[0] += 1
+tests/flip_under_load.py:252:                fail("flipper: %s: %r" % (classify(e), e))
+tests/flip_under_load.py:260:first = admin.cmd("FLIP")
+tests/flip_under_load.py:263:        _lib.skip_all("FLIP is a 2s-only feature and this boot is --thread-mode 1s: %s" % first)
+tests/flip_under_load.py:264:    print("FAIL: FLIP unavailable on this boot: %s" % first)
+tests/flip_under_load.py:269:threads.append(threading.Thread(target=flipper))
+tests/flip_under_load.py:273:post_flip = None
+tests/flip_under_load.py:283:    if int(published["flip_completed"]) > int(before["flip_completed"]):
+tests/flip_under_load.py:284:        if post_flip is None:
+tests/flip_under_load.py:285:            post_flip = progress
+tests/flip_under_load.py:286:        elif all(now > then for now, then in zip(progress, post_flip)):
+tests/flip_under_load.py:290:    fail("no completed FLIP bracketed by every worker's verified progress before deadline")
+tests/flip_under_load.py:295:    fail("load/FLIP worker did not stop")
 tests/flip_under_load.py:307:print("ops verified: %d   flips applied: %d   flips refused: %d   BUSY retries: %d"
 tests/flip_under_load.py:308:      % (ops[0], flips_ok[0], flips_refused[0], busy[0]))
-tests/signalacct_live_test.py:88:                (b'-ERR FLIP connection ownership count is not conserved\r\n', 'server-error'),
-tests/signalacct_live_test.py:106:                conn.send.assert_called_once_with('FLIP', 6, 2)  # Never retry a refusal.
-tests/core_concurrency_unit.cc:1048:#include "flip_close_checks.inc"
-tests/core_concurrency_unit.cc:1195:    else if (row == "lifetime") { T::lifetime(); T::close_cycles(); T::flip_close(); }
-tests/core_concurrency_unit.cc:1196:    else if (row == "flip-close") T::flip_close();
-tests/core_concurrency_unit.cc:1203:    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); T::flipreport_all(); }
-tests/knobs.py:14:    "script-crossshard-cut-slots", "tls-ktls", "lb", "flip-work-window",
-tests/loading_ready_test.py:97:        from feature_gate import FUSED_FLIP_REFUSAL
-tests/loading_ready_test.py:102:            for diagnostic in (FUSED_FLIP_REFUSAL, 'unrelated boot failure'):
-tests/loading_ready_test.py:109:                self.assertEqual(FUSED_FLIP_REFUSAL in str(caught.exception),
-tests/loading_ready_test.py:110:                                 diagnostic == FUSED_FLIP_REFUSAL)
-tests/fixtures/nullrefresh-ledger-labels.json:60:    "FLIP planned-connection close lifetime (ASAN+TSAN)",
-tests/fixtures/nullrefresh-ledger-labels.json:450:    "FLIP close during FLIP (uring)",
-tests/fixtures/nullrefresh-ledger-labels.json:451:    "FLIP close during FLIP (epoll)",
-tests/fixtures/nullrefresh-ledger-labels.json:991:      "FLIP close during FLIP (uring)",
-tests/fixtures/nullrefresh-ledger-labels.json:992:      "FLIP close during FLIP (epoll)",
-tests/fixtures/nullrefresh-ledger-labels.json:994:      "FLIP planned-connection close lifetime (ASAN+TSAN)",
+tests/flip_under_load.py:317:if flips_ok[0] == 0:
+tests/flip_under_load.py:318:    print("FAIL: no flip was ever applied -- the test proved nothing")
+tests/flip_under_load.py:321:    print("FAIL: ordinary commands received BUSY during FLIP")
+tests/wiredump.py:347:        flipped = bytearray(good)
+tests/wiredump.py:348:        flipped[1] ^= 1
+tests/wiredump.py:352:            (bytes(flipped), checksum_error, "flipped byte"),
+tests/gate_history.py:38:# lruclock median 155.25 s (126.44..200.14, max/median 1.289), and flipctl median
+tests/gate_history.py:364:            "verdict_flipped": 0 < failures < total, "mixed_runs": mixed,
+tests/gate_history.py:368:        "labels": labels, "flipping_labels": sum(row["verdict_flipped"] for row in labels.values())}
+tests/gate_history.py:373:             f"{report['runs']} runs; {report['flipping_labels']} verdict-changing labels"]
+tests/gate_history.py:375:        if not row["verdict_flipped"]:
+tests/gate_history.py:392:    if report["flipping_labels"]:
+tests/gate_history.py:398:        lines.append("  Historical flips remain visible even when the latest run passes; "
+tests/gate_history.py:772:        self.add(.1, label="flip controller model unit")
+tests/gate_history.py:773:        self.assertEqual(budget(prepare(self.directory, []), "flip controller model unit")["timeout_seconds"], 30)
+tests/gate_history.py:1599:    def test_stable_pass_and_stable_fail_are_not_verdict_flips(self):
+tests/gate_history.py:1604:        self.assertEqual(report["flipping_labels"], 0)
+tests/gate_history.py:1623:        self.assertTrue(row["verdict_flipped"])
+tests/gate_history.py:1630:    def test_every_flipping_label_is_printed_without_truncation(self):
+tests/gate_history.py:1635:        self.assertEqual(report["flipping_labels"], 24)
+tests/gate_history.py:1704:    def test_report_cli_surfaces_flips_without_overriding_current_gate_verdict(self):
+tests/gate_history.py:1712:        self.assertEqual(data["flipping_labels"], 1)
+tests/gate_history.py:1721:        self.assertEqual((report["observations"], report["runs"], report["flipping_labels"]), (0, 0, 0))
+tests/gate_history.py:1735:    p = sub.add_parser("report", help="surface verdict flips and observed failure rates across all runs")
+tests/rltopo_unit.cc:32:        None, NoFlip, Retry, NoCount, DirtyReply, DropOwner, CorruptReply, NoRetire,
+tests/rltopo_unit.cc:39:    inline static unsigned captures = 0, flips = 0;
+tests/rltopo_unit.cc:51:    static void flip() {
+tests/rltopo_unit.cc:52:        if (flips || fault == Fault::NoFlip) return;
+tests/rltopo_unit.cc:62:        ++flips;
+tests/rltopo_unit.cc:64:    static void captured(const FlatStore&) { ++captures; flip(); }
+tests/rltopo_unit.cc:96:            cfg.flip_auto = 0;
+tests/rltopo_unit.cc:183:        if (fault == Fault::NoFlip) return;
+tests/rltopo_unit.cc:185:            if (!flips++) changing->foreign_read_scope_open(readreply_hash);
+tests/rltopo_unit.cc:187:            if (!flips++) {
+tests/rltopo_unit.cc:192:            flip();
+tests/rltopo_unit.cc:245:        flips = captures = 0;
+tests/rltopo_unit.cc:264:            check(flips == 1, "copy window entered exactly once");
+tests/rltopo_unit.cc:318:        captures = flips = 0;
+tests/rltopo_unit.cc:321:        else if (window == Window::Copy) ExLoopT<true>::test_local_read_copied_ = flip;
+tests/rltopo_unit.cc:322:        else flip();
+tests/rltopo_unit.cc:327:        require(flips == 1, "forced topology window fired exactly once");
+tests/rltopo_unit.cc:448:        for (Fault broken : {Fault::NoFlip, Fault::Retry, Fault::NoCount, Fault::DirtyReply}) {
+tests/rltopo_unit.cc:449:            const char* message = broken == Fault::NoFlip ? "forced topology window fired exactly once"
+tests/aoffix2.py:133:                     '--key-lb', '0', '--client-lb', '0', '--flip-auto', '0',
+tests/mode_equivalence.py:4:The 16 cells are mode x read-local x reorder x atomic; flip-auto is explicitly off
+tests/mode_equivalence.py:5:because fused+flip-auto is a documented refusal, already covered by feature_gate. One connection
+tests/mode_equivalence.py:156:    knobs.update({'thread-mode': mode, 'shards': 16, 'flip-auto': 0, 'key-lb': 0, 'client-lb': 0})
+tests/mode_equivalence.py:280:                actual = info(admin, 'SERVER', 'STATS', 'FLIPCTL')
+tests/mode_equivalence.py:295:                check_config(info(admin, 'SERVER', 'STATS', 'FLIPCTL'), knobs, cell, args.server_cpus)
 tests/flipfix_checks.inc:1:// Included in CoreConcurrencyTest (lane flipfix): FLIP connection-set lifetime/order (IO4.4, IO4.1)
 tests/flipfix_checks.inc:7:    // One FLIP 5 3 from the fixture's 6:2 split, with `count` connections on the converting IO.
+tests/flipfix_checks.inc:8:    struct FlipfixPlan {
+tests/flipfix_checks.inc:13:        explicit FlipfixPlan(uint32_t count) {
+tests/flipfix_checks.inc:15:            require(f.server.flip_begin(5, 3, f.io_id, error), "admit FLIP 5 3 from 6:2");
+tests/flipfix_checks.inc:17:                if (f.server.flip_candidate_target(tid) == Role::Ex) converting = tid;
+tests/flipfix_checks.inc:35:            for (int pass = 0; pass < 64 && !f.server.flip_acked(converting, FlipStage::IoDrain);
+tests/flipfix_checks.inc:37:                (void)source.flip_control_pass<false>();
+tests/flipfix_checks.inc:38:            require(f.server.flip_acked(converting, FlipStage::IoDrain),
+tests/flipfix_checks.inc:43:            while (!f.server.flip_acked(converting, FlipStage::IoDrain)) std::this_thread::yield();
+tests/flipfix_checks.inc:46:                    f.server.flip_ack(tid, FlipStage::IoDrain);
+tests/flipfix_checks.inc:47:            return f.server.flip_build_client_plan(nullptr, error);
 tests/flipfix_checks.inc:53:                    total += f.server.flip_client_quota(tid);
+tests/flipfix_checks.inc:58:            f.server.flip_set_stage(FlipStage::ClientPrepare);
+tests/flipfix_checks.inc:60:                     !f.server.flip_acked(converting, FlipStage::ClientPrepare); pass++)
+tests/flipfix_checks.inc:61:                (void)source.flip_control_pass<false>();
+tests/flipfix_checks.inc:62:            require(f.server.flip_acked(converting, FlipStage::ClientPrepare),
 tests/flipfix_checks.inc:77:            f.server.flip_refuse_active(); // state-only fixture never commits ownership
 tests/flipfix_checks.inc:78:            std::printf("ARMED %s: %zu planned connections closed during FLIP 5 3, dropped and reaped\n",
+tests/flipfix_checks.inc:86:    static void flipfix_plan_race() {
+tests/flipfix_checks.inc:87:        FlipfixPlan plan(2);
+tests/flipfix_checks.inc:96:        require(plan.f.server.flip_source_clients(plan.converting) == 2,
+tests/flipfix_checks.inc:99:        plan.prepare_and_finish("flipfix-plan-race");
+tests/flipfix_checks.inc:104:    static void flipfix_plan_lifetime() {
+tests/flipfix_checks.inc:105:        FlipfixPlan plan(2);
+tests/flipfix_checks.inc:109:        require(plan.f.server.flip_source_clients(plan.converting) == 2,
+tests/flipfix_checks.inc:114:        plan.prepare_and_finish("flipfix-plan-lifetime");
+tests/flipfix_checks.inc:118:    static void flipfix_fingerprint() {
+tests/flipfix_checks.inc:120:        FlipController controller;
+tests/flipfix_checks.inc:121:        require(controller.init(true, f.server.nthreads()), "initialize the flip controller");
+tests/flipfix_checks.inc:122:        FlipFingerprintWriter& writer = f.server.thread(f.io_id).flip_fingerprint();
+tests/flipfix_checks.inc:138:                writer.note_command(FlipFingerprintClass::Read, 1, 8);
+tests/flipfix_checks.inc:139:                if (pass % 3 == 0) writer.note_command(FlipFingerprintClass::MultiWrite, 2, 16);
+tests/flipfix_checks.inc:153:        const FlipFingerprintWindow& last = controller.fingerprint_last_[f.io_id];
+tests/flipfix_checks.inc:160:        std::printf("ARMED flipfix-fingerprint: %llu windows, %llu reads consumed new windows\n",
+tests/storesize_unit.cc:252:                              "COMMANDSTATS", "FLIPCTL", "WRITEBACK", "LB", "unknown"}) {
+tests/storesize_unit.cc:304:    cfg.key_lb = cfg.client_lb = cfg.flip_auto = cfg.protected_mode = 0;
+tests/connreset_repro.py:277:            "--databases", "1", "--key-lb", str(key_lb), "--flip-auto", "0", "--enable-debug-command", "yes",
+tests/atomiccollapse_checks.inc:283:            cfg.key_lb = cfg.client_lb = 0; cfg.flip_auto = 0; cfg.save.clear();
+tests/scriptfix.py:119:                "--flip-auto", "0", "--atomic", str(args.atomic),
+tests/signalacct_core_controls.py:42:            p = dest / 'src/core/flipctl.cc'
+tests/signalacct_core_controls.py:43:            p.write_text(once(p.read_text(), 'role_work[index] += flip_role_work(wall, idle);',
+tests/signalacct_core_controls.py:56:        objs = '$(filter-out build/src/core/flipctl.o,$(CORE_TEST_OBJ))' if model else '$(CORE_TEST_OBJ)'
+tests/signalacct_core_controls.py:57:        extra = f'{path}/src/core/flipctl.cc ' if model else ''
+tests/gate.sh:216:# 239 -> 240: the flip-controller model unit test (tests/flipctl_unit.cc) as a static build row;
 tests/gate.sh:308:# flipfix (IO4.1/IO4.2/IO4.4/CT4.3): +3 live rows in job_flip (close during FLIP on uring and
+tests/gate.sh:309:# epoll, signal stop during FLIP + second SIGINT) and +2 serverless rows in job_flipfix_units;
+tests/gate.sh:937:    flipctl) echo 'flip controller: ramp gate, hold, surge + mix re-maneuvers';;
+tests/gate.sh:986:    flipctl)
+tests/gate.sh:987:      boot "$CANDIDATE_BINARY" --ratio 6:2 --atomic 0 --enable-debug-command yes --flip-auto 1 \
+tests/gate.sh:988:          || bad 'flipctl boot'
+tests/gate.sh:991:      python3 tests/flipctl.py --host 127.0.0.1 --port "$PORT" --stable-seconds 30 \
+tests/gate.sh:1082:  JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit storage_units
+tests/gate.sh:1096:  JOB_NAMES+=(flipctl)
+tests/gate.sh:1108:              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
+tests/gate.sh:1110:              efficiency dump_restore auth authfix notify notify_order notify_aof flip fliplisten flip_saturated atomic_floor
+tests/gate.sh:1344:job_flip_unit(){
+tests/gate.sh:1345:# The flip-controller MODEL (fingerprint classes, ramp gate, count-noise rejection) has a unit
+tests/gate.sh:1346:# test that nothing built; a model regression surfaced only in flipctl.py's live 2-5 min row.
+tests/gate.sh:1347:row_begin "flip controller model unit"
+tests/gate.sh:1348:g++ -std=c++20 -O2 -I. tests/flipctl_unit.cc src/core/flipctl.cc -o $TMPDIR/tomokv-flipctl-unit \
+tests/gate.sh:1349:    2>$TMPDIR/gate-flipctl-unit.txt \
+tests/gate.sh:1350:    && $TMPDIR/tomokv-flipctl-unit >>$TMPDIR/gate-flipctl-unit.txt 2>&1 \
+tests/gate.sh:1351:    && ok "flip controller model unit" \
+tests/gate.sh:1352:    || bad "flip controller model unit" "see $TMPDIR/gate-flipctl-unit.txt"
+tests/gate.sh:1355:job_flipfix_units(){
+tests/gate.sh:1356:# flipfix IO4.4/CT4.3: two serverless rows, collected BEFORE the quick-tier exit (+2/+2). Each runs
 tests/gate.sh:1358:# a planned connection closing during FLIP must stay owned and allocated until its source drops it,
+tests/gate.sh:1360:flipfix_unit(){
 tests/gate.sh:1369:row_begin "FLIP planned-connection close lifetime (ASAN+TSAN)"
+tests/gate.sh:1370:flipfix_unit flipfix-plan \
 tests/gate.sh:1371:    && ok "FLIP planned-connection close lifetime (ASAN+TSAN)" \
 tests/gate.sh:1372:    || bad "FLIP planned-connection close lifetime (ASAN+TSAN)" "see $TMPDIR/gate-flipfix-plan.txt and $TMPDIR/tsan-core-concurrency-tsan-flipfix-plan.log"
+tests/gate.sh:1373:row_begin "FLIP fingerprint publication (ASAN+TSAN)"
+tests/gate.sh:1374:flipfix_unit flipfix-fingerprint \
+tests/gate.sh:1375:    && ok "FLIP fingerprint publication (ASAN+TSAN)" \
+tests/gate.sh:1376:    || bad "FLIP fingerprint publication (ASAN+TSAN)" "see $TMPDIR/gate-flipfix-fingerprint.txt and $TMPDIR/tsan-core-concurrency-tsan-flipfix-fingerprint.log"
+tests/gate.sh:1488:        --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes \
+tests/gate.sh:1506:      --databases 1 --key-lb 0 --client-lb 0 --flip-auto 0 \
+tests/gate.sh:1561:        --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes \
+tests/gate.sh:1783:  if "$boot_fn" "$CANDIDATE_BINARY" --key-lb 1 --client-lb 1 --flip-auto 0 --enable-debug-command yes &&
+tests/gate.sh:2186:          --flip-auto 0 --enable-debug-command yes && WAIT_BOOTED=1
+tests/gate.sh:2189:          --flip-auto 0 --enable-debug-command yes && WAIT_BOOTED=1
+tests/gate.sh:2261:        --flip-auto 0 --enable-debug-command yes; then
+tests/gate.sh:2281:# predecessor/promotion counters, overlapping writers, window liveness, and live CONFIG flips.
+tests/gate.sh:2458:      --key-lb 0 --client-lb 0 --flip-auto 0 \
+tests/gate.sh:2474:  # really spans owners; ATOMIC-COMMIT-DELAY / ATOMIC-READ-DELAY widen the window). It flips
+tests/gate.sh:2478:  # so a whole transaction can commit inside the fan-out on demand. It flips `atomic` itself, so
+tests/gate.sh:2483:  # in-EXEC read on demand. It flips `atomic` itself, so either boot covers both modes. Its armed
+tests/gate.sh:2488:  # It flips `atomic` itself, so either boot covers both modes. Its rows assert counters as well as
+tests/gate.sh:2837:                     --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0)
+tests/gate.sh:2902:                     --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0
+tests/gate.sh:2966:job_flip(){
+tests/gate.sh:2967:# ---- FLIP lane: runtime thread reshaping is a shipped feature and gates like one ---------------
+tests/gate.sh:2969:#   flip.py            the 542-check state battery (incl. same-split no-op moves NOTHING)
 tests/gate.sh:2970:#   flip_under_load    value-verified traffic + flips: no drops, no BUSY, no regressions
+tests/gate.sh:2971:#   flip_ttl           TTL state AND expiry events survive the shard/client moves a flip performs
 tests/gate.sh:2972:#   saturated flips    a one-shot quiesce snapshot once refused ~every flip under 512-conn
+tests/gate.sh:2973:#                      pipelined load while 8-conn tests sailed through; this row flips under
+tests/gate.sh:2975:boot "$CANDIDATE_BINARY" --enable-debug-command yes || bad "flip battery boot"
+tests/gate.sh:2976:row_begin "FLIP state battery"
+tests/gate.sh:2977:py tests/flip.py 127.0.0.1 $PORT >$TMPDIR/gate-flip.txt 2>&1 \
+tests/gate.sh:2978:    && ok "FLIP state battery" || bad "FLIP state battery" "see $TMPDIR/gate-flip.txt"
+tests/gate.sh:2979:row_begin "FLIP under verified load"
+tests/gate.sh:2980:py tests/flip_under_load.py 127.0.0.1 $PORT 20 >$TMPDIR/gate-flip-load.txt 2>&1 \
+tests/gate.sh:2981:    && ok "FLIP under verified load" || bad "FLIP under verified load" "see $TMPDIR/gate-flip-load.txt"
+tests/gate.sh:2982:row_begin "FLIP TTL + expiry events"
+tests/gate.sh:2983:py tests/flip_ttl.py 127.0.0.1 $PORT >$TMPDIR/gate-flip-ttl.txt 2>&1 \
+tests/gate.sh:2984:    && ok "FLIP TTL + expiry events" || bad "FLIP TTL + expiry events" "see $TMPDIR/gate-flip-ttl.txt"
+tests/gate.sh:2989:# flipfix (IO4.1, IO4.2). Each row owns its boots on this slot's $PORT, now free. Closing peers
+tests/gate.sh:2990:# during FLIPs once wedged the server or held each FLIP to its 5 s deadline; with save clauses
+tests/gate.sh:2991:# armed a SIGTERM during a FLIP was not served and a second SIGINT was absorbed.
 tests/gate.sh:2993:  row_begin "FLIP close during FLIP ($NET_IO)"
+tests/gate.sh:2996:  FLIPFIX_OK=1
 tests/gate.sh:2997:  for FLIPFIX_CASE in close churn; do
+tests/gate.sh:2998:    FLIPFIX_AUTO=0; [ "$FLIPFIX_CASE" != churn ] || FLIPFIX_AUTO=1
+tests/gate.sh:2999:    py tests/flipfix.py "$FLIPFIX_CASE" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+tests/gate.sh:3000:        --ratio "$GATE_RATIO" --net-io "$NET_IO" --flip-auto "$FLIPFIX_AUTO" \
+tests/gate.sh:3001:        --output "$TMPDIR/flipfix-$FLIPFIX_CASE-$NET_IO" \
+tests/gate.sh:3002:        >"$TMPDIR/gate-flipfix-$FLIPFIX_CASE-$NET_IO.txt" 2>&1 || FLIPFIX_OK=0
+tests/gate.sh:3004:  [ "$FLIPFIX_OK" = 1 ] \
 tests/gate.sh:3005:      && ok "FLIP close during FLIP ($NET_IO)" \
-tests/gate.sh:3006:      || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-close-$NET_IO.txt"
+tests/gate.sh:3006:      || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-{close,churn}-$NET_IO.txt"
+tests/gate.sh:3008:row_begin "FLIP signal stop during FLIP + second SIGINT"
+tests/gate.sh:3009:FLIPFIX_OK=1
+tests/gate.sh:3011:  for FLIPFIX_CASE in sigterm sigint; do
+tests/gate.sh:3012:    py tests/flipfix.py "$FLIPFIX_CASE" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+tests/gate.sh:3013:        --ratio "$GATE_RATIO" --net-io "$NET_IO" --output "$TMPDIR/flipfix-$FLIPFIX_CASE-$NET_IO" \
+tests/gate.sh:3014:        >"$TMPDIR/gate-flipfix-$FLIPFIX_CASE-$NET_IO.txt" 2>&1 || FLIPFIX_OK=0
+tests/gate.sh:3017:[ "$FLIPFIX_OK" = 1 ] \
+tests/gate.sh:3018:    && ok "FLIP signal stop during FLIP + second SIGINT" \
+tests/gate.sh:3019:    || bad "FLIP signal stop during FLIP + second SIGINT" "see $TMPDIR/gate-flipfix-sig*-*.txt"
+tests/gate.sh:3020:# IO4.19 rows own this slot's now-free port; both FLIP and default-on client-lb use the transfer.
+tests/gate.sh:3021:for CASE in epoll-flip epoll-lb; do
+tests/gate.sh:3032:job_fliplisten(){
+tests/gate.sh:3036:      row_begin "FLIP listener conservation ($direction, $outcome)"
+tests/gate.sh:3037:      py tests/fliplisten.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+tests/gate.sh:3039:          --output "$TMPDIR/fliplisten-$direction-$outcome" \
+tests/gate.sh:3040:          >"$TMPDIR/gate-fliplisten-$direction-$outcome.txt" 2>&1 \
+tests/gate.sh:3041:          && ok "FLIP listener conservation ($direction, $outcome)" \
+tests/gate.sh:3042:          || bad "FLIP listener conservation ($direction, $outcome)" \
+tests/gate.sh:3043:              "see $TMPDIR/gate-fliplisten-$direction-$outcome.txt"
+tests/gate.sh:3048:job_flip_saturated(){
+tests/gate.sh:3049:boot "$CANDIDATE_BINARY" --enable-debug-command yes || bad "flip battery reboot"
+tests/gate.sh:3051:row_begin "FLIP applies under saturated load"
+tests/gate.sh:3059:  TOTAL=$(redis-cli -p $PORT flip 2>/dev/null | paste - - | awk '/live_io/{a=$2} /live_ex/{b=$2} END{print a+b}')
+tests/gate.sh:3062:    OUT=$(redis-cli -p $PORT flip $TIO $((TOTAL-TIO)) 2>&1); sleep 1
+tests/gate.sh:3063:    LIVE=$(redis-cli -p $PORT flip 2>/dev/null | paste - - | awk '/live_io/{print $2; exit}')
 tests/gate.sh:3064:    { [ "$OUT" = "OK" ] && [ "$LIVE" = "$TIO" ]; } || { SATOK=0; echo "flip $TIO refused/missed: '$OUT' live=$LIVE" >>$TMPDIR/gate-flip-sat.txt; }
+tests/gate.sh:3077:) && ok "FLIP applies under saturated load" \
+tests/gate.sh:3078:  || bad "FLIP applies under saturated load" "see $TMPDIR/gate-flip-sat.txt"
+tests/gate.sh:3082:row_begin "flip battery shutdown invariants"
+tests/gate.sh:3083:FLIPSHUT=0
+tests/gate.sh:3086:      && { FLIPSHUT=1; break; }
+tests/gate.sh:3089:[ "$FLIPSHUT" = 1 ] && ok "flip battery shutdown invariants" \
+tests/gate.sh:3090:    || bad "flip battery shutdown invariants"
+tests/gate.sh:3417:    --aof-timestamp-enabled no --key-lb 0 --client-lb 0 --flip-auto 0 \
+tests/gate.sh:4062:      # A measured 3 ms scheduling pause alone flips atomic_ryow's unchanged 24-command
+tests/gate.sh:4070:    release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
+tests/gate.sh:4071:    core_units|flipfix_units) echo 'production_units core_tsan_build';;
+tests/gate.sh:4143:collect_job flip_unit
+tests/gate.sh:4166:# flipfix: two serverless sanitizer rows before the quick exit (+2 quick / +2 full).
+tests/gate.sh:4167:collect_job flipfix_units
+tests/gate.sh:4279:collect_job flip
+tests/gate.sh:4280:collect_job fliplisten
+tests/gate.sh:4282:collect_job flipctl
+tests/gate.sh:4283:collect_job flip_saturated
+tests/gate.sh:4297:# --client-lb {0,1}, --reorder {0,1}, --flip-auto {0,1} in the full 32-way product, and explicitly
 tests/gate.sh:4300:# The eight fused + flip-auto=1 cells must refuse the exact documented unsupported combination;
-tests/gateprod-evidence/changed-text-audit.json:140:    "tests/flip_close_controls.py",
-tests/feature_gate.py:5:actuate -- config.h refuses --flip-auto with --thread-mode 1s exactly as it refuses --ratio, for
-tests/feature_gate.py:7:flip-auto=1 therefore assert the REFUSAL and its documented message.
-tests/feature_gate.py:36:FUSED_FLIP_REFUSAL = '--flip-auto is unavailable with --thread-mode 1s'
-tests/feature_gate.py:275:            if FUSED_FLIP_REFUSAL in reason:
-tests/feature_gate.py:276:                evidence.update(verdict='ok', reason=f'refused as documented: {FUSED_FLIP_REFUSAL}')
-tests/flip_multikey_hold.py:5:on its own: it completed flips, transferred hundreds of connections, and anchored on exactly the
-tests/flip_multikey_hold.py:19:  trigger fires, that no flip completes, that no connection is transferred, and that the anchor
-tests/flip_multikey_hold.py:138:    actually costs -- completed flips, transferred connections, a moved split -- is asserted
-tests/rl2s.py:11:connections. FLIP is restored in finally. Keys use a unique test prefix.
-tests/multidb_boundary_unit.cc:120:                           FlipStage::ClientInstall, FlipStage::RoleReady, FlipStage::ShardCommit,
-tests/multidb_boundary_unit.cc:121:                           FlipStage::ExInstall, FlipStage::Rollback, FlipStage::Idle}) {
-tests/multidb_boundary_unit.cc:128:                accepted(sockets[0], direct, io.accept_generation_ + (stage == FlipStage::Idle));
+tests/fliplisten.py:2:"""FLIP arrival conservation through the gate's owned process/port allocation.
+tests/fliplisten.py:47:        assert time.monotonic() < deadline, 'FLIP never opened the required window'
+tests/fliplisten.py:55:    unix_path = Path.cwd() / 'build' / f'fliplisten-{args.port}.sock'
+tests/fliplisten.py:72:        *( ["        gdb.execute('set var this->srv_->flip_deadline_ns_._M_i = 1')"]
+tests/fliplisten.py:75:        "Hold('tomo::IoLoop::flip_publish_stage')",
+tests/fliplisten.py:76:        "Hold('tomo_db0::IoLoop::flip_publish_stage')",
+tests/fliplisten.py:84:            '--flip-auto', '0', '--enable-debug-command', 'yes',
+tests/fliplisten.py:122:            admin.must('SET', 'fliplisten:once', 0)
+tests/fliplisten.py:126:            issuer.send('FLIP', target, 8-target)
+tests/fliplisten.py:149:            # ClientHello now (TCP_DEFER_ACCEPT), finish only after the FLIP.
+tests/fliplisten.py:178:            flip_reply = issuer.read()
+tests/fliplisten.py:181:                assert flip_reply == b'OK', repr(flip_reply)
+tests/fliplisten.py:183:                assert isinstance(flip_reply, RespError) and b'timed out' in flip_reply.message, repr(flip_reply)
+tests/fliplisten.py:188:            assert established_delay < 1, ('established connection stalled after FLIP', established_delay)
+tests/fliplisten.py:199:                    peer.send('INCR', 'fliplisten:once')
+tests/fliplisten.py:214:                          established_after_flip_s=established_delay,
+tests/fliplisten.py:215:                          unique_ids=len(set(ids)), executions=admin.must('GET', 'fliplisten:once').decode())
+tests/flip_cost_gate.py:2:"""Directed test of the FLIP controller's COST GATE and OUTCOME LOOP (src/core/flip_policy.h).
+tests/flip_cost_gate.py:6:      --flip-auto 1 --enable-debug-command yes
 tests/flip_cost_gate.py:13:  1. COST GATE REFUSES.  Before any load, DEBUG FLIPCTL COST types an absurd per-client transfer
+tests/flip_cost_gate.py:16:     model_last_decision hold-cost, one cost hold, zero flips, live split unchanged.
+tests/flip_cost_gate.py:17:  2. A MOVE THAT PAYS HAPPENS.  COST -1 restores the measured cost (zero: no flip has been
+tests/flip_cost_gate.py:18:     measured yet) and DEBUG FLIPCTL TRIGGER re-opens the same workload. Exactly ONE flip must
+tests/flip_cost_gate.py:21:  3. AN INDUCED MISS REVERTS AND RAISES THE BAR.  DEBUG FLIPCTL SEEK <origin> FORCE proposes the
+tests/flip_cost_gate.py:23:     bars. The outcome loop must measure it, flip straight back, and raise the bar: two more flips,
 tests/flip_cost_gate.py:27:     without a flip (hold-below-bar): a hypothesis that lost stays refused.
+tests/flip_cost_gate.py:119:    for section in ("FLIPCTL", "STATS", "SERVER"):
+tests/flip_cost_gate.py:126:    raw = control.command("DEBUG", "FLIPCTL")
+tests/flip_cost_gate.py:142:    return row.get("flipctl_state") == "anchored"
+tests/flip_cost_gate.py:157:    if row.get("flipctl_state") == "disabled":
+tests/flip_cost_gate.py:158:        raise AssertionError("server was booted without --flip-auto 1: %r" % row)
+tests/flip_cost_gate.py:159:    if row.get("flipctl_state") == "unavailable":
+tests/flip_cost_gate.py:161:    if row.get("flipctl_state") != "awaiting-load-stability":
 tests/flip_cost_gate.py:170:    check("DEBUG FLIPCTL COST accepts a per-client cost",
+tests/flip_cost_gate.py:171:          control.command("DEBUG", "FLIPCTL", "COST", "1000000000"), b"OK")
+tests/flip_cost_gate.py:205:                        lambda r: anchored(r) and int(r.get("flipctl_boot_triggers", 0)) == 1,
+tests/flip_cost_gate.py:209:        check("cost gate: no flip completed", int(held["flip_completed"]), 0)
+tests/flip_cost_gate.py:212:        check("cost gate: the decision names the cost", held["flipctl_model_last_decision"],
+tests/flip_cost_gate.py:214:        check("cost gate: one cost hold booked", int(held["flipctl_cost_holds"]), 1)
+tests/flip_cost_gate.py:224:              "decision=%s flips=%s live=%s:%s"
+tests/flip_cost_gate.py:225:              % (target, total - target, boot_io, boot_ex, held["flipctl_model_last_decision"],
+tests/flip_cost_gate.py:226:                 held["flip_completed"], held["io_threads"], held["ex_threads"]))
+tests/flip_cost_gate.py:229:        check("DEBUG FLIPCTL COST -1 restores the measurement",
+tests/flip_cost_gate.py:230:              control.command("DEBUG", "FLIPCTL", "COST", "-1"), b"OK")
+tests/flip_cost_gate.py:231:        triggers = int(held["flipctl_triggers"])
+tests/flip_cost_gate.py:232:        check("DEBUG FLIPCTL TRIGGER", control.command("DEBUG", "FLIPCTL", "TRIGGER"), b"OK")
+tests/flip_cost_gate.py:234:                         lambda r: anchored(r) and int(r.get("flipctl_triggers", 0)) > triggers,
+tests/flip_cost_gate.py:238:        check("paying move: exactly one flip", int(moved["flip_completed"]), 1)
+tests/flip_cost_gate.py:242:              (int(moved["flipctl_anchor_io"]), int(moved["flipctl_anchor_ex"])),
+tests/flip_cost_gate.py:244:        check("paying move: verified against the origin", moved["flipctl_model_last_decision"],
+tests/flip_cost_gate.py:247:              (int(moved["flipctl_model_moves"]), int(moved["flipctl_model_misses"])), (1, 0))
+tests/flip_cost_gate.py:248:        kappa_after_hit = float(moved["flipctl_model_kappa"])
+tests/flip_cost_gate.py:250:        check("paying move: the flip's cost was measured",
+tests/flip_cost_gate.py:251:              int(moved["flipctl_last_flip_moved"]) > 0, True)
+tests/flip_cost_gate.py:256:              moved.get("flipctl_refine_decision"), "hold-optimum")
+tests/flip_cost_gate.py:257:        check("paying move: no further step", int(moved.get("flipctl_refine_steps", -1)), 0)
+tests/flip_cost_gate.py:258:        print("2. paying move: one flip to %s:%s, decision=%s kappa=%.3f client_cost=%s "
+tests/flip_cost_gate.py:260:              % (moved["io_threads"], moved["ex_threads"], moved["flipctl_model_last_decision"],
+tests/flip_cost_gate.py:261:                 kappa_after_hit, moved["flipctl_client_cost"], moved["flipctl_last_flip_lost"],
+tests/flip_cost_gate.py:262:                 moved["flipctl_last_flip_moved"]))
+tests/flip_cost_gate.py:265:        flips = int(moved["flip_completed"])
+tests/flip_cost_gate.py:266:        margin = int(moved["flipctl_model_margin"])
+tests/flip_cost_gate.py:267:        triggers = int(moved["flipctl_triggers"])
+tests/flip_cost_gate.py:268:        check("DEBUG FLIPCTL SEEK <origin> FORCE",
+tests/flip_cost_gate.py:269:              control.command("DEBUG", "FLIPCTL", "SEEK", str(boot_io), "FORCE"), b"OK")
+tests/flip_cost_gate.py:271:                            lambda r: anchored(r) and int(r.get("flipctl_triggers", 0)) > triggers
+tests/flip_cost_gate.py:272:                            and int(r.get("flip_completed", 0)) >= flips + 2,
+tests/flip_cost_gate.py:276:        check("induced miss: out and back", int(reverted["flip_completed"]), flips + 2)
+tests/flip_cost_gate.py:280:              reverted["flipctl_model_last_decision"], "moved-reverted")
+tests/flip_cost_gate.py:281:        check("induced miss: one round trip", int(reverted["flipctl_round_trips"]), 1)
+tests/flip_cost_gate.py:282:        check("induced miss: the bar doubled", int(reverted["flipctl_model_margin"]), 2 * margin)
+tests/flip_cost_gate.py:284:              (int(reverted["flipctl_model_moves"]), int(reverted["flipctl_model_misses"])), (2, 1))
+tests/flip_cost_gate.py:286:              int(reverted["flipctl_invalidated_maneuvers"]), 0)
+tests/flip_cost_gate.py:289:              % (boot_io, boot_ex, margin, reverted["flipctl_model_margin"],
+tests/flip_cost_gate.py:290:                 reverted["flipctl_model_misses"], reverted["flipctl_model_kappa"]))
 tests/flip_cost_gate.py:292:        # ---- 4. the same proposal, judged: refused without a flip ---------------------------------
+tests/flip_cost_gate.py:293:        flips = int(reverted["flip_completed"])
+tests/flip_cost_gate.py:294:        triggers = int(reverted["flipctl_triggers"])
+tests/flip_cost_gate.py:295:        check("DEBUG FLIPCTL SEEK <origin>",
+tests/flip_cost_gate.py:296:              control.command("DEBUG", "FLIPCTL", "SEEK", str(boot_io)), b"OK")
+tests/flip_cost_gate.py:298:                           lambda r: anchored(r) and int(r.get("flipctl_triggers", 0)) > triggers,
 tests/flip_cost_gate.py:300:        check("judged proposal: no flip", int(refused["flip_completed"]), flips)
 tests/flip_cost_gate.py:301:        check("judged proposal: refused below the bar", refused["flipctl_model_last_decision"],
 tests/flip_cost_gate.py:305:        print("4. judged proposal: %d:%d refused without a flip (decision=%s)"
 tests/flip_cost_gate.py:306:              % (boot_io, boot_ex, refused["flipctl_model_last_decision"]))
+tests/flip_cost_gate.py:315:    print("ok: flip cost gate + outcome loop (%d checks)" % CHECKS[0])
+tests/iopass_checks.inc:3:    if constexpr (requires { io.flip_pass_begin(); }) io.flip_pass_begin();
+tests/iopass_checks.inc:29:        server.flip_set_stage(FlipStage::ClientInstall);
+tests/iopass_checks.inc:33:        server.flip_set_stage(FlipStage::RoleReady);
+tests/iopass_checks.inc:39:        server.flip_stage_.store(FlipStage::Idle);
+tests/iopass_checks.inc:50:        flip_fences(fresh);
+tests/iopass_checks.inc:116:template<class F> static void flip_fences(F& f) {
+tests/iopass_checks.inc:117:    if constexpr (requires { f.io.flip_pass_begin(); }) {
+tests/iopass_checks.inc:120:        server.flip_coordinator_ = 1; // test IO is a non-coordinator
+tests/iopass_checks.inc:124:        io.flip_pass_begin(); // Idle, then a peer opens the drain
+tests/iopass_checks.inc:125:        server.flip_epoch_.store(1);
+tests/iopass_checks.inc:126:        server.flip_set_stage(FlipStage::IoDrain);
+tests/iopass_checks.inc:127:        io.template flip_control_pass<false>();
+tests/iopass_checks.inc:128:        require(!server.flip_acked(f.io_id, FlipStage::IoDrain),
+tests/iopass_checks.inc:138:        io.flip_pass_begin();
+tests/iopass_checks.inc:139:        io.template flip_control_pass<false>();
+tests/iopass_checks.inc:140:        require(server.flip_acked(f.io_id, FlipStage::IoDrain), "next pass ACKs the armed drain");
+tests/iopass_checks.inc:147:        server.flip_epoch_.store(2);
+tests/iopass_checks.inc:148:        server.flip_set_stage(FlipStage::Planning);
+tests/iopass_checks.inc:149:        io.template flip_control_pass<false>();
+tests/iopass_checks.inc:150:        require(!server.flip_acked(f.io_id, FlipStage::IoDrain),
+tests/iopass_checks.inc:153:        server.flip_stage_.store(FlipStage::Idle);
+tests/iopass_checks.inc:154:        io.flip_pass_begin();
+tests/iopass_checks.inc:155:        server.flip_set_stage(FlipStage::IoDrain);
+tests/iopass_checks.inc:156:        io.flip_client_ = &coordinator; // manual FLIP started after pass-start sample
+tests/iopass_checks.inc:160:                "coordinator uses immediate live fence after same-pass FLIP start");
+tests/iopass_checks.inc:161:        io.flip_client_ = nullptr;
+tests/iopass_checks.inc:164:            server.flip_set_stage(FlipStage::DatabaseIoDrain);
+tests/iopass_checks.inc:165:            io.flip_pass_begin();
+tests/iopass_checks.inc:166:            server.flip_stage_.store(FlipStage::Idle);
+tests/iopass_checks.inc:171:            io.flip_pass_begin();
+tests/iopass_checks.inc:172:            require(!io.flip_dispatch_paused(), "new pass observes completion before clearing backpressure");
+tests/iopass_checks.inc:173:            database.set_flip_backpressure(false); // flush_ready's resume gate
+tests/iopass_checks.inc:179:        server.flip_stage_.store(FlipStage::Idle);
+tests/knobs.py:11:    "flip-auto-band", "l3-domains", "smt-mode", "genthread-schedule",
+tests/knobs.py:14:    "script-crossshard-cut-slots", "tls-ktls", "lb", "flip-work-window",
+tests/knobs.py:67:                           ("flip-auto", "0"), ("reorder", "0"),
+tests/knobs.py:72:    for name in ("read-local", "key-lb", "client-lb", "key-lb-damping", "flip-auto", "net-io", "reorder", "wb-policy",
+tests/knobs.py:92:                           ("key_lb", "1"), ("client_lb", "1"), ("flip_auto", "0"),
+tests/knobs.py:93:                           ("flip_fingerprint_window", "0"), ("net_io", engine), ("hash", "mix64"),
+tests/atomic_torn.py:2:"""Epoch-MVCC torn-read, overlapping-writer, window, and live-flip gate."""
+tests/atomic_torn.py:996:# Live CONFIG flips under active traffic are a liveness/safety arm. OFF intervals deliberately do
+tests/atomic_torn.py:998:flip_stop = threading.Event()
+tests/atomic_torn.py:999:flip_errors = []
+tests/atomic_torn.py:1002:def flip_writer():
+tests/atomic_torn.py:1004:    keys = ["at:flip:k%d" % i for i in range(8)]
+tests/atomic_torn.py:1008:        while not flip_stop.is_set():
+tests/atomic_torn.py:1009:            mset(client, keys, "flip:%d" % seq)
+tests/atomic_torn.py:1012:        flip_errors.append(str(exc))
+tests/atomic_torn.py:1018:thread = threading.Thread(target=flip_writer, daemon=True)
+tests/atomic_torn.py:1022:        flip_errors.append("CONFIG SET failed")
+tests/atomic_torn.py:1023:flip_stop.set()
+tests/atomic_torn.py:1027:flip_keys = ["at:flip:k%d" % i for i in range(8)]
+tests/atomic_torn.py:1028:mset(check, flip_keys, "flip:final")
+tests/atomic_torn.py:1029:flip_final = signature(check.cmd("MGET", *flip_keys))
+tests/atomic_torn.py:1031:note("CONFIG SET atomic flip under load", not thread.is_alive() and not flip_errors and
+tests/atomic_torn.py:1032:     flip_final == b"flip:final", "errors=%r final=%r" % (flip_errors, flip_final))
+tests/perf_gate.py:75:                knobs={'atomic': 1, 'flip-auto': 0, 'reorder': 0,
+tests/perf_gate.py:110:                          ('flip_auto', '0'), ('reorder', '0')):
+tests/moverfix_unit.cc:163:    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/perfex_checks.py:322:                "--key-lb", str(int(balancing)), "--client-lb", str(int(balancing)), "--flip-auto", "0",
+tests/shutsave_unit.cc:108:                    server.flip_stage() == FlipStage::Idle,
+tests/shutsave_unit.cc:115:                server.flip_stage() == FlipStage::DatabaseIoDrain,
+tests/debug_load_test.py:2:"""Serverless FLIP/key-LB reload witnesses. No sockets, server processes, or real sleeps.
+tests/debug_load_test.py:21:FLIP_ERROR = "ERR loading is not allowed while FLIP is in progress"
+tests/debug_load_test.py:26:def status(flip="0", lb="0", fused=False):
+tests/debug_load_test.py:27:    topology = ("thread_mode:1s\r\nflip_available:0\r\n" if fused else
+tests/debug_load_test.py:28:                "thread_mode:2s\r\nflip_in_progress:%s\r\n" % flip)
+tests/debug_load_test.py:29:    # flip-auto=0 does not rule out a placement transition. The controller's phase likewise
+tests/debug_load_test.py:30:    # says nothing about the actual FlipStage/LbStage sampled by loading_begin().
+tests/debug_load_test.py:31:    return (topology + "flip_auto:0\r\nflipctl_phase:measuring\r\n"
+tests/debug_load_test.py:108:        for error in (RuntimeError(FLIP_ERROR), _lib.RespError(FLIP_ERROR), Exception(FLIP_ERROR)):
+tests/debug_load_test.py:111:                    (INFO, status(flip="1")), (INFO, status()), (RELOAD, error),
+tests/debug_load_test.py:129:        error = RuntimeError(FLIP_ERROR)
+tests/debug_load_test.py:131:        with self.assertRaisesRegex(AssertionError, FLIP_ERROR):
+tests/debug_load_test.py:139:                      RuntimeError(FLIP_ERROR + "!"), RuntimeError(FLIP_ERROR + "\n"),
+tests/debug_load_test.py:140:                      RuntimeError(FLIP_ERROR.removeprefix("ERR ")),
+tests/debug_load_test.py:141:                      FLIP_ERROR, FLIP_ERROR.encode(), b"QUEUED", None, 1):
+tests/debug_load_test.py:148:    def test_permanent_flip_or_lb_times_out_without_loading(self):
+tests/debug_load_test.py:149:        for body in (status(flip="1"), status(lb="1"), status(lb="4", fused=True)):
+tests/debug_load_test.py:166:        server = FakeServer([(INFO, late_idle), (RELOAD, RuntimeError(FLIP_ERROR))],
+tests/debug_load_test.py:167:                            repeated_info=status(flip="1"))
+tests/debug_load_test.py:191:        for body in (b"", b"redis_version:7.4.10\r\n", status(flip="idle"), status(lb="idle"),
+tests/debug_load_test.py:192:                     status().replace(b"flip_in_progress:0\r\n", b""),
+tests/debug_load_test.py:194:                     status(fused=True).replace(b"flip_available:0", b"flip_available:1"),
+tests/flipfix_abort_probe.py:2:"""IO4.1 abort branch, deterministic and hook-free: gdb holds the FLIP coordinator thread at
+tests/flipfix_abort_probe.py:3:Server::flip_complete_active (non-stop mode, so every other thread keeps running), idle
+tests/flipfix_abort_probe.py:7:flip_complete_active() reaches std::abort() (SIGABRT). POST: from its IoDrain acknowledgement every
+tests/flipfix_abort_probe.py:9:FLIP answers OK, and the held closes finish (and are reaped) once it retires.
+tests/flipfix_abort_probe.py:12:Usage: flipfix_abort_probe.py --binary B --port P --cores C --output DIR [--net-io uring|epoll]
+tests/flipfix_abort_probe.py:62:        "Hold('tomo::Server::flip_complete_active')",
+tests/flipfix_abort_probe.py:63:        "Hold('tomo_db0::Server::flip_complete_active')",
+tests/flipfix_abort_probe.py:86:        row = admin.must('FLIP')
+tests/flipfix_abort_probe.py:90:        admin.send('FLIP', target, total - target)
+tests/flipfix_abort_probe.py:98:            assert not early, f'FLIP answered before the hold: {early!r}'
+tests/flipfix_abort_probe.py:99:            assert time.monotonic() < deadline, 'coordinator never reached flip_complete_active'
+tests/signalacct_checks.h:1:// Deterministic production-helper proof; also runs in the existing flip model row.
+tests/loading_ready_test.py:97:        from feature_gate import FUSED_FLIP_REFUSAL
+tests/loading_ready_test.py:102:            for diagnostic in (FUSED_FLIP_REFUSAL, 'unrelated boot failure'):
+tests/loading_ready_test.py:109:                self.assertEqual(FUSED_FLIP_REFUSAL in str(caught.exception),
+tests/loading_ready_test.py:110:                                 diagnostic == FUSED_FLIP_REFUSAL)
+tests/execabort_watch_unit.cc:42:        cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/feature_gate.py:5:actuate -- config.h refuses --flip-auto with --thread-mode 1s exactly as it refuses --ratio, for
+tests/feature_gate.py:7:flip-auto=1 therefore assert the REFUSAL and its documented message.
+tests/feature_gate.py:30:SWITCHES = ('read-local', 'client-lb', 'reorder', 'flip-auto')
+tests/feature_gate.py:36:FUSED_FLIP_REFUSAL = '--flip-auto is unavailable with --thread-mode 1s'
+tests/feature_gate.py:43:    mode, _read_local, _client_lb, _reorder, flip_auto = cell.split('-')
+tests/feature_gate.py:44:    return mode == '1s' and int(flip_auto) == 1
+tests/feature_gate.py:62:                 'flip-auto': 0, 'atomic': 1, 'key-lb': 0, 'client-lb': 0}
+tests/feature_gate.py:83:    require(len(MATRIX) == 32 and len(set(MATRIX)) == 32, 'mode/read-local/client-lb/reorder/flip matrix lost a row')
+tests/feature_gate.py:119:    if knobs['flip-auto']:
+tests/feature_gate.py:120:        require(row.get('flipctl_state') not in (None, 'unavailable', 'disabled'),
+tests/feature_gate.py:121:                'requested flip controller is unavailable/disabled')
+tests/feature_gate.py:124:        require(row.get('flipctl_state') in allowed, 'flip off still runs its controller')
+tests/feature_gate.py:144:        # Lifetime totals can legitimately remain on a former reader after FLIP. Its delta
+tests/feature_gate.py:194:    if knobs['flip-auto']:
+tests/feature_gate.py:195:        require(delta(before, after, 'flipctl_forced_triggers') > 0,
+tests/feature_gate.py:196:                'enabled flip controller never consumed its trigger')
+tests/feature_gate.py:197:    elif after.get('flipctl_state') == 'unavailable':
+tests/feature_gate.py:198:        require('flipctl_triggers' not in after, 'unavailable flip controller exposed live counters')
+tests/feature_gate.py:200:        require(number(after, 'flipctl_triggers') == 0, 'disabled flip controller triggered')
+tests/feature_gate.py:206:    before = info(conn, 'SERVER', 'STATS', 'LB', 'FLIPCTL')
+tests/feature_gate.py:208:    if knobs['flip-auto']:
+tests/feature_gate.py:209:        require(conn.must('DEBUG', 'FLIPCTL', 'TRIGGER') == b'OK', 'flip trigger rejected')
+tests/feature_gate.py:251:            after = info(conn, 'SERVER', 'STATS', 'LB', 'FLIPCTL')
+tests/feature_gate.py:272:                            reason='server BOOTED with --flip-auto in 1s: the config guard is gone')
+tests/feature_gate.py:275:            if FUSED_FLIP_REFUSAL in reason:
+tests/feature_gate.py:276:                evidence.update(verdict='ok', reason=f'refused as documented: {FUSED_FLIP_REFUSAL}')
+tests/feature_gate.py:288:            actual = info(conn, 'SERVER', 'STATS', 'FLIPCTL')
+tests/multidb_layout.cc:14:            offsetof(Server, flipctl_), offsetof(Server, shard_owner_),
+tests/multidb_layout.cc:15:            offsetof(Server, flip_stage_), offsetof(Server, lb_stage_),
+tests/evict_battery.py:171:    # makes this row deterministic instead of a coin flip. Our LFU counter has five header bits and
+tests/compat2_support.py:100:                    '--flip-auto', '0', '--read-local', '0', '--reorder', '0', '--databases', '16']
+tests/owner_arena_unit.cc:176:        config.key_lb = config.client_lb = 1; config.flip_auto = 0; config.save.clear();
+tests/legacy_reorder_witness.py:276:    server_args = ["--atomic", "1", "--flip-auto", "0",
+tests/legacy_reorder_witness.py:291:            for name, value in {**knobs, "flip-auto": 0, "atomic": 1}.items():
+tests/rl2s.py:2:"""Directed split local-read activation, owner routing, RYOW and FLIP checks.
+tests/rl2s.py:7:  --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0
+tests/rl2s.py:11:connections. FLIP is restored in finally. Keys use a unique test prefix.
+tests/rl2s.py:29:    # Boot/FLIP readiness precedes the first instruction in a new IO loop. Give
+tests/rl2s.py:144:    for knob in ("key-lb", "client-lb", "flip-auto"):
+tests/rl2s.py:148:    unit = int(_lib.info(ctl, "server")["flip_unit_threads"])
+tests/rl2s.py:149:    require(len(ex) > unit, "requires at least two EX scheduling units for the FLIP round trip")
+tests/rl2s.py:166:        require(ctl.cmd("FLIP", len(io) + unit, len(ex) - unit) == b"OK", "EX -> IO failed")
+tests/rl2s.py:169:                "FLIP did not change actual geometry")
+tests/rl2s.py:171:        require(ctl.cmd("FLIP", len(io), len(ex)) == b"OK", "IO -> EX failed")
+tests/rl2s.py:175:        print("ok: RL2S owner routing, every IO lane, GET/MGET, RYOW and FLIP round trip")
+tests/rl2s.py:178:            require(ctl.cmd("FLIP", len(io), len(ex)) == b"OK", "cleanup could not restore roles")
+tests/gate_perf_evidence.json:12:        "flip-auto": 0,
+tests/gate_perf_evidence.json:53:        "flip-auto": 1,
+tests/gate_perf_evidence.json:62:      "reason": "server exited before boot: --flip-auto is unavailable with --thread-mode 1s\n"
+tests/gate_perf_evidence.json:70:        "flip-auto": 0,
+tests/gate_perf_evidence.json:118:        "flip-auto": 1,
+tests/gate_perf_evidence.json:127:      "reason": "server exited before boot: --flip-auto is unavailable with --thread-mode 1s\n"
+tests/gate_perf_evidence.json:135:        "flip-auto": 0,
+tests/gate_perf_evidence.json:183:        "flip-auto": 1,
+tests/gate_perf_evidence.json:192:      "reason": "server exited before boot: --flip-auto is unavailable with --thread-mode 1s\n"
+tests/gate_perf_evidence.json:200:        "flip-auto": 0,
+tests/gate_perf_evidence.json:248:        "flip-auto": 1,
+tests/gate_perf_evidence.json:257:      "reason": "server exited before boot: --flip-auto is unavailable with --thread-mode 1s\n"
+tests/gate_perf_evidence.json:265:        "flip-auto": 0,
+tests/gate_perf_evidence.json:315:        "flip-auto": 1,
+tests/gate_perf_evidence.json:324:      "reason": "server exited before boot: --flip-auto is unavailable with --thread-mode 1s\n"
+tests/gate_perf_evidence.json:332:        "flip-auto": 0,
+tests/gate_perf_evidence.json:389:        "flip-auto": 1,
+tests/gate_perf_evidence.json:398:      "reason": "server exited before boot: --flip-auto is unavailable with --thread-mode 1s\n"
+tests/gate_perf_evidence.json:406:        "flip-auto": 0,
+tests/gate_perf_evidence.json:463:        "flip-auto": 1,
+tests/gate_perf_evidence.json:472:      "reason": "server exited before boot: --flip-auto is unavailable with --thread-mode 1s\n"
+tests/gate_perf_evidence.json:480:        "flip-auto": 0,
+tests/gate_perf_evidence.json:537:        "flip-auto": 1,
+tests/gate_perf_evidence.json:546:      "reason": "server exited before boot: --flip-auto is unavailable with --thread-mode 1s\n"
+tests/gate_perf_evidence.json:554:        "flip-auto": 0,
+tests/gate_perf_evidence.json:588:        "flipctl_forced_triggers": "0"
+tests/gate_perf_evidence.json:597:        "flip-auto": 1,
+tests/gate_perf_evidence.json:631:        "flipctl_forced_triggers": "1"
+tests/gate_perf_evidence.json:640:        "flip-auto": 0,
+tests/gate_perf_evidence.json:681:        "flipctl_forced_triggers": "0"
+tests/gate_perf_evidence.json:690:        "flip-auto": 1,
+tests/gate_perf_evidence.json:731:        "flipctl_forced_triggers": "1"
+tests/gate_perf_evidence.json:740:        "flip-auto": 0,
+tests/gate_perf_evidence.json:781:        "flipctl_forced_triggers": "0"
+tests/gate_perf_evidence.json:790:        "flip-auto": 1,
+tests/gate_perf_evidence.json:831:        "flipctl_forced_triggers": "1"
+tests/gate_perf_evidence.json:840:        "flip-auto": 0,
+tests/gate_perf_evidence.json:881:        "flipctl_forced_triggers": "0"
+tests/gate_perf_evidence.json:890:        "flip-auto": 1,
+tests/gate_perf_evidence.json:931:        "flipctl_forced_triggers": "1"
+tests/gate_perf_evidence.json:940:        "flip-auto": 0,
+tests/gate_perf_evidence.json:983:        "flipctl_forced_triggers": "0"
+tests/gate_perf_evidence.json:992:        "flip-auto": 1,
+tests/gate_perf_evidence.json:1035:        "flipctl_forced_triggers": "1"
+tests/gate_perf_evidence.json:1044:        "flip-auto": 0,
+tests/gate_perf_evidence.json:1094:        "flipctl_forced_triggers": "0"
+tests/gate_perf_evidence.json:1103:        "flip-auto": 1,
+tests/gate_perf_evidence.json:1153:        "flipctl_forced_triggers": "1"
+tests/gate_perf_evidence.json:1162:        "flip-auto": 0,
+tests/gate_perf_evidence.json:1212:        "flipctl_forced_triggers": "0"
+tests/gate_perf_evidence.json:1221:        "flip-auto": 1,
+tests/gate_perf_evidence.json:1271:        "flipctl_forced_triggers": "1"
+tests/gate_perf_evidence.json:1280:        "flip-auto": 0,
+tests/gate_perf_evidence.json:1330:        "flipctl_forced_triggers": "0"
+tests/gate_perf_evidence.json:1339:        "flip-auto": 1,
+tests/gate_perf_evidence.json:1389:        "flipctl_forced_triggers": "1"
+tests/gate_perf_evidence.json:1399:        "flip-auto": 0,
+tests/gate_perf_evidence.json:1451:        "flip-auto": 0,
+tests/gate_perf_evidence.json:1494:        "flipctl_forced_triggers": "0"
+tests/gate_perf_evidence.json:1504:        "flip-auto": 0,
+tests/gate_perf_evidence.json:1546:        "flipctl_forced_triggers": "0"
+tests/gate_perf_evidence.json:1573:        "flip-auto": 0,
+tests/gate_perf_evidence.json:4373:            "flip-auto": 0,
+tests/gate_perf_evidence.json:5754:            "flip-auto": 0,
+tests/gate_perf_evidence.json:7215:            "flip-auto": 0,
+tests/lbplanner_unit.cc:254:        if (stale == 1) f.server.flip_epoch_.fetch_add(1, std::memory_order_acq_rel);
+tests/lbplanner_unit.cc:382:        // PRE monitor returns immediately with --flip-auto 0. No listener/worker runs.
+tests/lbplanner_unit.cc:439:            plan.flip_epoch = f.server.flip_epoch();
+tests/core_concurrency_unit.cc:85:            config.flip_auto = 0;
+tests/core_concurrency_unit.cc:375:        require(ack_loop->srv_->flip_acked(ack_loop->self_->id(), FlipStage::ExDrain),
+tests/core_concurrency_unit.cc:390:        f.server.flip_epoch_.store(1);
+tests/core_concurrency_unit.cc:391:        f.server.flip_stage_.store(FlipStage::ExDrain, std::memory_order_release);
+tests/core_concurrency_unit.cc:397:        f.server.flip_stage_.store(FlipStage::Idle, std::memory_order_release);
+tests/core_concurrency_unit.cc:425:        require(!f.loops[f.source].flip_quiesced(), "published old-route task prevents EX ack");
+tests/core_concurrency_unit.cc:428:            require(f.loops[tid].flip_quiesced(), "executor fully drained");
+tests/core_concurrency_unit.cc:606:        require(!f.loops[f.source].flip_quiesced() && !f.server.lb_all_ex_acked(),
+tests/core_concurrency_unit.cc:619:            require(f.loops[tid].flip_quiesced(), "executor is quiescent after its queued work");
+tests/core_concurrency_unit.cc:972:        f.server.flipctl_.rate_surge_triggers_ = 31;
+tests/core_concurrency_unit.cc:973:        f.server.flipctl_.rate_collapse_triggers_ = 37;
+tests/core_concurrency_unit.cc:997:                                       "flipctl_surge_triggers:", "flipctl_collapse_triggers:"})
+tests/core_concurrency_unit.cc:1004:                        body.find("flipctl_surge_triggers:31\r\n") != std::string::npos &&
+tests/core_concurrency_unit.cc:1005:                        body.find("flipctl_collapse_triggers:37\r\n") != std::string::npos,
+tests/core_concurrency_unit.cc:1009:            require(body.find("flipctl_rate_surge_triggers:31\r\n") != std::string::npos &&
+tests/core_concurrency_unit.cc:1010:                    body.find("flipctl_rate_collapse_triggers:37\r\n") != std::string::npos,
+tests/core_concurrency_unit.cc:1011:                    "deadcode2 INFO: canonical flip trigger counters retain their values");
+tests/core_concurrency_unit.cc:1048:#include "flip_close_checks.inc"
+tests/core_concurrency_unit.cc:1049:#include "flipsettle_checks.inc"
+tests/core_concurrency_unit.cc:1051:#include "flipreport_checks.inc"
+tests/core_concurrency_unit.cc:1052:#include "flipfix_checks.inc"
+tests/core_concurrency_unit.cc:1195:    else if (row == "lifetime") { T::lifetime(); T::close_cycles(); T::flip_close(); }
+tests/core_concurrency_unit.cc:1196:    else if (row == "flip-close") T::flip_close();
+tests/core_concurrency_unit.cc:1197:    else if (row == "flipfix-plan") { T::flipfix_plan_lifetime(); T::flipfix_plan_race(); }
+tests/core_concurrency_unit.cc:1198:    else if (row == "flipfix-plan-race") T::flipfix_plan_race();
+tests/core_concurrency_unit.cc:1199:    else if (row == "flipfix-plan-lifetime") T::flipfix_plan_lifetime();
+tests/core_concurrency_unit.cc:1200:    else if (row == "flipfix-fingerprint") T::flipfix_fingerprint();
+tests/core_concurrency_unit.cc:1203:    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); T::flipreport_all(); }
+tests/core_concurrency_unit.cc:1214:    else if (row == "flipreport") T::flipreport_all();
+tests/core_concurrency_unit.cc:1215:    else if (row == "flipreport-wire") T::flipreport_all(true);
+tests/core_concurrency_unit.cc:1216:    else if (row == "flipsettle") T::flipsettle_all();
+tests/core_concurrency_unit.cc:1217:    else if (row.starts_with("flipsettle-")) T::flipsettle(row.c_str() + 11);
+tests/netcmd_unit.cc:417:            auto& writer = self.flip_fingerprint();
+tests/netcmd_unit.cc:421:                loop.flip_fingerprint_note(*op.spec, op);
+tests/netcmd_unit.cc:428:            loop.flip_fingerprint_finish_pass();
+tests/netcmd_unit.cc:430:            std::array<uint64_t, kFlipFingerprintClasses> expected{};
+tests/netcmd_unit.cc:431:            expected[static_cast<size_t>(FlipFingerprintClass::Read)] = 1;
+tests/netcmd_unit.cc:432:            expected[static_cast<size_t>(FlipFingerprintClass::Write)] = 1;
+tests/netcmd_unit.cc:433:            expected[static_cast<size_t>(FlipFingerprintClass::Blocking)] = 1;
+tests/netcmd_unit.cc:434:            if (enabled) expected[static_cast<size_t>(FlipFingerprintClass::AtomicGrouped)] = 2;
+tests/netcmd_unit.cc:436:                expected[static_cast<size_t>(FlipFingerprintClass::MultiRead)] = 1;
+tests/netcmd_unit.cc:437:                expected[static_cast<size_t>(FlipFingerprintClass::MultiWrite)] = 1;
+tests/netcmd_unit.cc:444:                             (unsigned long long)sample.command_class[static_cast<size_t>(FlipFingerprintClass::AtomicGrouped)],
+tests/netcmd_unit.cc:445:                             (unsigned long long)sample.command_class[static_cast<size_t>(FlipFingerprintClass::MultiRead)],
+tests/netcmd_unit.cc:446:                             (unsigned long long)sample.command_class[static_cast<size_t>(FlipFingerprintClass::MultiWrite)]);
+tests/signalacct_live.py:42:def manual_flip(control, io, ex, directory, events):
+tests/signalacct_live.py:43:    event = dict(command=['FLIP', io, ex], timeout_s=15)
+tests/signalacct_live.py:49:        reply = control.cmd('FLIP', io, ex)
+tests/signalacct_live.py:62:        (directory / 'flips.json').write_text(json.dumps(events, indent=2) + '\n')
+tests/signalacct_live.py:64:        raise AssertionError('manual FLIP failed: ' + json.dumps(event))
+tests/signalacct_live.py:69:    receipt = dict(phase=phase, error=repr(error), flips=events,
+tests/signalacct_live.py:70:                   server_returncode=proc.poll(), info_flip={}, info_error=None)
+tests/signalacct_live.py:82:            if sep and (key.startswith(('flip_', 'flipctl_')) or
+tests/signalacct_live.py:84:                receipt['info_flip'][key] = value
+tests/signalacct_live.py:126:               '--net-io', args.net_io, '--flip-auto', '0', '--enable-debug-command', 'yes',
+tests/signalacct_live.py:144:            phase = 'park-before-flip'
+tests/signalacct_live.py:148:                manual_flip(control, 3, 5, directory, events)
+tests/signalacct_live.py:152:                manual_flip(control, 6, 2, directory, events)
+tests/signalacct_live.py:155:                phase = 'park-after-flip'
+tests/respresume_migration.cc:11:    static void run(bool flip) {
+tests/respresume_migration.cc:41:        const auto flip_before = f.server.flip_clients_transferred_.load();
+tests/respresume_migration.cc:42:        if (flip) {
+tests/respresume_migration.cc:44:            Core::require(f.io.client_transfers_prepared(), "FLIP partial client actually prepared");
+tests/respresume_migration.cc:46:            Core::require(f.io.template commit_client_transfer<false>(&client), "FLIP commit partial frame");
+tests/respresume_migration.cc:47:            Core::require(f.server.flip_clients_transferred_.load() == flip_before + 1,
+tests/respresume_migration.cc:48:                          "FLIP transfer counter witnesses commit");
+tests/respresume_migration.cc:78:                    Shadow ? "R7" : "ordinary", flip ? "FLIP prepare/commit" : "client-LB handoff");
+tests/respresume_migration.cc:84:    for (bool flip : {false, true}) {
+tests/respresume_migration.cc:85:        tomo::LbPlannerTest::run<false, false>(flip);
+tests/respresume_migration.cc:86:        tomo::LbPlannerTest::run<true, false>(flip);
+tests/respresume_migration.cc:87:        tomo::LbPlannerTest::run<true, true>(flip);
+tests/multirace.py:63:which flips `atomic` itself and leaves it flipped, so the boot flag does not decide the mode a
+tests/multirace.py:202:    joins is shared with scriptatomic/execatomic/execiso/execfix, every one of which flips `atomic`
+tests/multirace.py:203:    itself and leaves it flipped -- so the boot's --atomic flag says nothing about the mode a later
+tests/aof.py:26:from _lib import wait_flip_idle
+tests/aof.py:209:        wait_flip_idle(Observer(), max(0.0, deadline - time.monotonic()))
+tests/aof.py:211:        if attempt == 0 and got == b"-ERR loading is not allowed while FLIP is in progress\r\n":
+tests/abba_saturation_controls.py:51:# flip/key-LB/client-LB disabled. It is not suitable as a workload server.
+tests/abba_saturation_controls.py:353:            knobs += ["--ratio", "16:16", "--flip-auto", "0"]
+tests/gates_test.py:33:             'flip-auto': 1, 'atomic': 1, 'key-lb': 1, 'client-lb': 1}
+tests/gates_test.py:36:            'flipctl_forced_triggers', 'flipctl_triggers')
+tests/gates_test.py:51:    row = dict(thread_mode='2s', read_local='0', atomic='1', flip_auto='0', reorder='0',
+tests/gates_test.py:109:                    'tomokv_keylb_ticks', 'flipctl_forced_triggers',
+tests/gates_test.py:156:        for key in ('atomic', 'key-lb', 'client-lb', 'flip-auto'):
+tests/gates_test.py:893:            *(dict(failure='flipctl', behavior=kind) for kind in ('empty', 'red', 'return')),
+tests/gates_test.py:1306:                result = self.run_scheduler(failure='flipctl', behavior=behavior)
+tests/gates_test.py:1308:                self.assertIn(b'FAIL\tflip controller: ramp gate, hold, surge + mix re-maneuvers\n', result['ledger'])
+tests/gates_test.py:1317:        result = self.run_scheduler(failure='flipctl', behavior='return')
+tests/gates_test.py:1321:        self.assertIn(b'ok\tflip controller: ramp gate, hold, surge + mix re-maneuvers\n', result['ledger'])
+tests/gates_test.py:1322:        self.assertIn(b'FAIL\tflip controller: ramp gate, hold, surge + mix re-maneuvers\n', result['ledger'])
+tests/zsetops.py:138:    # NEGATIVE CONTROL: an equal-compare update is a no-op, so the stored sign does NOT flip.
+tests/reorder_unit.cc:153:        CmdFlags::SubcmdRoute, CmdFlags::FlipAsync};
+tests/fixtures/nullrefresh-ledger-labels.json:4:  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full); savefix adds 24 witnessed shutdown-save/capture rows (+24 quick/+24 full); aclfix adds six reproductions per thread mode before the quick exit (+12 quick/+12 full); authfix adds five config/auth/slowlog regression rows before the quick exit (+5 quick/+5 full); clientfix adds 14 focused correctness rows before the quick exit (+14 quick/+14 full); racefix adds INFO counter TSan and directed Climon refresh rows before the quick-tier exit (+2 quick/+2 full); perfio adds two migration and two stream mode rows before the quick exit (+4/+4); perfex adds two binary regressions and two live TTL sampler rows before quick exit (+4 quick/+4 full); rlresize adds the storage flush-prepared-capacity case and two armed resize retirement rows (atomic-growth, flush-prepared) before the quick exit (+3 quick/+3 full); dbdefault adds one default-config row covering both modes before the quick exit (+1 quick/+1 full); respresume adds twelve resumable-RESP rows (fragment, cpu and neighbour x 1s/2s x epoll/uring) collected after respcompat, before the quick exit (+12 quick/+12 full); aoforder declares three commit-order regressions before the quick-tier exit (+3 quick/+3 full); EXPECT constants remain maintainer-owned; hexpread adds three parked-hash expiry rows and one OBJECT expiry row per mode before the quick exit (+8 quick/+8 full), with EXPECT constants left to the maintainer; ntfix adds four directed N1-N4 rows before the quick exit (+4 quick/+4 full), retaining the wave3 labels; EXPECT constants remain maintainer-owned; moverfix adds eight deterministic/live atomic-0 conservation rows before quick exit (+8/+8); notifyorder adds the exact lazy-expiry ordering row before the quick exit (+1 quick/+1 full); notifyorder A5 adds the local script notification AOF row there (+1 quick/+1 full); EXPECT constants remain maintainer-owned; clockcut adds three NT-new-4 command-clock rows (2s, 1s, 2s epoll; with the NT-new-7 exact-deadline assertions) before the quick exit (+3 quick/+3 full); fliplisten adds four listener-conservation rows before the quick exit (+4 quick/+4 full), each covering both IO engines and atomic settings",
+tests/fixtures/nullrefresh-ledger-labels.json:10:    "flip controller model unit",
+tests/fixtures/nullrefresh-ledger-labels.json:60:    "FLIP planned-connection close lifetime (ASAN+TSAN)",
+tests/fixtures/nullrefresh-ledger-labels.json:61:    "FLIP fingerprint publication (ASAN+TSAN)",
+tests/fixtures/nullrefresh-ledger-labels.json:446:    "FLIP state battery",
+tests/fixtures/nullrefresh-ledger-labels.json:447:    "FLIP under verified load",
+tests/fixtures/nullrefresh-ledger-labels.json:448:    "FLIP TTL + expiry events",
+tests/fixtures/nullrefresh-ledger-labels.json:450:    "FLIP close during FLIP (uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:451:    "FLIP close during FLIP (epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:452:    "FLIP signal stop during FLIP + second SIGINT",
+tests/fixtures/nullrefresh-ledger-labels.json:453:    "flip controller: ramp gate, hold, surge + mix re-maneuvers",
+tests/fixtures/nullrefresh-ledger-labels.json:454:    "FLIP listener conservation (io-ex, complete)",
+tests/fixtures/nullrefresh-ledger-labels.json:455:    "FLIP listener conservation (io-ex, rollback)",
+tests/fixtures/nullrefresh-ledger-labels.json:456:    "FLIP listener conservation (ex-io, complete)",
+tests/fixtures/nullrefresh-ledger-labels.json:457:    "FLIP listener conservation (ex-io, rollback)",
+tests/fixtures/nullrefresh-ledger-labels.json:458:    "FLIP applies under saturated load",
+tests/fixtures/nullrefresh-ledger-labels.json:459:    "flip battery shutdown invariants",
+tests/fixtures/nullrefresh-ledger-labels.json:691:    "perfio stale epoll registration (epoll-flip)",
+tests/fixtures/nullrefresh-ledger-labels.json:988:  "flipfix_supplement": {
+tests/fixtures/nullrefresh-ledger-labels.json:989:    "purpose": "lane flipfix +5 quick/full source inventory (3 live rows in job_flip, 2 serverless rows in job_flipfix_units), not execution evidence",
+tests/fixtures/nullrefresh-ledger-labels.json:991:      "FLIP close during FLIP (uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:992:      "FLIP close during FLIP (epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:993:      "FLIP signal stop during FLIP + second SIGINT",
+tests/fixtures/nullrefresh-ledger-labels.json:994:      "FLIP planned-connection close lifetime (ASAN+TSAN)",
+tests/fixtures/nullrefresh-ledger-labels.json:995:      "FLIP fingerprint publication (ASAN+TSAN)"
 tests/flip_close_controls.py:2:"""Serverless FLIP close/drain regression and an exact removal negative control."""
 tests/flip_close_controls.py:10:OUT = ROOT / 'build/signalacct-proof/flip-close'
 tests/flip_close_controls.py:19:    # The drain's closing-connection wait (unpinned IO; flipfix holds closes only after the ack).
@@ -92,40 +944,545 @@ tests/flip_close_controls.py:20:    guard = ('        if (!flip_close_pin_)\n'
 tests/flip_close_controls.py:28:        'tests/flip_close_checks.inc $(CORE_TEST_OBJ) ' + str(path) + '\n'
 tests/flip_close_controls.py:36:        run = subprocess.run([str(binary), 'flip-close'], cwd=ROOT, text=True,
 tests/flip_close_controls.py:41:        assert 'ERR FLIP connection ownership count is not conserved' in run.stdout, run.stdout
+tests/flip_close_controls.py:43:            assert 'FAIL core concurrency: FLIP drain must wait for detached closing client' in run.stdout
 tests/flip_close_controls.py:45:            assert 'ARMED flip-close db1:' in run.stdout and 'ARMED flip-close db16:' in run.stdout
+tests/reorder_engagement_unit.cc:406:            require(client.flip_backpressure() && client.rpos() == before &&
+tests/reorder_engagement_unit.cc:411:            client.set_flip_backpressure(false);
+tests/lottery_calibration.py:36:    'flip saturated': 'W11 held admitted backlog',
+tests/gateprod-evidence/changed-text-audit.json:139:    "tests/flip.py",
+tests/gateprod-evidence/changed-text-audit.json:140:    "tests/flip_close_controls.py",
+tests/gateprod-evidence/changed-text-audit.json:141:    "tests/flip_cost_gate.py",
+tests/gateprod-evidence/changed-text-audit.json:142:    "tests/flip_multikey_hold.py",
+tests/gateprod-evidence/changed-text-audit.json:143:    "tests/flip_ttl.py",
+tests/gateprod-evidence/changed-text-audit.json:144:    "tests/flip_under_load.py",
+tests/gateprod-evidence/changed-text-audit.json:145:    "tests/flipctl.py",
+tests/gateprod-evidence/changed-text-audit.json:146:    "tests/flipctl_test.py",
+tests/gateprod-evidence/changed-text-audit.json:147:    "tests/flipctl_unit.cc",
+tests/gateprod-evidence/changed-text-audit.json:148:    "tests/flipreport_checks.inc",
+tests/gateprod-evidence/changed-text-audit.json:149:    "tests/flipsettle_checks.inc",
+tests/gateprod-evidence/changed-text-audit.json:250:    "tests/reorder_flip.py",
+tests/gateprod-evidence/changed-text-audit.json:304:    "tests/spscmask_flip.py",
+tests/multidb_boundary_unit.cc:32:        cfg.key_lb = cfg.client_lb = cfg.flip_auto = cfg.protected_mode = 0;
+tests/multidb_boundary_unit.cc:62:        for (const auto stage : {FlipStage::DatabaseIoDrain, FlipStage::DatabaseExDrain,
+tests/multidb_boundary_unit.cc:63:                                 FlipStage::DatabaseRun}) {
+tests/multidb_boundary_unit.cc:68:                server.flip_stage_.store(stage, std::memory_order_release);
+tests/multidb_boundary_unit.cc:88:                require(client->flip_backpressure() && client->rpos() == 0 &&
+tests/multidb_boundary_unit.cc:96:                // This is the active-loop retry once Idle releases flip backpressure.
+tests/multidb_boundary_unit.cc:97:                client->set_flip_backpressure(false);
+tests/multidb_boundary_unit.cc:99:                require(server.flip_stage() == FlipStage::DatabaseIoDrain &&
+tests/multidb_boundary_unit.cc:118:        for (auto stage : {FlipStage::Planning, FlipStage::IoDrain, FlipStage::IoPrepare,
+tests/multidb_boundary_unit.cc:119:                           FlipStage::ExDrain, FlipStage::ClientPrepare, FlipStage::ClientCommit,
+tests/multidb_boundary_unit.cc:120:                           FlipStage::ClientInstall, FlipStage::RoleReady, FlipStage::ShardCommit,
+tests/multidb_boundary_unit.cc:121:                           FlipStage::ExInstall, FlipStage::Rollback, FlipStage::Idle}) {
+tests/multidb_boundary_unit.cc:122:            server.flip_stage_.store(stage, std::memory_order_release);
+tests/multidb_boundary_unit.cc:124:                if (stage == FlipStage::Idle && direct) continue;
+tests/multidb_boundary_unit.cc:128:                accepted(sockets[0], direct, io.accept_generation_ + (stage == FlipStage::Idle));
+tests/multidb_boundary_unit.cc:158:        server.flip_stage_.store(FlipStage::DatabaseRun, std::memory_order_release);
+tests/multidb_boundary_unit.cc:161:            require(server.flip_stage() == FlipStage::DatabaseRun, "swap publication window armed");
+tests/multidb_boundary_unit.cc:178:            require(writer.flip_backpressure() && writer.rpos() == 0 && writer.rob().quiesced(),
+tests/multidb_boundary_unit.cc:181:            writer.set_flip_backpressure(false);
+tests/multidb_boundary_unit.cc:213:        cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/multidb_boundary_unit.cc:234:                (void)ios[tid].template flip_control_pass<false>();
+tests/multidb_boundary_unit.cc:236:                for (auto tid : server.placement().ex_threads()) (void)owners[tid].flip_control_pass();
+tests/multidb_boundary_unit.cc:271:            require(server.flip_stage() == FlipStage::DatabaseIoDrain, "delayed stamped writes hold boundary");
+tests/multidb_boundary_unit.cc:289:                if (index != 31) require(server.flip_stage() == FlipStage::DatabaseIoDrain, "every old operation must execute");
+tests/multidb_boundary_unit.cc:291:            for (unsigned pass = 0; pass < 16 && server.flip_stage() != FlipStage::DatabaseRun; ++pass) control();
+tests/multidb_boundary_unit.cc:292:            require(server.flip_stage() == FlipStage::DatabaseRun, "owners drained without waiting for replies to retire");
+tests/abba_saturation.py:72:    flipctl.cc documents the historical (2026-09-06) I/O submit/reap gap. IO
+tests/at15_unit.cc:51:        cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/at15_unit.cc:200:        f.server.flip_set_stage(FlipStage::DatabaseRun);
+tests/at15_unit.cc:218:                "persistence", "stats", "commandstats", "flipctl", "writeback", "lb", "no-such-section"}) {
+tests/at15_unit.cc:312:    for (const char* name : {"INFO", "DEBUG", "SUBSCRIBE", "SSUBSCRIBE", "MULTI", "WATCH", "SAVE", "FLIP"}) {
+tests/at15_unit.cc:314:        const bool expected = std::string(name) == "SAVE" || std::string(name) == "FLIP";
+tests/wbland_evidence.json:424:        "object": "db0/src/core/flipctl.o",
+tests/wbland_evidence.json:500:          ".text._ZN8tomo_db06Server22flip_build_client_planEPNS_6ClientERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+tests/wbland_evidence.json:583:          ".text._ZN8tomo_db06Server22flip_build_client_planEPNS_6ClientERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+tests/wbland_evidence.json:584:          ".text._ZN8tomo_db07ExLoopTILb1EE17flip_control_passEv",
+tests/wbland_evidence.json:684:          ".text._ZN8tomo_db06Server22flip_build_client_planEPNS_6ClientERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+tests/wbland_evidence.json:686:          ".text._ZN8tomo_db07ExLoopTILb0EE17flip_control_passEv",
+tests/wbland_evidence.json:1042:          ".text._ZNK4tomo6Server18flipctl_debug_dumpB5cxx11Ev",
+tests/wbland_evidence.json:1114:        "object": "src/core/flipctl.o",
+tests/wbland_evidence.json:1333:          ".text._ZN4tomo6Server10flip_beginEjjjRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+tests/wbland_evidence.json:1338:          ".text._ZNK4tomo6Server15flip_final_roleEj"
+tests/wbland_evidence.json:1382:          ".text._ZN4tomo7ExLoopTILb0EE17flip_control_passEv",
+tests/gate_ledger_fixture.py:168:        if name in ("differ-split", "differ-armed", "flipctl") or name.startswith("evict-"):
+tests/ccfix5_debug_unit.cc:34:    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/flip_multikey_hold.py:2:"""Directed regression for the multi-key FLIP-controller thrash.
+tests/flip_multikey_hold.py:4:THE DEFECT.  Under `--flip-auto 1` a stationary multi-key workload made the controller re-maneuver
+tests/flip_multikey_hold.py:5:on its own: it completed flips, transferred hundreds of connections, and anchored on exactly the
+tests/flip_multikey_hold.py:19:  trigger fires, that no flip completes, that no connection is transferred, and that the anchor
+tests/flip_multikey_hold.py:34:  POLICY.  Since the placement policy landed (src/core/flip_policy.h) a maneuver on a workload the
+tests/flip_multikey_hold.py:35:  server is not CPU-bound on -- such as this battery's paced stream -- holds without a flip, so the
+tests/flip_multikey_hold.py:40:      --flip-auto 1 --enable-debug-command yes
+tests/flip_multikey_hold.py:125:    raw = control.command("INFO", "FLIPCTL").decode()
+tests/flip_multikey_hold.py:135:    Deliberately excludes flipctl_triggers: the rate detector can also raise it, and this battery
+tests/flip_multikey_hold.py:138:    actually costs -- completed flips, transferred connections, a moved split -- is asserted
+tests/flip_multikey_hold.py:141:    return (int(row.get("flipctl_fingerprint_triggers", -1)),
+tests/flip_multikey_hold.py:142:            int(row.get("flip_completed", -1)),
+tests/flip_multikey_hold.py:143:            int(row.get("flip_clients_transferred", -1)),
+tests/flip_multikey_hold.py:144:            row.get("flipctl_anchor_io"), row.get("flipctl_anchor_ex"))
+tests/flip_multikey_hold.py:153:    raw = control.command("DEBUG", "FLIPCTL")
+tests/flip_multikey_hold.py:197:    if row.get("flipctl_state") == "disabled":
+tests/flip_multikey_hold.py:198:        raise AssertionError("server was booted without --flip-auto 1: %r" % row)
+tests/flip_multikey_hold.py:199:    if row.get("flipctl_state") == "unavailable":
+tests/flip_multikey_hold.py:268:                                lambda r: r.get("flipctl_state") == "anchored",
+tests/flip_multikey_hold.py:284:              "%s completed flip(s), %s client transfer(s)"
+tests/flip_multikey_hold.py:285:              % (anchored["flipctl_anchor_io"], anchored["flipctl_anchor_ex"],
+tests/flip_multikey_hold.py:286:                 anchored["flipctl_triggers"], baseline[0], baseline[1], baseline[2]))
+tests/flip_multikey_hold.py:312:                        lambda r: r.get("flipctl_state") == "anchored", 90)
+tests/flip_multikey_hold.py:313:        check("stationary multi-key mix completes no flip", motion(held), baseline)
+tests/flip_multikey_hold.py:323:                 held["flipctl_anchor_io"], held["flipctl_anchor_ex"], worst,
+tests/flip_multikey_hold.py:324:                 anchored["flipctl_triggers"], held["flipctl_triggers"]))
+tests/flip_multikey_hold.py:327:        before_triggers = int(held["flipctl_triggers"])
+tests/flip_multikey_hold.py:345:                         lambda r: r.get("flipctl_state") == "anchored" and
+tests/flip_multikey_hold.py:346:                         int(r.get("flipctl_triggers", "0")) > before_triggers,
+tests/flip_multikey_hold.py:350:              % (seen, final["flipctl_anchor_io"], final["flipctl_anchor_ex"],
+tests/flip_multikey_hold.py:351:                 before_triggers, final["flipctl_triggers"]))
+tests/flip_multikey_hold.py:360:    print("ok: flip multi-key hold (%d checks)" % CHECKS[0])
+tests/perfio.py:39:                 "--net-io", args.net_io, "--flip-auto", "0", "--key-lb", "0",
+tests/perfio.py:135:def epoll_flip(args):
+tests/perfio.py:136:    with boot(args, "epoll-flip") as (admin, p), ExitStack() as stack:
+tests/perfio.py:139:        shape = dict(zip(*[iter(admin.must("FLIP"))]*2))
+tests/perfio.py:145:            reply = admin.cmd("FLIP", nio, total-nio)
+tests/perfio.py:147:                failures.append(f"FLIP {i}: {reply}")
+tests/perfio.py:152:            for check in (lambda: audit(p.pid, f"flip-{i}", len(peers)+1),
+tests/perfio.py:153:                          lambda: events(admin, peers[:64], f"flip-{i}")):
+tests/perfio.py:301:    ap.add_argument("case", choices=["epoll-flip", "epoll-lb", "stream", "metadata"])
+tests/perfio.py:312:    if args.case == "epoll-flip": epoll_flip(args)
+tests/maskflood.py:2:"""Masked-monolith directed test: pipelined flood spanning ALL owners while flipping between
+tests/maskflood.py:30:ctl.sendall(enc("FLIP")); rep = read(ctlf)
+tests/maskflood.py:35:assert total and total >= 4, "need a flip-capable boot, got %r" % rep
+tests/maskflood.py:42:    ctl.sendall(enc("FLIP", str(io_n), str(ex_n)))
 tests/maskflood.py:43:    assert read(ctlf) in (b"OK", b"+OK"), "flip refused"
-tests/flip.py:168:        # with zero connections, making this target shape deliberately lopsided; the first FLIP must
-tests/flip.py:225:            refused = control.cmd("FLIP", grown_io - 1, grown_ex + 1)
-tests/flip.py:229:            refused = control.cmd("FLIP", grown_io, grown_ex + 1)
-tests/flip.py:231:        after_refusal = record(control.cmd("FLIP"))
-tests/flip.py:246:        # Put identifiable pipelined replies on every connection, start FLIP concurrently, observe
-tests/flip.py:360:              int(stats["flip_refused"]), lambda value: value >= int(before["flip_refused"]) + 1)
-tests/flipctl_unit.cc:824:    if (flip_judge(0.30, 0.10, 1, 5) != FlipOutcome::Hit) fail("a clear gain did not accept early");
-tests/lbplanner_checks.py:10:    'stale-flip': 'stale topology plan dropped without drain',
-tests/abbagate.py:2501:              f"Cell connections are TOTAL, shared across load instances. Split uses reviewed ratio {split_ratio}, flip=0.", flush=True)
-tests/lottery_evidence.py:226:                # Client work scopes that closed inside the admitted FLIP window.
+tests/maskflood.py:49:    # verify a stride of reads sees THIS round's values (RYOW across the flip)
+tests/maskflood.py:55:            assert v == b"r%d-%d" % (rnd, k), "wrong value for mf:%d after flip io%d: %r" % (k, io_n, v)
+tests/savefix.py:51:                 '--flip-auto', '0', '--enable-debug-command', 'yes']
+tests/_nullrefresh_test.py:249:            keys=2000000, data_bytes=64, key_pattern='P:P', atomic='per-cell', split_flip_auto=0,
+tests/respresume_unit.cc:67:    c.set_ifid_thread(7); // Same ownership edge used by FLIP/client-LB/rollback.
+tests/debug.py:155:# purpose-boot has no concurrent FLIP; the command intentionally does not promise cross-row
 tests/flakeaudit_test.py:142:        refusal = b"-ERR loading is not allowed while FLIP is in progress\r\n"
+tests/flakeaudit_test.py:150:                                 dict(c=client, time=Clock(), wait_flip_idle=lambda *args: waits.append(args)))
 tests/flakeaudit_test.py:160:        refusal = b"-ERR loading is not allowed while FLIP is in progress\r\n"
-tests/flip_close_checks.inc:2:    static void flip_close() {
-tests/flip_close_checks.inc:23:            require(f.server.client_work_epoch(peer) & 1, "FLIP close peer epoch armed");
-tests/flip_close_checks.inc:28:                    "FLIP close window: detached client still live behind captured epoch");
-tests/flip_close_checks.inc:32:                        error == "ERR FLIP connection ownership count is not conserved",
-tests/flip_close_checks.inc:33:                    "premature FLIP planner reproduces exact ownership-count refusal");
-tests/flip_close_checks.inc:34:            std::printf("ARMED flip-close db%u: %s (FLIP 6 2, owned=1 live=2)\n", databases, error.c_str());
-tests/flip_close_checks.inc:50:            require(f.io.flip_io_drained(), "FLIP drain opens after real close and corpse grace");
-tests/flip_close_checks.inc:53:                    "same FLIP planner succeeds after close without weakening count law");
-tests/flip_close_checks.inc:54:            f.server.flip_refuse_active(); // state-only fixture never commits ownership.
+tests/flakeaudit_test.py:165:                             dict(c=client, time=Clock(), wait_flip_idle=lambda *args: None))
+tests/dumprestore.py:276:        (bytes([payload[0] ^ 1]) + payload[1:], "type bit flip"),
+tests/dumprestore.py:277:        (payload[:-10] + bytes([payload[-10] ^ 1]) + payload[-9:], "version bit flip"),
+tests/dumprestore.py:279:        (payload[:2] + bytes([payload[2] ^ 1]) + payload[3:], "payload bit flip"),
+tests/dumprestore.py:280:        (payload[:-1] + bytes([payload[-1] ^ 1]), "checksum bit flip"),
+tests/r7shadow_unit.cc:196:        CmdFlags::SubcmdRoute, CmdFlags::FlipAsync};
+tests/edgeenc.py:19:(the negative control), the embed arms assert the encoding name flips at exactly 192, the
+tests/execfix.py:5:"cross-shard" arm below could silently be a same-shard arm and prove nothing).  The battery flips
+tests/notify_order.py:67:                          client_lb='0', flip_auto='0')
+tests/lbplanner_checks.py:10:    'stale-flip': 'stale topology plan dropped without drain',
+tests/resizefix.py:203:                   '--flip-auto', '0', '--enable-debug-command', 'yes']
+tests/wbland_checks.py:58:    ('flip_io_drained', '''if (!pending_serve_.empty() || !pending_releases_.empty() ||
+tests/wbland_checks.py:65:    ('flip_io_drained', '''if (client->rob().in_flight() != 1 || client->send_inflight() ||
+tests/aof_frame_order.py:118:                        ("key-lb", "0"), ("client-lb", "0"), ("flip-auto", "0")):
+tests/atomic_plain.py:6:Boot with --atomic MODE --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0.
+tests/atomic_plain.py:76:                        ("client-lb", "0"), ("flip-auto", "0")):
+tests/atomic_plain.py:296:            self.config = {"atomic": atomic, "key-lb": "0", "client-lb": "0", "flip-auto": "0"}
+tests/atomic_plain.py:335:            for knob in ("atomic", "key-lb", "client-lb", "flip-auto"):
+tests/load_calibration.py:78:            # "Non-increasing" needs a tolerance, or a flat plateau is a coin flip. h27 on
+tests/load_calibration.py:181:            atomic="per-cell", split_flip_auto=0, population_by_arm={"B": "wire"},
+tests/_lib.py:439:    This is deliberately not a placement transaction: if a FLIP overlaps the command, each row is
+tests/_lib.py:441:    topology must quiesce FLIP and compare owners with a fresh LBSIGNALS shard-row map.
+tests/_lib.py:522:def wait_flip_idle(conn, timeout=30.0):
+tests/_lib.py:523:    """Wait for the runtime-load admission guard, without disabling FLIP or either balancer.
+tests/_lib.py:525:    INFO SERVER's flip_in_progress reads the actual FlipStage, unlike the controller's learning
+tests/_lib.py:527:    with flip-auto=0 and in fused mode. Require both witnesses; missing fields cannot mean idle.
+tests/_lib.py:536:            raise AssertionError("FLIP/key-LB did not become idle within %.3fs: %r" %
+tests/_lib.py:546:                    ("thread_mode", "flip_available", "flip_in_progress", "tomokv_keylb_stage")}
+tests/_lib.py:548:                                     ("thread_mode", "flip_in_progress", "tomokv_keylb_stage"))
+tests/_lib.py:549:            if mode == "1s" and last["flip_available"] == "0":
+tests/_lib.py:550:                moving = "0"  # Fused has no FLIP transaction, but key-LB can still be moving.
+tests/_lib.py:552:                raise AssertionError("INFO cannot establish FLIP state: %r" % last)
+tests/_lib.py:574:        wait_flip_idle(conn, max(0.0, deadline - time.monotonic()))
+tests/_lib.py:577:                str(reply) == "ERR loading is not allowed while FLIP is in progress"):
+tests/racefix.py:32:            '--flip-auto', '0', '--slowlog-log-slower-than', '-1', '--save', '',
+tests/autharity.py:59:                # FLIP is TomoKV's explicit extension, not a Redis command.
+tests/autharity.py:60:                assert name == 'flip', ('missing oracle command', name)
+tests/differ.py:5571:    local_only = {b"flip"}  # Mainline 3ca2c450e; named in every relevant receipt below.
+tests/differ.py:5694:    print("  EXPLICIT existing TomoKV-only exception: flip (not claimed as Redis parity)")
+tests/differ.py:5716:    for pattern in ("*", "*|*", "cluster*", "module*", "CLUSTER*", "MODULE*", "get*", "FLIP*"):
+tests/aclkeys_wake_unit.cc:40:    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/clientfix.py:109:                        '--flip-auto', '0', '--enable-debug-command', 'yes']
+tests/clientfix.py:188:        targets.append(('FLIP', 'invalid', 'invalid'))
+tests/orthog.py:5:Requires atomic 1, DEBUG enabled, key/client LB and automatic FLIP disabled.
+tests/orthog.py:52:                    "key-lb": 0, "client-lb": 0, "flip-auto": 0}
+tests/orthog.py:107:                        "an executor served a local read before any FLIP")
+tests/r7shadow_split_witness.py:32:    # Split role entries are direct baseline calls, including both FLIP owner paths.
+tests/r7shadow_split_witness.py:39:        '// This is a split-role entry, including after FLIP. It has no R7 arm.', '')
+tests/hexpire.py:20:from _lib import debug_load, wait_flip_idle
+tests/hexpire.py:527:    # A FLIP/key-LB wait can consume the 500 ms TTL. Re-arm on fresh state, bounded, and
+tests/hexpire.py:531:        wait_flip_idle(c)
+tests/flipreport_checks.inc:3:static void flipreport_check(const char* state, const char* field, bool okay) {
+tests/flipreport_checks.inc:5:        std::fprintf(stderr, "FAIL flipreport %s: %s\n", state, field);
+tests/flipreport_checks.inc:11:static void flipreport_wire(Fixture<Fused>& f, const char* state) {
+tests/flipreport_checks.inc:16:        require(op.push_arg(Slice(verb)) && op.push_arg(Slice("FLIPCTL")),
+tests/flipreport_checks.inc:17:                "flipreport wire arguments");
+tests/flipreport_checks.inc:20:        flipreport_check(state, "wire entered", op.reply.size() > 0 && op.reply.data()[0] == '$');
+tests/flipreport_checks.inc:21:        std::printf("WIRE flipreport %s mode=%s databases=%u %s bytes=%u\n",
+tests/flipreport_checks.inc:29:static void flipreport_horizon(uint32_t databases, bool wire) {
+tests/flipreport_checks.inc:31:    auto& c = f.server.flipctl_;
+tests/flipreport_checks.inc:32:    require(c.init(true, 8), "initialize flipreport controller");
+tests/flipreport_checks.inc:33:    // A measured 20-tick flip supplies a 23-second blackout. At this 6:2 split,
+tests/flipreport_checks.inc:35:    c.cost_.record_flip(0, 0, 0, 20);
+tests/flipreport_checks.inc:36:    c.start_maneuver(f.server, FlipctlTriggerReason::Forced, 1000);
+tests/flipreport_checks.inc:53:    flipreport_check("short", "cost window entered",
+tests/flipreport_checks.inc:55:    flipreport_check("short", "actual horizon is 10 seconds", c.model_cost_.horizon_s == 10.0);
+tests/flipreport_checks.inc:56:    flipreport_check("short", "cost blocks move",
+tests/flipreport_checks.inc:57:                     !c.model_cost_.pays && c.phase_ == FlipController::Phase::Measuring &&
+tests/flipreport_checks.inc:59:    std::printf("TRACE flipreport databases=%u now=11000 horizon=%.2f pays=%u decision=%s\n",
+tests/flipreport_checks.inc:61:    if (wire) flipreport_wire(f, "short");
+tests/flipreport_checks.inc:64:    flipreport_check("long", "actual horizon grows to 45 seconds", c.model_cost_.horizon_s == 45.0);
+tests/flipreport_checks.inc:65:    flipreport_check("long", "cost permits move",
+tests/flipreport_checks.inc:67:    std::printf("TRACE flipreport databases=%u now=46000 horizon=%.2f pays=%u decision=%s issued=%u\n",
+tests/flipreport_checks.inc:69:    if (wire) flipreport_wire(f, "long");
+tests/flipreport_checks.inc:72:static void flipreport_all(bool wire = false) {
+tests/flipreport_checks.inc:75:        flipreport_horizon(databases, wire);
+tests/flipreport_checks.inc:78:            flipreport_wire(split, "disabled");
+tests/flipreport_checks.inc:79:            auto& c = split.server.flipctl_;
+tests/flipreport_checks.inc:80:            require(c.init(true, 8), "initialize stable flipreport controller");
+tests/flipreport_checks.inc:82:            flipreport_wire(split, "anchored");
+tests/flipreport_checks.inc:84:            flipreport_wire(fused, "unavailable");
+tests/boot_failures.py:330:            '--flip-auto', '0']
+tests/multidb_unit.cc:307:        server.flip_set_stage(FlipStage::DatabaseRun);
+tests/multidb_unit.cc:474:    cfg.key_lb = cfg.client_lb = 0; cfg.flip_auto = 0;
+tests/execiso.py:175:    # One transaction, one ticket: every set must flip generation together.
+tests/flipfix.py:2:"""FLIP liveness/stop regressions (lane flipfix): IO4.1, IO4.2, IO4.4, CT4.3.
+tests/flipfix.py:6:any sanitizer report, abort or unanswered FLIP into a failure. No throughput conclusions.
 tests/flipfix.py:8:  close        IO4.1: idle connections close right after each FLIP is sent. Every FLIP must
 tests/flipfix.py:13:  late         IO4.1 abort branch: closes spread over FLIPs that turn executors into IOs.
+tests/flipfix.py:14:  sigterm      IO4.2: save clauses armed, 1000 acknowledged SETs, a FLIP held live by a blocked
+tests/flipfix.py:16:  sigint       IO4.2: same live FLIP, SIGINT twice (the second only after the first was
+tests/flipfix.py:18:  controllers  CT4.3: --flip-auto 1 with sampled fingerprint windows read by the monitor and
+tests/flipfix.py:19:               DEBUG FLIPCTL/LBSIGNALS; meant for the TSAN build.
+tests/flipfix.py:34:REPLY_BOUND_S = 6.5   # a FLIP's own pre-commit deadline is 5 s
 tests/flipfix.py:35:# A connection that closes during a FLIP must neither wedge it nor hold it to that deadline nor
 tests/flipfix.py:40:    b'ERR FLIP could not detach a connection: could not reserve destination epoll registration',
 tests/flipfix.py:41:    b'ERR FLIP could not detach a connection: could not reserve source epoll rollback registration',
+tests/flipfix.py:52:    row = conn.must('FLIP')
 tests/flipfix.py:128:            # Keep the pre-boot foreign-port refusal and every live FLIP bound.
+tests/flipfix.py:166:              extra=['--flip-auto', str(args.flip_auto)]) as (admin, process, _):
 tests/flipfix.py:180:                    # A FLIP may quiesce for five seconds; a reset/EOF is a loss.
+tests/flipfix.py:188:                subscribers.append(subscribe(args, f'flipfix:{i % 4}'))
+tests/flipfix.py:202:                admin.send('FLIP', target, total - target)
+tests/flipfix.py:207:                    # pub/sub cleanup) must meet the FLIP.
+tests/flipfix.py:217:                    try:  # FLIP's report form is FlipAsync: it answers while the FLIP is live.
+tests/flipfix.py:226:                        f'FLIP {target} {total - target} unanswered after {REPLY_BOUND_S}s '
 tests/flipfix.py:236:                        f'FLIP held {elapsed:.2f}s by connections closing during it ({key})'
 tests/flipfix.py:237:                    allowed = OUT_OF_SCOPE_REFUSALS + ((b'ERR a FLIP is already in progress',)
+tests/flipfix.py:238:                                                      if args.flip_auto else ())
 tests/flipfix.py:240:                        f'FLIP refused because connections closed during it: {key}'
+tests/flipfix.py:242:                if args.flip_auto and after[b'moving']:
+tests/flipfix.py:244:                             'automatic FLIP to retire')
+tests/flipfix.py:246:                assert not after[b'moving'], 'FLIP reply preceded retirement'
+tests/flipfix.py:248:                    if not args.flip_auto: assert after[b'live_io'] == target, (target, after)
+tests/flipfix.py:253:            assert witnessed, 'no FLIP window witnessed; missing arming is a failure'
 tests/flipfix.py:254:            assert closed, 'no connection closed during a FLIP'
+tests/flipfix.py:255:            assert applied, 'no FLIP applied: nothing was exercised'
+tests/flipfix.py:272:             flip_auto=args.flip_auto)
+tests/flipfix.py:276:    """IO4.1 abort branch probe. From an io-light split, a FLIP to an io-heavy one moves idle
+tests/flipfix.py:278:    FLIP's lifetime, so some land after their source detached them (no source EOF) and are first
 tests/flipfix.py:280:    flip_complete_active (or wedges when a close lands earlier). Every FLIP must answer, the
+tests/flipfix.py:291:                assert admin.must('FLIP', light, total - light) == b'OK', 'io-light setup FLIP'
+tests/flipfix.py:292:                admin.send('FLIP', heavy, total - heavy)
+tests/flipfix.py:302:                    raise AssertionError(f'FLIP {heavy} {total - heavy} unanswered (attempt '
+tests/flipfix.py:305:                    raise AssertionError(f'server died during FLIP (attempt {attempt})') from error
+tests/flipfix.py:331:        admin.raw(b''.join(encode('SET', f'flipfix:{i}', 'durable') for i in range(1000)))
+tests/flipfix.py:335:            # A blocked client keeps its IO from acknowledging the FLIP drain: the FLIP stays
+tests/flipfix.py:337:            blocker.send('BLPOP', 'flipfix:blocker', 0)
+tests/flipfix.py:343:            issuer.send('FLIP', target, total - target)
+tests/flipfix.py:344:            wait_for(lambda: report(observer)[b'moving'], 3, 'the FLIP drain window to open')
+tests/flipfix.py:377:                    flip_reply = issuer.read()
 tests/flipfix.py:379:                    flip_reply = 'closed'
+tests/flipfix.py:380:                emit(event='flip-reply', reply=repr(flip_reply))
+tests/flipfix.py:390:        admin.raw(b''.join(encode('GET', f'flipfix:{i}') for i in range(1000)))
+tests/flipfix.py:398:    with boot(args, 'controllers', extra=['--flip-auto', '1', '--key-lb', '0',
+tests/flipfix.py:413:        assert admin.must('SET', 'flipfix:fp', 'v') == b'OK'
+tests/flipfix.py:415:                   threading.Thread(target=work, args=(['GET', 'flipfix:fp'], b'v')),
+tests/flipfix.py:416:                   threading.Thread(target=work, args=(['MGET', 'flipfix:fp', 'x'], [b'v', None]))]
+tests/flipfix.py:423:                text = admin.must('DEBUG', 'FLIPCTL').decode()
+tests/flipfix.py:456:    parser.add_argument('--flip-auto', type=int, choices=(0, 1), default=0)
 tests/flipfix.py:463:                        help='late: seconds over which the closes of one FLIP are spread')
+tests/lottery_evidence.py:65:    flip_work, flips = {}, {}
+tests/lottery_evidence.py:211:        elif k in ('flip_work', 'flip_work_end'):
+tests/lottery_evidence.py:214:            flip_work.setdefault((k, e.id), {})[e.a] = (e.b, e.c, e.d)
+tests/lottery_evidence.py:215:        elif k == 'flip_begin':
+tests/lottery_evidence.py:216:            flips[e.id] = flip_work.pop(('flip_work', e.id), {})
+tests/lottery_evidence.py:217:        elif k == 'flip_end':
+tests/lottery_evidence.py:218:            begin = flips.pop(e.id, None)
+tests/lottery_evidence.py:219:            end = flip_work.pop(('flip_work_end', e.id), {})
+tests/lottery_evidence.py:221:                counts['W11.flips'] += 1
+tests/lottery_evidence.py:226:                # Client work scopes that closed inside the admitted FLIP window.
+tests/lottery_evidence.py:283:    # Every applied FLIP in the attempt must have met in-flight client work at
+tests/lottery_evidence.py:286:    counts['W11'] = int(counts['W11.flips'] > 0 and
+tests/lottery_evidence.py:287:                        counts['W11.loaded'] == counts['W11.flips'])
+tests/flip.py:2:"""Directed manual-FLIP ownership/conservation battery.
+tests/flip.py:4:Usage: tests/flip.py HOST PORT
+tests/flip.py:130:    initial = record(control.cmd("FLIP"))
+tests/flip.py:140:    check("report exposes last-FLIP transfer count", "last_transfers" in initial, True)
+tests/flip.py:141:    metadata = control.cmd("COMMAND", "INFO", "FLIP")[0]
+tests/flip.py:142:    check("metadata row names FLIP", metadata[0].lower(), "flip")
+tests/flip.py:147:    check("one-argument grammar rejected", control.cmd("FLIP", live_io),
+tests/flip.py:150:    check("FLIP is forbidden in MULTI", control.cmd("FLIP", live_io, live_ex),
+tests/flip.py:152:    check("DISCARD after forbidden FLIP", control.cmd("DISCARD"), "OK")
+tests/flip.py:157:        baseline = int(before.get("flip_completed", "0"))
+tests/flip.py:159:            ("flip:lossless:key:%04d" % index,
+tests/flip.py:165:        verify_keyspace(control, keys, "known keyspace readable before FLIP")
+tests/flip.py:168:        # with zero connections, making this target shape deliberately lopsided; the first FLIP must
+tests/flip.py:173:                ("SET", "flip:key:%d" % index, "value:%d" % index),
+tests/flip.py:174:                ("GET", "flip:key:%d" % index),
+tests/flip.py:180:        check("EX -> IO completes", control.cmd("FLIP", grown_io, grown_ex), "OK")
+tests/flip.py:181:        grown = record(control.cmd("FLIP"))
+tests/flip.py:186:        check("lopsided FLIP balances buckets and clients", grown, balanced)
+tests/flip.py:191:        check("rebalancing FLIP reports ownership transfers", grown["last_transfers"],
+tests/flip.py:194:        check("first FLIP counter proves actuation",
+tests/flip.py:195:              int(after_grow_stats["flip_completed"]), lambda value: value >= baseline + 1)
+tests/flip.py:200:                      ("GET", "flip:key:%d" % index),
+tests/flip.py:206:        # Negative movement control and determinism: from an already balanced state, the same FLIP
+tests/flip.py:209:        check("balanced no-op FLIP completes", control.cmd("FLIP", grown_io, grown_ex), "OK")
+tests/flip.py:210:        no_move_one = record(control.cmd("FLIP"))
+tests/flip.py:213:        check("same-state deterministic FLIP completes",
+tests/flip.py:214:              control.cmd("FLIP", grown_io, grown_ex), "OK")
+tests/flip.py:215:        no_move_two = record(control.cmd("FLIP"))
+tests/flip.py:216:        check("same-state deterministic FLIP performs zero transfers",
+tests/flip.py:218:        check("same flip from same state yields same distribution",
+tests/flip.py:225:            refused = control.cmd("FLIP", grown_io - 1, grown_ex + 1)
+tests/flip.py:229:            refused = control.cmd("FLIP", grown_io, grown_ex + 1)
+tests/flip.py:231:        after_refusal = record(control.cmd("FLIP"))
+tests/flip.py:236:              int(info(control, "stats")["flip_completed"]),
+tests/flip.py:237:              int(negative_before["flip_completed"]))
+tests/flip.py:242:                  client.pipeline([("GET", "flip:key:%d" % index),
+tests/flip.py:246:        # Put identifiable pipelined replies on every connection, start FLIP concurrently, observe
+tests/flip.py:248:        # receive exactly one position-preserving reply with no client-visible FLIP error.
+tests/flip.py:261:        check("all N sockets hold unread pipelined replies before FLIP",
+tests/flip.py:265:        transferred_before = int(info(observer, "stats")["flip_clients_transferred"])
+tests/flip.py:267:        # it: the observer has to land a FLIP report in the gap between the actuation starting and
+tests/flip.py:268:        # finishing, and on a loaded box the whole reverse flip completes inside the observer's
+tests/flip.py:269:        # first round trip. That is not a defect -- it is the flip being fast -- and the proofs
+tests/flip.py:270:        # that the actuation really happened (flip_completed, flip_clients_transferred,
+tests/flip.py:271:        # flip_conservation_checks, and the ordered in-flight replies below) are deterministic and
+tests/flip.py:276:        # on the attempt that won, so what it straddles is a flip that was demonstrably moving.
+tests/flip.py:281:        flip_result = []
+tests/flip.py:284:            flip_result = []
+tests/flip.py:285:            flip_started = threading.Event()
+tests/flip.py:287:            def reverse_flip(sink=flip_result, started=flip_started):
+tests/flip.py:290:                    sink.append(control.cmd("FLIP", live_io, live_ex))
+tests/flip.py:294:            worker = threading.Thread(target=reverse_flip, daemon=True)
+tests/flip.py:296:            flip_started.wait(5)
+tests/flip.py:298:                report = record(observer.cmd("FLIP"))
+tests/flip.py:302:                if flip_result:
+tests/flip.py:307:            if worker.is_alive() or flip_result[:1] != ["OK"]:
+tests/flip.py:309:            restore = control.cmd("FLIP", grown_io, grown_ex)
+tests/flip.py:312:            print("  in-flight observation re-roll %d/%d: the reverse FLIP completed inside the "
+tests/flip.py:316:            check("in-flight test observed a real moving FLIP", observed_moving, True)
+tests/flip.py:318:            print("  SKIP in-flight test observed a real moving FLIP -- the reverse FLIP completed "
+tests/flip.py:320:                  "still proved by flip_completed / flip_clients_transferred / "
+tests/flip.py:321:                  "flip_conservation_checks below" % IN_FLIGHT_ATTEMPTS)
+tests/flip.py:336:        check("reverse FLIP thread completed", worker.is_alive(), False)
+tests/flip.py:337:        check("IO -> EX completes", flip_result[0] if flip_result else None, "OK")
+tests/flip.py:338:        restored = record(control.cmd("FLIP"))
+tests/flip.py:349:                  client.pipeline([("GET", "flip:key:%d" % index),
+tests/flip.py:358:              int(stats["flip_completed"]), lambda value: value >= baseline + 2)
+tests/flip.py:360:              int(stats["flip_refused"]), lambda value: value >= int(before["flip_refused"]) + 1)
+tests/flip.py:362:              int(stats["flip_clients_transferred"]),
+tests/flip.py:365:              int(stats["flip_conservation_checks"]), lambda value: value > 0)
+tests/flip.py:366:        check("no conservation violation", int(stats["flip_conservation_violations"]), 0)
+tests/flip.py:377:    print("ok: %d FLIP checks" % checks)
+tests/flip_close_checks.inc:2:    static void flip_close() {
+tests/flip_close_checks.inc:4:            // Start at the settled 3:5 state of the reported second FLIP. The
+tests/flip_close_checks.inc:23:            require(f.server.client_work_epoch(peer) & 1, "FLIP close peer epoch armed");
+tests/flip_close_checks.inc:28:                    "FLIP close window: detached client still live behind captured epoch");
+tests/flip_close_checks.inc:30:            require(f.server.flip_begin(6, 2, f.io_id, error), "admit actual FLIP 6 2 from settled 3:5");
+tests/flip_close_checks.inc:31:            require(!f.server.flip_build_client_plan(&coordinator, error) &&
+tests/flip_close_checks.inc:32:                        error == "ERR FLIP connection ownership count is not conserved",
+tests/flip_close_checks.inc:33:                    "premature FLIP planner reproduces exact ownership-count refusal");
+tests/flip_close_checks.inc:34:            std::printf("ARMED flip-close db%u: %s (FLIP 6 2, owned=1 live=2)\n", databases, error.c_str());
+tests/flip_close_checks.inc:36:            require(!f.io.flip_io_drained(), "FLIP drain must wait for detached closing client");
+tests/flip_close_checks.inc:38:                    "waiting for FLIP drain preserves client lifetime");
+tests/flip_close_checks.inc:47:            require(!f.io.flip_io_drained(), "FLIP still waits for corpse/channel grace");
+tests/flip_close_checks.inc:50:            require(f.io.flip_io_drained(), "FLIP drain opens after real close and corpse grace");
+tests/flip_close_checks.inc:52:            require(f.server.flip_build_client_plan(&coordinator, error) && error.empty(),
+tests/flip_close_checks.inc:53:                    "same FLIP planner succeeds after close without weakening count law");
+tests/flip_close_checks.inc:54:            f.server.flip_refuse_active(); // state-only fixture never commits ownership.
+tests/flipctl_unit.cc:6:#include "src/core/flipctl.h"
+tests/flipctl_unit.cc:13:static_assert(!HasStationarityReport<FlipctlReport>,
+tests/flipctl_unit.cc:20:struct FlipControllerTest {
+tests/flipctl_unit.cc:21:    FlipController controller;
+tests/flipctl_unit.cc:27:    explicit FlipControllerTest(double jitter = 0.0007) {
+tests/flipctl_unit.cc:29:        controller.phase_ = FlipController::Phase::Anchored;
+tests/flipctl_unit.cc:44:    FlipctlTriggerReason tick(uint64_t commands, uint64_t elapsed_ms = 1000) {
+tests/flipctl_unit.cc:47:        if (!controller.pair_rate(rate, prior)) return FlipctlTriggerReason::None;
+tests/flipctl_unit.cc:51:        if (reason != FlipctlTriggerReason::None) {
+tests/flipctl_unit.cc:53:            surges += reason == FlipctlTriggerReason::AnchorRateSurge;
+tests/flipctl_unit.cc:54:            collapses += reason == FlipctlTriggerReason::AnchorRateCollapse;
+tests/flipctl_unit.cc:67:            std::printf("flipctl rate: %s %s\n", ok ? "PASS" : "FAIL", name);
+tests/flipctl_unit.cc:77:            FlipControllerTest f;
+tests/flipctl_unit.cc:89:            std::printf("flipctl rate trace: +/-%.0f/sqrt(N) N=%llu ticks=%u "
+tests/flipctl_unit.cc:101:            FlipControllerTest f;
+tests/flipctl_unit.cc:108:            const auto wanted = direction < 0 ? FlipctlTriggerReason::AnchorRateCollapse
+tests/flipctl_unit.cc:109:                                              : FlipctlTriggerReason::AnchorRateSurge;
+tests/flipctl_unit.cc:114:                if (reason != FlipctlTriggerReason::None) {
+tests/flipctl_unit.cc:122:            std::printf("flipctl rate step: %+d%% first_trigger_tick=%u confirmations=%u\n",
+tests/flipctl_unit.cc:131:            FlipControllerTest f(0.03);
+tests/flipctl_unit.cc:145:            FlipControllerTest f;
+tests/flipctl_unit.cc:160:                FlipControllerTest f;
+tests/flipctl_unit.cc:163:                floored &= reason == FlipctlTriggerReason::None && !f.controller.surge_streak_ &&
+tests/flipctl_unit.cc:171:            FlipControllerTest f;
+tests/flipctl_unit.cc:180:            // the new pair, just as its rate cannot survive a flip or load-balancer move.
+tests/flipctl_unit.cc:198:            FlipControllerTest f;
+tests/flipctl_unit.cc:214:            FlipControllerTest f;
+tests/flipctl_unit.cc:219:                  first == FlipctlTriggerReason::None &&
+tests/flipctl_unit.cc:220:                  second == FlipctlTriggerReason::AnchorRateCollapse &&
+tests/flipctl_unit.cc:223:        std::printf("flipctl rate: %d/%d rows passed\n", rows - failed, rows);
+tests/flipctl_unit.cc:235:    std::fprintf(stderr, "flipctl unit: %s\n", message);
+tests/flipctl_unit.cc:239:FlipFingerprintWindow quiet(uint64_t read, uint64_t write, uint64_t deep = 0) {
+tests/flipctl_unit.cc:240:    FlipFingerprintWindow sample;
+tests/flipctl_unit.cc:242:    sample.command_class[static_cast<size_t>(FlipFingerprintClass::Read)] = read;
+tests/flipctl_unit.cc:243:    sample.command_class[static_cast<size_t>(FlipFingerprintClass::Write)] = write;
+tests/flipctl_unit.cc:250:FlipFingerprintWindow multikey_mix() {
+tests/flipctl_unit.cc:251:    FlipFingerprintWindow sample;
+tests/flipctl_unit.cc:253:    sample.command_class[static_cast<size_t>(FlipFingerprintClass::MultiRead)] = 80;
+tests/flipctl_unit.cc:254:    sample.command_class[static_cast<size_t>(FlipFingerprintClass::MultiWrite)] = 20;
+tests/flipctl_unit.cc:274:// The EXHAUSTIVE writer as it shipped before DESIGN-flipfp (every frame fingerprinted, a window
+tests/flipctl_unit.cc:285:    void note_command(FlipFingerprintClass command_class, uint32_t keys, uint64_t value_bytes) {
+tests/flipctl_unit.cc:325:    const FlipFingerprintWindow& published() const { return published_; }
+tests/flipctl_unit.cc:330:    FlipFingerprintWindow partial_{};
+tests/flipctl_unit.cc:331:    FlipFingerprintWindow published_{};
+tests/flipctl_unit.cc:337:    FlipFingerprintClass cls;
+tests/flipctl_unit.cc:344:    Frame f{static_cast<FlipFingerprintClass>(which), 1, (h >> 20) % 300};
+tests/flipctl_unit.cc:349:bool same_counters(const FlipFingerprintWindow& a, const FlipFingerprintWindow& b) {
+tests/flipctl_unit.cc:361:uint64_t drive(FlipFingerprintWriter& writer, XorShift& rng, uint64_t passes, uint32_t depth,
+tests/flipctl_unit.cc:389:        return FlipControllerTest::run() ? 1 : 0;
+tests/flipctl_unit.cc:391:    FlipShiftDetector detector(-1);
+tests/flipctl_unit.cc:417:        FlipShiftDetector typed(2, 4);   // internal explicit-band control: 2%
+tests/flipctl_unit.cc:440:        FlipShiftDetector typed(2, 4);
+tests/flipctl_unit.cc:455:        FlipShiftDetector sampled(2, 8);
+tests/flipctl_unit.cc:466:        FlipShiftDetector autob(-1, 4);
+tests/flipctl_unit.cc:488:            FlipShiftDetector typed(2, 8);   // internal explicit-band control: 2%
+tests/flipctl_unit.cc:491:                FlipFingerprintWriter writer;
+tests/flipctl_unit.cc:494:                    return Frame{rng.next() & 1 ? FlipFingerprintClass::Read
+tests/flipctl_unit.cc:495:                                                : FlipFingerprintClass::Write, 1, 32};
+tests/flipctl_unit.cc:497:                const FlipFingerprintWindow& pub = writer.published();
+tests/flipctl_unit.cc:515:    // (flip_multikey_hold positive phase, reached 0.80x). Only in-band windows may teach it.
+tests/flipctl_unit.cc:517:        FlipShiftDetector d(-1, 4);
+tests/flipctl_unit.cc:526:    // FlipEwBound itself: mean + 2 sd of a non-negative sample, zero before it has two.
+tests/flipctl_unit.cc:528:        FlipEwBound b; b.configure(8);
+tests/flipctl_unit.cc:532:        FlipEwBound flat; flat.configure(8);
+tests/flipctl_unit.cc:538:    FlipFingerprintWriter writer;
+tests/flipctl_unit.cc:543:        writer.note_command(FlipFingerprintClass::Read, 1, 0);
+tests/flipctl_unit.cc:546:        const FlipFingerprintWindow& published = writer.published();
+tests/flipctl_unit.cc:553:        FlipFingerprintWriter w;
+tests/flipctl_unit.cc:557:            for (uint32_t i = 0; i < depths[b]; i++) w.note_command(FlipFingerprintClass::Write, 1, 8);
+tests/flipctl_unit.cc:565:        FlipFingerprintWriter w;
+tests/flipctl_unit.cc:583:            const uint32_t gap = FlipFingerprintWriter::gap_for(r, w);
+tests/flipctl_unit.cc:589:        if (w == 1 && FlipFingerprintWriter::gap_for(0xDEADBEEFull, 1) != 0)
+tests/flipctl_unit.cc:597:            FlipFingerprintWriter w;
+tests/flipctl_unit.cc:601:                                           [](uint64_t, uint32_t) { return Frame{FlipFingerprintClass::Read, 1, 0}; });
+tests/flipctl_unit.cc:616:        FlipFingerprintWriter w;
+tests/flipctl_unit.cc:620:            return Frame{p % 2 == 0 ? FlipFingerprintClass::Read : FlipFingerprintClass::Write, 1, 0};
+tests/flipctl_unit.cc:622:        const FlipFingerprintWindow& pub = w.published();
+tests/flipctl_unit.cc:623:        const double reads = static_cast<double>(pub.command_class[static_cast<size_t>(FlipFingerprintClass::Read)]);
+tests/flipctl_unit.cc:624:        const double writes = static_cast<double>(pub.command_class[static_cast<size_t>(FlipFingerprintClass::Write)]);
+tests/flipctl_unit.cc:636:        FlipFingerprintWriter sampled;
+tests/flipctl_unit.cc:672:        const FlipSignature full = flip_signature(quiet(80, 20));
+tests/flipctl_unit.cc:673:        const FlipSignature sampled = flip_signature(quiet(8, 2));
+tests/flipctl_unit.cc:674:        if (flip_signature_distance(full, sampled) != 0)
+tests/flipctl_unit.cc:676:        FlipShiftDetector k100(-1), k10(-1);
+tests/flipctl_unit.cc:686:    // ---- placement policy (flip_policy.h) -----------------------------------------------------
+tests/flipctl_unit.cc:691:    if (flip_projected_gain(7, 5, 8, 0.82) >= 0) fail("7:1 did not project as a loss at io=0.82");
+tests/flipctl_unit.cc:693:        FlipDemandWindow w;
+tests/flipctl_unit.cc:695:        const FlipPlacementChoice c = flip_choose_split(5, 8, w, 0.02, 3);
+tests/flipctl_unit.cc:704:        FlipDemandWindow w;
+tests/flipctl_unit.cc:706:        const FlipPlacementChoice c = flip_choose_split(2, 4, w, 0.02, 3);
+tests/flipctl_unit.cc:712:    if (std::abs(flip_projected_gain(4, 5, 8, 0.5) - 1.0 / 3.0) > 1e-9)
+tests/flipctl_unit.cc:717:        FlipDemandWindow w;
+tests/flipctl_unit.cc:719:        FlipPlacementChoice c = flip_choose_split(5, 8, w, 0.02, 3);
+tests/flipctl_unit.cc:722:        c = flip_choose_split(5, 8, w, 0.02, 3);
+tests/flipctl_unit.cc:730:        FlipDemandWindow w;
+tests/flipctl_unit.cc:732:        if (flip_choose_split(5, 8, w, 0.02, 3).decided) fail("two draws decided a move");
+tests/flipctl_unit.cc:739:        FlipDemandWindow w;
+tests/flipctl_unit.cc:741:        if (!flip_choose_split(5, 8, w, 0.19, 3).move) fail("+20% did not clear a 19% bar");
+tests/flipctl_unit.cc:742:        const FlipPlacementChoice c = flip_choose_split(5, 8, w, 0.21, 3);
+tests/flipctl_unit.cc:749:    if (!(flip_baseline_band(4898.601, 6000.916) > 0.22))
+tests/flipctl_unit.cc:751:    if (flip_baseline_band(500000, 500000) != 0) fail("a flat baseline moved the band");
+tests/flipctl_unit.cc:752:    if (flip_baseline_band(0, 0) != 0) fail("an empty baseline moved the band");
+tests/flipctl_unit.cc:753:    if (flip_baseline_band(500000, 505000) > 0.021)
+tests/flipctl_unit.cc:758:        FlipDemandWindow a, b;
+tests/flipctl_unit.cc:769:        const double io_work = flip_role_work(wall, 0.17e9) + flip_role_work(wall, 2.40e9);
+tests/flipctl_unit.cc:770:        const double ex_work = flip_role_work(wall, 2.56e9) + flip_role_work(wall, 1.76e9);
+tests/flipctl_unit.cc:773:        FlipDemandWindow w;
+tests/flipctl_unit.cc:775:        const FlipPlacementChoice c = flip_choose_split(2, 4, w, 0.012, 3);
+tests/flipctl_unit.cc:779:        FlipDemandWindow busy;
+tests/flipctl_unit.cc:781:        const FlipPlacementChoice b = flip_choose_split(2, 4, busy, 0.012, 3);
+tests/flipctl_unit.cc:783:        if (flip_role_work(0, 5) != 0 || flip_role_work(10, 12) != 0 || flip_role_work(10, -1) != 10)
+tests/flipctl_unit.cc:784:            fail("flip_role_work bounds");
+tests/flipctl_unit.cc:788:        const double io_work = flip_role_work(38.1e9, 3.50e9) + flip_role_work(38.1e9, 3.24e9);
+tests/flipctl_unit.cc:789:        const double ex_work = flip_role_work(40.0e9, 1.18e9) + flip_role_work(40.0e9, 1.45e9);
+tests/flipctl_unit.cc:792:        FlipDemandWindow w;
+tests/flipctl_unit.cc:794:        if (flip_choose_split(2, 4, w, 0.02, 3).move) fail("mk at 2:2 moved on the work share");
+tests/flipctl_unit.cc:798:    if (flip_naive_transfers(256, 2, 1) != 128 || flip_naive_transfers(256, 1, 2) != 128)
+tests/flipctl_unit.cc:800:    if (std::abs(flip_naive_transfers(256, 3, 2) - 85.333) > 0.01)
+tests/flipctl_unit.cc:802:    if (flip_naive_transfers(256, 2, 2) != 0 || flip_naive_transfers(0, 2, 1) != 0)
+tests/flipctl_unit.cc:807:    if (flip_verify_window(0.01, 3, 0.20, 15) != 1) fail("+20% at 1% noise did not verify in one");
+tests/flipctl_unit.cc:809:        const uint32_t n3 = flip_verify_window(0.01, 3, 0.03, 15);   // (0.75)^2 - 1/3 = 0.229 -> 5
+tests/flipctl_unit.cc:810:        const uint32_t n5 = flip_verify_window(0.01, 5, 0.03, 15);   // 0.5625 - 0.2 = 0.3625 -> 3
+tests/flipctl_unit.cc:815:    if (flip_verify_window(0.05, 3, 0.03, 15) != 0)
+tests/flipctl_unit.cc:817:    if (flip_verify_window(0.0, 3, 0.001, 15) != 1) fail("a noiseless origin needs more than one");
+tests/flipctl_unit.cc:818:    if (flip_verify_window(0.01, 3, 0.0, 15) != 0) fail("a zero gain planned a window");
+tests/flipctl_unit.cc:820:    if (std::abs(flip_verify_threshold(0.01, 3, 1, 0) - 2 * 0.01 * std::sqrt(1.0 / 3 + 1)) > 1e-12)
+tests/flipctl_unit.cc:822:    if (flip_verify_threshold(0.01, 3, 1, 0.40) != 0.40) fail("threshold floor did not hold");
+tests/flipctl_unit.cc:824:    if (flip_judge(0.30, 0.10, 1, 5) != FlipOutcome::Hit) fail("a clear gain did not accept early");
+tests/flipctl_unit.cc:825:    if (flip_judge(-0.30, 0.10, 1, 5) != FlipOutcome::Miss) fail("a clear loss did not reject early");
+tests/flipctl_unit.cc:826:    if (flip_judge(0.05, 0.10, 1, 5) != FlipOutcome::Pending) fail("an unresolved reading decided");
+tests/flipctl_unit.cc:827:    if (flip_judge(0.05, 0.10, 5, 5) != FlipOutcome::Miss) fail("the planned count did not reject");
+tests/flipctl_unit.cc:831:    // The first flip has no transfer cost (it IS the measurement); it moves as soon as the credited
+tests/flipctl_unit.cc:834:        FlipCostModel m;
+tests/flipctl_unit.cc:837:        const FlipCostVerdict v = flip_cost_gate(1.0, 1.0, 236000, 12.0, 4.0, 0, m.miss_probability(), 1);
+tests/flipctl_unit.cc:840:            fail("first-flip cost gate arithmetic");
+tests/flipctl_unit.cc:847:        const FlipCostVerdict wrong = flip_cost_gate(24.0, 24.0, 530000, 4.1, 4.0, 0, 0.5, 1);
+tests/flipctl_unit.cc:852:    // 500k during the blackout. benefit 0.05 x 500k x (T-4); cost (first flip) 0.5 x 500k x 4 = 1M.
+tests/flipctl_unit.cc:855:        const FlipCostVerdict no = flip_cost_gate(0.05, 0.05, 500000, 10.0, 4.0, 0, 0.5, 1);
+tests/flipctl_unit.cc:858:        const FlipCostVerdict yes = flip_cost_gate(0.05, 0.05, 500000, 45.0, 4.0, 0, 0.5, 1);
+tests/flipctl_unit.cc:861:        if (flip_cost_gate(0.05, 0.05, 500000, 45.0, 4.0, 0, 0.5, 2).pays)
+tests/flipctl_unit.cc:864:    // The measured transfer cost dominates once a flip has been priced (second move onward).
+tests/flipctl_unit.cc:866:        FlipCostModel m;
+tests/flipctl_unit.cc:867:        const double naive = flip_naive_transfers(256, 3, 2);       // 85.33: the converted thread's share
+tests/flipctl_unit.cc:868:        m.record_flip(250000, 154, naive, 1.0);     // lost 250k commands moving 154 clients
+tests/flipctl_unit.cc:875:        const FlipCostVerdict no = flip_cost_gate(0.20, 0.20, 500000, 10.0, 4.0, xfer_cost, 0.5, 1);
+tests/flipctl_unit.cc:876:        if (no.pays || std::abs(no.cost - 1.375e6) > 1e-3) fail("+20% move priced with a measured flip");
+tests/flipctl_unit.cc:877:        const FlipCostVerdict yes = flip_cost_gate(0.20, 0.20, 500000, 30.0, 4.0, xfer_cost, 0.5, 1);
+tests/flipctl_unit.cc:878:        if (!yes.pays) fail("+20% move did not pay at 30 s with the measured flip cost");
+tests/flipctl_unit.cc:881:    // while a marginal one stays undecided until the interval tightens (flip_choose_split, above).
+tests/flipctl_unit.cc:883:        FlipDemandWindow w;
+tests/flipctl_unit.cc:885:        const FlipPlacementChoice c = flip_choose_split(3, 4, w, 0.02, 2);
+tests/flipctl_unit.cc:891:        FlipDemandWindow n;
+tests/flipctl_unit.cc:893:        if (flip_choose_split(5, 8, n, 0.02, 2).decided)
+tests/flipctl_unit.cc:900:        FlipCostModel m;
+tests/flipctl_unit.cc:906:        FlipCostModel h;
+tests/flipctl_unit.cc:910:        FlipCostModel partial;
+tests/flipctl_unit.cc:913:        FlipCostModel induced;
+tests/flipctl_unit.cc:921:    if (!(flip_corrected_gain(-0.479, 0.022) < -0.48)) fail("a -48% miss survived a 2% wobble");
+tests/flipctl_unit.cc:922:    if (!(flip_corrected_gain(0.05, -0.10) > 0.16)) fail("a fallen baseline did not void the miss");
+tests/flipctl_unit.cc:923:    if (std::abs(flip_corrected_gain(0.10, 0.0) - 0.10) > 1e-12) fail("a still baseline changes the gain");
+tests/flipctl_unit.cc:929:    if (std::abs(flip_refine_bar(0.36, 0.26) - 0.10) > 1e-12) fail("refine bar is not the error");
+tests/flipctl_unit.cc:930:    if (!(0.86 * 0.10 <= flip_refine_bar(0.36, 0.26))) fail("a +10% projection cleared a 10-point error");
+tests/flipctl_unit.cc:931:    if (flip_refine_bar(0.30, 0.31) != 0) fail("an over-delivering step left a bar");
+tests/flipctl_unit.cc:932:    if (flip_refine_bar(4.0, 2.9) < 1.0) fail("a wildly over-projected first step left a small bar");
+tests/flipctl_unit.cc:939:        FlipEwVariance ew; ew.configure(30);
+tests/flipctl_unit.cc:944:        if (!(flip_verify_threshold(ew.sigma(), 2, 1, 0.02) > 0.24))
+tests/flipctl_unit.cc:948:        FlipEwVariance ramp; ramp.configure(30);
+tests/flipctl_unit.cc:956:        FlipEwVariance step; step.configure(30);
+tests/flipctl_unit.cc:960:        FlipEwVariance still; still.configure(30);
+tests/flipctl_unit.cc:963:        if (FlipEwVariance{}.sigma() != 0) fail("an empty long window has a sigma");
+tests/flipctl_unit.cc:967:        FlipRateWindow r;
+tests/flipctl_unit.cc:971:        FlipRateWindow still;
+tests/flipctl_unit.cc:975:    std::puts("flipctl unit: existing rows ok");
+tests/flipctl_unit.cc:976:    if (FlipControllerTest::run()) return 1;
+tests/flipctl_unit.cc:977:    std::puts("flipctl unit: ok");
+tests/abbagate.py:247:               "ratio", "flip-auto", "shards", "thread-mode", "read-local", "overlap", "reorder",
+tests/abbagate.py:1541:    # rule. Read-local can leave split executors idle; flipctl.cc also documents
+tests/abbagate.py:1866:            command += ["--ratio", split_ratio, "--flip-auto", "0"]
+tests/abbagate.py:2485:                                 "split_flip_auto": 0, "memtier_path": args.memtier,
+tests/abbagate.py:2501:              f"Cell connections are TOTAL, shared across load instances. Split uses reviewed ratio {split_ratio}, flip=0.", flush=True)
+tests/abbagate.py:3059:                    data_bytes=64, key_pattern="P:P", atomic="per-cell", split_flip_auto=0,
