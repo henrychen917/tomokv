@@ -3128,7 +3128,9 @@ bool command_parse_scan_cursor(Slice text, uint64_t& cursor) {
 
 Server* command_server() { return g_server; }
 uint64_t command_proto_max_bulk_len() {
-    return g_proto_max_bulk_len.load(std::memory_order_relaxed);
+    // CONFIG accepts Redis's signed-long range; string growth keeps the 32-bit bound.
+    return std::min(g_proto_max_bulk_len.load(std::memory_order_relaxed),
+                    kProtoMaxBulkLenRepresentable);
 }
 ThreadCtx* command_local_thread() { return g_thread; }
 Client* command_local_client() { return g_client; }

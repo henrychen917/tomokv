@@ -164,6 +164,11 @@ inline constexpr uint64_t kProtoMinBulkLen = 1024ull * 1024;
 // Redis's configuration range is signed long. The independent 32-bit receive-cursor
 // bound still rejects a frame that cannot be represented by this server's Slice ABI.
 inline constexpr uint64_t kProtoMaxBulkLenSupported = LONG_MAX;
+// String values and argv Slices are 32-bit. This is the largest bulk that, with its RESP
+// envelope, both still represent (the pre-netfix configuration ceiling). Commands that
+// grow a string (APPEND, SETRANGE, SETBIT, BITFIELD) stop here even when the configured
+// limit is larger, instead of narrowing a 64-bit length; Redis would attempt the allocation.
+inline constexpr uint64_t kProtoMaxBulkLenRepresentable = UINT32_MAX - 64ull * 1024;
 
 inline bool cfg_parse_save_schedule(const char* input, size_t length,
                                     std::vector<SaveClause>& out) {

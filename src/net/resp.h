@@ -237,7 +237,9 @@ __attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(
 // returned 0 for a truncated header instead of asking for more bytes. This reads exactly what the
 // protocol allows and distinguishes Incomplete from Error, which the old code could not.
 //
-// Returns Ok / Incomplete / Error. Bounded by `maxv` so a hostile length cannot overflow.
+// Returns Ok / Incomplete / Error. Bounded by `maxv` so a hostile length cannot overflow:
+// that holds only while maxv <= (UINT64_MAX - 9) / 10, so every bulk-length caller passes
+// at most 512 MiB and lets resp_length_slow apply a larger configured limit.
 inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos,
                                   uint64_t maxv, uint64_t& out) {
     uint32_t i = pos;
@@ -332,7 +334,11 @@ static_assert(sizeof(RespFrontier) == 32);
             if (buf[p] != '$') r = resp_bulk_prefix_error(buf, len, p, op, err);
             else {
                 ++p;
-                r = parse_len_crlf(buf, len, p, max_bulk, bulk);
+                // parse_len_crlf's bound is its only overflow guard and configured limits
+                // reach LONG_MAX: as on the complete-frame path, larger headers continue
+                // in the signed, overflow-checked decoder.
+                r = parse_len_crlf(buf, len, p, max_bulk < 512ull * 1024 * 1024
+                                                ? max_bulk : 512ull * 1024 * 1024, bulk);
                 if (r == ParseResult::Error)
                     r = resp_length_slow(buf, len, p, max_bulk, bulk, false, err);
             }
@@ -382,7 +388,9 @@ static_assert(sizeof(RespFrontier) == 32);
             if (frame[p] != '$') r = resp_bulk_prefix_error(frame, available, p, op, err);
             else {
                 ++p;
-                r = parse_len_crlf(frame, available, p, max_bulk, bulk);
+                // Same overflow bound as resp_parse_tail above.
+                r = parse_len_crlf(frame, available, p, max_bulk < 512ull * 1024 * 1024
+                                                    ? max_bulk : 512ull * 1024 * 1024, bulk);
                 if (r == ParseResult::Error)
                     r = resp_length_slow(frame, available, p, max_bulk, bulk, false, err);
             }

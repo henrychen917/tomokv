@@ -1,6 +1,7 @@
 """NT4.8: compare complete network CONFIG SET error replies with the Redis oracle."""
 from contextlib import closing
 import json
+import time
 import _netfix as n
 
 
@@ -47,18 +48,39 @@ def test(a, port, certs, proc, oracle):
                         if isinstance(large, n._lib.RespError) else large.decode()])
         with closing(n.connect(port, certs)) as frame:
             frame.raw(b'*2\r\n$4\r\nECHO\r\n')
-            import time
-            time.sleep(.05)  # exercise both complete and resumed bulk-header decoding
+            time.sleep(.05)  # the bulk header arrives separately: resumed decoding
             frame.raw(b'$18446744073709551620\r\nabcd\r\n')
             result = frame.read()
             replies.append([['wrapped-bulk-header'], str(result)
                             if isinstance(result, n._lib.RespError) else result.decode()])
+        with closing(n.connect(port, certs)) as frame:
+            # One write: the complete-frame parser hands the oversized header to its tail.
+            frame.raw(b'*2\r\n$4\r\nECHO\r\n$18446744073709551620\r\nabcd\r\n')
+            result = frame.read()
+            replies.append([['wrapped-bulk-header-complete'], str(result)
+                            if isinstance(result, n._lib.RespError) else result.decode()])
+        if not oracle:
+            # Representation bound, not oracle parity: Redis would allocate a >4 GiB
+            # string here. 32-bit string values must refuse it instead of narrowing a
+            # length (PRE refused the limit itself; the unbounded growth checks aborted).
+            for args, error in (
+                    (('SETRANGE', 'netfix-wide', '4294967296', 'x'),
+                     'ERR string exceeds maximum allowed size (proto-max-bulk-len)'),
+                    (('SETBIT', 'netfix-wide', '34359738368', '1'),
+                     'ERR bit offset is not an integer or out of range'),
+                    (('BITFIELD', 'netfix-wide', 'SET', 'u8', '34359738368', '1'),
+                     'ERR bit offset is not an integer or out of range')):
+                result = admin.cmd(*args)
+                assert isinstance(result, n._lib.RespError) and str(result) == error, (args, result)
+            assert admin.cmd('EXISTS', 'netfix-wide') == 0
+            assert admin.cmd('PING') == b'PONG'
     label = 'tls' if certs else 'tcp'
     path = a.output / ('oracle-' + label + '.json')
     if oracle:
         path.write_text(json.dumps(replies, indent=2))
     else:
         expected = json.loads(path.read_text())
+        assert len(expected) == len(replies), (len(expected), len(replies))
         different = [(old, new) for old, new in zip(expected, replies) if old != new]
         assert not different, json.dumps(different, indent=2)
     return replies
