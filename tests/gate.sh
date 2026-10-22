@@ -3006,12 +3006,17 @@ for NET_IO in uring epoll; do
       || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-close-$NET_IO.txt"
 done
 row_begin "FLIP signal stop during FLIP + second SIGINT"
-{ py tests/flipfix.py sigterm --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
-      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigterm" &&
-  py tests/flipfix.py sigint --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
-      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigint"; } >"$TMPDIR/gate-flipfix-signal.txt" 2>&1 \
+FLIPFIX_OK=1
+for NET_IO in uring epoll; do
+  for FLIPFIX_CASE in sigterm sigint; do
+    py tests/flipfix.py "$FLIPFIX_CASE" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+        --ratio "$GATE_RATIO" --net-io "$NET_IO" --output "$TMPDIR/flipfix-$FLIPFIX_CASE-$NET_IO" \
+        >"$TMPDIR/gate-flipfix-$FLIPFIX_CASE-$NET_IO.txt" 2>&1 || FLIPFIX_OK=0
+  done
+done
+[ "$FLIPFIX_OK" = 1 ] \
     && ok "FLIP signal stop during FLIP + second SIGINT" \
-    || bad "FLIP signal stop during FLIP + second SIGINT" "see $TMPDIR/gate-flipfix-signal.txt"
+    || bad "FLIP signal stop during FLIP + second SIGINT" "see $TMPDIR/gate-flipfix-sig*-*.txt"
 # IO4.19 rows own this slot's now-free port; both FLIP and default-on client-lb use the transfer.
 for CASE in epoll-flip epoll-lb; do
   row_begin "perfio stale epoll registration ($CASE)"

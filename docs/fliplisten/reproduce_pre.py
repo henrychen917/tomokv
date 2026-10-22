@@ -11,6 +11,7 @@ support.OUT=ROOT/('build/fliplisten/'+arm.lower()+'-controls')
 DOC=ROOT/('docs/fliplisten/'+arm.lower()+'-controls');DOC.mkdir(parents=True,exist_ok=True)
 binary=ROOT/('build/tomokv-PRE' if arm=='PRE' else 'build/tomokv')
 (DOC/'binary.json').write_text(json.dumps(dict(path=str(binary),sha256=hashlib.sha256(binary.read_bytes()).hexdigest()),indent=2)+'\n')
+if (DOC/'results.json').exists():(DOC/'results.json').unlink()
 rows=[]
 def report(c):
     r=c.must('FLIP');return dict(zip(r[::2],r[1::2]))

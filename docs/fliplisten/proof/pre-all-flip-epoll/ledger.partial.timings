@@ -1,0 +1,10 @@
+ok	0.000000	release build (+footprint locks)
+ok	0.140000	FLIP state battery
+ok	1.030000	FLIP under verified load
+ok	1.440000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+FAIL	2.060000	FLIP close during FLIP (uring)
+FAIL	2.100000	FLIP close during FLIP (epoll)
+ok	3.200000	FLIP signal stop during FLIP + second SIGINT
+ok	0.590000	perfio stale epoll registration (epoll-flip)
+ok	12.180000	perfio stale epoll registration (epoll-lb)

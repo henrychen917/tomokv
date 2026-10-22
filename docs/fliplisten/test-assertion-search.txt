@@ -1,5 +1,22 @@
-tests/signalacct_live_test.py:88:                (b'-ERR FLIP connection ownership count is not conserved\r\n', 'server-error'),
-tests/signalacct_live_test.py:106:                conn.send.assert_called_once_with('FLIP', 6, 2)  # Never retry a refusal.
+tests/signalacct_core_checks.inc:48:            require(f.server.flip_convert_[4] == Role::Idle, "unix owner excluded despite lowest occupancy");
+tests/mode_equivalence.py:5:because fused+flip-auto is a documented refusal, already covered by feature_gate. One connection
+tests/iopass_checks.inc:29:        server.flip_set_stage(FlipStage::ClientInstall);
+tests/flip_ttl.py:11:version: keys carrying live TTLs are spread across every shard, the split is flipped while those
+tests/flip_ttl.py:184:            print("FAIL: FLIP %d %d refused on a lightly loaded server" % (tio, tex))
+tests/flip_ttl.py:244:        print("FAIL: round %d left %d keys alive after their TTLs crossed the flip" % (rnd, alive))
+tests/fliplisten.py:55:    unix_path = Path.cwd() / 'build' / f'fliplisten-{args.port}.sock'
+tests/fliplisten.py:149:            # ClientHello now (TCP_DEFER_ACCEPT), finish only after the FLIP.
+tests/fliplisten.py:188:            assert established_delay < 1, ('established connection stalled after FLIP', established_delay)
+tests/flipfix_abort_probe.py:9:FLIP answers OK, and the held closes finish (and are reaped) once it retires.
+tests/flipctl.py:2:"""Small functional acceptance for the automatic FLIP controller.
+tests/flipctl.py:666:    print("ok: flipctl functional acceptance")
+tests/lottery_evidence_test.py:161:        # Every applied FLIP must be loaded; a refused one (no end) is not counted.
+tests/lottery_evidence_test.py:164:        refused = [E('flip_work', 1, 2, 16), E('flip_begin', 1)]
+tests/config_parser_test.cc:719:        fail("invalid flip controller knob grammar was accepted");
+tests/spscmask_flip.py:205:    # Workers keep posting while FLIP performs ExDrain and ExInstall remasking.
+tests/reorder_flip.py:4:Reuses coadapt's flip_fix_acceptance.py protocol; tests/flipctl.py remains the
+tests/reorder_flip.py:150:                    "ok: flipctl functional acceptance" in log)
+tests/rltopo_unit.cc:32:        None, NoFlip, Retry, NoCount, DirtyReply, DropOwner, CorruptReply, NoRetire,
 tests/flip_under_load.py:19:flip that was not supposed to be refused, fails the run.
 tests/flip_under_load.py:24:disconnections, flips completed, clients transferred) so a one-in-twenty drop can be attributed to
 tests/flip_under_load.py:44:            "client_output_buffer_limit_disconnections", "flip_completed",
@@ -12,6 +29,28 @@ tests/flip_under_load.py:241:                flips_refused[0] += 1
 tests/flip_under_load.py:246:                    flips_refused[0] += 1
 tests/flip_under_load.py:307:print("ops verified: %d   flips applied: %d   flips refused: %d   BUSY retries: %d"
 tests/flip_under_load.py:308:      % (ops[0], flips_ok[0], flips_refused[0], busy[0]))
+tests/signalacct_live_test.py:88:                (b'-ERR FLIP connection ownership count is not conserved\r\n', 'server-error'),
+tests/signalacct_live_test.py:106:                conn.send.assert_called_once_with('FLIP', 6, 2)  # Never retry a refusal.
+tests/core_concurrency_unit.cc:1048:#include "flip_close_checks.inc"
+tests/core_concurrency_unit.cc:1195:    else if (row == "lifetime") { T::lifetime(); T::close_cycles(); T::flip_close(); }
+tests/core_concurrency_unit.cc:1196:    else if (row == "flip-close") T::flip_close();
+tests/core_concurrency_unit.cc:1203:    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); T::flipreport_all(); }
+tests/knobs.py:14:    "script-crossshard-cut-slots", "tls-ktls", "lb", "flip-work-window",
+tests/loading_ready_test.py:97:        from feature_gate import FUSED_FLIP_REFUSAL
+tests/loading_ready_test.py:102:            for diagnostic in (FUSED_FLIP_REFUSAL, 'unrelated boot failure'):
+tests/loading_ready_test.py:109:                self.assertEqual(FUSED_FLIP_REFUSAL in str(caught.exception),
+tests/loading_ready_test.py:110:                                 diagnostic == FUSED_FLIP_REFUSAL)
+tests/fixtures/nullrefresh-ledger-labels.json:60:    "FLIP planned-connection close lifetime (ASAN+TSAN)",
+tests/fixtures/nullrefresh-ledger-labels.json:450:    "FLIP close during FLIP (uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:451:    "FLIP close during FLIP (epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:991:      "FLIP close during FLIP (uring)",
+tests/fixtures/nullrefresh-ledger-labels.json:992:      "FLIP close during FLIP (epoll)",
+tests/fixtures/nullrefresh-ledger-labels.json:994:      "FLIP planned-connection close lifetime (ASAN+TSAN)",
+tests/flipfix_checks.inc:1:// Included in CoreConcurrencyTest (lane flipfix): FLIP connection-set lifetime/order (IO4.4, IO4.1)
+tests/flipfix_checks.inc:7:    // One FLIP 5 3 from the fixture's 6:2 split, with `count` connections on the converting IO.
+tests/flipfix_checks.inc:53:                    total += f.server.flip_client_quota(tid);
+tests/flipfix_checks.inc:77:            f.server.flip_refuse_active(); // state-only fixture never commits ownership
+tests/flipfix_checks.inc:78:            std::printf("ARMED %s: %zu planned connections closed during FLIP 5 3, dropped and reaped\n",
 tests/gate.sh:308:# flipfix (IO4.1/IO4.2/IO4.4/CT4.3): +3 live rows in job_flip (close during FLIP on uring and
 tests/gate.sh:1358:# a planned connection closing during FLIP must stay owned and allocated until its source drops it,
 tests/gate.sh:1369:row_begin "FLIP planned-connection close lifetime (ASAN+TSAN)"
@@ -23,55 +62,21 @@ tests/gate.sh:2993:  row_begin "FLIP close during FLIP ($NET_IO)"
 tests/gate.sh:2997:  for FLIPFIX_CASE in close churn; do
 tests/gate.sh:3005:      && ok "FLIP close during FLIP ($NET_IO)" \
 tests/gate.sh:3006:      || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-close-$NET_IO.txt"
-tests/gate.sh:3059:    { [ "$OUT" = "OK" ] && [ "$LIVE" = "$TIO" ]; } || { SATOK=0; echo "flip $TIO refused/missed: '$OUT' live=$LIVE" >>$TMPDIR/gate-flip-sat.txt; }
-tests/gate.sh:4295:# The eight fused + flip-auto=1 cells must refuse the exact documented unsupported combination;
-tests/flipfix_checks.inc:1:// Included in CoreConcurrencyTest (lane flipfix): FLIP connection-set lifetime/order (IO4.4, IO4.1)
-tests/flipfix_checks.inc:7:    // One FLIP 5 3 from the fixture's 6:2 split, with `count` connections on the converting IO.
-tests/flipfix_checks.inc:53:                    total += f.server.flip_client_quota(tid);
-tests/flipfix_checks.inc:77:            f.server.flip_refuse_active(); // state-only fixture never commits ownership
-tests/flipfix_checks.inc:78:            std::printf("ARMED %s: %zu planned connections closed during FLIP 5 3, dropped and reaped\n",
-tests/reorder_flip.py:4:Reuses coadapt's flip_fix_acceptance.py protocol; tests/flipctl.py remains the
-tests/reorder_flip.py:150:                    "ok: flipctl functional acceptance" in log)
-tests/loading_ready_test.py:97:        from feature_gate import FUSED_FLIP_REFUSAL
-tests/loading_ready_test.py:102:            for diagnostic in (FUSED_FLIP_REFUSAL, 'unrelated boot failure'):
-tests/loading_ready_test.py:109:                self.assertEqual(FUSED_FLIP_REFUSAL in str(caught.exception),
-tests/loading_ready_test.py:110:                                 diagnostic == FUSED_FLIP_REFUSAL)
-tests/rltopo_unit.cc:32:        None, NoFlip, Retry, NoCount, DirtyReply, DropOwner, CorruptReply, NoRetire,
-tests/signalacct_core_checks.inc:48:            require(f.server.flip_convert_[4] == Role::Idle, "unix owner excluded despite lowest occupancy");
+tests/gate.sh:3064:    { [ "$OUT" = "OK" ] && [ "$LIVE" = "$TIO" ]; } || { SATOK=0; echo "flip $TIO refused/missed: '$OUT' live=$LIVE" >>$TMPDIR/gate-flip-sat.txt; }
+tests/gate.sh:4300:# The eight fused + flip-auto=1 cells must refuse the exact documented unsupported combination;
+tests/gateprod-evidence/changed-text-audit.json:140:    "tests/flip_close_controls.py",
 tests/feature_gate.py:5:actuate -- config.h refuses --flip-auto with --thread-mode 1s exactly as it refuses --ratio, for
 tests/feature_gate.py:7:flip-auto=1 therefore assert the REFUSAL and its documented message.
 tests/feature_gate.py:36:FUSED_FLIP_REFUSAL = '--flip-auto is unavailable with --thread-mode 1s'
 tests/feature_gate.py:275:            if FUSED_FLIP_REFUSAL in reason:
 tests/feature_gate.py:276:                evidence.update(verdict='ok', reason=f'refused as documented: {FUSED_FLIP_REFUSAL}')
-tests/spscmask_flip.py:205:    # Workers keep posting while FLIP performs ExDrain and ExInstall remasking.
-tests/iopass_checks.inc:29:        server.flip_set_stage(FlipStage::ClientInstall);
-tests/flipfix_abort_probe.py:9:FLIP answers OK, and the held closes finish (and are reaped) once it retires.
-tests/fliplisten.py:55:    unix_path = Path.cwd() / 'build' / f'fliplisten-{args.port}.sock'
-tests/fliplisten.py:149:            # ClientHello now (TCP_DEFER_ACCEPT), finish only after the FLIP.
-tests/fliplisten.py:188:            assert established_delay < 1, ('established connection stalled after FLIP', established_delay)
-tests/lottery_evidence_test.py:161:        # Every applied FLIP must be loaded; a refused one (no end) is not counted.
-tests/lottery_evidence_test.py:164:        refused = [E('flip_work', 1, 2, 16), E('flip_begin', 1)]
-tests/flipctl.py:2:"""Small functional acceptance for the automatic FLIP controller.
-tests/flipctl.py:666:    print("ok: flipctl functional acceptance")
-tests/knobs.py:14:    "script-crossshard-cut-slots", "tls-ktls", "lb", "flip-work-window",
-tests/config_parser_test.cc:719:        fail("invalid flip controller knob grammar was accepted");
-tests/mode_equivalence.py:5:because fused+flip-auto is a documented refusal, already covered by feature_gate. One connection
-tests/flip_ttl.py:11:version: keys carrying live TTLs are spread across every shard, the split is flipped while those
-tests/flip_ttl.py:184:            print("FAIL: FLIP %d %d refused on a lightly loaded server" % (tio, tex))
-tests/flip_ttl.py:244:        print("FAIL: round %d left %d keys alive after their TTLs crossed the flip" % (rnd, alive))
-tests/core_concurrency_unit.cc:1048:#include "flip_close_checks.inc"
-tests/core_concurrency_unit.cc:1195:    else if (row == "lifetime") { T::lifetime(); T::close_cycles(); T::flip_close(); }
-tests/core_concurrency_unit.cc:1196:    else if (row == "flip-close") T::flip_close();
-tests/core_concurrency_unit.cc:1203:    else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); T::flipreport_all(); }
-tests/fixtures/nullrefresh-ledger-labels.json:60:    "FLIP planned-connection close lifetime (ASAN+TSAN)",
-tests/fixtures/nullrefresh-ledger-labels.json:450:    "FLIP close during FLIP (uring)",
-tests/fixtures/nullrefresh-ledger-labels.json:451:    "FLIP close during FLIP (epoll)",
-tests/fixtures/nullrefresh-ledger-labels.json:991:      "FLIP close during FLIP (uring)",
-tests/fixtures/nullrefresh-ledger-labels.json:992:      "FLIP close during FLIP (epoll)",
-tests/fixtures/nullrefresh-ledger-labels.json:994:      "FLIP planned-connection close lifetime (ASAN+TSAN)",
 tests/flip_multikey_hold.py:5:on its own: it completed flips, transferred hundreds of connections, and anchored on exactly the
 tests/flip_multikey_hold.py:19:  trigger fires, that no flip completes, that no connection is transferred, and that the anchor
 tests/flip_multikey_hold.py:138:    actually costs -- completed flips, transferred connections, a moved split -- is asserted
+tests/rl2s.py:11:connections. FLIP is restored in finally. Keys use a unique test prefix.
+tests/multidb_boundary_unit.cc:120:                           FlipStage::ClientInstall, FlipStage::RoleReady, FlipStage::ShardCommit,
+tests/multidb_boundary_unit.cc:121:                           FlipStage::ExInstall, FlipStage::Rollback, FlipStage::Idle}) {
+tests/multidb_boundary_unit.cc:128:                accepted(sockets[0], direct, io.accept_generation_ + (stage == FlipStage::Idle));
 tests/flip_cost_gate.py:13:  1. COST GATE REFUSES.  Before any load, DEBUG FLIPCTL COST types an absurd per-client transfer
 tests/flip_cost_gate.py:27:     without a flip (hold-below-bar): a hypothesis that lost stays refused.
 tests/flip_cost_gate.py:170:    check("DEBUG FLIPCTL COST accepts a per-client cost",
@@ -80,7 +85,6 @@ tests/flip_cost_gate.py:300:        check("judged proposal: no flip", int(refuse
 tests/flip_cost_gate.py:301:        check("judged proposal: refused below the bar", refused["flipctl_model_last_decision"],
 tests/flip_cost_gate.py:305:        print("4. judged proposal: %d:%d refused without a flip (decision=%s)"
 tests/flip_cost_gate.py:306:              % (boot_io, boot_ex, refused["flipctl_model_last_decision"]))
-tests/rl2s.py:11:connections. FLIP is restored in finally. Keys use a unique test prefix.
 tests/flip_close_controls.py:2:"""Serverless FLIP close/drain regression and an exact removal negative control."""
 tests/flip_close_controls.py:10:OUT = ROOT / 'build/signalacct-proof/flip-close'
 tests/flip_close_controls.py:19:    # The drain's closing-connection wait (unpinned IO; flipfix holds closes only after the ack).
@@ -89,11 +93,6 @@ tests/flip_close_controls.py:28:        'tests/flip_close_checks.inc $(CORE_TEST
 tests/flip_close_controls.py:36:        run = subprocess.run([str(binary), 'flip-close'], cwd=ROOT, text=True,
 tests/flip_close_controls.py:41:        assert 'ERR FLIP connection ownership count is not conserved' in run.stdout, run.stdout
 tests/flip_close_controls.py:45:            assert 'ARMED flip-close db1:' in run.stdout and 'ARMED flip-close db16:' in run.stdout
-tests/flakeaudit_test.py:142:        refusal = b"-ERR loading is not allowed while FLIP is in progress\r\n"
-tests/flakeaudit_test.py:160:        refusal = b"-ERR loading is not allowed while FLIP is in progress\r\n"
-tests/multidb_boundary_unit.cc:120:                           FlipStage::ClientInstall, FlipStage::RoleReady, FlipStage::ShardCommit,
-tests/multidb_boundary_unit.cc:121:                           FlipStage::ExInstall, FlipStage::Rollback, FlipStage::Idle}) {
-tests/multidb_boundary_unit.cc:128:                accepted(sockets[0], direct, io.accept_generation_ + (stage == FlipStage::Idle));
 tests/maskflood.py:43:    assert read(ctlf) in (b"OK", b"+OK"), "flip refused"
 tests/flip.py:168:        # with zero connections, making this target shape deliberately lopsided; the first FLIP must
 tests/flip.py:225:            refused = control.cmd("FLIP", grown_io - 1, grown_ex + 1)
@@ -101,23 +100,12 @@ tests/flip.py:229:            refused = control.cmd("FLIP", grown_io, grown_ex +
 tests/flip.py:231:        after_refusal = record(control.cmd("FLIP"))
 tests/flip.py:246:        # Put identifiable pipelined replies on every connection, start FLIP concurrently, observe
 tests/flip.py:360:              int(stats["flip_refused"]), lambda value: value >= int(before["flip_refused"]) + 1)
+tests/flipctl_unit.cc:824:    if (flip_judge(0.30, 0.10, 1, 5) != FlipOutcome::Hit) fail("a clear gain did not accept early");
 tests/lbplanner_checks.py:10:    'stale-flip': 'stale topology plan dropped without drain',
 tests/abbagate.py:2501:              f"Cell connections are TOTAL, shared across load instances. Split uses reviewed ratio {split_ratio}, flip=0.", flush=True)
-tests/flipctl_unit.cc:824:    if (flip_judge(0.30, 0.10, 1, 5) != FlipOutcome::Hit) fail("a clear gain did not accept early");
-tests/flipfix.py:8:  close        IO4.1: idle connections close right after each FLIP is sent. Every FLIP must
-tests/flipfix.py:13:  late         IO4.1 abort branch: closes spread over FLIPs that turn executors into IOs.
-tests/flipfix.py:35:# A connection that closes during a FLIP must neither wedge it nor hold it to that deadline nor
-tests/flipfix.py:40:    b'ERR FLIP could not detach a connection: could not reserve destination epoll registration',
-tests/flipfix.py:41:    b'ERR FLIP could not detach a connection: could not reserve source epoll rollback registration',
-tests/flipfix.py:174:                    # A FLIP may quiesce for five seconds; a reset/EOF is a loss.
-tests/flipfix.py:230:                        f'FLIP held {elapsed:.2f}s by connections closing during it ({key})'
-tests/flipfix.py:231:                    allowed = OUT_OF_SCOPE_REFUSALS + ((b'ERR a FLIP is already in progress',)
-tests/flipfix.py:234:                        f'FLIP refused because connections closed during it: {key}'
-tests/flipfix.py:248:            assert closed, 'no connection closed during a FLIP'
-tests/flipfix.py:274:    flip_complete_active (or wedges when a close lands earlier). Every FLIP must answer, the
-tests/flipfix.py:373:                    flip_reply = 'closed'
-tests/flipfix.py:457:                        help='late: seconds over which the closes of one FLIP are spread')
 tests/lottery_evidence.py:226:                # Client work scopes that closed inside the admitted FLIP window.
+tests/flakeaudit_test.py:142:        refusal = b"-ERR loading is not allowed while FLIP is in progress\r\n"
+tests/flakeaudit_test.py:160:        refusal = b"-ERR loading is not allowed while FLIP is in progress\r\n"
 tests/flip_close_checks.inc:2:    static void flip_close() {
 tests/flip_close_checks.inc:23:            require(f.server.client_work_epoch(peer) & 1, "FLIP close peer epoch armed");
 tests/flip_close_checks.inc:28:                    "FLIP close window: detached client still live behind captured epoch");
@@ -127,4 +115,17 @@ tests/flip_close_checks.inc:34:            std::printf("ARMED flip-close db%u: %
 tests/flip_close_checks.inc:50:            require(f.io.flip_io_drained(), "FLIP drain opens after real close and corpse grace");
 tests/flip_close_checks.inc:53:                    "same FLIP planner succeeds after close without weakening count law");
 tests/flip_close_checks.inc:54:            f.server.flip_refuse_active(); // state-only fixture never commits ownership.
-tests/gateprod-evidence/changed-text-audit.json:140:    "tests/flip_close_controls.py",
+tests/flipfix.py:8:  close        IO4.1: idle connections close right after each FLIP is sent. Every FLIP must
+tests/flipfix.py:13:  late         IO4.1 abort branch: closes spread over FLIPs that turn executors into IOs.
+tests/flipfix.py:35:# A connection that closes during a FLIP must neither wedge it nor hold it to that deadline nor
+tests/flipfix.py:40:    b'ERR FLIP could not detach a connection: could not reserve destination epoll registration',
+tests/flipfix.py:41:    b'ERR FLIP could not detach a connection: could not reserve source epoll rollback registration',
+tests/flipfix.py:128:            # Keep the pre-boot foreign-port refusal and every live FLIP bound.
+tests/flipfix.py:180:                    # A FLIP may quiesce for five seconds; a reset/EOF is a loss.
+tests/flipfix.py:236:                        f'FLIP held {elapsed:.2f}s by connections closing during it ({key})'
+tests/flipfix.py:237:                    allowed = OUT_OF_SCOPE_REFUSALS + ((b'ERR a FLIP is already in progress',)
+tests/flipfix.py:240:                        f'FLIP refused because connections closed during it: {key}'
+tests/flipfix.py:254:            assert closed, 'no connection closed during a FLIP'
+tests/flipfix.py:280:    flip_complete_active (or wedges when a close lands earlier). Every FLIP must answer, the
+tests/flipfix.py:379:                    flip_reply = 'closed'
+tests/flipfix.py:463:                        help='late: seconds over which the closes of one FLIP are spread')

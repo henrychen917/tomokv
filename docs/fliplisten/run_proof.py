@@ -50,7 +50,8 @@ if __name__=='__main__':
        os.environ.get('FLIPLISTEN_PROOF_PORTS','21810-21839'),
        '--candidate-binary',str(binary)]
  (dest/'command.json').write_text(json.dumps(dict(argv=argv,jobs=jobs,requested_jobs=requested_jobs,
-      binary=str(server_source),sha256=hashlib.sha256(server_source.read_bytes()).hexdigest()),indent=2)+'\n')
+      binary=str(server_source),sha256=hashlib.sha256(server_source.read_bytes()).hexdigest(),
+      test_sha256={n:hashlib.sha256((ROOT/n).read_bytes()).hexdigest() for n in ('tests/gate.sh','tests/flipfix.py','tests/fliplisten.py','tests/r7shadow_sync.py')}),indent=2)+'\n')
  with (dest/'gate.log').open('w') as f:
     rc=subprocess.run(argv,cwd=ROOT,env=env,stdout=f,stderr=subprocess.STDOUT).returncode
  (dest/'returncode').write_text(str(rc)+'\n');print(label,rc,flush=True)
