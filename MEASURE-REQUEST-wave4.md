@@ -307,3 +307,21 @@ not substitute for that comparison. This lane makes **no throughput claim**.
 | Broader concurrent EXEC conservation counterexample from moverfix | Its existing headline/isolated-POST failure is retained as a limitation; the integration runs the registered mover and MULTI/EXEC proofs, not a new counterexample campaign. |
 | C1 invalid-advertised-arity comparison for its 25 enumerated exclusions | Twenty-four variadic commands expose no invalid advertised arity; FLIP has no Redis counterpart. The original C1 inventory records these exclusions explicitly. |
 | Twenty fused differential SORT legs | The unchanged standard differential harness explicitly excludes SORT outside its required split 6:2 geometry. All corresponding split seeds run on both engines; no exclusion was added here. |
+
+## wave4c
+
+Resumes `cx-wave4` at `0d9950d7b`, preserving the maintainer's 685/702 EXPECT
+constants and committed label fixture. Compile-only command-body trials and
+the explicitly authorized selected correctness jobs use CPUs 64–111; live
+listeners use ports 26800–26899. No performance run or push is authorized here.
+
+The starting strict inventory is 8,649 groups: 7,932 headline-identical,
+604 lane-identical and 113 residual. The historical 489-group hot filter has
+17 residuals; the separately expanded 77-group command-path filter has 10
+residuals. Those 10 are **not** counted inside the 17. Both inventories and all
+previously matching groups will be checked when selecting compiler budgets.
+
+`docs/wave4c/time_row.py` times the existing ABBA selftest's exact 15 suite
+commands and individual unittest cases without changing any assertion. This
+initial timing pass has no row watchdog; the final proof will use the gate's
+own `GATE_ONLY_JOBS` interface. Results and final selections follow below.
