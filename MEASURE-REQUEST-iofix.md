@@ -85,6 +85,8 @@ SLEEP row. Every new mode/engine leg ran. PRE hz also attempted file/rewrite/
 reload phases despite the missing knob; PRE sleep attempted every direct,
 EXEC, read-local and R7 variant despite earlier phase failures. The PRE signal
 row reaches the target and fails specifically on the forced save-cron wait.
+`docs/iofix/directed-witness-audit.json` checks each of the 16 PRE failures
+against its intended defect and the matching final POST pass, with raw-log links.
 
 Review then found a late-writer race in the signal eventfd. The new deterministic
 `netcmd config` witness failed all six dispatch variants on that release
