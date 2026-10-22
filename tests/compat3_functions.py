@@ -4,8 +4,11 @@ from compat3_lib import equal, run
 from _lib import Conn, RespError, cross_owner_pair, info
 
 CROSS_KEYS = []
+TARGET_ENDPOINT = None
 
 def prepare(args):
+    global TARGET_ENDPOINT
+    TARGET_ENDPOINT = (args.host, args.port)
     if args.case != "flags":
         return
     c = Conn(args.host, args.port, buffering=0)
@@ -69,7 +72,10 @@ def probe(c, case):
     assert isinstance(failed, RespError), failed
     out["error-effect"] = c.cmd("GET", "k")
     stats = info(c)
-    before_apply = int(stats.get("script_apply_owner_tasks", 0))
+    target = (c.host, c.port) == TARGET_ENDPOINT
+    if target:
+        assert "script_apply_owner_tasks" in stats, "target must expose its APPLY witness"
+    before_apply = int(stats["script_apply_owner_tasks"]) if target else 0
     for name in ("plain_cross", "allowed_cross", "error_cross"):
         reply = c.cmd("FCALL", name, 2, *CROSS_KEYS, name)
         if name == "error_cross":
@@ -77,7 +83,7 @@ def probe(c, case):
         else:
             out[name] = reply
         out[name + ":values"] = [c.cmd("GET", key) for key in CROSS_KEYS]
-    if "script_apply_owner_tasks" in stats:
+    if target:
         after = int(info(c)["script_apply_owner_tasks"])
         print(f"CROSS apply-owner tasks {before_apply}->{after}", flush=True)
         assert after >= before_apply + 4, "both owners must apply both successful/partial callbacks"
