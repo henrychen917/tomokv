@@ -44,7 +44,8 @@ def command_for(job):
                         r':[^\n]*large-unit-insns=(\d+)', make)
     values = {'large-unit-insns': int(current[1])} if current else {}
     for field, option in [('budget', 'large-unit-insns'), ('growth', 'inline-unit-growth'),
-                          ('auto', 'max-inline-insns-auto')]:
+                          ('auto', 'max-inline-insns-auto'), ('size', 'max-inline-insns-size'),
+                          ('early', 'early-inlining-insns')]:
         if field in job:
             values[option] = job[field]
     for option, value in values.items():
