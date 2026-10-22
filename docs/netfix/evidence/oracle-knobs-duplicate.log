@@ -1,0 +1,28 @@
+# 2026-10-23 02:56:32 oracle evidence for tests/knobs.py:59 (duplicate client-query-buffer-limit), exact command as asserted
+## oracle ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746
+> CONFIG SET client-query-buffer-limit 1mb client-query-buffer-limit 2mb
+ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - duplicate parameter
+
+> CONFIG SET client-query-buffer-limit 1mb CLIENT-QUERY-BUFFER-LIMIT 2mb
+ERR CONFIG SET failed (possibly related to argument 'CLIENT-QUERY-BUFFER-LIMIT') - duplicate parameter
+
+> CONFIG GET client-query-buffer-limit
+client-query-buffer-limit 1073741824 
+## pre dd273ba7c7382a7f58fcbc0e030487538dd760ec1aa3e7391698b2d6d83a36fb TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+> CONFIG SET client-query-buffer-limit 1mb client-query-buffer-limit 2mb
+ERR duplicate configuration parameter
+
+> CONFIG SET client-query-buffer-limit 1mb CLIENT-QUERY-BUFFER-LIMIT 2mb
+ERR duplicate configuration parameter
+
+> CONFIG GET client-query-buffer-limit
+client-query-buffer-limit 1073741824 
+## post 9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47 TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+> CONFIG SET client-query-buffer-limit 1mb client-query-buffer-limit 2mb
+ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - duplicate parameter
+
+> CONFIG SET client-query-buffer-limit 1mb CLIENT-QUERY-BUFFER-LIMIT 2mb
+ERR CONFIG SET failed (possibly related to argument 'CLIENT-QUERY-BUFFER-LIMIT') - duplicate parameter
+
+> CONFIG GET client-query-buffer-limit
+client-query-buffer-limit 1073741824 
