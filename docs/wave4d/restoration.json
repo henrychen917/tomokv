@@ -1,0 +1,15 @@
+{
+  "sha256": "766c7d5ec868836fba7dba00f1f52722b763db6bb16539773c1bb2daeca7aa04",
+  "bodies": [
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "strict_equal_moverfix": true,
+      "size": 23221
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+      "strict_equal_moverfix": true,
+      "size": 383
+    }
+  ]
+}
