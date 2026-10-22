@@ -39,20 +39,29 @@ def main():
     pre_text = before.sections[before.names.index('.text')]
     post_text = candidate.sections[candidate.names.index('.text')]
     extra = post_text[5] - pre_text[5]
-    assert extra > 0, 'this text-size control applies to a growing candidate'
+    assert extra >= 5, 'this text-size control applies to a growing candidate'
+    # An assembly input without the original GNU property note disables the
+    # linker's IBT PLT and moves every function. Preserve the PRE feature note;
+    # the unused function itself starts with ENDBR64 and uses an ordinary RET.
+    note = before.sections[before.names.index('.note.gnu.property')]
+    properties = before.data[note[4]:note[4] + note[5]]
     source, obj = directory / 'size_pad.S', directory / 'size_pad.o'
     source.write_text('.section .text.iofix_size_pad_a,"ax",@progbits\n'
                       '.balign 1\n.globl iofix_size_pad_a\n.hidden iofix_size_pad_a\n'
-                      '.type iofix_size_pad_a,@function\niofix_size_pad_a:\nret\n'
-                      f'.fill {extra - 1},1,0x90\n'
+                      '.type iofix_size_pad_a,@function\niofix_size_pad_a:\nendbr64\nret\n'
+                      f'.fill {extra - 5},1,0x90\n'
                       '.size iofix_size_pad_a,.-iofix_size_pad_a\n'
-                      '.section .note.GNU-stack,"",@progbits\n')
+                      '.section .note.GNU-stack,"",@progbits\n'
+                      '.section .note.gnu.property,"a",@note\n.p2align 3\n.byte ' +
+                      ','.join(hex(byte) for byte in properties) + '\n')
     subprocess.run(['g++', '-c', str(source), '-o', str(obj)], check=True)
     command[destination] = str(output)
     command.insert(command.index('-o'), str(obj))
     subprocess.run(command, cwd=cwd, check=True)
     twin = Elf(output)
     assert twin.sections[twin.names.index('.text')][5] == post_text[5]
+    twin_note = twin.sections[twin.names.index('.note.gnu.property')]
+    assert twin.data[twin_note[4]:twin_note[4] + twin_note[5]] == properties
     def functions(elf):
         section = elf.names.index('.text')
         return Counter((s['name'], s['value'], s['size']) for s in elf.symbols
