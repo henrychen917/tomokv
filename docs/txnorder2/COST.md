@@ -55,8 +55,9 @@ cleanup inventory rather than committed.
 * `822d7f310`/`b117daa4d`: remove the eager command clock from a connection
   holding a MultiSession. A successful EXEC takes its age once at admission;
   retries preserve that age. Retry clocks are on the retry path.
-* `48029f52d`/`cc7813c32`: avoid a separate ARRIVE turn for a single-shard write unit;
-  retain the all-owner barrier for a cross-owner write unit. Reduce duplicate
+* `48029f52d`/`cc7813c32`: skip the redundant ARRIVE scan and barrier accounting
+  for a single-shard write unit; retain the all-owner barrier for a cross-owner
+  write unit. Reduce duplicate
   command/key work and avoid a duplicate-index allocation for a one-key child.
 * `bbcbb6252`, reviewed in `8a5d1244a`: remove the duplicate single-key
   preflight. `prepare_write_key` still checks the claim, version and snapshot

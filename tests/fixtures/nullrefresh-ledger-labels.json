@@ -437,6 +437,7 @@
     "txnorder2 WATCH serve",
     "txnorder2 WATCH flush",
     "txnorder2 WATCH readonly",
+    "txnorder2 busy owner inbox wake",
     "txnorder battery (fused, atomic 0)",
     "txnorder battery (fused, atomic 1)",
     "txnorder battery (split, atomic 0)",

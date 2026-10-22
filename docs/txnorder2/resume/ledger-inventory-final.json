@@ -1,0 +1,25 @@
+{
+  "declared": 733,
+  "fixture": 733,
+  "missing": {},
+  "extra": {},
+  "expected_full_unchanged": 702,
+  "required_full": 733,
+  "required_quick": 716,
+  "inventory_only": true,
+  "ledger-source-final": {
+    "command": [
+      "python3",
+      "tests/gate_ledger_fixture.py"
+    ],
+    "exit": 1
+  },
+  "ledger-selftest-final": {
+    "command": [
+      "python3",
+      "tests/gate_ledger_fixture.py",
+      "--self-test"
+    ],
+    "exit": 1
+  }
+}
