@@ -25,6 +25,12 @@ and R7. Snapshot jobs normally select split mode; the extra adapter run supplies
 fused mode while retaining their explicit engine choices. The AOF and shutdown
 jobs already enumerate both thread modes.
 
+The main AOF configuration row explicitly asserts split 6:2 geometry in
+`tests/knobs.py`; it is not relabelled as fused by the adapter. Each AOF job's
+persistfix sub-batteries enumerate both modes, and both network-engine AOF jobs
+are run. The extra snapshot and auth runs supply fused mode only where the
+existing job has no incompatible geometry assertion.
+
 The PRE gate tree contains archived PRE source and its own production units.
 Current new batteries and the changed positive writeback assertion are overlaid.
 The PRE `netcmd_unit.cc` call signature and splitlocal extractor are retained
