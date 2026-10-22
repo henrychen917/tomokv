@@ -1,0 +1,46 @@
+[
+  {
+    "name": "POST-complete",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "25800-25821",
+      "--candidate-binary",
+      "/home/user/Projects/cx-compat3/build/tomokv"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 auth notify notify_order notify_aof scriptfix script_bounds debug-0 debug-1 aclfix acl_recheck clientfix perfio_stream netio-1s netio-2s netcmd_units globcase aof-epoll aof-uring atomic_units atomic_batteries multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1",
+      "GATE_LEDGER": "/home/user/Projects/cx-compat3/docs/compat3/POST-complete.ledger"
+    },
+    "returncode": 0
+  },
+  {
+    "name": "POST-auth-fused",
+    "argv": [
+      "tests/gate.sh",
+      "iteration",
+      "--server-cores",
+      "96-104",
+      "--load-cores",
+      "105-111",
+      "--load-smt",
+      "",
+      "--ports",
+      "25800-25821",
+      "--candidate-binary",
+      "/home/user/Projects/cx-compat3/build/compat3/fused-auth-server"
+    ],
+    "extra": {
+      "GATE_ONLY_JOBS": "auth",
+      "GATE_LEDGER": "/home/user/Projects/cx-compat3/docs/compat3/POST-auth-fused.ledger"
+    },
+    "returncode": 0
+  }
+]
