@@ -5,7 +5,8 @@ ROOT=Path(__file__).resolve().parents[2];DOC=ROOT/'docs/fliplisten'
 arms=json.loads((DOC/'arms.json').read_text())['arms']
 post_sha=arms['POST']['sha256']
 labels=['pre-scored-listeners','pre-all-flip-uring','pre-all-flip-epoll','post-all-flip-uring',
-        'pre-reorder-sync','post-epoch-uring','post-epoch-epoll']
+        'pre-reorder-sync','post-epoch-uring','post-epoch-epoll',
+        'pre-final-diagnostics','post-final-diagnostics']
 rows=[]
 for label in labels:
  p=DOC/'proof'/label
@@ -21,11 +22,14 @@ for label in ['pre-scored-listeners','post-epoch-uring']:
  matrix[label]=r['legs']
  if label.startswith('post-'):
   assert all(x.get('passed') and x['sha256']==post_sha for x in r['legs'])
-stale=[json.loads(p.read_text()) for p in sorted((DOC/'stale').glob('a*.json'))]
+stale=[json.loads(p.read_text()) for p in sorted((DOC/'stale').glob('a*.json'))
+       if not p.name.endswith('.command.json')]
 for atomic in (0,1):
  r=[x for x in stale if x['atomic']==atomic]
  assert r and any(x['positive_stale'] for x in r)
  assert all(x['sha256']==post_sha and x['counts']['arrived']==x['counts']['served']==x['unique_ids']==x['accepted_delta'] and not x['errors'] for x in r)
+ for outcome in ('complete','rollback'):
+  assert any(x['outcome']==outcome and x['witness'] and x['positive_stale'] for x in r)
 fresh=json.loads((DOC/'freshness.json').read_text())
 assert all(x['returncode']==0 for x in fresh['targets'])
 repro=json.loads((DOC/'post-controls/results.json').read_text())

@@ -1,0 +1,120 @@
+{
+  "atomic": 0,
+  "trial": 3,
+  "counts": {
+    "arrived": 4651,
+    "served": 4651
+  },
+  "errors": [],
+  "accepted_delta": 4651,
+  "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29",
+  "unique_ids": 4651,
+  "positive_stale": [],
+  "cancel_windows": [
+    {
+      "epoch": 1,
+      "tid": 4,
+      "native_armed": true,
+      "hold_s": 0.05,
+      "queued": []
+    }
+  ],
+  "flips": [
+    {
+      "reply": "b'OK'",
+      "seconds": 0.10767312441021204
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.02666514553129673
+    },
+    {
+      "reply": "b'OK'",
+      "seconds": 0.01861850917339325
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.029994272626936436
+    },
+    {
+      "reply": "b'OK'",
+      "seconds": 0.022003306075930595
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.027139456942677498
+    },
+    {
+      "reply": "b'OK'",
+      "seconds": 0.01642566453665495
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.03248591814190149
+    },
+    {
+      "reply": "b'OK'",
+      "seconds": 0.02205322589725256
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.031435124576091766
+    },
+    {
+      "reply": "b'OK'",
+      "seconds": 0.016499293968081474
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.030191972851753235
+    },
+    {
+      "reply": "b'OK'",
+      "seconds": 0.022444087080657482
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.026810775510966778
+    },
+    {
+      "reply": "b'OK'",
+      "seconds": 0.016873765736818314
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.028966760262846947
+    },
+    {
+      "reply": "b'OK'",
+      "seconds": 0.021912336349487305
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.024017940275371075
+    },
+    {
+      "reply": "b'OK'",
+      "seconds": 0.016759914346039295
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.02927452139556408
+    },
+    {
+      "reply": "b'OK'",
+      "seconds": 0.0249263821169734
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.023762818425893784
+    },
+    {
+      "reply": "b'OK'",
+      "seconds": 0.019651160575449467
+    },
+    {
+      "reply": "RespError(b'ERR FLIP timed out before the ownership commit')",
+      "seconds": 0.03213406726717949
+    }
+  ]
+}

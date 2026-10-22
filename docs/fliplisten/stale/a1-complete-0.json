@@ -1,0 +1,908 @@
+{
+  "atomic": 1,
+  "outcome": "complete",
+  "trial": 0,
+  "counts": {
+    "arrived": 280,
+    "served": 280
+  },
+  "errors": [],
+  "accepted_delta": 280,
+  "unique_ids": 280,
+  "positive_stale": [
+    {
+      "fd": 133,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 127,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 134,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 34,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 136,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 128,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 36,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 137,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 139,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 130,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 140,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 38,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 132,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 142,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 144,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 39,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 135,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 145,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 42,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 147,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 138,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 148,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 150,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 44,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 151,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 141,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 154,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 46,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 143,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 153,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 48,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 156,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 157,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 146,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 50,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 160,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 159,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 149,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 52,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 163,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 164,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 152,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 54,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 167,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 155,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 166,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 169,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 56,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 158,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 170,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 173,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 172,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 161,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 175,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 176,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 162,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 178,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 179,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 165,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 181,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 182,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 184,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 168,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 185,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 186,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 171,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 188,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 174,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 190,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 191,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 192,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 177,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 194,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 180,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 195,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 197,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 198,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 183,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 200,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 187,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 201,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 203,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 204,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 189,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 206,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 207,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 193,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 209,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 208,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 196,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 210,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 211,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 199,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 213,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 202,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 214,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 217,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 205,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 216,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 220,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 212,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 219,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 223,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 215,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 221,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 225,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 224,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 218,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 228,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 222,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 227,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 230,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 226,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 236,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 233,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 238,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 235,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 229,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 240,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 231,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 242,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 232,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 243,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 234,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 244,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 237,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 245,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 239,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 246,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 241,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 247,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 248,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 249,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 250,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 251,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 252,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 253,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    },
+    {
+      "fd": 254,
+      "old": 1,
+      "current": 2,
+      "stage": "tomo_db0::FlipStage::IoDrain"
+    }
+  ],
+  "witness": {
+    "pid": 2665221,
+    "thread": 8,
+    "tid": 4,
+    "server": 140737488235968,
+    "generation": 1,
+    "current_fd": 32,
+    "queued": [
+      {
+        "fd": 34,
+        "generation": 1
+      },
+      {
+        "fd": 36,
+        "generation": 1
+      },
+      {
+        "fd": 38,
+        "generation": 1
+      },
+      {
+        "fd": 39,
+        "generation": 1
+      },
+      {
+        "fd": 42,
+        "generation": 1
+      },
+      {
+        "fd": 44,
+        "generation": 1
+      },
+      {
+        "fd": 46,
+        "generation": 1
+      },
+      {
+        "fd": 48,
+        "generation": 1
+      },
+      {
+        "fd": 50,
+        "generation": 1
+      },
+      {
+        "fd": 52,
+        "generation": 1
+      },
+      {
+        "fd": 54,
+        "generation": 1
+      },
+      {
+        "fd": 56,
+        "generation": 1
+      }
+    ],
+    "held_stage": "tomo_db0::FlipStage::IoDrain"
+  },
+  "flips": [
+    {
+      "reply": "b'OK'",
+      "seconds": 2.0660504596307874
+    }
+  ],
+  "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+}
