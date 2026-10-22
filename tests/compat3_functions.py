@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""CC4.5/17: library glob discovery and FUNCTION memory flag semantics."""
+from compat3_lib import equal, run
+from _lib import RespError
+
+
+def libraries(reply):
+    if isinstance(reply, RespError):
+        return reply
+    return sorted(reply, key=lambda row: dict(zip(row[::2], row[1::2]))[b"library_name"])
+
+
+def probe(c, case):
+    equal(c.cmd("FUNCTION", "FLUSH"), b"OK", "fresh registry")
+    if case == "glob":
+        for name in ("cc4lib", "cc4alt", "CC4lib", "other"):
+            source = f"#!lua name={name}\nredis.register_function(\"{name}_fn\", function() return 1 end)"
+            equal(c.cmd("FUNCTION", "LOAD", source), name.encode(), "library load")
+        patterns = ("cc4lib", "cc4*", "*", "cc4???", "[cC][cC]4lib", "[^o]*", "none*", "", "cc4\\lib", "cc4*\x00tail")
+        return {str((pattern, code)): libraries(c.cmd("FUNCTION", "LIST", "LIBRARYNAME", pattern,
+                                                        *(["WITHCODE"] if code else [])))
+                for pattern in patterns for code in (False, True)}
+    source = "#!lua name=flags\n"
+    for name, flags, body in (
+        ("plain", [], "return redis.call(\"SET\", keys[1], args[1])"),
+        ("allowed", ["allow-oom"], "return redis.call(\"SET\", keys[1], args[1])"),
+        ("allowed_error", ["allow-oom"], "redis.call(\"SET\", keys[1], args[1]); error(\"after-write\")"),
+        ("read", ["no-writes"], "return redis.call(\"GET\", keys[1])"),
+        ("readonly_write", ["no-writes", "allow-oom"], "return redis.pcall(\"SET\", keys[1], args[1]).err"),
+        ("stale", ["allow-stale"], "return redis.call(\"SET\", keys[1], args[1])"),
+        ("stale_allowed", ["allow-stale", "allow-oom"], "return redis.call(\"SET\", keys[1], args[1])"),
+        ("constant", [], "return 42"),
+    ):
+        flags_lua = ",".join(repr(f) for f in flags)
+        source += f"redis.register_function{{function_name=\"{name}\",flags={{{flags_lua}}},callback=function(keys,args) {body} end}}\n"
+    equal(c.cmd("FUNCTION", "LOAD", source), b"flags", "load flags")
+    equal(c.cmd("SET", "k", "before"), b"OK", "seed")
+    equal(c.cmd("FCALL", "allowed", 1, "k", "control"), b"OK", "before cap")
+    equal(c.cmd("CONFIG", "SET", "maxmemory-policy", "noeviction"), b"OK", "policy")
+    equal(c.cmd("CONFIG", "SET", "maxmemory", 1), b"OK", "cap")
+    out = {"direct": c.cmd("SET", "k", "denied")}
+    assert isinstance(out["direct"], RespError) and out["direct"].message.startswith(b"OOM "), out
+    for name in ("plain", "allowed", "read", "readonly_write", "stale", "stale_allowed", "constant"):
+        out[name] = c.cmd("FCALL", name, 1, "k", name)
+        out[name + ":value"] = c.cmd("GET", "k")
+    for name in ("allowed", "read", "readonly_write"):
+        out["ro:" + name] = c.cmd("FCALL_RO", name, 1, "k", "ro")
+    # Both endpoints must leave completed writes intact on a later Lua error.
+    failed = c.cmd("FCALL", "allowed_error", 1, "k", "partial")
+    assert isinstance(failed, RespError), failed
+    out["error-effect"] = c.cmd("GET", "k")
+    out["cap-restored"] = c.cmd("SET", "k", "must-still-fail")
+    out["cap"] = c.cmd("CONFIG", "GET", "maxmemory")
+    equal(c.cmd("CONFIG", "SET", "maxmemory", 0), b"OK", "remove cap")
+    out["ordinary-after"] = c.cmd("SET", "k", "after")
+    return out
+
+
+if __name__ == "__main__":
+    run(probe, ("glob", "flags"))
