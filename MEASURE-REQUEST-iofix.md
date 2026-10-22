@@ -176,6 +176,23 @@ performance entry and matched nulls; do not silently invent a performance
 ratio. All lane-executed work stays on 80–95. The 18 cells were parsed without
 starting servers; no performance process was launched for this request.
 
+After the maintainer assigns reviewed masks in IOFIX_MERIT_SERVER and
+IOFIX_MERIT_LOAD and supplies the instrument's matched nulls, the comparison
+commands are:
+
+```bash
+common=(--reference-binary "$PWD/build/tomokv-pre" --build-reference 0
+        --cells docs/iofix/merit-cells.txt --subset full
+        --server-cores "$IOFIX_MERIT_SERVER" --load-cores "$IOFIX_MERIT_LOAD"
+        --ports 19800-19899)
+python3 tests/abbagate.py "${common[@]}" --candidate-binary build/tomokv \
+    --output build/iofix-merit-post
+python3 tests/abbagate.py "${common[@]}" --candidate-binary build/tomokv-pad-a \
+    --output build/iofix-merit-pad-a
+python3 tools/wbknobs_measure.py --experiment null --profile 1 "${common[@]}" \
+    --candidate-binary build/tomokv --output build/iofix-merit-pmu
+```
+
 Decision: compare POST with PRE in every cell. A material regression or
 invalid/null failure prevents acceptance. Explain cycles/op as instructions/op
 divided by IPC; fewer instructions alone prove no gain. For the scoped WB
