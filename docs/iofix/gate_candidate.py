@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Gate candidate adapter: supply a default engine/mode to unchanged gate jobs.
+
+Explicit per-job choices win. The actual release ELF is exec'd, with its PID and
+all protocol traffic still owned by tests/gate.sh and its usual batteries.
+"""
+import json
+import os
+from pathlib import Path
+import sys
+
+binary = os.environ['IOFIX_BINARY']
+args = sys.argv[1:]
+defaults = []
+if not any(x == '--net-io' or x.startswith('--net-io=') for x in args):
+    defaults += ['--net-io', os.environ.get('IOFIX_ENGINE', 'uring')]
+if os.environ.get('IOFIX_MODE') == '1s' and not any(
+        x == '--thread-mode' or x.startswith('--thread-mode=') for x in args):
+    if '--ratio' in args:
+        i = args.index('--ratio')
+        del args[i:i + 2]
+    args = [x for x in args if not x.startswith('--ratio=')]
+    defaults += ['--thread-mode', '1s']
+# A config file must remain argv[1]. Subsequent options override it as usual.
+offset = int(bool(args and not args[0].startswith('-')))
+args[offset:offset] = defaults
+command = [str(Path(binary).resolve()), *args]
+if os.environ.get('IOFIX_LAUNCH_LOG'):
+    with open(os.environ['IOFIX_LAUNCH_LOG'], 'a') as log:
+        log.write(json.dumps(dict(pid=os.getpid(), argv=command)) + '\n')
+os.execv(command[0], command)
