@@ -182,7 +182,7 @@ public:
             out.reserve(libraries_.size());
             for (const auto& entry : libraries_) {
                 if (!by_name || command_glob_match(library_name,
-                        Slice(entry.first.data(), entry.first.size())))
+                        Slice(entry.first.data(), entry.first.size()), true))
                     out.push_back(entry.second);
             }
             return true;
