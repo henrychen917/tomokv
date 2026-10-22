@@ -1,0 +1,3 @@
+{"atomic": 0, "config_executions": 294, "counters": {"atomic_group_barriers": 0, "atomic_group_dooms": 0, "atomic_group_retries": 1, "atomic_group_wounds": 1, "atomic_txn_attempts": 163656, "atomic_txn_blind_restarts": 258, "atomic_txn_dooms": 0, "atomic_txn_executed": 104013, "atomic_txn_intents": 37344, "atomic_txn_intents_live": 0, "atomic_txn_order_violations": 0, "atomic_txn_place_waits": 904684, "atomic_txn_readonly": 0, "atomic_txn_retries": 1061, "atomic_txn_waits": 3187, "atomic_txn_wounds": 803, "atomic_txn_writer_marks": 9942, "atomic_txn_writer_waits": 23285}, "delivered": 20000, "executions": 104013, "mode": "1s", "ping_max_seconds": 0.021894962526857853, "produced": 20000, "row": "c"}
+PASS c
+PASS armed

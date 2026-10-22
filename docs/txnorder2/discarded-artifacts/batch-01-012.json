@@ -1,0 +1,602 @@
+[
+  {
+    "path": "paths-final-before-mset/session/pre-db0-2s-MSET-ranges.json.gz",
+    "bytes": 20731,
+    "sha256": "cae80d74a1fe66d803f1b146a1bb4f580e1b99e76792d26700a565d849f6e867",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-db0-2s-MSET-trace.json.gz",
+    "bytes": 1780,
+    "sha256": "cc7b8892b4008339a6341012c8a802466a21a1a9d8699e1965b6dc19c8e0f5f8",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-db0-2s-SET-ranges.json.gz",
+    "bytes": 20730,
+    "sha256": "67a6c47d84972a735bc2348914cdc207d0e31ffdfe863cbce9257b4639fc43e3",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-db0-2s-SET-trace.json.gz",
+    "bytes": 1596,
+    "sha256": "6c8cd5ad677cf0fdda673cbd17ac5bb3e197fe1d15863b16b61e339ff2e79a67",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-1s-GET-ranges.json.gz",
+    "bytes": 20602,
+    "sha256": "2dbf5e161e9fbbdf31ef184d2ca5f0a5e983e3a96576f51821b43e6ecc600789",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-1s-GET-trace.json.gz",
+    "bytes": 1526,
+    "sha256": "d0345883b1f5b1f92770354586e9793e29449620446e12c2eaa633de9e1b829c",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-1s-MGET-ranges.json.gz",
+    "bytes": 20603,
+    "sha256": "e8bd58ad200ac5303c89c5450ea1712729b7a81d8d495ff8c3f1408f9bc5fcb7",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-1s-MGET-trace.json.gz",
+    "bytes": 1710,
+    "sha256": "2bdf58ea0dbc6f54142b651d35ca809e53d9b12d2f1cf4351d515c1b1485bf44",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-1s-MSET-ranges.json.gz",
+    "bytes": 20603,
+    "sha256": "28aebe6d85ac5d2bf1ae606b278dd5d1c1bdae0b156ca075e3cc5277eaa64537",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-1s-MSET-trace.json.gz",
+    "bytes": 1710,
+    "sha256": "d578e1d878d5476f733db7268ca10be42f76f19aef912f5d045f10a3ddded6f8",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-1s-SET-ranges.json.gz",
+    "bytes": 20602,
+    "sha256": "6ed67bfd2d985f497158d32c07958990e3188d9978d31fa5a5e5cc7a64bf68c6",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-1s-SET-trace.json.gz",
+    "bytes": 1526,
+    "sha256": "94fd25d7f691bbbd3f46b3560139110249383d831e2e24da7fb98bf5c1558c97",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-2s-GET-ranges.json.gz",
+    "bytes": 20602,
+    "sha256": "62123eaf3081a22f974e828fbea391ca4d7bffbc593b594d115d30fba2e88b47",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-2s-GET-trace.json.gz",
+    "bytes": 1526,
+    "sha256": "a6e5a686e3a232d0fee5a2d94c384027d46808bec07fa07b2f5086aaf9b05e9b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-2s-MGET-ranges.json.gz",
+    "bytes": 20603,
+    "sha256": "7ea84416e89cf297c0b7e1e00847cec56e121a0f9ddf2134e4be4a86a46ac593",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-2s-MGET-trace.json.gz",
+    "bytes": 1710,
+    "sha256": "a7f7552c36167915a0cc553cec1eb041e04f7815a85f4c5989a61173dab00771",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-2s-MSET-ranges.json.gz",
+    "bytes": 20603,
+    "sha256": "3f3df2072323a901d9d00b58def74f6d475359fb29d04def2d0758c5244ea502",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-2s-MSET-trace.json.gz",
+    "bytes": 1710,
+    "sha256": "71bc61f40a65ecbb3cb0d188fcc6fc6228fb5b65ac246f8e5a2533a1304283cb",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-2s-SET-ranges.json.gz",
+    "bytes": 20602,
+    "sha256": "97591542b1fcbe78d7efea741ae94c68192dff9054709fc7738c24abd0b1b436",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-mset/session/pre-normal-2s-SET-trace.json.gz",
+    "bytes": 1526,
+    "sha256": "649d5f085d807b77bba934d42bf465b0cd968a798dfaa6d47328b8266379ff99",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-1s-cross-ranges.json.gz",
+    "bytes": 23395,
+    "sha256": "9caf02a33849645b825f39465212d5bea734d0254289ce23c9c923bde09ff58b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-1s-cross-trace.json.gz",
+    "bytes": 161505,
+    "sha256": "ae60c622336923c99250e77892c7f6746942837f436de9043bdb7aa154b68fec",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-1s-cross.log.gz",
+    "bytes": 140314,
+    "sha256": "b4727c18313c38f0545dc6f6b7a9e5c0817e095ee4aabdcef61702c2e8c5ef1e",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-1s-single-ranges.json.gz",
+    "bytes": 23396,
+    "sha256": "75238b26a5765e1870728de2714f80322d1ef23df0ee8d81d86713684844dafd",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-1s-single-trace.json.gz",
+    "bytes": 152039,
+    "sha256": "7fd4c40c0f6d56dbdfec34c8988843291ee3ce627065ad6d63ca00fe8eff28fe",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-1s-single.log.gz",
+    "bytes": 126329,
+    "sha256": "cac840a2fb04c2028e856c29ea3210b769ea71a529e045b679b1ed7277a4d0b6",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-2s-cross-ranges.json.gz",
+    "bytes": 23395,
+    "sha256": "09c9ab8b81c1581eb0c676e07b58899f515913a46ec478e552fe46fc7ef240cc",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-2s-cross-trace.json.gz",
+    "bytes": 162231,
+    "sha256": "44831977792086bbd55da0fe14fd48474afa9d4a0699a4558f90747ae5200947",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-2s-cross.log.gz",
+    "bytes": 140610,
+    "sha256": "7170e49fba44fc52c93e64ed732e552354790092e72d312ea7c5785a16292d90",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-2s-single-ranges.json.gz",
+    "bytes": 23396,
+    "sha256": "662542561938439c9c059afcfd9d220083931ef463a63d3c1f608303e5ee2058",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-2s-single-trace.json.gz",
+    "bytes": 152387,
+    "sha256": "465d4a9693e6208787dd2ff07859695f21df38268b1fa6cbb07de706769d23fa",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-db0-2s-single.log.gz",
+    "bytes": 126508,
+    "sha256": "a041e195a19daa52b236b230cedb01cfb3d6961eed82f7cf66a1099d20efa1ac",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-1s-cross-ranges.json.gz",
+    "bytes": 23157,
+    "sha256": "1cf6de610e6a5e949db5bd0f7820646c1da7363061ce448035497a50dab5a73c",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-1s-cross-trace.json.gz",
+    "bytes": 165204,
+    "sha256": "3d6cf8d5275098e6e6db3e4657904c75a4a32f3a3a5aed559ed02ddd06be667b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-1s-cross.log.gz",
+    "bytes": 144442,
+    "sha256": "708bcfb7e18a0d0e6edf0679dacfbc985786e1818dafa2f41c4a01e26127df52",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-1s-single-ranges.json.gz",
+    "bytes": 23158,
+    "sha256": "26175eda4ba6df480fb36502cd52679598e8c63ace972e1b1edf8cc596f4575c",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-1s-single-trace.json.gz",
+    "bytes": 155136,
+    "sha256": "3b7085b52a028df469002cc7829e1c668dc90e6b5ade4d30d80c00a6b696de8f",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-1s-single.log.gz",
+    "bytes": 129668,
+    "sha256": "159a70327f9bc7f2f1f1da5639cfa386f35fde8826d80e29fdcd5d6c179198ed",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-2s-cross-ranges.json.gz",
+    "bytes": 23157,
+    "sha256": "5a3d7a5d68e0037bf9c3942bbc12e034dadda7a62b5c6bdb199208f66ae8adb6",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-2s-cross-trace.json.gz",
+    "bytes": 165894,
+    "sha256": "79aef75525b0c975b9d3d98fcbf58ca1997b4dda4f745e2ca913772ded1b89e9",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-2s-cross.log.gz",
+    "bytes": 144764,
+    "sha256": "efc459b5078a537f6e4bb879db6a0632014f84159d90118916b40d361cf33d66",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-2s-single-ranges.json.gz",
+    "bytes": 23158,
+    "sha256": "875a4406dd782e83aa7b2dcb29e2e4fed2291e94701ed74497ce7782382a644b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-2s-single-trace.json.gz",
+    "bytes": 155484,
+    "sha256": "3239941c56483ea0c6201b8abd6a8d4fb222ee01296cc5d1e12744e90c0da056",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/post-normal-2s-single.log.gz",
+    "bytes": 129843,
+    "sha256": "ec1183738d64af8166fb4b844eb741cdc337b2a64c17a53f5e78283d44188b2a",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-1s-cross-ranges.json.gz",
+    "bytes": 20718,
+    "sha256": "12354c8f36d6d7ca16c25f7e5e1a6d75ffbd305aa9c38c4aa450bdb2f81e5ea6",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-1s-cross-trace.json.gz",
+    "bytes": 86727,
+    "sha256": "38a4406adbaa3820622fc6544ad928c838836032aac51d7697584fd68b2184af",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-1s-cross.log.gz",
+    "bytes": 86492,
+    "sha256": "5e14eef9de1ec67bd238a216a1b1288f18e4493e3707011f6f2f6d8e331ead06",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-1s-single-ranges.json.gz",
+    "bytes": 20719,
+    "sha256": "abc738cd5d87e956c86bdd35d9800f56a1510c8dcdd21c29b7aa136f9a1a54aa",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-1s-single-trace.json.gz",
+    "bytes": 82192,
+    "sha256": "96d5d587f8f44b5fa679b5b13942f35e610e4ffbf1b63caf7883f51a41fcb752",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-1s-single.log.gz",
+    "bytes": 80967,
+    "sha256": "ff6fb4d9cab07832e65c356f5f20b0b9f2363f901c6676c45b81cec65d957c3e",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-2s-cross-ranges.json.gz",
+    "bytes": 20718,
+    "sha256": "1e29510e545cdcd9e7d5c0078754c69f112b02a6d8d88d73724389b80469d0f7",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-2s-cross-trace.json.gz",
+    "bytes": 87381,
+    "sha256": "39f5cc823338823fc8a33b2642764d6b9cdc51902acf52bb456547d947f58115",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-2s-cross.log.gz",
+    "bytes": 86847,
+    "sha256": "c2dac7e1019a25685767879296a38b1e0d70c12f782a28e9b395b377ab1f95c7",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-2s-single-ranges.json.gz",
+    "bytes": 20719,
+    "sha256": "9ed2ebe1d034ac6af5aa104f1c7121e48985701f9ebf0554bbb8f6bc6c0e1f4d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-2s-single-trace.json.gz",
+    "bytes": 82507,
+    "sha256": "1d8dd94a9c3b2e2f53ce0fa02d074e4bbda00da472def192ac9dde52f658029b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-db0-2s-single.log.gz",
+    "bytes": 81166,
+    "sha256": "4e9dcd8a5912effbfa885f8a33516e021cc2c93fde3e21db3cb412d58e133d9e",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-1s-cross-ranges.json.gz",
+    "bytes": 20661,
+    "sha256": "4052b421020f33f57ca7d07ecabead7fc984cffd46873cdd2aebe703cd225db3",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-1s-cross-trace.json.gz",
+    "bytes": 89046,
+    "sha256": "64cfc565a53c5e8db7491feee8bef39e199526b96cb7f78e10a99fe5d474e95a",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-1s-cross.log.gz",
+    "bytes": 89331,
+    "sha256": "f6345e26b23d11b2e515e64d0eaa2c128480434298c9c1bafbd7f92420d5281b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-1s-single-ranges.json.gz",
+    "bytes": 20662,
+    "sha256": "de6e88e4ac1de40e066d8a99c304c9fb6e1283f1111dc5fc797833d5035b8644",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-1s-single-trace.json.gz",
+    "bytes": 83928,
+    "sha256": "11f6fed96c89ff9bb4e33de51fcf2172507b039c9132fdc7afc61b82c0305cfa",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-1s-single.log.gz",
+    "bytes": 83323,
+    "sha256": "5f1d80caa51186f399ab8aeec96b4c051fb06429f30de49b0d8d170de50a98d9",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-2s-cross-ranges.json.gz",
+    "bytes": 20661,
+    "sha256": "8fe7d779900dd86fdc0f89c8385ab1e6cf8683d0d3986a004f4707ac68758af6",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-2s-cross-trace.json.gz",
+    "bytes": 89711,
+    "sha256": "d75d53bbe0b729e09ba2942c75621c29f0e983dd3fb1c9bdeed5d7c9cff07ae9",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-2s-cross.log.gz",
+    "bytes": 89726,
+    "sha256": "728584b0f4b523a78aabeb49a5cf8c45ce6087cae704aa18c0ed49b2e4a95098",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-2s-single-ranges.json.gz",
+    "bytes": 20662,
+    "sha256": "c4a82e13c975a2023245e4280b08cd4e7112ada49732c690b925663cf42681af",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-2s-single-trace.json.gz",
+    "bytes": 84263,
+    "sha256": "9ddb1e14ae176c732ecd1ab53ff6d60ffbbac69cc35ba4b45769600604d6537f",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/exec/pre-normal-2s-single.log.gz",
+    "bytes": 83544,
+    "sha256": "24447c50b8c8001e69f75aff28cc6cf88c4a988a299e3ef03a497b6debaddedb",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-1s-missing-ranges.json.gz",
+    "bytes": 8499,
+    "sha256": "e1527c0ecd29c0626463721c436eba453f204871b9c067bc6a7d909219b24997",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-1s-missing-trace.json.gz",
+    "bytes": 32958,
+    "sha256": "d5ec7956b41da5c0557c142cbb3c5ec049c50eacb7207245f80bf6f2cdcd7519",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-1s-missing.log.gz",
+    "bytes": 18093,
+    "sha256": "66955fddc8396b10c1690870a0e921dd6192d01a60a5aaf5a34d55c0d68dc4ce",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-1s-present-ranges.json.gz",
+    "bytes": 8499,
+    "sha256": "9930f0d5195e7714e574bf91d6ed6d624c31facbc07772f5890c6dfb3bfb5532",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-1s-present-trace.json.gz",
+    "bytes": 33967,
+    "sha256": "7872f1b121a0598924fc5faf50b9bfb035e882a1f49a10c83dbc293ed8818522",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-1s-present.log.gz",
+    "bytes": 18796,
+    "sha256": "cde51847f4e16c326ea5ac50feb509047a3726b32539a727b3387d884fdf6ee9",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-2s-missing-ranges.json.gz",
+    "bytes": 8499,
+    "sha256": "77e89503d2659ce915ecd5c32d1a35cbec3a2dcc6c845d0c620f7eb2b9445e97",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-2s-missing-trace.json.gz",
+    "bytes": 32938,
+    "sha256": "9b9612802dcfb9e7143a88471db22860e686f0dfc9652476492e5f5ff794b7b5",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-2s-missing.log.gz",
+    "bytes": 18099,
+    "sha256": "f750bc35a3894168a9c29e7e31ceb26b70b4f3273ce5912ef105b95e90236ea5",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-2s-present-ranges.json.gz",
+    "bytes": 8499,
+    "sha256": "d4e19e3897e8609cb421aaa324003c99a758f5b40beee459725d6ec652d66230",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-2s-present-trace.json.gz",
+    "bytes": 33950,
+    "sha256": "3f9d58889248d296e01941d7623f582554146092504f52c60586862156e24007",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-db0-2s-present.log.gz",
+    "bytes": 18802,
+    "sha256": "63651beecb49561a56ce70b62b1df2b56b20936ac18224be128a6a3ea352b406",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-1s-missing-ranges.json.gz",
+    "bytes": 8370,
+    "sha256": "be58a39ed9fceff224247b3f7f1d65d5cf22475b6f6ad1fbc0c54736470b3465",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-1s-missing-trace.json.gz",
+    "bytes": 32113,
+    "sha256": "8fb5aca284592201eb3e41b89cb39a25b107ed20947a42a2b1cda3fecb4d0146",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-1s-missing.log.gz",
+    "bytes": 17781,
+    "sha256": "0cf520ae31d64685113a331d98c74eccda42fdfcd108e6599b764548afa1af2a",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-1s-present-ranges.json.gz",
+    "bytes": 8370,
+    "sha256": "3347a2626cfe7f39a8db0a9584728980f2bf3e6823fb1aa3a10212c150727294",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-1s-present-trace.json.gz",
+    "bytes": 33151,
+    "sha256": "348a259872c671b04fab6d4dfcabc2e32921dbfe5d03c55ecce974bbf3cb6514",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-1s-present.log.gz",
+    "bytes": 18490,
+    "sha256": "29f37ff26061afd1b7935b30f6e9cb972cf8f0da3d1eefa8a2ab34ef4466a677",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-2s-missing-ranges.json.gz",
+    "bytes": 8370,
+    "sha256": "e5a1f9793b4d954cb0b5c39aa0c5178ee551050020f2abad5d55355057f38e29",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-2s-missing-trace.json.gz",
+    "bytes": 32102,
+    "sha256": "3fecf5e874e252c8e6f772c825e80110915b0923d1ad084f573af420a88f9005",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-2s-missing.log.gz",
+    "bytes": 17796,
+    "sha256": "2b2cdb6cb72f801fbe236f372d2ff8474ea84da1bc5c6f6ff006a13abb6e93c6",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-2s-present-ranges.json.gz",
+    "bytes": 8370,
+    "sha256": "543074591bb8bb916914161dfa8237f59125b08ed8db802fb5c14c996289c09d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-2s-present-trace.json.gz",
+    "bytes": 33140,
+    "sha256": "8da57dd0d705474ff592cc7963fab54076f3b659710eb74e65c21ea917c0b1ba",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/post-normal-2s-present.log.gz",
+    "bytes": 18513,
+    "sha256": "039d123067d10f3e9f3d0110c14b87386c28eb2c5a83f8d40865a031b017bc1a",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/pre-db0-1s-missing-ranges.json.gz",
+    "bytes": 7523,
+    "sha256": "5246aecf461636797d9475e74ad4727f07214c6246d0d47520082d948d9f42af",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/pre-db0-1s-missing-trace.json.gz",
+    "bytes": 33530,
+    "sha256": "f94008256dc58eebcea4ac77678790354a3598f7e761fd0a27c7ddb2e314ad4b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/pre-db0-1s-missing.log.gz",
+    "bytes": 18358,
+    "sha256": "fe9889f4656f674199062ba3d6994410fcd2ac25f4f0e176a798eca438bc3f04",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/pre-db0-1s-present-ranges.json.gz",
+    "bytes": 7523,
+    "sha256": "c7d364bac09ab022db6c0817247073b60659b2449dfdfa34042f29fdc04056bf",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/pre-db0-1s-present-trace.json.gz",
+    "bytes": 34540,
+    "sha256": "7a125a69f3167df0b47fe1f0840af2b972e9914965251faecb1ab011865e2aa9",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/pre-db0-1s-present.log.gz",
+    "bytes": 19042,
+    "sha256": "f7a7b8604cd3f4672d2c3cc307b1f41339d0b2b8d7bfb71b260038f027183d70",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/pre-db0-2s-missing-ranges.json.gz",
+    "bytes": 7523,
+    "sha256": "324a9abd65fe06a11ac79d184b5989a0144a2e87808c6cafd99a58973754ba5a",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final-before-trim/mget/pre-db0-2s-missing-trace.json.gz",
+    "bytes": 33507,
+    "sha256": "8c108a3a0633905452e1c08f7fc02ac17f5126266f7f97ef1cb4af7ff6bbff46",
+    "reason": "binary or compressed generated artifact"
+  }
+]

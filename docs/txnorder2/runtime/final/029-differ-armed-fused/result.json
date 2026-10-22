@@ -1,0 +1,38 @@
+{
+  "index": 29,
+  "name": "differ-armed-fused",
+  "arm": "post",
+  "status": "PASS",
+  "row": {
+    "name": "differ-armed-fused",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+      "27801",
+      "27802",
+      "64-71",
+      "6:2"
+    ],
+    "env": {
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_LOAD_CORES": "85-95",
+      "GATE_DIFFER_ORACLE_CORES": "84",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-txnfix/docs/txnfix/differ-suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-txnfix/docs/txnfix/differ-seeds.txt",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-txnfix/build/txnorder2/runtime-data-final/legacy-final4-proof-data/differ-armed-fused"
+    },
+    "arm": "post",
+    "family": "final4-proof",
+    "source_parameters": "docs/txnfix/txnfix3/final4-proof/runs.json",
+    "status": "PENDING owner run on final SHA"
+  },
+  "started": 1792669748.3753605,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+  "sha256": "d2c95f883c66e049ed87823afc31d7b7c833ab34f85acb7c12b38a61254aad33",
+  "returncode": 0,
+  "finished": 1792669781.9421756
+}

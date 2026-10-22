@@ -1,0 +1,602 @@
+[
+  {
+    "path": "paths-final2b/mget/post-normal-1s-present-ranges.json.gz",
+    "bytes": 8356,
+    "sha256": "5af76a33039b8a9b929f607aa05bd4361bcbd06ac9ec26f6727b41e13499696e",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/post-normal-1s-present-trace.json.gz",
+    "bytes": 33155,
+    "sha256": "2c86b988ca33624d239a6a69ce80f6494c9140401116ed6eb9f53a8716b83c32",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/post-normal-2s-missing-ranges.json.gz",
+    "bytes": 8356,
+    "sha256": "60c22cbc19e7c1e6b7ead019f3c21bc167ed611bb9bd70c0197c2953f0cc836a",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/post-normal-2s-missing-trace.json.gz",
+    "bytes": 32092,
+    "sha256": "ff6021286439eb3148d1dc5cd07150312f00a642004264f3cfd6c81543b16c8f",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/post-normal-2s-present-ranges.json.gz",
+    "bytes": 8356,
+    "sha256": "b8d88af124a8a4970b95a3a03a6ccd8e8cd13d8974f4fa214dba09f1de4ccf79",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/post-normal-2s-present-trace.json.gz",
+    "bytes": 33141,
+    "sha256": "af515e0add9a07a15d055e3cc40db18d25707c9ad1187656d7a9c0f173916289",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-db0-1s-missing-ranges.json.gz",
+    "bytes": 7523,
+    "sha256": "29929d8d26a58bc746dc296bdcd7f13dc3fe0861a3353b0cd8d5147c35ec2dbd",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-db0-1s-missing-trace.json.gz",
+    "bytes": 33530,
+    "sha256": "24969b92ddf42cb43db2f0e6ab3bf10b9c0276d7ee1aa66d8315d17273965f66",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-db0-1s-present-ranges.json.gz",
+    "bytes": 7523,
+    "sha256": "21644d433fd1716c15962b6f9b315c19d159ddec5db7dd26e1c75e807b138b20",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-db0-1s-present-trace.json.gz",
+    "bytes": 34540,
+    "sha256": "3cd7355264a6afd0906f12bf9919c3e77f07589967173d40e9cbf827ef12b171",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-db0-2s-missing-ranges.json.gz",
+    "bytes": 7523,
+    "sha256": "439c86be1f782d3e87b31688e18bc53eb4a4a745116769e07cc2fcfaf1a28673",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-db0-2s-missing-trace.json.gz",
+    "bytes": 33507,
+    "sha256": "c6f38ef58b6534cfdac700119c2d0d337e5e2eb8b7b293ca7fec3e926da777e5",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-db0-2s-present-ranges.json.gz",
+    "bytes": 7523,
+    "sha256": "217bea32a321841c73b291a13d0df0ffd0ea85927c7932701cf7e10da4208e59",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-db0-2s-present-trace.json.gz",
+    "bytes": 34516,
+    "sha256": "33ed9030ad171bbf28ecd52332c99b1e5d91dba441b98305fe265390235ce93d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-normal-1s-missing-ranges.json.gz",
+    "bytes": 7331,
+    "sha256": "33f06942366116a27e7cda342c459e7f021d255f9cf052d9516436119d730be7",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-normal-1s-missing-trace.json.gz",
+    "bytes": 32466,
+    "sha256": "57efd494c6195ec2ef236dd2648389696aff52dd0d76a589fbb09a349d444266",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-normal-1s-present-ranges.json.gz",
+    "bytes": 7331,
+    "sha256": "06cd7702e484828ae46a32689157918f09e682bc416e2b1ef5fc5dec6f1010d7",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-normal-1s-present-trace.json.gz",
+    "bytes": 33507,
+    "sha256": "eb849029311835d2296e7ce8497d40cb70d76fb82a9a1a435f521bf8e8c2c944",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-normal-2s-missing-ranges.json.gz",
+    "bytes": 7331,
+    "sha256": "a4021ef524de35ea9ecc709e51e9ce1d2bb7247be86b3db120dc882eecc08bbb",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-normal-2s-missing-trace.json.gz",
+    "bytes": 32443,
+    "sha256": "3a6e7e71504c9d9ab5b8463edebbc897f63071a34975e9a8bc841c30453403fb",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-normal-2s-present-ranges.json.gz",
+    "bytes": 7331,
+    "sha256": "1dab24d465c386e3a53cbbddee66c9624e752758539136f56f43fe75afbedf42",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/mget/pre-normal-2s-present-trace.json.gz",
+    "bytes": 33482,
+    "sha256": "d6523950cc492667780556a9caad907d873fcfb9e6adf860546b0bed36474ac7",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-1s-DEL-ranges.json.gz",
+    "bytes": 8504,
+    "sha256": "8a07aad92ec0ab05adf98926f75b6018b9c2390a08687511eff477f0718444c8",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-1s-DEL-trace.json.gz",
+    "bytes": 18451,
+    "sha256": "8cd6efa8f139fb2e0aedc2c75ea137b858a27094eab0daf56f45f2c13e00a309",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-1s-MGET-ranges.json.gz",
+    "bytes": 8505,
+    "sha256": "b5a6b33284f2a6aefe3350adcac3098abe08d328d8c16b9ec1ec94ff4c212f51",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-1s-MGET-trace.json.gz",
+    "bytes": 20594,
+    "sha256": "dee2cc53bda01ec32203fe0288c6de5547ec0b2cbd9239f9dc43189bf051ae24",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-1s-MSET-ranges.json.gz",
+    "bytes": 8505,
+    "sha256": "862969492b3aac236239244da005cc7e72190566835e86960e4980f0d8981626",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-1s-MSET-trace.json.gz",
+    "bytes": 18722,
+    "sha256": "82d86bfb46d9ae5d6956a4d0061c066f9afff653fd02952de3bdb686645cd85f",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-1s-UNLINK-ranges.json.gz",
+    "bytes": 8507,
+    "sha256": "eb88134bd6a9a4bf1517d8e1bf594402f6077f0486508d1829d71558e2b29158",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-1s-UNLINK-trace.json.gz",
+    "bytes": 18454,
+    "sha256": "e37fb6328d80431d144b0d312f394a757102c8fe5722f5b63eca949a1444d1db",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-2s-DEL-ranges.json.gz",
+    "bytes": 8504,
+    "sha256": "b1f5c221779ee2c99da35598503521be29548ec4fd16c21daeb794db2922c6c2",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-2s-DEL-trace.json.gz",
+    "bytes": 18451,
+    "sha256": "20218b4b39deadd62ac6da25f3e5eb38acd1d30b3dd1a6f9323f5eb7588ae250",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-2s-MGET-ranges.json.gz",
+    "bytes": 8505,
+    "sha256": "4d03769041e5aa80d62305502bf63ceb8e0072a17e538b58170e1508d25c91d5",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-2s-MGET-trace.json.gz",
+    "bytes": 20594,
+    "sha256": "16a306eb0e07dba8c567db763ea0b173577b04b979ad5e47029cf77fed48be98",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-2s-MSET-ranges.json.gz",
+    "bytes": 8505,
+    "sha256": "e5c3566553f903ea093de07c331c35980bbb1e6e4e10d28cb96b62db0ef100fe",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-2s-MSET-trace.json.gz",
+    "bytes": 18377,
+    "sha256": "63c291170c7ba33d3ec359023d25c1b6d3844dcaa6bcb12ef6eae50d436b7b6d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-2s-UNLINK-ranges.json.gz",
+    "bytes": 8507,
+    "sha256": "0d755640279d55fcfacad3c9049f22518fd01f1572aefee5deb6d14308a575b6",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-db0-2s-UNLINK-trace.json.gz",
+    "bytes": 18454,
+    "sha256": "112eba1eae749191127d959a8ac320a56ebb007709700ad7ddb1d4eeee239bbe",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-1s-DEL-ranges.json.gz",
+    "bytes": 8356,
+    "sha256": "1e8203e72fae52162e270665bb6ee213c5122fdc01776b17beef1dfae0a41766",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-1s-DEL-trace.json.gz",
+    "bytes": 18038,
+    "sha256": "818f3fecb84103b0a6be3a50853fd513b009e8a6527456f7b4ded5d974f4821e",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-1s-MGET-ranges.json.gz",
+    "bytes": 8357,
+    "sha256": "f88235f68f37f2bed6fe373e7790278661cb6a1770c57cd164d9f160d7dae2fc",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-1s-MGET-trace.json.gz",
+    "bytes": 20089,
+    "sha256": "9a15b30303e5872191cecdca549a78324ee7dbfcc4f71ca1d34df75e9aa3b60d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-1s-MSET-ranges.json.gz",
+    "bytes": 8357,
+    "sha256": "a534d6aaf9d26839bd4d648fa2844f83d271f8ee2b9a4d421b121bf37a3c95de",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-1s-MSET-trace.json.gz",
+    "bytes": 18351,
+    "sha256": "9415e2c93bb89fb2bb9eac6efa43d95d3714d22c86b05745c1801733fa5a64a3",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-1s-UNLINK-ranges.json.gz",
+    "bytes": 8359,
+    "sha256": "938ee4e2427d7efb7beb97d0816c941271ea31cb302c9ee95e07d33bce49bff1",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-1s-UNLINK-trace.json.gz",
+    "bytes": 18041,
+    "sha256": "f0961e60a84a81db96a42387f12ed167efd61fe67d333d1edea1aeac7bc838ce",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-2s-DEL-ranges.json.gz",
+    "bytes": 8356,
+    "sha256": "d45d1c88f3de9e3e1fbc2ef1daa0d066f7eb588dad785bb818380fc44ee0955e",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-2s-DEL-trace.json.gz",
+    "bytes": 18038,
+    "sha256": "e3b470f5e9012088f5ef0b4396467e68d2ac9c1905a752b3e6a4b0fbfe8cab85",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-2s-MGET-ranges.json.gz",
+    "bytes": 8357,
+    "sha256": "b1c73fcff7f3ca3aa6fa32405051dfbfcfeaf0a0d86fb45e2e5fccbad9a9802a",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-2s-MGET-trace.json.gz",
+    "bytes": 20089,
+    "sha256": "951393633757b5f1eb28f1d5300220d08d174adfbdb83f72f779df661985f6cc",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-2s-MSET-ranges.json.gz",
+    "bytes": 8357,
+    "sha256": "b6093f61229e48960baea0bdd8deffb2b0c1c95512ce6d1a68ffe8e74a4a43ad",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-2s-MSET-trace.json.gz",
+    "bytes": 17975,
+    "sha256": "953ee2e43f06583aad1f3ace623f581f44fc3744a3f7291cf7ad4831e273a29d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-2s-UNLINK-ranges.json.gz",
+    "bytes": 8359,
+    "sha256": "798afb4aee978fdf23f669e883ef3eb2eea0b470b63ff0ce9d5819a77a654d6d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/post-normal-2s-UNLINK-trace.json.gz",
+    "bytes": 18041,
+    "sha256": "13d9b083c50b4b3ca1143b65bfd19e3bd8db4b1b0c2550cbbabf14e102fe6f50",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-1s-DEL-ranges.json.gz",
+    "bytes": 7513,
+    "sha256": "ad788f1befb13c4460547b9fa6f2b0212a815121596588580aec154ff7eee33b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-1s-DEL-trace.json.gz",
+    "bytes": 18956,
+    "sha256": "895ee4e071ce64be68fb99f0d5ce97d129ba21c01495998175c08abf05ecd3b2",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-1s-MGET-ranges.json.gz",
+    "bytes": 7514,
+    "sha256": "365a7bfca1be985311f9bd52b0e88d0584a039e15be3122439a19b4d2bb247c5",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-1s-MGET-trace.json.gz",
+    "bytes": 21094,
+    "sha256": "cbdcb3815046c3d52ea9637c9b1779b589f67b53379e68645de58aa2887af92a",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-1s-MSET-ranges.json.gz",
+    "bytes": 7514,
+    "sha256": "68929cbb644147274bcb63e8e7f66a8de4e1cef6949059ab82c329b3c80af5e0",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-1s-MSET-trace.json.gz",
+    "bytes": 19243,
+    "sha256": "fa3a0e94492b58869699c63464f7a8a19e1f7eae1c078ef35d989d0df25d7b1d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-1s-UNLINK-ranges.json.gz",
+    "bytes": 7516,
+    "sha256": "920822d506ddba300875259c183859e7994d19f530fcc51eea3f15f3bced8d1d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-1s-UNLINK-trace.json.gz",
+    "bytes": 18959,
+    "sha256": "ee86e3b28238c70e5a2abff9bcdb263a3f21c86ceb4b1b8484ac3ca5e080273d",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-2s-DEL-ranges.json.gz",
+    "bytes": 7513,
+    "sha256": "d9a9199c852df53989b4bb008f2b7b540576375706b781338ea457ac839745af",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-2s-DEL-trace.json.gz",
+    "bytes": 18956,
+    "sha256": "17a948de505bd5c6d4d8c77f02c29f370dd9a39e3554a4e58cf9326e963659cf",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-2s-MGET-ranges.json.gz",
+    "bytes": 7514,
+    "sha256": "ac7b5c25bf64b62667435e12e3a05cb459880cdc6d25712df8f5b290f5c34eb4",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-2s-MGET-trace.json.gz",
+    "bytes": 21094,
+    "sha256": "0ef6db6b6543b2d2ee01c21f1d5aa0741322a86d324de87c96a696c705815a81",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-2s-MSET-ranges.json.gz",
+    "bytes": 7514,
+    "sha256": "ad527d7f1eafdfd106959befb9adcf68fccd77f76974bacbd175c5716c8b8607",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-2s-MSET-trace.json.gz",
+    "bytes": 18878,
+    "sha256": "96df91366e73284121ef2947701305d585d1296f18a6158ffc9e3cda1abf7bce",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-2s-UNLINK-ranges.json.gz",
+    "bytes": 7516,
+    "sha256": "f9ad497b2e85cf0315fc61f85c283fe7db701baff2a817c7c5b7eca0d5d2b979",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-db0-2s-UNLINK-trace.json.gz",
+    "bytes": 18959,
+    "sha256": "59de3874d8a2dc17373aa783d59bc1952762e3e66f05dccf28203e125853247a",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-1s-DEL-ranges.json.gz",
+    "bytes": 7308,
+    "sha256": "eb71038cc5a4fc29f47cbe65b560680001f42603d6450a8258d6a8728a536176",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-1s-DEL-trace.json.gz",
+    "bytes": 18236,
+    "sha256": "772fe3a06d030a5e10aed3a44f03ba4b1dc7cbbee58cd275d709e261e3f96606",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-1s-MGET-ranges.json.gz",
+    "bytes": 7309,
+    "sha256": "2715809f890b904b1702f7e9b22bd1d291164e8ea0ddaa3fb286a7304472b309",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-1s-MGET-trace.json.gz",
+    "bytes": 20374,
+    "sha256": "60d8fe34ad7874fbb15e21a39ab42c2ca0088f200b1c5202e24ddb5742f6c260",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-1s-MSET-ranges.json.gz",
+    "bytes": 7309,
+    "sha256": "72e01c080958778517ed1a96bb2f2762195b61b2abb53643f5cba9fcaaecaa5a",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-1s-MSET-trace.json.gz",
+    "bytes": 18517,
+    "sha256": "f5503c8952ad64af8aa3d50c51e02035d4d7bcc262b96c530992767f4f0022ad",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-1s-UNLINK-ranges.json.gz",
+    "bytes": 7311,
+    "sha256": "0d8bebf4ecc89ebf5fd647b9ea4da04a278d077d1bbb9c94311ba3e266dcf831",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-1s-UNLINK-trace.json.gz",
+    "bytes": 18239,
+    "sha256": "cbdeb9d43e7c4259d22f0e9dd9decd9da334e324febde478b37c2931d7b800a2",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-2s-DEL-ranges.json.gz",
+    "bytes": 7308,
+    "sha256": "e55a4b34d7a43e2e29c06f841af29d32375aa5154139c1ca859648bf5f0cebc5",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-2s-DEL-trace.json.gz",
+    "bytes": 18236,
+    "sha256": "cc8d454a62eeca9c6330d5fda5520857883c8f3dbdeac4e7411b217f4325b753",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-2s-MGET-ranges.json.gz",
+    "bytes": 7309,
+    "sha256": "26e5359ec5f64b0580c3db6f2179cac9fd5b69196b9f642fd448d50470138f8b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-2s-MGET-trace.json.gz",
+    "bytes": 20374,
+    "sha256": "9afbafdc9bf4a82172d7059a697d13e21d647dd28a6b71786b4c17aef0e80d3b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-2s-MSET-ranges.json.gz",
+    "bytes": 7309,
+    "sha256": "391346b9cb02e42aa065a6e04777fbc8308817327e9a7d9d6bc32f012f358add",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-2s-MSET-trace.json.gz",
+    "bytes": 18165,
+    "sha256": "9ca125118aaef1cfb3e031883e50a7469446394d9f5a2ea37dc8cf60efd040ce",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-2s-UNLINK-ranges.json.gz",
+    "bytes": 7311,
+    "sha256": "c0358b14cf78681be12509bb09555feff4e9b08ceb3dec5f0aea75db38c98cde",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/prepare/pre-normal-2s-UNLINK-trace.json.gz",
+    "bytes": 18239,
+    "sha256": "b57b800cb5eed3be16206b272a4e8911ecf014a0de98aa2b68c8ae500b6267b3",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-1s-DEL-ranges.json.gz",
+    "bytes": 8502,
+    "sha256": "d4311b5774ea15b33999f16a94ab4b5e8d98210b7aefa4aec162a5f09ea236d6",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-1s-DEL-trace.json.gz",
+    "bytes": 29853,
+    "sha256": "ef81ffbf22e25ec0f089cd6ee80c1f2f58dbd625529d9e0851971de04312b325",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-1s-MGET-ranges.json.gz",
+    "bytes": 8503,
+    "sha256": "812d0d994362a74c3f5d1f753ba9cbc617e38ac887dc39ac40651d7100b2ac3c",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-1s-MGET-trace.json.gz",
+    "bytes": 32963,
+    "sha256": "895809bb7f803f2eccfc05478abf1910dc5e3ff9c127ba62e71970e672377f10",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-1s-MSET-ranges.json.gz",
+    "bytes": 8503,
+    "sha256": "1e4ece0180a12382c4014842b298bf872e08affe0b2d0bbdb7895eaba7979e69",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-1s-MSET-trace.json.gz",
+    "bytes": 30812,
+    "sha256": "69c21f4a970872b39624300916599ae0515ce4f378429ea7b750943e5418da57",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-1s-UNLINK-ranges.json.gz",
+    "bytes": 8505,
+    "sha256": "34c5336130a9e9dfea54879c33d1b405c025c578f58318932db2c3da895eb248",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-1s-UNLINK-trace.json.gz",
+    "bytes": 29856,
+    "sha256": "34d3be2e3228c97baa18374d693ce20a907a7d3c4a0113e193f26e5391ce048f",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-2s-DEL-ranges.json.gz",
+    "bytes": 8502,
+    "sha256": "069135a53717b4d6b4f80a12bb9ce017ffd9acd1b004011bb3109c848e146a9b",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-2s-DEL-trace.json.gz",
+    "bytes": 29838,
+    "sha256": "9fe09c3f87b1b854514caca2873194b310e984f425c2472f1594ed4ec51d85d1",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-2s-MGET-ranges.json.gz",
+    "bytes": 8503,
+    "sha256": "445ea7ec232166d34ab6a07837022b127bcb450157d71ee7165314d0b55d3813",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-2s-MGET-trace.json.gz",
+    "bytes": 32940,
+    "sha256": "0ac5ed58ab9710205deb6b286e26b61a3e2889301d7eb54c40fe78cf85a52893",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-2s-MSET-ranges.json.gz",
+    "bytes": 8503,
+    "sha256": "7040a7adda337d71d168df6ac448219f5a653b9c47a4444283fea7c5455d3b17",
+    "reason": "binary or compressed generated artifact"
+  },
+  {
+    "path": "paths-final2b/read/post-db0-2s-MSET-trace.json.gz",
+    "bytes": 30448,
+    "sha256": "806ebf3c542427e544e666fd8878c7c078a779dda5b5b4ea768be13056a9142e",
+    "reason": "binary or compressed generated artifact"
+  }
+]

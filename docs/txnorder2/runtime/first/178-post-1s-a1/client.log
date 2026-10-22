@@ -1,0 +1,2 @@
+geometry txnfix:cross-watch:0 [0, 0] txnfix:cross-watch:1 [3, 3]
+crossed WATCH [['OK', 'QUEUED', 'QUEUED', ['OK', 'OK']], ['OK', 'QUEUED', 'QUEUED', None]]

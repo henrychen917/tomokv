@@ -1,0 +1,32 @@
+{
+  "object": "src/cmd/xshard.o",
+  "budget": 141737,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=141737",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/budgets/src_cmd_xshard.o-141737.o",
+    "-g0"
+  ],
+  "compile_exit": 0,
+  "output": "/home/user/Projects/cx-txnfix/build/txnorder2/budgets/src_cmd_xshard.o-141737.o",
+  "total": 12,
+  "changed": [
+    "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
+    "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)"
+  ]
+}

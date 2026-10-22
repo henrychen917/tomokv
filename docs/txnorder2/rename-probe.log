@@ -1,0 +1,4 @@
+round0 sid0 defer1 result-1 arrivals1 placements0 ready0 abort0 phase0 noted9 safe0
+round0 sid1 defer1 result-1 arrivals2 placements0 ready0 abort0 phase0 noted9 safe0
+round1 sid0 defer0 result0 arrivals2 placements1 ready1 abort0 phase0 noted15 safe0
+round1 sid1 defer0 result0 arrivals2 placements2 ready1 abort0 phase1 noted15 safe0

@@ -1,0 +1,23 @@
+{
+  "arm": "post",
+  "namespace": "normal",
+  "mode": "2s",
+  "values": "GET",
+  "command": [
+    "taskset",
+    "-c",
+    "72-79",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final2b/session/post-normal-2s-GET.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final2b/session/post-normal/probe"
+  ],
+  "exit_code": 0,
+  "fixture_completed": true,
+  "binary_sha256": "321d96c962275a7704a40ad4011e4e8ceb997e9d357b1dda62a71f1d11a037fc",
+  "counts": {
+    "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)": 67,
+    "tomo::(anonymous namespace)::multi_name(tomo::Op const&, char const*)": 135
+  }
+}

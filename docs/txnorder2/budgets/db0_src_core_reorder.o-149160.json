@@ -1,0 +1,37 @@
+{
+  "object": "db0/src/core/reorder.o",
+  "budget": 149160,
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=149160",
+    "--param",
+    "max-inline-insns-auto=14",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/core/reorder.cc",
+    "-o",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/budgets/db0_src_core_reorder.o-149160.o",
+    "-g0"
+  ],
+  "compile_exit": 0,
+  "output": "/home/user/Projects/cx-txnfix/build/txnorder2/budgets/db0_src_core_reorder.o-149160.o",
+  "total": 133,
+  "changed": [
+    "tomo_db0::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "tomo_db0::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)"
+  ]
+}

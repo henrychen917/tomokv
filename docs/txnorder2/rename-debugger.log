@@ -1,0 +1,118 @@
+Starting program: /home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv --port 27890 --bind 127.0.0.1 --databases 16 --shards 16 --ratio 6:2 --atomic 1 --key-lb 0 --client-lb 0 --flip-auto 0 --save '' --appendonly no --enable-debug-command yes
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7ffff607f6c0 (LWP 997669)]
+[New Thread 0x7ffff587e6c0 (LWP 997670)]
+[New Thread 0x7ffff43ff6c0 (LWP 997671)]
+[New Thread 0x7ffff3bfe6c0 (LWP 997672)]
+[New Thread 0x7ffff33fd6c0 (LWP 997673)]
+[New Thread 0x7ffff21ff6c0 (LWP 997674)]
+[New Thread 0x7ffff13ff6c0 (LWP 997675)]
+[New Thread 0x7fffefdff6c0 (LWP 997676)]
+
+Thread 1 "tomokv" received signal SIGINT, Interrupt.
+0x00007ffff6f1b79d in __GI___poll (fds=fds@entry=0x7ffffffb18e0, nfds=nfds@entry=1, timeout=timeout@entry=50) at ../sysdeps/unix/sysv/linux/poll.c:29
+warning: 29	../sysdeps/unix/sysv/linux/poll.c: No such file or directory
+
+Thread 9 (Thread 0x7fffefdff6c0 (LWP 997676) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559d9272 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff622f410) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff622e948) at src/core/io_loop.h:726
+#4  0x000055555594ead1 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:432
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:438
+(More stack frames follow...)
+
+Thread 8 (Thread 0x7ffff13ff6c0 (LWP 997675) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559d9272 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff622d828) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff622cd60) at src/core/io_loop.h:726
+#4  0x000055555594ead1 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:432
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:438
+(More stack frames follow...)
+
+Thread 7 (Thread 0x7ffff21ff6c0 (LWP 997674) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559d9272 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff622bc40) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff622b178) at src/core/io_loop.h:726
+#4  0x000055555594ead1 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:432
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:438
+(More stack frames follow...)
+
+Thread 6 (Thread 0x7ffff33fd6c0 (LWP 997673) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559d9272 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff622a058) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff6229590) at src/core/io_loop.h:726
+#4  0x000055555594ead1 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:432
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:438
+(More stack frames follow...)
+
+Thread 5 (Thread 0x7ffff3bfe6c0 (LWP 997672) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559d9272 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff6228470) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff62279a8) at src/core/io_loop.h:726
+#4  0x000055555594ead1 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:432
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:438
+(More stack frames follow...)
+
+Thread 4 (Thread 0x7ffff43ff6c0 (LWP 997671) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559d9272 in tomo::Ring::submit_and_wait<false> (database_fd=-1, timeout_ms=50, want=1, this=0x7ffff6226888) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::IoLoop::run_loop<false, false, false, false, false> (this=0x7ffff6225dc0) at src/core/io_loop.h:726
+#4  0x000055555594ead1 in tomo::IoLoop::run_split (this=<optimized out>) at src/core/io_loop.h:432
+#5  tomo::IoLoop::run (this=<optimized out>) at src/core/io_loop.h:438
+(More stack frames follow...)
+
+Thread 3 (Thread 0x7ffff587e6c0 (LWP 997670) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559b5fba in tomo::Ring::submit_and_wait<false> (database_fd=<optimized out>, timeout_ms=50, want=1, this=0x7ffff6243778) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::ExLoopT<false>::run (this=0x7ffff6243768) at src/core/ex_loop.h:731
+#4  0x000055555594f52e in operator() (__closure=0x7ffff6a71208) at src/main.cc:460
+#5  std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+(More stack frames follow...)
+
+Thread 2 (Thread 0x7ffff607f6c0 (LWP 997669) "tomokv"):
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#1  0x00007ffff7fa6557 in io_uring_submit_and_wait_timeout () from /lib/x86_64-linux-gnu/liburing.so.2
+#2  0x00005555559b5fba in tomo::Ring::submit_and_wait<false> (database_fd=<optimized out>, timeout_ms=50, want=1, this=0x7ffff62420a0) at src/core/../store/../persist/../core/../net/uring.h:257
+#3  tomo::ExLoopT<false>::run (this=0x7ffff6242090) at src/core/ex_loop.h:731
+#4  0x000055555594f52e in operator() (__closure=0x7ffff6a71188) at src/main.cc:460
+#5  std::__invoke_impl<void, tomokv_multidb_main(int, char**)::<lambda()> > (__f=...) at /usr/include/c++/13/bits/invoke.h:61
+(More stack frames follow...)
+
+Thread 1 (Thread 0x7ffff7ef3440 (LWP 997497) "tomokv"):
+#0  0x00007ffff6f1b79d in __GI___poll (fds=fds@entry=0x7ffffffb18e0, nfds=nfds@entry=1, timeout=timeout@entry=50) at ../sysdeps/unix/sysv/linux/poll.c:29
+#1  0x0000555555c9113c in poll (__timeout=50, __nfds=1, __fds=0x7ffffffb18e0) at /usr/include/x86_64-linux-gnu/bits/poll2.h:39
+#2  tomo::signal_doorbell_wait (timeout_ms=<optimized out>) at src/core/../store/../persist/../core/../net/../core/signal_doorbell.h:76
+#3  tomo::Server::monitor_controllers (this=this@entry=0x7ffffffb4f00) at src/core/lbplanner.cc:522
+#4  0x000055555558ad89 in tomokv_multidb_main (argc=argc@entry=25, argv=argv@entry=0x7fffffffd748) at src/main.cc:608
+#5  0x00005555555a3464 in main (argc=25, argv=0x7fffffffd748) at src/main.cc:204
+[Switching to thread 2 (Thread 0x7ffff607f6c0 (LWP 997669))]
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#3  tomo::ExLoopT<false>::run (this=0x7ffff6242090) at src/core/ex_loop.h:731
+731	                ring_.submit_and_wait(1, Ring::kWaitTimeoutMs, srv_->databases().wake_fd(self_->id()));
+$1 = std::deque with 0 elements
+$2 = std::deque with 0 elements
+$3 = 6
+$4 = std::atomic<unsigned long> = { 0 }
+$5 = std::atomic<unsigned long> = { 2 }
+$6 = std::atomic<unsigned long> = { 2 }
+[Switching to thread 3 (Thread 0x7ffff587e6c0 (LWP 997670))]
+#0  0x00007ffff7fa5ab0 in ?? () from /lib/x86_64-linux-gnu/liburing.so.2
+#3  tomo::ExLoopT<false>::run (this=0x7ffff6243768) at src/core/ex_loop.h:731
+731	                ring_.submit_and_wait(1, Ring::kWaitTimeoutMs, srv_->databases().wake_fd(self_->id()));
+$7 = std::deque with 0 elements
+$8 = std::deque with 0 elements
+$9 = 7
+[Inferior 1 (process 997497) killed]

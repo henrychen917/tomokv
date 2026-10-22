@@ -1,0 +1,7 @@
+{
+  "pid": 2477180,
+  "pgid": 2477178,
+  "command": "/bin/bash tests/gate.sh full --server-cores 72-79 --server-smt  --load-cores 64-71,80-95 --load-smt  --ports 27820-27889 --candidate-binary /home/user/Projects/cx-txnfix/build/tomokv ",
+  "reason": "Captured lost inbox notification requires production fix; stop provisional run before replacing production objects and binaries.",
+  "time": 1792676660.454614
+}

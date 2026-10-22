@@ -1,0 +1,41 @@
+{
+  "index": 77,
+  "name": "original-post/t17_queue_exec-1s-a0",
+  "arm": "post",
+  "status": "PASS",
+  "row": {
+    "name": "original-post/t17_queue_exec-1s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "python3",
+      "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t17_queue_exec.py",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/runtime-data/post-armed-server",
+      "--cores",
+      "64-71",
+      "--port",
+      "27801",
+      "--mode",
+      "1s",
+      "--atomic",
+      "0",
+      "--databases",
+      "16",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnorder2/runtime/legacy-final4-proof/original-post/t17_queue_exec-1s-a0",
+      "tomo",
+      "1s"
+    ],
+    "arm": "post",
+    "family": "final4-proof",
+    "source_parameters": "docs/txnfix/txnfix3/final4-proof/runs.json",
+    "status": "PENDING owner run on final SHA"
+  },
+  "started": 1792667581.5907373,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+  "sha256": "14d584925c1aa2594f441172def47ddba532bf93091ca41b9a0159bed3fdf2e8",
+  "returncode": 0,
+  "finished": 1792667582.6691177
+}

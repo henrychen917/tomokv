@@ -1,0 +1,23 @@
+{
+  "arm": "pre",
+  "namespace": "normal",
+  "mode": "2s",
+  "values": "MGET",
+  "command": [
+    "taskset",
+    "-c",
+    "72-79",
+    "gdb",
+    "-batch",
+    "-x",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final2b/session/pre-normal-2s-MGET.gdb",
+    "/home/user/Projects/cx-txnfix/build/txnorder2/paths-final2b/session/pre-normal/probe"
+  ],
+  "exit_code": 0,
+  "fixture_completed": true,
+  "binary_sha256": "9d3354008a00ccc483c1f7a401a2e9b22077e79cf91f9ef006bab64df22454e6",
+  "counts": {
+    "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)": 67,
+    "tomo::(anonymous namespace)::multi_name(tomo::Op const&, char const*)": 147
+  }
+}

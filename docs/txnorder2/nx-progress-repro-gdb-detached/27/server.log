@@ -1,0 +1,68 @@
+=thread-group-added,id="i1"
+(gdb) 
+^done
+(gdb) 
+^done
+(gdb) 
+^done
+(gdb) 
+^done
+(gdb) 
+^done
+(gdb) 
+^done
+(gdb) 
+^done,bkpt={number="1",type="breakpoint",disp="keep",enabled="y",addr="0x00000000000356bf",func="__wrap_main(int, char**)",file="src/core/version.cc",fullname="/home/user/Projects/cx-txnfix/src/core/version.cc",line="13",thread-groups=["i1"],times="0",original-location="__wrap_main"}
+(gdb) 
+=thread-group-started,id="i1",pid="2600357"
+=thread-created,id="1",group-id="i1"
+=breakpoint-modified,bkpt={number="1",type="breakpoint",disp="keep",enabled="y",addr="0x00006251a4d3e6bf",func="__wrap_main(int, char**)",file="src/core/version.cc",fullname="/home/user/Projects/cx-txnfix/src/core/version.cc",line="13",thread-groups=["i1"],times="0",original-location="__wrap_main"}
+=library-loaded,id="/lib64/ld-linux-x86-64.so.2",target-name="/lib64/ld-linux-x86-64.so.2",host-name="/lib64/ld-linux-x86-64.so.2",symbols-loaded="0",thread-group="i1",ranges=[{from="0x0000766af3034000",to="0x0000766af305e195"}]
+~"\nThis GDB supports auto-downloading debuginfo from the following URLs:\n"
+~"  <https://debuginfod.ubuntu.com>\n"
+~"Debuginfod has been disabled.\nTo make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.\n"
+^running
+*running,thread-id="all"
+(gdb) 
+=library-loaded,id="/lib/x86_64-linux-gnu/libjemalloc.so.2",target-name="/lib/x86_64-linux-gnu/libjemalloc.so.2",host-name="/lib/x86_64-linux-gnu/libjemalloc.so.2",symbols-loaded="0",thread-group="i1",ranges=[{from="0x0000766af2c09920",to="0x0000766af2cb5f20"}]
+=library-loaded,id="/lib/x86_64-linux-gnu/liburing.so.2",target-name="/lib/x86_64-linux-gnu/liburing.so.2",host-name="/lib/x86_64-linux-gnu/liburing.so.2",symbols-loaded="0",thread-group="i1",ranges=[{from="0x0000766af30130a0",to="0x0000766af3015452"}]
+=library-loaded,id="/lib/x86_64-linux-gnu/libssl.so.3",target-name="/lib/x86_64-linux-gnu/libssl.so.3",host-name="/lib/x86_64-linux-gnu/libssl.so.3",symbols-loaded="0",thread-group="i1",ranges=[{from="0x0000766af2f88ed0",to="0x0000766af2fe6862"}]
+=library-loaded,id="/lib/x86_64-linux-gnu/libcrypto.so.3",target-name="/lib/x86_64-linux-gnu/libcrypto.so.3",host-name="/lib/x86_64-linux-gnu/libcrypto.so.3",symbols-loaded="0",thread-group="i1",ranges=[{from="0x0000766af26b5000",to="0x0000766af29e63a2"}]
+=library-loaded,id="/lib/x86_64-linux-gnu/libstdc++.so.6",target-name="/lib/x86_64-linux-gnu/libstdc++.so.6",host-name="/lib/x86_64-linux-gnu/libstdc++.so.6",symbols-loaded="0",thread-group="i1",ranges=[{from="0x0000766af22a55c0",to="0x0000766af23e4ce2"}]
+=library-loaded,id="/lib/x86_64-linux-gnu/libm.so.6",target-name="/lib/x86_64-linux-gnu/libm.so.6",host-name="/lib/x86_64-linux-gnu/libm.so.6",symbols-loaded="0",thread-group="i1",ranges=[{from="0x0000766af2b27420",to="0x0000766af2ba53a6"}]
+=library-loaded,id="/lib/x86_64-linux-gnu/libgcc_s.so.1",target-name="/lib/x86_64-linux-gnu/libgcc_s.so.1",host-name="/lib/x86_64-linux-gnu/libgcc_s.so.1",symbols-loaded="0",thread-group="i1",ranges=[{from="0x0000766af2f3b780",to="0x0000766af2f5e745"}]
+=library-loaded,id="/lib/x86_64-linux-gnu/libc.so.6",target-name="/lib/x86_64-linux-gnu/libc.so.6",host-name="/lib/x86_64-linux-gnu/libc.so.6",symbols-loaded="0",thread-group="i1",ranges=[{from="0x0000766af1e28800",to="0x0000766af1fb0039"}]
+~"[Thread debugging using libthread_db enabled]\n"
+~"Using host libthread_db library \"/lib/x86_64-linux-gnu/libthread_db.so.1\".\n"
+=breakpoint-modified,bkpt={number="1",type="breakpoint",disp="keep",enabled="y",addr="0x00006251a4d3e6bf",func="__wrap_main(int, char**)",file="src/core/version.cc",fullname="/home/user/Projects/cx-txnfix/src/core/version.cc",line="13",thread-groups=["i1"],times="1",original-location="__wrap_main"}
+~"\n"
+~"Breakpoint 1, __wrap_main (argc=29, argv=0x7fff1ab6b2d8) at src/core/version.cc:13\n"
+~"13\tint __wrap_main(int argc, char** argv) {\n"
+*stopped,reason="breakpoint-hit",disp="keep",bkptno="1",frame={addr="0x00006251a4d3e6bf",func="__wrap_main",args=[{name="argc",value="29"},{name="argv",value="0x7fff1ab6b2d8"}],file="src/core/version.cc",fullname="/home/user/Projects/cx-txnfix/src/core/version.cc",line="13",arch="i386:x86-64"},thread-id="1",stopped-threads="all",core="90"
+=thread-exited,id="1",group-id="i1"
+=thread-group-exited,id="i1"
+~"[Inferior 1 (process 2600357) detached]\n"
+=library-unloaded,id="/lib64/ld-linux-x86-64.so.2",target-name="/lib64/ld-linux-x86-64.so.2",host-name="/lib64/ld-linux-x86-64.so.2",thread-group="i1"
+=library-unloaded,id="/lib/x86_64-linux-gnu/libjemalloc.so.2",target-name="/lib/x86_64-linux-gnu/libjemalloc.so.2",host-name="/lib/x86_64-linux-gnu/libjemalloc.so.2",thread-group="i1"
+=library-unloaded,id="/lib/x86_64-linux-gnu/liburing.so.2",target-name="/lib/x86_64-linux-gnu/liburing.so.2",host-name="/lib/x86_64-linux-gnu/liburing.so.2",thread-group="i1"
+=library-unloaded,id="/lib/x86_64-linux-gnu/libssl.so.3",target-name="/lib/x86_64-linux-gnu/libssl.so.3",host-name="/lib/x86_64-linux-gnu/libssl.so.3",thread-group="i1"
+=library-unloaded,id="/lib/x86_64-linux-gnu/libcrypto.so.3",target-name="/lib/x86_64-linux-gnu/libcrypto.so.3",host-name="/lib/x86_64-linux-gnu/libcrypto.so.3",thread-group="i1"
+=library-unloaded,id="/lib/x86_64-linux-gnu/libstdc++.so.6",target-name="/lib/x86_64-linux-gnu/libstdc++.so.6",host-name="/lib/x86_64-linux-gnu/libstdc++.so.6",thread-group="i1"
+=library-unloaded,id="/lib/x86_64-linux-gnu/libm.so.6",target-name="/lib/x86_64-linux-gnu/libm.so.6",host-name="/lib/x86_64-linux-gnu/libm.so.6",thread-group="i1"
+=library-unloaded,id="/lib/x86_64-linux-gnu/libgcc_s.so.1",target-name="/lib/x86_64-linux-gnu/libgcc_s.so.1",host-name="/lib/x86_64-linux-gnu/libgcc_s.so.1",thread-group="i1"
+=library-unloaded,id="/lib/x86_64-linux-gnu/libc.so.6",target-name="/lib/x86_64-linux-gnu/libc.so.6",host-name="/lib/x86_64-linux-gnu/libc.so.6",thread-group="i1"
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [88,89,90,91,92,93,94,95]
+tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=unified cpu=88 L3=0 shards=2 send=self
+  thread t1: role=unified cpu=89 L3=0 shards=2 send=self
+  thread t2: role=unified cpu=90 L3=0 shards=2 send=self
+  thread t3: role=unified cpu=91 L3=0 shards=2 send=self
+  thread t4: role=unified cpu=92 L3=0 shards=2 send=self
+  thread t5: role=unified cpu=93 L3=0 shards=2 send=self
+  thread t6: role=unified cpu=94 L3=0 shards=2 send=self
+  thread t7: role=unified cpu=95 L3=0 shards=2 send=self
+^done
+(gdb) 
+listening on 127.0.0.1:27890

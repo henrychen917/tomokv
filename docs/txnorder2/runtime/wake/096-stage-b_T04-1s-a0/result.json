@@ -1,0 +1,35 @@
+{
+  "index": 96,
+  "name": "stage-b/T04-1s-a0",
+  "arm": "post",
+  "status": "PASS",
+  "row": {
+    "name": "stage-b/T04-1s-a0",
+    "command": [
+      "taskset",
+      "-c",
+      "85-95",
+      "python3",
+      "tests/txnfix_audit/t04_mover_stress.py",
+      "27801",
+      "tomo",
+      "0",
+      "1s",
+      "--binary",
+      "/home/user/Projects/cx-txnfix/build/txnorder2/runtime-data-wake/post-armed-server",
+      "--output",
+      "/home/user/Projects/cx-txnfix/docs/txnorder2/runtime/legacy-wake-final4-proof/stage-b/T04-1s-a0",
+      "--cores",
+      "64-71"
+    ],
+    "arm": "post",
+    "family": "final4-proof",
+    "source_parameters": "docs/txnfix/txnfix3/final4-proof/runs.json",
+    "status": "PENDING owner run on final SHA"
+  },
+  "started": 1792677273.4001565,
+  "binary": "/home/user/Projects/cx-txnfix/build/txnorder2/post/tomokv",
+  "sha256": "a31fe747f92e04f9e73cfe370fa8e567c8b0d4daf4a7d92563e2fdd5c05e8f9a",
+  "returncode": 0,
+  "finished": 1792677273.9712622
+}

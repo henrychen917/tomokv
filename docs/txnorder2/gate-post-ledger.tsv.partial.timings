@@ -1,0 +1,241 @@
+ok	0.000000	release build (+footprint locks)
+ok	0.090000	configuration reduction + actual geometry (epoll, atomic 0)
+ok	0.470000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)
+ok	0.050000	AOF writer fired (records=1025)
+ok	0.050000	AOF process-restart script replay (epoll, atomic 0)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=1025 skipped=0)
+ok	0.070000	configuration reduction + actual geometry (epoll, atomic 1)
+ok	0.430000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)
+ok	0.050000	AOF writer fired (records=1026)
+ok	0.040000	AOF process-restart script replay (epoll, atomic 1)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=1026 skipped=0)
+ok	0.260000	AOF directed group interruption fired
+ok	0.050000	AOF atomic-group recovery + writer order
+ok	0.020000	AOF group shutdown invariants
+ok	0.030000	AOF always sync + reply gate fired
+ok	0.030000	AOF always recovery after quiescent SIGKILL
+ok	0.850000	AOF in-window kill recovery (2s, epoll)
+ok	2.200000	AOF in-window term recovery (2s, epoll)
+ok	0.990000	AOF in-window kill recovery (1s, epoll)
+ok	2.110000	AOF in-window term recovery (1s, epoll)
+ok	1.720000	shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)
+ok	1.790000	shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)
+ok	1.890000	shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)
+ok	1.990000	shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)
+ok	1.300000	AOF everysec write gate + idle sync fired
+ok	0.030000	AOF everysec durability window + tail warning
+ok	0.030000	AOF no-sync bypassed sync + reply gate
+ok	5.300000	AOF rewrite atomic/stage/corruption matrix
+ok	5.560000	AOF rewrite triggers + observability matrix
+ok	0.010000	AOF-off negative-control seed landed
+ok	0.010000	AOF-off negative control lost data
+ok	0.420000	aoffix2 snapshot (1s, epoll)
+ok	1.520000	aoffix2 filename (1s, epoll)
+ok	0.180000	aoffix2 error (1s, epoll)
+ok	0.540000	aoffix2 tickets (1s, epoll)
+ok	0.550000	aoffix2 exec_tickets (1s, epoll)
+ok	0.540000	aoffix2 resurrection (1s, epoll)
+ok	0.430000	aoffix2 rewrite_fail2 (1s, epoll)
+ok	0.300000	aoffix2 manifest_missing (1s, epoll)
+ok	0.280000	aoffix2 off-writer acknowledgement everysec (1s, epoll)
+ok	0.280000	aoffix2 off-writer acknowledgement always (1s, epoll)
+ok	0.430000	aoffix2 snapshot (2s, epoll)
+ok	1.520000	aoffix2 filename (2s, epoll)
+ok	0.170000	aoffix2 error (2s, epoll)
+ok	0.550000	aoffix2 tickets (2s, epoll)
+ok	0.550000	aoffix2 exec_tickets (2s, epoll)
+ok	0.540000	aoffix2 resurrection (2s, epoll)
+ok	0.430000	aoffix2 rewrite_fail2 (2s, epoll)
+ok	0.300000	aoffix2 manifest_missing (2s, epoll)
+ok	0.280000	aoffix2 off-writer acknowledgement everysec (2s, epoll)
+ok	0.280000	aoffix2 off-writer acknowledgement always (2s, epoll)
+ok	0.340000	aoffix2 large (1s, epoll)
+ok	0.190000	aoffix2 large_placed (1s, epoll)
+ok	0.070000	configuration reduction + actual geometry (uring, atomic 0)
+ok	0.410000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)
+ok	0.040000	AOF writer fired (records=1025)
+ok	0.040000	AOF process-restart script replay (uring, atomic 0)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=1025 skipped=0)
+ok	0.060000	configuration reduction + actual geometry (uring, atomic 1)
+ok	0.430000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)
+ok	0.040000	AOF writer fired (records=1026)
+ok	0.050000	AOF process-restart script replay (uring, atomic 1)
+ok	0.030000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=1026 skipped=0)
+ok	0.050000	AOF directed group interruption fired
+ok	0.040000	AOF atomic-group recovery + writer order
+ok	0.020000	AOF group shutdown invariants
+ok	0.030000	AOF always sync + reply gate fired
+ok	0.030000	AOF always recovery after quiescent SIGKILL
+ok	0.870000	AOF in-window kill recovery (2s, uring)
+ok	3.200000	AOF in-window term recovery (2s, uring)
+ok	0.870000	AOF in-window kill recovery (1s, uring)
+ok	2.920000	AOF in-window term recovery (1s, uring)
+ok	1.790000	shutdown cancels AOF rewrite capture (1s, atomic 0, uring)
+ok	1.820000	shutdown cancels AOF rewrite capture (1s, atomic 1, uring)
+ok	1.970000	shutdown cancels AOF rewrite capture (2s, atomic 0, uring)
+ok	1.990000	shutdown cancels AOF rewrite capture (2s, atomic 1, uring)
+ok	1.300000	AOF everysec write gate + idle sync fired
+ok	0.030000	AOF everysec durability window + tail warning
+ok	0.030000	AOF no-sync bypassed sync + reply gate
+ok	5.270000	AOF rewrite atomic/stage/corruption matrix
+ok	6.120000	AOF rewrite triggers + observability matrix
+ok	0.010000	AOF-off negative-control seed landed
+ok	0.000000	AOF-off negative control lost data
+ok	0.430000	aoffix2 snapshot (1s, uring)
+ok	1.580000	aoffix2 filename (1s, uring)
+ok	0.180000	aoffix2 error (1s, uring)
+ok	0.570000	aoffix2 tickets (1s, uring)
+ok	0.620000	aoffix2 exec_tickets (1s, uring)
+ok	0.570000	aoffix2 resurrection (1s, uring)
+ok	0.440000	aoffix2 rewrite_fail2 (1s, uring)
+ok	0.340000	aoffix2 manifest_missing (1s, uring)
+ok	0.430000	aoffix2 off-writer acknowledgement everysec (1s, uring)
+ok	0.420000	aoffix2 off-writer acknowledgement always (1s, uring)
+ok	0.570000	aoffix2 snapshot (2s, uring)
+ok	1.960000	aoffix2 filename (2s, uring)
+ok	0.220000	aoffix2 error (2s, uring)
+ok	0.760000	aoffix2 tickets (2s, uring)
+ok	0.750000	aoffix2 exec_tickets (2s, uring)
+ok	0.750000	aoffix2 resurrection (2s, uring)
+ok	0.520000	aoffix2 rewrite_fail2 (2s, uring)
+ok	0.400000	aoffix2 manifest_missing (2s, uring)
+ok	0.410000	aoffix2 off-writer acknowledgement everysec (2s, uring)
+ok	0.420000	aoffix2 off-writer acknowledgement always (2s, uring)
+ok	0.480000	aoffix2 large (1s, uring)
+ok	0.260000	aoffix2 large_placed (1s, uring)
+ok	9.170000	plain-write lost updates (atomic 0)
+ok	0.170000	lbsignals battery (atomic 0)
+ok	1.490000	slowlog battery (atomic 0)
+ok	0.060000	atomfix battery (atomic 0)
+ok	0.050000	scriptatomic battery (atomic 0)
+ok	14.500000	execatomic battery (atomic 0)
+ok	11.970000	execiso battery (atomic 0)
+ok	1.350000	execfix battery (atomic 0)
+ok	0.330000	multires battery (atomic 0)
+ok	1.820000	multirace battery (atomic 0)
+ok	31.390000	session_monotonic battery (atomic 0)
+ok	0.510000	xacct battery (atomic 0)
+ok	0.290000	xmove battery (atomic 0)
+ok	1.860000	xscript battery (atomic 0)
+ok	4.440000	txn_nx battery (atomic 0)
+FAIL	10.510000	txniso battery (atomic 0)
+ok	6.160000	plain-write lost updates (atomic 1)
+ok	0.170000	lbsignals battery (atomic 1)
+ok	1.490000	slowlog battery (atomic 1)
+FAIL	0.040000	atomfix battery (atomic 1)
+ok	0.050000	scriptatomic battery (atomic 1)
+ok	14.460000	execatomic battery (atomic 1)
+ok	11.870000	execiso battery (atomic 1)
+ok	0.430000	execfix battery (atomic 1)
+ok	0.100000	multires battery (atomic 1)
+ok	0.740000	multirace battery (atomic 1)
+ok	30.480000	session_monotonic battery (atomic 1)
+ok	0.360000	xacct battery (atomic 1)
+ok	0.280000	xmove battery (atomic 1)
+ok	1.870000	xscript battery (atomic 1)
+ok	2.210000	txn_nx battery (atomic 1)
+FAIL	10.850000	txniso battery (atomic 1)
+ok	0.010000	atomic commit publication catches up at quiescence
+ok	2.320000	flushfix flush witnesses
+ok	0.050000	flushfix headers witnesses
+ok	3.310000	multidb serverless owners
+ok	0.040000	multidb global namespace boundary
+ok	10.680000	storesize published monitoring
+ok	0.220000	MULTI admin command replies
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.010000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.010000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.000000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.010000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.010000	armed resize retirement: atomic-growth
+ok	0.000000	armed resize retirement: flush-prepared
+ok	6.640000	torture battery
+ok	1.000000	RYOW battery
+ok	0.030000	ACL category runtime table
+FAIL	0.100000	ACL LOAD/SAVE no-file errors
+ok	1.030000	idle loop ceiling (LBSIGNALS, 1s)
+ok	0.040000	shutdown invariants (nothing stuck)
+ok	0.020000	direct-reply fired (direct=10997)
+ok	0.040000	dispatched==executed (54609)
+ok	32.550000	atomic torn/window battery
+ok	4.060000	atomic RYOW/mixed-write battery
+ok	4.240000	atomic owner-local hazard battery
+ok	0.020000	atomic shutdown invariants
+ok	2.530000	moverfix conservation (1s, uring, databases 1, atomic 0)
+ok	2.510000	moverfix conservation (1s, uring, databases 16, atomic 0)
+ok	2.490000	moverfix conservation (1s, epoll, databases 1, atomic 0)
+ok	2.510000	moverfix conservation (1s, epoll, databases 16, atomic 0)
+ok	2.550000	moverfix conservation (2s, uring, databases 1, atomic 0)
+ok	2.550000	moverfix conservation (2s, uring, databases 16, atomic 0)
+ok	2.500000	moverfix conservation (2s, epoll, databases 1, atomic 0)
+ok	2.510000	moverfix conservation (2s, epoll, databases 16, atomic 0)
+ok	2.070000	MULTI feature battery
+ok	1.520000	blocking feature battery
+ok	0.900000	pubsub feature battery
+ok	0.020000	Lua feature battery
+ok	22.660000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants
+ok	65.680000	keyspace lazy-expiry order vs Redis 7.4
+ok	11.680000	local script notification AOF vs Redis 7.4
+ok	0.320000	AOF control frame never inside a large record (atomic 0)
+ok	0.320000	AOF control frame never inside a large record (atomic 1)
+FAIL	29.030000	AOF commit order single
+ok	4.120000	AOF commit order crossing
+ok	4.320000	AOF commit order rewrite
+ok	0.260000	fused boot line (atomic 0)
+ok	1.200000	fused s6 battery (atomic 0)
+ok	2.090000	fused multi_exec battery (atomic 0)
+ok	0.740000	fused edgeproto battery (atomic 0)
+ok	0.050000	fused atomfix battery (atomic 0)
+ok	2.230000	fused spinprobe battery (atomic 0)
+ok	1.160000	fused shutdown report (atomic 0)
+ok	1.810000	fused txn_nx battery (atomic 0)
+ok	8.800000	fused txniso battery (atomic 0)
+ok	0.270000	fused boot line (atomic 1)
+ok	1.210000	fused s6 battery (atomic 1)
+ok	2.080000	fused multi_exec battery (atomic 1)
+ok	0.740000	fused edgeproto battery (atomic 1)
+ok	0.050000	fused atomfix battery (atomic 1)
+ok	2.240000	fused spinprobe battery (atomic 1)
+ok	1.160000	fused shutdown report (atomic 1)
+ok	2.940000	fused txn_nx battery (atomic 1)
+ok	9.050000	fused txniso battery (atomic 1)
+ok	12.650000	fused txngroup battery (atomic 1)
+ok	12.950000	txngroup battery (atomic 1)
+ok	0.000000	txnorder2 writer episode R1
+ok	0.010000	txnorder2 writer episode R2
+ok	0.010000	txnorder2 writer episode R3
+ok	0.010000	txnorder2 writer episode R4
+ok	0.010000	txnorder2 writer episode R5
+ok	0.010000	txnorder2 writer episode R6
+ok	0.010000	txnorder2 writer episode R7
+ok	0.030000	txnorder2 writer episode R8
+ok	0.010000	txnorder2 writer episode R9
+ok	0.010000	txnorder2 writer episode R10
+ok	0.010000	txnorder2 writer episode R11
+ok	1.140000	txnorder2 writer episode R12
+ok	0.020000	txnorder2 direct RENAME owner join
+ok	10.840000	txnorder2 WATCH serve
+ok	14.430000	txnorder2 WATCH flush
+ok	13.640000	txnorder2 WATCH readonly
+FAIL	47.210000	txnorder battery (fused, atomic 0)
+FAIL	46.150000	txnorder battery (fused, atomic 1)
+ok	45.940000	txnorder battery (split, atomic 0)
+ok	46.020000	txnorder battery (split, atomic 1)

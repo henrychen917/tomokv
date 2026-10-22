@@ -1,0 +1,371 @@
+{
+  "total": 17066,
+  "equal": 16353,
+  "changed": 713,
+  "handlers": 1211,
+  "handlers_equal": 1203,
+  "hot": 1220,
+  "hot_equal": 1212,
+  "changed_handlers": [
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 7347,
+      "post_size": 7393,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 6500,
+      "post_size": 6953,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 16644,
+      "post_size": 16543,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 340,
+      "post_size": 346,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_quitERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_quit(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 401,
+      "post_size": 271,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 6608,
+      "post_size": 7077,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 16917,
+      "post_size": 16777,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 346,
+      "post_size": 338,
+      "classification": "other"
+    }
+  ],
+  "changed_hot": [
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 3631,
+      "post_size": 3565,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZZN8tomo_db08WbEngine14serve_tls_implILb1ELb0ELb1ELb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPbENKUlRNS_2OpEE_clES8_",
+      "name": "tomo_db0::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1016,
+      "post_size": 1244,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZZN8tomo_db08WbEngine14serve_tls_implILb1ELb1ELb1ELb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPbENKUlRNS_2OpEE_clES8_",
+      "name": "tomo_db0::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1244,
+      "post_size": 1016,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo9FlatStore8erase_inEimNS_5SliceEPb",
+      "name": "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 580,
+      "post_size": 783,
+      "classification": "other"
+    },
+    {
+      "object": "src/core/genthread.o",
+      "symbol": "_ZZN4tomo9ThreadCtx26drain_task_producer_chunksILb0ERZNS_7ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRbEUlRKNS_4TaskEE_RZNS4_ILb0EEEjbS5_EUlvE0_EEjjOT0_OT1_bENKUljE_clEj",
+      "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2905,
+      "post_size": 2649,
+      "classification": "other"
+    },
+    {
+      "object": "src/core/genthread.o",
+      "symbol": "_ZZN4tomo9ThreadCtx26drain_task_producer_chunksILb0ERZNS_7ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRbEUlRKNS_4TaskEE_RZNS4_ILb0EEEjbS5_EUlvE_EEjjOT0_OT1_bENKUljE_clEj",
+      "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2905,
+      "post_size": 2649,
+      "classification": "other"
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 21239,
+      "post_size": 21231,
+      "classification": "other"
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 21252,
+      "post_size": 21203,
+      "classification": "other"
+    }
+  ],
+  "hot_nonerror_equal": 1212,
+  "handlers_nonerror_equal": 1203,
+  "other_handlers": [
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 7347,
+      "post_size": 7393,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 6500,
+      "post_size": 6953,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 16644,
+      "post_size": 16543,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 340,
+      "post_size": 346,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_quitERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_quit(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 401,
+      "post_size": 271,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 6608,
+      "post_size": 7077,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 16917,
+      "post_size": 16777,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 346,
+      "post_size": 338,
+      "classification": "other"
+    }
+  ],
+  "other_hot": [
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+      "name": "bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 3631,
+      "post_size": 3565,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZZN8tomo_db08WbEngine14serve_tls_implILb1ELb0ELb1ELb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPbENKUlRNS_2OpEE_clES8_",
+      "name": "tomo_db0::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1016,
+      "post_size": 1244,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "symbol": "_ZZN8tomo_db08WbEngine14serve_tls_implILb1ELb1ELb1ELb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPbENKUlRNS_2OpEE_clES8_",
+      "name": "tomo_db0::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1244,
+      "post_size": 1016,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo9FlatStore8erase_inEimNS_5SliceEPb",
+      "name": "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 580,
+      "post_size": 783,
+      "classification": "other"
+    },
+    {
+      "object": "src/core/genthread.o",
+      "symbol": "_ZZN4tomo9ThreadCtx26drain_task_producer_chunksILb0ERZNS_7ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRbEUlRKNS_4TaskEE_RZNS4_ILb0EEEjbS5_EUlvE0_EEjjOT0_OT1_bENKUljE_clEj",
+      "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#2}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2905,
+      "post_size": 2649,
+      "classification": "other"
+    },
+    {
+      "object": "src/core/genthread.o",
+      "symbol": "_ZZN4tomo9ThreadCtx26drain_task_producer_chunksILb0ERZNS_7ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRbEUlRKNS_4TaskEE_RZNS4_ILb0EEEjbS5_EUlvE_EEjjOT0_OT1_bENKUljE_clEj",
+      "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 2905,
+      "post_size": 2649,
+      "classification": "other"
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 21239,
+      "post_size": 21231,
+      "classification": "other"
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 21252,
+      "post_size": 21203,
+      "classification": "other"
+    }
+  ]
+}

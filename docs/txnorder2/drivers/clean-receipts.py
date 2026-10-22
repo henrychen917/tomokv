@@ -34,6 +34,8 @@ def main():
         elif path.suffix in ('.asm', '.objdump') or (
                 relative.parts[0].startswith('r7-') and '.diff' in path.name):
             reason = 'raw disassembly or disassembly diff'
+        elif path.suffix == '.log' and b'scatter_trace_begin' in prefix:
+            reason = 'raw debugger instruction trace; named counts retained separately'
         elif size > 1_000_000:
             reason = 'larger than 1 MB'
         elif b'\0' in prefix:
