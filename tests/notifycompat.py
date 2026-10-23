@@ -132,7 +132,9 @@ class Peer:
 
 
 def setbit(peer):
-    peer.setup(('SET', 'nc:raw', 'x' * 80), ('SET', 'nc:int', '5'))
+    peer.setup(('SET', 'nc:raw', 'x' * 4096), ('SET', 'nc:int', '5'))
+    equal(peer.driver.cmd('OBJECT', 'ENCODING', 'nc:raw'), b'raw', 'raw SETBIT arm')
+    equal(peer.driver.cmd('OBJECT', 'ENCODING', 'nc:int'), b'int', 'integer SETBIT arm')
     peer.admin.cmd('CONFIG', 'SET', 'save', '3600 1')
     before = int(info(peer.admin, 'persistence')['rdb_changes_since_last_save'])
     peer.step('raw unchanged', ('SETBIT', 'nc:raw', 0, 0), 0, [])
@@ -165,6 +167,13 @@ def setpast(peer):
     peer.step('XX absent control', ('SET', 'nc:xx', 'v', 'XX', 'PXAT', 1), None, [])
     peer.setup(('SET', 'nc:nx', 'v'))
     peer.step('NX present control', ('SET', 'nc:nx', 'v', 'NX', 'EXAT', 1), None, [])
+    equal(peer.admin.cmd('DEBUG', 'SET-ACTIVE-EXPIRE', 1), b'OK', 'active expiry control')
+    for option in ('EXAT', 'PXAT'):
+        key = 'nc:active:' + option
+        peer.setup()
+        peer.step('active SET expiry', ('SET', key, 'value', option, 1), b'OK',
+                  [('set', key), ('expire', key), ('expired', key)])
+    equal(peer.admin.cmd('DEBUG', 'SET-ACTIVE-EXPIRE', 0), b'OK', 'restore deterministic lazy expiry')
 
 
 def emptystore(peer):
@@ -238,6 +247,8 @@ def expiredstore(peer):
             (('GEORADIUS', src, 20, 20, 1, 'm', 'STORE', dst), [('GEOADD', src, 0, 0, 'home')], []),
         ]
         for command, setup, source_events in cases:
+            peer.setup(('FLUSHALL',), *setup)
+            peer.step(f'absent STORE destination layout={layout}', command, 0, source_events)
             peer.setup(('FLUSHALL',), *setup, ('SET', dst, 'elapsed', 'PX', 50))
             time.sleep(.08)
             assert isinstance(peer.driver.cmd('MEMORY', 'USAGE', dst), int), 'expired resident window never opened'
@@ -250,8 +261,12 @@ def expiredstore(peer):
 
 def flush(peer):
     from aof_frames import read_frames
-    equal(peer.admin.cmd('CONFIG', 'SET', 'appendfsync', 'always'), b'OK', 'durable AOF')
-    equal(peer.admin.cmd('CONFIG', 'SET', 'appendonly', 'yes'), b'OK', 'enable AOF')
+    if peer.target:
+        equal(peer.admin.cmd('CONFIG', 'GET', 'appendonly')[1], b'yes', 'AOF boot arm')
+        equal(peer.admin.cmd('CONFIG', 'GET', 'appendfsync')[1], b'always', 'durable boot arm')
+    else:
+        equal(peer.admin.cmd('CONFIG', 'SET', 'appendfsync', 'always'), b'OK', 'durable AOF')
+        equal(peer.admin.cmd('CONFIG', 'SET', 'appendonly', 'yes'), b'OK', 'enable AOF')
     for db in range(min(2, peer.databases)):
         equal(peer.driver.cmd('SELECT', db), b'OK', 'select flush DB')
         for command in ('FLUSHDB', 'FLUSHALL'):
@@ -291,7 +306,8 @@ def flush(peer):
             if deletes:
                 peer.failures.append(f'{key}: unexpected per-key AOF deletions: {deletes!r}')
     equal(peer.driver.cmd('SELECT', 0), b'OK', 'restore selected DB')
-    equal(peer.admin.cmd('CONFIG', 'SET', 'appendonly', 'no'), b'OK', 'disable AOF')
+    if not peer.target:
+        equal(peer.admin.cmd('CONFIG', 'SET', 'appendonly', 'no'), b'OK', 'disable AOF')
 
 
 
@@ -325,7 +341,10 @@ def main():
                     owners.add(owner)
                 if len(cross) == 2 and any(len(keys) >= 3 for keys in buckets.values()):
                     same = next(keys[:3] for keys in buckets.values() if len(keys) >= 3)
-                    args.keysets = [same, cross + [same[0]]]
+                    third = next(k for keys in buckets.values() for k in keys if k not in cross)
+                    args.keysets = [same, cross + [third]]
+                    assert all(len(set(keys)) == 3 for keys in args.keysets), 'distinct source/destination keys'
+                    print('KEYSETS ' + json.dumps(args.keysets), flush=True)
                     break
             else:
                 raise AssertionError('could not arm local and cross-owner keys')

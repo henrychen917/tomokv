@@ -3171,6 +3171,7 @@ if [ "$oracle_ready" = 1 ]; then
       booted=0
       local options=(--databases "$databases" --atomic "$atomic" --net-io "$engine" --read-local "$read_local"
                      --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0)
+      [ "$nc_case" != flush ] || options+=(--appendonly yes --appendfsync always)
       if [ "$mode" = 1s ]; then
         boot_fused "$CANDIDATE_BINARY" "${options[@]}" && booted=1
       else

@@ -486,6 +486,7 @@ void cmd_set(Shard& sh, Op& op) {
         notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Set, op.key());
         if (options.expire_kind != ExpireKind::None)
             notify_record(sh, op, NOTIFY_GENERIC, NotifyEventId::Expire, op.key());
+        if (expire >= 0 && expire < sh.now_ms()) notify_elapsed_set(sh, op, op.key());
     }
     if (!options.get) reply_ok(op.sink());
 }
