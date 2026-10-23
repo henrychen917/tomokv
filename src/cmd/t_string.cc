@@ -805,8 +805,6 @@ void cmd_setbit(Shard& sh, Op& op) {
     // Redis materializes integer-encoded strings before a bit write, even when the selected bit
     // already has the requested value. Raw values with no growth and no change remain untouched.
     if (o && !o->is_int() && new_length == old.n && old_bit == bit_value) {
-        if constexpr (kNotify)
-            notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Setbit, op.key());
         reply_int(op.sink(), old_bit);
         return;
     }
@@ -824,8 +822,11 @@ void cmd_setbit(Shard& sh, Op& op) {
                                   o && o->has_ttl_slot());
     std::free(changed);
     if (result != StoreResult::Stored) { reply_store_error(op, result); return; }
-    if constexpr (kNotify)
-        notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Setbit, op.key());
+    if constexpr (kNotify) {
+        // Integer materialisation alone is not a Redis mutation fire point.
+        if (new_length != old.n || old_bit != bit_value)
+            notify_record(sh, op, NOTIFY_STRING, NotifyEventId::Setbit, op.key());
+    }
     reply_int(op.sink(), old_bit);
 }
 

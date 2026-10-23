@@ -156,6 +156,8 @@ $(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-gro
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 $(BUILD_ROOT)/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
 $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
+# Armed handlers include the same implementation; incremental builds must see its edits.
+$(BUILD_ROOT)/src/cmd/t_string_notify.o $(BUILD_ROOT)/db0/src/cmd/t_string_notify.o: src/cmd/t_string.cc
 # ACLKEYS4's physical namespace argument changes only blocking list publication.
 # Keep every other list body identical; tools/aclkeys4_audit.py checks all bodies.
 $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25352
