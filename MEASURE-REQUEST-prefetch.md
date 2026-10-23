@@ -92,9 +92,11 @@ The standard differential matrices run via [the exec-only engine wrappers](docs/
 | uring / split | 475 | 0 | 474 | 2,149,691 | 32 mode-equivalence combinations | [logs](docs/prefetch/differ-uring-split.json.gz) |
 | uring / armed-fused | 466 | 0 | 464 | 2,098,740 | read-local engagement, atomic 0/1 | [logs](docs/prefetch/differ-uring-armed-fused.json.gz) |
 | epoll / split | 475 | 0 | 474 | 2,145,143 | 32 mode-equivalence combinations | [logs](docs/prefetch/differ-epoll-split.json.gz) |
-| epoll / armed-fused | RUNNING | — | — | — | — | — |
+| epoll / armed-fused | 466 | 0 | 464 | 2,098,677 | read-local engagement, atomic 0/1 | [logs](docs/prefetch/differ-epoll-armed-fused.json.gz) |
 
-The stock armed-fused harness marks ten SORT legs per engine **NOT RUN: SORT requires split 6:2 geometry**. They are not counted as passes and are covered by both split matrices. All completed matrices exited 0. The remaining epoll/armed-fused matrix is in progress.
+The stock armed-fused harness marks ten SORT legs per engine **NOT RUN: SORT requires split 6:2 geometry**. They are not counted as passes and are covered by both split matrices. **All four matrices exited 0: 1,882 passing rows, zero failures, 1,876 differential legs and 8,492,251 comparison witnesses** ([aggregate manifest](docs/prefetch/differ-summary.json)). Each split run also passed all 32 mode-equivalence combinations; both armed runs witnessed read-local execution under atomic 0 and 1.
+
+Final [artifact checks](docs/prefetch/final-checks.json) confirm that all four binary hashes still match, the DELETE patch applies, `git diff --check` passes, `tests/gate.sh` is unchanged, and no TCP listener in 23800–23899 or live executable from this worktree’s build directory remains.
 
 Full iteration and performance generators remain **NOT RUN: reserved to the maintainer**, as instructed.
 
