@@ -10,7 +10,7 @@
       "post_sizes": [
         333
       ],
-      "reason": "EX4.1: new out-of-line bucket walk, guarded for n > 1."
+      "reason": "EX4.1: flattened out-of-line fallback bucket walk."
     },
     {
       "name": "tomo::ExLoopT<false>::run()",
@@ -20,7 +20,7 @@
       "post_sizes": [
         9027
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "EX4.1: embedded task-drain fallback; compiler also changes drain inlining and register allocation."
     },
     {
       "name": "tomo::ExLoopT<true>::prefetch_exec_slots(tomo::Task const*, unsigned int)",
@@ -28,7 +28,7 @@
       "post_sizes": [
         333
       ],
-      "reason": "EX4.1: new out-of-line bucket walk, guarded for n > 1."
+      "reason": "EX4.1: flattened out-of-line fallback bucket walk."
     },
     {
       "name": "tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}::operator()(tomo::Task const*, unsigned int, tomo::ReorderResult) const",
@@ -38,7 +38,7 @@
       "post_sizes": [
         385
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}::operator()(tomo::Task const*, unsigned int, tomo::ReorderResult) const",
@@ -48,7 +48,7 @@
       "post_sizes": [
         385
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "tomo::ExLoopT<true>::run()",
@@ -58,7 +58,7 @@
       "post_sizes": [
         8807
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "EX4.1: embedded task-drain fallback; compiler also changes drain inlining and register allocation."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
@@ -68,7 +68,7 @@
       "post_sizes": [
         20659
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
@@ -78,7 +78,7 @@
       "post_sizes": [
         277
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
@@ -88,7 +88,7 @@
       "post_sizes": [
         21072
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
@@ -104,7 +104,7 @@
         10045,
         10767
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
@@ -120,7 +120,7 @@
         166,
         244
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
@@ -132,7 +132,7 @@
         20800,
         19202
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
@@ -144,7 +144,7 @@
         287,
         289
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
@@ -154,7 +154,7 @@
       "post_sizes": [
         21011
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
@@ -164,7 +164,7 @@
       "post_sizes": [
         18551
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)",
@@ -174,7 +174,7 @@
       "post_sizes": [
         18606
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]",
@@ -192,7 +192,7 @@
         2094,
         2288
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited helper: downstream inlining after executor-header change."
     },
     {
       "name": "tomo::IoLoop::touch_worker(unsigned int)",
@@ -200,7 +200,7 @@
         47
       ],
       "post_sizes": [],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited helper: standalone copy disappears as GCC changes inlining of callers."
     },
     {
       "name": "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)",
@@ -208,7 +208,7 @@
         483
       ],
       "post_sizes": [],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited helper: standalone copy disappears as GCC changes inlining of callers."
     },
     {
       "name": "tomo::Shard::watch_flush(int) [clone .cold]",
@@ -218,7 +218,7 @@
       "post_sizes": [
         89
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Existing study-label ordinal changes (tomo_multidb2_pad); inspect relocation identity, not a command-body edit."
     },
     {
       "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
@@ -228,7 +228,7 @@
       "post_sizes": [
         2738
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "tomo_db0::ExLoopT<false>::prefetch_exec_slots(tomo_db0::Task const*, unsigned int)",
@@ -236,7 +236,7 @@
       "post_sizes": [
         333
       ],
-      "reason": "EX4.1: new out-of-line bucket walk, guarded for n > 1."
+      "reason": "EX4.1: flattened out-of-line fallback bucket walk."
     },
     {
       "name": "tomo_db0::ExLoopT<false>::run()",
@@ -246,7 +246,7 @@
       "post_sizes": [
         8726
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "EX4.1: embedded task-drain fallback; compiler also changes drain inlining and register allocation."
     },
     {
       "name": "tomo_db0::ExLoopT<true>::prefetch_exec_slots(tomo_db0::Task const*, unsigned int)",
@@ -254,7 +254,7 @@
       "post_sizes": [
         333
       ],
-      "reason": "EX4.1: new out-of-line bucket walk, guarded for n > 1."
+      "reason": "EX4.1: flattened out-of-line fallback bucket walk."
     },
     {
       "name": "tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}::operator()(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult) const",
@@ -264,7 +264,7 @@
       "post_sizes": [
         385
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}::operator()(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult) const",
@@ -274,7 +274,7 @@
       "post_sizes": [
         385
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "tomo_db0::ExLoopT<true>::run()",
@@ -284,7 +284,7 @@
       "post_sizes": [
         8585
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "EX4.1: embedded task-drain fallback; compiler also changes drain inlining and register allocation."
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
@@ -300,7 +300,7 @@
         9805,
         10771
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
@@ -316,7 +316,7 @@
         166,
         244
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
@@ -326,7 +326,7 @@
       "post_sizes": [
         18483
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit."
     },
     {
       "name": "tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
@@ -336,7 +336,7 @@
       "post_sizes": [
         2738
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)",
@@ -346,7 +346,7 @@
       "post_sizes": [
         380
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)",
@@ -356,7 +356,7 @@
       "post_sizes": [
         469
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
@@ -366,7 +366,7 @@
       "post_sizes": [
         957
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo::IoLoop::epoll_pass<true, true, true>(int)",
@@ -376,7 +376,7 @@
       "post_sizes": [
         1053
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited epoll body: literal-pool target label changes in linked audit; no explicit executor edit."
     },
     {
       "name": "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
@@ -386,7 +386,7 @@
       "post_sizes": [
         2228
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
@@ -396,7 +396,7 @@
       "post_sizes": [
         2677
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo::ThreadCtx::drain_tasks_unmasked<false, tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
@@ -406,7 +406,7 @@
       "post_sizes": [
         2173
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo::ThreadCtx::drain_tasks_unmasked<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
@@ -416,7 +416,7 @@
       "post_sizes": [
         2617
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)",
@@ -426,7 +426,7 @@
       "post_sizes": [
         380
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)",
@@ -436,7 +436,7 @@
       "post_sizes": [
         469
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
@@ -446,7 +446,7 @@
       "post_sizes": [
         957
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
@@ -456,7 +456,7 @@
       "post_sizes": [
         973
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited sweep: compiler changes the inlining of compact_tombstones after the executor-header change."
     },
     {
       "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
@@ -466,7 +466,7 @@
       "post_sizes": [
         2228
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
@@ -476,7 +476,7 @@
       "post_sizes": [
         2677
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
@@ -486,7 +486,7 @@
       "post_sizes": [
         2173
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
@@ -496,7 +496,7 @@
       "post_sizes": [
         2617
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "void tomo::IoLoop::run_loop<true, false, false, true, false>()",
@@ -506,7 +506,7 @@
       "post_sizes": [
         5746
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited IO loop: downstream inlining/register allocation after executor-header change; cost risk for merit."
     },
     {
       "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
@@ -516,7 +516,7 @@
       "post_sizes": [
         5783
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited IO loop: downstream inlining/register allocation after executor-header change; cost risk for merit."
     },
     {
       "name": "void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)",
@@ -526,7 +526,7 @@
       "post_sizes": [
         2858
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "void tomo::r7::ShadowReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)",
@@ -536,7 +536,7 @@
       "post_sizes": [
         3201
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
@@ -546,7 +546,7 @@
       "post_sizes": [
         5175
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited IO loop: downstream inlining/register allocation after executor-header change; cost risk for merit."
     },
     {
       "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, true, true, false>()",
@@ -556,7 +556,7 @@
       "post_sizes": [
         5190
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited IO loop: downstream inlining/register allocation after executor-header change; cost risk for merit."
     },
     {
       "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, true, true, false>()",
@@ -566,7 +566,7 @@
       "post_sizes": [
         5190
       ],
-      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+      "reason": "Unedited IO loop: downstream inlining/register allocation after executor-header change; cost risk for merit."
     },
     {
       "name": "void tomo_db0::r7::ExReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
@@ -576,7 +576,7 @@
       "post_sizes": [
         3270
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     },
     {
       "name": "void tomo_db0::r7::ShadowReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
@@ -586,7 +586,7 @@
       "post_sizes": [
         3201
       ],
-      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+      "reason": "EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies."
     }
   ]
 }
