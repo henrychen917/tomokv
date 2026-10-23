@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Compile-only per-unit trials and linked reference scoring; no server or workload."""
 from concurrent.futures import ProcessPoolExecutor
-import hashlib,json,re,shlex,subprocess,sys
+import hashlib,json,os,re,shlex,subprocess,sys
 from pathlib import Path
 import identity
 ROOT=identity.ROOT
-OUT=ROOT/'build/wave5/budgets';DOC=ROOT/'docs/wave5/budgets'
+ROUND=os.getenv('WAVE5_BUDGET_ROUND','')
+OUT=ROOT/('build/wave5/budgets'+ROUND);DOC=ROOT/('docs/wave5/budgets'+ROUND)
 PRE=ROOT/'build/wave5/pre-source'
 sys.path.insert(0,str(ROOT/'tools'))
 from ccfix_audit import audit
@@ -14,7 +15,7 @@ def budgets(path):
  return {m[1]:int(m[2]) for m in re.finditer(r'^\$\(BUILD_ROOT\)/([^:\n]+):[^\n]*large-unit-insns=(\d+)',path.read_text(),re.M)}
 
 def recipe(arm,obj):
- log=ROOT/('build/wave5/build-pre.log' if arm=='pre' else 'build/wave5/build-post.log')
+ log=ROOT/('build/wave5/build-pre.log' if arm=='pre' else os.getenv('WAVE5_BUILD_LOG','build/wave5/build-post.log'))
  return shlex.split(next(s for s in log.read_text().splitlines() if s.startswith('g++ ') and s.endswith(' -o build/'+obj)))
 
 def trial(job):
@@ -39,7 +40,7 @@ def score(job):
  receipt=Path(job['output']+'.score.json')
  if receipt.exists():return json.loads(receipt.read_text())
  binary=Path(job['output']+'.tomokv')
- cmd=shlex.split(next(s for s in reversed((ROOT/'build/wave5/build-post.log').read_text().splitlines()) if s.startswith('g++ ') and ' -Wl,--wrap=main ' in s))
+ cmd=shlex.split(next(s for s in reversed((ROOT/os.getenv('WAVE5_BUILD_LOG','build/wave5/build-post.log')).read_text().splitlines()) if s.startswith('g++ ') and ' -Wl,--wrap=main ' in s))
  cmd[cmd.index('build/'+job['object'])]=job['output'];cmd[cmd.index('-o')+1]=str(binary);cmd+=['-Wl,--strip-debug']
  with open(job['output']+'.link.log','w') as log:subprocess.run(cmd,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=True)
  post=identity.inventory(binary);refs={arm:identity.inventory(path) for arm,path in identity.REFS.items()}

@@ -285,7 +285,7 @@ public:
         // the mapping at reservation retirement. WATCH state is cold/heap-owned.
         std::array<uint64_t, 4> dirty_databases{};
     };
-    bool has_watches() const {
+    __attribute__((always_inline)) bool has_watches() const {
         TOMO_EXBATCH_TWIN(legacy, 3);
         return has_watches_;
     legacy:
