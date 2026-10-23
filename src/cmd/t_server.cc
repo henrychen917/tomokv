@@ -486,6 +486,13 @@ bool parse_client_output_buffer_limit_slice(Slice input,
 
 bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
                       const char*& error, bool legacy_compact = false) {
+    // Redis yesnotoi/configEnumGetValue consume C strings, while numeric
+    // string2ll consumes the entire decoded argument (including embedded NUL).
+    if (entry.kind == ConfigKind::Bool || entry.kind == ConfigKind::Enum ||
+        entry.kind == ConfigKind::Policy) {
+        if (const void* end = std::memchr(input.p, 0, input.n))
+            input.n = static_cast<const char*>(end) - input.p;
+    }
     switch (entry.kind) {
         case ConfigKind::Hz: {
             uint32_t value = 0;
@@ -529,17 +536,13 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         case ConfigKind::Bool:
             if (eq_icase(input, "yes")) { out = "yes"; return true; }
             if (eq_icase(input, "no")) { out = "no"; return true; }
-            if (!std::strcmp(entry.name, "aof-load-truncated") ||
-                !std::strcmp(entry.name, "dynamic-hz")) {
-                error = "argument must be 'yes' or 'no'";
-                return false;
-            }
-            if (input == Slice("1", 1)) { out = "yes"; return true; }
-            if (input == Slice("0", 1)) { out = "no"; return true; }
+            error = "argument must be 'yes' or 'no'";
             return false;
         case ConfigKind::Unsigned: {
             uint64_t value = 0;
-            if (!parse_u64(input, value)) return false;
+            int64_t integer = 0;
+            if (!cfg_parse_integer(input, integer) || integer < 0) return false;
+            value = static_cast<uint64_t>(integer);
             if (!std::strcmp(entry.name, "zc-min") &&
                 value > UINT32_MAX) return false;
             if (!std::strcmp(entry.name, "maxmemory-samples") && (value == 0 || value > 64))
@@ -547,7 +550,7 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
             if (!std::strcmp(entry.name, "atomic") && value > 1) return false;
             if (!std::strcmp(entry.name, "databases") && (value < 1 || value > 256)) return false;
             if (!std::strcmp(entry.name, "auto-aof-rewrite-percentage") &&
-                value > UINT32_MAX) return false;
+                value > INT_MAX) return false;
             if (!std::strcmp(entry.name, "maxclients") && (value == 0 || value > UINT32_MAX))
                 return false;
             if ((!std::strcmp(entry.name, "timeout") ||
@@ -565,6 +568,8 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
                 return true;
             }
             if (!parse_bytes(input, value)) return false;
+            if (!std::strcmp(entry.name, "auto-aof-rewrite-min-size") && value > INT64_MAX)
+                return false;
             if (!std::strcmp(entry.name, "proto-max-bulk-len") &&
                 (value < kProtoMinBulkLen || value > kProtoMaxBulkLenSupported)) return false;
             out = std::to_string(value);
@@ -598,7 +603,7 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         }
         case ConfigKind::Signed: {
             int64_t value = 0;
-            if (!parse_i64_slice(input, value)) return false;
+            if (!cfg_parse_integer(input, value)) return false;
             if (!std::strcmp(entry.name, "slowlog-log-slower-than") && value < -1) return false;
             out = std::to_string(value);
             return true;

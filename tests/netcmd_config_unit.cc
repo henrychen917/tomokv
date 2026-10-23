@@ -133,9 +133,19 @@ void knob_matrix() {
     for (const char* name : {"hash-max-listpack-entries", "hash-max-listpack-value"}) {
         const std::string before = execute(shard, {"CONFIG", "GET", name});
         tomo::Op op; args(op, {"CONFIG", "SET", name});
-        check(op.push_arg(tomo::Slice("1\0x", 3)), "malformed bulk fixture argument");
-        check(!tomo::command_validate_config_set(op), "embedded NUL rejected by shared parser");
-        check(execute(shard, {"CONFIG", "GET", name}) == before, "malformed bulk leaves GET intact");
+        check(op.push_arg(tomo::Slice("1\0x", 3)), "embedded NUL fixture argument");
+        // Redis memtoull consumes a C string; string2ll consumes the full SDS.
+        // Exact oracle witnesses are retained by serverfix_scalar's live/file cases.
+        const bool memory = !std::strcmp(name, "hash-max-listpack-value");
+        check(tomo::command_validate_config_set(op) == memory,
+              "embedded NUL follows the Redis parser for this config type");
+        const std::string reply(op.reply.data(), op.reply.size());
+        check(reply == (memory ? "" :
+              "-ERR CONFIG SET failed (possibly related to argument 'hash-max-listpack-entries')"
+              " - argument couldn't be parsed into an integer\r\n"),
+              "integer NUL rejection has the exact oracle reply");
+        check(execute(shard, {"CONFIG", "GET", name}) == before,
+              "CONFIG validation alone leaves GET intact");
     }
 }
 }

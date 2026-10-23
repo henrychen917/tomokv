@@ -1,0 +1,47 @@
+Search: Invalid protocol version|NOPROTO|CONFIG SET failed|parameter is immutable at runtime|Unknown option or number of arguments for CONFIG SET|can't set immutable config|can't set protected config|duplicate parameter|TESTFAILED|WAITAOF|UNBLOCKED client unblocked
+
+tests/knobs.py:35:            b"ERR Unknown option or number of arguments for CONFIG SET - 'proto-max-inline'"):
+tests/knobs.py:48:        prefix = "ERR CONFIG SET failed (possibly related to argument '%s') - " % query_name
+tests/knobs.py:60:                prefix + "duplicate parameter"):
+tests/serverfix_hll.py:25:                      {'error': 'ERR TESTFAILED Too big error. card:10 abserr:10'})
+tests/aof_rewrite_triggers.py:257:        raise AssertionError("live auto rewrite CONFIG SET failed")
+tests/aclkeys_unit.cc:188:        keys(user, {"WAITAOF", "0", "1", timeout}, {});
+tests/climon2.py:357:           b"-UNBLOCKED client unblocked via CLIENT UNBLOCK\r\n", "ERROR flavour")
+tests/resp3.py:120:        expect(frame.kind == b"-" and frame.value == b"NOPROTO unsupported protocol version",
+tests/gate.sh:2977:  local label="serverfix SV4.5 WAITAOF wait lifecycle"
+tests/atomic_torn.py:1022:        flip_errors.append("CONFIG SET failed")
+tests/s6.py:153:    wait_zero = client.command("WAITAOF", "0", "0", "0")
+tests/s6.py:154:    negative_replicas = client.command("WAITAOF", "0", "-1", "0")
+tests/s6.py:155:    negative_timeout = client.command("WAITAOF", "0", "0", "-1")
+tests/limits.py:191:            expect(str(reply), "ERR CONFIG SET failed (possibly related to argument "
+tests/auth.py:96:           "ERR CONFIG SET failed (possibly related to argument 'protected-mode') - "
+tests/netcap_unit.cc:292:        check(rejected == "-ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive\r\n",
+tests/debug.py:78:       "ERR CONFIG SET failed (possibly related to argument 'enable-debug-command') - "
+tests/debug.py:79:       "can't set immutable config", "boot-only config")
+tests/replyschema.py:178:    # WAITAOF's replica count is an integer, and GEOHASH uses null for a missing requested member.
+tests/replyschema.py:716:add("waitaof", "WAITAOF", "0", "0", "1")
+tests/netcmd_config_unit.cc:27:        const std::string expected = std::string("-ERR Unknown option or number of arguments for CONFIG SET - '") + name + "'\r\n";
+tests/netcmd_config_unit.cc:72:                   "-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated')"
+tests/netcmd_config_unit.cc:77:                   std::string("-ERR CONFIG SET failed (possibly related to argument '") +
+tests/netcmd_config_unit.cc:78:                   duplicate + "') - duplicate parameter\r\n");
+tests/netcmd_config_unit.cc:170:            const std::string expected = std::string("-ERR CONFIG SET failed (possibly related to argument '") +
+tests/netcmd_config_unit.cc:272:            check(std::string(op.reply.data(), op.reply.size()) == "-ERR parameter is immutable at runtime\r\n",
+tests/netcmd_config_unit.cc:275:                  "-ERR parameter is immutable at runtime\r\n", "writeback handler rejects SET");
+tests/differ_test.py:331:                        return (b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') "
+tests/differ_test.py:332:                                b"- duplicate parameter\r\n")
+tests/aclkeys_wake_unit.cc:254:        unblock ? "-UNBLOCKED client unblocked via CLIENT UNBLOCK\r\n" : move ? "$5\r\nvalue\r\n" :
+tests/differ.py:5911:    Both servers must be purpose-booted with appendonly disabled so WAITAOF's [0,0] control is
+tests/differ.py:6032:    compare(["WAITAOF", "0", "0", "0"], "A7 AOF-off zero control")
+tests/differ.py:6033:    compare(["WAITAOF", "0", "-1", "0"], "A7 negative numreplicas")
+tests/differ.py:6034:    compare(["WAITAOF", "0", "0", "-1"], "A7 negative-timeout control")
+tests/differ.py:6055:            argv = ["WAITAOF", "0", "-1", str(rng.randrange(3))]
+tests/differ.py:6276:                             b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') - duplicate parameter\r\n")
+tests/atomic_plain.py:312:                raise _lib.RespError("ERR parameter is immutable at runtime")
+tests/serverfix_waitaof.py:2:"""SV4.5: standalone WAITAOF deadlines, forever waits and connection cleanup."""
+tests/serverfix_waitaof.py:31:        run.check(label + ' immediate', admin.cmd('WAITAOF', 0, 0, 0), [0, 0])
+tests/serverfix_waitaof.py:34:            reply = admin.cmd('WAITAOF', *args)
+tests/serverfix_waitaof.py:45:                send(c, 'WAITAOF', 0, 1, 1000)
+tests/serverfix_waitaof.py:60:                send(c, 'WAITAOF', 0, 1, 0)
+tests/serverfix_waitaof.py:67:                          {'error': 'UNBLOCKED client unblocked via CLIENT UNBLOCK'})
+tests/serverfix_waitaof.py:72:            send(c, 'WAITAOF', 0, 1, 0)
+tests/serverfix_waitaof.py:80:        run.check(label + ' queued WAITAOF', admin.cmd('WAITAOF', 0, 1, 0), b'QUEUED')
