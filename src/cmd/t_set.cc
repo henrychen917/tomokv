@@ -852,17 +852,32 @@ void cmd_smembers(Shard& shard, Op& op) {
     for_each_member(set, [&](Slice member) { reply_bulk(op.sink(), member); });
 }
 
+int64_t popped_integer(Slice bytes) {
+    if (bytes.n == 2) {
+        int16_t value;
+        std::memcpy(&value, bytes.p, sizeof(value));
+        return value;
+    }
+    if (bytes.n == 4) {
+        int32_t value;
+        std::memcpy(&value, bytes.p, sizeof(value));
+        return value;
+    }
+    int64_t value;
+    std::memcpy(&value, bytes.p, sizeof(value));
+    return value;
+}
+
 // Compact populations are bounded by the Redis encoding controls. A single pick
 // shifts at most one packed tail. A counted pop samples without replacement in
 // one forward pass and builds the survivors once, retaining the existing encoding.
 // Allocation completes before the reply or the mutation becomes visible.
 bool pop_compact(Op& op, CollectionRef& set, uint32_t count, bool with_count) {
     const bool integers = set_small_encoding(set) == SetSmallEncoding::Integer;
-    auto reply_member = [&](const Compact::Entry& entry, uint32_t index) {
+    auto reply_member = [&](const Compact::Entry& entry) {
         if (!integers) reply_bulk(op.sink(), entry.value);
         else {
-            int64_t value = 0;
-            integer_at(set, index, value);
+            const int64_t value = popped_integer(entry.value);
             char text[24];
             const uint32_t len = i64_to_dec(text, value);
             reply_bulk(op.sink(), Slice(text, len));
@@ -876,7 +891,7 @@ bool pop_compact(Op& op, CollectionRef& set, uint32_t count, bool with_count) {
             : set.compact().at(index, entry);
         if (!found) return false;
         if (with_count) reply_set_header(op.sink(), 1, op.resp3());
-        reply_member(entry, index);
+        reply_member(entry);
         return set.erase(entry);
     }
     Compact survivors;
@@ -895,7 +910,7 @@ bool pop_compact(Op& op, CollectionRef& set, uint32_t count, bool with_count) {
     uint32_t next = 0;
     for (const Compact::Entry entry : set.compact()) {
         if (next < selected.size() && index == selected[next]) {
-            reply_member(entry, index);
+            reply_member(entry);
             ++next;
         }
         ++index;
@@ -920,7 +935,18 @@ bool pop_rebuilt(Shard& shard, Op& op, KvObj*& object, uint32_t count) {
     auto visit = [&](auto&& fn) {
         if (source.encoding() == CollectionEncoding::Hashtable) {
             for (uint32_t i = 0; i < size; ++i) with_member_at(source, i, fn);
-        } else for_each_member(source, fn);
+        } else {
+            // The iterator already carries the entry coordinates. integer_at()
+            // would rediscover them by scanning/binary-searching the offset index.
+            for (const Compact::Entry entry : source.compact()) {
+                if (!integers) fn(entry.value);
+                else {
+                    char text[24];
+                    const uint32_t len = i64_to_dec(text, popped_integer(entry.value));
+                    fn(Slice(text, len));
+                }
+            }
+        }
     };
     Compact members;
     uint32_t index = 0, needed = keep, max_bytes = 0;

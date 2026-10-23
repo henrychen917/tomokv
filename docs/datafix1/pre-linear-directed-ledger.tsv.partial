@@ -1,0 +1,9 @@
+PARTIAL	0	GATE_ONLY_JOBS=datafix1_geo datafix1_spop datafix1_lists datafix1_locale datafix1_bitfield datafix1_hexpire datafix1_randscan; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+FAIL	1.580000	datafix1 RAND/SCAN errors (both engines and modes)
+FAIL	1.790000	datafix1 HEXPIRE precedence (both engines and modes)
+FAIL	1.660000	datafix1 BITFIELD bounds (both engines and modes)
+FAIL	4.340000	datafix1 SORT locale (both engines and modes)
+FAIL	3.230000	datafix1 list demotion (both engines and modes)
+FAIL	1.710000	datafix1 SPOP encodings (both engines and modes)
+FAIL	3.310000	datafix1 GEO grammar (both engines and modes)

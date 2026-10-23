@@ -1,7 +1,7 @@
 {
   "object": "src/cmd/t_set.o",
   "budget": 26200,
-  "unit": 19548,
+  "unit": 19373,
   "command": [
     "g++",
     "-std=c++20",
@@ -25,7 +25,7 @@
     "-dumpbase",
     "/home/user/Projects/cx-datafix1/build/datafix1/budgets/src_cmd_t_set.o.post.26200"
   ],
-  "sha256": "23f0052c5ec8635e3d41f4d59130953730b6b781955455cfca1689862b40efe4",
+  "sha256": "264091673e6e6c2bfbd391cfc707014ab5cf2876a5c00350bd0d455c5b406c71",
   "total": 214,
   "hot": 12,
   "changed": 31,
@@ -73,8 +73,8 @@
       "name": "tomo::(anonymous namespace)::pop_compact(tomo::Op&, tomo::CollectionRef&, unsigned int, bool)",
       "hot": false,
       "pre_size": 0,
-      "post_size": 3063,
-      "differing_bytes": 3063,
+      "post_size": 3072,
+      "differing_bytes": 3072,
       "targets_equal": false
     },
     {
@@ -145,8 +145,8 @@
       "name": "void tomo::(anonymous namespace)::cmd_sadd<false>(tomo::Shard&, tomo::Op&)",
       "hot": false,
       "pre_size": 2826,
-      "post_size": 2698,
-      "differing_bytes": 2611,
+      "post_size": 2634,
+      "differing_bytes": 935,
       "targets_equal": false
     },
     {
@@ -163,8 +163,8 @@
       "name": "void tomo::(anonymous namespace)::cmd_spop<false>(tomo::Shard&, tomo::Op&)",
       "hot": false,
       "pre_size": 3196,
-      "post_size": 8627,
-      "differing_bytes": 8284,
+      "post_size": 8981,
+      "differing_bytes": 8705,
       "targets_equal": false
     },
     {
@@ -172,8 +172,8 @@
       "name": "void tomo::(anonymous namespace)::cmd_spop<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
       "hot": false,
       "pre_size": 48,
-      "post_size": 186,
-      "differing_bytes": 172,
+      "post_size": 183,
+      "differing_bytes": 174,
       "targets_equal": false
     },
     {
@@ -181,8 +181,8 @@
       "name": "void tomo::(anonymous namespace)::cmd_spop<true>(tomo::Shard&, tomo::Op&)",
       "hot": false,
       "pre_size": 3324,
-      "post_size": 8823,
-      "differing_bytes": 8523,
+      "post_size": 9243,
+      "differing_bytes": 8959,
       "targets_equal": false
     },
     {
@@ -190,8 +190,8 @@
       "name": "void tomo::(anonymous namespace)::cmd_spop<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
       "hot": false,
       "pre_size": 48,
-      "post_size": 187,
-      "differing_bytes": 178,
+      "post_size": 196,
+      "differing_bytes": 175,
       "targets_equal": false
     },
     {
@@ -253,8 +253,8 @@
       "name": "tomo::kvobj_external_bytes(tomo::KvObj const*)",
       "hot": false,
       "pre_size": 588,
-      "post_size": 668,
-      "differing_bytes": 413,
+      "post_size": 591,
+      "differing_bytes": 456,
       "targets_equal": false
     },
     {

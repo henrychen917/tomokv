@@ -1,6 +1,6 @@
 {
-  "binary_sha256": "198761436da1aba070f550974d5a17782cc46b72bc7347cc983c27f927038350",
-  "gate_run": "/home/user/Projects/cx-datafix1/build/gate-run.n6tq22",
+  "binary_sha256": "b05021db6b4f7369b0cad5b7009b8a1918332860f92b03f029394c23e4d61dec",
+  "gate_run": "/home/user/Projects/cx-datafix1/build/gate-run.N17tnM",
   "features": [
     {
       "feature": "geo",

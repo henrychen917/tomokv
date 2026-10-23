@@ -5,9 +5,9 @@ from datafix1_common import main, plain
 
 def battery(p):
     for kind, members, encoding in [
-        ('int16', list(range(100)), b'intset'),
-        ('int32', list(range(100000, 100100)), b'intset'),
-        ('int64', list(range(2**40, 2**40+100)), b'intset'),
+        ('int16', list(range(-50, 50)), b'intset'),
+        ('int32', list(range(-100100, -100000)), b'intset'),
+        ('int64', list(range(-2**40, -2**40+100)), b'intset'),
         ('text', [f'm{i:03d}' for i in range(100)], b'listpack'),
         ('table', [f'm{i:03d}' for i in range(200)], b'hashtable')]:
         for count in (None, 0, 1, 2, 49, 50, 99, 100, 101, 166, 167, 199):
