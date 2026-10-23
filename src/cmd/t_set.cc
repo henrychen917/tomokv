@@ -851,6 +851,57 @@ void cmd_smembers(Shard& shard, Op& op) {
     for_each_member(set, [&](Slice member) { reply_bulk(op.sink(), member); });
 }
 
+// Compact populations are bounded by the Redis encoding controls. A single pick
+// shifts at most one packed tail. A counted pop samples without replacement in
+// one forward pass, builds the survivors once, and never promotes the encoding.
+// Allocation completes before the reply or the mutation becomes visible.
+bool pop_compact(Op& op, CollectionRef& set, uint32_t count, bool with_count) {
+    const bool integers = set_small_encoding(set) == SetSmallEncoding::Integer;
+    auto reply_member = [&](const Compact::Entry& entry, uint32_t index) {
+        if (!integers) reply_bulk(op.sink(), entry.value);
+        else {
+            int64_t value = 0;
+            integer_at(set, index, value);
+            char text[24];
+            const uint32_t len = i64_to_dec(text, value);
+            reply_bulk(op.sink(), Slice(text, len));
+        }
+    };
+    if (count == 1) {
+        const uint32_t index = static_cast<uint32_t>(random_below(set.entries()));
+        Compact::Entry entry;
+        const bool found = integers
+            ? set.compact().at_offset(index * (set_int_width(set) + 1u), entry)
+            : set.compact().at(index, entry);
+        if (!found) return false;
+        if (with_count) reply_set_header(op.sink(), 1, op.resp3());
+        reply_member(entry, index);
+        return set.erase(entry);
+    }
+    Compact survivors;
+    std::vector<uint32_t> selected;
+    try { selected.reserve(count); } catch (const std::bad_alloc&) { return false; }
+    uint32_t remaining = count, index = 0;
+    for (const Compact::Entry entry : set.compact()) {
+        if (random_below(set.entries() - index) < remaining) {
+            selected.push_back(index);
+            --remaining;
+        } else if (!survivors.append(entry.value)) return false;
+        ++index;
+    }
+    if (with_count) reply_set_header(op.sink(), count, op.resp3());
+    index = 0;
+    uint32_t next = 0;
+    for (const Compact::Entry entry : set.compact()) {
+        if (next < selected.size() && index == selected[next]) {
+            reply_member(entry, index);
+            ++next;
+        }
+        ++index;
+    }
+    return set.replace_compact(std::move(survivors));
+}
+
 template <bool kNotify>
 void cmd_spop(Shard& shard, Op& op) {
     const bool with_count = op.argc() == 3;
@@ -893,14 +944,14 @@ void cmd_spop(Shard& shard, Op& op) {
         return;
     }
 
-    if (initial.is_embedded() && !externalize_set<kNotify>(shard, op, object)) return;
     CollectionRef set = as_set(object);
-    ObjectSizeTracker size_tracker(shard.store(), object);   // partial pop: track the shrink
-    // Compact deletion would move bytes proportional to the collection. Promote once (charged to
-    // the preceding compact writes), then every random pick and tombstone delete is O(1).
-    if (set.encoding() != CollectionEncoding::Hashtable &&
-        !promote_to_table(set, size)) {
-        reply_err(op.sink(), "ERR out of memory");
+    ObjectSizeTracker size_tracker(shard.store(), object);
+    if (set.encoding() == CollectionEncoding::Compact) {
+        if (!pop_compact(op, set, static_cast<uint32_t>(count), with_count)) {
+            reply_err(op.sink(), "ERR out of memory"); return;
+        }
+        if constexpr (kNotify)
+            notify_record(shard, op, NOTIFY_SET, NotifyEventId::Spop, op.key());
         return;
     }
     SetVal* expanded = set.external_as<SetVal>();
