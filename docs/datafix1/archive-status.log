@@ -1,0 +1,7 @@
+pre-existing-uring GATE(PARTIAL): 157 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/datafix1/pre-existing-uring-ledger.tsv.partial
+pre-units GATE(PARTIAL): 57 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-units-ledger.tsv.partial
+post-units GATE(PARTIAL): 57 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/datafix1/post-units-ledger.tsv.partial
+pad-control GATE(PARTIAL): 1 ok, 7 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/datafix1/pad-control-ledger.tsv.partial
+post-existing-epoll LANE INTERRUPTED: stop overlapping correctness coordinators after the 900s differential watchdog receipt; rerun serially with unchanged seeds/assertions. No complete ledger is claimed.
+pre-existing-epoll LANE INTERRUPTED: stop overlapping correctness coordinators after the 900s differential watchdog receipt; rerun serially with unchanged seeds/assertions. No complete ledger is claimed.
+post-existing-uring LANE INTERRUPTED: stop overlapping correctness coordinators after the 900s differential watchdog receipt; rerun serially with unchanged seeds/assertions. No complete ledger is claimed.

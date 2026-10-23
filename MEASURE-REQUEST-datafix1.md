@@ -115,3 +115,18 @@ implementations (linked-primary.json). These are identity proxies, not merit.
 Both namespaces retain Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore
 944, Rob<64> 192, AtomicEntry 144 and Config 624. Only Config's reserved area
 changes definition; all existing non-reserved field offsets match (layout-reviewed.json).
+
+Production proof: PRE and POST each pass all 57 selected storage_units, atomic_units
+and netcmd_units rows, including encodingfix and storesize. Both builds pass
+make -q for all, all 37 targets listed in job_production_units, and mdbqsbr-live-arms
+(freshness.log). Complete gate-owned logs are archived in {pre,post}-units-proof.tar.gz.
+The gate harness self-test passes 67/67 when run alone (gates-test-serial.log).
+Two earlier concurrent runs had outer scheduler-fixture timeouts; their original
+logs are retained. No fixture assertion or deadline was changed.
+
+An initial concurrent differential run hit its 900-second outer row watchdog
+before the last seed completed. All three overlapping coordinators were stopped
+and their incomplete logs archived, explicitly marked LANE INTERRUPTED. Those
+are not claimed as complete matrix passes. The serial reruns use the unchanged
+standard permanent seeds 7,19,20,23 plus rotating seed 25, cloned from the same
+pre-run history for matched PRE/POST arms. Each full leg inventory remains intact.

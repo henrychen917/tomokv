@@ -1,0 +1,15 @@
+RECEIPT FIXTURE REFUSED: tests/fixtures/nullrefresh-ledger-labels.json: EXPECT_FULL=702, fixture=709, source declarations=709
+Missing fixture labels: none
+Extra fixture labels: none
+Review the gate row additions/removals and update the explicit fixture, preserving duplicate occurrences. EXPECT_QUICK/EXPECT_FULL are maintainer-owned; do not change them to hide this failure. A run ledger, including a partial run, is never this check's source of truth.
+Exact source/fixture multiset match: 709
+345 EXPECT_QUICK=685
+346 EXPECT_FULL=702                 # ABBA reports only; self-test remains counted.
+4286 collect_job datafix1_geo
+4287 collect_job datafix1_spop
+4288 collect_job datafix1_lists
+4289 collect_job datafix1_locale
+4290 collect_job datafix1_bitfield
+4291 collect_job datafix1_randscan
+4292 collect_job datafix1_hexpire
+4379   echo; echo "GATE(quick): $PASS ok, $FAIL FAIL (wall $((SECONDS-GATE_STARTED))s)"; [ $FAIL -eq 0 ] || exit 1; exit 0
