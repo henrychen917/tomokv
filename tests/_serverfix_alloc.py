@@ -57,7 +57,7 @@ class Trace:
             elif current:
                 symbols[current] += line + '\n'
         pattern = re.compile('Slowlog|slowlog|ClientDirectoryShard' if feature == 'slowlog' else
-                             'AclLog(Store|Entry)|acl_log_|acl_set_log_max_len|_GLOBAL__sub_I_.*acl_')
+                             'AclLog(Store|Entry)|(?:^|\n)tomo(?:_db0)?::acl_(?:log_|set_log_max_len)')
         live = {}
         allocations = []
         for line in lines:
