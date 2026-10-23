@@ -1,0 +1,38 @@
+[
+  {
+    "name": "txn_unit_view",
+    "equal": true,
+    "pre_sha256": "a9b10dab50e5d1cc4056f8072e7a5f4fd659bc32ac6262db2d7347ed687593a7",
+    "post_sha256": "a9b10dab50e5d1cc4056f8072e7a5f4fd659bc32ac6262db2d7347ed687593a7"
+  },
+  {
+    "name": "txn_version_before",
+    "equal": true,
+    "pre_sha256": "a0f546fabfc3df46877bfddda8dd71032a60fe8f5ffb6d2e39c7efc0b7caaa2e",
+    "post_sha256": "a0f546fabfc3df46877bfddda8dd71032a60fe8f5ffb6d2e39c7efc0b7caaa2e"
+  },
+  {
+    "name": "txn_reservation_live",
+    "equal": true,
+    "pre_sha256": "74d3401df30d5914b772c678e9de2e34a942da171f0260528b8c6c6a645beb36",
+    "post_sha256": "74d3401df30d5914b772c678e9de2e34a942da171f0260528b8c6c6a645beb36"
+  },
+  {
+    "name": "txn_wound",
+    "equal": true,
+    "pre_sha256": "a7d0c1595afb563f4ff72dc8f6b6a01e09c2512c9b09f23b4f73cfa9d2545d50",
+    "post_sha256": "a7d0c1595afb563f4ff72dc8f6b6a01e09c2512c9b09f23b4f73cfa9d2545d50"
+  },
+  {
+    "name": "Shard::watch_key_ready",
+    "equal": true,
+    "pre_sha256": "176af3106d1eb318d43d6e774b4661f08804115a40ddb787656e10682b7600dc",
+    "post_sha256": "176af3106d1eb318d43d6e774b4661f08804115a40ddb787656e10682b7600dc"
+  },
+  {
+    "name": "Shard::watch_txn_write_ready",
+    "equal": true,
+    "pre_sha256": "4f6ccfcc596562419535c108dfa852d8794f057503d8d1ab4a0a06272e3fa1ce",
+    "post_sha256": "4f6ccfcc596562419535c108dfa852d8794f057503d8d1ab4a0a06272e3fa1ce"
+  }
+]
