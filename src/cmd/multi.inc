@@ -3783,4 +3783,64 @@ bool txn_scatter_write_ready(const Task& task, Shard& shard, Op& op) {
 }
 }
 
+// ---- post-join shutdown (IoLoop::shutdown_clients_after_join only) ---------------------------
+// Same borrow walk as multi_retire_entry's TLS branch, returning each borrow to its store
+// directly: every owner has joined, so queue_borrow_release would post to a dead inbox.
+static void multi_shutdown_return_tls_borrows(Server& server, WbEngine& wb, Client& client,
+                                              MultiExecState& state) {
+    if (!client.is_tls()) return;
+    for (const auto& command : state.commands) {
+        ScatterState* scatter = command->scatter;
+        if (!scatter || scatter->kind != Kind::Mget || !scatter->values) continue;
+        for (uint32_t i = 0; i < scatter->key_count; i++) {
+            ValueSlot& slot = scatter->values[i];
+            if (slot.kind != ValueKind::Borrow) continue;
+            server.shard(slot.shard).store().unborrow(slot.ptr);
+            wb.note_zc_suppressed_tls();
+            slot.kind = ValueKind::Nil;
+        }
+    }
+}
+
+bool multi_shutdown_retirable(Server& server, WbEngine& wb, Client& client, Op& op) {
+    auto* state = static_cast<MultiExecState*>(op.multi_state());
+    if (!state) return true;
+    // Exactly multi_retire's condition for running connection-local handlers.
+    if (state->kind == MultiStateKind::Execute &&
+        state->final_reply == MultiFinalReply::Exec &&
+        !state->watch_failed.load(std::memory_order_acquire) &&
+        !state->decision.aborted.load(std::memory_order_acquire))
+        for (const auto& command : state->commands)
+            if (command->kind == MultiCommandKind::IoLocal &&
+                !(state->publication_started &&
+                  (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
+                return false;
+    multi_shutdown_return_tls_borrows(server, wb, client, *state);
+    return true;
+}
+
+// multi_retire_entry without its handlers, reply and session bookkeeping: the Client is freed
+// next. Owners released every record reference before IO destruction, so the state normally
+// dies here; otherwise it waits exactly as an ordinary retirement would.
+void multi_shutdown_discard(Server& server, WbEngine& wb, Client& client, Op& op,
+                            ScatterArenaPool& pool, uint32_t owner_io,
+                            std::vector<MultiExecState*>& deferred) {
+    auto* state = static_cast<MultiExecState*>(op.multi_state());
+    if (!state) return;
+    multi_shutdown_return_tls_borrows(server, wb, client, *state);
+    if (state->snapshot_registered) pool.unregister_snapshot(server, state, owner_io);
+    op.detach_scatter_state();
+    client.atomic_group_finished();
+    release_admission(*state);
+    state->retired = true;
+    if (multi_records_done(*state)) {
+        destroy_multi_state(state);
+        return;
+    }
+    try { deferred.push_back(state); }
+    catch (const std::bad_alloc&) {
+        // As in multi_retire: leak one state rather than free words a record still names.
+    }
+}
+
 }  // namespace tomo

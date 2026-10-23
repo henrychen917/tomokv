@@ -10,6 +10,7 @@ using namespace tomo;
 
 static unsigned saves;
 static bool real_save;
+static bool post_join; // the post-join client cleanup may run no command, so it starts no save
 static uint64_t test_clock_ns;
 extern "C" int __real_clock_gettime(clockid_t, timespec*);
 extern "C" int __wrap_clock_gettime(clockid_t id, timespec* value) {
@@ -37,6 +38,7 @@ extern "C" SnapshotManager::StartResult snapshot_stub(
     SnapshotManager* manager, Server& server, ThreadCtx& writer, Ring& ring,
     bool blocking, std::string& error, AofManager* rewrite,
     const char* directory, const char* filename, bool shutdown) {
+    require(!post_join, "post-join cleanup runs no queued command and starts no save");
     if (real_save)
         return real_snapshot_start(manager, server, writer, ring, blocking, error,
                                    rewrite, directory, filename, shutdown);
@@ -312,7 +314,9 @@ int main(int argc, char** argv) {
         CoreConcurrencyTest::shutdown_clients(true, false, true);
     require(argc == 1, "shutdown-unit arguments");
     for (bool epoll : {false, true})
-        for (bool fused : {false, true}) CoreConcurrencyTest::shutdown_clients(epoll, fused);
+        for (bool fused : {false, true})
+            for (bool conn_local_exec : {false, true})
+                CoreConcurrencyTest::shutdown_clients(epoll, fused, false, conn_local_exec);
     auto f = std::make_unique<Fixture>();
     require(f->command({"SHUTDOWN"}).empty(), "successful SHUTDOWN has no reply");
     require(saves == 1 && f->server.shutting_down(), "default SHUTDOWN saves before stop");

@@ -32,8 +32,10 @@ void IoLoop::shutdown_clients_after_join() {
     // Normal WB callbacks post releases, tracking and notifications to live
     // owners. All owners have joined: complete only the already-issued reply
     // here, return borrows directly, and discard undeliverable notifications.
-    // Rebinding preserves WB accounting and its existing staged output.
-    const std::atomic<bool> no_limits{false};
+    // Rebinding preserves WB accounting and its existing staged output. The
+    // transaction arm sees only multi_shutdown_retirable() states (see below).
+    // Static: wb_ keeps this pointer after the destructor's last use.
+    static const std::atomic<bool> no_limits{false};
     auto release_joined = [](void* context, int32_t shard, const char* ptr) {
         auto* loop = static_cast<IoLoop*>(context);
         loop->srv_->shard(shard).store().unborrow(ptr);
@@ -109,11 +111,25 @@ void IoLoop::shutdown_clients_after_join() {
 
     // A completion already owed may have reached Done during the last IO pass.
     // Retire that prefix and perform the existing nonblocking send path once;
-    // never parse more requests, wait on peers, or restart a save.
+    // never parse more requests, run commands, wait on peers, or restart a save.
+    // An EXEC retires by running its queued connection-local commands on this
+    // IO owner, so one that still has them is not an owed reply: end the
+    // ordered prefix before it (no later reply may overtake it) and discard it
+    // after the ring fence below.
+    std::vector<Op*> withheld;
     for (Client* c : clients) {
         c->set_recv_armed(false);
         c->set_send_inflight(false);
         if (!c->dead()) {
+            for (uint64_t id = c->rob().flush_id(); id != c->rob().dispatch_id(); ++id) {
+                Op& op = c->rob().at(id);
+                if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
+                if (op.has_multi_state() && !multi_shutdown_retirable(*srv_, wb_, *c, op)) {
+                    op.state.store(OpState::Issued, std::memory_order_relaxed); // drain stops
+                    withheld.push_back(&op);
+                    break;
+                }
+            }
             bool submit = true;
             if (TlsConn* tls = tls_engine(c)) {
                 wb_.prepare_tls<true>(*c, *tls, submit);
@@ -124,6 +140,7 @@ void IoLoop::shutdown_clients_after_join() {
             }
         }
     }
+    for (Op* op : withheld) op->state.store(OpState::Done, std::memory_order_relaxed);
     // No callbacks below may submit work. Queue exit is the final fence for raw
     // Client/buffer pointers, independent of whether their original CQE arrived.
     ring_.shutdown();
@@ -137,7 +154,14 @@ void IoLoop::shutdown_clients_after_join() {
             for (uint64_t id = c->rob().flush_id(); id != c->rob().dispatch_id(); ++id) {
                 Op& op = c->rob().at(id);
                 if (op.has_blocking_state()) blocking_retire(*srv_, *c, op, *self_);
-                else if (op.has_scatter_state()) {
+                else if (op.has_multi_state()) {
+                    // A withheld EXEC, or a Done one behind an unfinished older op
+                    // (EXEC's barrier admits nothing after it). An unfinished
+                    // transaction keeps its existing shutdown ownership.
+                    if (op.state.load(std::memory_order_acquire) == OpState::Done)
+                        multi_shutdown_discard(*srv_, wb_, *c, op, scatter_pool_, self_->id(),
+                                               multi_deferred_);
+                } else if (op.has_scatter_state()) {
                     auto* state = op.scatter_state();
                     op.detach_scatter_state();
                     xshard_destroy(state, scatter_pool_, self_->id());

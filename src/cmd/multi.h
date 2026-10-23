@@ -161,4 +161,18 @@ uint32_t multi_last_attempts(const Client& client);
 bool multi_plain_write_ready(Shard& shard, Op& op);
 void multi_plain_write_committed(Shard& shard, Op& op);
 
+// Post-join shutdown only (IoLoop::shutdown_clients_after_join), for a Done transaction that its
+// IO thread never retired. No worker remains, so no command may run and no owner can consume a
+// posted release. retirable() is false when ordinary retirement would execute a queued
+// connection-local command (BGSAVE, PUBLISH, CLIENT, ...): that EXEC is not an already-issued
+// reply. Otherwise it returns a TLS transaction's retained borrows directly, after which
+// multi_retire_entry posts nothing. discard() retires the state without running a command or
+// producing a reply.
+class ScatterArenaPool;
+class WbEngine;
+bool multi_shutdown_retirable(Server& server, WbEngine& wb, Client& client, Op& op);
+void multi_shutdown_discard(Server& server, WbEngine& wb, Client& client, Op& op,
+                            ScatterArenaPool& pool, uint32_t owner_io,
+                            std::vector<MultiExecState*>& deferred);
+
 }  // namespace tomo
