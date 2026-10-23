@@ -28,6 +28,7 @@ struct EpisodeUnit {
         group.watch_refs.store(ScatterState::kGroupAttemptRef);
         group.group_attempt_storage = &attempt;
         attempt.arrived.resize(server.nshards());
+        attempt.place_blockers = std::make_unique<TxnPlaceBlocker[]>(server.nshards());
     }
     auto& phase() { return is_group ? attempt.phase : exec->decision.phase; }
     auto& epoch() { return is_group ? group.epoch : exec->decision.epoch; }

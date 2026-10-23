@@ -37,6 +37,44 @@ struct TxnClaim {
     uint64_t hash = 0;
     TxnClaimMode mode = TxnClaimMode::Read;
 };
+// A refused unit's owner-local lifetime pin. No Op, Shard or plain-writer state.
+// Only older conflicting units may be retained, so these pins cannot form a cycle.
+struct TxnPlaceBlocker {
+    std::atomic<uint64_t>* epoch = nullptr;
+    std::atomic<bool>* aborted = nullptr;
+    std::atomic<uint32_t>* refs = nullptr;
+    TxnPlaceBlocker() = default;
+    TxnPlaceBlocker(const TxnPlaceBlocker&) = delete;
+    TxnPlaceBlocker& operator=(const TxnPlaceBlocker&) = delete;
+    ~TxnPlaceBlocker() { clear(); }
+    void clear() {
+        if (refs) refs->fetch_sub(1, std::memory_order_release);
+        epoch = nullptr;
+        aborted = nullptr;
+        refs = nullptr;
+    }
+    bool live() const {
+        return epoch && epoch->load(std::memory_order_acquire) == 0 &&
+            !aborted->load(std::memory_order_acquire);
+    }
+    void pin(std::atomic<uint64_t>* e, std::atomic<bool>* a, std::atomic<uint32_t>* r) {
+        r->fetch_add(1, std::memory_order_relaxed);
+        clear();
+        epoch = e;
+        aborted = a;
+        refs = r;
+    }
+    void take(TxnPlaceBlocker& other) {
+        clear();
+        epoch = other.epoch;
+        aborted = other.aborted;
+        refs = other.refs;
+        other.epoch = nullptr;
+        other.aborted = nullptr;
+        other.refs = nullptr;
+    }
+};
+
 inline constexpr uint32_t kTxnRetryBackoffMin = 1; // one IO pass
 inline constexpr uint64_t kTxnRetryBackoffMax = 1000000; // ns
 
@@ -44,7 +82,7 @@ enum class TxnCounter : uint8_t {
     Attempts, Retries, Dooms, Wounds, Waits, Intents, IntentsLive,
     GroupDooms, GroupRetries, GroupBarriers,
     Executed, PlaceWaits, WriterWaits, WriterMarks, BlindRestarts, Readonly,
-    OrderViolations, GroupWounds, FastPolls, Count
+    OrderViolations, GroupWounds, FastPolls, PollSkips, Count
 };
 // DEBUG-only witness arming; no per-operation state on ordinary commands.
 void txn_barrier_witness(bool armed);

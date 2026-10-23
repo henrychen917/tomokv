@@ -27,6 +27,7 @@ bool txn_group_prepare(ScatterState& state, Server& server, uint32_t io,
         attempt->retry.unit = &state;
         attempt->retry.owner_io = io;
         attempt->arrived.assign(server.nshards(), 0);
+        attempt->place_blockers = std::make_unique<TxnPlaceBlocker[]>(server.nshards());
         attempt->claims.resize(server.nshards());
         attempt->retire_claims.resize(server.nshards());
         attempt->age_ns = now_ns();

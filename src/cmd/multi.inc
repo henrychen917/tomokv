@@ -227,6 +227,7 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::atomic<uint32_t> tasks_pending{0};
     std::atomic<NotifyBatch*> notify{nullptr};
     std::shared_ptr<AofGroupDecision> aof_group;
+    std::unique_ptr<TxnPlaceBlocker[]> place_blockers;
 };
 
 namespace {
@@ -1071,6 +1072,8 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
         state->claims.resize(server.nshards());
         state->shard_cursors.assign(server.nshards(), 0);
         state->watch_shard_done.assign(server.nshards(), 0);
+        if (kind == MultiStateKind::Execute)
+            state->place_blockers = std::make_unique<TxnPlaceBlocker[]>(server.nshards());
         state->execution_joined.assign(server.nshards(), 0);
         state->final_shard_done.assign(server.nshards(), 0);
         state->aof_shard_done.assign(server.nshards(), 0);
@@ -1784,6 +1787,7 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard,
 void finalize_reservations(MultiExecState& state, Shard& shard,
                            const MultiRetryPromoter* promoter = nullptr) {
     if (state.final_shard_done[static_cast<uint32_t>(shard.id())]) return;
+    if (state.place_blockers) state.place_blockers[shard.id()].clear();
     // A claim-skipped serve needs another owner sweep after either decision.
     // The periodic blocking beat alone does not revisit clean registries.
     if (shard.has_blocking_waiters()) shard.set_blocking_dirty();
@@ -3188,7 +3192,17 @@ bool txn_wound(const Shard::WatchReservation& holder, Shard& shard, Server& serv
 // original version across polls, so newer arrivals cannot overtake a waiter.
 bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation unit,
                              const MultiRetryPromoter* promoter) {
-    if (!txn_reservation_live(unit)) return true;
+    auto& cached = unit.unit_kind == 1
+        ? static_cast<MultiExecState*>(const_cast<void*>(unit.token))->place_blockers[id()]
+        : static_cast<ScatterState*>(const_cast<void*>(unit.token))->group_attempt()->place_blockers[id()];
+    if (!txn_reservation_live(unit)) { cached.clear(); return true; }
+    if (cached.live()) {
+        server_->note_txn(server_->worker_of_shard(id()), TxnCounter::PollSkips);
+        return false;
+    }
+    cached.clear();
+    TxnPlaceBlocker older;
+    bool younger_placing = false;
     bool ready = true;
     const auto own = txn_unit_view(unit);
     try {
@@ -3210,11 +3224,18 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
                         holder.unit_mode == static_cast<uint8_t>(TxnClaimMode::Read)) continue;
                     if (!holder.unit_kind) { ready = false; continue; }
                     const auto foreign = txn_unit_view(holder);
+                    const bool before = txn_version_before(foreign, own);
+                    // Pin immediately: a later key scan can retire this entry
+                    // and let the IO owner reclaim its state during this scan.
+                    if (before && !older.refs)
+                        older.pin(holder.epoch, holder.aborted, holder.refs);
                     if (holder.entry_kind == 3) {
-                        if (txn_version_before(foreign, own)) ready = false;
+                        if (before) ready = false;
                         continue;
                     }
-                    if (foreign.phase->load(std::memory_order_acquire) == TxnPhase::Executing ||
+                    const auto phase = foreign.phase->load(std::memory_order_acquire);
+                    younger_placing |= phase == TxnPhase::Placing && txn_version_before(own, foreign);
+                    if (phase == TxnPhase::Executing ||
                         !txn_version_before(own, foreign) || !txn_wound(holder, *this, *server_))
                         ready = false;
                     else wounded = true;
@@ -3255,6 +3276,10 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
         }
         if (ready)
             for (const auto& key : keys) watch_promote_unit_waiter(key.key, promoter);
+        // All own waiter marks now exist. A new younger placing claim cannot
+        // pass them. Preserve full wound scans if this scan found such a claim,
+        // even when its wound succeeded; never cache writer/validation waits.
+        else if (older.refs && !younger_placing) cached.take(older);
         return ready;
     } catch (const std::bad_alloc&) {
         unit.aborted->store(true, std::memory_order_release);
