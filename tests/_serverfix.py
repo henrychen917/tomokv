@@ -18,8 +18,10 @@ def main(probe):
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=False)
     failures = 0
+    reference = {}
     for binary, oracle in [(args.oracle, True), (args.binary, False)]:
         run = Run(args, binary, oracle)
+        run.reference = reference
         for mode in run.modes():
             for engine in (['redis'] if oracle else ['uring', 'epoll']):
                 label = mode + '-' + engine
@@ -30,5 +32,7 @@ def main(probe):
                     traceback.print_exc()
                     run.check(label + ' completed every assertion', False, True)
         failures += run.finish()
+        if oracle:
+            reference = run.rows
     print(f'{probe.__module__}: {failures} failed checks; evidence {args.output}', flush=True)
     return bool(failures)

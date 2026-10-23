@@ -200,11 +200,15 @@ try:
     for supplied, canonical in grammar:
         config(supplied)
         expect(config_get(), canonical, f"grammar {supplied!r}")
+    parser_failures = []
+    expected_parser_error = "ERR CONFIG SET failed (possibly related to argument 'notify-keyspace-events') - Invalid event class character. Use 'Ag$lshzxeKEtmdn'."
     for bad in ("Qz", "o", "c", "a", "S", "T", "I", "V", "r"):
         config("gKE")
         result = admin.command("CONFIG", "SET", "notify-keyspace-events", bad)
-        if not isinstance(result, RespError) or "Invalid argument" not in str(result):
-            raise AssertionError(f"bad flag {bad!r} accepted: {result!r}")
+        if not isinstance(result, RespError) or str(result) != expected_parser_error:
+            # Keep both atomic legs reachable on PRE; report the exact mismatch
+            # after the unchanged notification assertions have all executed.
+            parser_failures.append((bad, repr(result), expected_parser_error))
         expect(config_get(), "gKE", f"bad flag {bad!r} was atomic")
 
     config("")
@@ -625,10 +629,13 @@ try:
                  f"atomic={atomic} MSET")
         expect_e("g", ("DEL", key_a, key_z), [("del", key_a), ("del", key_z)],
                  f"atomic={atomic} DEL")
+        print(f"notify: atomic={atomic} MSET/DEL assertions completed", flush=True)
 
     fired = info_stats()["notify_events_fired"]
     if fired <= 0:
         raise AssertionError("notify_events_fired stayed zero")
+    if parser_failures:
+        raise AssertionError(f"exact Redis CONFIG error mismatches: {parser_failures!r}")
     print(f"notify: ok (notify_events_fired={fired})")
 finally:
     try:

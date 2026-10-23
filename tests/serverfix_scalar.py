@@ -30,8 +30,11 @@ CASES = [
     ('hash-max-listpack-value', '1\0x', b'1'),
     ('latency-monitor-threshold', '0\0ignored', None),
     ('dynamic-hz', 'no\0ignored', b'no'),
+    ('protected-mode', 'no\0ignored', b'no'),
     ('appendfsync', 'no\0ignored', b'no'),
     ('maxmemory-policy', 'noeviction\0ignored', b'noeviction'),
+    ('acl-pubsub-default', 'resetchannels\0ignored', b'resetchannels'),
+    ('notify-keyspace-events', 'K\0ignored', b'K'),
 ]
 
 
