@@ -3,7 +3,7 @@
 @@ -2269,32 +2269,6 @@
          }
      }
- 
+
 -    // Prefetch the whole batch's slots, THEN execute. Issuing the loads up front lets their DRAM
 -    // round trips overlap instead of each op stalling on its own miss in turn.
 -    void prefetch_exec_batch(const Task* batch, uint32_t n) {
@@ -40,7 +40,7 @@
 -        prefetch_exec_batch(batch, n);
          exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
      }
- 
+
 --- a/src/core/reorder.cc
 +++ b/src/core/reorder.cc
 @@ -65,7 +65,6 @@

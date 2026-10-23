@@ -44,7 +44,7 @@ All four binaries are present. [Build information and fixture hashes](docs/prefe
 * **PAD-A — behaviour twin**: an offline copy of POST with exactly eight fallback `prefetcht0` instructions changed to same-length architectural NOPs. All other bytes, sections, symbols and addresses stay identical; fused hints remain. [Every patched byte and address](docs/prefetch/pad-a.json). This restores PRE's absence of fallback hints, while retaining POST's caller guard, out-of-line call and address-generation loads; it is not a PRE instruction-path twin. Attribute POST vs PAD-A to the hints, and use PRE/DELETE to judge the whole mechanism. The ELF build-id is inherited from POST; SHA-256 identifies this arm.
 * **DELETE**: rebuilt from a private source copy inside this worktree with the fallback helper/wrapper and both call sites removed; everything else in the source is identical to POST, including fused owner prefetch. [Exact control diff](docs/prefetch/delete.patch). Source and objects are at `build/prefetch/delete-source`, binary copied to `build/tomokv-delete-prefetch`.
 
-`.text` bytes: PRE 8,124,983; POST/PAD-A 8,125,831; DELETE 8,122,791. POST is +848 bytes. No object layout changes. No PAD-B is needed to establish the requested exact POST-layout hint control; the labelled PAD-A is the comparison to use here.
+`.text` bytes: PRE 8,124,983; POST/PAD-A 8,125,831; DELETE 8,122,791. POST is +848 bytes. No object layout changes.
 
 ### Serverless executed-batch counts
 

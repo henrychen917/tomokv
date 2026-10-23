@@ -21,15 +21,15 @@ unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool):
    d4c4b:	4c 8d 64 24 30       	lea    0x30(%rsp),%r12
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1874
    d4c50:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax
-   d4c57:	00 00 
+   d4c57:	00 00
    d4c59:	48 89 84 24 38 04 00 	mov    %rax,0x438(%rsp)
-   d4c60:	00 
+   d4c60:	00
    d4c61:	31 c0                	xor    %eax,%eax
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1879
    d4c63:	48 89 7c 24 20       	mov    %rdi,0x20(%rsp)
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1878
    d4c68:	c7 44 24 0c 00 00 00 	movl   $0x0,0xc(%rsp)
-   d4c6f:	00 
+   d4c6f:	00
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1879
    d4c70:	c4 c1 f9 6e cc       	vmovq  %r12,%xmm1
    d4c75:	48 8d 44 24 0c       	lea    0xc(%rsp),%rax
@@ -59,9 +59,9 @@ unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool):
    d4cab:	48 01 90 c0 03 00 00 	add    %rdx,0x3c0(%rax)
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1892
    d4cb2:	48 8b 84 24 38 04 00 	mov    0x438(%rsp),%rax
-   d4cb9:	00 
+   d4cb9:	00
    d4cba:	64 48 2b 04 25 28 00 	sub    %fs:0x28,%rax
-   d4cc1:	00 00 
+   d4cc1:	00 00
    d4cc3:	0f 85 36 01 00 00    	jne    d4dff <unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)+0x1cf>
    d4cc9:	48 81 c4 48 04 00 00 	add    $0x448,%rsp
    d4cd0:	44 89 f8             	mov    %r15d,%eax
@@ -93,7 +93,7 @@ void tomo_db0::ExLoopT<false>::exec_batch<false, 32ul>(tomo_db0::Task (&) [32ul]
    d4d0f:	4d 8d 34 14          	lea    (%r12,%rdx,1),%r14
    d4d13:	eb 2a                	jmp    d4d3f <unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)+0x10f>
    d4d15:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
-   d4d1c:	00 00 00 00 
+   d4d1c:	00 00 00 00
 decltype (::new ((void*)(0)) tomo_db0::Task((declval<tomo_db0::Task const&>)())) std::construct_at<tomo_db0::Task, tomo_db0::Task const&>(tomo_db0::Task*, tomo_db0::Task const&):
 /usr/include/c++/13/bits/stl_construct.h:97 (discriminator 1)
    d4d20:	c4 c1 7e 6f 14 24    	vmovdqu (%r12),%ymm2
@@ -141,7 +141,7 @@ void tomo_db0::ExLoopT<false>::exec_batch<false, 32ul>(tomo_db0::Task (&) [32ul]
    d4d70:	c5 f8 77             	vzeroupper
    d4d73:	e9 2c ff ff ff       	jmp    d4ca4 <unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)+0x74>
    d4d78:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-   d4d7f:	00 
+   d4d7f:	00
    d4d80:	41 89 d0             	mov    %edx,%r8d
    d4d83:	4c 89 e0             	mov    %r12,%rax
    d4d86:	49 c1 e0 05          	shl    $0x5,%r8
@@ -170,7 +170,7 @@ tomo_db0::Rob<64u>::slot(unsigned int, bool):
 /home/user/Projects/cx-prefetch/src/core/../net/rob.h:806
    d4db1:	83 e6 07             	and    $0x7,%esi
    d4db4:	48 8b bc f7 80 00 00 	mov    0x80(%rdi,%rsi,8),%rdi
-   d4dbb:	00 
+   d4dbb:	00
 tomo_db0::ExLoopT<false>::prefetch_exec_batch(tomo_db0::Task const*, unsigned int):
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:2278
    d4dbc:	48 63 70 10          	movslq 0x10(%rax),%rsi
@@ -206,7 +206,7 @@ unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool):
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1892
    d4dff:	e8 3c 8a f4 ff       	call   1d840 <__stack_chk_fail@plt>
    d4e04:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
-   d4e0b:	00 00 00 
+   d4e0b:	00 00 00
    d4e0e:	66 90                	xchg   %ax,%ax
 
 00000000000d4e10 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()>:
@@ -225,14 +225,14 @@ unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>():
 tomo_db0::ThreadCtx::id() const:
 /home/user/Projects/cx-prefetch/src/core/thread.h:367
    d4e28:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax
-   d4e2f:	00 00 
+   d4e2f:	00 00
    d4e31:	48 89 44 24 68       	mov    %rax,0x68(%rsp)
    d4e36:	48 8b 47 08          	mov    0x8(%rdi),%rax
 tomo_db0::Server::ClientWorkScope::ClientWorkScope(tomo_db0::Server&, unsigned int):
 /home/user/Projects/cx-prefetch/src/core/server.h:165
    d4e3a:	c6 44 24 30 00       	movb   $0x0,0x30(%rsp)
    d4e3f:	48 c7 44 24 28 00 00 	movq   $0x0,0x28(%rsp)
-   d4e46:	00 00 
+   d4e46:	00 00
    d4e48:	8b 00                	mov    (%rax),%eax
    d4e4a:	48 05 e8 05 00 00    	add    $0x5e8,%rax
    d4e50:	48 c1 e0 06          	shl    $0x6,%rax
@@ -373,7 +373,7 @@ tomo_db0::Server::atomic_read_floor() const:
 /home/user/Projects/cx-prefetch/src/core/server.h:2885
    d4fa2:	c5 f1 76 c9          	vpcmpeqd %xmm1,%xmm1,%xmm1
    d4fa6:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
-   d4fad:	00 00 00 
+   d4fad:	00 00 00
 std::__atomic_base<unsigned long>::load(std::memory_order) const:
 /usr/include/c++/13/bits/atomic_base.h:505
    d4fb0:	8b 10                	mov    (%rax),%edx
@@ -435,7 +435,7 @@ tomo_db0::FlatStore::atomic_has_records() const:
    d502e:	74 55                	je     d5085 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x275>
 /home/user/Projects/cx-prefetch/src/core/../store/flatstore_atomic.inc:37 (discriminator 1)
    d5030:	48 83 b8 10 02 00 00 	cmpq   $0x0,0x210(%rax)
-   d5037:	00 
+   d5037:	00
    d5038:	74 4b                	je     d5085 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x275>
 tomo_db0::ExLoopT<false>::atomic_cleanup_cycle(unsigned int):
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1803
@@ -513,7 +513,7 @@ tomo_db0::ExLoopT<false>::drain_notify_keyless(tomo_db0::LoopSignals&, bool):
    d50e0:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
    d50e5:	eb 0d                	jmp    d50f4 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x2e4>
    d50e7:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
-   d50ee:	00 00 
+   d50ee:	00 00
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1655
    d50f0:	48 8b 4b 08          	mov    0x8(%rbx),%rcx
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1653 (discriminator 3)
@@ -577,7 +577,7 @@ unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>():
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1710
    d5175:	48 8b 44 24 68       	mov    0x68(%rsp),%rax
    d517a:	64 48 2b 04 25 28 00 	sub    %fs:0x28,%rax
-   d5181:	00 00 
+   d5181:	00 00
    d5183:	0f 85 8e 04 00 00    	jne    d5617 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x807>
    d5189:	8b 44 24 0c          	mov    0xc(%rsp),%eax
    d518d:	48 83 c4 78          	add    $0x78,%rsp
@@ -604,7 +604,7 @@ tomo_db0::ExLoopT<false>::snapshot_blocks_tasks() const:
    d51b6:	0f 84 08 fd ff ff    	je     d4ec4 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0xb4>
    d51bc:	e9 8c fd ff ff       	jmp    d4f4d <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x13d>
    d51c1:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
-   d51c8:	00 00 00 00 
+   d51c8:	00 00 00 00
    d51cc:	0f 1f 40 00          	nopl   0x0(%rax)
 tomo_db0::Server::ClientWorkScope::ClientWorkScope(tomo_db0::Server&, unsigned int):
 /home/user/Projects/cx-prefetch/src/core/server.h:169
@@ -619,7 +619,7 @@ std::__atomic_base<unsigned long>::store(unsigned long, std::memory_order):
 /usr/include/c++/13/bits/atomic_base.h:482
    d51df:	e9 9b fc ff ff       	jmp    d4e7f <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x6f>
    d51e4:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
-   d51eb:	00 00 00 00 
+   d51eb:	00 00 00 00
    d51ef:	90                   	nop
 /usr/include/c++/13/bits/atomic_base.h:481
    d51f0:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
@@ -629,7 +629,7 @@ unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>():
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1709
    d51fd:	e9 73 ff ff ff       	jmp    d5175 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x365>
    d5202:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
-   d5209:	00 00 00 00 
+   d5209:	00 00 00 00
    d520d:	0f 1f 00             	nopl   (%rax)
 unsigned int tomo_db0::ExLoopT<false>::service_multi_retries<false>():
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:2428 (discriminator 1)
@@ -740,11 +740,11 @@ tomo_db0::ExLoopT<false>::aof_flush_pass():
    d5331:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
    d5336:	eb 2c                	jmp    d5364 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x554>
    d5338:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-   d533f:	00 
+   d533f:	00
 tomo_db0::AofProducer::has_pending() const:
 /home/user/Projects/cx-prefetch/src/core/../store/../persist/aof.h:143 (discriminator 1)
    d5340:	49 83 bc 24 18 03 00 	cmpq   $0x0,0x318(%r12)
-   d5347:	00 00 
+   d5347:	00 00
    d5349:	0f 84 81 00 00 00    	je     d53d0 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x5c0>
 tomo_db0::ExLoopT<false>::aof_flush_pass():
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:1717
@@ -760,11 +760,11 @@ tomo_db0::ExLoopT<false>::aof_flush_pass():
 tomo_db0::AofProducer::has_pending() const:
 /home/user/Projects/cx-prefetch/src/core/../store/../persist/aof.h:143 (discriminator 1)
    d5368:	49 83 bc 24 18 03 00 	cmpq   $0x0,0x318(%r12)
-   d536f:	00 00 
+   d536f:	00 00
 tomo_db0::FlatStore::aof():
 /home/user/Projects/cx-prefetch/src/core/../store/flatstore.h:1054
    d5371:	49 8d bc 24 00 03 00 	lea    0x300(%r12),%rdi
-   d5378:	00 
+   d5378:	00
 tomo_db0::AofProducer::has_pending() const:
 /home/user/Projects/cx-prefetch/src/core/../store/../persist/aof.h:143 (discriminator 1)
    d5379:	74 25                	je     d53a0 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x590>
@@ -793,27 +793,27 @@ tomo_db0::ExLoopT<false>::aof_flush_pass():
 tomo_db0::AofProducer::has_pending() const:
 /home/user/Projects/cx-prefetch/src/core/../store/../persist/aof.h:143 (discriminator 1)
    d53a0:	49 8b 84 24 20 03 00 	mov    0x320(%r12),%rax
-   d53a7:	00 
+   d53a7:	00
    d53a8:	49 39 84 24 28 03 00 	cmp    %rax,0x328(%r12)
-   d53af:	00 
+   d53af:	00
    d53b0:	75 c9                	jne    d537b <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x56b>
    d53b2:	49 8b 84 24 48 03 00 	mov    0x348(%r12),%rax
-   d53b9:	00 
+   d53b9:	00
    d53ba:	49 39 84 24 68 03 00 	cmp    %rax,0x368(%r12)
-   d53c1:	00 
+   d53c1:	00
    d53c2:	75 b7                	jne    d537b <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x56b>
    d53c4:	eb 8f                	jmp    d5355 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x545>
    d53c6:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
-   d53cd:	00 00 00 
+   d53cd:	00 00 00
    d53d0:	49 8b 84 24 20 03 00 	mov    0x320(%r12),%rax
-   d53d7:	00 
+   d53d7:	00
    d53d8:	49 39 84 24 28 03 00 	cmp    %rax,0x328(%r12)
-   d53df:	00 
+   d53df:	00
    d53e0:	0f 85 69 ff ff ff    	jne    d534f <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x53f>
    d53e6:	49 8b 84 24 48 03 00 	mov    0x348(%r12),%rax
-   d53ed:	00 
+   d53ed:	00
    d53ee:	49 39 84 24 68 03 00 	cmp    %rax,0x368(%r12)
-   d53f5:	00 
+   d53f5:	00
    d53f6:	0f 85 53 ff ff ff    	jne    d534f <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x53f>
    d53fc:	e9 51 ff ff ff       	jmp    d5352 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x542>
 tomo_db0::Server::atomic_read_floor() const:
@@ -861,7 +861,7 @@ std::_Deque_iterator<tomo_db0::Task, tomo_db0::Task&, tomo_db0::Task*>::_M_set_n
 /usr/include/c++/13/bits/stl_deque.h:266
    d546f:	c4 e3 d9 22 c2 01    	vpinsrq $0x1,%rdx,%xmm4,%xmm0
    d5475:	c5 fa 7f 83 98 02 00 	vmovdqu %xmm0,0x298(%rbx)
-   d547c:	00 
+   d547c:	00
 std::deque<tomo_db0::Task, std::allocator<tomo_db0::Task> >::_M_pop_front_aux():
 /usr/include/c++/13/bits/deque.tcc:584
    d547d:	e9 7b fa ff ff       	jmp    d4efd <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0xed>
@@ -998,7 +998,7 @@ std::deque<tomo_db0::Task, std::allocator<tomo_db0::Task> >::_M_pop_front_aux():
 /usr/include/c++/13/bits/deque.tcc:584
    d559f:	eb 83                	jmp    d5524 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x714>
    d55a1:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
-   d55a8:	00 00 00 00 
+   d55a8:	00 00 00 00
    d55ac:	0f 1f 40 00          	nopl   0x0(%rax)
 unsigned int tomo_db0::ExLoopT<false>::service_snapshot_backlogs<false>(unsigned int, bool):
 /home/user/Projects/cx-prefetch/src/core/ex_loop.h:2172 (discriminator 1)
@@ -1042,7 +1042,7 @@ unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>():
    d5602:	e8 19 7d fa ff       	call   7d320 <tomo_db0::Server::ClientWorkScope::~ClientWorkScope()>
    d5607:	48 8b 44 24 68       	mov    0x68(%rsp),%rax
    d560c:	64 48 2b 04 25 28 00 	sub    %fs:0x28,%rax
-   d5613:	00 00 
+   d5613:	00 00
    d5615:	74 0e                	je     d5625 <unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>()+0x815>
    d5617:	e8 24 82 f4 ff       	call   1d840 <__stack_chk_fail@plt>
    d561c:	f3 0f 1e fa          	endbr64
