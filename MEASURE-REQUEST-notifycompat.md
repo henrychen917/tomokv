@@ -63,3 +63,16 @@ The db0 extra expiry scan is removed; multi-DB flush scans without expiry and
 uses resident deletion. The old flushfix assertion is corrected to the retained
 oracle evidence (`oracle-flush.log`). The new row additionally boots databases=1
 and databases=16. Current DQ=+7 / DF=+7; required counts 746 / 763.
+
+TRK-REDIR-1: failed remote delivery now acknowledges the source's current owner,
+which sets broken_redirect and emits the Redis RESP3 push. Source ID and tracking
+configuration generation survive forwarding, and a stale failure cannot affect
+a subsequent TRACKING configuration. The generation is appended to the allocated
+ClimonConn side state; locked Client/Op/ThreadCtx/Shard layouts are unchanged.
+A disposable source build holds a real cross-IO TrackingDeliver event, closes the
+target, and replays the original event through the production handler. Held/replay
+receipts prove the window; fresh connections are re-armed at most 64 times and
+failure to open it fails the row. RESP2/3 and OFF/ON generation controls are
+oracle-backed (`oracle-redirect.log`). The first scheduled POST run exposed a
+partially published test receipt; atomic rename fixes the harness and the whole
+job is being rerun. Current DQ=+8 / DF=+8; required counts 747 quick / 764 full.

@@ -1121,7 +1121,7 @@ plan_jobs(){
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 bplus acl_recheck aclfix sort script_bounds scriptfix
-              efficiency dump_restore auth authfix notify notifycompat notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
+              efficiency dump_restore auth authfix notify notifycompat tracking_redirect notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -3438,6 +3438,84 @@ fi
 [ -z "$(port_listeners "$oracle_port")" ] || compatible=0
 }
 
+job_tracking_redirect(){
+# One counted row; every declared leg runs even when an earlier leg fails.
+local mode atomic engine read_local compatible=1 booted oracle_ready=0
+local oracle_port=$((PORT+1)) oracle_dir
+local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}
+row_begin "tracking REDIRECT close vs Redis 7.4"
+local scheduled="$PWD/build/notifycompat/scheduled-${GATE_NOTIFYCOMPAT_ARM:-POST}"
+local schedule_args=(--objects "${GATE_NOTIFYCOMPAT_OBJECTS:-build}" --output "$scheduled")
+[ -z "${GATE_NOTIFYCOMPAT_REF:-}" ] || schedule_args+=(--ref "$GATE_NOTIFYCOMPAT_REF")
+if ! taskset -c "$BUILD_CORES" python3 tools/notifycompat_schedule.py "${schedule_args[@]}" \
+    >"$TMPDIR/schedule-build.log" 2>&1; then
+  bad "tracking REDIRECT close vs Redis 7.4" "see $TMPDIR/schedule-build.log"
+  return
+fi
+local CANDIDATE_BINARY="$scheduled/tomokv"
+
+guard_port "$oracle_port"
+oracle_dir=$(mktemp -d "$TMPDIR/redirect-oracle.XXXXXX") || compatible=0
+if [ "$compatible" = 1 ] && [ -x "$oracle_bin" ]; then
+  taskset -c "${GATE_NOTIFY_ORACLE_CORES:-${GATE_DIFFER_ORACLE_CORES:-$CORES}}" "$oracle_bin" \
+      --port "$oracle_port" --bind 127.0.0.1 --save '' --appendonly no \
+      --enable-debug-command yes --dir "$oracle_dir" >"$TMPDIR/oracle.log" 2>&1 &
+  GLOBCASE_ORACLE=$!
+  for _ in $(seq 100); do
+    kill -0 "$GLOBCASE_ORACLE" 2>/dev/null || break
+    if [ "$(port_listeners "$oracle_port")" = "$GLOBCASE_ORACLE" ] &&
+       (exec 3<>/dev/tcp/127.0.0.1/"$oracle_port") 2>/dev/null; then
+      oracle_ready=1
+      break
+    fi
+    sleep .1
+  done
+fi
+if [ "$oracle_ready" = 1 ]; then
+  for atomic in 0 1; do for mode in 1s 2s; do for engine in epoll uring; do
+    local reads="1 0"
+    [ "$mode" = 1s ] || reads=0
+    for read_local in $reads; do
+      export TOMO_NOTIFYCOMPAT_SCHEDULE_DIR="$TMPDIR/schedule-$mode-$engine-a$atomic-rl$read_local"
+      mkdir -p "$TOMO_NOTIFYCOMPAT_SCHEDULE_DIR"
+      booted=0
+      local options=(--atomic "$atomic" --net-io "$engine" --read-local "$read_local"
+                     --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0)
+      if [ "$mode" = 1s ]; then
+        boot_fused "$CANDIDATE_BINARY" "${options[@]}" && booted=1
+      else
+        boot "$CANDIDATE_BINARY" --thread-mode 2s "${options[@]}" && booted=1
+      fi
+      if [ "$booted" != 1 ] || ! py tests/tracking_redirect.py 127.0.0.1 "$PORT" \
+          --oracle 127.0.0.1 "$oracle_port" --schedule "$TOMO_NOTIFYCOMPAT_SCHEDULE_DIR" \
+          --mode "$mode" --engine "$engine" --atomic "$atomic" --read-local "$read_local" \
+          >"$TMPDIR/redirect-$mode-$engine-a$atomic-rl$read_local.log" 2>&1; then
+        compatible=0
+      fi
+      stop
+    done
+  done; done; done
+else
+  compatible=0
+fi
+unset TOMO_NOTIFYCOMPAT_SCHEDULE_DIR
+if [ "$GLOBCASE_ORACLE" -gt 0 ]; then
+  kill -TERM "$GLOBCASE_ORACLE" 2>/dev/null
+  if ! timeout --kill-after=1 10 tail --sleep-interval=.1 --pid="$GLOBCASE_ORACLE" -f /dev/null; then
+    compatible=0
+    kill -KILL "$GLOBCASE_ORACLE" 2>/dev/null
+  fi
+  wait "$GLOBCASE_ORACLE" 2>/dev/null || compatible=0
+  GLOBCASE_ORACLE=0
+fi
+[ -z "$(port_listeners "$oracle_port")" ] || compatible=0
+if [ "$compatible" = 1 ]; then
+  ok "tracking REDIRECT close vs Redis 7.4"
+else
+  bad "tracking REDIRECT close vs Redis 7.4" "see $TMPDIR/redirect-*.log and $TMPDIR/oracle.log"
+fi
+}
+
 job_notify_order(){
 # One counted row; every declared leg runs even when an earlier leg fails.
 local mode atomic engine read_local compatible=1 booted oracle_ready=0
@@ -4933,6 +5011,7 @@ collect_job trackfix_order
 collect_job trackfix_accounting
 # notifycompat: one row per item here, before the quick exit; EXPECT is maintainer-owned.
 collect_job notifycompat
+collect_job tracking_redirect
 collect_job notify_order
 collect_job notify_aof
 

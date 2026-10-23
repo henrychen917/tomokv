@@ -8,6 +8,7 @@ import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument('case')
+parser.add_argument('--script', default='tests/notifycompat.py')
 args = parser.parse_args()
 root = Path('build/notifycompat-oracle')
 root.mkdir(exist_ok=True)
@@ -25,7 +26,7 @@ with (root / 'server.log').open('w') as log:
                     break
             except OSError:
                 time.sleep(.05)
-        subprocess.run(['taskset', '-c', '56-59', 'python3', 'tests/notifycompat.py',
+        subprocess.run(['taskset', '-c', '56-59', 'python3', args.script,
                         '127.0.0.1', '32890', '--case', args.case], check=True)
     finally:
         process.terminate()

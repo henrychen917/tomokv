@@ -351,13 +351,16 @@ bool IoLoop::tracking_migration_install(uint64_t id, const std::vector<std::stri
 
 // ---- delivery ------------------------------------------------------------------------------
 
-void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush) {
+void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice key, bool flush,
+                                       uint64_t source_id, uint64_t generation) {
     const uint32_t live_io = target->ifid_thread();
     if (live_io != self_->id()) {
         PubSubEvent* event = pubsub_new_event(PubSubEventKind::TrackingDeliver);
         event->target_io = live_io;
         event->origin_io = self_->id();
         event->client_id = target->id();
+        event->caller_id = source_id;
+        event->op_id = generation;
         event->subscribe = redirected;
         event->count = flush ? 1 : 0;
         event->channel.assign(key.p, key.n);
@@ -393,9 +396,20 @@ void IoLoop::tracking_emit_invalidation(Client* target, bool redirected, Slice k
     srv_->climon_note_invalidation();
 }
 
+void IoLoop::tracking_redirect_broken(ClimonConn& state) {
+    state.broken_redirect = true;
+    Client* client = state.client;
+    if (client && !client->dead() && !client->closing() && client->resp3()) {
+        SmallBuf<64> frame;
+        reply_push_header(frame, 2);
+        reply_bulk(frame, Slice("tracking-redir-broken", 21));
+        reply_int(frame, static_cast<long long>(state.redirect));
+        climon_push_wire(client, std::string(frame.data(), frame.size()));
+    }
+}
+
 // owner_id names the TRACKING connection. The frame goes to it, or to its REDIRECT target.
 void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice key, bool flush) {
-    (void)owner_id;   // retained for call-site clarity and future per-owner accounting
     if (!state.redirect) {
         Client* target = state.client;
         if (!target || target->dead() || target->closing()) return;
@@ -409,16 +423,7 @@ void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice 
         // tracking stays ON. A RESP3 tracking client is told with a `tracking-redir-broken` push
         // on EVERY subsequent invalidation attempt; a RESP2 one sees nothing on the wire and only
         // the TRACKINGINFO flag changes.
-        state.broken_redirect = true;
-        Client* self_client = state.client;
-        if (self_client && !self_client->dead() && !self_client->closing() &&
-            self_client->resp3()) {
-            SmallBuf<64> frame;
-            reply_push_header(frame, 2);
-            reply_bulk(frame, Slice("tracking-redir-broken", 21));
-            reply_int(frame, static_cast<long long>(state.redirect));
-            climon_push_wire(self_client, std::string(frame.data(), frame.size()));
-        }
+        tracking_redirect_broken(state);
         return;
     }
     if (owner_io == self_->id()) {
@@ -428,14 +433,19 @@ void IoLoop::tracking_deliver_frame(ClimonConn& state, uint64_t owner_id, Slice 
             for (Client* c : self_->clients())
                 if (c && c->id() == state.redirect) { target = c; break; }
         }
-        if (!target || target->dead() || target->closing()) return;
-        tracking_emit_invalidation(target, true, key, flush);
+        if (!target || target->dead() || target->closing()) {
+            tracking_redirect_broken(state);
+            return;
+        }
+        tracking_emit_invalidation(target, true, key, flush, owner_id, state.tracking_generation);
         return;
     }
     PubSubEvent* event = pubsub_new_event(PubSubEventKind::TrackingDeliver);
     event->target_io = owner_io;
     event->origin_io = self_->id();
     event->client_id = state.redirect;
+    event->caller_id = owner_id;
+    event->op_id = state.tracking_generation;
     event->subscribe = true;
     event->count = flush ? 1 : 0;
     event->channel.assign(key.p, key.n);
@@ -569,6 +579,24 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
             break;
         }
         case PubSubEventKind::TrackingDeliver: {
+            // A rejected delivery returns to the source's CURRENT owner. Keep
+            // only process-unique IDs in transport; never retain a foreign Client.
+            if (event.rebind) {
+                uint32_t source_io = 0;
+                if (!command_client_directory_find(event.caller_id, source_io)) break;
+                if (source_io != self_->id()) {
+                    PubSubEvent* forward = pubsub_new_event(PubSubEventKind::TrackingDeliver);
+                    *forward = event;
+                    forward->target_io = source_io;
+                    pubsub_post(source_io, forward);
+                    break;
+                }
+                ClimonConn* source = climon_conn_find(event.caller_id);
+                if (source && source->tracking_on && source->redirect == event.client_id &&
+                    source->tracking_generation == event.op_id)
+                    tracking_redirect_broken(*source);
+                break;
+            }
             uint32_t live_io = 0;
             if (command_client_directory_find(event.client_id, live_io) &&
                 live_io != self_->id()) {
@@ -576,6 +604,8 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
                 forward->target_io = live_io;
                 forward->origin_io = self_->id();
                 forward->client_id = event.client_id;
+                forward->caller_id = event.caller_id;
+                forward->op_id = event.op_id;
                 forward->subscribe = event.subscribe;
                 forward->count = event.count;
                 forward->channel = event.channel;
@@ -586,11 +616,25 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
             Client* target = nullptr;
             for (Client* c : self_->clients())
                 if (c && c->id() == event.client_id) { target = c; break; }
-            if (!target || target->dead() || target->closing()) break;
+            if (!target || target->dead() || target->closing()) {
+                uint32_t source_io = 0;
+                if (event.subscribe && event.caller_id &&
+                    command_client_directory_find(event.caller_id, source_io)) {
+                    PubSubEvent* rejected = pubsub_new_event(PubSubEventKind::TrackingDeliver);
+                    rejected->target_io = source_io;
+                    rejected->origin_io = self_->id();
+                    rejected->client_id = event.client_id;
+                    rejected->caller_id = event.caller_id;
+                    rejected->op_id = event.op_id;
+                    rejected->rebind = true;
+                    pubsub_post(source_io, rejected);
+                }
+                break;
+            }
             tracking_emit_invalidation(
                 target, event.subscribe,
                 Slice(event.channel.data(), static_cast<uint32_t>(event.channel.size())),
-                event.count != 0);
+                event.count != 0, event.caller_id, event.op_id);
             break;
         }
         default:
@@ -867,6 +911,7 @@ IoLoop::ClimonStartResult IoLoop::tracking_client_subcommand(Client* client, Op&
     state.optout = optout;
     state.noloop = noloop;
     state.redirect = redirect;
+    state.tracking_generation = tracking_clock_commit();
     state.broken_redirect = false;
     for (std::string& prefix : prefixes) {
         tracking_note_prefix_registered(prefix, true);
