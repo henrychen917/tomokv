@@ -352,6 +352,22 @@ legacy:
     return nullptr;
 }
 
+uint32_t command_metadata_index(const CommandMetadata& metadata) {
+    return static_cast<uint32_t>(&metadata - kGeneratedMetadata);
+}
+
+const CommandMetadata* command_metadata_subcommand(const CommandSpec& spec, Slice child) {
+    const auto* parent = command_metadata_for(spec);
+    if (!parent || !child_count(*parent)) return nullptr;
+    const Slice name = command_metadata_name(*parent);
+    if (name.n >= kMaxMetadataName || child.n >= kMaxMetadataName - name.n) return nullptr;
+    char qualified[kMaxMetadataName];
+    std::memcpy(qualified, name.p, name.n);
+    qualified[name.n] = '|';
+    std::memcpy(qualified + name.n + 1, child.p, child.n);
+    return command_metadata_lookup(Slice(qualified, name.n + 1 + child.n));
+}
+
 const CommandMetadata* command_metadata_resolve(Op& op, uint32_t command_argument) {
     TOMO_EXBATCH_TWIN(legacy, 6);
     {

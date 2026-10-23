@@ -66,3 +66,25 @@ distribution. This is dispatch compatibility, not full latency-statistics parity
 
 Row `dispatchfix EX4.4 advertised children` is before the quick exit:
 DQ +1 / DF +1; cumulative DQ +3 / DF +3.
+
+### CC4.15 — subcommand grants
+
+REPRODUCED on PRE in all four legs. Candidate passes 3352 exact comparisons per
+leg, covering every advertised child grant/revocation, parent and category
+precedence, case folding, first-argument grants, invalid and nested forms,
+GETUSER/LIST rendering, SAVE/LOAD after every sequence, and live CONFIG admission
+and revocation. Evidence: `docs/dispatchfix/CC4.15/{pre,post}`.
+
+Child permissions use an immutable bitmap sized from generated metadata; only
+rules touching children allocate it. Root bits and the unrestricted fast gate
+are retained. Parent/category grants update children and reset affected legacy
+first-argument grants. Retained rules remove earlier child rules when a parent
+is replaced, matching Redis's rendering and replay order. Replay verification
+checks all effective child bits and the unordered first-argument set.
+
+Selector syntax and read/write key-pattern rules remain the existing unsupported
+surfaces; this item implements root-user subcommand/first-argument rules and does
+not enable those independent ACL features.
+
+Row `dispatchfix CC4.15 ACL subcommand grants` is before the quick exit:
+DQ +1 / DF +1; cumulative DQ +4 / DF +4. EXPECT constants are untouched.

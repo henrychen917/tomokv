@@ -150,6 +150,41 @@ void acl_reset_commands(AclSelector& perm, bool all) {
     if (all) perm.flags |= AclAllCommands;
     else perm.flags &= ~AclAllCommands;
     perm.command_rules.clear();
+    perm.allowed_subcommands.clear();
+    perm.allowed_firstargs.clear();
+}
+
+bool acl_subcommand_bit(const AclSelector& perm, const CommandMetadata& metadata) {
+    if (perm.allowed_subcommands.empty()) return acl_future_commands(perm);
+    const uint32_t id = command_metadata_index(metadata);
+    return perm.allowed_subcommands[id >> 6] & (uint64_t{1} << (id & 63));
+}
+
+void acl_set_subcommand_bit(AclSelector& perm, const CommandMetadata& metadata, bool allow) {
+    if (perm.allowed_subcommands.empty())
+        perm.allowed_subcommands.assign((command_metadata_size() + 63) / 64,
+                                         acl_future_commands(perm) ? UINT64_MAX : 0);
+    const uint32_t id = command_metadata_index(metadata);
+    const uint64_t bit = uint64_t{1} << (id & 63);
+    if (allow) perm.allowed_subcommands[id >> 6] |= bit;
+    else {
+        perm.allowed_subcommands[id >> 6] &= ~bit;
+        perm.flags &= ~AclAllCommands;
+    }
+}
+
+void acl_change_command(AclSelector& perm, const CommandSpec& spec, bool allow) {
+    acl_set_command_bit(perm, spec.id, allow);
+    if (!allow) perm.flags &= ~AclAllCommands;
+    std::erase_if(perm.allowed_firstargs, [&](const auto& entry) { return entry.first == spec.id; });
+    for (uint32_t i = 0; i < command_metadata_size(); i++) {
+        const auto& metadata = *command_metadata_at(i);
+        if (!command_metadata_is_subcommand(metadata)) continue;
+        const Slice name = command_metadata_name(metadata);
+        const char* separator = static_cast<const char*>(std::memchr(name.p, '|', name.n));
+        if (separator && acl_equal_icase(Slice(name.p, separator - name.p), spec.name))
+            acl_set_subcommand_bit(perm, metadata, allow);
+    }
 }
 
 void acl_update_command_rule(AclSelector& perm, const std::string& rule) {
@@ -157,8 +192,9 @@ void acl_update_command_rule(AclSelector& perm, const std::string& rule) {
         Slice(rule.data() + 1, static_cast<uint32_t>(rule.size() - 1)));
     for (size_t i = 0; i < perm.command_rules.size();) {
         const std::string& old = perm.command_rules[i];
-        if (old.size() > 1 && acl_lower(Slice(old.data() + 1,
-                static_cast<uint32_t>(old.size() - 1))) == target)
+        const std::string previous = acl_lower(Slice(old.data() + 1, old.size() - 1));
+        if (previous == target || (previous.size() > target.size() &&
+                previous.compare(0, target.size(), target) == 0 && previous[target.size()] == '|'))
             perm.command_rules.erase(perm.command_rules.begin() + i);
         else
             i++;
@@ -173,10 +209,6 @@ bool acl_apply_command_rule(AclSelector& perm, Slice rule, std::string& error,
                             bool remember = true) {
     if (rule.n < 2 || (rule.p[0] != '+' && rule.p[0] != '-')) {
         error = "Syntax error";
-        return false;
-    }
-    if (std::memchr(rule.p + 1, '|', rule.n - 1)) {
-        error = "Allowing first-arg of a subcommand is not supported";
         return false;
     }
     const bool allow = rule.p[0] == '+';
@@ -195,17 +227,52 @@ bool acl_apply_command_rule(AclSelector& perm, Slice rule, std::string& error,
         for (uint32_t id = 0; id < command_registry_size(); id++) {
             const CommandSpec* spec = command_registry_at(id);
             if (command_acl_category_mask(*spec) & category->bit)
-                acl_set_command_bit(perm, id, allow);
+                acl_change_command(perm, *spec, allow);
+        }
+        for (uint32_t i = 0; i < command_metadata_size(); i++) {
+            const auto& metadata = *command_metadata_at(i);
+            if (command_metadata_is_subcommand(metadata) &&
+                (command_metadata_categories(metadata) & category->bit))
+                acl_set_subcommand_bit(perm, metadata, allow);
         }
         if (!allow) perm.flags &= ~AclAllCommands;
     } else {
-        const CommandSpec* spec = command_lookup(target);
-        if (!spec) {
+        const std::string normalized = acl_lower(target);
+        const size_t separator = normalized.rfind('|');
+        const CommandMetadata* metadata = command_metadata_lookup(target);
+        if (allow && separator != std::string::npos) {
+            const Slice parent(normalized.data(), separator);
+            const auto* parent_metadata = command_metadata_lookup(parent);
+            const CommandSpec* spec = command_lookup(parent);
+            if (parent_metadata && command_metadata_is_subcommand(*parent_metadata)) {
+                error = "Allowing first-arg of a subcommand is not supported";
+                return false;
+            }
+            if (!spec) { error = "Unknown command or category name in ACL"; return false; }
+            if (separator + 1 == normalized.size()) { error = "Syntax error"; return false; }
+            if (metadata && command_metadata_is_subcommand(*metadata)) {
+                acl_set_subcommand_bit(perm, *metadata, true);
+            } else {
+                // A first-argument rule is valid only for a non-container.
+                bool container = false;
+                for (uint32_t i = 0; i < command_metadata_size(); i++) {
+                    const Slice name = command_metadata_name(*command_metadata_at(i));
+                    container |= name.n > parent.n && name.p[parent.n] == '|' &&
+                        !std::memcmp(name.p, normalized.data(), parent.n);
+                }
+                if (container) { error = "Unknown command or category name in ACL"; return false; }
+                const std::pair<uint32_t, std::string> entry(spec->id, normalized.substr(separator + 1));
+                if (std::find(perm.allowed_firstargs.begin(), perm.allowed_firstargs.end(), entry) ==
+                    perm.allowed_firstargs.end()) perm.allowed_firstargs.push_back(entry);
+            }
+        } else if (metadata && command_metadata_is_subcommand(*metadata)) {
+            acl_set_subcommand_bit(perm, *metadata, allow);
+        } else if (const CommandSpec* spec = command_lookup(target)) {
+            acl_change_command(perm, *spec, allow);
+        } else {
             error = "Unknown command or category name in ACL";
             return false;
         }
-        acl_set_command_bit(perm, spec->id, allow);
-        if (!allow) perm.flags &= ~AclAllCommands;
     }
     if (remember) acl_update_command_rule(perm, std::string(rule.p, rule.n));
     return true;
@@ -388,6 +455,13 @@ void acl_verify_command_description(const AclSelector& perm) {
     }
     if (std::memcmp(predicted.allowed_commands, perm.allowed_commands,
                     sizeof(perm.allowed_commands))) std::abort();
+    for (uint32_t i = 0; i < command_metadata_size(); i++) {
+        const auto& metadata = *command_metadata_at(i);
+        if (command_metadata_is_subcommand(metadata) &&
+            acl_subcommand_bit(predicted, metadata) != acl_subcommand_bit(perm, metadata)) std::abort();
+    }
+    if (!std::is_permutation(predicted.allowed_firstargs.begin(), predicted.allowed_firstargs.end(),
+                             perm.allowed_firstargs.begin(), perm.allowed_firstargs.end())) std::abort();
 }
 
 std::string acl_describe_commands(const AclSelector& perm) {
@@ -552,8 +626,18 @@ bool acl_channel_allowed(const AclSelector& perm, Slice value, bool literal_patt
     return false;
 }
 
-bool acl_command_allowed(const AclSelector& perm, const CommandSpec& spec) {
-    if (!(perm.flags & AclAllCommands) && !acl_command_bit(perm, spec.id)) return false;
+bool acl_command_granted(const AclSelector& perm, const CommandSpec& spec, Slice first_arg) {
+    if (perm.flags & AclAllCommands) return true;
+    if (const auto* child = command_metadata_subcommand(spec, first_arg))
+        return acl_subcommand_bit(perm, *child);
+    if (acl_command_bit(perm, spec.id)) return true;
+    for (const auto& entry : perm.allowed_firstargs)
+        if (entry.first == spec.id && acl_equal_icase(first_arg, entry.second.c_str())) return true;
+    return false;
+}
+
+bool acl_command_allowed(const AclSelector& perm, const CommandSpec& spec, Slice first_arg) {
+    if (!acl_command_granted(perm, spec, first_arg)) return false;
     // The current script engine can only prove nested-command admission for an unrestricted
     // command set. Keep that existing safety boundary independently for root and each selector.
     return !(spec.flags & CmdFlags::ScriptRoute) || (perm.flags & AclAllCommands);
@@ -634,7 +718,7 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
     bool command_allowed = false;
     uint32_t first_denied_arg = UINT32_MAX;
     auto check = [&](const AclSelector& selector) {
-        if (!acl_command_allowed(selector, spec)) return false;
+        if (!acl_command_allowed(selector, spec, argc > 1 ? get_arg(1) : Slice{})) return false;
         command_allowed = true;
         uint32_t candidate = UINT32_MAX;
         const AclDeniedReason denied = acl_check_keys(
@@ -1290,7 +1374,7 @@ bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, ThreadCtx& t
     const uint32_t last = (op.cmd_name().eq_icase("publish") ||
                            op.cmd_name().eq_icase("spublish")) ? 2 : op.argc();
     auto allowed = [&](const AclSelector& selector) {
-        if (!acl_command_allowed(selector, *op.spec)) return false;
+        if (!acl_command_allowed(selector, *op.spec, op.argc() > 1 ? op.arg(1) : Slice{})) return false;
         if (selector.flags & AclAllChannels) return true;
         for (uint32_t arg = first; arg < last; arg++)
             if (!acl_channel_allowed(selector, op.arg(arg), pattern)) return false;
@@ -1373,7 +1457,7 @@ void acl_dryrun(Op& op) {
                           verb.eq_icase("ssubscribe");
     auto check = [&](const AclSelector& selector) {
         if (!(spec->flags & CmdFlags::AclExempt) &&
-            !(selector.flags & AclAllCommands) && !acl_command_bit(selector, spec->id))
+            !acl_command_granted(selector, *spec, op.argc() > 4 ? op.arg(4) : Slice{}))
             return false;
         auto denied = [&](AclDeniedReason why, uint32_t argument) {
             if (why > reason || (why == reason && argument > denied_arg)) {
