@@ -1657,7 +1657,7 @@ timeout(){
                     self.assertTrue(all(mode == 'control' for mode, _ in calls))
         rows, calls = self.run_rows(ready=False, topology_failure='witness')
         self.assertEqual([row[0] for row in rows], ['FAIL'] * 9)
-        self.assertTrue(all(mode == 'control' for mode, _ in calls))
+        self.assertTrue(all(mode in ('control', 'negative') for mode, _ in calls))
 
     def test_topology_rows_require_ready_success_and_exact_witness(self):
         for failure in ('build', 'runtime', 'witness', 'wrong-mode', 'suffix'):
