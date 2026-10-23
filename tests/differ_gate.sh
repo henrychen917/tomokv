@@ -439,7 +439,7 @@ ORACLE_ALIGNMENT=()
 if [ "$PART" != equivalence ]; then run_matrix || FAIL=$((FAIL+1)); fi
 # One existing differential gate row now also requires exact mode equivalence.
 # Keep every Redis leg above intact. The split job runs this once, after both
-# listeners close: its private target port is reused across all 32 fresh boots.
+# listeners close: its private target port is reused across all 16 cells.
 # The armed job need not repeat the identical matrix. The new per-run seed also
 # rotates the equivalence stream; discovered counterexamples remain permanent.
 if { [ "$PART" = all ] && [ -z "$PROOF_SUITES" ] && [ "$TARGET_GEOMETRY" = split ]; } ||
@@ -454,7 +454,7 @@ PY
     EQUIVALENCE_SEEDS=("$EQUIVALENCE_SEED")
   else
     # The frozen list includes this run's rotating stream and every recorded failure of this
-    # generator. Every invocation still executes all32 cells; the fold rejects a missing stream.
+    # generator. Every invocation executes all 16 cells; the fold rejects a missing stream.
     EQUIVALENCE_FLAGS=(--_single-seed)
   fi
   for EQUIVALENCE_SEED in "${EQUIVALENCE_SEEDS[@]}"; do
@@ -463,10 +463,10 @@ PY
   if python3 tests/mode_equivalence.py "${EQUIVALENCE_FLAGS[@]}" --binary "$TARGET_BIN" --server-cpus "$TARGET_CORES" \
       --load-cpus "$LOAD_CORES" --port "$TARGET_PORT" --net-io "$TARGET_NET_IO" --seed "$EQUIVALENCE_SEED" \
       --output "$EQ_OUT" >"$EQ_OUT.log" 2>&1; then
-    say 'mode equivalence: all 32 execution/knob combinations' 'ok (exact replies and mechanism witnesses)'
+    say 'mode equivalence: all execution/knob combinations' 'ok (exact replies and mechanism witnesses)'
     PASS=$((PASS+1))
   else
-    say 'mode equivalence: all 32 execution/knob combinations' "FAIL (see $EQ_OUT.log)"
+    say 'mode equivalence: all execution/knob combinations' "FAIL (see $EQ_OUT.log)"
     FAIL=$((FAIL+1))
   fi
   done
