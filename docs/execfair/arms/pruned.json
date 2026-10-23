@@ -1,0 +1,46 @@
+[
+  {
+    "path": "build/pre/src",
+    "kind": "disposable arm objects"
+  },
+  {
+    "path": "build/pre/db0",
+    "kind": "disposable arm objects"
+  },
+  {
+    "path": "build/post-alt/src",
+    "kind": "disposable arm objects"
+  },
+  {
+    "path": "build/post-alt/db0",
+    "kind": "disposable arm objects"
+  },
+  {
+    "path": "build/pad-a/src",
+    "kind": "disposable arm objects"
+  },
+  {
+    "path": "build/pad-a/db0",
+    "kind": "disposable arm objects"
+  },
+  {
+    "path": "build/execfair-instructions/pre-normal",
+    "bytes": 202025040,
+    "kind": "serverless probe build"
+  },
+  {
+    "path": "build/execfair-instructions/pre-db0",
+    "bytes": 202117784,
+    "kind": "serverless probe build"
+  },
+  {
+    "path": "build/execfair-instructions/post-normal",
+    "bytes": 202046576,
+    "kind": "serverless probe build"
+  },
+  {
+    "path": "build/execfair-instructions/post-db0",
+    "bytes": 202125776,
+    "kind": "serverless probe build"
+  }
+]

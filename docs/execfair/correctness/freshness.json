@@ -1,0 +1,244 @@
+{
+  "gate_sha256": "4cd86cffc131a0bc24741d830e1e6d6a7fb89a0d37035aed74596b97b266641e",
+  "rows": [
+    {
+      "target": "all",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/expire-notify-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/ktls-lifetime-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/moverfix-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/moverfix-db0-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/publishfix-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/at15-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/txnorder-wake-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/txnorder-episodes",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/txnorder-episodes-debug",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/txnorder-watch-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/txnorder-watch-db0-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/netcmd-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/netcap-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/waits-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/multidb-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/storesize-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/respresume-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/respresume-migration",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/exbatch-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/wb-rule-units",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/wbland-units",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/rltopo-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/lbplanner-units",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/shutdown-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/persistfix-units",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/flushfix-units",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/racefix-climon",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "build/aoforder-scheduled",
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "mdbqsbr2-park",
+      "command": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-park",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK",
+        "all"
+      ],
+      "make_q_exit": 0,
+      "output": ""
+    },
+    {
+      "target": "mdbqsbr2-no-wake",
+      "command": [
+        "make",
+        "-q",
+        "BUILD_ROOT=build/mdbqsbr2-no-wake",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE",
+        "all"
+      ],
+      "make_q_exit": 0,
+      "output": ""
+    }
+  ]
+}
