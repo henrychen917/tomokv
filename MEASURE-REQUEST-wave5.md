@@ -552,3 +552,127 @@ PAD-B should track the fallback if its gain survives restored text size.
 Alignment/placement remains a limitation of PAD-A, hence the inverse control.
 Preserve exact hashes, geometry, order and null receipts; identical-arm spread
 above 2% requires diagnosis. This lane makes no throughput claim.
+
+
+## wave5c
+
+Correctness repair of the wave5b landing failures, based on `979c96861`. No
+performance claim. All commands in this lane used CPUs 64–111; parallel zc
+slots used separate 8-core servers (6 IO + 2 EX, 16 shards), 8 load cores,
+and ports 27000–27029. Other correctness work uses 26800–26899. Original
+landing evidence is preserved under [docs/wave5c/landing](docs/wave5c/landing).
+
+The netfix jobs now explicitly pass `--tls-oracle`, using
+`GATE_TLS_ORACLE_BIN` or `${REDIS74_TLS_ROOT}/src/redis-server`, with
+`REDIS74_TLS_ROOT=/home/user/Projects/redis74-tls` by default. The four TLS
+consumers validate the executable and perform a TLS PING against it; there
+is no fallback to the TCP oracle. An oracle failure stops dependent legs
+instead of cascading through absent result files. The Unix-only job receives
+the same explicit argument. The complete consumer search and canonical build
+provenance are [recorded](docs/wave5c/tls-consumers.txt). Missing-path and
+non-TLS-oracle negative gate runs both failed and named the offending path;
+see `docs/wave5c/tls-{missing,unsupported}-proof.log`.
+
+The reproduced leak was a closing Client removed from `ThreadCtx::clients()`
+by `close_client()` before its executor epoch had quiesced. It remained in
+`active_` for a retry. When the epoch ended and shutdown won before another
+IO pass, the final two `reap_dead()` calls could not find it. The diagnostic
+iofix run captured two such clients with empty ROBs and **no recv, send, or
+serve pin**, while the live-list shutdown report saw zero connections. This
+reproduction requires neither NT4.19 receive cancellation nor retained FLIP
+accepts. The existing ownership gap is exposed by the faster iofix signal
+exit; the baseline experiment does not establish it on headline.
+
+| Matched release / source ASAN arm | Gate zc runs | LeakSanitizer failures |
+|---|---:|---:|
+| wave5b `2028fd77` | 30 | 0 |
+| headline `a7dfb9d23` | 30 | 0 |
+| iofix `a7a3d72a` | 30 | 6 |
+| fliplisten `191a4d96` | 30 | 0 |
+| netfix `9cfcbcb1` | 30 | 0 |
+
+Each historical release was paired with an ASAN build of its own source,
+not with the current tree's ASAN binary. The partial-job-only
+`GATE_ASAN_BINARY` override checks executable ASAN identity and leaves the
+normal gate build path intact. Source refs, flags and hashes are in
+[baseline-builds.json](docs/wave5c/baseline-builds.json); all 150 outcomes and
+raw leak paths are in [baseline-zc.json](docs/wave5c/baseline-zc.json).
+The extra instrumented reproduction is
+[iofix-observed-close-pins.log](docs/wave5c/landing/iofix-observed-close-pins.log).
+
+The fix is implemented in `src/core/shutdown.cc`. A physical-worker lifetime
+guard synchronously cancels network operations on the original io_uring
+issuer, after its persistence lifetime guards drain. It runs at physical
+thread exit, including former IO owners after FLIP, not at a role change.
+After all workers join, IoLoop destruction collects and deduplicates clients
+from live, active, deferred-dead, pending-serve, WB-slot, handoff and migration
+ownership locations. It closes successful but unadmitted accept CQEs, accounts
+for completed sends, gives already owed output one nonblocking flush, fences
+the ring, releases reply borrows and closes/frees the retained clients. The
+existing FLIP-listener destructor closes retained raw accepts. No command,
+request-path source, save policy, layout lock or reader fence was changed.
+The synchronous-cancel fence must run on the issuer: an early prototype on
+the joining thread correctly failed with SINGLE_ISSUER `EEXIST` and was
+replaced before the fixed cohorts.
+
+The serverless shutdown witness opens the exact unlisted epoch-wait state,
+a dead client pinned by the pending-serve FIFO, and an actual cancelled receive
+whose CQE has not been dispatched. It checks all four mode/engine combinations,
+fd closure, idempotence and a queued PONG flush. Disabling the final cleanup
+fails the asserted ownership check; no probabilistic skip or tolerance is
+used. The existing shutdown gate row runs both controls, with an explicit
+Makefile dependency on the included witness. Twelve additional ASAN server
+lifetimes kept idle, borrowed-output, WATCH/MULTI, BLPOP and pub/sub clients
+open across SIGTERM, SIGINT and SHUTDOWN NOSAVE; all passed in both engines
+and modes ([results](docs/wave5c/live-shutdown/results.json)).
+
+Fixed POST zc ASAN checks passed **50 consecutive runs per engine**:
+50/50 io_uring and 50/50 epoll. One io_uring release boot was refused by the
+gate's quiet-core preflight during a unit rebuild; its ASAN leg passed. That
+failed job is retained as `fixed-fixed-uring-22`, not silently discarded.
+See [fixed-zc-summary.json](docs/wave5c/fixed-zc-summary.json) and the complete
+[100-run ledger](docs/wave5c/fixed-zc.json). All repetition receipts and
+complete compressed text witnesses are in `docs/wave5c/zc-receipts.tar.gz`
+(extract under `docs/wave5c` to restore the per-run `gate/` directories).
+The final broader cohort also
+repeats the zc job with no concurrent build outside the gate.
+
+VALIDATION-COHORTS-PENDING
+
+`make -j32 all` plus every one of the 42 `job_production_units` targets and
+the two MDBQSBR live arms succeeded. All 45 output freshness queries passed,
+including `make -q all`; the phony live-arms target is checked through its two
+actual outputs with matching flags. See [freshness.json](docs/wave5c/freshness.json).
+`python3 tests/gates_test.py` passed all 70 tests (including the TLS wiring
+and missing-oracle checks). Source labels remain **739 quick / 756 full**,
+counted relative to the quick exit, and match the 756-label fixture exactly.
+No row was added or retired. Protected EXPECT assignments are unchanged
+from the starting commit; their existing 685/702 values remain maintainer-owned.
+The standalone strict receipt check therefore **fails** in this checkout:
+`EXPECT_FULL=702, fixture=756, source declarations=756`, with no missing or
+extra labels ([log](docs/wave5c/fixture-validation.log)). The maintainer must
+retain/set 739/756 when landing; this lane does not change protected counts.
+
+The 12 GET/SET/MGET/MSET hot groups match both the supplied headline and
+wave5b POST under the unchanged strict normalizer. Every changed body is
+listed with its reason, including clone sizes and hashes:
+[wave5b delta](docs/wave5c/identity/wave5b-post-changed-bodies.md),
+[headline delta](docs/wave5c/identity/headline-changed-bodies.md).
+The wave5b comparison has 147 changed groups: new shutdown/WB specializations,
+worker/destructor changes, resolved reference-label changes, assertion-line
+immediates, and compiler propagation into a few unedited dispatch/envelope
+bodies. Full normalized instruction/encoding deltas are retained in
+`docs/wave5c/identity/wave5b-post-deltas.txt.gz`; these differences were not
+masked or treated as a reason to stop correctness testing. No throughput
+conclusion follows from identity.
+
+Final `build/tomokv` SHA-256:
+`b640ac19ca60d368322fc417d08ea8d6f8f5ec4a778a08f7249f68d78bc6eace`.
+Fixed ASAN SHA-256:
+`477da6ee37b63d837641c0e68d9b1c39afb6e2197eb69c9057f52fae97e972d8`.
+
+**NOT RUN:** full `tests/gate.sh iteration`, throughput benchmarks, ABBA and
+PMU performance measurements; these remain with the maintainer under this
+lane's authorization. No push. No new PAD arm: this is a correctness repair,
+not an optimization claim. Temporary historical/diagnostic object trees are
+removed; binary hashes and reproducible source-build commands are retained.

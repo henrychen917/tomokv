@@ -29,6 +29,39 @@ void IoLoop::shutdown_clients_after_join() {
     // IO lifetime; partial initialization cannot have admitted a connection.
     if (!initialized_) return;
 
+    // Normal WB callbacks post releases, tracking and notifications to live
+    // owners. All owners have joined: complete only the already-issued reply
+    // here, return borrows directly, and discard undeliverable notifications.
+    // Rebinding preserves WB accounting and its existing staged output.
+    const std::atomic<bool> no_limits{false};
+    auto release_joined = [](void* context, int32_t shard, const char* ptr) {
+        auto* loop = static_cast<IoLoop*>(context);
+        loop->srv_->shard(shard).store().unborrow(ptr);
+    };
+    wb_.bind(&ring_, this, release_joined, this,
+        [](void* context, Client& client, Op& op) {
+            auto* loop = static_cast<IoLoop*>(context);
+            NotifyBatch* notifications = nullptr;
+            if (op.has_scatter_state()) {
+                notifications = notify_take_batch(op);
+                xshard_retire(*loop->srv_, *loop->self_, loop->ring_, client, op,
+                    loop->scatter_pool_, loop->self_->id(), loop,
+                    [](void* ctx, int32_t shard, const char* ptr) {
+                        static_cast<IoLoop*>(ctx)->srv_->shard(shard).store().unborrow(ptr);
+                    }, [](void* ctx) { static_cast<IoLoop*>(ctx)->wb_.note_zc_suppressed_tls(); });
+            } else if (op.has_blocking_state()) {
+                notifications = notify_take_batch(op);
+                blocking_retire(*loop->srv_, client, op, *loop->self_);
+            } else if (op.has_multi_state()) {
+                notifications = notify_take_batch(op);
+                multi_retire_entry(*loop, client, op);
+            } else if (op.has_notify_state()) {
+                notifications = notify_take_batch(op);
+            }
+            notify_discard_batch(notifications);
+        }, &no_limits, nullptr, [](void*, Client&) { return false; },
+        &cached_now_s_, &self_->sig());
+
     // The issuer has cancelled network requests after draining persistence. Its
     // CQEs remain available here; successful accepts own fds without Clients.
     if (!ring_.shutdown_complete()) {
@@ -76,7 +109,7 @@ void IoLoop::shutdown_clients_after_join() {
 
     // A completion already owed may have reached Done during the last IO pass.
     // Retire that prefix and perform the existing nonblocking send path once;
-    // never parse more requests, run commands, wait on peers, or restart a save.
+    // never parse more requests, wait on peers, or restart a save.
     for (Client* c : clients) {
         c->set_recv_armed(false);
         c->set_send_inflight(false);
@@ -131,7 +164,21 @@ void IoLoop::shutdown_clients_after_join() {
         auto r = pending_releases_.front(); pending_releases_.pop_front();
         release(r.shard, r.ptr);
     }
-    self_->drain_releases_unmasked([&](const BorrowRelease& r) { release(r.shard, r.ptr); });
+    // TLS MULTI retirement and pre-join send completions can already have
+    // published releases. Drain every inbox here, including owners whose IO
+    // destructor ran earlier; no worker remains to consume these channels.
+    for (uint32_t tid = 0; tid < srv_->nthreads(); ++tid)
+        srv_->thread(tid).drain_releases_unmasked(
+            [&](const BorrowRelease& r) { release(r.shard, r.ptr); });
+    // A completed transaction can contain connection-local publication work.
+    // Its finalization must not leave newly allocated delivery events behind
+    // an owner whose destructor has already drained its inbox.
+    pubsub_shutdown_events();
+    for (uint32_t tid = 0; tid < srv_->nthreads(); ++tid) {
+        std::deque<PubSubEvent*> events;
+        srv_->thread(tid).take_pubsub_events(events);
+        for (PubSubEvent* event : events) pubsub_delete_event(event);
+    }
     initialized_ = false;
 }
 } // namespace tomo

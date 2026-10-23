@@ -48,6 +48,11 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
     live->set_ifid_thread(io.self_->id());
     live->set_wb_slot(io.self_->assign_wb_slot(live));
     live->fill_buf().append("+PONG\r\n", 7); // already owed output
+    Op* done = live->rob().acquire<false>();
+    require(done != nullptr, "final reply slot");
+    done->reply.append("+OK\r\n", 5);
+    done->state.store(OpState::Done, std::memory_order_release);
+    live->rob().publish(); // the normal callback above aborts if used after join
     live->set_recv_armed(true);
     io.self_->add_client(live);
     f.server.client_accepted();
@@ -73,13 +78,14 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
             "post-join cleanup releases dead FIFO and admitted receive pins");
     require(io.ring_.shutdown_complete() && f.server.live_clients() == 0,
             "ring fenced before the final Client release");
-    char reply[8]{};
-    require(recv(sockets[1], reply, sizeof(reply), MSG_DONTWAIT) == 7 &&
-            std::memcmp(reply, "+PONG\r\n", 7) == 0, "already owed reply flushed before close");
+    char reply[13]{};
+    require(recv(sockets[1], reply, sizeof(reply), MSG_DONTWAIT) == 12 &&
+            std::memcmp(reply, "+PONG\r\n+OK\r\n", 12) == 0,
+            "staged and completed replies flushed without a joined-owner callback");
     errno = 0;
     require(fcntl(sockets[0], F_GETFD) == -1 && errno == EBADF, "admitted fd closed");
     close(sockets[1]);
     io.shutdown_clients_after_join(); // no double release, including the destructor
-    std::printf("shutdown clients mode=%s engine=%s unlisted_close=1 FIFO=1 recv=1 flushed=7: PASS\n",
+    std::printf("shutdown clients mode=%s engine=%s unlisted_close=1 FIFO=1 recv=1 flushed=12: PASS\n",
                 fused ? "1s" : "2s", epoll ? "epoll" : "uring");
 }
