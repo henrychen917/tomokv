@@ -106,3 +106,38 @@ That cohort also overlapped a relink: one boot saw a non-executable output and o
 GDB listener-control boot saw changed addresses. Its `binary_stable=false` receipt
 invalidates it as final evidence. Later cohorts use immutable SHA-named binary copies.
 No failed leg is counted as a pass or removed from the final inventories.
+
+### Directed integration defect: FUNCTION memory flags in EXEC
+
+The new flags leg exposed `EXECABORT` under maxmemory even for admitted
+`allow-oom` functions. EXEC cloned the declared write key before entering the
+FCALL handler, so `atomic_admit` rejected the clone before FUNCTION's memory
+scope could apply. The repair resolves the function/flags once and runs EXEC's
+owner-version preparation inside that admission scope, before invoking the same
+resolved callback. A second registry lookup is avoided so a concurrent library
+update cannot change the flags between admission and invocation. A parked
+preparation clears the Lua stack and restores the cap before retry.
+
+The directed check uses callbacks on both owners, both uncapped and over-cap,
+requires successful admitted writes and writes retained before a Lua error,
+verifies subsequent reads within EXEC, rejects an ordinary non-admitted function
+without changing its key, and checks that a following ordinary SET still sees
+OOM. It remains a subcheck of compat3's flags row, with every original leg.
+
+### R7 additive link inventory
+
+The frozen headline has **146 normal / 147 db0** off-path physical bodies.
+Six lane POSTs have the same inventory. FLIP listener handover's new translation
+unit contributes exactly **six additional bodies in each namespace**: NoBorrow
+parser clones (hot/cold at batch 0 and 32) and two owner-conflict closures.
+The merged link has **152 / 153**, exactly the sum, with no other name/count delta.
+The frozen fliplisten POST itself has 152/153 even though its branch retained the
+older checker constants. `docs/wave5/r7-inventory/` contains all nine links' full
+name/multiplicity inventories and the 12-entry merged delta.
+
+The `wave5` checker inventory explicitly requires every added clone/closure and
+retains all prior instruction/encoding comparisons. It does not mask or discard
+any body. The FIFO behaviour twin compares all **305** physical bodies; the row
+also requires missing policy, missing split-local parser, missing fliplisten clone,
+and changed-opcode controls to fail. Legacy inventory selections remain available
+for frozen historical binaries. This changes no public gate row count.

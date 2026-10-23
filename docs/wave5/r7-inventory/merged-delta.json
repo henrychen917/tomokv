@@ -1,0 +1,50 @@
+{
+  "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]": [
+    2,
+    3
+  ],
+  "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]": [
+    2,
+    3
+  ],
+  "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(tomo_db0::Op const&)#1}&&) const": [
+    0,
+    1
+  ],
+  "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]": [
+    1,
+    2
+  ],
+  "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]": [
+    2,
+    3
+  ],
+  "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)::{lambda()#2}::operator()() const::{lambda(tomo_db0::Op const&)#1}&&) const": [
+    0,
+    1
+  ],
+  "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]": [
+    2,
+    3
+  ],
+  "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]": [
+    1,
+    2
+  ],
+  "auto tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}&&) const": [
+    0,
+    1
+  ],
+  "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]": [
+    1,
+    2
+  ],
+  "auto tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}&&) const": [
+    0,
+    1
+  ],
+  "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]": [
+    1,
+    2
+  ]
+}

@@ -75,7 +75,7 @@ def off_roles(binary):
     return removed
 
 
-def splitlocal_inventory(binary, namespaces, *, overlap_removed=False):
+def splitlocal_inventory(binary, namespaces, *, overlap_removed=False, fliplisten=False):
     """Require the extra physical parser bodies per runtime after splitlocal.
 
     Forwarding SplitLocal emits two parsers and four ordinary-parser clones.
@@ -97,8 +97,31 @@ def splitlocal_inventory(binary, namespaces, *, overlap_removed=False):
             clones = {ordinary + ' [clone .isra.0]' + suffix for suffix in ('', ' [clone .cold]')}
             assert (len(conflicts) == (2 if overlap_removed else 3) and len(fillers) == 1 and
                     family == {direct} | conflicts | fillers and
-                    all(len(binary.groups.get(name, ())) == 1 for name in family | clones)), \
+                    all(len(binary.groups.get(name, ())) == 1 for name in family) and
+                    all(len(binary.groups.get(name, ())) ==
+                        (2 if fliplisten and no_borrow == 'true' else 1) for name in clones)), \
                 f'missing split-local parser bodies: {namespace}, NoBorrow={no_borrow}'
+
+
+def fliplisten_inventory(binary, namespaces):
+    """Six additional physical parser bodies per runtime from fliplisten.cc.
+
+    Keep every instruction comparison; require each exact new closure and each
+    extra clone. This is the isolated fliplisten POST's +6/+6 inventory, not a
+    tolerance for arbitrary compiler drift in the integration.
+    """
+    normal = {'auto tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#2}::operator()() const::{lambda(tomo::Op const&)#1}&&) const': 1,
+ 'auto tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(tomo::Op const&)#1}&&) const': 1,
+ 'tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]': 3,
+ 'tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]': 3,
+ 'tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]': 2,
+ 'tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]': 2}
+    for namespace in namespaces:
+        expected = {name.replace('tomo::', namespace + '::'): count
+                    for name, count in normal.items()}
+        for name, count in expected.items():
+            assert len(binary.groups.get(name, ())) == count, \
+                f'missing fliplisten parser body: {namespace}: {name}'
 
 
 if __name__ == '__main__':
@@ -106,7 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe'), default='r7',
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe', 'wave5'), default='r7',
                         help='wbrule/splitlocal retain historical inventories; overlapaxe requires the surviving bodies')
     args = parser.parse_args()
     out = Path(args.output)
@@ -120,7 +143,7 @@ if __name__ == '__main__':
     # the old single-runtime audit had 169. Later inventory deltas are explicit.
     expected = {'tomo': 168, 'tomo_db0': 168} if any(
         'tomo_db0::' in row['name'] for row in rows) else {'tomo': 169}
-    if args.inventory in ('wbrule', 'splitlocal', 'overlapaxe'):
+    if args.inventory in ('wbrule', 'splitlocal', 'overlapaxe', 'wave5'):
         assert set(expected) == {'tomo', 'tomo_db0'}, 'wbrule requires both database runtimes'
         # wbrule carries SplitLocal through flush_ready. These sixteen additional
         # instantiations per runtime keep physical 2s writeback separate from 1s.
@@ -133,12 +156,13 @@ if __name__ == '__main__':
                 found = {name for name in binary.groups if name in added}
                 assert found == added, f'missing physical split-local WB bodies: {added - found}'
             expected[namespace] += len(added)
-    if args.inventory in ('splitlocal', 'overlapaxe'):
+    if args.inventory in ('splitlocal', 'overlapaxe', 'wave5'):
         for binary in (pre, post):
-            splitlocal_inventory(binary, expected, overlap_removed=args.inventory == 'overlapaxe')
+            splitlocal_inventory(binary, expected, overlap_removed=args.inventory in ('overlapaxe', 'wave5'),
+                                 fliplisten=args.inventory == 'wave5')
         for namespace in expected:
             expected[namespace] += 14
-    if args.inventory == 'overlapaxe':
+    if args.inventory in ('overlapaxe', 'wave5'):
         # 198 -> 147 physical bodies per runtime: -32 IO envelopes, -14 parser
         # bodies/closures, -4 retired WB helpers, -1 scheduler body. The renamed
         # fused owner prefetch remains in the audit; only split prefetch is gone.
@@ -166,6 +190,11 @@ if __name__ == '__main__':
         # See docs/moverfix2/README.md for symbols, IPA decisions and trials.
         # wave4: both edits compose additively: normal 146+1-1 = 146, DB0 146+1 = 147.
         expected['tomo'] -= 1
+    if args.inventory == 'wave5':
+        # All seven frozen lane links are inventoried in docs/wave5/r7-inventory.
+        # Only fliplisten adds bodies: headline 146/147 + 6/6 = merged 152/153.
+        for binary in (pre, post): fliplisten_inventory(binary, expected)
+        for namespace in expected: expected[namespace] += 6
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):
