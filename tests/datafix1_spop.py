@@ -86,6 +86,22 @@ def battery(p):
         p.check(after == fresh, (name, 'rebuilt integer width', after, fresh))
         p.receipt.write(json.dumps(plain(dict(server=name, argv=['SPOP', 'width-old', 500],
             popped=popped, remaining=remain, memory_after=after, memory_fresh=fresh)))+'\n')
+    # A rebuilt hashtable must not reuse a cursor generation and skip survivors.
+    p.cmd('CONFIG', 'SET', 'set-max-intset-entries', 0, 'set-max-listpack-entries', 0)
+    p.cmd('SADD', 'scan-rebuild', *range(600))
+    for name, c in p.each():
+        cursor, seen = c.cmd('SSCAN', 'scan-rebuild', 0, 'COUNT', 300)
+        p.check(cursor != b'0', (name, 'scan cursor must be armed'))
+        c.cmd('SPOP', 'scan-rebuild', 500)
+        survivors = set(c.cmd('SMEMBERS', 'scan-rebuild'))
+        for _ in range(1000):
+            if cursor == b'0': break
+            cursor, page = c.cmd('SSCAN', 'scan-rebuild', cursor, 'COUNT', 20)
+            seen += page
+        p.check(cursor == b'0' and survivors <= set(seen),
+                (name, 'scan lost stable survivors', sorted(survivors-set(seen))))
+        p.receipt.write(json.dumps(plain(dict(server=name, scan_seen=seen,
+            survivors=sorted(survivors), final_cursor=cursor)))+'\n')
 
 
 if __name__ == '__main__':

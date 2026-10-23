@@ -25,7 +25,9 @@ can narrow an intset, demote a hashtable to a listpack, or promote survivors
 under lowered live limits. The expanded directed row passes six POST legs and
 fails six PRE legs. It checks conservation, uniqueness, TTL, encoding, bounded
 memory, and rebuilt intset memory against a fresh set of the same survivors.
-Independent oracle receipts: docs/datafix1/oracle-spop-rebuild/; paired gate
+The same row checks full SSCAN coverage of surviving members across a large
+pop, with an explicitly nonzero starting cursor. Independent oracle receipts:
+docs/datafix1/oracle-spop-rebuild/ and oracle-spop-cursor/; paired gate
 proof: docs/datafix1/{pre,post}-spop-rebuild-proof.tar.gz.
 Cost per call, n members / k popped / B packed bytes: PRE's first compact
 partial pop builds an expected O(n) table, then takes expected O(k) picks,
@@ -85,9 +87,9 @@ Cumulative DQ=DF=+7: all seven rows are collected before the quick-tier exit.
 Maintainer EXPECT values should become QUICK 692 / FULL 709 (base 685 / 702);
 this lane leaves those constants unchanged.
 
-Inlining budget derivation: initial set IPA sizes grew 17685→17957 and
-17505→17775 (db0); normal zset grew by 38. Bounded compile-only trials selected
-set 24222 / db0 23842 and normal zset 33447. Every trial's command, object digest
+Inlining budget derivation: final set IPA sizes grew 17685→19548 and
+17505→19350 (db0); normal zset grew by 38. Bounded compile-only trials selected
+set 26200 / db0 26600 and normal zset 33447. Every trial's command, object digest
 and complete changed-body inventory is under docs/datafix1/budgets. These retain
 all ordinary storage hot bodies; final whole-tree audits follow. No runtime knob
 or algorithm change was introduced by the budget adjustment.
