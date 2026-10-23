@@ -24,33 +24,43 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def disassemble(path):
+def disassemble(path, debug=False):
     bodies = {}
     current = None
-    for line in subprocess.check_output(['objdump', '-dwC', str(path)], text=True).splitlines():
+    inline = ''
+    options = '-dwlC' if debug else '-dwC'
+    for line in subprocess.check_output(['objdump', options, str(path)], text=True).splitlines():
         match = re.match(r'^([0-9a-f]+) <(.+)>:$', line)
         if match:
             current = bodies.setdefault(match[2], [])
+            inline = ''
+        elif debug and line.endswith('):'):
+            inline = line[:-1]
         elif current is not None:
             match = re.match(r'\s*([0-9a-f]+):\s+((?:[0-9a-f]{2} )+)\s*(.*)', line)
             if match:
-                current.append(dict(address=int(match[1], 16), raw=match[2].strip(), ins=match[3]))
+                row = dict(address=int(match[1], 16), raw=match[2].strip(), ins=match[3])
+                if debug and '::prefetch_exec_batch(' in inline:
+                    row['inline'] = inline
+                current.append(row)
     return bodies
 
 
 def inspect(binary, output, expect):
-    bodies = disassemble(binary)
+    bodies = disassemble(binary, debug=True)
     selected = {}
     for name, rows in bodies.items():
         if 'ExLoopT<' not in name:
             continue
-        calls = [r for r in rows if re.match(r'(call|jmp)\s', r['ins']) and
+        calls = [r for r in rows if (target := re.match(r'(?:call|jmp)\s+([0-9a-f]+) ', r['ins'])) and
+                 not rows[0]['address'] <= int(target[1], 16) <= rows[-1]['address'] and
                  any(s in r['ins'] for s in ('exec_batch_prefetched<', 'prefetch_exec_slots(', 'prefetch_owner_batch('))]
-        if not calls and not any(s in name for s in ('prefetch_exec_slots(', 'prefetch_owner_batch(')):
+        walk_rows = [r for r in rows if 'inline' in r]
+        if not calls and not walk_rows and not any(s in name for s in ('prefetch_exec_slots(', 'prefetch_owner_batch(')):
             continue
         hints = [r for r in rows if r['ins'].startswith('prefetch')]
         selected[name] = dict(address=hex(rows[0]['address']), instructions=len(rows),
-                              hints=hints, calls=calls)
+                              hints=hints, calls=calls, inline_walk=walk_rows)
     for ns in ('tomo', 'tomo_db0'):
         for fused in ('false', 'true'):
             prefix = f'{ns}::ExLoopT<{fused}>::'
@@ -85,8 +95,10 @@ def pad(binary, output):
             raw = bytes.fromhex(row['raw'])
             # One architectural NOP of the same length: retain addressing bytes,
             # ModRM/SIB/displacement and register dependencies in the walk.
-            assert raw[:2] == b'\x0f\x18' and (raw[2] >> 3) & 7 == 1, row
-            replacement = b'\x0f\x1f' + bytes([raw[2] & ~0x38]) + raw[3:]
+            opcode = 1 if 0x40 <= raw[0] <= 0x4f else 0
+            assert raw[opcode:opcode + 2] == b'\x0f\x18' and (raw[opcode + 2] >> 3) & 7 == 1, row
+            replacement = (raw[:opcode] + b'\x0f\x1f' + bytes([raw[opcode + 2] & ~0x38]) +
+                           raw[opcode + 3:])
             sections = [s for s in elf.sections if s[3] <= row['address'] < s[3] + s[5] and s[2] & 4]
             assert len(sections) == 1
             section = sections[0]

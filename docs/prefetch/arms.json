@@ -1,0 +1,18 @@
+{
+  "PRE": {
+    "path": "build/tomokv-pre-prefetch",
+    "sha256": "fc4a9fa7eb91ef6748aa03662b62eab600892a2f835521ea06ad21fb39871460"
+  },
+  "POST": {
+    "path": "build/tomokv",
+    "sha256": "2361590f215dc452078b758223a77a826ec93821c7958da53e3aa2456f5587d9"
+  },
+  "PAD-A": {
+    "path": "build/tomokv-pad-a-prefetch",
+    "sha256": "8523bfbe50cc0e61f3d1474fc5c2e89e9e6e5a0194e44656a68514037ed4be33"
+  },
+  "DELETE": {
+    "path": "build/tomokv-delete-prefetch",
+    "sha256": "b90cff5ede08b5c6c30e832cb44afaf4fcaed6dac5a3238805fda33dd39d4aff"
+  }
+}

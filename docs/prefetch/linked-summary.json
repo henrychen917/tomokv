@@ -1,0 +1,592 @@
+{
+  "pre_sha256": "fc4a9fa7eb91ef6748aa03662b62eab600892a2f835521ea06ad21fb39871460",
+  "post_sha256": "2361590f215dc452078b758223a77a826ec93821c7958da53e3aa2456f5587d9",
+  "equal": 9059,
+  "changed": 56,
+  "changed_bodies": [
+    {
+      "name": "tomo::ExLoopT<false>::prefetch_exec_slots(tomo::Task const*, unsigned int)",
+      "pre_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "reason": "EX4.1: new out-of-line bucket walk, guarded for n > 1."
+    },
+    {
+      "name": "tomo::ExLoopT<false>::run()",
+      "pre_sizes": [
+        9164
+      ],
+      "post_sizes": [
+        9027
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::prefetch_exec_slots(tomo::Task const*, unsigned int)",
+      "pre_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "reason": "EX4.1: new out-of-line bucket walk, guarded for n > 1."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}::operator()(tomo::Task const*, unsigned int, tomo::ReorderResult) const",
+      "pre_sizes": [
+        482
+      ],
+      "post_sizes": [
+        385
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}::operator()(tomo::Task const*, unsigned int, tomo::ReorderResult) const",
+      "pre_sizes": [
+        482
+      ],
+      "post_sizes": [
+        385
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "tomo::ExLoopT<true>::run()",
+      "pre_sizes": [
+        8149
+      ],
+      "post_sizes": [
+        8807
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "pre_sizes": [
+        20688
+      ],
+      "post_sizes": [
+        20659
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "pre_sizes": [
+        277
+      ],
+      "post_sizes": [
+        277
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+      "pre_sizes": [
+        21378
+      ],
+      "post_sizes": [
+        21072
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+      "pre_sizes": [
+        9949,
+        12153,
+        10045,
+        10767
+      ],
+      "post_sizes": [
+        9949,
+        12194,
+        10045,
+        10767
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "pre_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        244,
+        166,
+        244
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+      "pre_sizes": [
+        20837,
+        19202
+      ],
+      "post_sizes": [
+        20800,
+        19202
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+      "pre_sizes": [
+        284,
+        289
+      ],
+      "post_sizes": [
+        287,
+        289
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+      "pre_sizes": [
+        21031
+      ],
+      "post_sizes": [
+        21011
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)",
+      "pre_sizes": [
+        18382
+      ],
+      "post_sizes": [
+        18551
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)",
+      "pre_sizes": [
+        18284
+      ],
+      "post_sizes": [
+        18606
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]",
+      "pre_sizes": [
+        1927,
+        1957,
+        2257,
+        2094,
+        2288
+      ],
+      "post_sizes": [
+        1927,
+        2035,
+        2257,
+        2094,
+        2288
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::IoLoop::touch_worker(unsigned int)",
+      "pre_sizes": [
+        47
+      ],
+      "post_sizes": [],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::Op* tomo::Rob<64u>::acquire<true>(unsigned char)",
+      "pre_sizes": [
+        483
+      ],
+      "post_sizes": [],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::Shard::watch_flush(int) [clone .cold]",
+      "pre_sizes": [
+        89
+      ],
+      "post_sizes": [
+        89
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo::Task const&)#1}&, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "pre_sizes": [
+        2617
+      ],
+      "post_sizes": [
+        2738
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::prefetch_exec_slots(tomo_db0::Task const*, unsigned int)",
+      "pre_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "reason": "EX4.1: new out-of-line bucket walk, guarded for n > 1."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<false>::run()",
+      "pre_sizes": [
+        8881
+      ],
+      "post_sizes": [
+        8726
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::prefetch_exec_slots(tomo_db0::Task const*, unsigned int)",
+      "pre_sizes": [],
+      "post_sizes": [
+        333
+      ],
+      "reason": "EX4.1: new out-of-line bucket walk, guarded for n > 1."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}::operator()(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult) const",
+      "pre_sizes": [
+        482
+      ],
+      "post_sizes": [
+        385
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}::operator()(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult) const",
+      "pre_sizes": [
+        482
+      ],
+      "post_sizes": [
+        385
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "tomo_db0::ExLoopT<true>::run()",
+      "pre_sizes": [
+        7865
+      ],
+      "post_sizes": [
+        8585
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+      "pre_sizes": [
+        9840,
+        12318,
+        9840,
+        10771
+      ],
+      "post_sizes": [
+        9840,
+        12318,
+        9805,
+        10771
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+      "pre_sizes": [
+        166,
+        248,
+        166,
+        244
+      ],
+      "post_sizes": [
+        166,
+        248,
+        166,
+        244
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)",
+      "pre_sizes": [
+        18455
+      ],
+      "post_sizes": [
+        18483
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "tomo_db0::ThreadCtx::drain_task_producer_chunks<false, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&>(unsigned int, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda(tomo_db0::Task const&)#1}&, tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)::{lambda()#1}&, bool)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+      "pre_sizes": [
+        2617
+      ],
+      "post_sizes": [
+        2738
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)",
+      "pre_sizes": [
+        468
+      ],
+      "post_sizes": [
+        380
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)",
+      "pre_sizes": [
+        565
+      ],
+      "post_sizes": [
+        469
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+      "pre_sizes": [
+        1066
+      ],
+      "post_sizes": [
+        957
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo::IoLoop::epoll_pass<true, true, true>(int)",
+      "pre_sizes": [
+        1053
+      ],
+      "post_sizes": [
+        1053
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "pre_sizes": [
+        2238
+      ],
+      "post_sizes": [
+        2228
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "pre_sizes": [
+        2632
+      ],
+      "post_sizes": [
+        2677
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo::ThreadCtx::drain_tasks_unmasked<false, tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "pre_sizes": [
+        2188
+      ],
+      "post_sizes": [
+        2173
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo::ThreadCtx::drain_tasks_unmasked<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&>(tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task const&)#1}&)",
+      "pre_sizes": [
+        2581
+      ],
+      "post_sizes": [
+        2617
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)",
+      "pre_sizes": [
+        468
+      ],
+      "post_sizes": [
+        380
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)",
+      "pre_sizes": [
+        565
+      ],
+      "post_sizes": [
+        469
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+      "pre_sizes": [
+        1066
+      ],
+      "post_sizes": [
+        957
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "pre_sizes": [
+        796
+      ],
+      "post_sizes": [
+        973
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "pre_sizes": [
+        2238
+      ],
+      "post_sizes": [
+        2228
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "pre_sizes": [
+        2632
+      ],
+      "post_sizes": [
+        2677
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "pre_sizes": [
+        2188
+      ],
+      "post_sizes": [
+        2173
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "unsigned int tomo_db0::ThreadCtx::drain_tasks_unmasked<false, tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&>(tomo_db0::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo_db0::Task const&)#1}&)",
+      "pre_sizes": [
+        2581
+      ],
+      "post_sizes": [
+        2617
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, true, false>()",
+      "pre_sizes": [
+        5738
+      ],
+      "post_sizes": [
+        5746
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+      "pre_sizes": [
+        5767
+      ],
+      "post_sizes": [
+        5783
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)",
+      "pre_sizes": [
+        2838
+      ],
+      "post_sizes": [
+        2858
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "void tomo::r7::ShadowReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)",
+      "pre_sizes": [
+        3661
+      ],
+      "post_sizes": [
+        3201
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
+      "pre_sizes": [
+        5140
+      ],
+      "post_sizes": [
+        5175
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, true, true, false>()",
+      "pre_sizes": [
+        5155
+      ],
+      "post_sizes": [
+        5190
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, true, true, false>()",
+      "pre_sizes": [
+        5155
+      ],
+      "post_sizes": [
+        5190
+      ],
+      "reason": "No source change: compiler/link propagation from the executor header; retained strict diff, merit decides."
+    },
+    {
+      "name": "void tomo_db0::r7::ExReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
+      "pre_sizes": [
+        3360
+      ],
+      "post_sizes": [
+        3270
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    },
+    {
+      "name": "void tomo_db0::r7::ShadowReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
+      "pre_sizes": [
+        3661
+      ],
+      "post_sizes": [
+        3201
+      ],
+      "reason": "EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged."
+    }
+  ]
+}
