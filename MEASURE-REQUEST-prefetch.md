@@ -85,7 +85,16 @@ The gate command is `GATE_ONLY_JOBS='core_units exbatch_units exbatch_live perfe
 
 Initial job setup tried the nonexistent unsuffixed `fused` job, then the manifest's binary-only Redis path; both were corrected. Overlapping abandoned prerequisite builds were stopped and their unit objects removed before the final gate rebuilt them and passed all freshness checks. No failed run is counted as green.
 
-The standard differential matrices run via [the exec-only engine wrappers](docs/prefetch/run-differ.sh), preserving `differ_gate.sh`'s suite and seed inventory, ownership checks and finalizers. Both engines and split/armed-fused geometries use target/oracle ports 23800/23801, CPUs 80–87, clients 89–95, 16 shards, ratio 6:2 for split, databases 16, atomic 0/1. Standard seeds selected at launch: 7, 19, 20, 23, 21 (permanent/discovered corpus plus rotating seed), 47 suites. The [uring/split matrix](docs/prefetch/differ-uring-split.json.gz) **passed 475 rows, zero failed**, with 474 differential legs, 2,149,691 recorded comparison witnesses and all 32 mode-equivalence combinations. The [uring/armed-fused matrix](docs/prefetch/differ-uring-armed-fused.json.gz) **passed 466 rows, zero failed**, with 464 differential legs, 2,098,740 recorded comparison witnesses and both read-local engagement checks. Both epoll matrices remain in progress. The stock armed-fused harness marks the ten SORT legs **NOT RUN: SORT requires split 6:2 geometry**; these are not counted as passes and are covered by the split matrix.
+The standard differential matrices run via [the exec-only engine wrappers](docs/prefetch/run-differ.sh), preserving `differ_gate.sh`'s suite and seed inventory, ownership checks and finalizers. Both engines and split/armed-fused geometries use target/oracle ports 23800/23801, CPUs 80–87, clients 89–95, 16 shards, ratio 6:2 for split, databases 16, atomic 0/1. Standard seeds selected at launch: 7, 19, 20, 23, 21 (permanent/discovered corpus plus rotating seed), 47 suites. Results on frozen POST:
+
+| Engine / geometry | Passed rows | Failed rows | Differential legs | Comparison witnesses | Additional check | Receipt |
+|---|---:|---:|---:|---:|---|---|
+| uring / split | 475 | 0 | 474 | 2,149,691 | 32 mode-equivalence combinations | [logs](docs/prefetch/differ-uring-split.json.gz) |
+| uring / armed-fused | 466 | 0 | 464 | 2,098,740 | read-local engagement, atomic 0/1 | [logs](docs/prefetch/differ-uring-armed-fused.json.gz) |
+| epoll / split | 475 | 0 | 474 | 2,145,143 | 32 mode-equivalence combinations | [logs](docs/prefetch/differ-epoll-split.json.gz) |
+| epoll / armed-fused | RUNNING | — | — | — | — | — |
+
+The stock armed-fused harness marks ten SORT legs per engine **NOT RUN: SORT requires split 6:2 geometry**. They are not counted as passes and are covered by both split matrices. All completed matrices exited 0. The remaining epoll/armed-fused matrix is in progress.
 
 Full iteration and performance generators remain **NOT RUN: reserved to the maintainer**, as instructed.
 
