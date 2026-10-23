@@ -91,9 +91,11 @@ def prepare(args):
     for name, prefix in [('src/core/io_loop.h', ''), ('src/core/reorder.cc', 'r7_')]:
         # Both generated and FIFO bodies are counted; no behavioral changes.
         patch(name, '    IoTenure tenure(sig);', '    IoTenure tenure(sig);\n    wave5b_trace::bind(self_->id());')
-        for call, count in [(prefix+'epoll_pass<HasUnix, HasTls, Fused>(wait_ms);', 1),
-                            (prefix+'epoll_pass<HasUnix, HasTls, false>(wait_ms);', 1),
-                            ('ring_.submit_and_wait(1, wait_ms);', 2)]:
+        wait = 'wait_ms' if 'const unsigned wait_ms = idle_timeout_ms();' in files[name].decode() else 'Ring::kWaitTimeoutMs'
+        ring_wait = '1, wait_ms' if wait == 'wait_ms' else '1'
+        for call, count in [(prefix+f'epoll_pass<HasUnix, HasTls, Fused>({wait});', 1),
+                            (prefix+f'epoll_pass<HasUnix, HasTls, false>({wait});', 1),
+                            (f'ring_.submit_and_wait({ring_wait});', 2)]:
             patch(name, call,
                   'wave5b_trace::add(0); wave5b_trace::add(1, !pending_serve_.empty());\n'
                   '                        '+call+'\n'

@@ -22,6 +22,26 @@ struct Settings {
     uint8_t small_pipe = kSmallPipe;
     uint8_t complete_visits = kCompleteVisits;
 };
+// Pass-local park grace for split IO. Learn only intervals in a busy tenure:
+// a completion after a real wait must not teach a long idle command's duration.
+// No clock read, allocation, or operation-path state; run_loop supplies its cut.
+struct IdleWindow {
+    uint64_t completion = 0, interval = 0, previous_pass = 0;
+    bool waited = true;
+    void observe(uint64_t now, bool advanced) {
+        if (advanced) {
+            if (!waited && completion) interval = std::max(interval, now - completion);
+            if (!waited && previous_pass) interval = std::max(interval, now - previous_pass);
+            completion = now;
+            waited = false;
+        }
+        previous_pass = now;
+    }
+    bool active(uint64_t now) const {
+        return !waited && completion && (now - completion) / 2 <= interval;
+    }
+    void park() { waited = true; }
+};
 // Dimensionless POLICY fraction, not a byte/count/time bound. Competition record
 // section 39 (2026-09-23/24), w4-c12: parse 32 / EX 32 / composite 1/2.
 inline constexpr std::ratio<1, 2> kPolicyFraction{};
