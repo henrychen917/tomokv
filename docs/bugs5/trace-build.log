@@ -1,0 +1,11 @@
+src/cmd/tracking.cc: In member function ‘void tomo::IoLoop::tracking_register_read(tomo::Client*, ClimonConn&, tomo::Op&)’:
+src/cmd/tracking.cc:136:17: error: ‘const struct tomo::Slice’ has no member named ‘eq’
+  136 |         if (key.eq("ck:10")) std::fprintf(stderr, "TRK register id=%llu op=%p state=%u\n",
+      |                 ^~
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-bugs5/docs/bugs5/trace_tracking.py", line 31, in <module>
+    subprocess.run(c,cwd=SRC,check=True);replacements[obj]=str(dest)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['g++', '-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native', '-pthread', '-DTOMO_JEMALLOC', '-I.', '-c', 'src/cmd/tracking.cc', '-o', '/home/user/Projects/cx-bugs5/build/bugs5/trace/build_src_cmd_tracking.o']' returned non-zero exit status 1.

@@ -170,7 +170,9 @@ public:
         srv_ = srv; self_ = self;
         srv_->bind_owner_notify_pending(self_->id(), &notify_keyless_pending_);
         aof_manager_ = srv->aof().configured() ? &srv->aof() : nullptr;
-        foreign_touch_random_ ^= (static_cast<uint64_t>(self->id()) + 1) * 0x9e3779b97f4a7c15ULL;
+        // Multiplication by an odd word is injective modulo 2^64. Every thread
+        // therefore starts at a distinct nonzero xorshift state, including 0.
+        foreign_touch_random_ = (static_cast<uint64_t>(self->id()) + 1) * 0x9e3779b97f4a7c15ULL;
         lb_sample_rate_ = srv->key_lb_signals_enabled() ? srv->lb_sample_rate() : 0;
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
@@ -2215,8 +2217,9 @@ private:
                 // Snapshot argv BEFORE execution. execute() publishes Done, after which the owning
                 // IO thread may retire the op and compact the read buffer the Slices point into.
                 Client* client = batch[i].client;
-                if (client)
-                    slowlog_capture(client->rob().at(batch[i].op_id), slowlog_state_.capture);
+                const auto identity = client
+                    ? slowlog_capture(client->rob().at(batch[i].op_id), slowlog_state_.capture,
+                                      client->id()) : nullptr;
                 const uint64_t started = now_ns();
                 const bool ok = execute<IofusedPrivateQueue>(batch[i]);
                 // Done is deliberately delayed with the commit. Armed per-op timing must include
@@ -2231,7 +2234,7 @@ private:
                     client->rob().at(batch[i].op_id).state.load(std::memory_order_relaxed) :
                     OpState::Issued;
                 if (completed == OpState::Done || completed == OpState::AofWait)
-                    slowlog_record_captured(self_->id(), client->id(), slowlog_state_.capture,
+                    slowlog_record_captured(self_->id(), identity, slowlog_state_.capture,
                                             elapsed, now_ms, arm);
                 if (ok) continue;
                 xshard_retries_.push_back(batch[i]);

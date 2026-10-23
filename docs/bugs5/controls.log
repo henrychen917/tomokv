@@ -1,0 +1,21 @@
+{'test': 'scancompact', 'oracle_rc': 0}
+{'test': 'slowlog_identity', 'oracle_rc': 0}
+{'test': 'read_local_lfu', 'oracle_rc': 0}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-bugs5/docs/wave4/run_supplemental.py", line 33, in owned
+    assert process.poll() is None,(name,process.returncode)
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('flip-1s-uring-0', 1)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-bugs5/docs/bugs5/controls.py", line 27, in <module>
+    with support.owned(label,ROOT/'build/tomokv-PRE','96-103',24840,shape):
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-bugs5/docs/wave4/run_supplemental.py", line 51, in owned
+    assert process.returncode==0,(name,process.returncode)
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('flip-1s-uring-0', 1)

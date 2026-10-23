@@ -1,0 +1,40 @@
+[
+  {
+    "matrix": "epoll-armed-fused",
+    "pass_rows": 461,
+    "fail_rows": 5,
+    "runtime": "21m28s",
+    "failures": [
+      "differ climon (atomic=0 seed=7)                            FAIL (see /home/user/Projects/cx-bugs5/build/bugs5/differ/epoll-armed-fused-results/climon-a0-s7.txt; DIFFER climon: 4318 ops, 4 diffs -> FAIL)",
+      "differ climon (atomic=0 seed=19)                           FAIL (see /home/user/Projects/cx-bugs5/build/bugs5/differ/epoll-armed-fused-results/climon-a0-s19.txt; DIFFER climon: 4318 ops, 2 diffs -> FAIL)",
+      "differ climon (atomic=0 seed=20)                           FAIL (see /home/user/Projects/cx-bugs5/build/bugs5/differ/epoll-armed-fused-results/climon-a0-s20.txt; DIFFER climon: 4318 ops, 5 diffs -> FAIL)",
+      "differ climon (atomic=0 seed=23)                           FAIL (see /home/user/Projects/cx-bugs5/build/bugs5/differ/epoll-armed-fused-results/climon-a0-s23.txt; DIFFER climon: 4318 ops, 2 diffs -> FAIL)",
+      "differ climon (atomic=0 seed=21)                           FAIL (see /home/user/Projects/cx-bugs5/build/bugs5/differ/epoll-armed-fused-results/climon-a0-s21.txt; DIFFER climon: 4318 ops, 1 diffs -> FAIL)"
+    ],
+    "archive_sha256": "b19ef614050ac4d26a2d7ada7b8793115382915935740b338cd0ed0665289acd"
+  },
+  {
+    "matrix": "epoll-split",
+    "pass_rows": 475,
+    "fail_rows": 0,
+    "runtime": "21m14s",
+    "failures": [],
+    "archive_sha256": "cf9ba194c73764178c1d0d70aac0d78ea781df35c0a58dace5e20794d7bd273a"
+  },
+  {
+    "matrix": "uring-armed-fused",
+    "pass_rows": 466,
+    "fail_rows": 0,
+    "runtime": "21m30s",
+    "failures": [],
+    "archive_sha256": "6a275e15029f494dd63dfea29e87c1db327fd5032014c78810d599dbba7673ed"
+  },
+  {
+    "matrix": "uring-split",
+    "pass_rows": 475,
+    "fail_rows": 0,
+    "runtime": "21m25s",
+    "failures": [],
+    "archive_sha256": "2b3e2e82087cf59af51f3e143a49a08057d588608e68e7c116ade086baabd3d9"
+  }
+]

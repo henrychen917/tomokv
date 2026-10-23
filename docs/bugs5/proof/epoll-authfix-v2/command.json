@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-104",
+    "--load-cores",
+    "105-111",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "24800-24809",
+    "--candidate-binary",
+    "/home/user/Projects/cx-bugs5/build/bugs5/tomokv-epoll-v2"
+  ],
+  "jobs": [
+    "authfix"
+  ]
+}

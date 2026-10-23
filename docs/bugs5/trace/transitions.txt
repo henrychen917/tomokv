@@ -1,0 +1,14 @@
+TRK register id=3 op=0x71a3534b1548 state=0
+TRK retire id=3 op=0x71a3534b1548
+TRK invalidate writer=4 io=7 completed=1
+TRK register id=3 op=0x71a3534b1d58 state=0
+TRK retire id=3 op=0x71a3534b1d58
+TRK invalidate writer=4 io=7 completed=1
+TRK register id=3 op=0x71a3534b2298 state=0
+TRK retire id=3 op=0x71a3534b2298
+TRK invalidate writer=4 io=7 completed=1
+TRK register id=3 op=0x71a3534b3138 state=0
+TRK invalidate writer=4 io=7 completed=0
+TRK pending id=3 op=0x71a3534b3138 state=2
+TRK retire id=3 op=0x71a3534b3138
+TRK invalidate writer=4 io=7 completed=1

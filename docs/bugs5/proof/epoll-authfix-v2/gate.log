@@ -1,0 +1,17 @@
+GATE(full): 16 physical cores; 1 correctness slots = min(9/8 server, 7/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 9 server + 7 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-bugs5/build/gate-run.JiVB5c
+PARTIAL jobs (including prerequisites): release authfix
+PARTIAL jobs (including prerequisites): release authfix
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=1.1s; correctness-plan-fallback; authfix CG4.1 binary config requirepass
+  authfix CG4.1 binary config requirepass              ok
+  row budget: 900s; median=3.46s; correctness-plan-fallback; authfix CG4.2 missing config value refuses boot
+  authfix CG4.2 missing config value refuses boot      ok
+  row budget: 900s; median=1.06s; correctness-plan-fallback; authfix SV4.2 binary requirepass rewrite restart
+  authfix SV4.2 binary requirepass rewrite restart     ok
+  row budget: 900s; median=0.31s; correctness-plan-fallback; authfix SV4.1 slowlog credential redaction (1s)
+  authfix SV4.1 slowlog credential redaction (1s)      ok
+  row budget: 900s; median=0.33s; correctness-plan-fallback; authfix SV4.1 slowlog credential redaction (2s)
+  authfix SV4.1 slowlog credential redaction (2s)      ok
+GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-bugs5/docs/bugs5/proof/epoll-authfix-v2/ledger.partial

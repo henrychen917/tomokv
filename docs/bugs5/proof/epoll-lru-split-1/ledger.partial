@@ -1,0 +1,3 @@
+PARTIAL	0	GATE_ONLY_JOBS=evict-lruclock-split-1; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	56.060000	eviction lruclock battery (split, atomic 1)

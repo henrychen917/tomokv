@@ -1,0 +1,26 @@
+[
+  {
+    "arm": "PRE",
+    "invocations": 10,
+    "duplicate_runs": 2,
+    "rate": 0.2,
+    "wilson_95": [
+      0.05668215145437519,
+      0.5098375284633583
+    ],
+    "exact_ck10_round21_runs": 1,
+    "comparisons_per_invocation": 4318
+  },
+  {
+    "arm": "HEADLINE",
+    "invocations": 10,
+    "duplicate_runs": 3,
+    "rate": 0.3,
+    "wilson_95": [
+      0.10779126740630099,
+      0.6032218525388546
+    ],
+    "exact_ck10_round21_runs": 1,
+    "comparisons_per_invocation": 4318
+  }
+]

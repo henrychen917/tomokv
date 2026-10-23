@@ -1,0 +1,18 @@
+{
+  "label": "clientfix-uring",
+  "run": "/home/user/Projects/cx-bugs5/build/gate-run.kO8wIX",
+  "gate_summary": [
+    "GATE(PARTIAL): 15 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-bugs5/docs/bugs5/proof/clientfix-uring/ledger.partial"
+  ],
+  "jobs": [
+    {
+      "job": "clientfix",
+      "done": "0\t14\t0"
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0"
+    }
+  ],
+  "archive_sha256": "303125f4683b19f5c994e8ec10b1bc7c9a0cdb715eaba28404d249a75e77d71f"
+}

@@ -1,0 +1,2405 @@
+[
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo37slowlog_validate_container_subcommandERNS_2OpEb",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      702
+    ],
+    "post_sizes": [
+      702
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo37slowlog_validate_container_subcommandERNS_2OpEb.cold",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      317
+    ],
+    "post_sizes": [
+      317
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db014flip_signatureERKNS_21FlipFingerprintWindowE",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      323
+    ],
+    "post_sizes": [
+      323
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db015info_stats_initEPNS_6ServerE",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      366
+    ],
+    "post_sizes": [
+      366
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db017lbsignals_captureERNS_6ServerE",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      323
+    ],
+    "post_sizes": [
+      323
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db037slowlog_validate_container_subcommandERNS_2OpEb",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      702
+    ],
+    "post_sizes": [
+      702
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db037slowlog_validate_container_subcommandERNS_2OpEb.cold",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      317
+    ],
+    "post_sizes": [
+      317
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >, std::allocator<std::pair<unsigned long const, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      339
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: client directory changes from inline string pairs to shared immutable identity pointers; old/new map instantiations."
+  },
+  {
+    "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >, std::allocator<std::pair<unsigned long const, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      150,
+      150
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: client directory changes from inline string pairs to shared immutable identity pointers; old/new map instantiations."
+  },
+  {
+    "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, std::shared_ptr<tomo::SlowlogIdentity const> >, std::allocator<std::pair<unsigned long const, std::shared_ptr<tomo::SlowlogIdentity const> > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      339
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, std::shared_ptr<tomo::SlowlogIdentity const> >, std::allocator<std::pair<unsigned long const, std::shared_ptr<tomo::SlowlogIdentity const> > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      150
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, std::shared_ptr<tomo_db0::SlowlogIdentity const> >, std::allocator<std::pair<unsigned long const, std::shared_ptr<tomo_db0::SlowlogIdentity const> > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::_M_rehash(unsigned long, unsigned long const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      339
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Hashtable<unsigned long, std::pair<unsigned long const, std::shared_ptr<tomo_db0::SlowlogIdentity const> >, std::allocator<std::pair<unsigned long const, std::shared_ptr<tomo_db0::SlowlogIdentity const> > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true> >::find(unsigned long const&) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      150
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Sp_counted_ptr_inplace<tomo::SlowlogIdentity const, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      14
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Sp_counted_ptr_inplace<tomo::SlowlogIdentity const, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      66
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Sp_counted_ptr_inplace<tomo::SlowlogIdentity const, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_get_deleter(std::type_info const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      71
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Sp_counted_ptr_inplace<tomo::SlowlogIdentity const, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr_inplace()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      5,
+      14
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Sp_counted_ptr_inplace<tomo_db0::SlowlogIdentity const, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_destroy()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      14
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Sp_counted_ptr_inplace<tomo_db0::SlowlogIdentity const, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_dispose()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      66
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Sp_counted_ptr_inplace<tomo_db0::SlowlogIdentity const, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_M_get_deleter(std::type_info const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      71
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::_Sp_counted_ptr_inplace<tomo_db0::SlowlogIdentity const, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::~_Sp_counted_ptr_inplace()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      5,
+      14
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >, std::allocator<std::pair<unsigned long const, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      495
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: client directory changes from inline string pairs to shared immutable identity pointers; old/new map instantiations."
+  },
+  {
+    "name": "std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::shared_ptr<tomo::SlowlogIdentity const> >, std::allocator<std::pair<unsigned long const, std::shared_ptr<tomo::SlowlogIdentity const> > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      461
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::__detail::_Map_base<unsigned long, std::pair<unsigned long const, std::shared_ptr<tomo_db0::SlowlogIdentity const> >, std::allocator<std::pair<unsigned long const, std::shared_ptr<tomo_db0::SlowlogIdentity const> > >, std::__detail::_Select1st, std::equal_to<unsigned long>, std::hash<unsigned long>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<false, false, true>, true>::operator[](unsigned long const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      461
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::array<tomo::(anonymous namespace)::ClientDirectoryShard, 16ul>::~array()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      226
+    ],
+    "post_sizes": [
+      320
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited source body: compiler/link propagation from hash or slowlog/seed changes; exact difference retained, no single optimizer decision isolated."
+  },
+  {
+    "name": "std::array<tomo::(anonymous namespace)::SlowlogShard, 128ul>::~array()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      237
+    ],
+    "post_sizes": [
+      237
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::array<tomo_db0::(anonymous namespace)::ClientDirectoryShard, 16ul>::~array()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      226
+    ],
+    "post_sizes": [
+      320
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited source body: compiler/link propagation from hash or slowlog/seed changes; exact difference retained, no single optimizer decision isolated."
+  },
+  {
+    "name": "std::array<tomo_db0::(anonymous namespace)::SlowlogShard, 128ul>::~array()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      237
+    ],
+    "post_sizes": [
+      237
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::deque<tomo::(anonymous namespace)::SlowlogEntry, std::allocator<tomo::(anonymous namespace)::SlowlogEntry> >::_M_destroy_data_aux(std::_Deque_iterator<tomo::(anonymous namespace)::SlowlogEntry, tomo::(anonymous namespace)::SlowlogEntry&, tomo::(anonymous namespace)::SlowlogEntry*>, std::_Deque_iterator<tomo::(anonymous namespace)::SlowlogEntry, tomo::(anonymous namespace)::SlowlogEntry&, tomo::(anonymous namespace)::SlowlogEntry*>) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      516
+    ],
+    "post_sizes": [
+      1079
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::deque<tomo_db0::(anonymous namespace)::SlowlogEntry, std::allocator<tomo_db0::(anonymous namespace)::SlowlogEntry> >::_M_destroy_data_aux(std::_Deque_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry, tomo_db0::(anonymous namespace)::SlowlogEntry&, tomo_db0::(anonymous namespace)::SlowlogEntry*>, std::_Deque_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry, tomo_db0::(anonymous namespace)::SlowlogEntry&, tomo_db0::(anonymous namespace)::SlowlogEntry*>) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      516
+    ],
+    "post_sizes": [
+      1079
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::enable_if<std::__and_<std::__not_<std::__is_tuple_like<tomo::(anonymous namespace)::SlowlogEntry> >, std::is_move_constructible<tomo::(anonymous namespace)::SlowlogEntry>, std::is_move_assignable<tomo::(anonymous namespace)::SlowlogEntry> >::value, void>::type std::swap<tomo::(anonymous namespace)::SlowlogEntry>(tomo::(anonymous namespace)::SlowlogEntry&, tomo::(anonymous namespace)::SlowlogEntry&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      125
+    ],
+    "post_sizes": [
+      509
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::enable_if<std::__and_<std::__not_<std::__is_tuple_like<tomo_db0::(anonymous namespace)::SlowlogEntry> >, std::is_move_constructible<tomo_db0::(anonymous namespace)::SlowlogEntry>, std::is_move_assignable<tomo_db0::(anonymous namespace)::SlowlogEntry> >::value, void>::type std::swap<tomo_db0::(anonymous namespace)::SlowlogEntry>(tomo_db0::(anonymous namespace)::SlowlogEntry&, tomo_db0::(anonymous namespace)::SlowlogEntry&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      125
+    ],
+    "post_sizes": [
+      509
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#2}> > >::_M_run()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3230
+    ],
+    "post_sizes": [
+      3230
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited source body: compiler/link propagation from hash or slowlog/seed changes; exact difference retained, no single optimizer decision isolated."
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#4}> > >::_M_run()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2429
+    ],
+    "post_sizes": [
+      2429
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited source body: compiler/link propagation from hash or slowlog/seed changes; exact difference retained, no single optimizer decision isolated."
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#2}> > >::_M_run()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3246
+    ],
+    "post_sizes": [
+      3246
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited source body: compiler/link propagation from hash or slowlog/seed changes; exact difference retained, no single optimizer decision isolated."
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#4}> > >::_M_run()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2445
+    ],
+    "post_sizes": [
+      2445
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited source body: compiler/link propagation from hash or slowlog/seed changes; exact difference retained, no single optimizer decision isolated."
+  },
+  {
+    "name": "std::vector<tomo::(anonymous namespace)::SlowlogEntry, std::allocator<tomo::(anonymous namespace)::SlowlogEntry> >::~vector()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      135
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "std::vector<tomo_db0::(anonymous namespace)::SlowlogEntry, std::allocator<tomo_db0::(anonymous namespace)::SlowlogEntry> >::~vector()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      135
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::SlowlogEntry* std::__copy_move<false, false, std::random_access_iterator_tag>::__copy_m<tomo::(anonymous namespace)::SlowlogEntry*, tomo::(anonymous namespace)::SlowlogEntry*>(tomo::(anonymous namespace)::SlowlogEntry*, tomo::(anonymous namespace)::SlowlogEntry*, tomo::(anonymous namespace)::SlowlogEntry*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1534
+    ],
+    "post_sizes": [
+      1726
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::SlowlogEntry* std::__copy_move<false, false, std::random_access_iterator_tag>::__copy_m<tomo::(anonymous namespace)::SlowlogEntry*, tomo::(anonymous namespace)::SlowlogEntry*>(tomo::(anonymous namespace)::SlowlogEntry*, tomo::(anonymous namespace)::SlowlogEntry*, tomo::(anonymous namespace)::SlowlogEntry*) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      173
+    ],
+    "post_sizes": [
+      173
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::SlowlogEntry* std::__do_uninit_copy<std::_Deque_iterator<tomo::(anonymous namespace)::SlowlogEntry, tomo::(anonymous namespace)::SlowlogEntry&, tomo::(anonymous namespace)::SlowlogEntry*>, tomo::(anonymous namespace)::SlowlogEntry*>(std::_Deque_iterator<tomo::(anonymous namespace)::SlowlogEntry, tomo::(anonymous namespace)::SlowlogEntry&, tomo::(anonymous namespace)::SlowlogEntry*>, std::_Deque_iterator<tomo::(anonymous namespace)::SlowlogEntry, tomo::(anonymous namespace)::SlowlogEntry&, tomo::(anonymous namespace)::SlowlogEntry*>, tomo::(anonymous namespace)::SlowlogEntry*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      641
+    ],
+    "post_sizes": [
+      674
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::SlowlogEntry* std::__do_uninit_copy<std::_Deque_iterator<tomo::(anonymous namespace)::SlowlogEntry, tomo::(anonymous namespace)::SlowlogEntry&, tomo::(anonymous namespace)::SlowlogEntry*>, tomo::(anonymous namespace)::SlowlogEntry*>(std::_Deque_iterator<tomo::(anonymous namespace)::SlowlogEntry, tomo::(anonymous namespace)::SlowlogEntry&, tomo::(anonymous namespace)::SlowlogEntry*>, std::_Deque_iterator<tomo::(anonymous namespace)::SlowlogEntry, tomo::(anonymous namespace)::SlowlogEntry&, tomo::(anonymous namespace)::SlowlogEntry*>, tomo::(anonymous namespace)::SlowlogEntry*) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      155
+    ],
+    "post_sizes": [
+      169
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::SlowlogEntry::~SlowlogEntry()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      184
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::build_argv(tomo::SlowlogCapture const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3714
+    ],
+    "post_sizes": [
+      3714
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_latency(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      8082
+    ],
+    "post_sizes": [
+      8082
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited source body: compiler/link propagation from hash or slowlog/seed changes; exact difference retained, no single optimizer decision isolated."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_slowlog(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5428
+    ],
+    "post_sizes": [
+      5395
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_slowlog(tomo::Shard&, tomo::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      263
+    ],
+    "post_sizes": [
+      373
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::compact_pairs(tomo::CollectionRef const&, std::vector<tomo::(anonymous namespace)::PairView, std::allocator<tomo::(anonymous namespace)::PairView> >&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      64
+    ],
+    "post_sizes": [
+      64
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited source body: compiler/link propagation from hash or slowlog/seed changes; exact difference retained, no single optimizer decision isolated."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::hash_get(tomo::CollectionRef const&, tomo::Slice, tomo::Slice&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      302
+    ],
+    "post_sizes": [
+      557
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::hash_set(tomo::CollectionRef&, tomo::CompactLimit const&, tomo::Slice, tomo::Slice)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3214
+    ],
+    "post_sizes": [
+      3214
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::hash_snapshot_read(tomo::SnapshotSaveCursor&, unsigned char*, unsigned long, unsigned long&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1783
+    ],
+    "post_sizes": [
+      1844
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::slowlog_finish(unsigned int, tomo::(anonymous namespace)::SlowlogEntry&, unsigned long, long, tomo::SlowlogArm const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4121
+    ],
+    "post_sizes": [
+      4447
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::slowlog_finish(unsigned int, tomo::(anonymous namespace)::SlowlogEntry&, unsigned long, long, tomo::SlowlogArm const&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      396
+    ],
+    "post_sizes": [
+      406
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::CollectionRef::end() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      445
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo::CompactView::decode_inline(unsigned int, unsigned int, tomo::Compact::Entry&) const [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      221,
+      221,
+      221
+    ],
+    "post_sizes": [
+      221,
+      221
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo::ExLoopT<true>::init(tomo::Server*, tomo::ThreadCtx*, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1500
+    ],
+    "post_sizes": [
+      1500
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "RL4.1: replace XOR with an assigned nonzero per-thread seed; unchanged function size."
+  },
+  {
+    "name": "tomo::FlipController::debug_dump[abi:cxx11]() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6458
+    ],
+    "post_sizes": [
+      6458
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "tomo::FlipController::debug_seek(unsigned int, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      651
+    ],
+    "post_sizes": [
+      651
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "tomo::FlipController::report() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3939
+    ],
+    "post_sizes": [
+      3939
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "tomo::FlipController::start_maneuver(tomo::Server&, tomo::FlipctlTriggerReason, unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1318
+    ],
+    "post_sizes": [
+      1318
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "tomo::HashFieldMap::erase(tomo::Slice)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3987
+    ],
+    "post_sizes": [
+      4354
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo::HashFieldMap::field_hash(tomo::Slice) const [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      301
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo::HashFieldMap::set(tomo::Slice, tomo::Slice)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2205
+    ],
+    "post_sizes": [
+      2260
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21252
+    ],
+    "post_sizes": [
+      21241
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited template body: compiler propagation in rebuilt executor/IO units after cold slowlog signature and seed changes. Budget trials retained; merit input."
+  },
+  {
+    "name": "tomo::hash_read_visit(tomo::KvObj const*, unsigned long, unsigned long, void*, void (*)(void*, tomo::Slice, tomo::Slice))",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      974
+    ],
+    "post_sizes": [
+      976
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo::slowlog_capture(tomo::Op const&, tomo::SlowlogCapture&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_capture(tomo::Op const&, tomo::SlowlogCapture&, unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      540
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_capture(tomo::Op const&, tomo::SlowlogCapture&, unsigned long) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      35
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_forget_client(unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      518
+    ],
+    "post_sizes": [
+      614
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_note_client(unsigned long, char const*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1462
+    ],
+    "post_sizes": [
+      1152
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_note_client(unsigned long, char const*) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      101
+    ],
+    "post_sizes": [
+      100
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_note_client_name(unsigned long, char const*, unsigned int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      445
+    ],
+    "post_sizes": [
+      1317
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_note_client_name(unsigned long, char const*, unsigned int) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      85
+    ],
+    "post_sizes": [
+      107
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_record(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      614
+    ],
+    "post_sizes": [
+      811
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_record(unsigned int, unsigned long, tomo::Op const&, unsigned long, long, tomo::SlowlogArm const&, bool) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      43
+    ],
+    "post_sizes": [
+      43
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_record_captured(unsigned int, std::shared_ptr<tomo::SlowlogIdentity const> const&, tomo::SlowlogCapture const&, unsigned long, long, tomo::SlowlogArm const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      929
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_record_captured(unsigned int, std::shared_ptr<tomo::SlowlogIdentity const> const&, tomo::SlowlogCapture const&, unsigned long, long, tomo::SlowlogArm const&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      40
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_record_captured(unsigned int, unsigned long, tomo::SlowlogCapture const&, unsigned long, long, tomo::SlowlogArm const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      448
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_record_captured(unsigned int, unsigned long, tomo::SlowlogCapture const&, unsigned long, long, tomo::SlowlogArm const&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      40
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo::slowlog_set_max_len(unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      487
+    ],
+    "post_sizes": [
+      689
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::SlowlogEntry* std::__copy_move<false, false, std::random_access_iterator_tag>::__copy_m<tomo_db0::(anonymous namespace)::SlowlogEntry*, tomo_db0::(anonymous namespace)::SlowlogEntry*>(tomo_db0::(anonymous namespace)::SlowlogEntry*, tomo_db0::(anonymous namespace)::SlowlogEntry*, tomo_db0::(anonymous namespace)::SlowlogEntry*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1534
+    ],
+    "post_sizes": [
+      1726
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::SlowlogEntry* std::__copy_move<false, false, std::random_access_iterator_tag>::__copy_m<tomo_db0::(anonymous namespace)::SlowlogEntry*, tomo_db0::(anonymous namespace)::SlowlogEntry*>(tomo_db0::(anonymous namespace)::SlowlogEntry*, tomo_db0::(anonymous namespace)::SlowlogEntry*, tomo_db0::(anonymous namespace)::SlowlogEntry*) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      173
+    ],
+    "post_sizes": [
+      173
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::SlowlogEntry* std::__do_uninit_copy<std::_Deque_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry, tomo_db0::(anonymous namespace)::SlowlogEntry&, tomo_db0::(anonymous namespace)::SlowlogEntry*>, tomo_db0::(anonymous namespace)::SlowlogEntry*>(std::_Deque_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry, tomo_db0::(anonymous namespace)::SlowlogEntry&, tomo_db0::(anonymous namespace)::SlowlogEntry*>, std::_Deque_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry, tomo_db0::(anonymous namespace)::SlowlogEntry&, tomo_db0::(anonymous namespace)::SlowlogEntry*>, tomo_db0::(anonymous namespace)::SlowlogEntry*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      641
+    ],
+    "post_sizes": [
+      674
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::SlowlogEntry* std::__do_uninit_copy<std::_Deque_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry, tomo_db0::(anonymous namespace)::SlowlogEntry&, tomo_db0::(anonymous namespace)::SlowlogEntry*>, tomo_db0::(anonymous namespace)::SlowlogEntry*>(std::_Deque_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry, tomo_db0::(anonymous namespace)::SlowlogEntry&, tomo_db0::(anonymous namespace)::SlowlogEntry*>, std::_Deque_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry, tomo_db0::(anonymous namespace)::SlowlogEntry&, tomo_db0::(anonymous namespace)::SlowlogEntry*>, tomo_db0::(anonymous namespace)::SlowlogEntry*) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      155
+    ],
+    "post_sizes": [
+      169
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::SlowlogEntry::~SlowlogEntry()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      184
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::build_argv(tomo_db0::SlowlogCapture const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3714
+    ],
+    "post_sizes": [
+      3714
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_latency(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      8082
+    ],
+    "post_sizes": [
+      8082
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited source body: compiler/link propagation from hash or slowlog/seed changes; exact difference retained, no single optimizer decision isolated."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_slowlog(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5428
+    ],
+    "post_sizes": [
+      5395
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_slowlog(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      263
+    ],
+    "post_sizes": [
+      373
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::hash_get(tomo_db0::CollectionRef const&, tomo_db0::Slice, tomo_db0::Slice&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      302
+    ],
+    "post_sizes": [
+      573
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::slowlog_finish(unsigned int, tomo_db0::(anonymous namespace)::SlowlogEntry&, unsigned long, long, tomo_db0::SlowlogArm const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4121
+    ],
+    "post_sizes": [
+      4447
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::slowlog_finish(unsigned int, tomo_db0::(anonymous namespace)::SlowlogEntry&, unsigned long, long, tomo_db0::SlowlogArm const&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      396
+    ],
+    "post_sizes": [
+      406
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::CollectionRef::end() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      421
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo_db0::CollectionRef::entries() const [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      36,
+      36,
+      36,
+      36
+    ],
+    "post_sizes": [
+      36,
+      36,
+      36
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1516
+    ],
+    "post_sizes": [
+      1516
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "RL4.1: replace XOR with an assigned nonzero per-thread seed; unchanged function size."
+  },
+  {
+    "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      776,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      756,
+      749,
+      749,
+      749,
+      749,
+      776,
+      797,
+      776,
+      776,
+      776,
+      776
+    ],
+    "post_sizes": [
+      776,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      756,
+      749,
+      749,
+      749,
+      749,
+      776,
+      845,
+      776,
+      776,
+      776,
+      776
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo_db0::FlipController::debug_dump[abi:cxx11]() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6458
+    ],
+    "post_sizes": [
+      6458
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "tomo_db0::FlipController::debug_seek(unsigned int, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      651
+    ],
+    "post_sizes": [
+      651
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "tomo_db0::FlipController::report() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3939
+    ],
+    "post_sizes": [
+      3939
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "tomo_db0::FlipController::start_maneuver(tomo_db0::Server&, tomo_db0::FlipctlTriggerReason, unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1318
+    ],
+    "post_sizes": [
+      1318
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "tomo_db0::HashFieldMap::erase(tomo_db0::Slice)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3987
+    ],
+    "post_sizes": [
+      4354
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo_db0::HashFieldMap::field_hash(tomo_db0::Slice) const [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      301
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo_db0::HashFieldMap::set(tomo_db0::Slice, tomo_db0::Slice)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2173
+    ],
+    "post_sizes": [
+      2228
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo_db0::hash_read_visit(tomo_db0::KvObj const*, unsigned long, unsigned long, void*, void (*)(void*, tomo_db0::Slice, tomo_db0::Slice))",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      974
+    ],
+    "post_sizes": [
+      975
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "tomo_db0::slowlog_capture(tomo_db0::Op const&, tomo_db0::SlowlogCapture&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_capture(tomo_db0::Op const&, tomo_db0::SlowlogCapture&, unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      540
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_capture(tomo_db0::Op const&, tomo_db0::SlowlogCapture&, unsigned long) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      35
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_forget_client(unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      518
+    ],
+    "post_sizes": [
+      614
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_note_client(unsigned long, char const*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1462
+    ],
+    "post_sizes": [
+      1152
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_note_client(unsigned long, char const*) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      101
+    ],
+    "post_sizes": [
+      100
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_note_client_name(unsigned long, char const*, unsigned int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      445
+    ],
+    "post_sizes": [
+      1317
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_note_client_name(unsigned long, char const*, unsigned int) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      85
+    ],
+    "post_sizes": [
+      107
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_record(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      614
+    ],
+    "post_sizes": [
+      811
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_record(unsigned int, unsigned long, tomo_db0::Op const&, unsigned long, long, tomo_db0::SlowlogArm const&, bool) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      43
+    ],
+    "post_sizes": [
+      43
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_record_captured(unsigned int, std::shared_ptr<tomo_db0::SlowlogIdentity const> const&, tomo_db0::SlowlogCapture const&, unsigned long, long, tomo_db0::SlowlogArm const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      929
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_record_captured(unsigned int, std::shared_ptr<tomo_db0::SlowlogIdentity const> const&, tomo_db0::SlowlogCapture const&, unsigned long, long, tomo_db0::SlowlogArm const&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      40
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_record_captured(unsigned int, unsigned long, tomo_db0::SlowlogCapture const&, unsigned long, long, tomo_db0::SlowlogArm const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      448
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_record_captured(unsigned int, unsigned long, tomo_db0::SlowlogCapture const&, unsigned long, long, tomo_db0::SlowlogArm const&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      40
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "tomo_db0::slowlog_set_max_len(unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      487
+    ],
+    "post_sizes": [
+      689
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3119
+    ],
+    "post_sizes": [
+      3148
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited template body: compiler propagation in rebuilt executor/IO units after cold slowlog signature and seed changes. Budget trials retained; merit input."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, true, true>(int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      941
+    ],
+    "post_sizes": [
+      941
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, false, true>(int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      877
+    ],
+    "post_sizes": [
+      877
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, true, true>(int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1053
+    ],
+    "post_sizes": [
+      1053
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1567
+    ],
+    "post_sizes": [
+      1567
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, true, false>(int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      941
+    ],
+    "post_sizes": [
+      941
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, true, true>(int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      925
+    ],
+    "post_sizes": [
+      925
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, false>(int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      877
+    ],
+    "post_sizes": [
+      877
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, true>(int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      877
+    ],
+    "post_sizes": [
+      877
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, false>(int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1053
+    ],
+    "post_sizes": [
+      1053
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, true>(int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1037
+    ],
+    "post_sizes": [
+      1037
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::SlowlogEntry*, std::vector<tomo::(anonymous namespace)::SlowlogEntry, std::allocator<tomo::(anonymous namespace)::SlowlogEntry> > >, long, tomo::(anonymous namespace)::SlowlogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo::(anonymous namespace)::SlowlogEntry const&, tomo::(anonymous namespace)::SlowlogEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::SlowlogEntry*, std::vector<tomo::(anonymous namespace)::SlowlogEntry, std::allocator<tomo::(anonymous namespace)::SlowlogEntry> > >, long, long, tomo::(anonymous namespace)::SlowlogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo::(anonymous namespace)::SlowlogEntry const&, tomo::(anonymous namespace)::SlowlogEntry const&)#1}>) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1094
+    ],
+    "post_sizes": [
+      1895
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry*, std::vector<tomo_db0::(anonymous namespace)::SlowlogEntry, std::allocator<tomo_db0::(anonymous namespace)::SlowlogEntry> > >, long, tomo_db0::(anonymous namespace)::SlowlogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo_db0::(anonymous namespace)::SlowlogEntry const&, tomo_db0::(anonymous namespace)::SlowlogEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry*, std::vector<tomo_db0::(anonymous namespace)::SlowlogEntry, std::allocator<tomo_db0::(anonymous namespace)::SlowlogEntry> > >, long, long, tomo_db0::(anonymous namespace)::SlowlogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo_db0::(anonymous namespace)::SlowlogEntry const&, tomo_db0::(anonymous namespace)::SlowlogEntry const&)#1}>) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1094
+    ],
+    "post_sizes": [
+      1895
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::SlowlogEntry*, std::vector<tomo::(anonymous namespace)::SlowlogEntry, std::allocator<tomo::(anonymous namespace)::SlowlogEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo::(anonymous namespace)::SlowlogEntry const&, tomo::(anonymous namespace)::SlowlogEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::SlowlogEntry*, std::vector<tomo::(anonymous namespace)::SlowlogEntry, std::allocator<tomo::(anonymous namespace)::SlowlogEntry> > >, __gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::SlowlogEntry*, std::vector<tomo::(anonymous namespace)::SlowlogEntry, std::allocator<tomo::(anonymous namespace)::SlowlogEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo::(anonymous namespace)::SlowlogEntry const&, tomo::(anonymous namespace)::SlowlogEntry const&)#1}>) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      985
+    ],
+    "post_sizes": [
+      1673
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry*, std::vector<tomo_db0::(anonymous namespace)::SlowlogEntry, std::allocator<tomo_db0::(anonymous namespace)::SlowlogEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo_db0::(anonymous namespace)::SlowlogEntry const&, tomo_db0::(anonymous namespace)::SlowlogEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry*, std::vector<tomo_db0::(anonymous namespace)::SlowlogEntry, std::allocator<tomo_db0::(anonymous namespace)::SlowlogEntry> > >, __gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry*, std::vector<tomo_db0::(anonymous namespace)::SlowlogEntry, std::allocator<tomo_db0::(anonymous namespace)::SlowlogEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo_db0::(anonymous namespace)::SlowlogEntry const&, tomo_db0::(anonymous namespace)::SlowlogEntry const&)#1}>) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      985
+    ],
+    "post_sizes": [
+      1673
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::SlowlogEntry*, std::vector<tomo::(anonymous namespace)::SlowlogEntry, std::allocator<tomo::(anonymous namespace)::SlowlogEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo::(anonymous namespace)::SlowlogEntry const&, tomo::(anonymous namespace)::SlowlogEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::SlowlogEntry*, std::vector<tomo::(anonymous namespace)::SlowlogEntry, std::allocator<tomo::(anonymous namespace)::SlowlogEntry> > >, __gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::SlowlogEntry*, std::vector<tomo::(anonymous namespace)::SlowlogEntry, std::allocator<tomo::(anonymous namespace)::SlowlogEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo::(anonymous namespace)::SlowlogEntry const&, tomo::(anonymous namespace)::SlowlogEntry const&)#1}>)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1046
+    ],
+    "post_sizes": [
+      2046
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry*, std::vector<tomo_db0::(anonymous namespace)::SlowlogEntry, std::allocator<tomo_db0::(anonymous namespace)::SlowlogEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo_db0::(anonymous namespace)::SlowlogEntry const&, tomo_db0::(anonymous namespace)::SlowlogEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry*, std::vector<tomo_db0::(anonymous namespace)::SlowlogEntry, std::allocator<tomo_db0::(anonymous namespace)::SlowlogEntry> > >, __gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::SlowlogEntry*, std::vector<tomo_db0::(anonymous namespace)::SlowlogEntry, std::allocator<tomo_db0::(anonymous namespace)::SlowlogEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::collect_slowlog(unsigned long)::{lambda(tomo_db0::(anonymous namespace)::SlowlogEntry const&, tomo_db0::(anonymous namespace)::SlowlogEntry const&)#1}>)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1046
+    ],
+    "post_sizes": [
+      2046
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: immutable identity versions, capture before Done, retained entry ownership, or their container/destructor code."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_hscan<false>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2503
+    ],
+    "post_sizes": [
+      2322
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "CD4.2: compact scan finishes in one call; corresponding exception cleanup and inline callees follow the new body."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_hscan<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      124
+    ],
+    "post_sizes": [
+      124
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "CD4.2: compact scan finishes in one call; corresponding exception cleanup and inline callees follow the new body."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_hscan<true>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2503
+    ],
+    "post_sizes": [
+      2322
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "CD4.2: compact scan finishes in one call; corresponding exception cleanup and inline callees follow the new body."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_hscan<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      124
+    ],
+    "post_sizes": [
+      124
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "CD4.2: compact scan finishes in one call; corresponding exception cleanup and inline callees follow the new body."
+  },
+  {
+    "name": "void tomo::ExLoopT<false>::exec_batch_timed<false>(tomo::Task const*, unsigned int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      837
+    ],
+    "post_sizes": [
+      892
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: cold per-operation stack reference retains identity across execute/Done and passes it to recording."
+  },
+  {
+    "name": "void tomo::ExLoopT<true>::exec_batch_timed<false>(tomo::Task const*, unsigned int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      837
+    ],
+    "post_sizes": [
+      892
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: cold per-operation stack reference retains identity across execute/Done and passes it to recording."
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      507
+    ],
+    "post_sizes": [
+      507
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      507
+    ],
+    "post_sizes": [
+      507
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1159
+    ],
+    "post_sizes": [
+      1159
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      865
+    ],
+    "post_sizes": [
+      865
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "void tomo::IoLoop::r7_adopt_client<true, true>(tomo::Client*, bool, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2047
+    ],
+    "post_sizes": [
+      2112
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited template body: compiler propagation in rebuilt executor/IO units after cold slowlog signature and seed changes. Budget trials retained; merit input."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hscan<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2463
+    ],
+    "post_sizes": [
+      2322
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "CD4.2: compact scan finishes in one call; corresponding exception cleanup and inline callees follow the new body."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hscan<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      124
+    ],
+    "post_sizes": [
+      124
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "CD4.2: compact scan finishes in one call; corresponding exception cleanup and inline callees follow the new body."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hscan<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2463
+    ],
+    "post_sizes": [
+      2322
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "CD4.2: compact scan finishes in one call; corresponding exception cleanup and inline callees follow the new body."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hscan<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      124
+    ],
+    "post_sizes": [
+      124
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "CD4.2: compact scan finishes in one call; corresponding exception cleanup and inline callees follow the new body."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::generic_getall<false>(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::(anonymous namespace)::GetAllMode)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1814
+    ],
+    "post_sizes": [
+      1846
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::generic_getall<true>(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::(anonymous namespace)::GetAllMode)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1814
+    ],
+    "post_sizes": [
+      1846
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited helper in hash translation unit: HSCAN changes GCC inlining/clone allocation. Per-unit budget trials retained; no helper source change."
+  },
+  {
+    "name": "void tomo_db0::ExLoopT<false>::exec_batch_timed<false>(tomo_db0::Task const*, unsigned int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      837
+    ],
+    "post_sizes": [
+      892
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: cold per-operation stack reference retains identity across execute/Done and passes it to recording."
+  },
+  {
+    "name": "void tomo_db0::ExLoopT<true>::exec_batch_timed<false>(tomo_db0::Task const*, unsigned int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      837
+    ],
+    "post_sizes": [
+      892
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "SV4.3: cold per-operation stack reference retains identity across execute/Done and passes it to recording."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      507
+    ],
+    "post_sizes": [
+      507
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      459
+    ],
+    "post_sizes": [
+      459
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      507
+    ],
+    "post_sizes": [
+      507
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1223
+    ],
+    "post_sizes": [
+      1223
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1159
+    ],
+    "post_sizes": [
+      1159
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      891
+    ],
+    "post_sizes": [
+      891
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      865
+    ],
+    "post_sizes": [
+      865
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body with equal size: linked address/literal-label or template propagation changes strict normalization; see exact instruction diff. Not waived as identical."
+  }
+]

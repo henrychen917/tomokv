@@ -1,0 +1,119 @@
+tests/wbknobs_cost.cc:23:        require(std::sscanf(selected, "codes-%u-%u-%u", &done, &waits, &shape) == 3 &&
+tests/wbknobs_cost.cc:26:        require(std::sscanf(selected, "trace-%u-%u-%u-%u-%u-%u", &n, &done, &bytes,
+tests/edgeproto.py:17:  4b option grammar: composed EXPIRE conditions, BITCOUNT/COPY/WAIT/LCS/XREAD/SSCAN messages
+tests/edgeproto.py:325:    expect(c, ["SSCAN", "ep:s", "0", "NOVALUES"],
+tests/edgeproto.py:326:           b"-ERR NOVALUES option can only be used in HSCAN\r\n")
+tests/scancompact.py:21:            cursor, pairs = c.must('HSCAN', key, 0, 'COUNT', 3)
+tests/scancompact.py:34:                cursor, pairs = c.must('HSCAN', key, cursor, 'COUNT', 3)
+tests/scancompact.py:46:            ('hash', ('HSET', 'a', '1', 'b', '2'), 'HSCAN', [b'a', b'1', b'b', b'2'], b'listpack'),
+tests/scancompact.py:47:            ('set', ('SADD', 'a', 'b'), 'SSCAN', [b'a', b'b'], b'listpack'),
+tests/scancompact.py:48:            ('intset', ('SADD', '1', '2'), 'SSCAN', [b'1', b'2'], b'intset'),
+tests/scancompact.py:49:            ('zset', ('ZADD', '1', 'a', '2', 'b'), 'ZSCAN', [b'a', b'1', b'b', b'2'], b'listpack'),
+tests/cd13b_wire.py:107:                        initial = integer(call, ["OBJECT", "FREQ", destination])
+tests/cd13b_wire.py:118:                        before = integer(call, ["OBJECT", "FREQ", destination])
+tests/cd13b_wire.py:138:                        after_raw = call(["OBJECT", "FREQ", destination])
+tests/resp3.py:246:    zscan = client.command("ZSCAN", "resp3:z", "0")
+tests/resp3.py:247:    expect(zscan.kind == b"*" and all(item.kind == b"$" for item in zscan.value[1].value),
+tests/resp3.py:248:           "ZSCAN scores stay bulk", zscan)
+tests/cmdmeta.py:31:object|encoding object|freq object|help object|idletime object|refcount pubsub|channels
+tests/arity.py:82:    ("OBJECT FREQ above", ["OBJECT", "FREQ", "k", "x"], wrong("object|freq")),
+tests/arity.py:124:    ("OBJECT FREQ below", ["OBJECT", "FREQ"], wrong("object|freq")),
+tests/evict_battery.py:7:#   lfu       hot-set survival under pressure PLUS the mechanism: OBJECT FREQ rises for ordinary
+tests/evict_battery.py:199:    freqs = sorted(x for x in (as_int(cmd("OBJECT", "FREQ", k)) for k in survivors) if x is not None)
+tests/evict_battery.py:209:    check("allkeys-lfu: hot counters stay clear of the cold band (median OBJECT FREQ >= 8)",
+tests/evict_battery.py:219:    check("allkeys-lfu: fresh key starts at OBJECT FREQ 5", as_int(cmd("OBJECT", "FREQ", "lfunt")) == 5,
+tests/evict_battery.py:220:          cmd("OBJECT", "FREQ", "lfunt"))
+tests/evict_battery.py:227:    check("allkeys-lfu: 20 NO-TOUCH reads leave OBJECT FREQ at 5",
+tests/evict_battery.py:228:          as_int(cmd("OBJECT", "FREQ", "lfunt")) == 5, cmd("OBJECT", "FREQ", "lfunt"))
+tests/evict_battery.py:233:    freq = as_int(cmd("OBJECT", "FREQ", "lfunt"))
+tests/evict_battery.py:234:    check("allkeys-lfu: 20 ordinary reads raise OBJECT FREQ above 5", freq is not None and freq > 5, freq)
+tests/concur.py:22:  - SSCAN and HSCAN are structurally immune by different mechanisms (generation-restart cursor /
+tests/concur.py:125:    The cursor is always the last positional argument: `SCAN cur`, `ZSCAN key cur`.
+tests/concur.py:284:# ARM 3: collection scans. ZSCAN shares the keyspace defect; SSCAN and HSCAN are immune by
+tests/concur.py:288:    "SSCAN": ("cs:set", lambda m: ["SADD", "cs:set", m], "SCARD", "SISMEMBER", 1),
+tests/concur.py:289:    "HSCAN": ("cs:hash", lambda m: ["HSET", "cs:hash", m, "v"], "HLEN", "HEXISTS", 2),
+tests/concur.py:290:    "ZSCAN": ("cs:zset", lambda m: ["ZADD", "cs:zset", "1", m], "ZCARD", "ZSCORE", 2),
+tests/concur.py:293:    "SSCAN": lambda m: ["SREM", "cs:set", m],
+tests/concur.py:294:    "HSCAN": lambda m: ["HDEL", "cs:hash", m],
+tests/concur.py:295:    "ZSCAN": lambda m: ["ZREM", "cs:zset", m],
+tests/concur.py:313:    # the cursor has already passed. Bursts are BOUNDED because SSCAN's cursor restarts at slot
+tests/concur.py:468:    for scanner in ("ZSCAN", "SSCAN", "HSCAN"):
+tests/concur.py:470:    arm_collection_deterministic("ZSCAN", "ZSCAN quiet   (CONTROL)", pad=False)
+tests/concur.py:481:    for scanner in ("ZSCAN", "SSCAN", "HSCAN"):
+tests/servertail.py:296:    check("OBJECT FREQ without lfu", c.cmd("OBJECT", "FREQ", "ob:raw"),
+tests/servertail.py:310:    check("OBJECT FREQ with lfu", c.cmd("OBJECT", "FREQ", "ob:raw"), lambda v: isinstance(v, int))
+tests/atomic_torn.py:868:     (rename_off[0], rename_off[1], rename_off[2], rename_off[4], rename_off[5]))
+tests/gate.sh:4249:# FLUSHALL). lfu proves OBJECT FREQ rises for ordinary reads and stays put for CLIENT NO-TOUCH
+tests/wb_rule_completion_unit.cc:196:    require(std::sscanf(name.c_str(), "trace-%u-%u-%u-%u-%u-%u", &n, &done, &bytes,
+tests/cdfix_unit.cc:239:                "SSCAN must use expanded table");
+tests/cdfix_unit.cc:247:            const auto reply = parse(f.run({"SSCAN", "set", cursor, "COUNT", "7", "MATCH", "steady:*"}));
+tests/cdfix_unit.cc:249:                    reply.children[0].type == '$' && reply.children[1].type == '*', "SSCAN frame");
+tests/cdfix_unit.cc:252:                require(value.type == '$', "SSCAN member frame");
+tests/cdfix_unit.cc:265:        require(ended, "CD6 SSCAN did not terminate with rehash between every call");
+tests/cdfix_unit.cc:314:            const auto reply = parse(f.run({"SSCAN", "set", cursor, "COUNT", "1", "MATCH", "steady:*"}));
+tests/hexpread.py:180:            cursor, chunk = reader.cmd('HSCAN', a, cursor, 'COUNT', 1, *options)
+tests/hexpread.py:185:            raise AssertionError('HSCAN did not finish')
+tests/wb_rule_codes.cc:8:    require(std::sscanf(selected, "codes-%u-%u-%u", &done, &waits, &shape) == 3 &&
+tests/replyschema.py:784:add("hscan", "HSCAN", "{p}:h", "0", setup=HASH)
+tests/replyschema.py:872:add("sscan", "SSCAN", "{p}:s", "0", setup=SETFIX)
+tests/replyschema.py:942:add("zscan", "ZSCAN", "{p}:z", "0", setup=ZSET)
+tests/replyschema.py:1139:add("object|freq", "OBJECT", "FREQ", "{p}:k",
+tests/hexpire.py:430:    check("HSCAN filters", c.cmd("HSCAN", "k", "0")[1], [b"c", b"3"])
+tests/slowlog_identity.py:2:"""SV4.3: immutable six-column SLOWLOG entries across rename and disconnect."""
+tests/cdfix_checks.py:163:        "t_set.o": ("cmd_sscan<", "SetMemberTable::scan("),
+tests/read_local_lfu.py:65:                assert ctl.must('OBJECT', 'FREQ', key) == 5
+tests/read_local_lfu.py:85:            counts = [ctl.must('OBJECT', 'FREQ', k) for k in keys]
+tests/respresume.py:99:        [('SADD', 'small', 'a'), ('SSCAN', 'small', 0)], [('SORT', 'empty')], [('EXISTS', 'empty'), ('TYPE', 'empty')],
+tests/globcase.py:182:    for name, args in (("SSCAN", ("SSCAN", "gset", cur)),
+tests/globcase.py:183:                       ("HSCAN", ("HSCAN", "ghash", cur)),
+tests/globcase.py:184:                       ("ZSCAN", ("ZSCAN", "gzset", cur)),
+tests/globcase.py:189:# ---------------------------------------------------------------- D5: NOVALUES only on HSCAN
+tests/globcase.py:192:differential("ZSCAN rejects NOVALUES", "ZSCAN", "gzset", "0", "NOVALUES")
+tests/globcase.py:193:differential("SSCAN rejects NOVALUES", "SSCAN", "gset", "0", "NOVALUES")
+tests/globcase.py:195:differential("HSCAN accepts NOVALUES", "HSCAN", "ghash", "0", "NOVALUES")
+tests/slowlog.py:174:    check("entry carries the client name", named[5], "slowlog-battery")
+tests/differ.py:963:                initial = integer(sock, file, ["OBJECT", "FREQ", fresh])
+tests/differ.py:971:                    before = integer(sock, file, ["OBJECT", "FREQ", key])
+tests/differ.py:985:            after = integer(sock, file, ["OBJECT", "FREQ", key])
+tests/differ.py:992:                before = integer(sock, file, ["OBJECT", "FREQ", key])
+tests/differ.py:995:                after = integer(sock, file, ["OBJECT", "FREQ", key])
+tests/differ.py:1791:def sscan_churn_property(sock, file, label):
+tests/differ.py:1792:    """Bounded SSCAN with a permanent population and fresh growth/tombstone churn per page."""
+tests/differ.py:1795:        coverage.note(argv, "CD6 SSCAN churn property")
+tests/differ.py:1798:            raise RuntimeError("SSCAN churn %s: %r -> %r" % (label, argv[:4], raw))
+tests/differ.py:1805:                raise RuntimeError("SSCAN churn mutation did not change every requested member")
+tests/differ.py:1813:        first = issue(["SSCAN", key, "0", "COUNT", "7", "MATCH", "steady:*"])
+tests/differ.py:1815:            raise RuntimeError("SSCAN churn malformed first page: %r" % (first,))
+tests/differ.py:1820:        raise RuntimeError("SSCAN churn %s never paginated on fresh state" % label)
+tests/differ.py:1835:        reply = issue(["SSCAN", key, cursor, "COUNT", "7", "MATCH", "steady:*"])
+tests/differ.py:1837:            raise RuntimeError("SSCAN churn malformed page: %r" % (reply,))
+tests/differ.py:1843:                raise RuntimeError("SSCAN churn %s coverage: missing=%r unexpected=%r" %
+tests/differ.py:1846:            print("  SSCAN-CHURN %s: %d calls, %d permanent members covered" %
+tests/differ.py:1849:    raise RuntimeError("SSCAN churn %s did not terminate within 2048 calls" % label)
+tests/differ.py:1894:        ["HSCAN", "s:hbig", "abc"], ["HSCAN", "s:hbig", "0", "COUNT", "0"],
+tests/differ.py:1895:        ["HSCAN", "s:hbig", "0", "BADOPT"], ["HSCAN", "s:missing", "0"],
+tests/differ.py:1896:        ["HSCAN", "s:missing", "0", "NOVALUES"], ["HSCAN", "s:hbig", "0", "NOVALUES", "BADOPT"],
+tests/differ.py:1897:        ["SSCAN", "s:sbig", "abc"], ["SSCAN", "s:sbig", "0", "COUNT", "0"],
+tests/differ.py:1898:        ["SSCAN", "s:missing", "0"], ["SSCAN", "s:sbig", "0", "MATCH"],
+tests/differ.py:1899:        ["ZSCAN", "s:zbig", "abc"], ["ZSCAN", "s:zbig", "0", "COUNT", "0"],
+tests/differ.py:1900:        ["ZSCAN", "s:missing", "0"], ["ZSCAN", "s:zbig", "0", "BADOPT"],
+tests/differ.py:1902:        ["HSCAN", "s:sbig", "0"], ["SSCAN", "s:zbig", "0"], ["ZSCAN", "s:hbig", "0"],
+tests/differ.py:1903:        ["SSCAN", "s:list", "0"], ["HSCAN", "s:str:001", "0"],
+tests/differ.py:1905:        ["DEL", "s:tiny"], ["SADD", "s:tiny", "a", "b", "c"], ["SSCAN", "s:tiny", "0"],
+tests/differ.py:1906:        ["SSCAN", "s:tiny", "0", "COUNT", "1"], ["SSCAN", "s:tiny", "0", "MATCH", "a*"],
+tests/differ.py:1907:        ["DEL", "s:htiny"], ["HSET", "s:htiny", "a", "1", "b", "2"], ["HSCAN", "s:htiny", "0"],
+tests/differ.py:1908:        ["HSCAN", "s:htiny", "0", "NOVALUES"],
+tests/differ.py:1909:        ["DEL", "s:ztiny"], ["ZADD", "s:ztiny", "1", "a", "2", "b"], ["ZSCAN", "s:ztiny", "0"],
+tests/differ.py:1910:        ["ZSCAN", "s:ztiny", "0", "MATCH", "b"],
+tests/differ.py:2493:        ["OBJECT", "FREQ", "arity:key", "x"], ["OBJECT", "HELP", "x"],
+tests/differ.py:3491:            ["SCAN", "0", "COUNT", bad], ["HSCAN", "ep:h", "0", "COUNT", bad],
+tests/differ.py:3492:            ["SSCAN", "ep:set", "0", "COUNT", bad], ["ZSCAN", "ep:z", "0", "COUNT", bad],
+tests/differ.py:3562:        ["HRANDFIELD", "ep:h", "1", "WITHVALUES", "extra"], ["HSCAN", "ep:h", "0", "MATCH"],
+tests/differ.py:3563:        ["HSCAN", "ep:h", "0", "NOPE", "x"], ["SSCAN", "ep:set", "0", "NOVALUES"],
+tests/differ.py:3564:        ["SCAN", "0", "TYPE"], ["SCAN", "0", "NOPE", "x"], ["ZSCAN", "ep:z", "0", "MATCH"],
+tests/differ.py:5590:object|encoding object|freq object|help object|idletime object|refcount pubsub|channels
+tests/differ.py:7113:                              ("HSCAN", ["HSCAN", "s:hbig"], 2),
+tests/differ.py:7114:                              ("SSCAN", ["SSCAN", "s:sbig"], 1),
+tests/differ.py:7115:                              ("ZSCAN", ["ZSCAN", "s:zbig"], 2)):
+tests/differ.py:7133:    sscan_churn_property(ts, tf, "target")
+tests/differ.py:7134:    sscan_churn_property(os_, of, "oracle")

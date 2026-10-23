@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "105-111",
+    "bash",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-bugs5/build/bugs5/differ/epoll-split",
+    "24852",
+    "24853",
+    "96-103",
+    "6:2"
+  ],
+  "geometry": "split",
+  "engine": "epoll"
+}

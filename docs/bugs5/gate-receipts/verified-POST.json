@@ -1,0 +1,236 @@
+{
+  "label": "verified-POST",
+  "run": "/home/user/Projects/cx-bugs5/build/gate-run.WRc5qZ",
+  "gate_summary": [
+    "GATE(PARTIAL): 4 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-bugs5/build/gate-run.WRc5qZ/ledger.partial"
+  ],
+  "jobs": [
+    {
+      "job": "bugs5",
+      "done": "0\t3\t0"
+    },
+    {
+      "job": "release",
+      "done": "0\t1\t0"
+    }
+  ],
+  "archive_sha256": "2e27b7c2b7e2b177a5393abfaa64faad6e809c43f3abb15226276b61853b5ff6",
+  "legs": [
+    {
+      "case": "scancompact",
+      "mode": "1s",
+      "engine": "uring",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "scancompact",
+      "mode": "1s",
+      "engine": "uring",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "scancompact",
+      "mode": "1s",
+      "engine": "epoll",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "scancompact",
+      "mode": "1s",
+      "engine": "epoll",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "scancompact",
+      "mode": "2s",
+      "engine": "uring",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "scancompact",
+      "mode": "2s",
+      "engine": "uring",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "scancompact",
+      "mode": "2s",
+      "engine": "epoll",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "scancompact",
+      "mode": "2s",
+      "engine": "epoll",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "slowlog_identity",
+      "mode": "1s",
+      "engine": "uring",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "slowlog_identity",
+      "mode": "1s",
+      "engine": "uring",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "slowlog_identity",
+      "mode": "1s",
+      "engine": "epoll",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "slowlog_identity",
+      "mode": "1s",
+      "engine": "epoll",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "slowlog_identity",
+      "mode": "2s",
+      "engine": "uring",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "slowlog_identity",
+      "mode": "2s",
+      "engine": "uring",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "slowlog_identity",
+      "mode": "2s",
+      "engine": "epoll",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "slowlog_identity",
+      "mode": "2s",
+      "engine": "epoll",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "read_local_lfu",
+      "mode": "1s",
+      "engine": "uring",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "read_local_lfu",
+      "mode": "1s",
+      "engine": "uring",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "read_local_lfu",
+      "mode": "1s",
+      "engine": "epoll",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "read_local_lfu",
+      "mode": "1s",
+      "engine": "epoll",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "read_local_lfu",
+      "mode": "2s",
+      "engine": "uring",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "read_local_lfu",
+      "mode": "2s",
+      "engine": "uring",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "read_local_lfu",
+      "mode": "2s",
+      "engine": "epoll",
+      "atomic": 0,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    },
+    {
+      "case": "read_local_lfu",
+      "mode": "2s",
+      "engine": "epoll",
+      "atomic": 1,
+      "new_pass": true,
+      "new_assertion": false,
+      "control_pass": true
+    }
+  ]
+}

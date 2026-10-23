@@ -1,0 +1,13 @@
+{
+  "seed_anchor": "src/core/ex_loop.h:175",
+  "sampler_anchor": "src/core/ex_loop.h:998-1006",
+  "oracle_anchor": "/home/user/Projects/redis/src/evict.c:281-289",
+  "oracle_version": "7.4.10",
+  "oracle_source_sha256": "6b5a4cf6aef65f6cc263df52adaec17adadce2b26cdbf5dc58da0bef4d848d91",
+  "oracle_binary_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "probability": "1/(10*max(counter-5,0)+1), below the saturation cap, up to RNG discretization",
+  "tomokv_existing_cap": 31,
+  "redis_cap": 255,
+  "model_probability_at_or_above_31_after_300": 2.320453460723949e-16,
+  "scope": "Fixes the lane seed and verifies the logarithmic increment law; does not claim identical saturation, RNG sequence, or decay policy."
+}
