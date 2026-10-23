@@ -1518,6 +1518,10 @@ bool finish_phase1(ScatterState& state, Op& op) {
                 return true;
             }
             const GeoBuildResult built = geo_build_store(op, input, output);
+            if (built == GeoBuildResult::Invalid) {
+                state.final_reply = FinalReply::Prepared;
+                return true;
+            }
             if (built != GeoBuildResult::Ok) {
                 state.final_reply = FinalReply::Work;
                 state.final_error = built == GeoBuildResult::MissingMember
@@ -1858,6 +1862,7 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
                 reply_err(op.sink(), "ERR cross-shard second hop queue is full"); break;
             case FinalReply::Internal:
                 reply_err(op.sink(), "ERR internal cross-shard completion error"); break;
+            case FinalReply::Prepared: // GEO parser already emitted its error after source lookup.
             case FinalReply::None: break;
         }
         return;
