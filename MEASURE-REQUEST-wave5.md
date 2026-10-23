@@ -624,9 +624,11 @@ used. The existing shutdown gate row runs both controls, with an explicit
 Makefile dependency on the included witness. Twelve additional ASAN server
 lifetimes kept idle, borrowed-output, WATCH/MULTI, BLPOP and pub/sub clients
 open across SIGTERM, SIGINT and SHUTDOWN NOSAVE; all passed in both engines
-and modes ([results](docs/wave5c/live-shutdown/results.json)).
+and modes, and again 12/12 on the final ASAN arm
+([results](docs/wave5c/live-shutdown/results.json)).
 
-Fixed POST zc ASAN checks passed **50 consecutive runs per engine**:
+On the pre-refinement source (`886b0ccaf`, release `b640ac19…`), fixed POST
+zc ASAN checks passed **50 consecutive runs per engine**:
 50/50 io_uring and 50/50 epoll. One io_uring release boot was refused by the
 gate's quiet-core preflight during a unit rebuild; its ASAN leg passed. That
 failed job is retained as `fixed-fixed-uring-22`, not silently discarded.
@@ -637,10 +639,90 @@ complete compressed text witnesses are in `docs/wave5c/zc-receipts.tar.gz`
 The final broader cohort also
 repeats the zc job with no concurrent build outside the gate.
 
-VALIDATION-COHORTS-PENDING
+### Continuation 2026-10-24: post-join refinement review and final validation
 
-`make -j32 all` plus every one of the 42 `job_production_units` targets and
-the two MDBQSBR live arms succeeded. All 45 output freshness queries passed,
+Final source `HEAD` of `cx-wave5`; release `e2726028…`, source-matched ASAN arm
+`f5ac25b3…` (built with the gate's own `tests/parbuild.sh` command). Every
+cohort ran through `tests/gate.sh`'s job interface on CPUs 64–111 with
+`NETFIX_TLS_ORACLE` unset and `--tls-oracle` taken from the canonical
+`/home/user/Projects/redis74-tls/src/redis-server`.
+
+| Cohort (final source) | Coverage | Rows passed | Failures |
+|---|---|---:|---:|
+| Serverless shutdown witness | 2s/1s × io_uring/epoll × {shard-only EXEC retired, BGSAVE EXEC withheld}; `--without-join-cleanup` control fails as required | 8/8 | 0 |
+| zc ASAN, io_uring | 50 consecutive gate `zc` jobs (4 rows each), [ledger](docs/wave5c/final-zc.json) | 50/50 (200 rows) | 0 |
+| zc ASAN, epoll | 50 consecutive gate `zc` jobs (4 rows each), same ledger | 50/50 (200 rows) | 0 |
+| `final-all` | shutdown (climonfix 7), FLIP (19, incl. fliplisten's own legs), writeback (9), persistence (147: aof/snapshot both engines, aof_frame, aoforder, persistfix, notify_aof), iofix (3), netfix (5), netio (2), differ standard seeds (5), TLS (20), batteries, zc | 253/253 | 0 |
+| `final-epoll` | the same engine-selectable jobs on epoll: climonfix, FLIP, persistence, TLS, replyoff, netio, differ standard seeds | 55/55 | 0 |
+| Live ASAN shutdown battery | 12 lifetimes: 2s/1s × io_uring/epoll × SIGTERM/SIGINT/SHUTDOWN NOSAVE with idle, borrowed, WATCH/MULTI, BLPOP and pub/sub clients | 12/12 | 0 |
+| `python3 tests/gates_test.py` | gate self-tests, including TLS wiring and missing-oracle checks | 70/70 | 0 |
+
+Receipts: [final-all](docs/wave5c/gate/final-all/rows.json) and
+[final-epoll](docs/wave5c/gate/final-epoll/rows.json) (row verdicts, with
+text witnesses in each `witnesses.tar.gz`), zc receipts in
+`docs/wave5c/zc-receipts-final.tar.gz`, and the witness log
+[shutdown-unit.log](docs/wave5c/shutdown-unit.log).
+
+The lane stopped after an unvalidated refinement (`be616ff9c`). After join it
+rebinds WB so that already-issued replies complete, returns borrows directly,
+discards undeliverable notifications, and drains every owner's release and
+pub/sub inboxes. Review results:
+
+- **No double release or free.** Inbox drains pop each entry once,
+  `pubsub_shutdown_events()` is idempotent, and every event sits in exactly
+  one inbox. Repeated `shutdown_clients_after_join()` calls, including the
+  one in `~IoLoop`, return at `initialized_`. The limits flag bound into
+  `wb_` is now `static` instead of a pointer to a dead stack local.
+- **Defect, fixed: post-join retirement ran commands.** `multi_retire`
+  executes an EXEC's queued connection-local commands on its IO owner. The
+  cleanup retired Done EXECs, so after every worker joined it could run
+  BGSAVE, PUBLISH, CLIENT, FLIP and similar commands. BGSAVE starts a new
+  snapshot after `cancel_after_join`. PUBLISH's `pubsub_post` spins until a
+  joined owner's channel accepts. TLS transaction borrows also went through
+  `queue_borrow_release` into joined owners' inboxes. The refinement had
+  dropped "run commands" from the cleanup's invariant; it is restored. The
+  fix:
+  - `multi_shutdown_retirable()` applies `multi_retire`'s exact handler
+    condition.
+  - The ordered flush ends before an EXEC that would still run such a
+    command. EXEC's barrier makes it the connection's newest op, so nothing
+    can overtake it.
+  - `multi_shutdown_discard()` retires that EXEC's state without running a
+    command or producing a reply.
+  - A Done EXEC behind an unfinished older op, which the final loop
+    previously left undisposed, takes the same path.
+  - A retirable TLS transaction returns its borrows directly first, so
+    `multi_retire_entry` posts nothing.
+
+  The new helpers are appended to `multi.inc`/`multi.h`. No existing
+  request-path function was edited.
+- **Redis 7.4 semantics.** Staged output and Done replies get one
+  nonblocking flush, as an ordered prefix. No command runs and no save
+  starts. An EXEC whose commands have not all run is not an owed reply.
+- **Notifications.** They are discarded only in
+  `shutdown_clients_after_join()`. That runs only from `~IoLoop`, which every
+  exit path reaches after `join_workers()`, so no consumer can exist.
+- **Directed check.** The refinement's "no joined-owner callback" assertion
+  was vacuous: a plain Done op never reaches the retire hook. The witness now
+  drives a real EXEC through its owners' tasks and leaves it unretired:
+  - The shard-only EXEC retires through the rebound callback (the
+    abort-bound test callback would fire otherwise) and `*1 +OK` is flushed.
+  - The BGSAVE EXEC is withheld. Its reply is never sent, and the snapshot
+    stub fails if BGSAVE runs.
+  - Built against the unfixed `be616ff9c` source, the BGSAVE variant fails
+    ([log](docs/wave5c/shutdown-exec-negative.log)).
+
+**NOT RUN in this continuation:**
+- No directed test returns a TLS transaction's xshard MGET borrows. No
+  serverless fixture builds that child; the walk is `multi_retire_entry`'s own
+  loop with a direct release, and was reviewed.
+- No live reproduction of a Done-but-unretired EXEC at exit. It needs a
+  timing window; the serverless witness opens that state deterministically.
+- The historical baseline zc arms (150 runs) were not repeated; they do not
+  depend on this source.
+
+On the final source, `make -j32 all` plus every one of the 42
+`job_production_units` targets and the two MDBQSBR live arms succeeded. All 45 output freshness queries passed,
 including `make -q all`; the phony live-arms target is checked through its two
 actual outputs with matching flags. See [freshness.json](docs/wave5c/freshness.json).
 `python3 tests/gates_test.py` passed all 70 tests (including the TLS wiring
@@ -658,7 +740,18 @@ wave5b POST under the unchanged strict normalizer. Every changed body is
 listed with its reason, including clone sizes and hashes:
 [wave5b delta](docs/wave5c/identity/wave5b-post-changed-bodies.md),
 [headline delta](docs/wave5c/identity/headline-changed-bodies.md).
-The wave5b comparison has 147 changed groups: new shutdown/WB specializations,
+On the final source the wave5b comparison has 195 changed groups (147 before
+the continuation) and the headline comparison has 2091. The continuation's own
+delta against the previous lane POST `b640ac19` is 74 bodies, none hot, each
+listed with its reason in the
+[continuation delta](docs/wave5c/identity/continuation-changed-bodies.md):
+24 differ only in references, 34 are shutdown-only, 2 are pub/sub-drain deque
+clones, and 14 are unedited `xshard.cc`-TU bodies (for example
+`xshard_execute`, `prepare_commands`, `destroy_multi_state`'s split clone).
+GCC's IPA split/inline decisions moved for those 14 once `multi.inc` gained
+the shutdown helpers. Their full deltas are in
+`docs/wave5c/identity/continuation-deltas.txt.gz`. The wave5b changed groups
+comprise new shutdown/WB specializations,
 worker/destructor changes, resolved reference-label changes, assertion-line
 immediates, and compiler propagation into a few unedited dispatch/envelope
 bodies. Full normalized instruction/encoding deltas are retained in
@@ -667,9 +760,10 @@ masked or treated as a reason to stop correctness testing. No throughput
 conclusion follows from identity.
 
 Final `build/tomokv` SHA-256:
-`b640ac19ca60d368322fc417d08ea8d6f8f5ec4a778a08f7249f68d78bc6eace`.
-Fixed ASAN SHA-256:
-`477da6ee37b63d837641c0e68d9b1c39afb6e2197eb69c9057f52fae97e972d8`.
+`e2726028307cda4070799df80c3798b3811cf36aaecd65719fa499c7a16de004`.
+Final ASAN SHA-256 (`build/wave5c/arms/final-asan`):
+`f5ac25b346dc9472de4140a37af006599552ff7dadfcf912689d3cb45a05839c`.
+These supersede the pre-refinement `b640ac19…` release and `477da6ee…` ASAN arm.
 
 **NOT RUN:** full `tests/gate.sh iteration`, throughput benchmarks, ABBA and
 PMU performance measurements; these remain with the maintainer under this
