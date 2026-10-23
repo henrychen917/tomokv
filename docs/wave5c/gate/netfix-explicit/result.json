@@ -1,0 +1,51 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-111",
+    "/home/user/Projects/cx-wave5/tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-103",
+    "--load-cores",
+    "104-111",
+    "--load-smt",
+    "",
+    "--ports",
+    "26860-26879",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave5/build/wave5c/gate-binaries/b640ac19ca60d368322fc417d08ea8d6f8f5ec4a778a08f7249f68d78bc6eace/tomokv"
+  ],
+  "jobs": [
+    "netfix_query_stats",
+    "netfix_unix",
+    "netfix_config",
+    "netfix_tls",
+    "netfix_idle_buffers"
+  ],
+  "started": 1792774225.6518807,
+  "binary_sha256": "b640ac19ca60d368322fc417d08ea8d6f8f5ec4a778a08f7249f68d78bc6eace",
+  "snapshot_binary": "/home/user/Projects/cx-wave5/build/wave5c/gate-binaries/b640ac19ca60d368322fc417d08ea8d6f8f5ec4a778a08f7249f68d78bc6eace/tomokv",
+  "environment": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+    "GATE_DIFFER_ORACLE_CORES": "111",
+    "GATE_GLOBCASE_ORACLE_CORES": "111",
+    "GATE_TEST_PORT": "26899",
+    "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-wave5/docs/wave5c/gate/netfix-explicit/differ-history",
+    "GATE_HISTORY": "/home/user/Projects/cx-wave5/docs/wave5c/gate/netfix-explicit/gate-history",
+    "PYTHONPATH": "/home/user/Projects/cx-wave5/docs/wave5/port_guard:",
+    "WAVE5_PORT_RECEIPT": "/home/user/Projects/cx-wave5/docs/wave5c/fixture-ports.jsonl",
+    "GATE_ONLY_JOBS": "netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave5/docs/wave5c/gate/netfix-explicit/ledger",
+    "GATE_TLS_ORACLE_BIN": "/home/user/Projects/redis74-tls/src/redis-server",
+    "WAVE5_BINARY": "/home/user/Projects/cx-wave5/build/wave5c/gate-binaries/b640ac19ca60d368322fc417d08ea8d6f8f5ec4a778a08f7249f68d78bc6eace/tomokv"
+  },
+  "returncode": 0,
+  "elapsed": 318.63623213768005,
+  "run_paths": [
+    "/home/user/Projects/cx-wave5/build/gate-run.CKgLGq"
+  ],
+  "binary_stable": true
+}

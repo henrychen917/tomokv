@@ -1,0 +1,2197 @@
+[
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo16debug_sleep_execERNS_6ServerERNS_5ShardERSt6atomicIxEj",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 3b 05 ?? ?? ?? ?? | 00b8 [ 7] cmp <rip>(%rip),%rax # <_GLOBAL_OFFSET_TABLE_+0x9f8>",
+      "+clone 0: 48 3b 05 ?? ?? ?? ?? | 00b8 [ 7] cmp <rip>(%rip),%rax # <_GLOBAL_OFFSET_TABLE_+0xa00>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo6IoLoop18shutdown_on_issuerEv",
+    "changed_lines": 9,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 80 3d ?? ?? ?? ?? 00 | 0004 [ 7] cmpb $0x0,<rip>(%rip) # <guard variable for tomo::atomic_tripwire_detail::state>",
+      "+clone 0: 74 01 | 000b [ 2] je <+0xe>",
+      "+clone 0: c3 | 000d [ 1] ret",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 000e [ 7] lea <rip>(%rip),%rdx # <__dso_handle>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 0015 [ 7] lea <rip>(%rip),%rsi # <tomo::atomic_tripwire_detail::state>",
+      "+clone 0: 48 8d 3d ?? ?? ?? ?? | 001c [ 7] lea <rip>(%rip),%rdi # <std::unique_ptr<tomo::atomic_tripwire_detail::State, std::default_delete<tomo::atomic_tripwire_detail::State> >::~unique_ptr()>",
+      "+clone 0: c6 05 ?? ?? ?? ?? 01 | 0023 [ 7] movb $0x1,<rip>(%rip) # <guard variable for tomo::atomic_tripwire_detail::state>",
+      "+clone 0: e9 ?? ?? ?? ?? | 002a [ 5] jmp <__cxa_atexit@plt>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db016debug_sleep_execERNS_6ServerERNS_5ShardERSt6atomicIxEj",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 3b 05 ?? ?? ?? ?? | 0192 [ 7] cmp <rip>(%rip),%rax # <_GLOBAL_OFFSET_TABLE_+0xa50>",
+      "+clone 0: 48 3b 05 ?? ?? ?? ?? | 0192 [ 7] cmp <rip>(%rip),%rax # <_GLOBAL_OFFSET_TABLE_+0xa58>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db06IoLoop18shutdown_on_issuerEv",
+    "changed_lines": 61,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 55 | 0004 [ 1] push %rbp",
+      "+clone 0: 48 89 e5 | 0005 [ 3] mov %rsp,%rbp",
+      "+clone 0: 53 | 0008 [ 1] push %rbx",
+      "+clone 0: 48 83 e4 c0 | 0009 [ 4] and $0xffffffffffffffc0,%rsp",
+      "+clone 0: 80 3d ?? ?? ?? ?? 00 | 000d [ 7] cmpb $0x0,<rip>(%rip) # <guard variable for tomo_db0::atomic_tripwire_detail::state>",
+      "+clone 0: 0f 84 d2 00 00 00 | 0014 [ 6] je <+0xec>",
+      "+clone 0: 80 3d ?? ?? ?? ?? 00 | 001a [ 7] cmpb $0x0,<rip>(%rip) # <guard variable for tomo_db0::SnapshotManager::database_map_>",
+      "+clone 0: 0f 85 b6 00 00 00 | 0021 [ 6] jne <+0xdd>",
+      "+clone 0: 62 f1 7d 48 6f 1d ?? ?? ?? ?? | 0027 [10] vmovdqa32 <rip>(%rip),%zmm3 # <tomo_db0::(anonymous namespace)::kinds+0x240>",
+      "+clone 0: 62 f1 fd 48 6f 25 ?? ?? ?? ?? | 0031 [10] vmovdqa64 <rip>(%rip),%zmm4 # <tomo_db0::(anonymous namespace)::kinds+0x280>",
+      "+clone 0: ba 40 00 00 00 | 003b [ 5] mov $0x40,%edx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "bool tomo::WbEngine::on_send_complete<false, false>(tomo::Client&, int) [clone .isra.0]",
+    "changed_lines": 166,
+    "sample": [
+      "+clone 0: 41 57 | 0000 [ 2] push %r15",
+      "+clone 0: 41 56 | 0002 [ 2] push %r14",
+      "+clone 0: 41 55 | 0004 [ 2] push %r13",
+      "+clone 0: 49 89 fe | 0006 [ 3] mov %rdi,%r14",
+      "+clone 0: 41 54 | 0009 [ 2] push %r12",
+      "+clone 0: 55 | 000b [ 1] push %rbp",
+      "+clone 0: 53 | 000c [ 1] push %rbx",
+      "+clone 0: 41 89 d5 | 000d [ 3] mov %edx,%r13d",
+      "+clone 0: 48 83 ec 18 | 0010 [ 4] sub $0x18,%rsp",
+      "+clone 0: 48 89 f3 | 0014 [ 3] mov %rsi,%rbx",
+      "+clone 0: c6 46 2a 00 | 0017 [ 4] movb $0x0,0x2a(%rsi)",
+      "+clone 0: 85 d2 | 001b [ 2] test %edx,%edx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "bool tomo::WbEngine::on_send_complete<false, false>(tomo::Client&, int) [clone .isra.0] [clone .cold]",
+    "changed_lines": 1,
+    "sample": [
+      "+clone 0: e8 ?? ?? ?? ?? | 0000 [ 5] call <abort@plt>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "bool tomo::WbEngine::on_tls_send_complete<false, false>(tomo::Client&, tomo::TlsConn&, int) [clone .isra.0]",
+    "changed_lines": 102,
+    "sample": [
+      "+clone 0: 41 56 | 0000 [ 2] push %r14",
+      "+clone 0: 41 55 | 0002 [ 2] push %r13",
+      "+clone 0: 41 54 | 0004 [ 2] push %r12",
+      "+clone 0: 49 89 fd | 0006 [ 3] mov %rdi,%r13",
+      "+clone 0: 55 | 0009 [ 1] push %rbp",
+      "+clone 0: 53 | 000a [ 1] push %rbx",
+      "+clone 0: 49 89 f4 | 000b [ 3] mov %rsi,%r12",
+      "+clone 0: 48 89 d3 | 000e [ 3] mov %rdx,%rbx",
+      "+clone 0: 48 83 ec 10 | 0011 [ 4] sub $0x10,%rsp",
+      "+clone 0: 89 cd | 0015 [ 2] mov %ecx,%ebp",
+      "+clone 0: 64 48 8b 04 25 28 00 00 00 | 0017 [ 9] mov %fs:0x28,%rax",
+      "+clone 0: 48 89 44 24 08 | 0020 [ 5] mov %rax,0x8(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "bool tomo::WbEngine::serve_tls_impl<true, true, false, false, false>(tomo::Client&, tomo::TlsConn&, bool*) [clone .isra.0]",
+    "changed_lines": 147,
+    "sample": [
+      "+clone 0: 41 57 | 0000 [ 2] push %r15",
+      "+clone 0: 41 56 | 0002 [ 2] push %r14",
+      "+clone 0: 41 55 | 0004 [ 2] push %r13",
+      "+clone 0: c4 e1 f9 6e cf | 0006 [ 5] vmovq %rdi,%xmm1",
+      "+clone 0: 41 54 | 000b [ 2] push %r12",
+      "+clone 0: 55 | 000d [ 1] push %rbp",
+      "+clone 0: 53 | 000e [ 1] push %rbx",
+      "+clone 0: 49 89 fc | 000f [ 3] mov %rdi,%r12",
+      "+clone 0: 48 83 ec 48 | 0012 [ 4] sub $0x48,%rsp",
+      "+clone 0: 48 89 f3 | 0016 [ 3] mov %rsi,%rbx",
+      "+clone 0: c4 e3 f1 22 c6 01 | 0019 [ 6] vpinsrq $0x1,%rsi,%xmm1,%xmm0",
+      "+clone 0: 48 89 54 24 18 | 001f [ 5] mov %rdx,0x18(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "bool tomo::wb_rule::defer<tomo::Client>(tomo::Client&, tomo::wb_rule::Settings const&)",
+    "changed_lines": 4,
+    "sample": [
+      "-clone 0: 4c 8d 3d ?? ?? ?? ?? | 010d [ 7] lea <rip>(%rip),%r15 # <tomo_db0::(anonymous namespace)::kinds+0x484>",
+      "-clone 0: 4c 8d 35 ?? ?? ?? ?? | 0114 [ 7] lea <rip>(%rip),%r14 # <tomo_db0::(anonymous namespace)::kinds+0x45c>",
+      "+clone 0: 4c 8d 3d ?? ?? ?? ?? | 010d [ 7] lea <rip>(%rip),%r15 # <tomo_db0::(anonymous namespace)::kinds+0x544>",
+      "+clone 0: 4c 8d 35 ?? ?? ?? ?? | 0114 [ 7] lea <rip>(%rip),%r14 # <tomo_db0::(anonymous namespace)::kinds+0x51c>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "bool tomo_db0::WbEngine::on_send_complete<false, false>(tomo_db0::Client&, int) [clone .isra.0]",
+    "changed_lines": 166,
+    "sample": [
+      "+clone 0: 41 57 | 0000 [ 2] push %r15",
+      "+clone 0: 41 56 | 0002 [ 2] push %r14",
+      "+clone 0: 41 55 | 0004 [ 2] push %r13",
+      "+clone 0: 49 89 fe | 0006 [ 3] mov %rdi,%r14",
+      "+clone 0: 41 54 | 0009 [ 2] push %r12",
+      "+clone 0: 55 | 000b [ 1] push %rbp",
+      "+clone 0: 53 | 000c [ 1] push %rbx",
+      "+clone 0: 41 89 d5 | 000d [ 3] mov %edx,%r13d",
+      "+clone 0: 48 83 ec 18 | 0010 [ 4] sub $0x18,%rsp",
+      "+clone 0: 48 89 f3 | 0014 [ 3] mov %rsi,%rbx",
+      "+clone 0: c6 46 2a 00 | 0017 [ 4] movb $0x0,0x2a(%rsi)",
+      "+clone 0: 85 d2 | 001b [ 2] test %edx,%edx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "bool tomo_db0::WbEngine::on_send_complete<false, false>(tomo_db0::Client&, int) [clone .isra.0] [clone .cold]",
+    "changed_lines": 1,
+    "sample": [
+      "+clone 0: e8 ?? ?? ?? ?? | 0000 [ 5] call <abort@plt>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "bool tomo_db0::WbEngine::on_tls_send_complete<false, false>(tomo_db0::Client&, tomo_db0::TlsConn&, int) [clone .isra.0]",
+    "changed_lines": 102,
+    "sample": [
+      "+clone 0: 41 56 | 0000 [ 2] push %r14",
+      "+clone 0: 41 55 | 0002 [ 2] push %r13",
+      "+clone 0: 41 54 | 0004 [ 2] push %r12",
+      "+clone 0: 49 89 fd | 0006 [ 3] mov %rdi,%r13",
+      "+clone 0: 55 | 0009 [ 1] push %rbp",
+      "+clone 0: 53 | 000a [ 1] push %rbx",
+      "+clone 0: 49 89 f4 | 000b [ 3] mov %rsi,%r12",
+      "+clone 0: 48 89 d3 | 000e [ 3] mov %rdx,%rbx",
+      "+clone 0: 48 83 ec 10 | 0011 [ 4] sub $0x10,%rsp",
+      "+clone 0: 89 cd | 0015 [ 2] mov %ecx,%ebp",
+      "+clone 0: 64 48 8b 04 25 28 00 00 00 | 0017 [ 9] mov %fs:0x28,%rax",
+      "+clone 0: 48 89 44 24 08 | 0020 [ 5] mov %rax,0x8(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "bool tomo_db0::WbEngine::serve_tls_impl<true, true, false, false, false>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*) [clone .isra.0]",
+    "changed_lines": 147,
+    "sample": [
+      "+clone 0: 41 57 | 0000 [ 2] push %r15",
+      "+clone 0: 41 56 | 0002 [ 2] push %r14",
+      "+clone 0: 41 55 | 0004 [ 2] push %r13",
+      "+clone 0: c4 e1 f9 6e cf | 0006 [ 5] vmovq %rdi,%xmm1",
+      "+clone 0: 41 54 | 000b [ 2] push %r12",
+      "+clone 0: 55 | 000d [ 1] push %rbp",
+      "+clone 0: 53 | 000e [ 1] push %rbx",
+      "+clone 0: 49 89 fc | 000f [ 3] mov %rdi,%r12",
+      "+clone 0: 48 83 ec 48 | 0012 [ 4] sub $0x48,%rsp",
+      "+clone 0: 48 89 f3 | 0016 [ 3] mov %rsi,%rbx",
+      "+clone 0: c4 e3 f1 22 c6 01 | 0019 [ 6] vpinsrq $0x1,%rsi,%xmm1,%xmm0",
+      "+clone 0: 48 89 54 24 18 | 001f [ 5] mov %rdx,0x18(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "bool tomo_db0::wb_rule::defer<tomo_db0::Client>(tomo_db0::Client&, tomo_db0::wb_rule::Settings const&)",
+    "changed_lines": 4,
+    "sample": [
+      "-clone 0: 4c 8d 3d ?? ?? ?? ?? | 010d [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x16f8c>",
+      "-clone 0: 4c 8d 35 ?? ?? ?? ?? | 0114 [ 7] lea <rip>(%rip),%r14 # <_IO_stdin_used+0x16f64>",
+      "+clone 0: 4c 8d 3d ?? ?? ?? ?? | 010d [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x16fb4>",
+      "+clone 0: 4c 8d 35 ?? ?? ?? ?? | 0114 [ 7] lea <rip>(%rip),%r14 # <_IO_stdin_used+0x16f8c>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "luaL_pushresult",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 004d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 004d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "luaL_where",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 0057 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 0057 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "luaO_pushvfstring",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 0011 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 0011 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "lua_concat",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 0023 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 0023 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "lua_getinfo",
+    "changed_lines": 4,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0280 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0280 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 049c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 049c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "lua_getupvalue",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 15 ?? ?? ?? ?? | 0056 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 0056 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "lua_setupvalue",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 15 ?? ?? ?? ?? | 00d1 [ 7] lea <rip>(%rip),%r10 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 15 ?? ?? ?? ?? | 00d1 [ 7] lea <rip>(%rip),%r10 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "luaopen_string",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 009d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 009d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "main",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 81 ec 80 0d 00 00 | 0039 [ 7] sub $0xd80,%rsp",
+      "+clone 0: 48 81 ec c0 0d 00 00 | 0039 [ 7] sub $0xdc0,%rsp"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "main.cold",
+    "changed_lines": 1455,
+    "sample": [
+      "-clone 0: 0f 84 80 11 00 00 | 0314 [ 6] je <+0x149a>",
+      "+clone 0: 0f 84 65 11 00 00 | 0314 [ 6] je <+0x147f>",
+      "-clone 0: 0f 84 6c 11 00 00 | 0337 [ 6] je <+0x14a9>",
+      "+clone 0: 0f 84 51 11 00 00 | 0337 [ 6] je <+0x148e>",
+      "-clone 0: 48 89 85 f0 a2 fd ff | 0399 [ 7] mov %rax,-0x25d10(%rbp)",
+      "+clone 0: 48 89 85 c8 a2 fd ff | 0399 [ 7] mov %rax,-0x25d38(%rbp)",
+      "-clone 0: 48 89 85 d8 a2 fd ff | 043d [ 7] mov %rax,-0x25d28(%rbp)",
+      "+clone 0: 48 89 85 f0 a2 fd ff | 043d [ 7] mov %rax,-0x25d10(%rbp)",
+      "-clone 0: 48 89 85 d0 a2 fd ff | 0453 [ 7] mov %rax,-0x25d30(%rbp)",
+      "+clone 0: 48 89 85 d8 a2 fd ff | 0453 [ 7] mov %rax,-0x25d28(%rbp)",
+      "-clone 0: 48 89 85 c8 a2 fd ff | 0469 [ 7] mov %rax,-0x25d38(%rbp)",
+      "+clone 0: 48 89 85 d0 a2 fd ff | 0469 [ 7] mov %rax,-0x25d30(%rbp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "singlevaraux",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 0d ?? ?? ?? ?? | 01d9 [ 7] lea <rip>(%rip),%r9 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 0d ?? ?? ?? ?? | 01d9 [ 7] lea <rip>(%rip),%r9 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "sort",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 15 ?? ?? ?? ?? | 0060 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 0060 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#2}> > >::_M_run()",
+    "changed_lines": 1354,
+    "sample": [
+      "-clone 0: 4c 8b 63 10 | 004e [ 4] mov 0x10(%rbx),%r12",
+      "-clone 0: 8b 43 08 | 0052 [ 3] mov 0x8(%rbx),%eax",
+      "-clone 0: 49 8b 94 24 68 03 01 00 | 0055 [ 8] mov 0x10368(%r12),%rdx",
+      "-clone 0: 49 8d 8c 24 50 07 01 00 | 005d [ 8] lea 0x10750(%r12),%rcx",
+      "-clone 0: 89 85 60 ff ff ff | 0065 [ 6] mov %eax,-0xa0(%rbp)",
+      "-clone 0: 48 89 8d 50 ff ff ff | 006b [ 7] mov %rcx,-0xb0(%rbp)",
+      "-clone 0: 49 8d 8c 24 80 03 01 00 | 0072 [ 8] lea 0x10380(%r12),%rcx",
+      "-clone 0: 48 89 8d 48 ff ff ff | 007a [ 7] mov %rcx,-0xb8(%rbp)",
+      "-clone 0: 4c 8b 2c c2 | 0081 [ 4] mov (%rdx,%rax,8),%r13",
+      "-clone 0: 48 8b 53 18 | 0085 [ 4] mov 0x18(%rbx),%rdx",
+      "-clone 0: 48 8b 0a | 0089 [ 3] mov (%rdx),%rcx",
+      "-clone 0: 4c 89 ad 58 ff ff ff | 008c [ 7] mov %r13,-0xa8(%rbp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#2}> > >::_M_run() [clone .cold]",
+    "changed_lines": 26,
+    "sample": [
+      "-clone 0: 48 8b bd 48 ff ff ff | 001d [ 7] mov -0xb8(%rbp),%rdi",
+      "+clone 0: 48 8b bd 40 ff ff ff | 001d [ 7] mov -0xc0(%rbp),%rdi",
+      "-clone 0: 48 8b b5 58 ff ff ff | 0029 [ 7] mov -0xa8(%rbp),%rsi",
+      "-clone 0: 48 8b bd 50 ff ff ff | 0030 [ 7] mov -0xb0(%rbp),%rdi",
+      "+clone 0: 48 8b b5 50 ff ff ff | 0029 [ 7] mov -0xb0(%rbp),%rsi",
+      "+clone 0: 48 8b bd 48 ff ff ff | 0030 [ 7] mov -0xb8(%rbp),%rdi",
+      "-clone 0: 8b b5 64 ff ff ff | 003c [ 6] mov -0x9c(%rbp),%esi",
+      "-clone 0: 48 8d 3d ?? ?? ?? ?? | 0042 [ 7] lea <rip>(%rip),%rdi # <tomo_db0::Server::databases_>",
+      "-clone 0: e8 ?? ?? ?? ?? | 0049 [ 5] call <tomo_db0::DatabaseMap::worker_exited(unsigned int)>",
+      "-clone 0: 48 8b 45 c8 | 004e [ 4] mov -0x38(%rbp),%rax",
+      "-clone 0: 64 48 2b 04 25 28 00 00 00 | 0052 [ 9] sub %fs:0x28,%rax",
+      "-clone 0: 75 08 | 005b [ 2] jne <+0x65>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#4}> > >::_M_run()",
+    "changed_lines": 1004,
+    "sample": [
+      "-clone 0: 4c 8b 6b 10 | 0048 [ 4] mov 0x10(%rbx),%r13",
+      "-clone 0: 8b 43 08 | 004c [ 3] mov 0x8(%rbx),%eax",
+      "-clone 0: 49 8b 95 68 03 01 00 | 004f [ 7] mov 0x10368(%r13),%rdx",
+      "-clone 0: 49 8d 8d 50 07 01 00 | 0056 [ 7] lea 0x10750(%r13),%rcx",
+      "-clone 0: 89 45 a8 | 005d [ 3] mov %eax,-0x58(%rbp)",
+      "-clone 0: 48 89 4d 98 | 0060 [ 4] mov %rcx,-0x68(%rbp)",
+      "-clone 0: 49 8d 8d 80 03 01 00 | 0064 [ 7] lea 0x10380(%r13),%rcx",
+      "-clone 0: 48 89 4d 90 | 006b [ 4] mov %rcx,-0x70(%rbp)",
+      "-clone 0: 4c 8b 24 c2 | 006f [ 4] mov (%rdx,%rax,8),%r12",
+      "-clone 0: 48 8b 53 18 | 0073 [ 4] mov 0x18(%rbx),%rdx",
+      "-clone 0: 48 8b 0a | 0077 [ 3] mov (%rdx),%rcx",
+      "-clone 0: 4c 89 65 a0 | 007a [ 4] mov %r12,-0x60(%rbp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#4}> > >::_M_run() [clone .cold]",
+    "changed_lines": 26,
+    "sample": [
+      "-clone 0: 48 8b 7d 90 | 0003 [ 4] mov -0x70(%rbp),%rdi",
+      "+clone 0: 48 8b 7d 88 | 0003 [ 4] mov -0x78(%rbp),%rdi",
+      "-clone 0: 48 8b 75 a0 | 000f [ 4] mov -0x60(%rbp),%rsi",
+      "-clone 0: 48 8b 7d 98 | 0013 [ 4] mov -0x68(%rbp),%rdi",
+      "+clone 0: 48 8b 75 98 | 000f [ 4] mov -0x68(%rbp),%rsi",
+      "+clone 0: 48 8b 7d 90 | 0013 [ 4] mov -0x70(%rbp),%rdi",
+      "-clone 0: 8b 75 ac | 001c [ 3] mov -0x54(%rbp),%esi",
+      "-clone 0: 48 8d 3d ?? ?? ?? ?? | 001f [ 7] lea <rip>(%rip),%rdi # <tomo_db0::Server::databases_>",
+      "-clone 0: e8 ?? ?? ?? ?? | 0026 [ 5] call <tomo_db0::DatabaseMap::worker_exited(unsigned int)>",
+      "-clone 0: 48 8b 45 c8 | 002b [ 4] mov -0x38(%rbp),%rax",
+      "-clone 0: 64 48 2b 04 25 28 00 00 00 | 002f [ 9] sub %fs:0x28,%rax",
+      "-clone 0: 75 08 | 0038 [ 2] jne <+0x42>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "changed_lines": 1827,
+    "sample": [
+      "-clone 0: 4c 8b 63 10 | 004a [ 4] mov 0x10(%rbx),%r12",
+      "-clone 0: 8b 43 08 | 004e [ 3] mov 0x8(%rbx),%eax",
+      "-clone 0: 49 8b 94 24 e0 03 01 00 | 0051 [ 8] mov 0x103e0(%r12),%rdx",
+      "-clone 0: 89 44 24 40 | 0059 [ 4] mov %eax,0x40(%rsp)",
+      "-clone 0: 48 8b 34 c2 | 005d [ 4] mov (%rdx,%rax,8),%rsi",
+      "-clone 0: 48 8b 53 18 | 0061 [ 4] mov 0x18(%rbx),%rdx",
+      "-clone 0: 80 7a 1c 00 | 0065 [ 4] cmpb $0x0,0x1c(%rdx)",
+      "-clone 0: 48 89 74 24 48 | 0069 [ 5] mov %rsi,0x48(%rsp)",
+      "-clone 0: 49 8d b4 24 c8 07 01 00 | 006e [ 8] lea 0x107c8(%r12),%rsi",
+      "-clone 0: 48 89 74 24 30 | 0076 [ 5] mov %rsi,0x30(%rsp)",
+      "-clone 0: 49 8d b4 24 f8 03 01 00 | 007b [ 8] lea 0x103f8(%r12),%rsi",
+      "-clone 0: 48 89 74 24 28 | 0083 [ 5] mov %rsi,0x28(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+    "changed_lines": 104,
+    "sample": [
+      "-clone 0: 4c 89 e7 | 0000 [ 3] mov %r12,%rdi",
+      "-clone 0: c5 f8 77 | 0003 [ 3] vzeroupper",
+      "-clone 0: e8 ?? ?? ?? ?? | 0006 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>",
+      "-clone 0: 48 89 df | 000b [ 3] mov %rbx,%rdi",
+      "-clone 0: 4c 89 eb | 000e [ 3] mov %r13,%rbx",
+      "-clone 0: e8 ?? ?? ?? ?? | 0011 [ 5] call <pthread_mutex_unlock@plt>",
+      "-clone 0: 48 8b 7c 24 08 | 0016 [ 5] mov 0x8(%rsp),%rdi",
+      "+clone 0: 48 8b 7c 24 50 | 0000 [ 5] mov 0x50(%rsp),%rdi",
+      "+clone 0: c5 f8 77 | 0005 [ 3] vzeroupper",
+      "+clone 0: e8 ?? ?? ?? ?? | 0008 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>",
+      "+clone 0: 48 89 df | 000d [ 3] mov %rbx,%rdi",
+      "+clone 0: 4c 89 e3 | 0010 [ 3] mov %r12,%rbx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server_reordered(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "changed_lines": 1841,
+    "sample": [
+      "-clone 0: 4c 8b 63 10 | 004a [ 4] mov 0x10(%rbx),%r12",
+      "-clone 0: 8b 43 08 | 004e [ 3] mov 0x8(%rbx),%eax",
+      "-clone 0: 49 8b 94 24 e0 03 01 00 | 0051 [ 8] mov 0x103e0(%r12),%rdx",
+      "-clone 0: 89 44 24 40 | 0059 [ 4] mov %eax,0x40(%rsp)",
+      "-clone 0: 48 8b 34 c2 | 005d [ 4] mov (%rdx,%rax,8),%rsi",
+      "-clone 0: 48 8b 53 18 | 0061 [ 4] mov 0x18(%rbx),%rdx",
+      "-clone 0: 80 7a 1c 00 | 0065 [ 4] cmpb $0x0,0x1c(%rdx)",
+      "-clone 0: 48 89 74 24 48 | 0069 [ 5] mov %rsi,0x48(%rsp)",
+      "-clone 0: 49 8d b4 24 c8 07 01 00 | 006e [ 8] lea 0x107c8(%r12),%rsi",
+      "-clone 0: 48 89 74 24 30 | 0076 [ 5] mov %rsi,0x30(%rsp)",
+      "-clone 0: 49 8d b4 24 f8 03 01 00 | 007b [ 8] lea 0x103f8(%r12),%rsi",
+      "-clone 0: 48 89 74 24 28 | 0083 [ 5] mov %rsi,0x28(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server_reordered(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+    "changed_lines": 104,
+    "sample": [
+      "-clone 0: 4c 89 e7 | 0000 [ 3] mov %r12,%rdi",
+      "-clone 0: c5 f8 77 | 0003 [ 3] vzeroupper",
+      "-clone 0: e8 ?? ?? ?? ?? | 0006 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>",
+      "-clone 0: 48 89 df | 000b [ 3] mov %rbx,%rdi",
+      "-clone 0: 4c 89 eb | 000e [ 3] mov %r13,%rbx",
+      "-clone 0: e8 ?? ?? ?? ?? | 0011 [ 5] call <pthread_mutex_unlock@plt>",
+      "-clone 0: 48 8b 7c 24 08 | 0016 [ 5] mov 0x8(%rsp),%rdi",
+      "+clone 0: 48 8b 7c 24 50 | 0000 [ 5] mov 0x50(%rsp),%rdi",
+      "+clone 0: c5 f8 77 | 0005 [ 3] vzeroupper",
+      "+clone 0: e8 ?? ?? ?? ?? | 0008 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>",
+      "+clone 0: 48 89 df | 000d [ 3] mov %rbx,%rdi",
+      "+clone 0: 4c 89 e3 | 0010 [ 3] mov %r12,%rbx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "changed_lines": 2669,
+    "sample": [
+      "-clone 0: 4c 8b 63 10 | 004a [ 4] mov 0x10(%rbx),%r12",
+      "-clone 0: 8b 43 08 | 004e [ 3] mov 0x8(%rbx),%eax",
+      "-clone 0: 49 8b 94 24 e0 03 01 00 | 0051 [ 8] mov 0x103e0(%r12),%rdx",
+      "-clone 0: 49 8d 8c 24 f8 03 01 00 | 0059 [ 8] lea 0x103f8(%r12),%rcx",
+      "-clone 0: 89 44 24 60 | 0061 [ 4] mov %eax,0x60(%rsp)",
+      "-clone 0: 48 89 4c 24 48 | 0065 [ 5] mov %rcx,0x48(%rsp)",
+      "-clone 0: 48 8b 34 c2 | 006a [ 4] mov (%rdx,%rax,8),%rsi",
+      "-clone 0: 48 8b 53 18 | 006e [ 4] mov 0x18(%rbx),%rdx",
+      "-clone 0: 80 7a 1c 00 | 0072 [ 4] cmpb $0x0,0x1c(%rdx)",
+      "-clone 0: 48 89 74 24 68 | 0076 [ 5] mov %rsi,0x68(%rsp)",
+      "-clone 0: 49 8d b4 24 c8 07 01 00 | 007b [ 8] lea 0x107c8(%r12),%rsi",
+      "-clone 0: 48 89 74 24 50 | 0083 [ 5] mov %rsi,0x50(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+    "changed_lines": 88,
+    "sample": [
+      "-clone 0: 48 8b 7c 24 48 | 003d [ 5] mov 0x48(%rsp),%rdi",
+      "+clone 0: 48 8b 7c 24 40 | 003d [ 5] mov 0x40(%rsp),%rdi",
+      "-clone 0: 48 8b 7c 24 50 | 004c [ 5] mov 0x50(%rsp),%rdi",
+      "+clone 0: 48 8b 7c 24 48 | 004c [ 5] mov 0x48(%rsp),%rdi",
+      "-clone 0: 8b 74 24 64 | 0056 [ 4] mov 0x64(%rsp),%esi",
+      "-clone 0: 48 8b 7c 24 58 | 005a [ 5] mov 0x58(%rsp),%rdi",
+      "-clone 0: e8 ?? ?? ?? ?? | 005f [ 5] call <tomo::DatabaseMap::worker_exited(unsigned int)>",
+      "-clone 0: 48 8b 84 24 98 01 00 00 | 0064 [ 8] mov 0x198(%rsp),%rax",
+      "-clone 0: 64 48 2b 04 25 28 00 00 00 | 006c [ 9] sub %fs:0x28,%rax",
+      "-clone 0: 75 4c | 0075 [ 2] jne <+0xc3>",
+      "-clone 0: 48 89 df | 0077 [ 3] mov %rbx,%rdi",
+      "-clone 0: e8 ?? ?? ?? ?? | 007a [ 5] call <_Unwind_Resume@plt>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "changed_lines": 1817,
+    "sample": [
+      "-clone 0: 4c 8b 63 10 | 0045 [ 4] mov 0x10(%rbx),%r12",
+      "-clone 0: 8b 43 08 | 0049 [ 3] mov 0x8(%rbx),%eax",
+      "-clone 0: 49 8b 94 24 68 03 01 00 | 004c [ 8] mov 0x10368(%r12),%rdx",
+      "-clone 0: 89 44 24 40 | 0054 [ 4] mov %eax,0x40(%rsp)",
+      "-clone 0: 48 8b 34 c2 | 0058 [ 4] mov (%rdx,%rax,8),%rsi",
+      "-clone 0: 48 8b 53 18 | 005c [ 4] mov 0x18(%rbx),%rdx",
+      "-clone 0: 80 7a 1c 00 | 0060 [ 4] cmpb $0x0,0x1c(%rdx)",
+      "-clone 0: 48 89 74 24 48 | 0064 [ 5] mov %rsi,0x48(%rsp)",
+      "-clone 0: 49 8d b4 24 50 07 01 00 | 0069 [ 8] lea 0x10750(%r12),%rsi",
+      "-clone 0: 48 89 74 24 38 | 0071 [ 5] mov %rsi,0x38(%rsp)",
+      "-clone 0: 49 8d b4 24 80 03 01 00 | 0076 [ 8] lea 0x10380(%r12),%rsi",
+      "-clone 0: 48 89 74 24 30 | 007e [ 5] mov %rsi,0x30(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+    "changed_lines": 104,
+    "sample": [
+      "-clone 0: 4c 89 e7 | 0000 [ 3] mov %r12,%rdi",
+      "-clone 0: c5 f8 77 | 0003 [ 3] vzeroupper",
+      "-clone 0: e8 ?? ?? ?? ?? | 0006 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>",
+      "-clone 0: 48 89 df | 000b [ 3] mov %rbx,%rdi",
+      "-clone 0: 4c 89 eb | 000e [ 3] mov %r13,%rbx",
+      "-clone 0: e8 ?? ?? ?? ?? | 0011 [ 5] call <pthread_mutex_unlock@plt>",
+      "-clone 0: 48 8b 7c 24 10 | 0016 [ 5] mov 0x10(%rsp),%rdi",
+      "+clone 0: 48 8b 7c 24 50 | 0000 [ 5] mov 0x50(%rsp),%rdi",
+      "+clone 0: c5 f8 77 | 0005 [ 3] vzeroupper",
+      "+clone 0: e8 ?? ?? ?? ?? | 0008 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>",
+      "+clone 0: 48 89 df | 000d [ 3] mov %rbx,%rdi",
+      "+clone 0: 4c 89 e3 | 0010 [ 3] mov %r12,%rbx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "changed_lines": 1839,
+    "sample": [
+      "-clone 0: 4c 8b 63 10 | 0045 [ 4] mov 0x10(%rbx),%r12",
+      "-clone 0: 8b 43 08 | 0049 [ 3] mov 0x8(%rbx),%eax",
+      "-clone 0: 49 8b 94 24 68 03 01 00 | 004c [ 8] mov 0x10368(%r12),%rdx",
+      "-clone 0: 89 44 24 40 | 0054 [ 4] mov %eax,0x40(%rsp)",
+      "-clone 0: 48 8b 34 c2 | 0058 [ 4] mov (%rdx,%rax,8),%rsi",
+      "-clone 0: 48 8b 53 18 | 005c [ 4] mov 0x18(%rbx),%rdx",
+      "-clone 0: 80 7a 1c 00 | 0060 [ 4] cmpb $0x0,0x1c(%rdx)",
+      "-clone 0: 48 89 74 24 48 | 0064 [ 5] mov %rsi,0x48(%rsp)",
+      "-clone 0: 49 8d b4 24 50 07 01 00 | 0069 [ 8] lea 0x10750(%r12),%rsi",
+      "-clone 0: 48 89 74 24 38 | 0071 [ 5] mov %rsi,0x38(%rsp)",
+      "-clone 0: 49 8d b4 24 80 03 01 00 | 0076 [ 8] lea 0x10380(%r12),%rsi",
+      "-clone 0: 48 89 74 24 30 | 007e [ 5] mov %rsi,0x30(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+    "changed_lines": 92,
+    "sample": [
+      "-clone 0: 4c 89 e7 | 0000 [ 3] mov %r12,%rdi",
+      "+clone 0: 4c 89 ff | 0000 [ 3] mov %r15,%rdi",
+      "-clone 0: 4c 89 eb | 000e [ 3] mov %r13,%rbx",
+      "+clone 0: 4c 89 e3 | 000e [ 3] mov %r12,%rbx",
+      "-clone 0: 48 8b 7c 24 10 | 0016 [ 5] mov 0x10(%rsp),%rdi",
+      "+clone 0: 48 8b 7c 24 08 | 0016 [ 5] mov 0x8(%rsp),%rdi",
+      "-clone 0: 4c 89 e7 | 002f [ 3] mov %r12,%rdi",
+      "+clone 0: 4c 89 ff | 002f [ 3] mov %r15,%rdi",
+      "-clone 0: 48 8b 7c 24 10 | 003a [ 5] mov 0x10(%rsp),%rdi",
+      "+clone 0: 48 8b 7c 24 08 | 003a [ 5] mov 0x8(%rsp),%rdi",
+      "-clone 0: 48 8b 7c 24 28 | 0051 [ 5] mov 0x28(%rsp),%rdi",
+      "+clone 0: 48 8b 7c 24 20 | 0051 [ 5] mov 0x20(%rsp),%rdi"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_split_read_local_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "changed_lines": 2636,
+    "sample": [
+      "-clone 0: 4c 8b 63 10 | 0045 [ 4] mov 0x10(%rbx),%r12",
+      "-clone 0: 8b 43 08 | 0049 [ 3] mov 0x8(%rbx),%eax",
+      "-clone 0: 49 8b 94 24 68 03 01 00 | 004c [ 8] mov 0x10368(%r12),%rdx",
+      "-clone 0: 89 44 24 60 | 0054 [ 4] mov %eax,0x60(%rsp)",
+      "-clone 0: 48 8b 34 c2 | 0058 [ 4] mov (%rdx,%rax,8),%rsi",
+      "-clone 0: 48 8b 53 18 | 005c [ 4] mov 0x18(%rbx),%rdx",
+      "-clone 0: 80 7a 1c 00 | 0060 [ 4] cmpb $0x0,0x1c(%rdx)",
+      "-clone 0: 48 89 74 24 68 | 0064 [ 5] mov %rsi,0x68(%rsp)",
+      "-clone 0: 49 8d b4 24 50 07 01 00 | 0069 [ 8] lea 0x10750(%r12),%rsi",
+      "-clone 0: 48 89 74 24 58 | 0071 [ 5] mov %rsi,0x58(%rsp)",
+      "-clone 0: 49 8d b4 24 80 03 01 00 | 0076 [ 8] lea 0x10380(%r12),%rsi",
+      "-clone 0: 48 89 74 24 50 | 007e [ 5] mov %rsi,0x50(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_split_read_local_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run() [clone .cold]",
+    "changed_lines": 118,
+    "sample": [
+      "-clone 0: 4c 89 e7 | 0000 [ 3] mov %r12,%rdi",
+      "-clone 0: c5 f8 77 | 0003 [ 3] vzeroupper",
+      "-clone 0: e8 ?? ?? ?? ?? | 0006 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>",
+      "-clone 0: 48 8d bc 24 f0 00 00 00 | 000b [ 8] lea 0xf0(%rsp),%rdi",
+      "-clone 0: e8 ?? ?? ?? ?? | 0013 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>",
+      "-clone 0: 48 8b 7c 24 70 | 0018 [ 5] mov 0x70(%rsp),%rdi",
+      "-clone 0: e8 ?? ?? ?? ?? | 001d [ 5] call <pthread_mutex_unlock@plt>",
+      "-clone 0: 48 8d 84 24 d0 00 00 00 | 0022 [ 8] lea 0xd0(%rsp),%rax",
+      "-clone 0: 48 89 44 24 70 | 002a [ 5] mov %rax,0x70(%rsp)",
+      "-clone 0: 48 8b 7c 24 70 | 002f [ 5] mov 0x70(%rsp),%rdi",
+      "-clone 0: e8 ?? ?? ?? ?? | 0034 [ 5] call <std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_dispose()>",
+      "-clone 0: 8b 74 24 60 | 0039 [ 4] mov 0x60(%rsp),%esi"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#2}> > >::_M_run()",
+    "changed_lines": 1372,
+    "sample": [
+      "-clone 0: 4c 8b 63 10 | 0055 [ 4] mov 0x10(%rbx),%r12",
+      "-clone 0: 8b 43 08 | 0059 [ 3] mov 0x8(%rbx),%eax",
+      "-clone 0: 49 8b 94 24 e0 03 01 00 | 005c [ 8] mov 0x103e0(%r12),%rdx",
+      "-clone 0: 49 8d 8c 24 c8 07 01 00 | 0064 [ 8] lea 0x107c8(%r12),%rcx",
+      "-clone 0: 89 85 60 ff ff ff | 006c [ 6] mov %eax,-0xa0(%rbp)",
+      "-clone 0: 48 89 8d 48 ff ff ff | 0072 [ 7] mov %rcx,-0xb8(%rbp)",
+      "-clone 0: 49 8d 8c 24 f8 03 01 00 | 0079 [ 8] lea 0x103f8(%r12),%rcx",
+      "-clone 0: 48 89 8d 40 ff ff ff | 0081 [ 7] mov %rcx,-0xc0(%rbp)",
+      "-clone 0: 4c 8b 2c c2 | 0088 [ 4] mov (%rdx,%rax,8),%r13",
+      "-clone 0: 48 8b 53 18 | 008c [ 4] mov 0x18(%rbx),%rdx",
+      "-clone 0: 48 8b 0a | 0090 [ 3] mov (%rdx),%rcx",
+      "-clone 0: 4c 89 ad 50 ff ff ff | 0093 [ 7] mov %r13,-0xb0(%rbp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#2}> > >::_M_run() [clone .cold]",
+    "changed_lines": 26,
+    "sample": [
+      "-clone 0: 48 8b bd 40 ff ff ff | 001d [ 7] mov -0xc0(%rbp),%rdi",
+      "+clone 0: 48 8b bd 38 ff ff ff | 001d [ 7] mov -0xc8(%rbp),%rdi",
+      "-clone 0: 48 8b b5 50 ff ff ff | 0029 [ 7] mov -0xb0(%rbp),%rsi",
+      "-clone 0: 48 8b bd 48 ff ff ff | 0030 [ 7] mov -0xb8(%rbp),%rdi",
+      "+clone 0: 48 8b b5 48 ff ff ff | 0029 [ 7] mov -0xb8(%rbp),%rsi",
+      "+clone 0: 48 8b bd 40 ff ff ff | 0030 [ 7] mov -0xc0(%rbp),%rdi",
+      "-clone 0: 8b b5 64 ff ff ff | 003c [ 6] mov -0x9c(%rbp),%esi",
+      "-clone 0: 48 8b bd 58 ff ff ff | 0042 [ 7] mov -0xa8(%rbp),%rdi",
+      "-clone 0: e8 ?? ?? ?? ?? | 0049 [ 5] call <tomo::DatabaseMap::worker_exited(unsigned int)>",
+      "-clone 0: 48 8b 45 c8 | 004e [ 4] mov -0x38(%rbp),%rax",
+      "-clone 0: 64 48 2b 04 25 28 00 00 00 | 0052 [ 9] sub %fs:0x28,%rax",
+      "-clone 0: 75 08 | 005b [ 2] jne <+0x65>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#4}> > >::_M_run()",
+    "changed_lines": 1020,
+    "sample": [
+      "-clone 0: 4c 8b 6b 10 | 004c [ 4] mov 0x10(%rbx),%r13",
+      "-clone 0: 8b 43 08 | 0050 [ 3] mov 0x8(%rbx),%eax",
+      "-clone 0: 49 8b 95 e0 03 01 00 | 0053 [ 7] mov 0x103e0(%r13),%rdx",
+      "-clone 0: 49 8d 8d c8 07 01 00 | 005a [ 7] lea 0x107c8(%r13),%rcx",
+      "-clone 0: 89 45 a8 | 0061 [ 3] mov %eax,-0x58(%rbp)",
+      "-clone 0: 48 89 4d 90 | 0064 [ 4] mov %rcx,-0x70(%rbp)",
+      "-clone 0: 49 8d 8d f8 03 01 00 | 0068 [ 7] lea 0x103f8(%r13),%rcx",
+      "-clone 0: 48 89 4d 88 | 006f [ 4] mov %rcx,-0x78(%rbp)",
+      "-clone 0: 4c 8b 24 c2 | 0073 [ 4] mov (%rdx,%rax,8),%r12",
+      "-clone 0: 48 8b 53 18 | 0077 [ 4] mov 0x18(%rbx),%rdx",
+      "-clone 0: 48 8b 0a | 007b [ 3] mov (%rdx),%rcx",
+      "-clone 0: 4c 89 65 98 | 007e [ 4] mov %r12,-0x68(%rbp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#4}> > >::_M_run() [clone .cold]",
+    "changed_lines": 26,
+    "sample": [
+      "-clone 0: 48 8b 7d 88 | 0003 [ 4] mov -0x78(%rbp),%rdi",
+      "+clone 0: 48 8b 7d 80 | 0003 [ 4] mov -0x80(%rbp),%rdi",
+      "-clone 0: 48 8b 75 98 | 000f [ 4] mov -0x68(%rbp),%rsi",
+      "-clone 0: 48 8b 7d 90 | 0013 [ 4] mov -0x70(%rbp),%rdi",
+      "+clone 0: 48 8b 75 90 | 000f [ 4] mov -0x70(%rbp),%rsi",
+      "+clone 0: 48 8b 7d 88 | 0013 [ 4] mov -0x78(%rbp),%rdi",
+      "-clone 0: 8b 75 ac | 001c [ 3] mov -0x54(%rbp),%esi",
+      "-clone 0: 48 8b 7d a0 | 001f [ 4] mov -0x60(%rbp),%rdi",
+      "-clone 0: e8 ?? ?? ?? ?? | 0023 [ 5] call <tomo::DatabaseMap::worker_exited(unsigned int)>",
+      "-clone 0: 48 8b 45 c8 | 0028 [ 4] mov -0x38(%rbp),%rax",
+      "-clone 0: 64 48 2b 04 25 28 00 00 00 | 002c [ 9] sub %fs:0x28,%rax",
+      "-clone 0: 75 08 | 0035 [ 2] jne <+0x3f>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "str_format",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0692 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x16a0c>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0692 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x16a34>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "str_sub",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 00c4 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 00c4 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tconcat",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 15 ?? ?? ?? ?? | 002a [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 002a [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+    "changed_lines": 6,
+    "sample": [
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 31b4 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 31b4 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 323f [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 323f [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 32c4 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 32c4 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_memory(tomo::Shard&, tomo::Op&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 15 ?? ?? ?? ?? | 06bf [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 06bf [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_slowlog(tomo::Shard&, tomo::Op&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 3d ?? ?? ?? ?? | 1166 [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 3d ?? ?? ?? ?? | 1166 [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::(anonymous namespace)::create_sandbox_static(lua_State*, tomo::(anonymous namespace)::ScriptContext**)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 25 ?? ?? ?? ?? | 0008 [ 7] lea <rip>(%rip),%r12 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 25 ?? ?? ?? ?? | 0008 [ 7] lea <rip>(%rip),%r12 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::(anonymous namespace)::init_config(tomo::Config const&)",
+    "changed_lines": 20,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0224 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0224 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 1036 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 1036 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 1093 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 1093 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 10f0 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 10f0 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 114d [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 114d [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 121e [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 121e [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0428 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0428 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: e9 ?? ?? ?? ?? | 0039 [ 5] jmp <auto tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#6}::operator()() const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#6}::operator()() const::{lambda(tomo::Op const&)#1}&&) const+0x1f1>",
+      "+clone 0: e9 ?? ?? ?? ?? | 0039 [ 5] jmp <void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo::Client*> > >(__gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, __gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo::Client*> >)+0x46f>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: e9 ?? ?? ?? ?? | 0039 [ 5] jmp <auto tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#6}::operator()() const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#6}::operator()() const::{lambda(tomo::Op const&)#1}&&) const+0x20d>",
+      "+clone 0: e9 ?? ?? ?? ?? | 0039 [ 5] jmp <void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo::Client*> > >(__gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, __gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo::Client*> >)+0x48b>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::FlatStore::choose_victim(tomo::Slice)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 1d ?? ?? ?? ?? | 02d5 [ 7] lea <rip>(%rip),%rbx # <tomo_db0::(anonymous namespace)::kinds+0x290>",
+      "+clone 0: 48 8d 1d ?? ?? ?? ?? | 02d5 [ 7] lea <rip>(%rip),%rbx # <tomo_db0::(anonymous namespace)::kinds+0x350>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::FlatStore::choose_victim_read_local(tomo::Slice)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 1d ?? ?? ?? ?? | 02c5 [ 7] lea <rip>(%rip),%rbx # <tomo_db0::(anonymous namespace)::kinds+0x270>",
+      "+clone 0: 48 8d 1d ?? ?? ?? ?? | 02c5 [ 7] lea <rip>(%rip),%rbx # <tomo_db0::(anonymous namespace)::kinds+0x330>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::HashFieldMap::Node::Node(unsigned long, tomo::Slice, tomo::Slice)",
+    "changed_lines": 4,
+    "sample": [
+      "-clone 0: 4c 8d 35 ?? ?? ?? ?? | 0124 [ 7] lea <rip>(%rip),%r14 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 35 ?? ?? ?? ?? | 0124 [ 7] lea <rip>(%rip),%r14 # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 0140 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 0140 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::HashFieldMap::set(tomo::Slice, tomo::Slice)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 02a1 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 02a1 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::HashFieldTtl::set(tomo::Slice, long)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 0d ?? ?? ?? ?? | 0351 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 0d ?? ?? ?? ?? | 0351 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+    "changed_lines": 4532,
+    "sample": [
+      "-clone 0: 0f 85 98 51 00 00 | 008d [ 6] jne <+0x522b>",
+      "+clone 0: 0f 85 c2 52 00 00 | 008d [ 6] jne <+0x5355>",
+      "-clone 0: 89 85 94 f7 ff ff | 009f [ 6] mov %eax,-0x86c(%rbp)",
+      "+clone 0: 89 85 98 f7 ff ff | 009f [ 6] mov %eax,-0x868(%rbp)",
+      "-clone 0: 88 85 0d f8 ff ff | 0123 [ 6] mov %al,-0x7f3(%rbp)",
+      "+clone 0: 88 85 0e f8 ff ff | 0123 [ 6] mov %al,-0x7f2(%rbp)",
+      "-clone 0: 8b 7b 08 | 0183 [ 3] mov 0x8(%rbx),%edi",
+      "+clone 0: 8b 4b 08 | 0183 [ 3] mov 0x8(%rbx),%ecx",
+      "-clone 0: 89 bd 94 f7 ff ff | 0191 [ 6] mov %edi,-0x86c(%rbp)",
+      "-clone 0: 29 f8 | 0197 [ 2] sub %edi,%eax",
+      "+clone 0: 89 8d 98 f7 ff ff | 0191 [ 6] mov %ecx,-0x868(%rbp)",
+      "+clone 0: 29 c8 | 0197 [ 2] sub %ecx,%eax"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+    "changed_lines": 882,
+    "sample": [
+      "-clone 1: 0f 82 ?? ?? ?? ?? | 0058 [ 6] jb <tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]+0x58>",
+      "+clone 1: 0f 82 ?? ?? ?? ?? | 0058 [ 6] jb <tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]+0xa1>",
+      "-clone 1: 0f 85 ea 2d 00 00 | 0132 [ 6] jne <+0x2f22>",
+      "+clone 1: 0f 85 a3 2d 00 00 | 0132 [ 6] jne <+0x2edb>",
+      "-clone 1: 0f 88 ?? ?? ?? ?? | 02b3 [ 6] js <tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]+0xac>",
+      "+clone 1: 0f 88 ?? ?? ?? ?? | 02b3 [ 6] js <tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]+0x88>",
+      "-clone 1: 0f 85 05 1d 00 00 | 04f6 [ 6] jne <+0x2201>",
+      "+clone 1: 0f 85 04 1d 00 00 | 04f6 [ 6] jne <+0x2200>",
+      "-clone 1: 0f 85 d5 1a 00 00 | 06e1 [ 6] jne <+0x21bc>",
+      "+clone 1: 0f 85 d4 1a 00 00 | 06e1 [ 6] jne <+0x21bb>",
+      "-clone 1: 0f 84 b5 19 00 00 | 0739 [ 6] je <+0x20f4>",
+      "+clone 1: 0f 84 b4 19 00 00 | 0739 [ 6] je <+0x20f3>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "changed_lines": 46,
+    "sample": [
+      "-clone 1: e8 ?? ?? ?? ?? | 0053 [ 5] call <abort@plt>",
+      "-clone 1: 4c 89 e6 | 0058 [ 3] mov %r12,%rsi",
+      "-clone 1: 4c 89 ef | 005b [ 3] mov %r13,%rdi",
+      "-clone 1: e8 ?? ?? ?? ?? | 005e [ 5] call <tomo::IoLoop::note_query_limit_disconnect_once(tomo::Client const&) const>",
+      "-clone 1: 84 c0 | 0063 [ 2] test %al,%al",
+      "-clone 1: 75 5e | 0065 [ 2] jne <+0xc5>",
+      "-clone 1: 41 8b 44 24 04 | 0067 [ 5] mov 0x4(%r12),%eax",
+      "-clone 1: 89 85 08 f9 ff ff | 006c [ 6] mov %eax,-0x6f8(%rbp)",
+      "-clone 1: e9 ?? ?? ?? ?? | 0072 [ 5] jmp <tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]+0x7e>",
+      "-clone 1: 4c 8b 8d e8 f8 ff ff | 0077 [ 7] mov -0x718(%rbp),%r9",
+      "-clone 1: 45 31 f6 | 007e [ 3] xor %r14d,%r14d",
+      "-clone 1: 41 b8 00 00 10 00 | 0081 [ 6] mov $0x100000,%r8d"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::IoLoop::pubsub_handle_home_request(tomo::PubSubEvent&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 15 ?? ?? ?? ?? | 004f [ 7] lea <rip>(%rip),%rdx # <tomo_db0::(anonymous namespace)::kinds+0x51c>",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 004f [ 7] lea <rip>(%rip),%rdx # <tomo_db0::(anonymous namespace)::kinds+0x5dc>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::IoLoop::pubsub_handle_result(tomo::PubSubEvent&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 15 ?? ?? ?? ?? | 0060 [ 7] lea <rip>(%rip),%rdx # <tomo_db0::(anonymous namespace)::kinds+0x574>",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 0060 [ 7] lea <rip>(%rip),%rdx # <tomo_db0::(anonymous namespace)::kinds+0x634>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::IoLoop::pubsub_reply_ping(tomo::Op&) [clone .isra.0]",
+    "changed_lines": 10,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>",
+      "-clone 1: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 1: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>",
+      "-clone 2: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 2: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>",
+      "-clone 3: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 3: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>",
+      "-clone 4: 48 8d 35 ?? ?? ?? ?? | 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 4: 48 8d 35 ?? ?? ?? ?? | 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::IoLoop::shutdown_clients_after_join()",
+    "changed_lines": 2774,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 4c 8d 54 24 08 | 0004 [ 5] lea 0x8(%rsp),%r10",
+      "+clone 0: 48 83 e4 e0 | 0009 [ 4] and $0xffffffffffffffe0,%rsp",
+      "+clone 0: 41 ff 72 f8 | 000d [ 4] push -0x8(%r10)",
+      "+clone 0: 55 | 0011 [ 1] push %rbp",
+      "+clone 0: 48 89 e5 | 0012 [ 3] mov %rsp,%rbp",
+      "+clone 0: 41 57 | 0015 [ 2] push %r15",
+      "+clone 0: 41 56 | 0017 [ 2] push %r14",
+      "+clone 0: 41 55 | 0019 [ 2] push %r13",
+      "+clone 0: 41 54 | 001b [ 2] push %r12",
+      "+clone 0: 41 52 | 001d [ 2] push %r10",
+      "+clone 0: 53 | 001f [ 1] push %rbx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::IoLoop::shutdown_clients_after_join() [clone .cold]",
+    "changed_lines": 26,
+    "sample": [
+      "+clone 0: e8 ?? ?? ?? ?? | 0000 [ 5] call <abort@plt>",
+      "+clone 0: 48 8d 7d b0 | 0005 [ 4] lea -0x50(%rbp),%rdi",
+      "+clone 0: c5 f8 77 | 0009 [ 3] vzeroupper",
+      "+clone 0: e8 ?? ?? ?? ?? | 000c [ 5] call <std::vector<tomo::Client*, std::allocator<tomo::Client*> >::~vector()>",
+      "+clone 0: 48 8b 45 c8 | 0011 [ 4] mov -0x38(%rbp),%rax",
+      "+clone 0: 64 48 2b 04 25 28 00 00 00 | 0015 [ 9] sub %fs:0x28,%rax",
+      "+clone 0: 75 3b | 001e [ 2] jne <+0x5b>",
+      "+clone 0: 48 89 df | 0020 [ 3] mov %rbx,%rdi",
+      "+clone 0: e8 ?? ?? ?? ?? | 0023 [ 5] call <_Unwind_Resume@plt>",
+      "+clone 0: 4c 89 ee | 0028 [ 3] mov %r13,%rsi",
+      "+clone 0: 4c 29 e6 | 002b [ 3] sub %r12,%rsi",
+      "+clone 0: 4d 85 e4 | 002e [ 3] test %r12,%r12"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::IoLoop::shutdown_on_issuer()",
+    "changed_lines": 72,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 55 | 0004 [ 1] push %rbp",
+      "+clone 0: 48 89 e5 | 0005 [ 3] mov %rsp,%rbp",
+      "+clone 0: 41 55 | 0008 [ 2] push %r13",
+      "+clone 0: 41 54 | 000a [ 2] push %r12",
+      "+clone 0: 53 | 000c [ 1] push %rbx",
+      "+clone 0: 48 83 ec 58 | 000d [ 4] sub $0x58,%rsp",
+      "+clone 0: 64 48 8b 04 25 28 00 00 00 | 0011 [ 9] mov %fs:0x28,%rax",
+      "+clone 0: 48 89 44 24 48 | 001a [ 5] mov %rax,0x48(%rsp)",
+      "+clone 0: 31 c0 | 001f [ 2] xor %eax,%eax",
+      "+clone 0: 80 bf c0 0a 00 00 00 | 0021 [ 7] cmpb $0x0,0xac0(%rdi)",
+      "+clone 0: 74 0c | 0028 [ 2] je <+0x36>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::IoLoop::~IoLoop()",
+    "changed_lines": 1548,
+    "sample": [
+      "-clone 0: 48 8b 44 24 38 | 0087 [ 5] mov 0x38(%rsp),%rax",
+      "-clone 0: 48 8b 98 48 02 00 00 | 008c [ 7] mov 0x248(%rax),%rbx",
+      "-clone 0: 4c 8b a0 58 02 00 00 | 0093 [ 7] mov 0x258(%rax),%r12",
+      "-clone 0: 4c 8b a8 68 02 00 00 | 009a [ 7] mov 0x268(%rax),%r13",
+      "-clone 0: 48 8b 80 60 02 00 00 | 00a1 [ 7] mov 0x260(%rax),%rax",
+      "-clone 0: 4c 8d 70 08 | 00a8 [ 4] lea 0x8(%rax),%r14",
+      "-clone 0: 48 89 44 24 40 | 00ac [ 5] mov %rax,0x40(%rsp)",
+      "-clone 0: 66 66 2e 0f 1f 84 00 00 00 00 00 | 00b1 [11] data16 cs nopw 0x0(%rax,%rax,1)",
+      "-clone 0: 0f 1f 40 00 | 00bc [ 4] nopl 0x0(%rax)",
+      "-clone 0: 49 39 dd | 00c0 [ 3] cmp %rbx,%r13",
+      "-clone 0: 74 66 | 00c3 [ 2] je <+0x12b>",
+      "-clone 0: 4c 8b 3b | 00c5 [ 3] mov (%rbx),%r15"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::Server::init(tomo::Config const&, tomo::AofReplayPlan const*)",
+    "changed_lines": 6,
+    "sample": [
+      "-clone 0: c5 fa 7e 1d ?? ?? ?? ?? | 10cb [ 8] vmovq <rip>(%rip),%xmm3 # <_GLOBAL_OFFSET_TABLE_+0xa58>",
+      "-clone 0: c4 e3 e1 22 15 ?? ?? ?? ?? 01 | 10d3 [10] vpinsrq $0x1,<rip>(%rip),%xmm3,%xmm2 # <_GLOBAL_OFFSET_TABLE_+0xa30>",
+      "+clone 0: c5 fa 7e 1d ?? ?? ?? ?? | 10cb [ 8] vmovq <rip>(%rip),%xmm3 # <_GLOBAL_OFFSET_TABLE_+0xa60>",
+      "+clone 0: c4 e3 e1 22 15 ?? ?? ?? ?? 01 | 10d3 [10] vpinsrq $0x1,<rip>(%rip),%xmm3,%xmm2 # <_GLOBAL_OFFSET_TABLE_+0xa38>",
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 10e0 [ 7] lea <rip>(%rip),%r13 # <tomo_db0::(anonymous namespace)::kinds+0x4ac>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 10e0 [ 7] lea <rip>(%rip),%r13 # <tomo_db0::(anonymous namespace)::kinds+0x56c>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::Shard::watch_flush(int) [clone .cold]",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: e9 ?? ?? ?? ?? | 0021 [ 5] jmp <tomo_multidb2_pad_548282+0x1d3>",
+      "+clone 0: e9 ?? ?? ?? ?? | 0021 [ 5] jmp <tomo_multidb2_pad_548278+0x1d3>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::WbEngine::flush_deferred_oob(tomo::Client&) [clone .isra.0]",
+    "changed_lines": 217,
+    "sample": [
+      "+clone 0: 48 83 7f 78 00 | 0000 [ 5] cmpq $0x0,0x78(%rdi)",
+      "+clone 0: 75 09 | 0005 [ 2] jne <+0x10>",
+      "+clone 0: c3 | 0007 [ 1] ret",
+      "+clone 0: 0f 1f 84 00 00 00 00 00 | 0008 [ 8] nopl 0x0(%rax,%rax,1)",
+      "+clone 0: 41 57 | 0010 [ 2] push %r15",
+      "+clone 0: 41 56 | 0012 [ 2] push %r14",
+      "+clone 0: 41 55 | 0014 [ 2] push %r13",
+      "+clone 0: 48 89 f0 | 0016 [ 3] mov %rsi,%rax",
+      "+clone 0: 41 54 | 0019 [ 2] push %r12",
+      "+clone 0: 55 | 001b [ 1] push %rbp",
+      "+clone 0: 53 | 001c [ 1] push %rbx",
+      "+clone 0: 31 d2 | 001d [ 2] xor %edx,%edx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::WbEngine::serve_impl<false, false, true, false, false, false>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+    "changed_lines": 285,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 41 57 | 0004 [ 2] push %r15",
+      "+clone 0: 41 56 | 0006 [ 2] push %r14",
+      "+clone 0: 41 55 | 0008 [ 2] push %r13",
+      "+clone 0: 41 54 | 000a [ 2] push %r12",
+      "+clone 0: 55 | 000c [ 1] push %rbp",
+      "+clone 0: 53 | 000d [ 1] push %rbx",
+      "+clone 0: 48 89 fd | 000e [ 3] mov %rdi,%rbp",
+      "+clone 0: 48 83 ec 28 | 0011 [ 4] sub $0x28,%rsp",
+      "+clone 0: 48 83 be a8 00 00 00 00 | 0015 [ 8] cmpq $0x0,0xa8(%rsi)",
+      "+clone 0: 48 8b 47 08 | 001d [ 4] mov 0x8(%rdi),%rax",
+      "+clone 0: 48 89 f3 | 0021 [ 3] mov %rsi,%rbx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::WbEngine::serve_impl<true, false, true, false, false, false>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+    "changed_lines": 279,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 41 57 | 0004 [ 2] push %r15",
+      "+clone 0: 41 56 | 0006 [ 2] push %r14",
+      "+clone 0: 41 55 | 0008 [ 2] push %r13",
+      "+clone 0: 41 54 | 000a [ 2] push %r12",
+      "+clone 0: 55 | 000c [ 1] push %rbp",
+      "+clone 0: 53 | 000d [ 1] push %rbx",
+      "+clone 0: 48 89 fd | 000e [ 3] mov %rdi,%rbp",
+      "+clone 0: 48 83 ec 28 | 0011 [ 4] sub $0x28,%rsp",
+      "+clone 0: 48 83 be a8 00 00 00 00 | 0015 [ 8] cmpq $0x0,0xa8(%rsi)",
+      "+clone 0: 48 8b 47 08 | 001d [ 4] mov 0x8(%rdi),%rax",
+      "+clone 0: 48 89 f3 | 0021 [ 3] mov %rsi,%rbx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::WbEngine::serve_tls_impl<false, true, false, false, false>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+    "changed_lines": 232,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 41 57 | 0004 [ 2] push %r15",
+      "+clone 0: 41 56 | 0006 [ 2] push %r14",
+      "+clone 0: 41 55 | 0008 [ 2] push %r13",
+      "+clone 0: 41 54 | 000a [ 2] push %r12",
+      "+clone 0: 55 | 000c [ 1] push %rbp",
+      "+clone 0: 53 | 000d [ 1] push %rbx",
+      "+clone 0: 48 89 fd | 000e [ 3] mov %rdi,%rbp",
+      "+clone 0: 48 83 ec 28 | 0011 [ 4] sub $0x28,%rsp",
+      "+clone 0: 48 89 f3 | 0015 [ 3] mov %rsi,%rbx",
+      "+clone 0: f6 46 1c 02 | 0018 [ 4] testb $0x2,0x1c(%rsi)",
+      "+clone 0: 74 0e | 001c [ 2] je <+0x2c>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::WbEngine::serve_tls_impl<true, true, false, false, false>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const",
+    "changed_lines": 224,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 41 57 | 0004 [ 2] push %r15",
+      "+clone 0: 41 56 | 0006 [ 2] push %r14",
+      "+clone 0: 41 55 | 0008 [ 2] push %r13",
+      "+clone 0: 41 54 | 000a [ 2] push %r12",
+      "+clone 0: 55 | 000c [ 1] push %rbp",
+      "+clone 0: 53 | 000d [ 1] push %rbx",
+      "+clone 0: 48 89 fd | 000e [ 3] mov %rdi,%rbp",
+      "+clone 0: 48 83 ec 28 | 0011 [ 4] sub $0x28,%rsp",
+      "+clone 0: 48 89 f3 | 0015 [ 3] mov %rsi,%rbx",
+      "+clone 0: f6 46 1c 02 | 0018 [ 4] testb $0x2,0x1c(%rsi)",
+      "+clone 0: 74 0e | 001c [ 2] je <+0x2c>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::acl_initialize(tomo::Server&, tomo::Config const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "changed_lines": 4,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0068 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0068 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 04f8 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 04f8 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::command_client_reset_meta(tomo::Client*)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 001e [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 001e [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::command_metadata_init(tomo::CommandSpec const*, unsigned long)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 05 ?? ?? ?? ?? | 00e3 [ 7] lea <rip>(%rip),%r8 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 05 ?? ?? ?? ?? | 00e3 [ 7] lea <rip>(%rip),%r8 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::kvobj_external_bytes(tomo::KvObj const*)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 0d ?? ?? ?? ?? | 0017 [ 7] lea <rip>(%rip),%rcx # <tomo_db0::(anonymous namespace)::kinds+0x240>",
+      "+clone 0: 48 8d 0d ?? ?? ?? ?? | 0017 [ 7] lea <rip>(%rip),%rcx # <tomo_db0::(anonymous namespace)::kinds+0x300>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 15 ?? ?? ?? ?? | 0078 [ 7] lea <rip>(%rip),%rdx # <tomo_db0::(anonymous namespace)::kinds+0x258>",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 0078 [ 7] lea <rip>(%rip),%rdx # <tomo_db0::(anonymous namespace)::kinds+0x318>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::parse_config_args(std::vector<char const*, std::allocator<char const*> > const&, tomo::Config&, tomo::ConfigParseState&, int, char const*, std::vector<unsigned long, std::allocator<unsigned long> > const*)",
+    "changed_lines": 28,
+    "sample": [
+      "-clone 0: 48 8d 0d ?? ?? ?? ?? | 06e4 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 0d ?? ?? ?? ?? | 06e4 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0910 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0910 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 09e6 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 09e6 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0a2c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0a2c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0b0e [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0b0e [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0b48 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0b48 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)",
+    "changed_lines": 1210,
+    "sample": [
+      "-clone 0: 48 81 ec 68 02 00 00 | 0017 [ 7] sub $0x268,%rsp",
+      "+clone 0: 48 81 ec 48 02 00 00 | 0017 [ 7] sub $0x248,%rsp",
+      "-clone 0: 48 89 74 24 78 | 0025 [ 5] mov %rsi,0x78(%rsp)",
+      "-clone 0: 48 89 54 24 20 | 002a [ 5] mov %rdx,0x20(%rsp)",
+      "-clone 0: 48 89 4c 24 70 | 002f [ 5] mov %rcx,0x70(%rsp)",
+      "-clone 0: 4c 89 44 24 68 | 0034 [ 5] mov %r8,0x68(%rsp)",
+      "-clone 0: 4c 89 4c 24 48 | 0039 [ 5] mov %r9,0x48(%rsp)",
+      "-clone 0: 48 8b 35 ?? ?? ?? ?? | 003e [ 7] mov <rip>(%rip),%rsi # <stdout@GLIBC_2.2.5>",
+      "-clone 0: 48 89 44 24 60 | 0045 [ 5] mov %rax,0x60(%rsp)",
+      "-clone 0: 64 48 8b 04 25 28 00 00 00 | 004a [ 9] mov %fs:0x28,%rax",
+      "-clone 0: 48 89 84 24 58 02 00 00 | 0053 [ 8] mov %rax,0x258(%rsp)",
+      "-clone 0: 31 c0 | 005b [ 2] xor %eax,%eax"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::run_fused_server_reordered(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)",
+    "changed_lines": 1210,
+    "sample": [
+      "-clone 0: 48 81 ec 68 02 00 00 | 0013 [ 7] sub $0x268,%rsp",
+      "+clone 0: 48 81 ec 48 02 00 00 | 0013 [ 7] sub $0x248,%rsp",
+      "-clone 0: 48 89 74 24 78 | 0021 [ 5] mov %rsi,0x78(%rsp)",
+      "-clone 0: 48 89 54 24 20 | 0026 [ 5] mov %rdx,0x20(%rsp)",
+      "-clone 0: 48 89 4c 24 70 | 002b [ 5] mov %rcx,0x70(%rsp)",
+      "-clone 0: 4c 89 44 24 68 | 0030 [ 5] mov %r8,0x68(%rsp)",
+      "-clone 0: 4c 89 4c 24 48 | 0035 [ 5] mov %r9,0x48(%rsp)",
+      "-clone 0: 48 8b 35 ?? ?? ?? ?? | 003a [ 7] mov <rip>(%rip),%rsi # <stdout@GLIBC_2.2.5>",
+      "-clone 0: 48 89 44 24 60 | 0041 [ 5] mov %rax,0x60(%rsp)",
+      "-clone 0: 64 48 8b 04 25 28 00 00 00 | 0046 [ 9] mov %fs:0x28,%rax",
+      "-clone 0: 48 89 84 24 58 02 00 00 | 004f [ 8] mov %rax,0x258(%rsp)",
+      "-clone 0: 31 c0 | 0057 [ 2] xor %eax,%eax"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)",
+    "changed_lines": 1226,
+    "sample": [
+      "-clone 0: 48 81 ec 68 02 00 00 | 0011 [ 7] sub $0x268,%rsp",
+      "+clone 0: 48 81 ec 48 02 00 00 | 0011 [ 7] sub $0x248,%rsp",
+      "-clone 0: 48 89 74 24 78 | 001c [ 5] mov %rsi,0x78(%rsp)",
+      "-clone 0: 48 89 54 24 20 | 0021 [ 5] mov %rdx,0x20(%rsp)",
+      "-clone 0: 48 89 4c 24 70 | 0026 [ 5] mov %rcx,0x70(%rsp)",
+      "-clone 0: 4c 89 44 24 68 | 002b [ 5] mov %r8,0x68(%rsp)",
+      "-clone 0: 4c 89 4c 24 48 | 0030 [ 5] mov %r9,0x48(%rsp)",
+      "-clone 0: 48 89 44 24 60 | 0035 [ 5] mov %rax,0x60(%rsp)",
+      "-clone 0: 64 48 8b 04 25 28 00 00 00 | 003a [ 9] mov %fs:0x28,%rax",
+      "-clone 0: 48 89 84 24 58 02 00 00 | 0043 [ 8] mov %rax,0x258(%rsp)",
+      "-clone 0: 31 c0 | 004b [ 2] xor %eax,%eax",
+      "-clone 0: 48 8d 47 78 | 004d [ 4] lea 0x78(%rdi),%rax"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+    "changed_lines": 6,
+    "sample": [
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 0f90 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 0f90 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 1013 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 1013 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 1090 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 1090 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_memory(tomo_db0::Shard&, tomo_db0::Op&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 15 ?? ?? ?? ?? | 064f [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 064f [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_slowlog(tomo_db0::Shard&, tomo_db0::Op&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 3d ?? ?? ?? ?? | 1166 [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 3d ?? ?? ?? ?? | 1166 [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::create_sandbox_static(lua_State*, tomo_db0::(anonymous namespace)::ScriptContext**)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 25 ?? ?? ?? ?? | 0014 [ 7] lea <rip>(%rip),%r12 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 25 ?? ?? ?? ?? | 0014 [ 7] lea <rip>(%rip),%r12 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::init_config(tomo_db0::Config const&)",
+    "changed_lines": 20,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0224 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0224 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 1036 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 1036 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 1093 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 1093 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 10f0 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 10f0 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 114d [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 114d [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 121e [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 121e [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0428 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0428 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: e9 ?? ?? ?? ?? | 0039 [ 5] jmp <auto tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#6}::operator()() const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#6}::operator()() const::{lambda(tomo::Op const&)#1}&&) const+0x1b9>",
+      "+clone 0: e9 ?? ?? ?? ?? | 0039 [ 5] jmp <void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo::Client*> > >(__gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, __gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo::Client*> >)+0x437>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: e9 ?? ?? ?? ?? | 0039 [ 5] jmp <auto tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#6}::operator()() const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)::{lambda()#6}::operator()() const::{lambda(tomo::Op const&)#1}&&) const+0x1d5>",
+      "+clone 0: e9 ?? ?? ?? ?? | 0039 [ 5] jmp <void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo::Client*> > >(__gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, __gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo::Client*> >)+0x453>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::FlatStore::choose_victim(tomo_db0::Slice)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 3d ?? ?? ?? ?? | 06a8 [ 7] lea <rip>(%rip),%rdi # <_IO_stdin_used+0x16d98>",
+      "+clone 0: 48 8d 3d ?? ?? ?? ?? | 06a8 [ 7] lea <rip>(%rip),%rdi # <_IO_stdin_used+0x16dc0>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::FlatStore::choose_victim_read_local(tomo_db0::Slice)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 3d ?? ?? ?? ?? | 0698 [ 7] lea <rip>(%rip),%rdi # <_IO_stdin_used+0x16d78>",
+      "+clone 0: 48 8d 3d ?? ?? ?? ?? | 0698 [ 7] lea <rip>(%rip),%rdi # <_IO_stdin_used+0x16da0>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::HashFieldMap::Node::Node(unsigned long, tomo_db0::Slice, tomo_db0::Slice)",
+    "changed_lines": 4,
+    "sample": [
+      "-clone 0: 4c 8d 35 ?? ?? ?? ?? | 0124 [ 7] lea <rip>(%rip),%r14 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 35 ?? ?? ?? ?? | 0124 [ 7] lea <rip>(%rip),%r14 # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 0140 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 0140 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::HashFieldMap::set(tomo_db0::Slice, tomo_db0::Slice)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0288 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0288 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::HashFieldTtl::set(tomo_db0::Slice, long)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 0d ?? ?? ?? ?? | 0351 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 0d ?? ?? ?? ?? | 0351 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+    "changed_lines": 1644,
+    "sample": [
+      "-clone 0: 0f 85 39 25 00 00 | 00fd [ 6] jne <+0x263c>",
+      "+clone 0: 0f 85 0d 25 00 00 | 00fd [ 6] jne <+0x2610>",
+      "-clone 0: 0f 84 51 10 00 00 | 02ec [ 6] je <+0x1343>",
+      "+clone 0: 0f 84 6e 10 00 00 | 02ec [ 6] je <+0x1360>",
+      "-clone 0: 0f 85 04 12 00 00 | 03d2 [ 6] jne <+0x15dc>",
+      "+clone 0: 0f 85 6b 0f 00 00 | 03d2 [ 6] jne <+0x1343>",
+      "-clone 0: 0f 85 59 0f 00 00 | 0417 [ 6] jne <+0x1376>",
+      "+clone 0: 0f 85 76 0f 00 00 | 0417 [ 6] jne <+0x1393>",
+      "-clone 0: 0f 85 66 18 00 00 | 0474 [ 6] jne <+0x1ce0>",
+      "+clone 0: 0f 85 84 18 00 00 | 0474 [ 6] jne <+0x1cfe>",
+      "-clone 0: 0f 84 27 1a 00 00 | 0536 [ 6] je <+0x1f63>",
+      "+clone 0: 0f 84 3c 1a 00 00 | 0536 [ 6] je <+0x1f78>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: e9 ?? ?? ?? ?? | 009c [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x154f>",
+      "+clone 0: e9 ?? ?? ?? ?? | 009c [ 5] jmp <tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]+0x156f>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::IoLoop::pubsub_handle_home_request(tomo_db0::PubSubEvent&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 15 ?? ?? ?? ?? | 004f [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x16fb4>",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 004f [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x16fdc>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::IoLoop::pubsub_handle_result(tomo_db0::PubSubEvent&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 15 ?? ?? ?? ?? | 0060 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x1708c>",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 0060 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x170b4>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::IoLoop::pubsub_reply_ping(tomo_db0::Op&) [clone .isra.0]",
+    "changed_lines": 10,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>",
+      "-clone 1: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 1: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>",
+      "-clone 2: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 2: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>",
+      "-clone 3: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 3: 48 8d 35 ?? ?? ?? ?? | 020f [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>",
+      "-clone 4: 48 8d 35 ?? ?? ?? ?? | 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 4: 48 8d 35 ?? ?? ?? ?? | 0172 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::IoLoop::shutdown_clients_after_join()",
+    "changed_lines": 2774,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 4c 8d 54 24 08 | 0004 [ 5] lea 0x8(%rsp),%r10",
+      "+clone 0: 48 83 e4 e0 | 0009 [ 4] and $0xffffffffffffffe0,%rsp",
+      "+clone 0: 41 ff 72 f8 | 000d [ 4] push -0x8(%r10)",
+      "+clone 0: 55 | 0011 [ 1] push %rbp",
+      "+clone 0: 48 89 e5 | 0012 [ 3] mov %rsp,%rbp",
+      "+clone 0: 41 57 | 0015 [ 2] push %r15",
+      "+clone 0: 41 56 | 0017 [ 2] push %r14",
+      "+clone 0: 41 55 | 0019 [ 2] push %r13",
+      "+clone 0: 41 54 | 001b [ 2] push %r12",
+      "+clone 0: 41 52 | 001d [ 2] push %r10",
+      "+clone 0: 53 | 001f [ 1] push %rbx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::IoLoop::shutdown_clients_after_join() [clone .cold]",
+    "changed_lines": 26,
+    "sample": [
+      "+clone 0: e8 ?? ?? ?? ?? | 0000 [ 5] call <abort@plt>",
+      "+clone 0: 48 8d 7d b0 | 0005 [ 4] lea -0x50(%rbp),%rdi",
+      "+clone 0: c5 f8 77 | 0009 [ 3] vzeroupper",
+      "+clone 0: e8 ?? ?? ?? ?? | 000c [ 5] call <std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::~vector()>",
+      "+clone 0: 48 8b 45 c8 | 0011 [ 4] mov -0x38(%rbp),%rax",
+      "+clone 0: 64 48 2b 04 25 28 00 00 00 | 0015 [ 9] sub %fs:0x28,%rax",
+      "+clone 0: 75 3b | 001e [ 2] jne <+0x5b>",
+      "+clone 0: 48 89 df | 0020 [ 3] mov %rbx,%rdi",
+      "+clone 0: e8 ?? ?? ?? ?? | 0023 [ 5] call <_Unwind_Resume@plt>",
+      "+clone 0: 4c 89 ee | 0028 [ 3] mov %r13,%rsi",
+      "+clone 0: 4c 29 e6 | 002b [ 3] sub %r12,%rsi",
+      "+clone 0: 4d 85 e4 | 002e [ 3] test %r12,%r12"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::IoLoop::shutdown_on_issuer()",
+    "changed_lines": 72,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 55 | 0004 [ 1] push %rbp",
+      "+clone 0: 48 89 e5 | 0005 [ 3] mov %rsp,%rbp",
+      "+clone 0: 41 55 | 0008 [ 2] push %r13",
+      "+clone 0: 41 54 | 000a [ 2] push %r12",
+      "+clone 0: 53 | 000c [ 1] push %rbx",
+      "+clone 0: 48 83 ec 58 | 000d [ 4] sub $0x58,%rsp",
+      "+clone 0: 64 48 8b 04 25 28 00 00 00 | 0011 [ 9] mov %fs:0x28,%rax",
+      "+clone 0: 48 89 44 24 48 | 001a [ 5] mov %rax,0x48(%rsp)",
+      "+clone 0: 31 c0 | 001f [ 2] xor %eax,%eax",
+      "+clone 0: 80 bf c0 0a 00 00 00 | 0021 [ 7] cmpb $0x0,0xac0(%rdi)",
+      "+clone 0: 74 0c | 0028 [ 2] je <+0x36>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::IoLoop::~IoLoop()",
+    "changed_lines": 1772,
+    "sample": [
+      "-clone 0: 48 8b 44 24 38 | 0087 [ 5] mov 0x38(%rsp),%rax",
+      "-clone 0: 48 8b 98 48 02 00 00 | 008c [ 7] mov 0x248(%rax),%rbx",
+      "-clone 0: 4c 8b a0 58 02 00 00 | 0093 [ 7] mov 0x258(%rax),%r12",
+      "-clone 0: 4c 8b a8 68 02 00 00 | 009a [ 7] mov 0x268(%rax),%r13",
+      "-clone 0: 48 8b 80 60 02 00 00 | 00a1 [ 7] mov 0x260(%rax),%rax",
+      "-clone 0: 4c 8d 70 08 | 00a8 [ 4] lea 0x8(%rax),%r14",
+      "-clone 0: 48 89 44 24 40 | 00ac [ 5] mov %rax,0x40(%rsp)",
+      "-clone 0: 66 66 2e 0f 1f 84 00 00 00 00 00 | 00b1 [11] data16 cs nopw 0x0(%rax,%rax,1)",
+      "-clone 0: 0f 1f 40 00 | 00bc [ 4] nopl 0x0(%rax)",
+      "-clone 0: 49 39 dd | 00c0 [ 3] cmp %rbx,%r13",
+      "-clone 0: 74 66 | 00c3 [ 2] je <+0x12b>",
+      "-clone 0: 4c 8b 3b | 00c5 [ 3] mov (%rbx),%r15"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::Server::init(tomo_db0::Config const&, tomo_db0::AofReplayPlan const*)",
+    "changed_lines": 6,
+    "sample": [
+      "-clone 0: c5 fa 7e 1d ?? ?? ?? ?? | 107b [ 8] vmovq <rip>(%rip),%xmm3 # <_GLOBAL_OFFSET_TABLE_+0xa28>",
+      "-clone 0: c4 e3 e1 22 15 ?? ?? ?? ?? 01 | 1083 [10] vpinsrq $0x1,<rip>(%rip),%xmm3,%xmm2 # <_GLOBAL_OFFSET_TABLE_+0xa38>",
+      "+clone 0: c5 fa 7e 1d ?? ?? ?? ?? | 107b [ 8] vmovq <rip>(%rip),%xmm3 # <_GLOBAL_OFFSET_TABLE_+0xa30>",
+      "+clone 0: c4 e3 e1 22 15 ?? ?? ?? ?? 01 | 1083 [10] vpinsrq $0x1,<rip>(%rip),%xmm3,%xmm2 # <_GLOBAL_OFFSET_TABLE_+0xa40>",
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 1090 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x16ff4>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 1090 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x1701c>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::Topology::dump(_IO_FILE*) const",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 0d ?? ?? ?? ?? | 00b4 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 0d ?? ?? ?? ?? | 00b4 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::WbEngine::flush_deferred_oob(tomo_db0::Client&) [clone .isra.0]",
+    "changed_lines": 217,
+    "sample": [
+      "+clone 0: 48 83 7f 78 00 | 0000 [ 5] cmpq $0x0,0x78(%rdi)",
+      "+clone 0: 75 09 | 0005 [ 2] jne <+0x10>",
+      "+clone 0: c3 | 0007 [ 1] ret",
+      "+clone 0: 0f 1f 84 00 00 00 00 00 | 0008 [ 8] nopl 0x0(%rax,%rax,1)",
+      "+clone 0: 41 57 | 0010 [ 2] push %r15",
+      "+clone 0: 41 56 | 0012 [ 2] push %r14",
+      "+clone 0: 41 55 | 0014 [ 2] push %r13",
+      "+clone 0: 48 89 f0 | 0016 [ 3] mov %rsi,%rax",
+      "+clone 0: 41 54 | 0019 [ 2] push %r12",
+      "+clone 0: 55 | 001b [ 1] push %rbp",
+      "+clone 0: 53 | 001c [ 1] push %rbx",
+      "+clone 0: 31 d2 | 001d [ 2] xor %edx,%edx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::WbEngine::serve_impl<false, false, true, false, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "changed_lines": 285,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 41 57 | 0004 [ 2] push %r15",
+      "+clone 0: 41 56 | 0006 [ 2] push %r14",
+      "+clone 0: 41 55 | 0008 [ 2] push %r13",
+      "+clone 0: 41 54 | 000a [ 2] push %r12",
+      "+clone 0: 55 | 000c [ 1] push %rbp",
+      "+clone 0: 53 | 000d [ 1] push %rbx",
+      "+clone 0: 48 89 fd | 000e [ 3] mov %rdi,%rbp",
+      "+clone 0: 48 83 ec 28 | 0011 [ 4] sub $0x28,%rsp",
+      "+clone 0: 48 83 be a8 00 00 00 00 | 0015 [ 8] cmpq $0x0,0xa8(%rsi)",
+      "+clone 0: 48 8b 47 08 | 001d [ 4] mov 0x8(%rdi),%rax",
+      "+clone 0: 48 89 f3 | 0021 [ 3] mov %rsi,%rbx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::WbEngine::serve_impl<true, false, true, false, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "changed_lines": 279,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 41 57 | 0004 [ 2] push %r15",
+      "+clone 0: 41 56 | 0006 [ 2] push %r14",
+      "+clone 0: 41 55 | 0008 [ 2] push %r13",
+      "+clone 0: 41 54 | 000a [ 2] push %r12",
+      "+clone 0: 55 | 000c [ 1] push %rbp",
+      "+clone 0: 53 | 000d [ 1] push %rbx",
+      "+clone 0: 48 89 fd | 000e [ 3] mov %rdi,%rbp",
+      "+clone 0: 48 83 ec 28 | 0011 [ 4] sub $0x28,%rsp",
+      "+clone 0: 48 83 be a8 00 00 00 00 | 0015 [ 8] cmpq $0x0,0xa8(%rsi)",
+      "+clone 0: 48 8b 47 08 | 001d [ 4] mov 0x8(%rdi),%rax",
+      "+clone 0: 48 89 f3 | 0021 [ 3] mov %rsi,%rbx"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::WbEngine::serve_tls_impl<false, true, false, false, false>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "changed_lines": 232,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 41 57 | 0004 [ 2] push %r15",
+      "+clone 0: 41 56 | 0006 [ 2] push %r14",
+      "+clone 0: 41 55 | 0008 [ 2] push %r13",
+      "+clone 0: 41 54 | 000a [ 2] push %r12",
+      "+clone 0: 55 | 000c [ 1] push %rbp",
+      "+clone 0: 53 | 000d [ 1] push %rbx",
+      "+clone 0: 48 89 fd | 000e [ 3] mov %rdi,%rbp",
+      "+clone 0: 48 83 ec 28 | 0011 [ 4] sub $0x28,%rsp",
+      "+clone 0: 48 89 f3 | 0015 [ 3] mov %rsi,%rbx",
+      "+clone 0: f6 46 1c 02 | 0018 [ 4] testb $0x2,0x1c(%rsi)",
+      "+clone 0: 74 0e | 001c [ 2] je <+0x2c>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::WbEngine::serve_tls_impl<true, true, false, false, false>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "changed_lines": 224,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 41 57 | 0004 [ 2] push %r15",
+      "+clone 0: 41 56 | 0006 [ 2] push %r14",
+      "+clone 0: 41 55 | 0008 [ 2] push %r13",
+      "+clone 0: 41 54 | 000a [ 2] push %r12",
+      "+clone 0: 55 | 000c [ 1] push %rbp",
+      "+clone 0: 53 | 000d [ 1] push %rbx",
+      "+clone 0: 48 89 fd | 000e [ 3] mov %rdi,%rbp",
+      "+clone 0: 48 83 ec 28 | 0011 [ 4] sub $0x28,%rsp",
+      "+clone 0: 48 89 f3 | 0015 [ 3] mov %rsi,%rbx",
+      "+clone 0: f6 46 1c 02 | 0018 [ 4] testb $0x2,0x1c(%rsi)",
+      "+clone 0: 74 0e | 001c [ 2] je <+0x2c>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::acl_initialize(tomo_db0::Server&, tomo_db0::Config const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "changed_lines": 4,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0068 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0068 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 04f8 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 04f8 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::command_client_reset_meta(tomo_db0::Client*)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 001e [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 001e [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::command_metadata_init(tomo_db0::CommandSpec const*, unsigned long)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 05 ?? ?? ?? ?? | 00e3 [ 7] lea <rip>(%rip),%r8 # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 4c 8d 05 ?? ?? ?? ?? | 00e3 [ 7] lea <rip>(%rip),%r8 # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 0d ?? ?? ?? ?? | 0017 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x16d48>",
+      "+clone 0: 48 8d 0d ?? ?? ?? ?? | 0017 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x16d70>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::kvobj_free_with_capacity(tomo_db0::KvObj*, unsigned long)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 15 ?? ?? ?? ?? | 0078 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x16d60>",
+      "+clone 0: 48 8d 15 ?? ?? ?? ?? | 0078 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x16d88>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::parse_config_args(std::vector<char const*, std::allocator<char const*> > const&, tomo_db0::Config&, tomo_db0::ConfigParseState&, int, char const*, std::vector<unsigned long, std::allocator<unsigned long> > const*)",
+    "changed_lines": 28,
+    "sample": [
+      "-clone 0: 48 8d 0d ?? ?? ?? ?? | 06e1 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 0d ?? ?? ?? ?? | 06e1 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 08f7 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 08f7 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 09d0 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 09d0 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0a0d [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0a0d [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0ae9 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0ae9 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0b1d [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0b1d [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "tomo_db0::run_fused_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)",
+    "changed_lines": 1203,
+    "sample": [
+      "-clone 0: 49 89 fd | 0011 [ 3] mov %rdi,%r13",
+      "-clone 0: 45 31 ff | 0014 [ 3] xor %r15d,%r15d",
+      "-clone 0: 48 81 ec 68 02 00 00 | 0017 [ 7] sub $0x268,%rsp",
+      "-clone 0: 48 8b 45 10 | 001e [ 4] mov 0x10(%rbp),%rax",
+      "-clone 0: 45 31 e4 | 0022 [ 3] xor %r12d,%r12d",
+      "-clone 0: 48 89 74 24 78 | 0025 [ 5] mov %rsi,0x78(%rsp)",
+      "-clone 0: 48 89 54 24 18 | 002a [ 5] mov %rdx,0x18(%rsp)",
+      "-clone 0: 48 89 4c 24 70 | 002f [ 5] mov %rcx,0x70(%rsp)",
+      "-clone 0: 4c 89 44 24 68 | 0034 [ 5] mov %r8,0x68(%rsp)",
+      "-clone 0: 4c 89 4c 24 50 | 0039 [ 5] mov %r9,0x50(%rsp)",
+      "-clone 0: 48 8b 35 ?? ?? ?? ?? | 003e [ 7] mov <rip>(%rip),%rsi # <stdout@GLIBC_2.2.5>",
+      "-clone 0: 48 89 44 24 60 | 0045 [ 5] mov %rax,0x60(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::run_fused_server_reordered(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)",
+    "changed_lines": 1203,
+    "sample": [
+      "-clone 0: 49 89 fd | 000d [ 3] mov %rdi,%r13",
+      "-clone 0: 45 31 ff | 0010 [ 3] xor %r15d,%r15d",
+      "-clone 0: 48 81 ec 68 02 00 00 | 0013 [ 7] sub $0x268,%rsp",
+      "-clone 0: 48 8b 45 10 | 001a [ 4] mov 0x10(%rbp),%rax",
+      "-clone 0: 45 31 e4 | 001e [ 3] xor %r12d,%r12d",
+      "-clone 0: 48 89 74 24 78 | 0021 [ 5] mov %rsi,0x78(%rsp)",
+      "-clone 0: 48 89 54 24 18 | 0026 [ 5] mov %rdx,0x18(%rsp)",
+      "-clone 0: 48 89 4c 24 70 | 002b [ 5] mov %rcx,0x70(%rsp)",
+      "-clone 0: 4c 89 44 24 68 | 0030 [ 5] mov %r8,0x68(%rsp)",
+      "-clone 0: 4c 89 4c 24 50 | 0035 [ 5] mov %r9,0x50(%rsp)",
+      "-clone 0: 48 8b 35 ?? ?? ?? ?? | 003a [ 7] mov <rip>(%rip),%rsi # <stdout@GLIBC_2.2.5>",
+      "-clone 0: 48 89 44 24 60 | 0041 [ 5] mov %rax,0x60(%rsp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomo_db0::run_split_read_local_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)",
+    "changed_lines": 1213,
+    "sample": [
+      "-clone 0: 48 81 ec 68 02 00 00 | 0011 [ 7] sub $0x268,%rsp",
+      "-clone 0: 48 8b 45 10 | 0018 [ 4] mov 0x10(%rbp),%rax",
+      "-clone 0: 48 89 74 24 78 | 001c [ 5] mov %rsi,0x78(%rsp)",
+      "-clone 0: 48 89 54 24 18 | 0021 [ 5] mov %rdx,0x18(%rsp)",
+      "-clone 0: 48 89 4c 24 70 | 0026 [ 5] mov %rcx,0x70(%rsp)",
+      "-clone 0: 4c 89 44 24 68 | 002b [ 5] mov %r8,0x68(%rsp)",
+      "-clone 0: 4c 89 4c 24 50 | 0030 [ 5] mov %r9,0x50(%rsp)",
+      "-clone 0: 48 89 44 24 60 | 0035 [ 5] mov %rax,0x60(%rsp)",
+      "-clone 0: 64 48 8b 04 25 28 00 00 00 | 003a [ 9] mov %fs:0x28,%rax",
+      "-clone 0: 48 89 84 24 58 02 00 00 | 0043 [ 8] mov %rax,0x258(%rsp)",
+      "-clone 0: 48 8b 87 70 03 01 00 | 004b [ 7] mov 0x10370(%rdi),%rax",
+      "-clone 0: 48 2b 87 68 03 01 00 | 0052 [ 7] sub 0x10368(%rdi),%rax"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomokv_multidb_main(int, char**)",
+    "changed_lines": 162,
+    "sample": [
+      "-clone 0: 48 81 ec 80 0f 00 00 | 0039 [ 7] sub $0xf80,%rsp",
+      "+clone 0: 48 81 ec c0 0f 00 00 | 0039 [ 7] sub $0xfc0,%rsp",
+      "-clone 0: 48 89 85 28 a1 fd ff | 0066 [ 7] mov %rax,-0x25ed8(%rbp)",
+      "+clone 0: 48 89 85 20 a1 fd ff | 0066 [ 7] mov %rax,-0x25ee0(%rbp)",
+      "-clone 0: 48 89 85 40 a1 fd ff | 009a [ 7] mov %rax,-0x25ec0(%rbp)",
+      "+clone 0: 48 89 85 38 a1 fd ff | 009a [ 7] mov %rax,-0x25ec8(%rbp)",
+      "-clone 0: 48 89 85 38 a1 fd ff | 00e0 [ 7] mov %rax,-0x25ec8(%rbp)",
+      "+clone 0: 48 89 85 30 a1 fd ff | 00e0 [ 7] mov %rax,-0x25ed0(%rbp)",
+      "-clone 0: 48 8b bd 28 a1 fd ff | 0325 [ 7] mov -0x25ed8(%rbp),%rdi",
+      "+clone 0: 48 8b bd 20 a1 fd ff | 0325 [ 7] mov -0x25ee0(%rbp),%rdi",
+      "-clone 0: 48 89 8d 48 a1 fd ff | 038a [ 7] mov %rcx,-0x25eb8(%rbp)",
+      "+clone 0: 48 89 8d 40 a1 fd ff | 038a [ 7] mov %rcx,-0x25ec0(%rbp)"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "tomokv_multidb_main(int, char**) [clone .cold]",
+    "changed_lines": 850,
+    "sample": [
+      "-clone 0: 48 89 85 20 a1 fd ff | 0015 [ 7] mov %rax,-0x25ee0(%rbp)",
+      "-clone 0: 48 8b bd 20 a1 fd ff | 001c [ 7] mov -0x25ee0(%rbp),%rdi",
+      "+clone 0: 48 89 85 08 a1 fd ff | 0015 [ 7] mov %rax,-0x25ef8(%rbp)",
+      "+clone 0: 48 8b bd 08 a1 fd ff | 001c [ 7] mov -0x25ef8(%rbp),%rdi",
+      "-clone 0: 48 8b bd 28 a1 fd ff | 0048 [ 7] mov -0x25ed8(%rbp),%rdi",
+      "+clone 0: 48 8b bd 20 a1 fd ff | 0048 [ 7] mov -0x25ee0(%rbp),%rdi",
+      "-clone 0: 48 8b bd 40 a1 fd ff | 0076 [ 7] mov -0x25ec0(%rbp),%rdi",
+      "+clone 0: 48 8b bd 38 a1 fd ff | 0076 [ 7] mov -0x25ec8(%rbp),%rdi",
+      "-clone 0: 0f 84 58 10 00 00 | 013e [ 6] je <+0x119c>",
+      "+clone 0: 0f 84 4e 10 00 00 | 013e [ 6] je <+0x1192>",
+      "-clone 0: 0f 84 4b 10 00 00 | 0161 [ 6] je <+0x11b2>",
+      "+clone 0: 0f 84 41 10 00 00 | 0161 [ 6] je <+0x11a8>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, true, false>(int)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 0065 [ 7] lea <rip>(%rip),%r13 # <tomo_db0::(anonymous namespace)::kinds+0x6ec>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 0065 [ 7] lea <rip>(%rip),%r13 # <tomo_db0::(anonymous namespace)::kinds+0x7ac>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, false, false>(int)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 0065 [ 7] lea <rip>(%rip),%r13 # <tomo_db0::(anonymous namespace)::kinds+0x734>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 0065 [ 7] lea <rip>(%rip),%r13 # <tomo_db0::(anonymous namespace)::kinds+0x7f4>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, true, false>(int)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 0065 [ 7] lea <rip>(%rip),%r13 # <tomo_db0::(anonymous namespace)::kinds+0x77c>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 0065 [ 7] lea <rip>(%rip),%r13 # <tomo_db0::(anonymous namespace)::kinds+0x83c>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "unsigned int tomo::ThreadCtx::drain_releases_unmasked<tomo::IoLoop::shutdown_clients_after_join()::{lambda(tomo::BorrowRelease const&)#1}>(tomo::IoLoop::shutdown_clients_after_join()::{lambda(tomo::BorrowRelease const&)#1}&&) [clone .isra.0]",
+    "changed_lines": 412,
+    "sample": [
+      "+clone 0: 44 8b 87 f8 02 00 00 | 0000 [ 7] mov 0x2f8(%rdi),%r8d",
+      "+clone 0: 45 85 c0 | 0007 [ 3] test %r8d,%r8d",
+      "+clone 0: 0f 84 f8 06 00 00 | 000a [ 6] je <+0x708>",
+      "+clone 0: 41 57 | 0010 [ 2] push %r15",
+      "+clone 0: 41 56 | 0012 [ 2] push %r14",
+      "+clone 0: 41 55 | 0014 [ 2] push %r13",
+      "+clone 0: 49 89 fe | 0016 [ 3] mov %rdi,%r14",
+      "+clone 0: 41 54 | 0019 [ 2] push %r12",
+      "+clone 0: 55 | 001b [ 1] push %rbp",
+      "+clone 0: 53 | 001c [ 1] push %rbx",
+      "+clone 0: 49 89 f7 | 001d [ 3] mov %rsi,%r15",
+      "+clone 0: 48 83 ec 28 | 0020 [ 4] sub $0x28,%rsp"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, true, false>(int)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 0067 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x17204>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 0067 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x1722c>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, false>(int)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 0067 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x1724c>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 0067 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x17274>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, false>(int)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 4c 8d 2d ?? ?? ?? ?? | 0067 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x17294>",
+      "+clone 0: 4c 8d 2d ?? ?? ?? ?? | 0067 [ 7] lea <rip>(%rip),%r13 # <_IO_stdin_used+0x172bc>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "unsigned int tomo_db0::ThreadCtx::drain_releases_unmasked<tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(tomo_db0::BorrowRelease const&)#1}>(tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(tomo_db0::BorrowRelease const&)#1}&&) [clone .isra.0]",
+    "changed_lines": 422,
+    "sample": [
+      "+clone 0: 44 8b 87 f8 02 00 00 | 0000 [ 7] mov 0x2f8(%rdi),%r8d",
+      "+clone 0: 45 85 c0 | 0007 [ 3] test %r8d,%r8d",
+      "+clone 0: 0f 84 0b 07 00 00 | 000a [ 6] je <+0x71b>",
+      "+clone 0: 41 57 | 0010 [ 2] push %r15",
+      "+clone 0: 41 56 | 0012 [ 2] push %r14",
+      "+clone 0: 41 55 | 0014 [ 2] push %r13",
+      "+clone 0: 49 89 fe | 0016 [ 3] mov %rdi,%r14",
+      "+clone 0: 41 54 | 0019 [ 2] push %r12",
+      "+clone 0: 55 | 001b [ 1] push %rbp",
+      "+clone 0: 53 | 001c [ 1] push %rbx",
+      "+clone 0: 45 31 ed | 001d [ 3] xor %r13d,%r13d",
+      "+clone 0: 48 83 ec 28 | 0020 [ 4] sub $0x28,%rsp"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo::Client*> > >(__gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, __gnu_cxx::__normal_iterator<tomo::Client**, std::vector<tomo::Client*, std::allocator<tomo::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo::Client*> >)",
+    "changed_lines": 294,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 48 89 f0 | 0004 [ 3] mov %rsi,%rax",
+      "+clone 0: 48 29 f8 | 0007 [ 3] sub %rdi,%rax",
+      "+clone 0: 48 3d 80 00 00 00 | 000a [ 6] cmp $0x80,%rax",
+      "+clone 0: 0f 8e 14 04 00 00 | 0010 [ 6] jle <+0x42a>",
+      "+clone 0: 41 56 | 0016 [ 2] push %r14",
+      "+clone 0: 41 55 | 0018 [ 2] push %r13",
+      "+clone 0: 49 89 d5 | 001a [ 3] mov %rdx,%r13",
+      "+clone 0: 41 54 | 001d [ 2] push %r12",
+      "+clone 0: 49 89 fc | 001f [ 3] mov %rdi,%r12",
+      "+clone 0: 55 | 0022 [ 1] push %rbp",
+      "+clone 0: 48 89 f5 | 0023 [ 3] mov %rsi,%rbp"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo_db0::Client**, std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo_db0::Client*> > >(__gnu_cxx::__normal_iterator<tomo_db0::Client**, std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> > >, __gnu_cxx::__normal_iterator<tomo_db0::Client**, std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<std::less<tomo_db0::Client*> >)",
+    "changed_lines": 294,
+    "sample": [
+      "+clone 0: f3 0f 1e fa | 0000 [ 4] endbr64",
+      "+clone 0: 48 89 f0 | 0004 [ 3] mov %rsi,%rax",
+      "+clone 0: 48 29 f8 | 0007 [ 3] sub %rdi,%rax",
+      "+clone 0: 48 3d 80 00 00 00 | 000a [ 6] cmp $0x80,%rax",
+      "+clone 0: 0f 8e 14 04 00 00 | 0010 [ 6] jle <+0x42a>",
+      "+clone 0: 41 56 | 0016 [ 2] push %r14",
+      "+clone 0: 41 55 | 0018 [ 2] push %r13",
+      "+clone 0: 49 89 d5 | 001a [ 3] mov %rdx,%r13",
+      "+clone 0: 41 54 | 001d [ 2] push %r12",
+      "+clone 0: 49 89 fc | 001f [ 3] mov %rdi,%r12",
+      "+clone 0: 55 | 0022 [ 1] push %rbp",
+      "+clone 0: 48 89 f5 | 0023 [ 3] mov %rsi,%rbp"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::bitfield_generic<false>(tomo::Shard&, tomo::Op&, bool)",
+    "changed_lines": 4,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0220 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0220 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0a32 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0a32 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+    "changed_lines": 4,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 020b [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 020b [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>",
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 0aa0 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 0aa0 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_setrange<false>(tomo::Shard&, tomo::Op&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 0311 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 0311 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_setrange<true>(tomo::Shard&, tomo::Op&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 0341 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 0341 [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::bitfield_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 093c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 093c [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::bitfield_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 05 ?? ?? ?? ?? | 09e3 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 05 ?? ?? ?? ?? | 09e3 [ 7] lea <rip>(%rip),%rax # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_setrange<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 031d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 031d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_setrange<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "changed_lines": 2,
+    "sample": [
+      "-clone 0: 48 8d 35 ?? ?? ?? ?? | 033d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13ca2>",
+      "+clone 0: 48 8d 35 ?? ?? ?? ?? | 033d [ 7] lea <rip>(%rip),%rsi # <_IO_stdin_used+0x13cca>"
+    ],
+    "changed_encodings_equal": true,
+    "global_references_only": true
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
+    "changed_lines": 359,
+    "sample": [
+      "-clone 0: 0f 85 24 11 00 00 | 0062 [ 6] jne <+0x118c>",
+      "+clone 0: 0f 85 01 11 00 00 | 0062 [ 6] jne <+0x1169>",
+      "-clone 0: 0f 85 96 12 00 00 | 0099 [ 6] jne <+0x1335>",
+      "+clone 0: 0f 85 73 12 00 00 | 0099 [ 6] jne <+0x1312>",
+      "-clone 0: 0f 87 ea 12 00 00 | 00ab [ 6] ja <+0x139b>",
+      "+clone 0: 0f 87 c7 12 00 00 | 00ab [ 6] ja <+0x1378>",
+      "-clone 0: 0f 85 c1 10 00 00 | 00de [ 6] jne <+0x11a5>",
+      "+clone 0: 0f 85 9e 10 00 00 | 00de [ 6] jne <+0x1182>",
+      "-clone 0: 0f 85 51 09 00 00 | 07f5 [ 6] jne <+0x114c>",
+      "+clone 0: 0f 85 2e 09 00 00 | 07f5 [ 6] jne <+0x1129>",
+      "-clone 0: 0f 85 ac 08 00 00 | 0981 [ 6] jne <+0x1233>",
+      "+clone 0: 0f 85 89 08 00 00 | 0981 [ 6] jne <+0x1210>"
+    ],
+    "changed_encodings_equal": false,
+    "global_references_only": false
+  }
+]

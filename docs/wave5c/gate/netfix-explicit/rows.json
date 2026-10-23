@@ -1,0 +1,38 @@
+[
+  {
+    "job": "netfix_config",
+    "verdict": "ok",
+    "elapsed": "2.200000",
+    "label": "netfix NT4.8 network CONFIG error parity"
+  },
+  {
+    "job": "netfix_idle_buffers",
+    "verdict": "ok",
+    "elapsed": "299.620000",
+    "label": "netfix NT4.19 idle buffer reclamation"
+  },
+  {
+    "job": "netfix_query_stats",
+    "verdict": "ok",
+    "elapsed": "2.230000",
+    "label": "netfix NT4.6 query-limit INFO parity"
+  },
+  {
+    "job": "netfix_tls",
+    "verdict": "ok",
+    "elapsed": "10.100000",
+    "label": "netfix NT4.7 TLS default cipher parity"
+  },
+  {
+    "job": "netfix_unix",
+    "verdict": "ok",
+    "elapsed": "1.150000",
+    "label": "netfix NT4.11 Unix pathname parity"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  }
+]

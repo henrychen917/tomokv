@@ -48,6 +48,10 @@ summary=[]
 for arm in arms:
  for engine in engines:
     rows=[r for r in records if r["arm"]==arm and r["engine"]==engine]
-    summary.append(dict(arm=arm,engine=engine,runs=len(rows),failures=sum(r["returncode"]!=0 for r in rows),lsan_failures=sum(bool(r["leak_logs"]) for r in rows)))
+    asan_passes=sum(any(line.startswith('ok\t') and line.endswith('\tzc ASAN clean')
+                        for line in r['ledger'].splitlines()) for r in rows)
+    summary.append(dict(arm=arm,engine=engine,runs=len(rows),failures=sum(r["returncode"]!=0 for r in rows),
+                        asan_clean_passes=asan_passes,asan_clean_failures=len(rows)-asan_passes,
+                        lsan_failures=sum(bool(r["leak_logs"]) for r in rows)))
 (DOC/(a.phase+"-zc-summary.json")).write_text(json.dumps(summary,indent=2)+"\n")
 print(json.dumps(summary),flush=True)

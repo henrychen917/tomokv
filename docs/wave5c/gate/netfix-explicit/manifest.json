@@ -1,0 +1,1034 @@
+[
+  {
+    "run": 0,
+    "file": "families.tsv",
+    "bytes": 348,
+    "sha256": "1373f9e7678710111793dacc9508232178be95526a2d45e4265f07743ceec773"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/family.tsv",
+    "bytes": 58,
+    "sha256": "30bd49a2c5ac7e4790d42ebf2ca5eac9413d3c1ab7aa60678c9da2500abdab94"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/ledger",
+    "bytes": 53,
+    "sha256": "b75d38257f10269e57fce91378d638ba67c746badf7dee111252bcfec4bb3c7e"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/output.log",
+    "bytes": 163,
+    "sha256": "3d2397bd811171f08027d81ecc3b73bff948e6ce41f307092cc1d29e35f777b8"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/1s-epoll-tcp/command.json",
+    "bytes": 503,
+    "sha256": "2fd7a51ae88313376abda1eb09a34b3ed3c54f93b607f690dd0262af304ca818"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/1s-epoll-tcp/server.log",
+    "bytes": 7601,
+    "sha256": "f4ce9d5a80877e4cca59aee1ef682c30cb0109f1ed4eac1bc0ab9e3807930489"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/1s-epoll-tls/command.json",
+    "bytes": 897,
+    "sha256": "80973120f002fafcab8a75f13e19e12492573d9930a59e8e54807f1de431309b"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/1s-epoll-tls/server.log",
+    "bytes": 7741,
+    "sha256": "3012d1fdb0fdcfd7fbcf6e6f80bf121c0aa7a58991c0ca1e28950fd2e16f8408"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/1s-uring-tcp/command.json",
+    "bytes": 503,
+    "sha256": "b50443074529b070642f7d6422b418b813946d2ab21805840d872fda31c7d02b"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/1s-uring-tcp/server.log",
+    "bytes": 7509,
+    "sha256": "a7eba034977e910b475237ff0e81eb0c0e580a044952dbc0ee53adc53eaac736"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/1s-uring-tls/command.json",
+    "bytes": 897,
+    "sha256": "eb6aa73f163ef61377850171f661d9cc4c0bbb282d007c45ee5d80c68a21393a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/1s-uring-tls/server.log",
+    "bytes": 7663,
+    "sha256": "412d4875e2af2982016864e9dff20215ebea38805af689e00e0a6d6b7c2b0a03"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/2s-epoll-tcp/command.json",
+    "bytes": 521,
+    "sha256": "a57922a0845e73916596ff7d73bcc351ab3833437381bd0f7384f473ae6d229b"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/2s-epoll-tcp/server.log",
+    "bytes": 6684,
+    "sha256": "187a98f25135637a8ec7f2b28b81d35dea42b46d6fbe0e73b0775d506fcd96d5"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/2s-epoll-tls/command.json",
+    "bytes": 915,
+    "sha256": "a21a3af9b8283ee11d091967a652615173663b6ddf362e61928450606b52cde4"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/2s-epoll-tls/server.log",
+    "bytes": 6829,
+    "sha256": "bc9a19586d25e75ffd946815cba4a262f6817bb275f452ec1d5ac53b17fce5fb"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/2s-uring-tcp/command.json",
+    "bytes": 521,
+    "sha256": "4a2c8f3ce2329c49a49f872101d5d29a5fd2f53bbe2226ba98c53b7d1b30c128"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/2s-uring-tcp/server.log",
+    "bytes": 6594,
+    "sha256": "f8cf27148085ff9ca160e1bf629b899f212b7fecaec2b34f9e9639bf501b90c6"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/2s-uring-tls/command.json",
+    "bytes": 915,
+    "sha256": "3bbab265bdf1972f11d2e3bd25f49f990f403af89264ea4d6018aaf62f2c7322"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/2s-uring-tls/server.log",
+    "bytes": 6743,
+    "sha256": "0444000ca2d8fd72e9bce38f23c806cc7bb4245f69f6f9a4747cdca7d9a0def8"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/oracle-oracle-tcp/command.json",
+    "bytes": 310,
+    "sha256": "6775e9065bee40aded66d224e14e269772ac09b4c2be4f8bd456b13a4e62baca"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/oracle-oracle-tcp/server.log",
+    "bytes": 1203,
+    "sha256": "b60d519d0c60b4714ee89763c78479b713045cb60d1c08a314e7644b5cb3ce96"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/oracle-oracle-tls/command.json",
+    "bytes": 708,
+    "sha256": "b7f896b92fd8b1bc7fa97bb19653989c9827650600bdcd9ef662c39f03c5feb7"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/oracle-oracle-tls/server.log",
+    "bytes": 1272,
+    "sha256": "a1231981212e2dd94004415f22ff501fe074184b24429a878c366ff64c6afd1d"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/oracle-tcp.json",
+    "bytes": 17758,
+    "sha256": "ef85215726dbbb58a345729ccd7e09c4fd0488ef63e1386b5dbc34748071120f"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/oracle-tls.json",
+    "bytes": 17758,
+    "sha256": "ef85215726dbbb58a345729ccd7e09c4fd0488ef63e1386b5dbc34748071120f"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof/results.json",
+    "bytes": 191352,
+    "sha256": "6351f4040d5b38505a9512c39085a2b34e68f9a0ba03bdf73f6105951db4efa4"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/proof.log",
+    "bytes": 146640,
+    "sha256": "89285bb05f99258799725b979b5426b862baa071c86e7edfe9f5c23d6ab8c1f3"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_config/timings",
+    "bytes": 53,
+    "sha256": "b75d38257f10269e57fce91378d638ba67c746badf7dee111252bcfec4bb3c7e"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/family.tsv",
+    "bytes": 64,
+    "sha256": "c8f3450e8fb4ccb615e73a7ea73bd752aff1e8c027b0b467088f1e7dcb92ce70"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/ledger",
+    "bytes": 52,
+    "sha256": "570e7be46614917086eb158bc275750c2cd2014bbeb730331c70745981127bfb"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/output.log",
+    "bytes": 160,
+    "sha256": "14af6cb8f0b911c1b601dbcebc09bcf23d82223d3e5a3d7bed8fd7a5d5a9c83a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/1s-epoll-tcp/command.json",
+    "bytes": 509,
+    "sha256": "c2ef0f9a273ebddb92e82e71ce7364965813fdeb15dd8aba0842be017fd6a0f7"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/1s-epoll-tcp/server.log",
+    "bytes": 7846,
+    "sha256": "03791ae51f58553fda84ec325788466078c818d3b7d3cc7fc6e69a64af9a271e"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/1s-epoll-tls/command.json",
+    "bytes": 921,
+    "sha256": "b63449e2e3b7317fc3f2ba7207234d9bf0c67eac55fb33340d2576de897ceda1"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/1s-epoll-tls/server.log",
+    "bytes": 1067159,
+    "sha256": "cb5b6edb5ef25e68c999d60ae1a0a2c3ec0f2d0d06df564382ef1287ec64d34a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/1s-uring-tcp/command.json",
+    "bytes": 509,
+    "sha256": "bfcd6bd129163949741d17fb94358d1776621b5f403708faf3c5d71b436e7732"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/1s-uring-tcp/server.log",
+    "bytes": 7742,
+    "sha256": "f127686a4b2778bf07365e73763bc5654b9bddd5fbdf79ffe7966db24eeccc72"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/1s-uring-tls/command.json",
+    "bytes": 921,
+    "sha256": "f021df02bb261b56c009b60b952c7345001a15e3b52b29bd7cf20309d30cb8d3"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/1s-uring-tls/server.log",
+    "bytes": 1067085,
+    "sha256": "9007d2264713db1e6ab9541f53b11287f0e058e739d4fff10e7f4075290549d9"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/2s-epoll-tcp/command.json",
+    "bytes": 527,
+    "sha256": "f04ca0937b0e126828b755884ae7684664c4cf8042f04bc8eb59b7a7067c6fde"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/2s-epoll-tcp/server.log",
+    "bytes": 6909,
+    "sha256": "80acfa63685b4ce991f50df5ff6a8aa9dd392b8ff447dee49af8a8fa81c750cc"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/2s-epoll-tls/command.json",
+    "bytes": 939,
+    "sha256": "4cfdeb95858447d1538e374b01b7cc150fb5fe80e09e994ece78c99fa2dbf385"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/2s-epoll-tls/server.log",
+    "bytes": 1066234,
+    "sha256": "8b68a12e8206998b8a0cea1214fcc141acd5a4950dd9a4da6053e0e05c0b4300"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/2s-uring-tcp/command.json",
+    "bytes": 527,
+    "sha256": "f3d8c98d16e87e8d916f94726e8277ab06ed36b87f033a4ebecbf6254357c0b9"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/2s-uring-tcp/server.log",
+    "bytes": 6807,
+    "sha256": "efc865dcfcd2f8e09c85973b383ac0f7f7bca2e3d38a89f32d94a4addc41478b"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/2s-uring-tls/command.json",
+    "bytes": 939,
+    "sha256": "e0638cf5fa15a751bd5258ecfeeb83c8b001dbdf02fe24caa017dc9d4025000a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/2s-uring-tls/server.log",
+    "bytes": 1066143,
+    "sha256": "cbc3fd65d8ad36766e4ed194eabd4ae4f46a08f4aca918954168c9c1191366dd"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/memory-3703532.json",
+    "bytes": 1602,
+    "sha256": "00702bc549de7d9e3814e11b17d36a64b6aaea048701d5df78a936ed24e5f5b8"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/memory-3705220.json",
+    "bytes": 1610,
+    "sha256": "5ef0a2853efbf37d73d70ddf5f984cd3b4b7dda8493090007e4a769540aef3b7"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/memory-3707896.json",
+    "bytes": 1638,
+    "sha256": "d7e8c4b58a1dcb3df9df5a810a0796eb8aa512a6ab9418fb5f3c82ea8fb51b3c"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/memory-3711260.json",
+    "bytes": 1634,
+    "sha256": "f12d133f2960adb613ae3c6071af305ef711c326260caf1819e3165443c5f3ba"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/memory-3713988.json",
+    "bytes": 1637,
+    "sha256": "37755db17e5ac1577255090842ece69a45aed4b790c922c9218859e483cd6de7"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/memory-3718388.json",
+    "bytes": 1636,
+    "sha256": "96c19e035f11882125258e8f73a092ed985110b2f2bb450ca6ea19f256b15889"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/memory-3720874.json",
+    "bytes": 1637,
+    "sha256": "026850865a2545fcaffed3bf5a14f056d2ac4f4b80373d7ceaa495ad9fa48d22"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/memory-3723276.json",
+    "bytes": 1635,
+    "sha256": "16215056dbd19fd8f65abfb3d7d46da4e08f70d3cf93c995e56398609c648f66"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/memory-3726476.json",
+    "bytes": 1639,
+    "sha256": "1b93efc320de4fa234bec3e36a50683b10ec42ae77c0c316c8382b4c9369b7e0"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/memory-3728728.json",
+    "bytes": 1634,
+    "sha256": "717d93f7e2c473086e4a790e02d22ae6a555d971c1e7ec309673f2e522fca3b8"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/oracle-oracle-tcp/command.json",
+    "bytes": 316,
+    "sha256": "15d9dbe3e0cd8c7e382ea34e71e28ca3f3ead5d773724262e3fd6511c4dfefd0"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/oracle-oracle-tcp/server.log",
+    "bytes": 1203,
+    "sha256": "e425fa56b48bcfb786a4982fd1b48f7f71b526c6c28c3d2c9908297a7c12e958"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/oracle-oracle-tls/command.json",
+    "bytes": 732,
+    "sha256": "f37dcc0130be970a55a25feafeef58354b7337a32d0f946f5989bef538b5c0eb"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/oracle-oracle-tls/server.log",
+    "bytes": 1272,
+    "sha256": "17e977556de9351bd45e12804178708f2cacb39565627d6b4b4e76896433aab0"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof/results.json",
+    "bytes": 19354,
+    "sha256": "2cfe3ed41dc8dd227df856402539f6333f0da69e37b8ae5a50fadb7434781085"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/proof.log",
+    "bytes": 9099,
+    "sha256": "58fbeac12814fafcf5b43ee95251423ad407fd3baa57a97d0100e6137d16ee00"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_idle_buffers/timings",
+    "bytes": 52,
+    "sha256": "570e7be46614917086eb158bc275750c2cd2014bbeb730331c70745981127bfb"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/family.tsv",
+    "bytes": 63,
+    "sha256": "02072649176e58e6758cb66c272ad9711958ccc38685c5b7e658b5fd34256dc1"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/ledger",
+    "bytes": 49,
+    "sha256": "0ea3311a9520d41b45d8cd72f79554d7417e187da97884707cdae0a8ae4c3c6f"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/output.log",
+    "bytes": 159,
+    "sha256": "5330788303bb29fb7c6998f1dd2403b61adfa3c191acf182a14c750af43e6346"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/1s-epoll-tcp/command.json",
+    "bytes": 508,
+    "sha256": "e087730907e42329a217486296dffbbec1d8619ae572a417207b1d3cc319088b"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/1s-epoll-tcp/server.log",
+    "bytes": 7584,
+    "sha256": "809d57f4c84957b475d41d9b93ec75a2a0691c621162e5d500ccd0279a9394b3"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/1s-epoll-tls/command.json",
+    "bytes": 917,
+    "sha256": "bd47013ebe6fd3b69d3f316b1d8e302caac87413bd620f60b1fd35c10467c5aa"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/1s-epoll-tls/server.log",
+    "bytes": 7738,
+    "sha256": "781b3751c4276b7ca88ff91ddb6c6eda9bf696cff2c7aaa49864b986532a1b1b"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/1s-uring-tcp/command.json",
+    "bytes": 508,
+    "sha256": "7f721bab3beef26aad5cb8304937ff8f8ae4fa43446e6af7bca271fb348a0be3"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/1s-uring-tcp/server.log",
+    "bytes": 7495,
+    "sha256": "0af8452133164242c239f47aa0ae4ab042b3f64ea5fcbaf00f53411e8384aea5"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/1s-uring-tls/command.json",
+    "bytes": 917,
+    "sha256": "589dccff0398685533b07ad11668686345e357ba61ebc485f55e21096ff60b7a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/1s-uring-tls/server.log",
+    "bytes": 7665,
+    "sha256": "4839e174e8cc51070c9d67750283a3bd24f689eb834202532eeadc9f2a6ab526"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/2s-epoll-tcp/command.json",
+    "bytes": 526,
+    "sha256": "c00c8319afdb91d472f63fdbf1948ccebe4925569ab9fb75f77197159520b29c"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/2s-epoll-tcp/server.log",
+    "bytes": 6673,
+    "sha256": "2010b895c7ac9259c57394880fb2a7e722e9e9da2d71c32bf17c090fd3cc1877"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/2s-epoll-tls/command.json",
+    "bytes": 935,
+    "sha256": "34327b02b1e0fad07648f36dd584e45f89b233dbfc4428e64f557cf5caf57f85"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/2s-epoll-tls/server.log",
+    "bytes": 6825,
+    "sha256": "56911a4311fa983e84c5556e24b6a4957e0f19a858a3a4f20eee9dace31bbc82"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/2s-uring-tcp/command.json",
+    "bytes": 526,
+    "sha256": "2258bed9c6ae1f05788d344b692381e773703a1aa64c900eec05a1c9bb1a0fdb"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/2s-uring-tcp/server.log",
+    "bytes": 6580,
+    "sha256": "5c0401aa02d3fa9bcf53927a736a4628c4dea963c89f53fe32e272994510f64b"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/2s-uring-tls/command.json",
+    "bytes": 935,
+    "sha256": "cb8e277d39e91cbab47d3f41500f9810b37dd438e66b18e1ff82f3924fa0aa61"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/2s-uring-tls/server.log",
+    "bytes": 6743,
+    "sha256": "51256e8a58372c58f4c37433a276b7c1fbb886ae975b3f066f637d75f4383f50"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/oracle-oracle-tcp/command.json",
+    "bytes": 315,
+    "sha256": "9d5c42efdad32fcc79553cac994e0bf2a422113bb2d2ed41d6789205f6b55ce2"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/oracle-oracle-tcp/server.log",
+    "bytes": 2637,
+    "sha256": "f2821ca2615ade8416050458cfbc1632246758d3345c62cb743eb9093884afd1"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/oracle-oracle-tls/command.json",
+    "bytes": 728,
+    "sha256": "3bf509b4f80fa9d3b1310275f44ef7ba148091a016959f8f71aeffcaec3cc3d6"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/oracle-oracle-tls/server.log",
+    "bytes": 2706,
+    "sha256": "0173f2028881a766666c41dcea82da115c29c991da72f6772fb86f088dd611d7"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof/results.json",
+    "bytes": 602,
+    "sha256": "7e9f189244a7a40b3783a3e46b7a2de3338e4c5f8cee2f0a42160ef60b9bb7ea"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/proof.log",
+    "bytes": 350,
+    "sha256": "cafdae0c7959bd559ff8ff7b1499e830565feecffddcdd3f112bdc06313d7863"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_query_stats/timings",
+    "bytes": 49,
+    "sha256": "0ea3311a9520d41b45d8cd72f79554d7417e187da97884707cdae0a8ae4c3c6f"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/family.tsv",
+    "bytes": 55,
+    "sha256": "4bab68f54863c66874194fc3550e88e1d1eff77898211c317b56a66d02e0f927"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/ledger",
+    "bytes": 52,
+    "sha256": "c00ee19bb380372323ab64b99e70d283cd16702987a7877d49bbad8cd4860c27"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/output.log",
+    "bytes": 161,
+    "sha256": "3837aca8795dde26bb41998751128f70f55269b6f63874249816ad5d8d683f9d"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/1s-epoll/command.json",
+    "bytes": 881,
+    "sha256": "a6a8bfa00d9be760f2e723efb1eb79d4de545930a4f156acc463826d41b4324d"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/1s-epoll/server.log",
+    "bytes": 8743,
+    "sha256": "223c4565c570455690e284401e46da9efefccb5811e12c4500dc6b4a094ac08d"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/1s-uring/command.json",
+    "bytes": 881,
+    "sha256": "695ea663255c80ae9d26b3b4c0355e9ae4d42e9fad58561add9670f04c2537ec"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/1s-uring/server.log",
+    "bytes": 8651,
+    "sha256": "ea41c5158ac34b3b511edccde08fb95941e389877f0da0106fb8f7c2e4c6e3df"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/2s-epoll/command.json",
+    "bytes": 899,
+    "sha256": "1b8186afeea2f890ddeaa75ca55fa7df4926b3698886296eaeb53a2088a9e125"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/2s-epoll/server.log",
+    "bytes": 7828,
+    "sha256": "fcabb0606bff495082f04b305a64a87c79ee8dcb79d22d7a96124bdc5b21d5a1"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/2s-uring/command.json",
+    "bytes": 899,
+    "sha256": "e2d5fafdfe075c1fd8b65669c2c92b1feed7d11e89fd571580eb2908461e6c1d"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/2s-uring/server.log",
+    "bytes": 7734,
+    "sha256": "9d773a0b7c254360c9d190a49641b8fcafd31c1d4f1b7ea27434d455b8fd9ba4"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/oracle-oracle/command.json",
+    "bytes": 692,
+    "sha256": "000129c2248e5bb9e17dc3070d9e39cb910785794a5406f8f71241ee0e91431e"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/oracle-oracle/server.log",
+    "bytes": 2427,
+    "sha256": "bdbe511f34c7b6d34e4c690e6bdd487815e8c90d8a5d3a4e39e806406564067a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/oracle-suites.json",
+    "bytes": 1862,
+    "sha256": "727660a3c79c31b80707ebba3c44243bb547768a2ea100afbb8db887418866f4"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/results.json",
+    "bytes": 10247,
+    "sha256": "eb620c713233fe617d045e9b8f0a85220e41d83806dc8fcd0f70b73a353e2722"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/suites-3701829.json",
+    "bytes": 1862,
+    "sha256": "727660a3c79c31b80707ebba3c44243bb547768a2ea100afbb8db887418866f4"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/suites-3702018.json",
+    "bytes": 1772,
+    "sha256": "e09fd04853c3d7a2cb17914b2fa4533056a2928da6670baa8292824a796f20fe"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/suites-3702182.json",
+    "bytes": 1772,
+    "sha256": "e09fd04853c3d7a2cb17914b2fa4533056a2928da6670baa8292824a796f20fe"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/suites-3702247.json",
+    "bytes": 1772,
+    "sha256": "e09fd04853c3d7a2cb17914b2fa4533056a2928da6670baa8292824a796f20fe"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof/suites-3702332.json",
+    "bytes": 1772,
+    "sha256": "e09fd04853c3d7a2cb17914b2fa4533056a2928da6670baa8292824a796f20fe"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/proof.log",
+    "bytes": 6920,
+    "sha256": "5e0fa6dd14cfcff681a5f50ddf0a11d86b748850edffbcd2a4c11ddfdfd2be20"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_tls/timings",
+    "bytes": 52,
+    "sha256": "c00ee19bb380372323ab64b99e70d283cd16702987a7877d49bbad8cd4860c27"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/family.tsv",
+    "bytes": 56,
+    "sha256": "24bcecda19317ba5e5f27b57713c324d8b84aac97cc8ff9d92d9c7a70811020c"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/ledger",
+    "bytes": 47,
+    "sha256": "98f7deb7e2323b272d0f73af005d0fedc67a9bab994e13ceed0c4bc471b06bf5"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/output.log",
+    "bytes": 157,
+    "sha256": "1e2717c3d7293a3ff8362ecda841a4b22947a84f0b2299607bf4a37a874dea36"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-epoll-live/command.json",
+    "bytes": 607,
+    "sha256": "43739902c5390e20fac29034f52b71893dd88ad6f4650f5ef3090c8140044103"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-epoll-live/server.log",
+    "bytes": 7603,
+    "sha256": "8619b9df886e008f65f737fd73eb9edd15131cb245ded113ae429e90c7836515"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-epoll-regular/command.json",
+    "bytes": 610,
+    "sha256": "0001f2a08be8b0bad78ff196f87e1571bc10cabf263d179f9c7d29ea8506fbed"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-epoll-regular/server.log",
+    "bytes": 7618,
+    "sha256": "0949263b1611e61b6476d67224e3dbb9929bb53e7d4a7dfd4f61ec08cab52d66"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-epoll-stale/command.json",
+    "bytes": 608,
+    "sha256": "0705b9d0ef8da66464263bd2d891871b14808670354b1a641363e3ee3bb2c638"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-epoll-stale/server.log",
+    "bytes": 7615,
+    "sha256": "83b94184d8aa965d77df50a407ac85d7c22214bb5f97ace088bd0487df8f6007"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-epoll-symlink/command.json",
+    "bytes": 610,
+    "sha256": "f6d173126562b31b404a1c518b392de4a3f74e963362b508123d6059cc35313a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-epoll-symlink/server.log",
+    "bytes": 7606,
+    "sha256": "a2635ded638d6c5a3f01c5d9939a3e359197f2e6398cbb63357f909efe2954d0"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-uring-live/command.json",
+    "bytes": 607,
+    "sha256": "bddbbc0aacc5ec49b0ed3488a0849c644499af56e941bda0595bd61db8064982"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-uring-live/server.log",
+    "bytes": 7532,
+    "sha256": "c93799155ddfbb483c5f84f4556679fa06eeb6801acb3e91b6c0bfc517a6c331"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-uring-regular/command.json",
+    "bytes": 610,
+    "sha256": "bd78b864c5080c4154c906fb02b6b49ac3fb1c36aa78941219cfffca4137ed1e"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-uring-regular/server.log",
+    "bytes": 7529,
+    "sha256": "f85b96bcfca152da62f9385564e08684696b66f5049a3e7c7c46022d2251ddb9"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-uring-stale/command.json",
+    "bytes": 608,
+    "sha256": "fa3ea7cb10fdb920627c512bbbb76ae09687b0ad89c98d31b3d361292f156fa3"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-uring-stale/server.log",
+    "bytes": 7535,
+    "sha256": "9c4ec92822ae52cd45367098f915a57ad82d69f8bb81c2e936a0bb30512afb1a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-uring-symlink/command.json",
+    "bytes": 610,
+    "sha256": "f87e5a34981f5203b61daf3b8cccea4af99b91a7d4856f9bbbcad642cc5417de"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/1s-uring-symlink/server.log",
+    "bytes": 7532,
+    "sha256": "cafe1c18c741146dec633527597ea138738ad8a56b91c1406b43fb96a1c7b9a4"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-epoll-live/command.json",
+    "bytes": 625,
+    "sha256": "0e6c3567d81de971e396bbe405c2f155a5f5bfda9fda557ccd3bd051b6ddd744"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-epoll-live/server.log",
+    "bytes": 6702,
+    "sha256": "db9b9a28d125755c08f18ce6914f566e7b9a8f95ed33b84b958daa3d40511b60"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-epoll-regular/command.json",
+    "bytes": 628,
+    "sha256": "e889e525514c00bf51489f7c2648aa929a4a20e719443772ca4fb7aec4fc6d45"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-epoll-regular/server.log",
+    "bytes": 6702,
+    "sha256": "0005871a1614f57b727df50ad9bac8df6499415de3265fd2fb5b2e0e87d6b7dc"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-epoll-stale/command.json",
+    "bytes": 626,
+    "sha256": "31322a807fa19a8f402f1d0c335b069f2e145656551ffb597ef67ab8695a052a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-epoll-stale/server.log",
+    "bytes": 6702,
+    "sha256": "d5480148bcdd94a937ba673ccd65b04f1cf722ccedaef5273de9efc82c7d8ee3"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-epoll-symlink/command.json",
+    "bytes": 628,
+    "sha256": "7c495ef7731ea964d22d6e13e9be5f3e319cfe4be5945e21211211e81a8f1871"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-epoll-symlink/server.log",
+    "bytes": 6701,
+    "sha256": "3206519954b07229daaf0d1a16f7529e812e31536082f6653da7c87cd5cfa8fa"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-uring-live/command.json",
+    "bytes": 625,
+    "sha256": "11beb126e96143d18a2181b28f4c93a16011c7528fa0f324f068b70281f0dfea"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-uring-live/server.log",
+    "bytes": 6622,
+    "sha256": "8f088c053d525de6d0c1bc5501570c389e174f985d3315bc286a383787b8afcb"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-uring-regular/command.json",
+    "bytes": 628,
+    "sha256": "fac9e008925dd01768ed05f79dc933d7c8ddfcc891b9f66b7cdecf4366d6376e"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-uring-regular/server.log",
+    "bytes": 6622,
+    "sha256": "4b9d07b1888af38deb823b9e9deaaf418ec2cb2bcef1b531491bb57b59f8d100"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-uring-stale/command.json",
+    "bytes": 626,
+    "sha256": "89ae1b70cd88fd82951e3125934af0a760fbc98c6d10cc82eb86f543846ff67a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-uring-stale/server.log",
+    "bytes": 6622,
+    "sha256": "d8182344771f745c24b22323fb268095b40e27b3b04ba442962db43e94793ea5"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-uring-symlink/command.json",
+    "bytes": 628,
+    "sha256": "b00f76a396e618e57a7649345061cac9218092d6cc1a826cdf0c6ce492a80a1a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/2s-uring-symlink/server.log",
+    "bytes": 6622,
+    "sha256": "e7a72db219587cac01ad6a8c66f833582038389de303f5d0d444bf950420ebca"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/oracle-oracle-live/command.json",
+    "bytes": 414,
+    "sha256": "3711683638facc608c32543985594d6be4b08a1caebe6281efb6c0e01a997111"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/oracle-oracle-live/server.log",
+    "bytes": 1341,
+    "sha256": "29c872429ef2dcdf5ad00e9a9715eded96df712c65b45464a5bba8c43cd55747"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/oracle-oracle-regular/command.json",
+    "bytes": 417,
+    "sha256": "1c8e030f8544eb77b19ab4363ebf52621d6f21422bbc69307ddee577b17a67bf"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/oracle-oracle-regular/server.log",
+    "bytes": 1341,
+    "sha256": "0afa4f90bab5406fa65f145703c5cb5ebdd83ce47c23380ddad2d87e834086e2"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/oracle-oracle-stale/command.json",
+    "bytes": 415,
+    "sha256": "b60e7227a2921d7f48a0a4ca8d8b299f1443f696e623235db419e931dc3cfb8f"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/oracle-oracle-stale/server.log",
+    "bytes": 1341,
+    "sha256": "0f78903d5b61d28dde3e8766164717d19f28643e495ce6e708176c30fc217b77"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/oracle-oracle-symlink/command.json",
+    "bytes": 417,
+    "sha256": "56e1cc0a183fea6af8a20d3d33fcfd4574efb77af91e081656bc254aac6ba368"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/oracle-oracle-symlink/server.log",
+    "bytes": 1341,
+    "sha256": "5019bc9060de84aa6b2f454a2d4f6bb356a8ed2fccf363c628f0e151747d6e4e"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof/results.json",
+    "bytes": 1017,
+    "sha256": "48e7174cbcadc19d04810157765968ce7b3fbdba074957ef0d1c108d19566e2a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/proof.log",
+    "bytes": 435,
+    "sha256": "87094342daf3ffd7fc8d3c50a76b153bddc8fa139edbbea633deebd7ff536f7f"
+  },
+  {
+    "run": 0,
+    "file": "jobs/netfix_unix/timings",
+    "bytes": 47,
+    "sha256": "98f7deb7e2323b272d0f73af005d0fedc67a9bab994e13ceed0c4bc471b06bf5"
+  },
+  {
+    "run": 0,
+    "file": "jobs/release/done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "run": 0,
+    "file": "jobs/release/family.tsv",
+    "bytes": 52,
+    "sha256": "07618c89ac60ce02e5e2beb9d91dc7806b19690d0cb3661bdb6b519d62f58db7"
+  },
+  {
+    "run": 0,
+    "file": "jobs/release/ledger",
+    "bytes": 45,
+    "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+  },
+  {
+    "run": 0,
+    "file": "jobs/release/output.log",
+    "bytes": 155,
+    "sha256": "409abba14aa74aa6bd5150ce2a9b4b6ed5b6d17bb0bc367f33ddb04c2f33dee2"
+  },
+  {
+    "run": 0,
+    "file": "jobs/release/timings",
+    "bytes": 45,
+    "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+  },
+  {
+    "run": 0,
+    "file": "phases.tsv",
+    "bytes": 88,
+    "sha256": "999d8c0f877d1df541a2f860107d97a4678de29f2b3cbd011556494ddb07c562"
+  },
+  {
+    "run": 0,
+    "file": "plan.sh",
+    "bytes": 1360,
+    "sha256": "d6a1561b2cbdaf470450d915c93dff5e102abf9be69e0d327d6fe411356d3e0c"
+  },
+  {
+    "run": 0,
+    "file": "row-timeouts.json",
+    "bytes": 191,
+    "sha256": "dcc91a6c3acffe07565c20831c4eebbde2179d0cff5e81c2169c9915ff3956d1"
+  }
+]

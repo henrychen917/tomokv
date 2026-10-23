@@ -1,0 +1,6 @@
+ok	0.000000	release build (+footprint locks)
+ok	2.230000	netfix NT4.6 query-limit INFO parity
+ok	1.150000	netfix NT4.11 Unix pathname parity
+ok	2.200000	netfix NT4.8 network CONFIG error parity
+ok	10.100000	netfix NT4.7 TLS default cipher parity
+ok	299.620000	netfix NT4.19 idle buffer reclamation
