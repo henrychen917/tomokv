@@ -1,0 +1,27 @@
+{
+  "arm": "pre",
+  "phase": "required",
+  "engine": "epoll",
+  "jobs": "tls netcmd_units respcompat config_unit auth authfix notify debug-0 debug-1 clientfix climonfix feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20854-20856",
+    "--candidate-binary",
+    "/home/user/Projects/cx-netfix/build/netfix-pre-epoll"
+  ],
+  "wrapper": "#!/usr/bin/env python3\nimport os, sys\nargs = sys.argv[1:]\nconfig = [args.pop(0)] if args and not args[0].startswith(\"--\") else []\nos.execv('/home/user/Projects/cx-netfix/build/tomokv-pre-netfix', ['/home/user/Projects/cx-netfix/build/tomokv-pre-netfix'] + config + [\"--net-io\", 'epoll'] + args)\n",
+  "make_q_all_before": null,
+  "actual_binary": "/home/user/Projects/cx-netfix/build/tomokv-pre-netfix",
+  "sha256_before": "dd273ba7c7382a7f58fcbc0e030487538dd760ec1aa3e7391698b2d6d83a36fb",
+  "sha256_after": "dd273ba7c7382a7f58fcbc0e030487538dd760ec1aa3e7391698b2d6d83a36fb",
+  "returncode": 1
+}

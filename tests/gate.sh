@@ -1114,7 +1114,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
+              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
@@ -1966,6 +1966,56 @@ row_begin "NET1 serverless bounds + scan + reclamation"
 unit_ready netcap-unit && taskset -c "$CORES" ./build/netcap-unit >"$TMPDIR/gate-netcap-unit.txt" 2>&1 \
     && ok "NET1 serverless bounds + scan + reclamation" \
     || bad "NET1 serverless bounds + scan + reclamation" "see $TMPDIR/gate-netcap-unit.txt"
+}
+
+job_netfix_query_stats(){
+  row_begin "netfix NT4.6 query-limit INFO parity"
+  py tests/netfix_query_stats.py --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 \
+    && ok "netfix NT4.6 query-limit INFO parity" \
+    || bad "netfix NT4.6 query-limit INFO parity" "see $TMPDIR/proof.log"
+}
+
+job_netfix_unix(){
+  row_begin "netfix NT4.11 Unix pathname parity"
+  py tests/netfix_unix.py --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 \
+    && ok "netfix NT4.11 Unix pathname parity" \
+    || bad "netfix NT4.11 Unix pathname parity" "see $TMPDIR/proof.log"
+}
+
+job_netfix_config(){
+  row_begin "netfix NT4.8 network CONFIG error parity"
+  py tests/netfix_config.py --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 \
+    && ok "netfix NT4.8 network CONFIG error parity" \
+    || bad "netfix NT4.8 network CONFIG error parity" "see $TMPDIR/proof.log"
+}
+
+job_netfix_tls(){
+  row_begin "netfix NT4.7 TLS default cipher parity"
+  py tests/netfix_tls.py --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 \
+    && ok "netfix NT4.7 TLS default cipher parity" \
+    || bad "netfix NT4.7 TLS default cipher parity" "see $TMPDIR/proof.log"
+}
+
+job_netfix_idle_buffers(){
+  row_begin "netfix NT4.19 idle buffer reclamation"
+  py tests/netfix_idle_buffers.py --binary "$CANDIDATE_BINARY" \
+      --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
+      >"$TMPDIR/proof.log" 2>&1 \
+    && ok "netfix NT4.19 idle buffer reclamation" \
+    || bad "netfix NT4.19 idle buffer reclamation" "see $TMPDIR/proof.log"
 }
 
 job_netcap(){
@@ -4644,6 +4694,13 @@ collect_job netcmd_units
 # NET1 contributes one serverless row above plus four live rows here: +5 quick / +5 full.
 # EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 collect_job netcap
+# netfix NT4.6/11/8/7/19: five literal rows here, before quick exit.
+# DQ +5 / DF +5: proposed counts 690 / 707; constants remain maintainer-owned.
+collect_job netfix_query_stats
+collect_job netfix_unix
+collect_job netfix_config
+collect_job netfix_tls
+collect_job netfix_idle_buffers
 
 # respcompat: +1 quick / +1 full, counted here before the quick-tier exit.
 # EXPECT counts and ledger fixtures are maintained by the owner.

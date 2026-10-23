@@ -1,0 +1,2 @@
+  row budget: 900s; median=388.445s; correctness-plan-fallback; netfix NT4.19 idle buffer reclamation
+  netfix NT4.19 idle buffer reclamation                FAIL (see /home/user/Projects/cx-netfix/build/gate-run.NtaAGM/jobs/netfix_idle_buffers/proof.log)

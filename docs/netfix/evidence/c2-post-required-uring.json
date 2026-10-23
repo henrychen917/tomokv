@@ -1,0 +1,25 @@
+{
+  "arm": "post",
+  "phase": "required",
+  "engine": "uring",
+  "jobs": "tls netcmd_units respcompat config_unit auth authfix notify debug-0 debug-1 clientfix climonfix feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 netcap ntfix_input netio-1s netio-2s aof-epoll aof-uring respresume-fragment-1s-epoll respresume-fragment-1s-uring respresume-fragment-2s-epoll respresume-fragment-2s-uring respresume-cpu-1s-epoll respresume-cpu-1s-uring respresume-cpu-2s-epoll respresume-cpu-2s-uring respresume-neighbour-1s-epoll respresume-neighbour-1s-uring respresume-neighbour-2s-epoll respresume-neighbour-2s-uring",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20830-20832"
+  ],
+  "wrapper": null,
+  "make_q_all_before": 0,
+  "actual_binary": "/home/user/Projects/cx-netfix/build/tomokv",
+  "sha256_before": "9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47",
+  "sha256_after": "9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47",
+  "returncode": 1
+}

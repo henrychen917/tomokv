@@ -65,7 +65,6 @@ inline constexpr size_t   kRbufHardCap = UINT32_MAX;
 // worst-case staging whether it ever pipelined or not; SmallBuf grows on demand and clear() keeps
 // the allocation, so a busy connection pays ONE grow to its working size and idles at 1KB + that.
 inline constexpr size_t   kWbufInline   = 512;
-inline constexpr size_t   kWbufShed     = 64 * 1024;   // reply staging above this is a burst; shed it
 // Largest single send the kernel accepts (Linux MAX_RW_COUNT); a CQE res is an int. Caps every
 // legacy send request and the segment iovec window alike.
 inline constexpr uint32_t kMaxSendBytes = 0x7ffff000u;
@@ -425,20 +424,7 @@ public:
         if (rest && rpos_) std::memmove(rbuf_, rbuf_ + rpos_, rest);
         rlen_ = rest;
         rpos_ = 0;
-        // Also shed burst-grown WRITE buffers here. The guard is size()==0 itself: a buffer with
-        // a send in flight (or staged bytes) always has size > 0 and is skipped, so shrinking can
-        // never truncate bytes the kernel or the sender still references -- the same invariant
-        // that makes the rbuf shed below safe, enforced per buffer instead of by caller contract.
-        for (auto& b : buf_)
-            if (b.size() == 0 && b.cap() > kWbufShed) b.shrink_to_inline();
-        // Shed an oversized command's growth -- but ONLY once the buffer is EMPTY. Shrinking with
-        // rest > 0 truncates the allocation underneath rlen_, and the next recv lands past the end
-        // of a 16KB block. That exact bug shipped for ~20 minutes: the hard-cap growth fix armed
-        // this previously-unreachable branch, and a 2MB SET died with EFAULT mid-stream.
-        if (rlen_ == 0 && rcap_ > kRbufSoftCap) {
-            char* n = static_cast<char*>(std::realloc(rbuf_, kRbufInitial));
-            if (n) { rbuf_ = n; rcap_ = kRbufInitial; }
-        }
+
     }
 
     // ---- the ROB -------------------------------------------------------------------------------
@@ -827,6 +813,7 @@ public:
 
 
 private:
+    friend class IdleBuffers;
     // --- io-hot scalars, packed: touched together on every pass ---------------------------------
     friend class r7::ShadowLongIndex;
     int       fd_   = -1;

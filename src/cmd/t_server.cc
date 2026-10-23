@@ -10,6 +10,7 @@
 #include "debug.h"
 #include "debug_sleep.h"
 #include "info_stats.h"
+#include "network_config.h"
 #include "hll.h"
 #include "scripting.h"
 #include "server_tail.h"
@@ -25,6 +26,7 @@
 #include "../exec/op.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
+#include "../net/query_limit_stats.h"
 #include "../store/kvobj.h"
 #include "../store/eviction.h"
 #include "../snapshot/snapshot.h"
@@ -623,12 +625,12 @@ bool collect_config_updates(Op& op,
         // argument order (last value wins). The original TomoKV aliases allowed repetition.
         if ((item->kind == ConfigKind::Encoding && !legacy_compact) ||
             !std::strcmp(item->name, "aof-load-truncated") ||
-            !std::strcmp(item->name, "client-query-buffer-limit")) {
+            network_config_name(item->name)) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2) {
                 if (!eq_icase(op.arg(previous), requested.c_str())) continue;
                 if (!std::strcmp(item->name, "aof-load-truncated") ||
-                    encoding == EncodingConfig::SetIntsetEntries) {
+                    encoding == EncodingConfig::SetIntsetEntries || network_config_name(item->name)) {
                     std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
                     msg += requested;
                     msg += "') - duplicate parameter";
@@ -647,7 +649,13 @@ bool collect_config_updates(Op& op,
         }
         if (item->immutable || !std::strcmp(item->name, "dir") ||
             !std::strcmp(item->name, "dbfilename") || !std::strcmp(item->name, "tcp-backlog")) {
-            reply_err(op.sink(), "ERR parameter is immutable at runtime"); return false;
+            if (network_config_name(item->name)) {
+                std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
+                msg.append(op.arg(i).p, op.arg(i).n);
+                msg += "') - can't set immutable config";
+                reply_err(op.sink(), msg.c_str());
+            } else reply_err(op.sink(), "ERR parameter is immutable at runtime");
+            return false;
         }
         std::string value;
         bool normalized = false;
@@ -657,13 +665,16 @@ bool collect_config_updates(Op& op,
             const char* error = nullptr;
             normalized = parse_client_output_buffer_limit_slice(
                 op.arg(i + 1), obuf_scratch, parsed, error);
+            config_error = error;
             if (normalized) {
                 obuf_scratch = parsed;
                 value = cfg_client_output_buffer_limit_string(parsed);
             }
         } else {
             // The old TomoKV spelling accepted leading zeroes and bare bytes only.
-            normalized = normalize_config(*item, op.arg(i + 1), value, config_error, legacy_compact);
+            const int network = normalize_network_config(item->name, op.arg(i + 1), value, config_error);
+            normalized = network >= 0 ? network == 1 :
+                normalize_config(*item, op.arg(i + 1), value, config_error, legacy_compact);
         }
         if (!normalized) {
             if (config_error) {
@@ -2451,6 +2462,7 @@ void cmd_info(Shard&, Op& op) {
                       "pubsub_inflight:%llu\r\npubsub_pending_commands:%llu\r\n"
                       "pubsub_blobs:%llu\r\npubsub_deliveries:%llu\r\n"
                       "pubsub_delivery_batches:%llu\r\npubsub_forwarded_stale:%llu\r\n"
+                      "client_query_buffer_limit_disconnections:%llu\r\n"
                       "client_output_buffer_limit_disconnections:%llu\r\n"
                       "notify_events_fired:%llu\r\nnotify_events_dropped:%llu\r\n"
                       "client_scatter_requests:%llu\r\nclient_scatter_io_responses:%llu\r\n"
@@ -2584,6 +2596,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_deliveries() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_delivery_batches() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->pubsub_forwarded_stale() : 0),
+                static_cast<unsigned long long>(query_limit_disconnections.load(std::memory_order_relaxed)),
                 static_cast<unsigned long long>(
                     g_server ? g_server->client_output_buffer_limit_disconnections() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->notify_events_fired() : 0),
@@ -3152,7 +3165,9 @@ bool command_parse_scan_cursor(Slice text, uint64_t& cursor) {
 
 Server* command_server() { return g_server; }
 uint64_t command_proto_max_bulk_len() {
-    return g_proto_max_bulk_len.load(std::memory_order_relaxed);
+    // CONFIG accepts Redis's signed-long range; string growth keeps the 32-bit bound.
+    return std::min(g_proto_max_bulk_len.load(std::memory_order_relaxed),
+                    kProtoMaxBulkLenRepresentable);
 }
 ThreadCtx* command_local_thread() { return g_thread; }
 Client* command_local_client() { return g_client; }
@@ -3171,6 +3186,7 @@ bool command_aof_load_truncated(bool boot_value) {
 }
 
 void command_config_resetstat() {
+    query_limit_disconnections.store(0, std::memory_order_relaxed);
     // Capture the CURRENT aggregate rather than writing zeros into per-shard/per-thread counters
     // that only their owner may write. INFO subtracts this baseline. The reads here are the same
     // cross-thread reads INFO already performs on every call, so no new sharing is introduced.

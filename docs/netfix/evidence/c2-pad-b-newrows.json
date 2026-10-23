@@ -1,0 +1,27 @@
+{
+  "arm": "padb",
+  "phase": "new",
+  "engine": "uring",
+  "jobs": "netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20869-20871",
+    "--candidate-binary",
+    "/home/user/Projects/cx-netfix/build/netfix-padb-uring"
+  ],
+  "wrapper": "#!/usr/bin/env python3\nimport os, sys\nargs = sys.argv[1:]\nconfig = [args.pop(0)] if args and not args[0].startswith(\"--\") else []\nos.execv('/home/user/Projects/cx-netfix/build/tomokv-pad-b-netfix', ['/home/user/Projects/cx-netfix/build/tomokv-pad-b-netfix'] + config + [\"--net-io\", 'uring'] + args)\n",
+  "make_q_all_before": null,
+  "actual_binary": "/home/user/Projects/cx-netfix/build/tomokv-pad-b-netfix",
+  "sha256_before": "47dbcb996e713b996e2aeaf1d4298a53830a98b32d0a4ab96d6308dd2eb559fb",
+  "sha256_after": "47dbcb996e713b996e2aeaf1d4298a53830a98b32d0a4ab96d6308dd2eb559fb",
+  "returncode": 0
+}

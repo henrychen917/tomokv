@@ -1,0 +1,45 @@
+# 2026-10-23 02:32:01 directed: kTLS gauge (INFO stats tls_ktls_active) for PRE's two accepted default suites, via tests/netfix_tls.probe; servers on CPUs 64-71, client 72-79, port 20821
+## probe script
+"""Directed: measure kTLS state for PRE's accepted suites using netfix_tls.probe (no assertions changed)."""
+import argparse, json, sys
+from contextlib import closing
+from pathlib import Path
+sys.path.insert(0, 'tests')
+import _netfix as n
+import netfix_tls as t
+
+def main():
+    p = argparse.ArgumentParser(); p.add_argument('binary'); p.add_argument('output'); p.add_argument('port', type=int)
+    o = p.parse_args()
+    a = argparse.Namespace(binary=str(Path(o.binary).resolve()), oracle='/home/user/Projects/redis74/src/redis-server',
+                           cores='64-71', tls_oracle='', ratio='6:2', port=o.port, output=Path(o.output).resolve())
+    a.output.mkdir(parents=True, exist_ok=True)
+    certs = n.certificates(a)
+    out = {}
+    for mode in ('1s', '2s'):
+        for engine in ('epoll', 'uring'):
+            with n.server(a, f'{mode}-{engine}', mode=mode, engine=engine, certs=certs):
+                with closing(n.connect(a.port)) as admin:
+                    for version, cipher in (('TLSv1.2', 'ECDHE-RSA-AES128-GCM-SHA256'), ('TLSv1.3', 'TLS_AES_128_GCM_SHA256')):
+                        out[f'{mode}-{engine} {version}/{cipher}'] = t.probe(a.port + 1, version, cipher, admin)
+    print(json.dumps(out, indent=1))
+
+main()
+## pre dd273ba7c7382a7f58fcbc0e030487538dd760ec1aa3e7391698b2d6d83a36fb  build/tomokv-pre-netfix
+1s-epoll TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256 -> accepted=True ktls_active=1
+1s-epoll TLSv1.3/TLS_AES_128_GCM_SHA256 -> accepted=True ktls_active=0
+1s-uring TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256 -> accepted=True ktls_active=1
+1s-uring TLSv1.3/TLS_AES_128_GCM_SHA256 -> accepted=True ktls_active=0
+2s-epoll TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256 -> accepted=True ktls_active=1
+2s-epoll TLSv1.3/TLS_AES_128_GCM_SHA256 -> accepted=True ktls_active=0
+2s-uring TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256 -> accepted=True ktls_active=1
+2s-uring TLSv1.3/TLS_AES_128_GCM_SHA256 -> accepted=True ktls_active=0
+## post 9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47  build/tomokv
+1s-epoll TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256 -> accepted=True ktls_active=1
+1s-epoll TLSv1.3/TLS_AES_128_GCM_SHA256 -> accepted=True ktls_active=0
+1s-uring TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256 -> accepted=True ktls_active=1
+1s-uring TLSv1.3/TLS_AES_128_GCM_SHA256 -> accepted=True ktls_active=0
+2s-epoll TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256 -> accepted=True ktls_active=1
+2s-epoll TLSv1.3/TLS_AES_128_GCM_SHA256 -> accepted=True ktls_active=0
+2s-uring TLSv1.2/ECDHE-RSA-AES128-GCM-SHA256 -> accepted=True ktls_active=1
+2s-uring TLSv1.3/TLS_AES_128_GCM_SHA256 -> accepted=True ktls_active=0

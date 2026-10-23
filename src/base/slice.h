@@ -199,6 +199,7 @@ struct Slice {
 // pieces in a hot loop, and we want an inline capacity so the common small reply never allocates.
 template <size_t Inline>
 class SmallBuf {
+    friend class IdleBuffers;
 public:
     SmallBuf() : data_(inline_), cap_(Inline) {}
     ~SmallBuf() { if (data_ != inline_) std::free(data_); }

@@ -3365,8 +3365,8 @@ private:
         const bool pubsub = live_obuf_pubsub_hard_.load(std::memory_order_relaxed) != 0 ||
                             live_obuf_pubsub_soft_.load(std::memory_order_relaxed) != 0;
         client_obuf_armed_.store(normal || pubsub, std::memory_order_release);
-        client_cron_armed_.store(live_timeout_.load(std::memory_order_relaxed) != 0 ||
-                                 normal || pubsub, std::memory_order_release);
+        // Buffer reclamation is unconditional, even when timeout and output limits are off.
+        client_cron_armed_.store(true, std::memory_order_release);
     }
 
     // Only boot or the serialized CONFIG writer reads these mutable fields as a group. Readers

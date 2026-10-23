@@ -1,0 +1,22 @@
+{
+  "arm": "pad",
+  "phase": "idle",
+  "engine": "uring",
+  "command": [
+    "bash",
+    "tests/gate.sh",
+    "quick",
+    "--server-cores",
+    "64-71",
+    "--load-cores",
+    "72-79",
+    "--load-smt",
+    "",
+    "--ports",
+    "20850-20852",
+    "--candidate-binary",
+    "/home/user/Projects/cx-netfix/build/netfix-pad-uring"
+  ],
+  "wrapper": "#!/usr/bin/env python3\nimport os, sys\nargs = sys.argv[1:]\nconfig = [args.pop(0)] if args and not args[0].startswith(\"--\") else []\nos.execv('/home/user/Projects/cx-netfix/build/tomokv-pad-a-netfix', ['/home/user/Projects/cx-netfix/build/tomokv-pad-a-netfix'] + config + [\"--net-io\", 'uring'] + args)\n",
+  "returncode": 1
+}
