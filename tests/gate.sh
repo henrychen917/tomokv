@@ -143,6 +143,8 @@ GLOBCASE_ORACLE=0; MMPID=0; ABBA_PID=0
 # reads its SOURCE in both tiers; the differential and globcase rows boot its BINARY in the full
 # tier. The preflight below says exactly what is missing instead of a traceback in row 4.
 export REDIS74_ROOT=${REDIS74_ROOT:-/tmp/claude-1000/redis74}
+# TLS oracle is independent of the ordinary Redis oracle; every consumer gets it explicitly.
+export REDIS74_TLS_ROOT=${REDIS74_TLS_ROOT:-/home/user/Projects/redis74-tls}
 # A battery that records a STRICT skip (a DEBUG hook it needed was denied) fails under the gate:
 # a gate row must run the arm it exists for, never turn green by skipping it (tests/_lib.py).
 export TOMO_GATE_STRICT=1
@@ -1270,7 +1272,13 @@ stop_workers(){ reap_children; }
 
 # The bodies below preserve every same-server sequence and persistence recovery chain. Only
 # dispatch moved: collection at the original tier/source positions remains the ledger contract.
-ASAN="$PWD/build/gate-cache/tomokv-asan"
+# Correctness-only historical reproductions may supply a matching instrumented arm.
+# Complete gates always build their own source-bound ASAN binary.
+ASAN="${GATE_ASAN_BINARY:-$PWD/build/gate-cache/tomokv-asan}"
+if [ -n "${GATE_ASAN_BINARY:-}" ] && [ "$GATE_PARTIAL" != 1 ]; then
+  echo 'GATE_ASAN_BINARY is only supported with GATE_ONLY_JOBS' >&2
+  exit 2
+fi
 RLDBG="$PWD/build/gate-cache/tomokv-rlcachedbg"
 CORE_TSAN="$PWD/build/gate-cache/core-concurrency-tsan"
 WAITS_TSAN="$PWD/build/gate-cache/waits-unit-tsan"
@@ -1333,6 +1341,10 @@ job_asan(){
 # 42 translation units: compiled in parallel with a header-aware object cache rather than in one
 # serial g++, which cost 365s and was the largest row in the gate.
 row_begin "ASAN build"
+if [ -n "${GATE_ASAN_BINARY:-}" ]; then
+  [ -x "$ASAN" ] && ok "ASAN build" || bad "ASAN build" "instrumented arm is not executable: $ASAN"
+  return
+fi
 pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cache/obj-asan" \
     "-std=c++20 -O1 -g -fsanitize=address -march=native -pthread -I." \
     "-luring -pthread -lssl -lcrypto" \
@@ -2009,6 +2021,7 @@ job_netfix_query_stats(){
   row_begin "netfix NT4.6 query-limit INFO parity"
   py tests/netfix_query_stats.py --binary "$CANDIDATE_BINARY" \
       --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}" \
       --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
       >"$TMPDIR/proof.log" 2>&1 \
     && ok "netfix NT4.6 query-limit INFO parity" \
@@ -2019,6 +2032,7 @@ job_netfix_unix(){
   row_begin "netfix NT4.11 Unix pathname parity"
   py tests/netfix_unix.py --binary "$CANDIDATE_BINARY" \
       --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}" \
       --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
       >"$TMPDIR/proof.log" 2>&1 \
     && ok "netfix NT4.11 Unix pathname parity" \
@@ -2029,6 +2043,7 @@ job_netfix_config(){
   row_begin "netfix NT4.8 network CONFIG error parity"
   py tests/netfix_config.py --binary "$CANDIDATE_BINARY" \
       --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}" \
       --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
       >"$TMPDIR/proof.log" 2>&1 \
     && ok "netfix NT4.8 network CONFIG error parity" \
@@ -2039,6 +2054,7 @@ job_netfix_tls(){
   row_begin "netfix NT4.7 TLS default cipher parity"
   py tests/netfix_tls.py --binary "$CANDIDATE_BINARY" \
       --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}" \
       --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
       >"$TMPDIR/proof.log" 2>&1 \
     && ok "netfix NT4.7 TLS default cipher parity" \
@@ -2049,6 +2065,7 @@ job_netfix_idle_buffers(){
   row_begin "netfix NT4.19 idle buffer reclamation"
   py tests/netfix_idle_buffers.py --binary "$CANDIDATE_BINARY" \
       --oracle "${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}" \
+      --tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}" \
       --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" --output "$TMPDIR/proof" \
       >"$TMPDIR/proof.log" 2>&1 \
     && ok "netfix NT4.19 idle buffer reclamation" \
@@ -4312,7 +4329,8 @@ zcboot(){
   guard_port "$PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-srv-zc.XXXXXX)
   taskset -c $CORES "$1" --databases 1 --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO \
-      --dir "$(mktemp -d "$TMPDIR/zc-data.XXXXXX")" --save '' --zc-min 16384 > "$SRVLOG" 2>&1 &
+      --dir "$(mktemp -d "$TMPDIR/zc-data.XXXXXX")" --save '' --zc-min 16384 \
+      --net-io "${GATE_ZC_NET_IO:-uring}" > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do
     if ! kill -0 "$SRV" 2>/dev/null; then wait "$SRV" 2>/dev/null; return 1; fi

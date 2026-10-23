@@ -31,6 +31,11 @@ def arguments():
 
 
 def certificates(a):
+    if not a.tls_oracle:
+        raise AssertionError('TLS oracle path is required: pass --tls-oracle (or NETFIX_TLS_ORACLE)')
+    a.tls_oracle = str(Path(a.tls_oracle).resolve())
+    if not os.path.isfile(a.tls_oracle) or not os.access(a.tls_oracle, os.X_OK):
+        raise AssertionError(f'TLS oracle is missing or not executable: {a.tls_oracle}')
     certs = a.output / 'certs'
     subprocess.run(['python3', 'tests/tls.py', '--generate', str(certs)], check=True,
                    stdout=subprocess.DEVNULL)
@@ -64,7 +69,8 @@ def connect(port, certs=None, unix=None):
 def server(a, label, *, oracle=False, mode='2s', engine='uring', certs=None, extra=()):
     directory = (a.output / label).resolve()
     directory.mkdir(parents=True, exist_ok=True)
-    cmd = ['taskset', '-c', a.cores, (a.tls_oracle if certs and a.tls_oracle else a.oracle) if oracle else a.binary,
+    executable = (a.tls_oracle if certs else a.oracle) if oracle else a.binary
+    cmd = ['taskset', '-c', a.cores, executable,
            '--port', str(a.port), '--bind', '127.0.0.1', '--protected-mode', 'no',
            '--save', '', '--appendonly', 'no', '--dir', str(directory),
            '--maxclients', '20032']
@@ -90,6 +96,10 @@ def server(a, label, *, oracle=False, mode='2s', engine='uring', certs=None, ext
                     c = connect(a.port)
                     assert c.must('PING') == b'PONG'
                     c.close()
+                    if oracle and certs:
+                        c = connect(a.port + 1, certs)
+                        assert c.must('PING') == b'PONG'
+                        c.close()
                     break
                 except OSError:
                     if time.monotonic() >= deadline:
@@ -105,7 +115,10 @@ def server(a, label, *, oracle=False, mode='2s', engine='uring', certs=None, ext
                     proc.kill()
                     proc.wait()
                     raise AssertionError(f'{label}: shutdown timed out')
-            assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+            assert proc.returncode == 0, (
+                f'{label}: {"TLS oracle" if oracle and certs else "server"} '
+                f'{executable}: exit {proc.returncode}; '
+                f'{(directory / "server.log").read_text()}')
 
 
 def matrix(a, test, *, tls=True):

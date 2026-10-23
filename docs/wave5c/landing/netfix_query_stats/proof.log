@@ -1,0 +1,34 @@
+PASS oracle-oracle-tcp [0, 1, 2, 3, 0]
+FAIL oracle-oracle-tls Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave5/tests/_netfix.py", line 88, in server
+    raise AssertionError(f'{label}: boot exited {proc.returncode}')
+AssertionError: oracle-oracle-tls: boot exited 1
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave5/tests/_netfix.py", line 119, in matrix
+    with server(a, label, oracle=oracle, mode=mode, engine=engine, certs=certs if transport == 'tls' else None) as proc:
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-wave5/tests/_netfix.py", line 108, in server
+    assert proc.returncode == 0, f'{label}: exit {proc.returncode}'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: oracle-oracle-tls: exit 1
+
+PASS 1s-epoll-tcp [0, 1, 2, 3, 0]
+PASS 1s-epoll-tls [0, 1, 2, 3, 0]
+PASS 1s-uring-tcp [0, 1, 2, 3, 0]
+PASS 1s-uring-tls [0, 1, 2, 3, 0]
+PASS 2s-epoll-tcp [0, 1, 2, 3, 0]
+PASS 2s-epoll-tls [0, 1, 2, 3, 0]
+PASS 2s-uring-tcp [0, 1, 2, 3, 0]
+PASS 2s-uring-tls [0, 1, 2, 3, 0]
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave5/tests/netfix_query_stats.py", line 54, in <module>
+    n.matrix(n.arguments(), test)
+  File "/home/user/Projects/cx-wave5/tests/_netfix.py", line 128, in matrix
+    assert not failures, failures
+           ^^^^^^^^^^^^
+AssertionError: ['oracle-oracle-tls']
