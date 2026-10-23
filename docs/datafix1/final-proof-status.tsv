@@ -9,3 +9,5 @@ post-linear-directed	0
 pre-linear-directed	1
 pre-static-final	0
 post-linear-units	0
+post-linear-epoll	0
+post-linear-uring	0

@@ -2,170 +2,143 @@
 
 ## datafix1
 
-PRE: `a7dfb9d2332d4c4e9d8bca983e439ba4b2bbba7e`. No push. Work and correctness
-servers restricted to CPUs 48–63 and ports 29800–29899. Performance remains with
-the maintainer; no throughput claims.
+All seven requested findings reproduced against the pinned Redis 7.4.10 oracle
+and are fixed on `cx-datafix1`. PRE is `a7dfb9d2332d4c4e9d8bca983e439ba4b2bbba7e`.
+No push. All correctness work and builds used CPUs 48–63 and ports 29800–29899;
+builds used `-j16`. No throughput result is claimed.
 
-CD4.3: reproduced against Redis 7.4.10. Free-order GEO options and lookup/member
-error precedence implemented, including COUNT grammar and ANY placement. Routing
-extracts keys; validation occurs only after the source lookup. The directed gate
-row runs 377 assertions per leg, both engines, split/fused/armed-fused, atomic 0/1.
-PRE fails and POST passes all 12 legs. Exact paired replies and lifecycle records:
-`docs/datafix1/{pre,post}-geo-proof.tar.gz`; initial independent oracle run:
-`docs/datafix1/oracle-geo/`.
+| Item | Change | Directed battery | Legs |
+|---|---|---|---:|
+| CD4.3 | Free-order GEO option loop, exact COUNT/ANY/duplicate/source-member errors and lookup precedence; routing defers validation to the source owner | tests/datafix1_geo.py | 12 |
+| CD4.4 | Compact partial SPOP, Redis's survivor-rebuild threshold, intset narrowing and live-limit encoding transitions; linear counted traversal | tests/datafix1_spop.py | 6 |
+| CD4.5 | One-node quicklist demotion at half the live count/byte limits after pop, trim, remove, set and mover removals | tests/datafix1_lists.py | 12 |
+| CD4.6 | locale-collate default/environment, boot parsing, CONFIG GET/SET/REWRITE and per-sort collation snapshots | tests/datafix1_locale.py | 12 |
+| CD4.10 | BITFIELD tests the first byte, including GET; matches indexed-offset wrapping and Redis's bounded growth | tests/datafix1_bitfield.py | 6 |
+| CD4.11 | Negative/overflowing hash-expire values precede condition/FIELDS validation; wrong-type lookup precedence retained | tests/datafix1_hexpire.py | 6 |
+| CD4.12 | RAND count/option/lookup precedence, half-range texts, SRAND extra-argument syntax and SCAN-family errors | tests/datafix1_randscan.py | 6 |
 
-The final directed POST proof contains 60 complete engine/mode/atomic legs and
-29,328 assertions; see docs/datafix1/post-new-row-inventory.json and the gate-owned
-post-final-epoll-proof.tar.gz. All seven source-declared labels are in the fixture.
-The maintainer-owned EXPECT constants remain unchanged.
+Final directed proof: **29,328 assertions in 60 complete POST legs; all pass.**
+Every corresponding PRE leg fails actual assertions; neither arm has a boot or
+driver exception. Each leg boots fresh oracle/target processes. Both engines run
+split (16 shards, 6 io + 2 ex), fused and armed-fused on CPUs 48–55. Multi-key
+features also run atomic 0/1. The target uses database count 1 in these directed
+legs; the broader jobs retain their declared configurations.
 
-CD4.4: small partial SPOP retains intset/listpack; a counted pop with
-(n-k)*5 <= k rebuilds the survivors exactly at Redis's branch threshold. That
-can narrow an intset, demote a hashtable to a listpack, or promote survivors
-under lowered live limits. The expanded directed row passes six POST legs and
-fails six PRE legs. It checks conservation, uniqueness, TTL, encoding, bounded
-memory, and rebuilt intset memory against a fresh set of the same survivors.
-The same row checks full SSCAN coverage of surviving members across a large
-pop, with an explicitly nonzero starting cursor. Independent oracle receipts:
-docs/datafix1/oracle-spop-rebuild/ and oracle-spop-cursor/; paired gate
-proof: docs/datafix1/{pre,post}-spop-rebuild-proof.tar.gz.
-Cost per partial call (0 < k < n), n members / k popped / B packed bytes: PRE's first compact
-partial pop builds a table, traversing listpacks in O(n+B) and indexed intsets
-in O(n log n+B), then takes expected O(k) picks,
-allocating O(n) table/string storage permanently. POST's single compact pop
-walks or indexes once and shifts at most B bytes, O(n+B) with no auxiliary
-allocation. Small counted compact pops sample and rebuild in linear passes,
-O(n+B) time and O(k+B) temporary storage. Large counted pops sample survivors
-in one pass, build them once, and emit the remainder in another pass: O(n+B)
-plus expected hash insertion work if current limits require a table, with
-O(n-k + survivor bytes) temporary storage. There is no rejection sampling or
-repeated compact membership search. Counted partial calls make n sampling
-draws and at most two full entry traversals, plus survivor construction; the
-PRE conversion instead performs n table insertions and k random table picks.
-These are algorithmic costs, not measured
-throughput or cycle claims. EXPECT constants are unchanged.
+Receipts: `docs/datafix1/{pre,post}-linear-directed-proof.tar.gz` and
+`{pre,post}-new-row-inventory.json`. Independent oracle assertions preceded each
+implementation; `oracle-*` directories retain replies and owned-process lifecycles.
+The oracle path, version and digest are in `oracle-identity.json`.
 
-CD4.5: one-node quicklists demote after LPOP/RPOP, LSET, LREM (when something was
-removed), LTRIM (including a no-op trim), blocking/MPop and mover removals. The
-size check derives Redis listpack integer/string framing, header and back-lengths;
-it uses <= half the live count/byte limit and transfers the sole packed buffer
-without allocating. PRE fails / POST passes 12 legs, with count limits 4/5/8,
-4096/4097-byte packed boundaries, all pop/move verbs, contents and memory shrink.
-The existing edgeenc shrink assertion now expects Redis list demotion (other types
-unchanged), supported by the independent oracle receipts.
+SPOP applies Redis's rebuild branch exactly when `(n-k)*5 <= k`. Rebuilding can
+narrow an intset, demote a hashtable to a listpack, or promote survivors under
+lowered live limits. The battery covers both sides of the branch, signed
+16/32/64-bit integers, contents, uniqueness, TTL, memory bounds and SSCAN coverage
+of surviving members. Rebuilt intset memory equals a fresh set of the same
+survivors on each server. Absolute allocator byte counts are not asserted equal
+between different server implementations.
 
-CD4.6: locale-collate defaults to the environment, supports boot/CONFIG SET/GET/
-REWRITE, rejects invalid names and duplicate parameters with Redis's exact text.
-Each ALPHA sort without STORE duplicates the published locale under a cold mutex,
-then uses strcoll_l with that retained object for every comparison. Publication
-never calls setlocale, and replacement cannot free a running sort's context.
-STORE stays binary. Mixed-case/punctuation/accented weights, SORT_RO, dynamic BY,
-all source types and concurrent CONFIG/sort checks pass 12 POST legs; PRE fails.
-Config consumes 8 reserved bytes; all existing fields and the 624-byte size stay
-fixed. The differential's stale C-only implementation comment is corrected; its
-fixed-order corpus still requires C collation.
+Cost per partial call, `0 < k < n`, with n members and B packed bytes:
 
-CD4.10: BITFIELD checks the first byte like Redis; indexed offsets use explicit
-unsigned machine-word multiplication, matching the oracle's wrapped # offset
-behavior without C++ signed overflow. GET/SET/INCRBY/GETRANGE/STRLEN and refusal
-atomicity pass six POST legs; PRE fails. Redis lookupStringForBitCommand grows to
-(last_bit >> 3)+1 without a second bulk-limit check. A field is at most 64 bits,
-so growth can exceed the configured limit by at most eight bytes; the existing
-UINT32_MAX-64KiB supported cap leaves ample representable space. A static_assert
-pins this proof. Read-only probes exercise the maximum supported cap without a
-multi-gigabyte allocation.
+| Arm/path | Work | Additional storage |
+|---|---|---|
+| PRE compact listpack | O(n+B) table construction plus expected O(k) picks | Permanent O(n) table/string storage |
+| PRE compact intset | O(n log n+B) indexed offset lookups/table construction plus expected O(k) picks | Permanent O(n) table/string storage |
+| POST single compact pop | One pick and bounded packed traversal/shift, O(n+B) | No auxiliary allocation |
+| POST counted compact pop | Linear sampling, survivor construction and reply traversal, O(n+B) | O(k+B) for small pops; O(n-k + survivor bytes) for rebuilding |
 
-CD4.11: HEXPIRE/HPEXPIRE/HEXPIREAT/HPEXPIREAT validate negative/overflowing expire
-values before condition and FIELDS parsing; key type lookup retains its earlier
-precedence. The matrix crosses all four commands, present/missing/wrong-type keys,
-invalid values, conflicting conditions and malformed field tails. PRE fails and
-POST passes all six engine/mode legs.
+Counted partial calls make n sampling decisions and at most two full source traversals,
+plus survivor construction. There is no repeated compact membership lookup or
+duplicate-pick rejection loop. Current limits can require expected hash-insert
+work when rebuilding. These are algorithmic bounds, not measured cycles or rates.
 
-CD4.12: RAND validates counts and optional arguments before key lookup; the two
-WITHVALUES/WITHSCORES half-range errors use Redis's short text. SRANDMEMBER excess
-arguments return syntax before numeric parsing; ZRANDMEMBER parses the count
-first. ZSCAN now emits the HSCAN-only NOVALUES error. A 1,056-case table covers
-all RAND/SCAN verbs, missing/present/wrong-type keys, numeric boundaries, conflicting
-errors and the register's remaining controls. PRE fails / POST passes six legs.
-Cumulative DQ=DF=+7: all seven rows are collected before the quick-tier exit.
-Maintainer EXPECT values should become QUICK 692 / FULL 709 (base 685 / 702);
-this lane leaves those constants unchanged.
+List demotion derives Redis listpack framing, integer widths, header and back-length
+bytes; count limits 4/5/8 and 4096/4097-byte boundaries are tested. The only changed
+existing assertion is edgeenc's list shrink expectation, backed by the oracle
+receipts. Its other type expectations are unchanged.
 
-Inlining budget derivation: final set IPA sizes grew 17685→19373 and
-17505→19175 (db0); normal zset grew by 38. Bounded compile-only trials selected
-set 26200 / db0 26400 and normal zset 33447. Every trial's command, object digest
-and complete changed-body inventory is under docs/datafix1/budgets. These retain
-all ordinary storage hot bodies; final whole-tree audits follow. No runtime knob
-or algorithm change was introduced by the budget adjustment.
+ALPHA sorts without STORE retain one duplicated locale object for the whole sort.
+A cold mutex protects publication/duplication, not comparisons; CONFIG SET cannot
+free an active comparison context. No executor calls setlocale. STORE remains
+binary. Tests cover environment/C/UTF-8 collation, BY, SORT_RO, all source types,
+invalid names, embedded NUL, duplicate settings and concurrent changes.
 
-Merit request (maintainer only; NOT RUN here): use the gate's own ABBA instrument
-and the exact 14 rows in tests/wbland_merit_cells.txt: h05, h06, p8g, p8s, d1g_l0,
-d1s_l0, m8g_l0, v1g_l0, d128g_l0, d32g_l1, d8s_l1, d32s_l1, x9_32_l1, x9_32_l0.
-First establish a same-binary null, then PRE/POST, PRE/PAD-A and PAD-A/POST with
-matched offered load and the cell's declared geometry. Rate is the verdict for
-rate cells; latency is the verdict for the two p1 cells. Report cycles/op, IPC and
-instructions/op together and judge against the instrument's measured null spread.
-A new spread above 2% needs investigation, not a relaxed threshold. The question
-is whether the compatibility repair preserves ordinary workload merit. No
-performance result or improvement is claimed by this lane.
+BITFIELD grows through the last touched byte as Redis does. A field is at most
+64 bits, so growth can exceed the configured bulk limit by at most eight bytes.
+The supported UINT32_MAX-minus-64KiB ceiling leaves representable space, pinned
+by static_assert. Boundary writes use a 1MiB cap; maximum-cap probes are read-only.
+Multi-gigabyte allocation tests were NOT RUN; the upper-bound proof is arithmetic.
 
-Artifacts: PRE build/datafix1/pre-src/build/tomokv; POST build/tomokv; PAD-A
-build/datafix1/PAD-A/tomokv. Digests: docs/datafix1/SHA256SUMS. PAD kind A is PRE
-behavior (unchanged PRE objects) with 30,400 inert bytes appended to match POST's
-7,777,926-byte .text. It controls total text size and the unchanged layout locks,
-not every function address. Config's new cold pointer consumes PRE's reserved
-storage; existing field offsets stay fixed. Exact link/object provenance is in
-docs/datafix1/pad-kind.json; tools/datafix1_pad.py reproduces the arm.
+Gate accounting: **DQ=+7, DF=+7**. All seven collect_job lines (4286–4292) precede
+the quick exit (4375–4379). EXPECT_QUICK=685 and EXPECT_FULL=702 are untouched;
+the maintainer should set **692 / 709**. The explicit label fixture matches the
+source multiset exactly (709). Its count validator remains red only because
+EXPECT_FULL is still 702; see `label-fixture.log`.
 
-Final identity: tools/ccfix_audit.py inventories 16,838 emitted bodies, 322 changed;
-all 1,220 selected hot bodies are canonical-equal to PRE. Its command-only INFO/
-CONFIG/ACL admission policy rejects the intentional data-type changes, as expected.
-The stricter linked audit (tools/infofields_artifacts.py) likewise rejects its
-INFO-only whitelist: 4,365/4,484 ordinary object bodies match and 2,584/2,690 linked
-ordinary bodies are proven. Every changed body, including compiler spillover in
-unedited helpers, is listed with a reason in docs/datafix1/body-reasons.json.
-All ten linked GET/SET/MGET/MSET handlers are proven against their PRE object
-implementations (linked-primary.json). These are identity proxies, not merit.
+Proof status (all live rows use tests/gate.sh's own partial-job interface):
+
+| Proof | PRE | Final POST |
+|---|---|---|
+| Seven directed rows | 60/60 legs fail assertions | 60/60 legs pass |
+| Storage/atomic/netcmd units, including encoding and memory | 57/57 pass | 57/57 pass (post-linear-units) |
+| Configuration docs/parser and command metadata | 3/3 pass from PRE source | Included in final legacy jobs |
+| Legacy data-type jobs, epoll | 156/156 pass | 156/156 legacy + 3/3 static pass |
+| Legacy data-type jobs, io_uring | Earlier selected run: 157 pass, one tracking failure; globcase follow-up pending | 156/156 pass |
+| Related jobs: parser, AOF, debug, GEO client, hash TTL, dump/restore, notifications | 199/199 pass | PENDING |
+| Standard differential, both engines | PENDING | PENDING |
+| PAD-A directed behavior control | PRE behavior required | PENDING |
+
+The gate harness self-test passed 67/67 when run alone (`gates-test-serial.log`).
+Final POST passes make -q for all, all 37 job_production_units targets and both MDB
+witness builds (`freshness-linear.log`). PRE passed the same fixture freshness
+checks before redundant fixture/control builds were removed; its source,
+production objects and server remain, with make -q all still passing.
+`lean-builds.json` records the pruning. The build tree is about 14GB, largely the
+required POST production fixtures and controls.
+
+The full changed-text/encoding grep and job mapping are in test-impact-*.txt and
+test-impact-map.tsv. Historical standalone scripts without a gate job are named
+there; they were not silently substituted for registered jobs. Exact job selections,
+per-row results and lifecycle logs are retained in the proof archives.
+
+Identity: 16,838 emitted bodies inventoried, 322 changed; every changed body has a
+reason in `body-reasons.json`, including compiler spillover in unedited helpers.
+All 1,220 selected hot bodies are canonical-equal. All ten linked GET/SET/MGET/MSET
+handlers are proven against PRE (`linked-primary.json`). The broader audit reports
+4,365/4,484 ordinary object bodies equal and 2,584/2,690 linked bodies proven.
+Both tools still reject their INFO/CONFIG/ACL-only admission policies; those
+whitelists were not weakened. Identity is a proxy; the merit comparison decides.
+
+Budgets were re-derived from final initial IPA sizes 19373 / 19175 against PRE
+17685 / 17505. Set budgets are 26200 / db0 26400; normal zset is 33447. Commands,
+digests and body inventories for the trials are under `docs/datafix1/budgets`.
 Both namespaces retain Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore
-944, Rob<64> 192, AtomicEntry 144 and Config 624. Only Config's reserved area
-changes definition; all existing non-reserved field offsets match (layout-reviewed.json).
+944, Rob<64> 192, AtomicEntry 144 and Config 624. Config's new pointer uses eight
+reserved bytes; all existing non-reserved field offsets match (`layout-reviewed.json`).
 
-Production proof: PRE and POST each pass all 57 selected storage_units, atomic_units
-and netcmd_units rows, including encodingfix and storesize. Both builds pass
-make -q for all, all 37 targets listed in job_production_units, and mdbqsbr-live-arms
-(freshness-final.log). Complete gate-owned logs are archived in pre-units-proof.tar.gz
-and post-final-units-proof.tar.gz.
-The gate harness self-test passes 67/67 when run alone (gates-test-serial.log).
-Two earlier concurrent runs had outer scheduler-fixture timeouts; their original
-logs are retained. No fixture assertion or deadline was changed.
+Artifacts and SHA-256:
 
-An initial concurrent differential run hit its 900-second outer row watchdog
-before the last seed completed. All three overlapping coordinators were stopped
-and their incomplete logs archived, explicitly marked LANE INTERRUPTED. Those
-are not claimed as complete matrix passes. The serial reruns use the unchanged
-standard permanent seeds 7,19,20,23 plus rotating seed 25, cloned from the same
-pre-run history for matched PRE/POST arms. Each full leg inventory remains intact.
+| Arm | Binary | SHA-256 |
+|---|---|---|
+| PRE | build/datafix1/pre-src/build/tomokv | 194bcfa235f0255304b9d774134f28a9fe7beaf61ba6f10861484404c17dc615 |
+| POST | build/tomokv | b05021db6b4f7369b0cad5b7009b8a1918332860f92b03f029394c23e4d61dec |
+| PAD-A | build/datafix1/PAD-A/tomokv | 75ea5fd78496a4e2de15f4178731627aecdeb6ae2db6765f8a9fc14619142b9c |
 
-Final legacy proof: POST epoll 166/166 selected rows and io_uring 156/156; PRE
-epoll 156/156. PRE and POST each pass 199/199 related-job rows, including AOF,
-fragmentation, command clocks, GEO client cases, hash TTL, dump/restore and
-notification chains. Standard differential runs are in progress.
+PAD kind **A, behavior twin**: unchanged PRE objects plus 30,400 inert text bytes,
+matching POST's 7,777,926-byte .text and unchanged layout locks. This controls total
+text size, not each function's placement. Config's locale pointer occupies PRE's
+reserved storage. `tools/datafix1_pad.py` and `pad-kind.json` preserve exact link
+and object provenance; `SHA256SUMS` records all three binaries.
 
-The first PRE SPOP receipts contain all six assertion logs but the summary writer
-then rejected bytes nested in tuple failure details. The common writer now uses
-its existing RESP-to-JSON converter for those values; no assertion changes.
-All seven directed rows are queued again on PRE and final POST with this fix,
-followed by the final PAD-A control. Earlier receipt files remain preserved.
+Maintainer merit request — **NOT RUN here**, as instructed: use the gate's ABBA
+instrument and the exact 14 cells in tests/wbland_merit_cells.txt:
+h05, h06, p8g, p8s, d1g_l0, d1s_l0, m8g_l0, v1g_l0, d128g_l0, d32g_l1,
+d8s_l1, d32s_l1, x9_32_l1, x9_32_l0. Establish a same-binary null, then compare
+PRE/POST, PRE/PAD-A and PAD-A/POST at matched offered load and each declared
+geometry. Rate decides rate cells; latency decides the two p1 cells. Report
+cycles/op, IPC and instructions/op together. A spread above 2% requires
+investigation, not a relaxed tolerance. The question is preservation of ordinary
+workload merit after compatibility repairs. The full iteration, ABBA and NIC
+performance tiers were NOT RUN; they remain with the maintainer.
 
-Lean build retention: PRE's redundant production-unit and control binaries were
-removed after the passing gate runs and recorded make -q checks. Its exact source,
-production objects and server remain, and make -q all still passes. POST's required
-production targets remain fresh. The removed paths are listed in lean-builds.json.
-
-A final source cost audit found that integer_at() rediscovers logical-offset
-coordinates: a bounded scan below the side-index cutover and a binary search
-above it. Counted SPOP now decodes the entries already in its sequential iterator,
-including signed 16/32/64-bit values, instead of repeating those lookups. This
-makes the stated POST O(n+B) traversal bound literal. The oracle signed corpus
-is in oracle-spop-signed/. The earlier differential attempt is archived as
-post-epoll-differ-before-linear and is not a final-binary matrix claim.
+Baseline and harness history is documented in `docs/datafix1/RUN-NOTES.md`.
+Superseded or incomplete runs are not counted as final-binary passes.
