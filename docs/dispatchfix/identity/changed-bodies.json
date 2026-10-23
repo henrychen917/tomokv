@@ -1,5 +1,170 @@
 [
   {
+    "name": "Arith",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      643
+    ],
+    "post_sizes": [
+      643
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo14SetMemberTable12capacity_forEj",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      759
+    ],
+    "post_sizes": [
+      759
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo14function_statsEv",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      423
+    ],
+    "post_sizes": [
+      423
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo15xshard_pop_listERNS_5ShardENS_5SliceEmbmRSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS9_EE",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1138
+    ],
+    "post_sizes": [
+      1138
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo17geo_prepare_routeERNS_2OpERNS_8GeoRouteE",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      467
+    ],
+    "post_sizes": [
+      467
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo19debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2921
+    ],
+    "post_sizes": [
+      2921
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo19xshard_store_stringERNS_5ShardENS_5SliceEmS2_lbb",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3157
+    ],
+    "post_sizes": [
+      3157
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo20cmdgap_command_tableEv",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      298
+    ],
+    "post_sizes": [
+      298
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo20hash_ttl_active_reapERNS_9FlatStoreEPNS_5KvObjElRj",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      745
+    ],
+    "post_sizes": [
+      745
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo20stream_object_headerEPNS_5KvObjERNS_12StreamHeaderE",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      547
+    ],
+    "post_sizes": [
+      547
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo37slowlog_validate_container_subcommandERNS_2OpEb",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      702
+    ],
+    "post_sizes": [
+      702
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "_GLOBAL__sub_I__ZN4tomo6Server8shutdownENS0_12ShutdownSaveEPNS_9ThreadCtxEPNS_4RingERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
     "hot": false,
     "command_hot": false,
@@ -9,6 +174,36 @@
     ],
     "post_sizes": [
       882
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo7HashValC2Em",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1270
+    ],
+    "post_sizes": [
+      1270
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN4tomo7ZsetValD2Ev",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1809
+    ],
+    "post_sizes": [
+      1809
     ],
     "matches": [],
     "changed_lanes": [],
@@ -30,6 +225,96 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db014SetMemberTable12capacity_forEj",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      759
+    ],
+    "post_sizes": [
+      759
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db014function_statsEv",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      680
+    ],
+    "post_sizes": [
+      680
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db015xshard_pop_listERNS_5ShardENS_5SliceEmbmRSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS9_EE",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1138
+    ],
+    "post_sizes": [
+      1138
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db017geo_prepare_routeERNS_2OpERNS_8GeoRouteE",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      467
+    ],
+    "post_sizes": [
+      467
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db019debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3191
+    ],
+    "post_sizes": [
+      3191
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db019script_thread_stateEv",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      841
+    ],
+    "post_sizes": [
+      841
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "_GLOBAL__sub_I__ZN8tomo_db019snapshot_type_hooksENS_4TypeE",
     "hot": false,
     "command_hot": false,
@@ -39,6 +324,81 @@
     ],
     "post_sizes": [
       323
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db019xshard_store_stringERNS_5ShardENS_5SliceEmS2_lbb",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3157
+    ],
+    "post_sizes": [
+      3157
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db020cmdgap_command_tableEv",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      298
+    ],
+    "post_sizes": [
+      298
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db020hash_ttl_active_reapERNS_9FlatStoreEPNS_5KvObjElRj",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      745
+    ],
+    "post_sizes": [
+      745
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db020stream_object_headerEPNS_5KvObjERNS_12StreamHeaderE",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      547
+    ],
+    "post_sizes": [
+      547
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db037slowlog_validate_container_subcommandERNS_2OpEb",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      702
+    ],
+    "post_sizes": [
+      702
     ],
     "matches": [],
     "changed_lanes": [],
@@ -60,6 +420,36 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db07HashValC2Em",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1270
+    ],
+    "post_sizes": [
+      1270
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "_GLOBAL__sub_I__ZN8tomo_db07ZsetValD2Ev",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1809
+    ],
+    "post_sizes": [
+      1809
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "_GLOBAL__sub_I__ZN8tomo_db09StreamValD2Ev",
     "hot": false,
     "command_hot": false,
@@ -75,6 +465,81 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "_GLOBAL__sub_I_luaA_pushobject",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      584
+    ],
+    "post_sizes": [
+      584
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "bool tomo::WbEngine::pump<false, false>(tomo::Client&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1594
+    ],
+    "post_sizes": [
+      1594
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "bool tomo::WbEngine::pump<false, true>(tomo::Client&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      707
+    ],
+    "post_sizes": [
+      707
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1594
+    ],
+    "post_sizes": [
+      1594
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "bool tomo_db0::WbEngine::pump<false, true>(tomo_db0::Client&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      707
+    ],
+    "post_sizes": [
+      707
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "bool tomo_db0::wb_rule::defer<tomo_db0::Client>(tomo_db0::Client&, tomo_db0::wb_rule::Settings const&)",
     "hot": false,
     "command_hot": false,
@@ -84,6 +549,36 @@
     ],
     "post_sizes": [
       841
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "chunk",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4829
+    ],
+    "post_sizes": [
+      4838
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "codearith",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      616
+    ],
+    "post_sizes": [
+      616
     ],
     "matches": [],
     "changed_lanes": [],
@@ -225,6 +720,36 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "luaV_execute",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6078
+    ],
+    "post_sizes": [
+      6078
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "luaX_setinput",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      158
+    ],
+    "post_sizes": [
+      158
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "lua_concat",
     "hot": false,
     "command_hot": false,
@@ -315,6 +840,21 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "luaopen_math",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      174
+    ],
+    "post_sizes": [
+      174
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "luaopen_string",
     "hot": false,
     "command_hot": false,
@@ -354,6 +894,51 @@
     ],
     "post_sizes": [
       5434
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "math_abs",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      57
+    ],
+    "post_sizes": [
+      57
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "math_deg",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      56
+    ],
+    "post_sizes": [
+      56
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "math_rad",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      56
+    ],
+    "post_sizes": [
+      56
     ],
     "matches": [],
     "changed_lanes": [],
@@ -634,44 +1219,6 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::assign(char const*, unsigned long) [clone .isra.0]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      380,
-      380,
-      380,
-      380
-    ],
-    "post_sizes": [
-      380,
-      380
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::assign(char const*, unsigned long) [clone .isra.0] [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      29,
-      29,
-      29,
-      29
-    ],
-    "post_sizes": [
-      29,
-      29
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
     "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::substr(unsigned long, unsigned long) const",
     "hot": false,
     "command_hot": false,
@@ -805,21 +1352,6 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "std::pair<std::_Rb_tree_iterator<std::pair<tomo::StreamID const, tomo::(anonymous namespace)::StreamPending> >, bool> std::map<tomo::StreamID, tomo::(anonymous namespace)::StreamPending, tomo::(anonymous namespace)::IdLess, std::allocator<std::pair<tomo::StreamID const, tomo::(anonymous namespace)::StreamPending> > >::emplace<tomo::StreamID const&, tomo::(anonymous namespace)::StreamPending>(tomo::StreamID const&, tomo::(anonymous namespace)::StreamPending&&)",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      989
-    ],
-    "post_sizes": [
-      974
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
     "name": "std::pair<std::_Rb_tree_iterator<std::pair<tomo_db0::StreamID const, tomo_db0::(anonymous namespace)::StreamPending> >, bool> std::map<tomo_db0::StreamID, tomo_db0::(anonymous namespace)::StreamPending, tomo_db0::(anonymous namespace)::IdLess, std::allocator<std::pair<tomo_db0::StreamID const, tomo_db0::(anonymous namespace)::StreamPending> > >::emplace<tomo_db0::StreamID const&, tomo_db0::(anonymous namespace)::StreamPending>(tomo_db0::StreamID const&, tomo_db0::(anonymous namespace)::StreamPending&&)",
     "hot": false,
     "command_hot": false,
@@ -828,7 +1360,7 @@
       1036
     ],
     "post_sizes": [
-      974
+      989
     ],
     "matches": [],
     "changed_lanes": [],
@@ -1167,6 +1699,36 @@
     "reason": "ACL subcommand/first-argument grants, DRYRUN, immutable image copies, and rule rendering/replay."
   },
   {
+    "name": "tomo::(anonymous namespace)::ZsetMemberMap::erase(tomo::Slice) [clone .constprop.0] [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      542
+    ],
+    "post_sizes": [
+      542
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::ZsetMemberMap::rehash_step()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      506
+    ],
+    "post_sizes": [
+      506
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::(anonymous namespace)::acl_add_unique(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, tomo::Slice) [clone .constprop.0]",
     "hot": false,
     "command_hot": false,
@@ -1190,7 +1752,7 @@
       2234
     ],
     "post_sizes": [
-      3657
+      3665
     ],
     "matches": [],
     "changed_lanes": [],
@@ -1259,7 +1821,7 @@
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      253
+      317
     ],
     "matches": [],
     "changed_lanes": [],
@@ -1654,34 +2216,6 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "tomo::(anonymous namespace)::assign_pending_consumer(tomo::(anonymous namespace)::StreamGroups&, tomo::(anonymous namespace)::StreamPending&, tomo::Slice) [clone .isra.0]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      119
-    ],
-    "post_sizes": [
-      410
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "tomo::(anonymous namespace)::assign_pending_consumer(tomo::(anonymous namespace)::StreamGroups&, tomo::(anonymous namespace)::StreamPending&, tomo::Slice) [clone .isra.0] [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [],
-    "post_sizes": [
-      31
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
     "name": "tomo::(anonymous namespace)::cmd_auth(tomo::Shard&, tomo::Op&)",
     "hot": false,
     "command_hot": false,
@@ -1705,7 +2239,7 @@
       2524
     ],
     "post_sizes": [
-      2524
+      2470
     ],
     "matches": [],
     "changed_lanes": [],
@@ -1721,6 +2255,66 @@
     ],
     "post_sizes": [
       2543
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      11155
+    ],
+    "post_sizes": [
+      11097
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      499
+    ],
+    "post_sizes": [
+      491
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_geodist_armed(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1160
+    ],
+    "post_sizes": [
+      1160
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_geodist_clean(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1144
+    ],
+    "post_sizes": [
+      1144
     ],
     "matches": [],
     "changed_lanes": [],
@@ -1765,7 +2359,22 @@
       16917
     ],
     "post_sizes": [
-      16917
+      16649
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      346
+    ],
+    "post_sizes": [
+      338
     ],
     "matches": [],
     "changed_lanes": [],
@@ -1847,34 +2456,34 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "tomo::(anonymous namespace)::cmd_xautoclaim<false>(tomo::Shard&, tomo::Op&)::{lambda(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)",
+    "name": "tomo::(anonymous namespace)::cmd_script(tomo::Shard&, tomo::Op&)",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      1160
+      4105
     ],
     "post_sizes": [
-      997
+      3918
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
   },
   {
-    "name": "tomo::(anonymous namespace)::cmd_xautoclaim<false>(tomo::Shard&, tomo::Op&)::{lambda(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*) [clone .cold]",
+    "name": "tomo::(anonymous namespace)::cmd_script(tomo::Shard&, tomo::Op&) [clone .cold]",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      82
+      60
     ],
     "post_sizes": [
-      82
+      64
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
   },
   {
     "name": "tomo::(anonymous namespace)::cmd_xautoclaim<true>(tomo::Shard&, tomo::Op&)::{lambda(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)",
@@ -1885,7 +2494,7 @@
       1160
     ],
     "post_sizes": [
-      997
+      1064
     ],
     "matches": [],
     "changed_lanes": [],
@@ -1922,30 +2531,45 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "tomo::(anonymous namespace)::create_consumer(tomo::(anonymous namespace)::StreamGroups&, tomo::(anonymous namespace)::StreamGroup&, tomo::Slice, long, tomo::(anonymous namespace)::StreamConsumer*&, bool&) [clone .constprop.0] [clone .isra.0]",
+    "name": "tomo::(anonymous namespace)::compile_library(tomo::Slice, tomo::(anonymous namespace)::LibraryDef&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      1217
+      4812
     ],
     "post_sizes": [
-      1183
+      4882
     ],
     "matches": [],
     "changed_lanes": [],
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "tomo::(anonymous namespace)::create_consumer(tomo::(anonymous namespace)::StreamGroups&, tomo::(anonymous namespace)::StreamGroup&, tomo::Slice, long, tomo::(anonymous namespace)::StreamConsumer*&, bool&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+    "name": "tomo::(anonymous namespace)::compile_library(tomo::Slice, tomo::(anonymous namespace)::LibraryDef&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      77
+      210
     ],
     "post_sizes": [
-      77
+      219
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      9396
+    ],
+    "post_sizes": [
+      9396
     ],
     "matches": [],
     "changed_lanes": [],
@@ -1976,6 +2600,36 @@
     ],
     "post_sizes": [
       5198
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::geo_distance(double, double, double, double)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      244
+    ],
+    "post_sizes": [
+      244
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::geo_encode(double, double)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      168
+    ],
+    "post_sizes": [
+      168
     ],
     "matches": [],
     "changed_lanes": [],
@@ -2042,6 +2696,51 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1346
+    ],
+    "post_sizes": [
+      1374
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      117
+    ],
+    "post_sizes": [
+      129
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::notify_reserve_chain(tomo::Server&, std::unique_ptr<tomo::PubSubNotificationChain, std::default_delete<tomo::PubSubNotificationChain> >)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      200
+    ],
+    "post_sizes": [
+      200
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::(anonymous namespace)::parse_i64_exact(tomo::Slice, long&) [clone .constprop.0] [clone .isra.0]",
     "hot": false,
     "command_hot": false,
@@ -2097,6 +2796,51 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo::(anonymous namespace)::parse_search(tomo::Op&, tomo::(anonymous namespace)::GeoSearchOptions&) [clone .constprop.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3410
+    ],
+    "post_sizes": [
+      3410
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::parse_zset_operation(tomo::Op&, tomo::(anonymous namespace)::Kind, unsigned int&, std::vector<double, std::allocator<double> >&, tomo::(anonymous namespace)::ZAggregate&, bool&, unsigned long&) [clone .constprop.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2644
+    ],
+    "post_sizes": [
+      2644
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::prepare_commands(tomo::Server&, tomo::MultiExecState&, std::vector<tomo::MultiQueuedCommand, std::allocator<tomo::MultiQueuedCommand> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      11902
+    ],
+    "post_sizes": [
+      11902
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::(anonymous namespace)::queue_aof_sync(tomo::Ring&, tomo::(anonymous namespace)::AofIoRequest&, bool) [clone .constprop.0]",
     "hot": false,
     "command_hot": false,
@@ -2142,28 +2886,30 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "tomo::(anonymous namespace)::read_string(unsigned char const*&, unsigned long&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "name": "tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      99
+      3308
     ],
     "post_sizes": [
-      445
+      3292
     ],
     "matches": [],
     "changed_lanes": [],
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "tomo::(anonymous namespace)::read_string(unsigned char const*&, unsigned long&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]",
+    "name": "tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool) [clone .cold]",
     "hot": false,
     "command_hot": false,
     "equal": false,
-    "headline_sizes": [],
+    "headline_sizes": [
+      237
+    ],
     "post_sizes": [
-      29
+      240
     ],
     "matches": [],
     "changed_lanes": [],
@@ -2185,6 +2931,19 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo::(anonymous namespace)::reply_err_string(tomo::Op&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      23
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::(anonymous namespace)::reply_nogroup(tomo::Op&, tomo::Slice, tomo::Slice, bool) [clone .isra.0]",
     "hot": false,
     "command_hot": false,
@@ -2193,7 +2952,7 @@
       1637
     ],
     "post_sizes": [
-      1179
+      1195
     ],
     "matches": [],
     "changed_lanes": [],
@@ -2221,24 +2980,112 @@
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      932
+      13
     ],
     "matches": [],
     "changed_lanes": [],
     "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
   },
   {
-    "name": "tomo::(anonymous namespace)::reply_stream_subcommand_syntax(tomo::Op&) [clone .cold]",
+    "name": "tomo::(anonymous namespace)::reply_unknown_subcommand(tomo::Op&, char const*)",
     "hot": false,
     "command_hot": false,
     "equal": false,
-    "headline_sizes": [],
-    "post_sizes": [
+    "headline_sizes": [
+      870
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::reply_unknown_subcommand(tomo::Op&, char const*) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
       40
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::run_search(tomo::(anonymous namespace)::GeoSearchOptions const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::(anonymous namespace)::GeoResult, std::allocator<tomo::(anonymous namespace)::GeoResult> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5163
+    ],
+    "post_sizes": [
+      5163
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::script_workbench(tomo::Server&, int, tomo::TypeLimits const&, tomo::StreamLimits const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1090
+    ],
+    "post_sizes": [
+      1090
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::sha256_password(tomo::Slice) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1367
+    ],
+    "post_sizes": [
+      1367
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::stream_snapshot_load(tomo::Slice, unsigned char, long, tomo::Slice, tomo::TypeLimits const&, tomo::KvObj*&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3043
+    ],
+    "post_sizes": [
+      3043
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path."
+  },
+  {
+    "name": "tomo::(anonymous namespace)::valid_coordinates(double, double)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      88
+    ],
+    "post_sizes": [
+      88
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
     "name": "tomo::AclDeniedReason tomo::(anonymous namespace)::acl_check_keys<tomo::acl_dispatch_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&>(tomo::AclSelector const&, tomo::CommandSpec const&, unsigned int, tomo::acl_dispatch_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&, unsigned int*) [clone .constprop.0]",
@@ -2396,6 +3243,21 @@
     ],
     "post_sizes": [
       1997
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::AofManager::debug_arm_ack_window(unsigned int, tomo::Slice)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      80
+    ],
+    "post_sizes": [
+      80
     ],
     "matches": [],
     "changed_lanes": [],
@@ -2642,6 +3504,21 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo::AofManager::wait_control_sync(tomo::ThreadCtx&, tomo::Ring&, int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      561
+    ],
+    "post_sizes": [
+      561
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::AofManager::write_header_normal()",
     "hot": false,
     "command_hot": false,
@@ -2717,6 +3594,81 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo::AofProducer::record_post_image(tomo::FlatStore&, unsigned long, tomo::Slice, tomo::AofOwnerContext&, unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      143
+    ],
+    "post_sizes": [
+      143
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::Config::Config()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      890
+    ],
+    "post_sizes": [
+      890
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::DatabaseMap::bind_workers(unsigned int, tomo::Server*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      527
+    ],
+    "post_sizes": [
+      527
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
     "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
     "hot": true,
     "command_hot": false,
@@ -2729,7 +3681,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Resolved placement only: all nonaddress opcodes/operands agree; constant pool: 8 identical bytes. See hot-relocations.json; the strict checker discrepancy remains recorded."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "tomo::FlatStore::atomic_entry_key(tomo::AtomicEntry const&, unsigned int) const [clone .isra.0]",
@@ -2823,6 +3775,51 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo::FlatStore::random_live()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3269
+    ],
+    "post_sizes": [
+      3413
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::FlipController::anchor(tomo::Server&, double)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1078
+    ],
+    "post_sizes": [
+      1078
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::FlipController::baseline_band() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      76
+    ],
+    "post_sizes": [
+      76
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::FlipController::boot_load_stable(tomo::Server&, unsigned long)",
     "hot": false,
     "command_hot": false,
@@ -2883,15 +3880,60 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "tomo::FlipController::reason_name(tomo::FlipctlTriggerReason)",
+    "name": "tomo::FlipController::observe_rate(unsigned long, unsigned long)",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      112
+      40
     ],
     "post_sizes": [
-      112
+      40
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::FlipController::pair_rate(double, double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      222
+    ],
+    "post_sizes": [
+      222
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::FlipController::report() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3939
+    ],
+    "post_sizes": [
+      3939
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::FlipController::sample_anchored_rate(tomo::Server&, unsigned long, double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      135
+    ],
+    "post_sizes": [
+      135
     ],
     "matches": [],
     "changed_lanes": [],
@@ -2913,6 +3955,51 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo::FlipController::sample_role_demand(tomo::Server&, unsigned long, double&, double&, double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      671
+    ],
+    "post_sizes": [
+      671
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::FlipController::seek_after_reading(tomo::Server&, unsigned int, unsigned long, double)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1281
+    ],
+    "post_sizes": [
+      1281
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::FlipController::stabilize_rate(double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      471
+    ],
+    "post_sizes": [
+      471
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::FlipController::start_maneuver(tomo::Server&, tomo::FlipctlTriggerReason, unsigned long)",
     "hot": false,
     "command_hot": false,
@@ -2922,6 +4009,36 @@
     ],
     "post_sizes": [
       1318
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::FlipController::verification_band(double) const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      345
+    ],
+    "post_sizes": [
+      345
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::FlipShiftDetector::observe(tomo::FlipFingerprintWindow const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      889
+    ],
+    "post_sizes": [
+      889
     ],
     "matches": [],
     "changed_lanes": [],
@@ -2973,6 +4090,21 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo::HashFieldTtl::erase(tomo::Slice)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      954
+    ],
+    "post_sizes": [
+      954
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::HashFieldTtl::set(tomo::Slice, long)",
     "hot": false,
     "command_hot": false,
@@ -2988,6 +4120,156 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21049
+    ],
+    "post_sizes": [
+      21042
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      190
+    ],
+    "post_sizes": [
+      190
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21239
+    ],
+    "post_sizes": [
+      21319
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21185
+    ],
+    "post_sizes": [
+      21256
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      197
+    ],
+    "post_sizes": [
+      197
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21252
+    ],
+    "post_sizes": [
+      21278
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::IoLoop()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3747
+    ],
+    "post_sizes": [
+      3747
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::climon_monitor_feed(tomo::Client*, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1345
+    ],
+    "post_sizes": [
+      1345
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::climon_serve_suppressed(tomo::Client*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1044
+    ],
+    "post_sizes": [
+      1044
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::lb_client_signal_pass()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1231
+    ],
+    "post_sizes": [
+      1231
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
     "name": "tomo::IoLoop::pubsub_begin_rehome_epoch(unsigned long)",
     "hot": false,
     "command_hot": false,
@@ -3000,7 +4282,39 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::pubsub_reply_bad_subcommand(tomo::Op&, bool) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      641,
+      641,
+      641,
+      641
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo::IoLoop::pubsub_reply_bad_subcommand(tomo::Op&, bool) [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      40,
+      40,
+      40,
+      40
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
   },
   {
     "name": "tomo::IoLoop::pubsub_reply_ping(tomo::Op&) [clone .isra.0]",
@@ -3021,7 +4335,58 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2243,
+      2035,
+      2257,
+      2094
+    ],
+    "post_sizes": [
+      2259,
+      2035,
+      2273,
+      2041
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::pubsub_start_channels(tomo::Client*, tomo::Op&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2272
+    ],
+    "post_sizes": [
+      2272
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3034
+    ],
+    "post_sizes": [
+      3050
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "tomo::IoLoop::tracking_deliver_frame(tomo::IoLoop::ClimonConn&, unsigned long, tomo::Slice, bool)",
@@ -3036,7 +4401,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "tomo::IoLoop::tracking_emit_invalidation(tomo::Client*, bool, tomo::Slice, bool)",
@@ -3051,7 +4416,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "tomo::LbAutotune::KeyDamping::update(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)",
@@ -3100,7 +4465,7 @@
     "post_sizes": [
       1202,
       1202,
-      530,
+      546,
       1000,
       1202,
       1202,
@@ -3120,6 +4485,21 @@
     ],
     "post_sizes": [
       751
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6255
+    ],
+    "post_sizes": [
+      6255
     ],
     "matches": [],
     "changed_lanes": [],
@@ -3216,6 +4596,49 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo::Server::lb_fold_signals(unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      915
+    ],
+    "post_sizes": [
+      915
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::Server::shard_owner_count() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      204
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::SetMemberTable::erase_at(unsigned int, unsigned int&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      514
+    ],
+    "post_sizes": [
+      514
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::SmallBuf<128ul>::grow(unsigned long)",
     "hot": false,
     "command_hot": false,
@@ -3283,6 +4706,21 @@
     ],
     "post_sizes": [
       40
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "ACL subcommand/first-argument grants, DRYRUN, immutable image copies, and rule rendering/replay."
+  },
+  {
+    "name": "tomo::acl_broadcast_user_change(tomo::IoLoop&, unsigned int, tomo::AclPerm const*, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      549
+    ],
+    "post_sizes": [
+      12
     ],
     "matches": [],
     "changed_lanes": [],
@@ -3463,6 +4901,21 @@
     "reason": "ACL subcommand/first-argument grants, DRYRUN, immutable image copies, and rule rendering/replay."
   },
   {
+    "name": "tomo::aof_create_group(tomo::AofManager&, std::vector<unsigned int, std::allocator<unsigned int> > const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1178
+    ],
+    "post_sizes": [
+      1178
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::aof_load_shard(tomo::AofReplayPlan const&, tomo::Server&, tomo::Shard&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
     "hot": false,
     "command_hot": false,
@@ -3538,6 +4991,81 @@
     "reason": "Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path."
   },
   {
+    "name": "tomo::aof_record_local_op(tomo::Shard&, tomo::Op&, tomo::AofOwnerContext&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      599
+    ],
+    "post_sizes": [
+      599
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2326
+    ],
+    "post_sizes": [
+      1617
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      40
+    ],
+    "post_sizes": [
+      61
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo::blocking_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long, tomo::BlockingDispatch&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6887
+    ],
+    "post_sizes": [
+      6887
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::cmd_geo_xshard_local(tomo::Shard&, tomo::Op&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1719
+    ],
+    "post_sizes": [
+      1719
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::command_client_reset_meta(tomo::Client*)",
     "hot": false,
     "command_hot": false,
@@ -3592,6 +5120,195 @@
     "matches": [],
     "changed_lanes": [],
     "reason": "ACL subcommand/first-argument grants, DRYRUN, immutable image copies, and rule rendering/replay."
+  },
+  {
+    "name": "tomo::command_reply_subcommand_error(tomo::Op&, char const*, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      1098
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo::command_reply_subcommand_error(tomo::Op&, char const*, bool) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      40
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo::command_validate_container_subcommand(tomo::Op&, tomo::CommandSpec const&, short&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      185
+    ],
+    "post_sizes": [
+      185
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::command_validate_script_route(tomo::Op&, unsigned int&, unsigned int&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1532
+    ],
+    "post_sizes": [
+      1510
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::command_validate_subcommand(tomo::Op&, char const*, tomo::SubcommandArity const*, unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1337
+    ],
+    "post_sizes": [
+      506
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo::command_validate_subcommand(tomo::Op&, char const*, tomo::SubcommandArity const*, unsigned long) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      40
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo::debug_sleep_prepare(tomo::Server&, tomo::Client&, tomo::Op&, unsigned long&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      876
+    ],
+    "post_sizes": [
+      876
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::dtoa::grisu2_digits(double, char*, int&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1043
+    ],
+    "post_sizes": [
+      1043
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::flip_signature_distance(tomo::FlipSignature const&, tomo::FlipSignature const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      186
+    ],
+    "post_sizes": [
+      186
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::flip_signature_pass_distance(tomo::FlipSignature const&, tomo::FlipSignature const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      91
+    ],
+    "post_sizes": [
+      91
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2068
+    ],
+    "post_sizes": [
+      2068
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::geo_prepare_route(tomo::Op&, tomo::GeoRoute&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      136
+    ],
+    "post_sizes": [
+      136
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::hll::(anonymous namespace)::estimate(int const (&) [64])",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      456
+    ],
+    "post_sizes": [
+      456
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
     "name": "tomo::lb_stall_reason(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
@@ -3680,6 +5397,21 @@
     "reason": "Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path."
   },
   {
+    "name": "tomo::load_conf_file(char const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<unsigned long, std::allocator<unsigned long> >*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2554
+    ],
+    "post_sizes": [
+      2554
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo::parse_config_args(std::vector<char const*, std::allocator<char const*> > const&, tomo::Config&, tomo::ConfigParseState&, int, char const*, std::vector<unsigned long, std::allocator<unsigned long> > const*)",
     "hot": false,
     "command_hot": false,
@@ -3689,6 +5421,74 @@
     ],
     "post_sizes": [
       15190
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::parse_double_strict(tomo::Slice, double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      503
+    ],
+    "post_sizes": [
+      503
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::parse_long_double_strict(tomo::Slice, long double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      553
+    ],
+    "post_sizes": [
+      553
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::print_shutdown_report_human(tomo::ShutdownReport const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1037
+    ],
+    "post_sizes": [
+      1037
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo::redis_double_text(char*, unsigned long, double) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1043,
+      1043,
+      1043,
+      1043,
+      1043
+    ],
+    "post_sizes": [
+      1043,
+      1043,
+      1043,
+      1043,
+      1043
     ],
     "matches": [],
     "changed_lanes": [],
@@ -3815,21 +5615,6 @@
     "reason": "Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path."
   },
   {
-    "name": "tomo::stream_group_probe(tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice)",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      287
-    ],
-    "post_sizes": [
-      177
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
     "name": "tomo::stream_groups_snapshot_load(tomo::StreamVal&, tomo::Slice)",
     "hot": false,
     "command_hot": false,
@@ -3838,7 +5623,7 @@
       3399
     ],
     "post_sizes": [
-      3315
+      3363
     ],
     "matches": [],
     "changed_lanes": [],
@@ -3853,37 +5638,37 @@
       135
     ],
     "post_sizes": [
-      135
+      133
     ],
     "matches": [],
     "changed_lanes": [],
     "reason": "Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path."
   },
   {
-    "name": "tomo::stream_xreadgroup_execute(tomo::Shard&, tomo::Op&)",
+    "name": "tomo::stream_parse_xreadgroup(tomo::Op&, tomo::StreamXreadGroupArgs&)",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      5101
+      1231
     ],
     "post_sizes": [
-      5125
+      1231
     ],
     "matches": [],
     "changed_lanes": [],
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "tomo::stream_xreadgroup_execute(tomo::Shard&, tomo::Op&) [clone .cold]",
+    "name": "tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<tomo::WeightedLbAssignment, std::allocator<tomo::WeightedLbAssignment> >&)",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      238
+      7020
     ],
     "post_sizes": [
-      268
+      7020
     ],
     "matches": [],
     "changed_lanes": [],
@@ -3950,6 +5735,36 @@
     "reason": "ACL subcommand/first-argument grants, DRYRUN, immutable image copies, and rule rendering/replay."
   },
   {
+    "name": "tomo_db0::(anonymous namespace)::ZsetMemberMap::erase(tomo_db0::Slice) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      542
+    ],
+    "post_sizes": [
+      542
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::ZsetMemberMap::rehash_step()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      506
+    ],
+    "post_sizes": [
+      506
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo_db0::(anonymous namespace)::acl_add_unique(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, tomo_db0::Slice)",
     "hot": false,
     "command_hot": false,
@@ -3973,7 +5788,7 @@
       2253
     ],
     "post_sizes": [
-      3657
+      3665
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4042,7 +5857,7 @@
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      253
+      317
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4400,7 +6215,7 @@
       4158
     ],
     "post_sizes": [
-      4158
+      3918
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4416,34 +6231,6 @@
     ],
     "post_sizes": [
       985
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "tomo_db0::(anonymous namespace)::assign_pending_consumer(tomo_db0::(anonymous namespace)::StreamGroups&, tomo_db0::(anonymous namespace)::StreamPending&, tomo_db0::Slice) [clone .isra.0]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      119
-    ],
-    "post_sizes": [
-      410
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "tomo_db0::(anonymous namespace)::assign_pending_consumer(tomo_db0::(anonymous namespace)::StreamGroups&, tomo_db0::(anonymous namespace)::StreamPending&, tomo_db0::Slice) [clone .isra.0] [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [],
-    "post_sizes": [
-      31
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4473,7 +6260,7 @@
       2539
     ],
     "post_sizes": [
-      2539
+      2485
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4489,6 +6276,66 @@
     ],
     "post_sizes": [
       2650
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_function(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      11095
+    ],
+    "post_sizes": [
+      11097
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_function(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      499
+    ],
+    "post_sizes": [
+      491
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_geodist_armed(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1144
+    ],
+    "post_sizes": [
+      1144
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_geodist_clean(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1144
+    ],
+    "post_sizes": [
+      1144
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4533,7 +6380,22 @@
       16644
     ],
     "post_sizes": [
-      16644
+      16383
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      340
+    ],
+    "post_sizes": [
+      346
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4615,6 +6477,36 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo_db0::(anonymous namespace)::cmd_script(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3385
+    ],
+    "post_sizes": [
+      3262
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::cmd_script(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      60
+    ],
+    "post_sizes": [
+      64
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
     "name": "tomo_db0::(anonymous namespace)::cmd_xautoclaim<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)",
     "hot": false,
     "command_hot": false,
@@ -4623,7 +6515,7 @@
       1160
     ],
     "post_sizes": [
-      997
+      1064
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4653,7 +6545,7 @@
       1160
     ],
     "post_sizes": [
-      997
+      1114
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4675,30 +6567,45 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "tomo_db0::(anonymous namespace)::create_consumer(tomo_db0::(anonymous namespace)::StreamGroups&, tomo_db0::(anonymous namespace)::StreamGroup&, tomo_db0::Slice, long, tomo_db0::(anonymous namespace)::StreamConsumer*&, bool&) [clone .constprop.0] [clone .isra.0]",
+    "name": "tomo_db0::(anonymous namespace)::compile_library(tomo_db0::Slice, tomo_db0::(anonymous namespace)::LibraryDef&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      1217
+      4914
     ],
     "post_sizes": [
-      1183
+      4882
     ],
     "matches": [],
     "changed_lanes": [],
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "tomo_db0::(anonymous namespace)::create_consumer(tomo_db0::(anonymous namespace)::StreamGroups&, tomo_db0::(anonymous namespace)::StreamGroup&, tomo_db0::Slice, long, tomo_db0::(anonymous namespace)::StreamConsumer*&, bool&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+    "name": "tomo_db0::(anonymous namespace)::compile_library(tomo_db0::Slice, tomo_db0::(anonymous namespace)::LibraryDef&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      77
+      219
     ],
     "post_sizes": [
-      77
+      219
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::compute_zsetop(tomo_db0::ScatterState&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      9396
+    ],
+    "post_sizes": [
+      9396
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4729,6 +6636,36 @@
     ],
     "post_sizes": [
       5198
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::geo_distance(double, double, double, double)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      244
+    ],
+    "post_sizes": [
+      244
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::geo_encode(double, double)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      168
+    ],
+    "post_sizes": [
+      168
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4780,6 +6717,21 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo_db0::(anonymous namespace)::normalize_multi_blocking_pop(tomo_db0::MultiCommand&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3368
+    ],
+    "post_sizes": [
+      3379
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
     "hot": false,
     "command_hot": false,
@@ -4789,6 +6741,21 @@
     ],
     "post_sizes": [
       1072
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::notify_reserve_chain(tomo_db0::Server&, std::unique_ptr<tomo_db0::PubSubNotificationChain, std::default_delete<tomo_db0::PubSubNotificationChain> >)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      200
+    ],
+    "post_sizes": [
+      200
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4850,6 +6817,21 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo_db0::(anonymous namespace)::parse_search(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions&) [clone .constprop.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3458
+    ],
+    "post_sizes": [
+      3458
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo_db0::(anonymous namespace)::parse_zset_operation(tomo_db0::Op&, tomo_db0::(anonymous namespace)::Kind, unsigned int&, std::vector<double, std::allocator<double> >&, tomo_db0::(anonymous namespace)::ZAggregate&, bool&, unsigned long&) [clone .constprop.0]",
     "hot": false,
     "command_hot": false,
@@ -4859,6 +6841,21 @@
     ],
     "post_sizes": [
       2644
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      11640
+    ],
+    "post_sizes": [
+      11640
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4889,34 +6886,6 @@
     ],
     "post_sizes": [
       228
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "tomo_db0::(anonymous namespace)::read_string(unsigned char const*&, unsigned long&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      99
-    ],
-    "post_sizes": [
-      445
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "tomo_db0::(anonymous namespace)::read_string(unsigned char const*&, unsigned long&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [],
-    "post_sizes": [
-      29
     ],
     "matches": [],
     "changed_lanes": [],
@@ -4989,24 +6958,112 @@
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      932
+      13
     ],
     "matches": [],
     "changed_lanes": [],
     "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
   },
   {
-    "name": "tomo_db0::(anonymous namespace)::reply_stream_subcommand_syntax(tomo_db0::Op&) [clone .cold]",
+    "name": "tomo_db0::(anonymous namespace)::reply_unknown_subcommand(tomo_db0::Op&, char const*)",
     "hot": false,
     "command_hot": false,
     "equal": false,
-    "headline_sizes": [],
-    "post_sizes": [
+    "headline_sizes": [
+      870
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::reply_unknown_subcommand(tomo_db0::Op&, char const*) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
       40
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::run_search(tomo_db0::(anonymous namespace)::GeoSearchOptions const&, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&, std::vector<tomo_db0::(anonymous namespace)::GeoResult, std::allocator<tomo_db0::(anonymous namespace)::GeoResult> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5163
+    ],
+    "post_sizes": [
+      5163
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::script_workbench(tomo_db0::Server&, int, tomo_db0::TypeLimits const&, tomo_db0::StreamLimits const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1090
+    ],
+    "post_sizes": [
+      1090
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::sha256_password(tomo_db0::Slice) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1367
+    ],
+    "post_sizes": [
+      1367
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::stream_snapshot_load(tomo_db0::Slice, unsigned char, long, tomo_db0::Slice, tomo_db0::TypeLimits const&, tomo_db0::KvObj*&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3043
+    ],
+    "post_sizes": [
+      3043
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path."
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::valid_coordinates(double, double)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      88
+    ],
+    "post_sizes": [
+      88
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
     "name": "tomo_db0::AclDeniedReason tomo_db0::(anonymous namespace)::acl_check_keys<tomo_db0::acl_dispatch_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&>(tomo_db0::AclSelector const&, tomo_db0::CommandSpec const&, unsigned int, tomo_db0::acl_dispatch_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&, unsigned int*) [clone .constprop.0]",
@@ -5164,6 +7221,21 @@
     ],
     "post_sizes": [
       1997
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::AofManager::debug_arm_ack_window(unsigned int, tomo_db0::Slice)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      80
+    ],
+    "post_sizes": [
+      80
     ],
     "matches": [],
     "changed_lanes": [],
@@ -5453,6 +7525,21 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo_db0::AofManager::wait_control_sync(tomo_db0::ThreadCtx&, tomo_db0::Ring&, int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      561
+    ],
+    "post_sizes": [
+      561
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo_db0::AofManager::write_header_normal()",
     "hot": false,
     "command_hot": false,
@@ -5558,6 +7645,66 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo_db0::AofProducer::record_post_image(tomo_db0::FlatStore&, unsigned long, tomo_db0::Slice, tomo_db0::AofOwnerContext&, unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      143
+    ],
+    "post_sizes": [
+      143
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::Config::Config()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      890
+    ],
+    "post_sizes": [
+      890
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      328
+    ],
+    "post_sizes": [
+      328
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
     "name": "tomo_db0::FlatStore::choose_victim(tomo_db0::Slice)",
     "hot": false,
     "command_hot": false,
@@ -5582,6 +7729,61 @@
     ],
     "post_sizes": [
       2528
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      776,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      756,
+      749,
+      749,
+      749,
+      749,
+      776,
+      797,
+      776,
+      776,
+      776,
+      776
+    ],
+    "post_sizes": [
+      776,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      749,
+      756,
+      749,
+      749,
+      749,
+      749,
+      776,
+      781,
+      776,
+      776,
+      776,
+      776
     ],
     "matches": [],
     "changed_lanes": [],
@@ -5633,6 +7835,68 @@
       37,
       37,
       37
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlatStore::read_local_table_mutation_begin() [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      84,
+      84
+    ],
+    "post_sizes": [
+      84
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlatStore::read_local_table_mutation_begin() [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6,
+      6
+    ],
+    "post_sizes": [
+      6
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlipController::anchor(tomo_db0::Server&, double)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1078
+    ],
+    "post_sizes": [
+      1078
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlipController::baseline_band() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      76
+    ],
+    "post_sizes": [
+      76
     ],
     "matches": [],
     "changed_lanes": [],
@@ -5699,6 +7963,66 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo_db0::FlipController::observe_rate(unsigned long, unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      40
+    ],
+    "post_sizes": [
+      40
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlipController::pair_rate(double, double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      222
+    ],
+    "post_sizes": [
+      222
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlipController::report() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3939
+    ],
+    "post_sizes": [
+      3939
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlipController::sample_anchored_rate(tomo_db0::Server&, unsigned long, double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      135
+    ],
+    "post_sizes": [
+      135
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo_db0::FlipController::sample_rate(tomo_db0::Server&, unsigned long, double&)",
     "hot": false,
     "command_hot": false,
@@ -5714,6 +8038,51 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo_db0::FlipController::sample_role_demand(tomo_db0::Server&, unsigned long, double&, double&, double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      671
+    ],
+    "post_sizes": [
+      671
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlipController::seek_after_reading(tomo_db0::Server&, unsigned int, unsigned long, double)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1281
+    ],
+    "post_sizes": [
+      1281
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlipController::stabilize_rate(double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      471
+    ],
+    "post_sizes": [
+      471
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo_db0::FlipController::start_maneuver(tomo_db0::Server&, tomo_db0::FlipctlTriggerReason, unsigned long)",
     "hot": false,
     "command_hot": false,
@@ -5723,6 +8092,36 @@
     ],
     "post_sizes": [
       1318
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlipController::verification_band(double) const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      345
+    ],
+    "post_sizes": [
+      345
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::FlipShiftDetector::observe(tomo_db0::FlipFingerprintWindow const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      889
+    ],
+    "post_sizes": [
+      889
     ],
     "matches": [],
     "changed_lanes": [],
@@ -5774,6 +8173,21 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo_db0::HashFieldTtl::erase(tomo_db0::Slice)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      954
+    ],
+    "post_sizes": [
+      954
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo_db0::HashFieldTtl::set(tomo_db0::Slice, long)",
     "hot": false,
     "command_hot": false,
@@ -5789,6 +8203,119 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      10014,
+      12450,
+      9794
+    ],
+    "post_sizes": [
+      9970,
+      12450,
+      9794
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      166,
+      170,
+      166
+    ],
+    "post_sizes": [
+      166,
+      170,
+      166
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      18480
+    ],
+    "post_sizes": [
+      18480
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::IoLoop()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3905
+    ],
+    "post_sizes": [
+      3905
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::climon_monitor_feed(tomo_db0::Client*, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1745
+    ],
+    "post_sizes": [
+      1745
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::climon_serve_suppressed(tomo_db0::Client*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1044
+    ],
+    "post_sizes": [
+      1044
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::lb_client_signal_pass()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1231
+    ],
+    "post_sizes": [
+      1231
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
     "name": "tomo_db0::IoLoop::pubsub_handle_home_request(tomo_db0::PubSubEvent&)",
     "hot": false,
     "command_hot": false,
@@ -5801,7 +8328,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "tomo_db0::IoLoop::pubsub_handle_result(tomo_db0::PubSubEvent&)",
@@ -5816,7 +8343,69 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::pubsub_reply_bad_arity(tomo_db0::Op&, char const*) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      515,
+      515,
+      515
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::pubsub_reply_bad_arity(tomo_db0::Op&, char const*) [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      42,
+      42,
+      42
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::pubsub_reply_bad_subcommand(tomo_db0::Op&, bool) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      641,
+      641,
+      641,
+      641
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo_db0::IoLoop::pubsub_reply_bad_subcommand(tomo_db0::Op&, bool) [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      40,
+      40,
+      40,
+      40
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
   },
   {
     "name": "tomo_db0::IoLoop::pubsub_reply_ping(tomo_db0::Op&) [clone .isra.0]",
@@ -5837,7 +8426,79 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::pubsub_reply_restricted(tomo_db0::Op&) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2259,
+      2594,
+      2589,
+      2828
+    ],
+    "post_sizes": [
+      2275,
+      2110,
+      2285,
+      2275
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::pubsub_reply_restricted(tomo_db0::Op&) [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      71,
+      71,
+      71,
+      71
+    ],
+    "post_sizes": [
+      71,
+      53,
+      53,
+      53
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::pubsub_start_channels(tomo_db0::Client*, tomo_db0::Op&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2272
+    ],
+    "post_sizes": [
+      2272
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2867
+    ],
+    "post_sizes": [
+      2883
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "tomo_db0::IoLoop::tracking_deliver_frame(tomo_db0::IoLoop::ClimonConn&, unsigned long, tomo_db0::Slice, bool)",
@@ -5852,7 +8513,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "tomo_db0::IoLoop::tracking_emit_invalidation(tomo_db0::Client*, bool, tomo_db0::Slice, bool)",
@@ -5867,7 +8528,37 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::tracking_reply_trackinginfo(tomo_db0::Client*, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5703
+    ],
+    "post_sizes": [
+      5922
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "tomo_db0::IoLoop::tracking_reply_trackinginfo(tomo_db0::Client*, tomo_db0::Op&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      81
+    ],
+    "post_sizes": [
+      81
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "tomo_db0::LbAutotune::KeyDamping::update(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int, int, unsigned long, unsigned long, unsigned long)",
@@ -5936,6 +8627,21 @@
     ],
     "post_sizes": [
       751
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6255
+    ],
+    "post_sizes": [
+      6255
     ],
     "matches": [],
     "changed_lanes": [],
@@ -6032,6 +8738,49 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "tomo_db0::Server::lb_fold_signals(unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      915
+    ],
+    "post_sizes": [
+      915
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::Server::shard_owner_count() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      204
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::SetMemberTable::erase_at(unsigned int, unsigned int&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      514
+    ],
+    "post_sizes": [
+      514
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo_db0::SmallBuf<128ul>::grow(unsigned long)",
     "hot": false,
     "command_hot": false,
@@ -6039,6 +8788,19 @@
     "headline_sizes": [],
     "post_sizes": [
       109
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::SmallBuf<96ul>::push_back(char)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      162
     ],
     "matches": [],
     "changed_lanes": [],
@@ -6173,7 +8935,7 @@
       11736
     ],
     "post_sizes": [
-      10919
+      11012
     ],
     "matches": [],
     "changed_lanes": [],
@@ -6188,7 +8950,7 @@
       678
     ],
     "post_sizes": [
-      680
+      676
     ],
     "matches": [],
     "changed_lanes": [],
@@ -6324,6 +9086,21 @@
     "reason": "ACL subcommand/first-argument grants, DRYRUN, immutable image copies, and rule rendering/replay."
   },
   {
+    "name": "tomo_db0::aof_create_group(tomo_db0::AofManager&, std::vector<unsigned int, std::allocator<unsigned int> > const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1178
+    ],
+    "post_sizes": [
+      1178
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo_db0::aof_load_shard(tomo_db0::AofReplayPlan const&, tomo_db0::Server&, tomo_db0::Shard&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
     "hot": false,
     "command_hot": false,
@@ -6399,6 +9176,96 @@
     "reason": "Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path."
   },
   {
+    "name": "tomo_db0::aof_record_local_op(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      619
+    ],
+    "post_sizes": [
+      619
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::auth_arity_reply(tomo_db0::Op&, tomo_db0::CommandSpec const&, bool, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2326
+    ],
+    "post_sizes": [
+      1617
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo_db0::auth_arity_reply(tomo_db0::Op&, tomo_db0::CommandSpec const&, bool, bool) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      40
+    ],
+    "post_sizes": [
+      61
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo_db0::blocking_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long, tomo_db0::BlockingDispatch&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6894
+    ],
+    "post_sizes": [
+      6894
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::cmd_geo_xshard_local(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1719
+    ],
+    "post_sizes": [
+      1719
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      592
+    ],
+    "post_sizes": [
+      608
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo_db0::command_client_reset_meta(tomo_db0::Client*)",
     "hot": false,
     "command_hot": false,
@@ -6453,6 +9320,180 @@
     "matches": [],
     "changed_lanes": [],
     "reason": "ACL subcommand/first-argument grants, DRYRUN, immutable image copies, and rule rendering/replay."
+  },
+  {
+    "name": "tomo_db0::command_reply_subcommand_error(tomo_db0::Op&, char const*, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      1098
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo_db0::command_reply_subcommand_error(tomo_db0::Op&, char const*, bool) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      40
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo_db0::command_validate_container_subcommand(tomo_db0::Op&, tomo_db0::CommandSpec const&, short&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      185
+    ],
+    "post_sizes": [
+      185
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::command_validate_subcommand(tomo_db0::Op&, char const*, tomo_db0::SubcommandArity const*, unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1337
+    ],
+    "post_sizes": [
+      506
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo_db0::command_validate_subcommand(tomo_db0::Op&, char const*, tomo_db0::SubcommandArity const*, unsigned long) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      40
+    ],
+    "post_sizes": [],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Assigned dispatch/container compatibility behavior and its inlined handler helpers."
+  },
+  {
+    "name": "tomo_db0::debug_sleep_prepare(tomo_db0::Server&, tomo_db0::Client&, tomo_db0::Op&, unsigned long&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      876
+    ],
+    "post_sizes": [
+      876
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::dtoa::grisu2_digits(double, char*, int&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1043
+    ],
+    "post_sizes": [
+      1043
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::flip_signature_distance(tomo_db0::FlipSignature const&, tomo_db0::FlipSignature const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      186
+    ],
+    "post_sizes": [
+      186
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::flip_signature_pass_distance(tomo_db0::FlipSignature const&, tomo_db0::FlipSignature const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      91
+    ],
+    "post_sizes": [
+      91
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::geo_build_store(tomo_db0::Op&, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2068
+    ],
+    "post_sizes": [
+      2068
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::geo_prepare_route(tomo_db0::Op&, tomo_db0::GeoRoute&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      136
+    ],
+    "post_sizes": [
+      136
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::hll::(anonymous namespace)::estimate(int const (&) [64])",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      456
+    ],
+    "post_sizes": [
+      456
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
     "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
@@ -6571,6 +9612,21 @@
     "reason": "Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path."
   },
   {
+    "name": "tomo_db0::load_conf_file(char const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&, std::vector<unsigned long, std::allocator<unsigned long> >*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2554
+    ],
+    "post_sizes": [
+      2554
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "tomo_db0::parse_config_args(std::vector<char const*, std::allocator<char const*> > const&, tomo_db0::Config&, tomo_db0::ConfigParseState&, int, char const*, std::vector<unsigned long, std::allocator<unsigned long> > const*)",
     "hot": false,
     "command_hot": false,
@@ -6580,6 +9636,119 @@
     ],
     "post_sizes": [
       15273
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::parse_double_strict(tomo_db0::Slice, double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      503
+    ],
+    "post_sizes": [
+      503
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::parse_long_double_strict(tomo_db0::Slice, long double&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      553
+    ],
+    "post_sizes": [
+      553
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::print_shutdown_report_human(tomo_db0::ShutdownReport const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1037
+    ],
+    "post_sizes": [
+      1037
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::redis_double_text(char*, unsigned long, double) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1043,
+      1043,
+      1043,
+      1043,
+      1043
+    ],
+    "post_sizes": [
+      1043,
+      1043,
+      1043,
+      1043,
+      1043
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3425
+    ],
+    "post_sizes": [
+      3473
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      183
+    ],
+    "post_sizes": [
+      183
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "tomo_db0::server_tail_config_subcommand(tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      12557
+    ],
+    "post_sizes": [
+      12557
     ],
     "matches": [],
     "changed_lanes": [],
@@ -6646,49 +9815,19 @@
     "reason": "Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path."
   },
   {
-    "name": "tomo_db0::stream_group_probe(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice)",
+    "name": "tomo_db0::stream_parse_xreadgroup(tomo_db0::Op&, tomo_db0::StreamXreadGroupArgs&)",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      287
+      1231
     ],
     "post_sizes": [
-      177
+      1231
     ],
     "matches": [],
     "changed_lanes": [],
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "tomo_db0::stream_groups_snapshot_load(tomo_db0::StreamVal&, tomo_db0::Slice)",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      3399
-    ],
-    "post_sizes": [
-      3363
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path."
-  },
-  {
-    "name": "tomo_db0::stream_groups_snapshot_load(tomo_db0::StreamVal&, tomo_db0::Slice) [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      135
-    ],
-    "post_sizes": [
-      133
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path."
   },
   {
     "name": "tomo_db0::stream_xreadgroup_execute(tomo_db0::Shard&, tomo_db0::Op&)",
@@ -6699,22 +9838,22 @@
       5053
     ],
     "post_sizes": [
-      5077
+      5053
     ],
     "matches": [],
     "changed_lanes": [],
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "tomo_db0::stream_xreadgroup_execute(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "name": "tomo_db0::weighted_lb_partition(std::vector<tomo_db0::WeightedLbItem, std::allocator<tomo_db0::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<tomo_db0::WeightedLbAssignment, std::allocator<tomo_db0::WeightedLbAssignment> >&)",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      238
+      7112
     ],
     "post_sizes": [
-      268
+      7112
     ],
     "matches": [],
     "changed_lanes": [],
@@ -6764,6 +9903,36 @@
     "matches": [],
     "changed_lanes": [],
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1412
+    ],
+    "post_sizes": [
+      1614
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "unsigned int tomo::ExLoopT<true>::snapshot_control_pass<32u, false>()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3119
+    ],
+    "post_sizes": [
+      3148
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "unsigned int tomo::FlatStore::scan_home<tomo::legacy_recovery_flush(tomo::Shard&, unsigned int, unsigned int, int)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::legacy_recovery_flush(tomo::Shard&, unsigned int, unsigned int, int)::{lambda(tomo::KvObj*)#1}&, bool)",
@@ -6819,7 +9988,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, false>(int)",
@@ -6834,7 +10003,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, false>(int)",
@@ -6849,7 +10018,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "unsigned long tomo::FlatStore::scan<tomo::legacy_recovery_flush(tomo::Shard&, unsigned int, unsigned int, int)::{lambda(tomo::KvObj*)#1}>(unsigned long, unsigned int, tomo::legacy_recovery_flush(tomo::Shard&, unsigned int, unsigned int, int)::{lambda(tomo::KvObj*)#1}&&, bool)",
@@ -6916,7 +10085,7 @@
       3752
     ],
     "post_sizes": [
-      3284
+      3112
     ],
     "matches": [],
     "changed_lanes": [],
@@ -6931,11 +10100,26 @@
       3752
     ],
     "post_sizes": [
-      3268
+      3112
     ],
     "matches": [],
     "changed_lanes": [],
     "reason": "ACL subcommand/first-argument grants, DRYRUN, immutable image copies, and rule rendering/replay."
+  },
+  {
+    "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::FunctionDef*, std::vector<tomo::(anonymous namespace)::FunctionDef, std::allocator<tomo::(anonymous namespace)::FunctionDef> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compile_library(tomo::Slice, tomo::(anonymous namespace)::LibraryDef&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::{lambda(tomo::(anonymous namespace)::FunctionDef const&, tomo::(anonymous namespace)::FunctionDef const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::FunctionDef*, std::vector<tomo::(anonymous namespace)::FunctionDef, std::allocator<tomo::(anonymous namespace)::FunctionDef> > >, __gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::FunctionDef*, std::vector<tomo::(anonymous namespace)::FunctionDef, std::allocator<tomo::(anonymous namespace)::FunctionDef> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compile_library(tomo::Slice, tomo::(anonymous namespace)::LibraryDef&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::{lambda(tomo::(anonymous namespace)::FunctionDef const&, tomo::(anonymous namespace)::FunctionDef const&)#1}>)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6233
+    ],
+    "post_sizes": [
+      6137
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
     "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo::CommandMetadata const**, std::vector<tomo::CommandMetadata const*, std::allocator<tomo::CommandMetadata const*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::acl_reply_category(tomo::Op&)::{lambda(tomo::CommandMetadata const*, tomo::CommandMetadata const*)#1}> >(__gnu_cxx::__normal_iterator<tomo::CommandMetadata const**, std::vector<tomo::CommandMetadata const*, std::allocator<tomo::CommandMetadata const*> > >, __gnu_cxx::__normal_iterator<tomo::CommandMetadata const**, std::vector<tomo::CommandMetadata const*, std::allocator<tomo::CommandMetadata const*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::acl_reply_category(tomo::Op&)::{lambda(tomo::CommandMetadata const*, tomo::CommandMetadata const*)#1}>)",
@@ -6968,6 +10152,21 @@
     "reason": "ACL subcommand/first-argument grants, DRYRUN, immutable image copies, and rule rendering/replay."
   },
   {
+    "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::FunctionDef*, std::vector<tomo_db0::(anonymous namespace)::FunctionDef, std::allocator<tomo_db0::(anonymous namespace)::FunctionDef> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compile_library(tomo_db0::Slice, tomo_db0::(anonymous namespace)::LibraryDef&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::{lambda(tomo_db0::(anonymous namespace)::FunctionDef const&, tomo_db0::(anonymous namespace)::FunctionDef const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::FunctionDef*, std::vector<tomo_db0::(anonymous namespace)::FunctionDef, std::allocator<tomo_db0::(anonymous namespace)::FunctionDef> > >, __gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::FunctionDef*, std::vector<tomo_db0::(anonymous namespace)::FunctionDef, std::allocator<tomo_db0::(anonymous namespace)::FunctionDef> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::compile_library(tomo_db0::Slice, tomo_db0::(anonymous namespace)::LibraryDef&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)::{lambda(tomo_db0::(anonymous namespace)::FunctionDef const&, tomo_db0::(anonymous namespace)::FunctionDef const&)#1}>)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6137
+    ],
+    "post_sizes": [
+      6233
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo_db0::CommandMetadata const**, std::vector<tomo_db0::CommandMetadata const*, std::allocator<tomo_db0::CommandMetadata const*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_category(tomo_db0::Op&)::{lambda(tomo_db0::CommandMetadata const*, tomo_db0::CommandMetadata const*)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::CommandMetadata const**, std::vector<tomo_db0::CommandMetadata const*, std::allocator<tomo_db0::CommandMetadata const*> > >, __gnu_cxx::__normal_iterator<tomo_db0::CommandMetadata const**, std::vector<tomo_db0::CommandMetadata const*, std::allocator<tomo_db0::CommandMetadata const*> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_category(tomo_db0::Op&)::{lambda(tomo_db0::CommandMetadata const*, tomo_db0::CommandMetadata const*)#1}>)",
     "hot": false,
     "command_hot": false,
@@ -6991,22 +10190,7 @@
       2286
     ],
     "post_sizes": [
-      1925
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "ACL subcommand/first-argument grants, DRYRUN, immutable image copies, and rule rendering/replay."
-  },
-  {
-    "name": "void std::__make_heap<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::AclLogEntry*, std::vector<tomo_db0::(anonymous namespace)::AclLogEntry, std::allocator<tomo_db0::(anonymous namespace)::AclLogEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::AclLogEntry const&, tomo_db0::(anonymous namespace)::AclLogEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::AclLogEntry*, std::vector<tomo_db0::(anonymous namespace)::AclLogEntry, std::allocator<tomo_db0::(anonymous namespace)::AclLogEntry> > >, __gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::AclLogEntry*, std::vector<tomo_db0::(anonymous namespace)::AclLogEntry, std::allocator<tomo_db0::(anonymous namespace)::AclLogEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::AclLogEntry const&, tomo_db0::(anonymous namespace)::AclLogEntry const&)#1}>&)",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      2286
-    ],
-    "post_sizes": [
-      2109
+      2115
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7131,6 +10315,126 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "void tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4821
+    ],
+    "post_sizes": [
+      4821
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_geoadd<true>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5051
+    ],
+    "post_sizes": [
+      5051
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_geosearch<false>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      886
+    ],
+    "post_sizes": [
+      886
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_geosearch<true>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      886
+    ],
+    "post_sizes": [
+      886
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_hincrbyfloat<false>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1374
+    ],
+    "post_sizes": [
+      1374
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_hincrbyfloat<true>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1422
+    ],
+    "post_sizes": [
+      1422
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_incrbyfloat<false>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1006
+    ],
+    "post_sizes": [
+      1006
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_incrbyfloat<true>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1166
+    ],
+    "post_sizes": [
+      1166
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
     "name": "void tomo::(anonymous namespace)::cmd_setrange<false>(tomo::Shard&, tomo::Op&)",
     "hot": false,
     "command_hot": false,
@@ -7184,82 +10488,7 @@
       2776
     ],
     "post_sizes": [
-      2816
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo::(anonymous namespace)::cmd_xautoclaim<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      126
-    ],
-    "post_sizes": [
-      126
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo::(anonymous namespace)::cmd_xclaim<false>(tomo::Shard&, tomo::Op&)",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      5336
-    ],
-    "post_sizes": [
-      5250
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo::(anonymous namespace)::cmd_xclaim<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      339
-    ],
-    "post_sizes": [
-      382
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo::(anonymous namespace)::cmd_xclaim<true>(tomo::Shard&, tomo::Op&)",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      5336
-    ],
-    "post_sizes": [
-      5250
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo::(anonymous namespace)::cmd_xclaim<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      339
-    ],
-    "post_sizes": [
-      382
+      2776
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7274,7 +10503,7 @@
       4556
     ],
     "post_sizes": [
-      4274
+      4373
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7289,7 +10518,7 @@
       174
     ],
     "post_sizes": [
-      173
+      169
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7304,7 +10533,7 @@
       5231
     ],
     "post_sizes": [
-      4594
+      4673
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7334,7 +10563,7 @@
       3896
     ],
     "post_sizes": [
-      4010
+      3983
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7364,7 +10593,7 @@
       3896
     ],
     "post_sizes": [
-      4026
+      3983
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7394,22 +10623,7 @@
       4338
     ],
     "post_sizes": [
-      4191
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo::(anonymous namespace)::cmd_xpending<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      224
-    ],
-    "post_sizes": [
-      224
+      4338
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7424,22 +10638,7 @@
       4354
     ],
     "post_sizes": [
-      4207
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo::(anonymous namespace)::cmd_xpending<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      224
-    ],
-    "post_sizes": [
-      224
+      4354
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7476,6 +10675,51 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<false>(tomo::Shard&, tomo::Op&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6533
+    ],
+    "post_sizes": [
+      6533
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo::(anonymous namespace)::cmd_zadd_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6613
+    ],
+    "post_sizes": [
+      6613
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo::IoLoop::admit_fd<false, false>(int, tomo::UrKind)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1893
+    ],
+    "post_sizes": [
+      1893
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
     "name": "void tomo::IoLoop::admit_fd<false, true>(int, tomo::UrKind)",
     "hot": false,
     "command_hot": false,
@@ -7488,7 +10732,22 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "void tomo::IoLoop::admit_fd<true, false>(int, tomo::UrKind)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1893
+    ],
+    "post_sizes": [
+      1893
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "void tomo::IoLoop::admit_fd<true, true>(int, tomo::UrKind)",
@@ -7503,7 +10762,22 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "void tomo::IoLoop::arm_tls_socket_poll<false>(tomo::Client*, tomo::TlsOp)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      613
+    ],
+    "post_sizes": [
+      613
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
@@ -7518,7 +10792,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Resolved placement only: all nonaddress opcodes/operands agree; 18 identical jump destinations within the unchanged body. See hot-relocations.json; the strict checker discrepancy remains recorded."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "void tomo::IoLoop::r7_admit_fd<false, true>(int, tomo::UrKind)",
@@ -7533,7 +10807,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "void tomo::IoLoop::r7_admit_fd<true, true>(int, tomo::UrKind)",
@@ -7548,18 +10822,33 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
-    "name": "void tomo::reply_map_header<tomo::Op::Sink&>(tomo::Op::Sink&, unsigned long, bool)",
+    "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [
-      276
+      15981
     ],
     "post_sizes": [
-      163
+      15981
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      17097
+    ],
+    "post_sizes": [
+      17097
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7590,6 +10879,126 @@
     ],
     "post_sizes": [
       2964
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4788
+    ],
+    "post_sizes": [
+      4788
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5018
+    ],
+    "post_sizes": [
+      5018
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      886
+    ],
+    "post_sizes": [
+      886
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      886
+    ],
+    "post_sizes": [
+      886
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hincrbyfloat<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1374
+    ],
+    "post_sizes": [
+      1374
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hincrbyfloat<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1406
+    ],
+    "post_sizes": [
+      1406
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_incrbyfloat<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1166
+    ],
+    "post_sizes": [
+      1166
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_incrbyfloat<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1214
+    ],
+    "post_sizes": [
+      1214
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7656,66 +11065,6 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
-    "name": "void tomo_db0::(anonymous namespace)::cmd_xclaim<false>(tomo_db0::Shard&, tomo_db0::Op&)",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      5336
-    ],
-    "post_sizes": [
-      5250
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo_db0::(anonymous namespace)::cmd_xclaim<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      339
-    ],
-    "post_sizes": [
-      382
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo_db0::(anonymous namespace)::cmd_xclaim<true>(tomo_db0::Shard&, tomo_db0::Op&)",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      5336
-    ],
-    "post_sizes": [
-      5250
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo_db0::(anonymous namespace)::cmd_xclaim<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      339
-    ],
-    "post_sizes": [
-      382
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
     "name": "void tomo_db0::(anonymous namespace)::cmd_xgroup<false>(tomo_db0::Shard&, tomo_db0::Op&)",
     "hot": false,
     "command_hot": false,
@@ -7724,7 +11073,7 @@
       4524
     ],
     "post_sizes": [
-      4274
+      4357
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7739,7 +11088,7 @@
       173
     ],
     "post_sizes": [
-      173
+      169
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7754,7 +11103,7 @@
       5197
     ],
     "post_sizes": [
-      4616
+      4642
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7769,7 +11118,7 @@
       322
     ],
     "post_sizes": [
-      315
+      318
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7784,7 +11133,7 @@
       3896
     ],
     "post_sizes": [
-      4010
+      3983
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7814,7 +11163,7 @@
       3896
     ],
     "post_sizes": [
-      4026
+      3983
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7844,22 +11193,7 @@
       4338
     ],
     "post_sizes": [
-      4194
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo_db0::(anonymous namespace)::cmd_xpending<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      224
-    ],
-    "post_sizes": [
-      224
+      4338
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7874,22 +11208,7 @@
       4354
     ],
     "post_sizes": [
-      4210
-    ],
-    "matches": [],
-    "changed_lanes": [],
-    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
-  },
-  {
-    "name": "void tomo_db0::(anonymous namespace)::cmd_xpending<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
-    "hot": false,
-    "command_hot": false,
-    "equal": false,
-    "headline_sizes": [
-      224
-    ],
-    "post_sizes": [
-      224
+      4354
     ],
     "matches": [],
     "changed_lanes": [],
@@ -7926,6 +11245,111 @@
     "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   },
   {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6533
+    ],
+    "post_sizes": [
+      6533
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6613
+    ],
+    "post_sizes": [
+      6613
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::admit_fd<false, false>(int, tomo_db0::UrKind)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1884
+    ],
+    "post_sizes": [
+      1884
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::admit_fd<false, true>(int, tomo_db0::UrKind)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1635
+    ],
+    "post_sizes": [
+      1635
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::admit_fd<true, false>(int, tomo_db0::UrKind)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1884
+    ],
+    "post_sizes": [
+      1884
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::admit_fd<true, true>(int, tomo_db0::UrKind)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1635
+    ],
+    "post_sizes": [
+      1635
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::arm_tls_socket_poll<false>(tomo_db0::Client*, tomo_db0::TlsOp)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      613
+    ],
+    "post_sizes": [
+      613
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
     "name": "void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
     "hot": true,
     "command_hot": false,
@@ -7938,7 +11362,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Resolved placement only: all nonaddress opcodes/operands agree; 18 identical jump destinations within the unchanged body. See hot-relocations.json; the strict checker discrepancy remains recorded."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
@@ -7953,7 +11377,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Resolved placement only: all nonaddress opcodes/operands agree; 18 identical jump destinations within the unchanged body. See hot-relocations.json; the strict checker discrepancy remains recorded."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
@@ -7968,7 +11392,7 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Resolved placement only: all nonaddress opcodes/operands agree; 18 identical jump destinations within the unchanged body. See hot-relocations.json; the strict checker discrepancy remains recorded."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
   },
   {
     "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
@@ -7983,6 +11407,83 @@
     ],
     "matches": [],
     "changed_lanes": [],
-    "reason": "Resolved placement only: all nonaddress opcodes/operands agree; 18 identical jump destinations within the unchanged body. See hot-relocations.json; the strict checker discrepancy remains recorded."
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_admit_fd<false, true>(int, tomo_db0::UrKind)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1827
+    ],
+    "post_sizes": [
+      1827
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_admit_fd<true, true>(int, tomo_db0::UrKind)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1827
+    ],
+    "post_sizes": [
+      1827
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity."
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      15739
+    ],
+    "post_sizes": [
+      15739
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      17145
+    ],
+    "post_sizes": [
+      17145
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
+  },
+  {
+    "name": "void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      360,
+      593
+    ],
+    "post_sizes": [
+      593,
+      593
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical."
   }
 ]

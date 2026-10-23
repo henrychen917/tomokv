@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build PAD-A: PRE behavior, POST cold data layouts and aggregate .text size.
 
-Internal function placement is not matched. This controls the changed data
+The final POST is smaller than the ordinary PRE layout twin; its cold
+slowlog unit uses -Os. Internal function placement is not matched. This controls the changed data
 layouts and text growth; it does not establish arbitrary code-placement effects.
 """
 import hashlib
@@ -44,11 +45,19 @@ def text_size(binary):
     elf = Elf(binary)
     return elf.sections[elf.names.index('.text')][5]
 
-run(['make', '-j16', 'BUILD_ROOT=' + str(OBJECTS), 'all'], 'build')
+# The final candidate is smaller than PRE. Compile only this cold administrative
+# unit for size, retaining its PRE source and behavior, then pad to the candidate.
+# Explicit recompilation makes repeated invocations independent of cached flags.
+cold_flags = []
+for relative in ('src/cmd/slowlog.o', 'db0/src/cmd/slowlog.o'):
+    obj = OBJECTS / relative
+    obj.unlink(missing_ok=True)
+    cold_flags.append('--eval=' + str(obj) + ': CXXFLAGS += -Os')
+run(['make', '-j16', 'BUILD_ROOT=' + str(OBJECTS), *cold_flags, 'all'], 'cold-size-build')
 post = ROOT / 'build/tomokv'
 wanted = text_size(post)
 padding = wanted - text_size(OBJECTS / 'tomokv')
-assert padding >= 0, 'PRE layout twin exceeds POST: cannot silently invert the control'
+assert padding >= 0, 'PRE behavior cold-size twin still exceeds POST'
 output = ROOT / 'build/tomokv-PAD-A'
 for attempt in range(4):
     (BASE / 'padding.cc').write_text('asm(R"(.pushsection .text.dispatchfix_pad,"ax",@progbits\n.fill '
@@ -81,6 +90,7 @@ report = dict(kind='A: behaviour twin', behavior='PRE ' + revision, copied_heade
               layout='POST cold ACL/persistence images and aggregate .text size',
               limitation='Function placement is not matched; code placement remains a merit-review limit.',
               padding_bytes=padding, text_bytes=wanted, layouts=layout,
+              cold_compiler_adjustment=cold_flags,
               arms={name:dict(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
                              text_bytes=text_size(path))
                     for name,path in [('PRE', ROOT/'build/tomokv-PRE'), ('POST', post), ('PAD-A', output)]})

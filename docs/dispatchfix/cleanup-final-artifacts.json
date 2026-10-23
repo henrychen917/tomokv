@@ -1,0 +1,165 @@
+{
+  "reason": "Keep requested PRE/POST/PAD-A binaries and final raw proof; discard superseded binaries and checksummed older run directories. Original hashes and archive evidence remain recorded.",
+  "removed": [
+    {
+      "path": "build/gate-run.y4zYR0",
+      "bytes": 214422
+    },
+    {
+      "path": "build/gate-run.dDbAkr",
+      "bytes": 649454
+    },
+    {
+      "path": "build/gate-run.XAyHiH",
+      "bytes": 585983
+    },
+    {
+      "path": "build/gate-run.8mS3Cx",
+      "bytes": 538917
+    },
+    {
+      "path": "build/gate-run.67ZFbX",
+      "bytes": 4258017
+    },
+    {
+      "path": "build/gate-run.fdVm3D",
+      "bytes": 4067891
+    },
+    {
+      "path": "build/gate-run.ZaeeaP",
+      "bytes": 37814650
+    },
+    {
+      "path": "build/gate-run.STAVjj",
+      "bytes": 37822117
+    },
+    {
+      "path": "build/gate-run.gWU29v",
+      "bytes": 115469
+    },
+    {
+      "path": "build/gate-run.XsZxXL",
+      "bytes": 2962278
+    },
+    {
+      "path": "build/gate-run.ILP8nR",
+      "bytes": 43957276
+    },
+    {
+      "path": "build/gate-run.6HE1le",
+      "bytes": 43819943
+    },
+    {
+      "path": "build/gate-run.rGslUX",
+      "bytes": 51355353
+    },
+    {
+      "path": "build/gate-run.PkXmMA",
+      "bytes": 51355634
+    },
+    {
+      "path": "build/gate-run.npNOaq",
+      "bytes": 5134240
+    },
+    {
+      "path": "build/gate-run.varhjR",
+      "bytes": 5159522
+    },
+    {
+      "path": "build/gate-run.LPhZJl",
+      "bytes": 5152608
+    },
+    {
+      "path": "build/gate-run.79t9fb",
+      "bytes": 3055976
+    },
+    {
+      "path": "build/gate-run.jiH97t",
+      "bytes": 3057512
+    },
+    {
+      "path": "build/gate-run.qIM3PI",
+      "bytes": 3057581
+    },
+    {
+      "path": "build/gate-run.aXS6WU",
+      "bytes": 144204
+    },
+    {
+      "path": "build/gate-run.1LAcB0",
+      "bytes": 144177
+    },
+    {
+      "path": "build/gate-run.yNeikb",
+      "bytes": 710204
+    },
+    {
+      "path": "build/gate-run.56N74P",
+      "bytes": 673807
+    },
+    {
+      "path": "build/gate-run.szJXMS",
+      "bytes": 50142475
+    },
+    {
+      "path": "build/gate-run.Rksvpm",
+      "bytes": 219439
+    },
+    {
+      "path": "build/gate-run.yQXBgT",
+      "bytes": 3075663
+    },
+    {
+      "path": "build/gate-run.oC6C6Y",
+      "bytes": 3061529
+    },
+    {
+      "path": "build/gate-run.RMkwTt",
+      "bytes": 57731904
+    },
+    {
+      "path": "build/gate-run.mD0ceZ",
+      "bytes": 247983
+    },
+    {
+      "path": "build/gate-run.XjBSU0",
+      "bytes": 52287391
+    },
+    {
+      "path": "build/gate-run.w4jTyD",
+      "bytes": 44765852
+    },
+    {
+      "path": "build/gate-run.dCkDLF",
+      "bytes": 213066
+    },
+    {
+      "path": "build/gate-run.CDWshX",
+      "bytes": 215922
+    },
+    {
+      "path": "build/gate-run.mtXnXY",
+      "bytes": 986198
+    },
+    {
+      "path": "build/tomokv-first",
+      "bytes": 192623872,
+      "sha256": "2eb3a851906822dfe55740646feca8fc6bead8762ce3c35924c654e1a638876d"
+    },
+    {
+      "path": "build/tomokv-PAD-A-first",
+      "bytes": 192791832,
+      "sha256": "949fb8fb6851ef7c3975bd1c16d18da4998ffcc17b2fe2d1b448c7a0ae724ba6"
+    },
+    {
+      "path": "build/tomokv-formatter",
+      "bytes": 192517472,
+      "sha256": "8ed2d1ff1b614f53dd86938584510382341e4470fd60ddfa849621ac53d1fbb2"
+    },
+    {
+      "path": "build/tomokv-PAD-A-formatter",
+      "bytes": 192002232,
+      "sha256": "e43dac6ddbb43805af3eb40ba953e6bea573b8ec5e51f7268c694ead0957c8b6"
+    }
+  ]
+}

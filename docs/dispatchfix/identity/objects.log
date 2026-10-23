@@ -5,7 +5,7 @@ db0/src/cmd/blocking_debug.o 3 bodies
 db0/src/cmd/climon.o 228 bodies
 db0/src/cmd/cmdgap.o 4 bodies
 db0/src/cmd/cmdmeta.o 37 bodies
-db0/src/cmd/commands.o 28 bodies
+db0/src/cmd/commands.o 30 bodies
 db0/src/cmd/functions.o 80 bodies
 db0/src/cmd/geo.o 94 bodies
 db0/src/cmd/geo_store.o 6 bodies
@@ -20,7 +20,7 @@ db0/src/cmd/multi_admin.o 8 bodies
 db0/src/cmd/multidb.o 82 bodies
 db0/src/cmd/objectpread.o 16 bodies
 db0/src/cmd/pfdebug.o 34 bodies
-db0/src/cmd/scripting.o 138 bodies
+db0/src/cmd/scripting.o 139 bodies
 db0/src/cmd/serialize.o 106 bodies
 db0/src/cmd/server_tail.o 91 bodies
 db0/src/cmd/slowlog.o 73 bodies
@@ -28,11 +28,11 @@ db0/src/cmd/storesize.o 19 bodies
 db0/src/cmd/t_hash.o 235 bodies
 db0/src/cmd/t_hash_ttl.o 98 bodies
 db0/src/cmd/t_list.o 196 bodies
-db0/src/cmd/t_server.o 232 bodies
+db0/src/cmd/t_server.o 233 bodies
 db0/src/cmd/t_set.o 203 bodies
 db0/src/cmd/t_sort.o 22 bodies
 db0/src/cmd/t_stream.o 250 bodies
-db0/src/cmd/t_stream_groups.o 170 bodies
+db0/src/cmd/t_stream_groups.o 164 bodies
 db0/src/cmd/t_string.o 145 bodies
 db0/src/cmd/t_string_notify.o 172 bodies
 db0/src/cmd/t_zset.o 293 bodies
@@ -40,11 +40,11 @@ db0/src/cmd/t_zset_ops.o 1 bodies
 db0/src/cmd/tracking.o 76 bodies
 db0/src/cmd/xshard.o 890 bodies
 db0/src/core/flipctl.o 73 bodies
-db0/src/core/genthread.o 778 bodies
+db0/src/core/genthread.o 780 bodies
 db0/src/core/lbplanner.o 76 bodies
 db0/src/core/lbstall.o 12 bodies
-db0/src/core/reorder.o 843 bodies
-db0/src/core/rl2s.o 708 bodies
+db0/src/core/reorder.o 845 bodies
+db0/src/core/rl2s.o 710 bodies
 db0/src/core/version.o 1 bodies
 db0/src/main.o 671 bodies
 db0/src/net/tls.o 38 bodies
@@ -58,8 +58,8 @@ src/cmd/blocking_debug.o 3 bodies
 src/cmd/climon.o 229 bodies
 src/cmd/cmdgap.o 4 bodies
 src/cmd/cmdmeta.o 37 bodies
-src/cmd/commands.o 28 bodies
-src/cmd/functions.o 79 bodies
+src/cmd/commands.o 30 bodies
+src/cmd/functions.o 80 bodies
 src/cmd/geo.o 96 bodies
 src/cmd/geo_store.o 6 bodies
 src/cmd/glob.o 2 bodies
@@ -81,11 +81,11 @@ src/cmd/storesize.o 20 bodies
 src/cmd/t_hash.o 235 bodies
 src/cmd/t_hash_ttl.o 98 bodies
 src/cmd/t_list.o 194 bodies
-src/cmd/t_server.o 229 bodies
+src/cmd/t_server.o 230 bodies
 src/cmd/t_set.o 206 bodies
 src/cmd/t_sort.o 22 bodies
 src/cmd/t_stream.o 252 bodies
-src/cmd/t_stream_groups.o 171 bodies
+src/cmd/t_stream_groups.o 165 bodies
 src/cmd/t_string.o 144 bodies
 src/cmd/t_string_notify.o 174 bodies
 src/cmd/t_zset.o 294 bodies
@@ -104,7 +104,7 @@ src/net/tls.o 38 bodies
 src/persist/aof.o 341 bodies
 src/persist/aof_frame_debug.o 6 bodies
 src/snapshot/snapshot.o 129 bodies
-{"total": 16871, "equal": 16337, "changed": 534, "handlers": 1212, "handlers_equal": 1152, "hot": 1220, "hot_equal": 1208, "hot_nonerror_equal": 1208, "handlers_nonerror_equal": 1152}
+{"total": 16873, "equal": 16244, "changed": 629, "handlers": 1212, "handlers_equal": 1155, "hot": 1220, "hot_equal": 1194, "hot_nonerror_equal": 1194, "handlers_nonerror_equal": 1155}
 Traceback (most recent call last):
   File "/home/user/Projects/cx-dispatchfix/tools/ccfix_audit.py", line 157, in <module>
     main()

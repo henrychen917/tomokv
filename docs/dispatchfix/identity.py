@@ -18,10 +18,12 @@ for r in changed:
     name = r['name'].lower()
     if any(x in name for x in ('acl_', 'aclselector', 'aclpermimage', 'acluser', 'cmd_acl', 'command_metadata_index', 'command_metadata_subcommand')):
         reason = 'ACL subcommand/first-argument grants, DRYRUN, immutable image copies, and rule rendering/replay.'
-    elif any(x in name for x in ('xgroup', 'xinfo', 'stream_subcommand', 'cmd_client', 'object_impl', 'cmd_latency')):
+    elif any(x in name for x in ('xgroup', 'xinfo', 'stream_subcommand', 'cmd_client', 'object_impl', 'cmd_latency', 'command_reply_subcommand', 'command_validate_subcommand', 'auth_arity_reply', 'cmd_script', 'cmd_function', 'pubsub_reply_bad_subcommand')):
         reason = 'Assigned dispatch/container compatibility behavior and its inlined handler helpers.'
     elif any(x in name for x in ('snapshot_load', 'snapshot_read', 'snapshotmanager::write_header', 'snapshotmanager::submit_header', 'aof_load', 'aof_read', 'aofmanager::init', 'aofmanager::bind_writer', 'aofmanager::write_header', 'seed_from_snapshot', 'recoverysections', 'legacy_recovery', 'server::init')):
         reason = 'Balanced routing and versioned legacy persistence recovery/upgrade on the cold boot/load path.'
+    elif any(x in name for x in ('ioloop', 'exloopt')):
+        reason = 'Compiler/inlined-callee propagation from the shared PUBSUB error formatter; changed hot instructions remain visible for merit. No claim of byte identity.'
     else:
         reason = 'Unedited body: compiler propagation or link/layout change from the changed translation units; retained for merit review, not claimed identical.'
     r['reason'] = reason

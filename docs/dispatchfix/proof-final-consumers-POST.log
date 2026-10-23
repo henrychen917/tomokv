@@ -1,0 +1,39 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 8 load SMT threads (automatic available siblings), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-dispatchfix/build/gate-run.0RWsn1
+PARTIAL jobs (including prerequisites): release evict-lruclock-split-0 evict-lruclock-armed-0 evict-lruclock-split-1 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-armed-0 evict-lfu-split-1 evict-lfu-armed-1 hexpread
+PARTIAL jobs (including prerequisites): release evict-lruclock-split-0 evict-lruclock-armed-0 evict-lruclock-split-1 evict-lruclock-armed-1 evict-lfu-split-0 evict-lfu-armed-0 evict-lfu-split-1 evict-lfu-armed-1 hexpread
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=153.55s; correctness-plan-fallback; mechanism-floor=512s (two production 256s clock buckets); eviction lruclock battery (split, atomic 0)
+  eviction lruclock battery (split, atomic 0)          ok
+  row budget: 900s; median=253.16s; correctness-plan-fallback; mechanism-floor=512s (two production 256s clock buckets); eviction lruclock battery (fused+armed, atomic 0)
+  eviction lruclock battery (fused+armed, atomic 0)    ok
+  row budget: 900s; median=254.27s; correctness-plan-fallback; mechanism-floor=512s (two production 256s clock buckets); eviction lruclock battery (split, atomic 1)
+  eviction lruclock battery (split, atomic 1)          ok
+  row budget: 900s; median=254.23s; correctness-plan-fallback; mechanism-floor=512s (two production 256s clock buckets); eviction lruclock battery (fused+armed, atomic 1)
+  eviction lruclock battery (fused+armed, atomic 1)    ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; eviction lfu battery (split, atomic 0)
+  eviction lfu battery (split, atomic 0)               ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; eviction lfu battery (fused+armed, atomic 0)
+  eviction lfu battery (fused+armed, atomic 0)         ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; eviction lfu battery (split, atomic 1)
+  eviction lfu battery (split, atomic 1)               ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; eviction lfu battery (fused+armed, atomic 1)
+  eviction lfu battery (fused+armed, atomic 1)         ok
+  row budget: 900s; median=1.11s; correctness-plan-fallback; hexpread torn (1s)
+  hexpread torn (1s)                                   ok
+  row budget: 900s; median=3.29s; correctness-plan-fallback; hexpread replies (1s)
+  hexpread replies (1s)                                ok
+  row budget: 900s; median=1.11s; correctness-plan-fallback; hexpread deferred (1s)
+  hexpread deferred (1s)                               ok
+  row budget: 900s; median=1.11s; correctness-plan-fallback; hexpread OBJECT expiry (1s)
+  hexpread OBJECT expiry (1s)                          ok
+  row budget: 900s; median=1.11s; correctness-plan-fallback; hexpread torn (2s)
+  hexpread torn (2s)                                   ok
+  row budget: 900s; median=3.29s; correctness-plan-fallback; hexpread replies (2s)
+  hexpread replies (2s)                                ok
+  row budget: 900s; median=1.11s; correctness-plan-fallback; hexpread deferred (2s)
+  hexpread deferred (2s)                               ok
+  row budget: 900s; median=1.1s; correctness-plan-fallback; hexpread OBJECT expiry (2s)
+  hexpread OBJECT expiry (2s)                          ok
+GATE(PARTIAL): 17 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.0RWsn1/ledger.partial

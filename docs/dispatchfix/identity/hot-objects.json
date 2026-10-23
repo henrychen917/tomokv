@@ -220,9 +220,9 @@
     "symbol": "_ZN8tomo_db09FlatStore19erase_in_read_localEimNS_5SliceEPb",
     "name": "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
     "pre_size": 606,
-    "post_size": 606,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 647,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "db0/src/cmd/scripting.o",
@@ -1372,9 +1372,9 @@
     "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 10014,
-    "post_size": 10014,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 9970,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "db0/src/core/genthread.o",
@@ -1382,8 +1382,8 @@
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
     "pre_size": 166,
     "post_size": 166,
-    "raw_equal": true,
-    "relocation_equal": true
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "db0/src/core/genthread.o",
@@ -1391,7 +1391,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 1737,
     "post_size": 1737,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -1400,7 +1400,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<false, true>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 1684,
     "post_size": 1684,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -1409,7 +1409,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<true, true>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 1737,
     "post_size": 1737,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -2390,7 +2390,7 @@
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 9794,
     "post_size": 9794,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -2408,7 +2408,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 1721,
     "post_size": 1721,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -2902,9 +2902,9 @@
     "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb1ELb1ELb1ELb1ELb0ELb1EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
     "name": "tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
     "pre_size": 984,
-    "post_size": 984,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 1212,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "db0/src/core/reorder.o",
@@ -2938,9 +2938,9 @@
     "symbol": "_ZZN8tomo_db08WbEngine14serve_tls_implILb1ELb0ELb1ELb0ELb1EEEbRNS_6ClientERNS_7TlsConnEPbENKUlRNS_2OpEE_clES8_",
     "name": "tomo_db0::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
     "pre_size": 1016,
-    "post_size": 1016,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 1244,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "db0/src/core/reorder.o",
@@ -2956,9 +2956,9 @@
     "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb1ELb1ELb0ELb1ELb0ELb1EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
     "name": "tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
     "pre_size": 984,
-    "post_size": 984,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 1212,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "db0/src/core/reorder.o",
@@ -3236,8 +3236,8 @@
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
     "pre_size": 18480,
     "post_size": 18480,
-    "raw_equal": true,
-    "relocation_equal": true
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "db0/src/core/reorder.o",
@@ -3587,7 +3587,7 @@
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 12450,
     "post_size": 12450,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -3605,7 +3605,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 2023,
     "post_size": 2023,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -3614,7 +3614,7 @@
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 21385,
     "post_size": 21385,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -3632,7 +3632,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<false, true>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 1841,
     "post_size": 1841,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -3641,7 +3641,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<true, true>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 2023,
     "post_size": 2023,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -3650,7 +3650,7 @@
     "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 21296,
     "post_size": 21296,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -4721,7 +4721,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<false, false>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 1841,
     "post_size": 1841,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -4730,7 +4730,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 2023,
     "post_size": 2023,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -6394,9 +6394,9 @@
     "symbol": "_ZNK4tomo9FlatStore7find_inEimNS_5SliceE",
     "name": "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
     "pre_size": 630,
-    "post_size": 540,
-    "raw_equal": false,
-    "relocation_equal": false
+    "post_size": 630,
+    "raw_equal": true,
+    "relocation_equal": true
   },
   {
     "object": "src/cmd/t_stream_groups.o",
@@ -6872,7 +6872,7 @@
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
     "pre_size": 9922,
     "post_size": 9922,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -6890,7 +6890,7 @@
     "name": "bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]",
     "pre_size": 1737,
     "post_size": 1737,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -6899,7 +6899,7 @@
     "name": "bool tomo::IoLoop::drive_tls<false, true>(tomo::Client*) [clone .isra.0]",
     "pre_size": 1684,
     "post_size": 1684,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -6908,7 +6908,7 @@
     "name": "bool tomo::IoLoop::drive_tls<true, true>(tomo::Client*) [clone .isra.0]",
     "pre_size": 1737,
     "post_size": 1737,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -7889,7 +7889,7 @@
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
     "pre_size": 9973,
     "post_size": 9973,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -7907,7 +7907,7 @@
     "name": "bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]",
     "pre_size": 1737,
     "post_size": 1737,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -8563,9 +8563,9 @@
     "symbol": "_ZN4tomo7ExLoopTILb1EE5sweepILj32ELb1ELb0ELb0EEEjv",
     "name": "unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()",
     "pre_size": 1412,
-    "post_size": 1412,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 1614,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "src/core/reorder.o",
@@ -8887,9 +8887,9 @@
     "symbol": "_ZN4tomo7ExLoopTILb1EE8r7_sweepILj32ELb1ELb0ELb0EEEjv",
     "name": "unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()",
     "pre_size": 1412,
-    "post_size": 1412,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 1614,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "src/core/reorder.o",
@@ -9077,7 +9077,7 @@
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
     "pre_size": 12232,
     "post_size": 12232,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -9095,7 +9095,7 @@
     "name": "bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]",
     "pre_size": 2023,
     "post_size": 2023,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -9103,9 +9103,9 @@
     "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
     "pre_size": 21185,
-    "post_size": 21185,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 21256,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "src/core/rl2s.o",
@@ -9113,8 +9113,8 @@
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
     "pre_size": 197,
     "post_size": 197,
-    "raw_equal": true,
-    "relocation_equal": true
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "src/core/rl2s.o",
@@ -9122,7 +9122,7 @@
     "name": "bool tomo::IoLoop::drive_tls<false, true>(tomo::Client*) [clone .isra.0]",
     "pre_size": 1841,
     "post_size": 1841,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -9131,7 +9131,7 @@
     "name": "bool tomo::IoLoop::drive_tls<true, true>(tomo::Client*) [clone .isra.0]",
     "pre_size": 2023,
     "post_size": 2023,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -9139,9 +9139,9 @@
     "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
     "pre_size": 21049,
-    "post_size": 21049,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 21042,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "src/core/rl2s.o",
@@ -9149,8 +9149,8 @@
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
     "pre_size": 190,
     "post_size": 190,
-    "raw_equal": true,
-    "relocation_equal": true
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "src/core/rl2s.o",
@@ -9904,18 +9904,18 @@
     "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
     "pre_size": 21239,
-    "post_size": 21239,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 21319,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "src/core/rl2s.o",
     "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb1EEENS0_14DispatchResultEPNS_6ClientE",
     "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
     "pre_size": 21252,
-    "post_size": 21252,
-    "raw_equal": true,
-    "relocation_equal": true
+    "post_size": 21278,
+    "raw_equal": false,
+    "relocation_equal": false
   },
   {
     "object": "src/core/rl2s.o",
@@ -10202,7 +10202,7 @@
     "name": "bool tomo::IoLoop::drive_tls<false, false>(tomo::Client*) [clone .isra.0]",
     "pre_size": 1841,
     "post_size": 1841,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -10211,7 +10211,7 @@
     "name": "bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]",
     "pre_size": 2023,
     "post_size": 2023,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {

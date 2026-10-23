@@ -18,5 +18,70 @@
       "text": "**Addendum 2026-10-23 02:34:** DIFF-TRK-1 FIXED in cx-trackfix (armed-tracking-only ordering stamps; landing pending merit); CC4.4 FIXED in cx-trackfix. NEW mark TRK-REDIR-1 (pre-existing, compat): CLIENT TRACKING REDIRECT to a connection that closes while an invalidation is in flight: the source resolves the redirect, posts to the target's IO, the target is gone and delivery returns silently, so the source's broken_redirect state (Redis: tracking-redir-broken) is never set. Planned in notifycompat."
     }
   ],
-  "observed": "qIM3PI differ-armed-0, climon seed 19 round 18 mode 1: duplicate invalidation ck:6"
+  "observed": "qIM3PI differ-armed-0, climon seed 19 round 18 mode 1: duplicate invalidation ck:6",
+  "pre_observed": {
+    "run": "gate-run.yQXBgT",
+    "part": "differ-armed-0",
+    "suite": "climon",
+    "seed": 20,
+    "rounds": [
+      [
+        21,
+        0,
+        "ck:4"
+      ],
+      [
+        30,
+        0,
+        "ck:9"
+      ]
+    ],
+    "wire": "  DIFF invalidation round 21 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:4\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:4\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:4\\r\\n'\n  DIFF invalidation round 30 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'\nDIFFER climon: 4318 ops, 2 diffs -> FAIL\n"
+  },
+  "pre_observed_all": [
+    {
+      "run": "gate-run.yQXBgT",
+      "part": "differ-armed-0",
+      "file": "climon-a0-s20.txt",
+      "wire": "  DIFF invalidation round 21 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:4\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:4\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:4\\r\\n'\n  DIFF invalidation round 30 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'\nDIFFER climon: 4318 ops, 2 diffs -> FAIL\n"
+    },
+    {
+      "run": "gate-run.yQXBgT",
+      "part": "differ-armed-1",
+      "file": "climon-a1-s20.txt",
+      "wire": "  DIFF invalidation round 13 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:8\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:8\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:8\\r\\n'\n  DIFF invalidation round 34 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'\n  DIFF invalidation round 38 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'\n  DIFF invalidation round 39 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:2\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:2\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:2\\r\\n'\nDIFFER climon: 4318 ops, 4 diffs -> FAIL\n"
+    },
+    {
+      "run": "gate-run.yQXBgT",
+      "part": "differ-armed-1",
+      "file": "climon-a1-s23.txt",
+      "wire": "  DIFF invalidation round 3 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:0\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:0\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:0\\r\\n'\n  DIFF invalidation round 5 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:8\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:8\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:8\\r\\n'\n  DIFF invalidation round 13 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'\n  DIFF invalidation round 16 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:4\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:4\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:4\\r\\n'\n  DIFF invalidation round 17 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:6\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:6\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:6\\r\\n'\n  DIFF invalidation round 19 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:1\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:1\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:1\\r\\n'\n  DIFF invalidation round 21 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\n  DIFF invalidation round 26 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\n  DIFF invalidation round 29 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'\n  DIFF invalidation round 35 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\nDIFFER climon: 4318 ops, 10 diffs -> FAIL\n"
+    },
+    {
+      "run": "gate-run.yQXBgT",
+      "part": "differ-armed-1",
+      "file": "climon-a1-s26.txt",
+      "wire": "  DIFF invalidation round 8 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'\n  DIFF invalidation round 15 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:11\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:11\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:11\\r\\n'\n  DIFF invalidation round 16 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:8\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:8\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:8\\r\\n'\n  DIFF invalidation round 18 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:0\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:0\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:0\\r\\n'\n  DIFF invalidation round 31 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\n  DIFF invalidation round 38 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\n  DIFF invalidation round 39 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:1\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:1\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:1\\r\\n'\nDIFFER climon: 4318 ops, 7 diffs -> FAIL\n"
+    }
+  ],
+  "final_post_observed_all": [
+    {
+      "run": "gate-run.U0OHjy",
+      "part": "differ-armed-0",
+      "file": "climon-a0-s19.txt",
+      "wire": "  DIFF invalidation round 8 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'\nDIFFER climon: 4318 ops, 1 diffs -> FAIL\n"
+    },
+    {
+      "run": "gate-run.U0OHjy",
+      "part": "differ-armed-0",
+      "file": "climon-a0-s23.txt",
+      "wire": "  DIFF invalidation round 26 mode 0\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:7\\r\\n'\n  DIFF invalidation round 32 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:1\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:1\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:1\\r\\n'\nDIFFER climon: 4318 ops, 2 diffs -> FAIL\n"
+    },
+    {
+      "run": "gate-run.U0OHjy",
+      "part": "differ-armed-1",
+      "file": "climon-a1-s23.txt",
+      "wire": "  DIFF invalidation round 31 mode 1\n    target: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'\n    oracle: b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'\nDIFFER climon: 4318 ops, 1 diffs -> FAIL\n"
+    }
+  ]
 }

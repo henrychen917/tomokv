@@ -2,6 +2,12 @@
   {
     "name": "tomo::ExLoopT<true>::prepare_local_read(tomo::Op&, tomo::FlatStore*, bool, tomo::FlatStore::ReadLocalPrefetchCapture const*)",
     "encodings_equal": true,
+    "pre_sizes": [
+      2249
+    ],
+    "post_sizes": [
+      2249
+    ],
     "diff": [
       "--- PRE\n",
       "+++ POST\n",
@@ -10,7 +16,7 @@
       " 056c [10] movl $0x0,0xbc(%rbx)",
       " 0576 [11] movq $0x0,0x98(%rbx)",
       "-0581 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x978>",
-      "+0581 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x968>",
+      "+0581 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x928>",
       " 0588 [ 8] movb $0x0,0x90(%rsp)",
       " 0590 [ 8] mov %rax,0x94(%rsp)",
       " 0598 [ 5] jmp <+0x120>"
@@ -19,6 +25,12 @@
   {
     "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
     "encodings_equal": true,
+    "pre_sizes": [
+      865
+    ],
+    "post_sizes": [
+      865
+    ],
     "diff": [
       "--- PRE\n",
       "+++ POST\n",
@@ -36,6 +48,12 @@
   {
     "name": "void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
     "encodings_equal": true,
+    "pre_sizes": [
+      459
+    ],
+    "post_sizes": [
+      459
+    ],
     "diff": [
       "--- PRE\n",
       "+++ POST\n",
@@ -44,7 +62,7 @@
       " 0010 [ 6] ja <+0x1b0>",
       " 0016 [ 1] push %rbp",
       "-0017 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x16d70>",
-      "+0017 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x171b8>",
+      "+0017 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x17120>",
       " 001e [ 1] push %rbx",
       " 001f [ 3] mov %rdi,%rbx",
       " 0022 [ 4] sub $0x8,%rsp"
@@ -53,6 +71,12 @@
   {
     "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
     "encodings_equal": true,
+    "pre_sizes": [
+      459
+    ],
+    "post_sizes": [
+      459
+    ],
     "diff": [
       "--- PRE\n",
       "+++ POST\n",
@@ -61,7 +85,7 @@
       " 0010 [ 6] ja <+0x1b0>",
       " 0016 [ 1] push %rbp",
       "-0017 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x16db8>",
-      "+0017 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x17200>",
+      "+0017 [ 7] lea <rip>(%rip),%rdx # <_IO_stdin_used+0x171b0>",
       " 001e [ 1] push %rbx",
       " 001f [ 3] mov %rdi,%rbx",
       " 0022 [ 4] sub $0x8,%rsp"
@@ -70,6 +94,12 @@
   {
     "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
     "encodings_equal": true,
+    "pre_sizes": [
+      1223
+    ],
+    "post_sizes": [
+      1223
+    ],
     "diff": [
       "--- PRE\n",
       "+++ POST\n",
@@ -78,7 +108,7 @@
       " 0010 [ 6] ja <+0x460>",
       " 0016 [ 2] push %r13",
       "-0018 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x16f68>",
-      "+0018 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x173b0>",
+      "+0018 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x17168>",
       " 001f [ 2] push %r12",
       " 0021 [ 1] push %rbp",
       " 0022 [ 1] push %rbx"
@@ -87,6 +117,12 @@
   {
     "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
     "encodings_equal": true,
+    "pre_sizes": [
+      891
+    ],
+    "post_sizes": [
+      891
+    ],
     "diff": [
       "--- PRE\n",
       "+++ POST\n",
@@ -95,7 +131,7 @@
       " 0010 [ 6] ja <+0x360>",
       " 0016 [ 1] push %rbp",
       "-0017 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x16f20>",
-      "+0017 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x17368>",
+      "+0017 [ 7] lea <rip>(%rip),%rcx # <_IO_stdin_used+0x17318>",
       " 001e [ 1] push %rbx",
       " 001f [ 3] mov %rdi,%rbx",
       " 0022 [ 4] sub $0x8,%rsp"
