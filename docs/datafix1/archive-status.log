@@ -6,3 +6,8 @@ post-existing-epoll LANE INTERRUPTED: stop overlapping correctness coordinators 
 pre-existing-epoll LANE INTERRUPTED: stop overlapping correctness coordinators after the 900s differential watchdog receipt; rerun serially with unchanged seeds/assertions. No complete ledger is claimed.
 post-existing-uring LANE INTERRUPTED: stop overlapping correctness coordinators after the 900s differential watchdog receipt; rerun serially with unchanged seeds/assertions. No complete ledger is claimed.
 post-serial-epoll GATE(PARTIAL): 164 ok, 2 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: docs/datafix1/post-serial-epoll-ledger.tsv.partial
+post-final-epoll GATE(PARTIAL): 166 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-final-epoll-ledger.tsv.partial
+post-final-uring GATE(PARTIAL): 156 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-final-uring-ledger.tsv.partial
+pre-final-spop GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-final-spop-ledger.tsv.partial
+pre-extra GATE(PARTIAL): 199 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/pre-extra-ledger.tsv.partial
+post-extra GATE(PARTIAL): 199 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-extra-ledger.tsv.partial

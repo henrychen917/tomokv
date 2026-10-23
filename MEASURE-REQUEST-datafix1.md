@@ -142,11 +142,18 @@ are not claimed as complete matrix passes. The serial reruns use the unchanged
 standard permanent seeds 7,19,20,23 plus rotating seed 25, cloned from the same
 pre-run history for matched PRE/POST arms. Each full leg inventory remains intact.
 
-Final live proof so far: POST epoll 166/166 selected rows; PRE epoll 156/156.
-The final io_uring and differential runs are still in progress.
+Final legacy proof: POST epoll 166/166 selected rows and io_uring 156/156; PRE
+epoll 156/156. PRE and POST each pass 199/199 related-job rows, including AOF,
+fragmentation, command clocks, GEO client cases, hash TTL, dump/restore and
+notification chains. Standard differential runs are in progress.
 
 The first PRE SPOP receipts contain all six assertion logs but the summary writer
 then rejected bytes nested in tuple failure details. The common writer now uses
 its existing RESP-to-JSON converter for those values; no assertion changes.
 All seven directed rows are queued again on PRE and final POST with this fix,
 followed by the final PAD-A control. Earlier receipt files remain preserved.
+
+Lean build retention: PRE's redundant production-unit and control binaries were
+removed after the passing gate runs and recorded make -q checks. Its exact source,
+production objects and server remain, and make -q all still passes. POST's required
+production targets remain fresh. The removed paths are listed in lean-builds.json.

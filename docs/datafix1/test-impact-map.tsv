@@ -1,39 +1,55 @@
-tests/bitfield.py	
-tests/cd13b_window_test.py	
-tests/cd13b_wire.py	
-tests/clientfix.py	job_clientfix
-tests/climon.py	
-tests/datafix1_geo.py	job_datafix1_geo
-tests/datafix1_hexpire.py	job_datafix1_hexpire
-tests/datafix1_lists.py	job_datafix1_lists
-tests/datafix1_locale.py	job_datafix1_locale
-tests/datafix1_randscan.py	job_datafix1_randscan
-tests/datafix1_spop.py	job_datafix1_spop
-tests/differ.py	
-tests/differ_fanout_test.py	
-tests/differ_test.py	
-tests/docs_drift.py	job_config_unit
-tests/dumpttl.py	
-tests/edgeenc.py	
-tests/edgeproto.py	
-tests/edgetime.py	
-tests/encodingfix.py	
-tests/expwide.py	
-tests/geo.py	
-tests/globcase.py	job_globcase
-tests/hexpire.py	
-tests/hexpread.py	job_hexpread
-tests/infofields_test.py	
-tests/knobs.py	job_aof
-tests/lbsignals.py	job_release_batteries
-tests/multirace.py	
-tests/notify_order.py	job_notify_order,job_notify_aof
-tests/ntnew4_clock.py	ntnew4_live_leg
-tests/redisgap.py	
-tests/replyschema.py	
-tests/resp3.py	
-tests/respresume.py	job_respresume
-tests/s6.py	
-tests/servertail.py	
-tests/wiredump.py	
-tests/zsetops.py	
+file	gate jobs / scope
+tests/aclfix.py	aclfix
+tests/aclkeys_wake_unit.cc	No gate job directly invokes this standalone test
+tests/atomic_survivors_unit.cc	atomic_units
+tests/bitfield.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/cd13b_window_test.py	No gate job directly invokes this standalone test
+tests/cd13b_wire.py	differ-{split,armed}-{0,1}; both engine wrappers
+tests/cdfix_unit.cc	No gate job directly invokes this standalone test
+tests/clientfix.py	clientfix
+tests/climon.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/climon2.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/cmdgap.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/config_parser_test.cc	config_unit
+tests/datafix1_geo.py	datafix1_geo
+tests/datafix1_hexpire.py	datafix1_hexpire
+tests/datafix1_lists.py	datafix1_lists
+tests/datafix1_locale.py	datafix1_locale
+tests/datafix1_randscan.py	datafix1_randscan
+tests/datafix1_spop.py	datafix1_spop
+tests/debug.py	No gate job directly invokes this standalone test
+tests/differ.py	differ-{split,armed}-{0,1}; both engine wrappers
+tests/differ_fanout_test.py	No gate job directly invokes this standalone test
+tests/differ_test.py	No gate job directly invokes this standalone test
+tests/docs_drift.py	config_unit
+tests/doubles.py	No standalone gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
+tests/dumprestore.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/dumpttl.py	No standalone gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
+tests/edgeenc.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/edgeproto.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/edgetime.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/encodingfix.py	differ-{split,armed}-{0,1}; both engine wrappers
+tests/encodingfix_unit.cc	netcmd_units
+tests/expwide.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/geo.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/globcase.py	globcase
+tests/hexpire.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/hexpread.py	hexpread
+tests/infofields_test.py	No gate job directly invokes this standalone test
+tests/knobs.py	aof-epoll, aof-uring
+tests/lbsignals.py	release_batteries, debug-0, debug-1
+tests/lcs.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/multidb_unit.cc	storage_units
+tests/multirace.py	debug-0, debug-1
+tests/netcmd_config_unit.cc	netcmd_units
+tests/notify_order.py	notify_order, notify_aof
+tests/ntnew4_clock.py	ntnew4_live
+tests/redisgap.py	No standalone gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
+tests/replyschema.py	No gate job directly invokes this standalone test
+tests/resp3.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/respresume.py	respresume-{fragment,cpu,neighbour}-{1s,2s}-{epoll,uring}
+tests/s6.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/servertail.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/tracking.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
+tests/wiredump.py	No standalone gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
+tests/zsetops.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
