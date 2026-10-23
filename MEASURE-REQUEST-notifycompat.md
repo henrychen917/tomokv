@@ -48,3 +48,11 @@ keymiss, and retain a physical lazy-expiry event. Redis checks missing keys
 before the IDLETIME/FREQ policy error, so that precedence is corrected too.
 The oracle's exact null/expired frames are retained in `oracle-objectmiss.log`.
 Current DQ=+5 / DF=+5; required counts 744 / 761. Final proof pending.
+
+NO-A7: Redis confirms explicit `del` (no `expired`, no expired_keys increment)
+for elapsed resident destinations in 11 empty STORE forms. The directed battery
+covers local and cross-owner routes, with a physical-residency witness before each
+command. Plain application now uses raw owner deletion; atomic application records
+its physical old destination. GEO's separate local path is included. Empty zset
+stores also retain Redis's source keymiss and source-before-destination ordering.
+Oracle bytes: `oracle-expiredstore.log`. Current DQ=+6 / DF=+6; counts 745 / 762.

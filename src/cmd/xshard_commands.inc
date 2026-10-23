@@ -2140,10 +2140,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             shard, op.arg(1), FlatStore::hash_key(op.arg(1)), destination, true);
         if (error != WorkError::None) reply_work_error(op, error);
         else {
-            if constexpr (kNotify)
-                notify_record(shard, op, selected.empty() ? NOTIFY_GENERIC : NOTIFY_ZSET,
-                              selected.empty() ? NotifyEventId::Del : NotifyEventId::Zrangestore,
-                              op.arg(1));
+            if constexpr (kNotify) if (!selected.empty())
+                notify_record(shard, op, NOTIFY_ZSET, NotifyEventId::Zrangestore, op.arg(1));
             reply_int(op.sink(), static_cast<long long>(selected.size()));
         }
         return;
@@ -2189,9 +2187,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
             shard, key, FlatStore::hash_key(key), destination, true);
         if (stored != WorkError::None) reply_work_error(op, stored);
         else {
-            if constexpr (kNotify)
-                notify_record(shard, op, values.empty() ? NOTIFY_GENERIC : NOTIFY_LIST,
-                              values.empty() ? NotifyEventId::Del : NotifyEventId::Sortstore, key);
+            if constexpr (kNotify) if (!values.empty())
+                notify_record(shard, op, NOTIFY_LIST, NotifyEventId::Sortstore, key);
             reply_int(op.sink(), static_cast<long long>(values.size()));
         }
         return;
@@ -2395,7 +2392,8 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         const Slice destination = op.arg(2);
         const uint64_t hash = FlatStore::hash_key(destination);
         if (!output.present) {
-            shard.store_erase<kNotify>(hash, destination);
+            if constexpr (kNotify) notify_erase_image(shard, hash, destination, true);
+            else shard.store().erase_resident(hash, destination);
         } else {
             // Same contract as the scatter hop-2 arm: -1 clears TTL, raw encoding only.
             error = store_xstring<kNotify>(
@@ -2453,12 +2451,11 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         local_apply<kNotify>(shard, op, apply, {1}, error, 1);
         if (error != WorkError::None) reply_work_error(op, error);
         else {
-            if constexpr (kNotify) {
+            if constexpr (kNotify) if (!output.empty()) {
                 const NotifyEventId event = kind == Kind::Zunionstore
                     ? NotifyEventId::Zunionstore : kind == Kind::Zinterstore
                     ? NotifyEventId::Zinterstore : NotifyEventId::Zdiffstore;
-                notify_record(shard, op, output.empty() ? NOTIFY_GENERIC : NOTIFY_ZSET,
-                              output.empty() ? NotifyEventId::Del : event, op.arg(1));
+                notify_record(shard, op, NOTIFY_ZSET, event, op.arg(1));
             }
             reply_int(op.sink(), static_cast<long long>(output.size()));
         }
@@ -2491,7 +2488,7 @@ void cmd_xshard_only_impl(Shard& shard, Op& op) {
         }
         if (members.empty()) apply[1] = ObjectImage{};
         else if (!encode_elements(members, apply[1], Type::Set, -1)) { set_oom(op); return; }
-        local_apply<kNotify>(shard, op, apply, {1}, error);
+        local_apply<kNotify>(shard, op, apply, {1}, error, 1);
         if (error != WorkError::None) reply_work_error(op, error);
         else {
             NotifyEventId event = NotifyEventId::Sinterstore;

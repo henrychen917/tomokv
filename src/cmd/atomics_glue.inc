@@ -326,7 +326,10 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
         // Empty STORE results notify only when their owner actually replaced a
         // destination. Phase one intentionally reads only the sources.
         if (!value && pos == 0 &&
-            (state.kind == Kind::Bitop || is_store_setop(state.kind)))
+            (state.kind == Kind::Bitop || is_store_setop(state.kind) ||
+             is_store_zsetop(state.kind) || state.kind == Kind::Zrangestore ||
+             (is_geo_kind(state.kind) && state.geo_store) ||
+             (state.kind == Kind::Sort && state.sort_options.store)))
             state.images[pos].present = old != nullptr;
         if (old) parked_bytes += kvobj_size(old);
         if (value) {

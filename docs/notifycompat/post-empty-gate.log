@@ -2,3 +2,12 @@ GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load),
   artifacts: /home/user/Projects/cx-notifycompat/build/gate-run.S20noj
 PARTIAL jobs (including prerequisites): release notifycompat
 PARTIAL jobs (including prerequisites): release notifycompat
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; correctness-plan-fallback; notification compatibility setbit vs Redis 7.4
+  notification compatibility setbit vs Redis 7.4       ok
+  row budget: 900s; median=-s; correctness-plan-fallback; notification compatibility setpast vs Redis 7.4
+  notification compatibility setpast vs Redis 7.4      ok
+  row budget: 900s; median=-s; no-history-conservative-default; notification compatibility emptystore vs Redis 7.4
+  notification compatibility emptystore vs Redis 7.4   FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.S20noj/jobs/notifycompat/compat-emptystore-*.log)
+GATE(PARTIAL): 3 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-notifycompat/docs/notifycompat/post-empty-ledger.partial

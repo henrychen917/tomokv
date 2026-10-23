@@ -201,6 +201,8 @@ inline bool notify_record_keyless(ShardLike& shard, uint32_t cls,
 }
 // A NotPossible overwrite probe can reap before insert_notify sees the old key.
 void notify_overwrite_expiry(Shard& shard, uint64_t expired_before, Slice key);
+// Empty image application distinguishes explicit STORE deletion from expiry.
+void notify_erase_image(Shard& shard, uint64_t hash, Slice key, bool suppress_del);
 bool notify_flat_enabled(void* shard, uint32_t cls);
 void notify_flat_emit(void* shard, uint32_t cls, NotifyEventId event, Slice key);
 void notify_bind_flat_store(const FlatStore* store, FlatNotifySink* sink);

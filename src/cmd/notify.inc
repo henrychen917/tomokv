@@ -190,6 +190,13 @@ uint32_t notify_key_arg_order(const Shard& shard, const Op& source, Slice key) {
     return shard.notify_order_base() + 0x0ff0;
 }
 
+bool notify_store_command(const Op& source) {
+    Kind kind;
+    return classify(source, kind) &&
+        (is_store_setop(kind) || is_store_zsetop(kind) || kind == Kind::Bitop ||
+         kind == Kind::Zrangestore || kind == Kind::Sort || is_geo_kind(kind));
+}
+
 std::string notify_keyspace_channel(Slice key, uint8_t db) {
     std::string channel = "__keyspace@" + std::to_string(db) + "__:";
     channel.append(key.p, key.n);
@@ -380,10 +387,8 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
     NotifyRecordImpl record;
     // STORE reads its sources before deleting/replacing the destination. Keep
     // destination mutation events after source keymiss even in owner-parallel gathers.
-    const Slice command = source.cmd_name();
     const bool store_tail = event != NotifyEventId::Keymiss &&
-        (command.eq_icase("bitop") || command.eq_icase("sinterstore") ||
-         command.eq_icase("sunionstore") || command.eq_icase("sdiffstore"));
+        notify_store_command(source);
     record.order = (store_tail ? shard.notify_order_base() + 0x0ff0
                               : notify_key_arg_order(shard, source, key)) + notify_event_priority(event);
     record.sequence = batch->next_sequence++;
@@ -524,6 +529,18 @@ void notify_overwrite_expiry(Shard& shard, uint64_t expired_before, Slice key) {
         notify_flat_emit(&shard, NOTIFY_EXPIRED, NotifyEventId::Expired, key);
 }
 
+// Cold STORE/RENAME image deletion. A source RENAME deletion suppresses del;
+// STORE observes whether dbDelete removed a physical resident, even if elapsed.
+void notify_erase_image(Shard& shard, uint64_t hash, Slice key, bool suppress_del) {
+    Op* source = shard.notify_source();
+    if (suppress_del) {
+        if (shard.store().erase_resident(hash, key) && source && notify_store_command(*source))
+            notify_record(shard, *source, NOTIFY_GENERIC, NotifyEventId::Del, key);
+    } else {
+        shard.store_erase<true>(hash, key);
+    }
+}
+
 bool notify_flat_enabled(void* context, uint32_t cls) {
     auto& shard = *static_cast<Shard*>(context);
     const uint32_t mask = shard.notify_mask();
@@ -570,6 +587,13 @@ bool notify_keymiss_read_lookup(const Op& source, Slice key) {
     else if (name.eq_icase("sinterstore") || name.eq_icase("sunionstore") ||
              name.eq_icase("sdiffstore")) first = 2;
     else if (name.eq_icase("bitop")) first = 3;
+    else if (name.eq_icase("zunionstore") || name.eq_icase("zinterstore") ||
+             name.eq_icase("zdiffstore")) {
+        first = 3;
+        uint64_t count = 0;
+        if (end < 3 || !parse_u64(source.arg(2), count)) return false;
+        end = static_cast<uint32_t>(std::min<uint64_t>(end, 3 + count));
+    }
     else return false;
     for (uint32_t arg = first; arg < end; ++arg) {
         const Slice candidate = source.arg(arg);
@@ -970,7 +994,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                         ? NotifyEventId::Zunionstore : state.kind == Kind::Zinterstore
                         ? NotifyEventId::Zinterstore : NotifyEventId::Zdiffstore;
                     emit(NOTIFY_ZSET, event, 1);
-                } else {
+                } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
                 }
             }
@@ -980,7 +1004,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                 if (state.apply && state.apply[0].present) {
                     emit_atomic_new(0, 1);
                     emit(NOTIFY_ZSET, NotifyEventId::Zrangestore, 1);
-                } else {
+                } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, 1);
                 }
             }
@@ -995,7 +1019,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                         ? NotifyEventId::Geosearchstore : NotifyEventId::Georadiusstore;
                     emit(NOTIFY_ZSET, event,
                          state.geo_destination_arg);
-                } else {
+                } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, state.geo_destination_arg);
                 }
             }
@@ -1005,7 +1029,7 @@ void notify_xshard_finished(Shard& shard, Op& op, ScatterState& state) {
                 if (state.apply && state.apply[0].present) {
                     emit_atomic_new(0, state.sort_options.store_arg);
                     emit(NOTIFY_LIST, NotifyEventId::Sortstore, state.sort_options.store_arg);
-                } else {
+                } else if (state.atomic_apply && state.images && state.images[0].present) {
                     emit(NOTIFY_GENERIC, NotifyEventId::Del, state.sort_options.store_arg);
                 }
             }

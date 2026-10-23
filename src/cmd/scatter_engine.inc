@@ -360,8 +360,9 @@ template <bool kNotify>
 WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage& image,
                       bool suppress_del = false) {
     if (!image.present) {
-        shard.store_erase<kNotify>(hash, key, suppress_del ? FlatStore::EraseEvent::None
-                                                           : FlatStore::EraseEvent::Del);
+        if constexpr (kNotify) notify_erase_image(shard, hash, key, suppress_del);
+        else if (suppress_del) shard.store().erase_resident(hash, key);
+        else shard.store().erase(hash, key);
         return WorkError::None;
     }
     KvObj* object = nullptr;
@@ -3265,8 +3266,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     const ObjectImage& image = state.apply[pos];
                     if (!image.present) {
                         if (notify)
-                            shard.store_erase<true>(key.hash, op.arg(key.arg));
-                        else shard.store().erase(key.hash, op.arg(key.arg));
+                            notify_erase_image(shard, key.hash, op.arg(key.arg), true);
+                        else shard.store().erase_resident(key.hash, op.arg(key.arg));
                         result = WorkError::None;
                     } else {
                         // BITOP overwrites the destination like SET: TTL cleared (-1), and the
@@ -3292,7 +3293,8 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 } else {
                     const bool suppress_del =
                         ((state.kind == Kind::Rename || state.kind == Kind::Renamenx) && pos == 0) ||
-                        ((is_store_zsetop(state.kind) ||
+                        ((state.kind == Kind::Bitop || is_store_setop(state.kind) ||
+                          is_store_zsetop(state.kind) ||
                           (is_geo_kind(state.kind) && state.geo_store) ||
                           state.kind == Kind::Zrangestore ||
                           (state.kind == Kind::Sort && state.sort_options.store)) && pos == 0);

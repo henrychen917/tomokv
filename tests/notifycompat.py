@@ -218,8 +218,36 @@ def objectmiss(peer):
     peer.admin.cmd('CONFIG', 'SET', 'maxmemory-policy', 'noeviction')
 
 
+def expiredstore(peer):
+    for layout, (dst, src, other) in enumerate(peer.keysets):
+        cases = [
+            (('BITOP', 'AND', dst, src), [], [('keymiss', src)]),
+            (('SINTERSTORE', dst, src, other), [('SADD', src, 'a'), ('SADD', other, 'b')], []),
+            (('SUNIONSTORE', dst, src), [], [('keymiss', src)]),
+            (('SDIFFSTORE', dst, src, src), [('SADD', src, 'a')], []),
+            (('ZINTERSTORE', dst, 2, src, other), [('ZADD', src, 1, 'a'), ('ZADD', other, 2, 'b')], []),
+            (('ZUNIONSTORE', dst, 1, src), [], [('keymiss', src)]),
+            (('ZDIFFSTORE', dst, 2, src, src), [('ZADD', src, 1, 'a')], []),
+            (('ZRANGESTORE', dst, src, 10, 20), [('ZADD', src, 1, 'a')], []),
+            (('SORT', src, 'LIMIT', 10, 1, 'STORE', dst), [('RPUSH', src, 1)], []),
+            (('GEOSEARCHSTORE', dst, src, 'FROMLONLAT', 20, 20, 'BYRADIUS', 1, 'm'),
+             [('GEOADD', src, 0, 0, 'home')], []),
+            (('GEORADIUS', src, 20, 20, 1, 'm', 'STORE', dst), [('GEOADD', src, 0, 0, 'home')], []),
+        ]
+        for command, setup, source_events in cases:
+            peer.setup(('FLUSHALL',), *setup, ('SET', dst, 'elapsed', 'PX', 50))
+            time.sleep(.08)
+            assert isinstance(peer.driver.cmd('MEMORY', 'USAGE', dst), int), 'expired resident window never opened'
+            before = int(info(peer.admin, 'stats')['expired_keys'])
+            peer.step(f'expired destination layout={layout}', command, 0, source_events + [('del', dst)])
+            after = int(info(peer.admin, 'stats')['expired_keys'])
+            if after != before:
+                peer.failures.append(f'{command}: explicit deletion counted as expiry ({before} -> {after})')
+
+
+
 CASES = {'setbit': setbit, 'setpast': setpast, 'emptystore': emptystore,
-         'writemiss': writemiss, 'objectmiss': objectmiss}
+         'writemiss': writemiss, 'objectmiss': objectmiss, 'expiredstore': expiredstore}
 
 
 def main():
