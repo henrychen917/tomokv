@@ -44,7 +44,7 @@ enum class TxnCounter : uint8_t {
     Attempts, Retries, Dooms, Wounds, Waits, Intents, IntentsLive,
     GroupDooms, GroupRetries, GroupBarriers,
     Executed, PlaceWaits, WriterWaits, WriterMarks, BlindRestarts, Readonly,
-    OrderViolations, GroupWounds, Count
+    OrderViolations, GroupWounds, FastPolls, Count
 };
 // DEBUG-only witness arming; no per-operation state on ordinary commands.
 void txn_barrier_witness(bool armed);
@@ -93,8 +93,15 @@ enum class MultiIoAction : uint8_t {
 
 enum class MultiTaskResult : uint8_t {
     Retry,
+    RetrySoon,
     Complete,
     Final,
+};
+
+// Owner-local, synchronous promotion; no task or state pointer outlives this call.
+struct MultiRetryPromoter {
+    void* context;
+    void (*promote)(void*, const Task&);
 };
 
 // Called after lookup/arity validation.  Transaction controls are handled here; while MULTI is
@@ -138,7 +145,8 @@ uint64_t multi_exec_order_late();
 Task multi_make_task(Client* client, uint64_t op_id, int32_t shard, MultiExecState* state);
 MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
                                    uint32_t owner_thread_id, uint32_t owner_domain,
-                                   AofOwnerContext* aof_context);
+                                   AofOwnerContext* aof_context,
+                                   const MultiRetryPromoter* promoter = nullptr);
 
 // IO-side retirement owns state destruction.  Pending MVCC records may retain the shared epoch
 // after the EXEC reply, so those states are reaped when their owner-local record refs reach zero.

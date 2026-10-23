@@ -56,10 +56,18 @@
                 if (no_touch) srv_->climon_note_no_touch();
             }
             AofOwnerContext aof_context{self_->id(), &ring_, &self_->sig()};
+            const MultiRetryPromoter promoter{this, [](void* loop, const Task& next) {
+                static_cast<ExLoopT*>(loop)->promote_multi_retry(next);
+            }};
             const MultiTaskResult result =
                 multi_execute_task(*srv_, t, shard, self_->id(), self_->domain(),
-                                   aof_manager_ ? &aof_context : nullptr);
+                                   aof_manager_ ? &aof_context : nullptr, &promoter);
             shard.publish_size();
+            if (result == MultiTaskResult::RetrySoon) {
+                multi_retries_.insert(multi_retries_.begin() + multi_fast_count_, t);
+                ++multi_fast_count_;
+                return true;
+            }
             if (result == MultiTaskResult::Retry) {
                 multi_retries_.push_back(t);
                 return true;

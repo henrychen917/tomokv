@@ -2423,16 +2423,43 @@ private:
         (void)owned[lb_bytes_shard_cursor_++]->lb_scan_bucket_bytes(64);
     }
 
+    void promote_multi_retry(const Task& next) {
+        for (size_t i = multi_fast_count_; i < multi_retries_.size(); ++i) {
+            if (multi_retries_[i].scatter != next.scatter || multi_retries_[i].shard != next.shard)
+                continue;
+            // Moving a queued task must not allocate or lose it on failure.
+            std::rotate(multi_retries_.begin() + multi_fast_count_,
+                        multi_retries_.begin() + i, multi_retries_.begin() + i + 1);
+            ++multi_fast_count_;
+            return;
+        }
+    }
+
     template <bool IofusedPrivateQueue = false>
     uint32_t service_multi_retries() {
         if (multi_retries_.empty()) return 0;
-        const Task task = multi_retries_.front();
-        multi_retries_.pop_front();
-        // execute() requeues an unfinished transaction task on multi_retries_ itself.  Returning
-        // true here is work/progress, while ordinary inbox draining remains enabled so every shard
-        // participant gets its first turn at the command barrier.
-        execute<IofusedPrivateQueue>(task);
-        return 1;
+        // Snapshot the prefix: retries and promotions append to it, behind the
+        // as-yet unpolled members. No fragment can be polled twice in this pass.
+        const uint32_t fast = multi_fast_count_;
+        // Reserve the original rotation head before promotions or demotions.
+        // It is polled last, exactly once, even if a fast poll promotes it.
+        const bool rotate = multi_retries_.size() > fast;
+        Task rotation{};
+        if (rotate) {
+            const auto at = multi_retries_.begin() + fast;
+            rotation = *at;
+            multi_retries_.erase(at);
+        }
+        for (uint32_t i = 0; i < fast; ++i) {
+            const Task task = multi_retries_.front();
+            multi_retries_.pop_front();
+            --multi_fast_count_;
+            srv_->note_txn(self_->id(), TxnCounter::FastPolls);
+            execute<IofusedPrivateQueue>(task);
+        }
+        // Always advance the rotation too: a fast waiter may depend on it.
+        if (rotate) execute<IofusedPrivateQueue>(rotation);
+        return fast + rotate;
     }
 
     template <bool IofusedPrivateQueue = false>
@@ -2824,6 +2851,9 @@ private:
     uint32_t notify_batch_n_ = 0;
     NotifyEntry notify_batch_[kNotifyBatchMax] = {};
     [[no_unique_address]] ReadLocalExState<Fused> read_local_;
+    // Counted prefix keeps every existing empty-queue test unchanged. Cold tail
+    // preserves offsets of the ordinary executor fields.
+    uint32_t multi_fast_count_ = 0;
 public:
     // R7 bodies are isolated from the FIFO translation units.
 // BEGIN R7 GENERATED ENVELOPES
@@ -2861,7 +2891,7 @@ using FusedExLoop = ExLoopT<true>;
 
 
 
-static_assert(sizeof(ExLoop) == 5848);
-static_assert(sizeof(FusedExLoop) == 5856);
+static_assert(sizeof(ExLoop) == 5856);
+static_assert(sizeof(FusedExLoop) == 5864);
 
 }  // namespace tomo
