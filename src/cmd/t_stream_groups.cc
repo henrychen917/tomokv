@@ -399,13 +399,7 @@ void reply_help(Op& op, const char* const* lines, size_t count) {
 }
 
 void reply_stream_subcommand_syntax(Op& op) {
-    std::string error = "ERR unknown subcommand or wrong number of arguments for '";
-    const Slice sub = op.arg(1);
-    error.append(sub.p, sub.n);
-    error += "'. Try ";
-    error += op.spec->name;
-    error += " HELP.";
-    reply_err(op.sink(), error.c_str());
+    command_reply_subcommand_error(op, op.spec->name, false);
 }
 
 template <bool kNotify>

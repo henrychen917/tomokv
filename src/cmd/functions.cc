@@ -1001,10 +1001,7 @@ void cmd_function(Shard&, Op& op) {
         reply_function_help(op);
         return;
     }
-    char text[128];
-    std::snprintf(text, sizeof(text), "unknown subcommand '%.*s'. Try FUNCTION HELP.",
-                  static_cast<int>(std::min<uint32_t>(subcommand.n, 64)), subcommand.p);
-    reply_text_error(op, "ERR", text);
+    command_reply_subcommand_error(op, "FUNCTION");
 }
 
 static const CommandSpec kTable[] = {

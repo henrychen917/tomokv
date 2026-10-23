@@ -6,6 +6,23 @@ from pathlib import Path
 from compat2_support import Client, arguments, save, server
 
 
+def error_wire(port, argv):
+    # A fresh connection and a PING delimiter retain even a malformed error's
+    # embedded CR/LF without letting it corrupt the next table entry. No idle
+    # timeout or missing frame can count as a matching reply.
+    with Client(port) as client:
+        client.send(*argv)
+        client.send('PING')
+        lines = []
+        for _ in range(8):
+            line = client.f.readline()
+            assert line, ('connection closed before PING', argv, lines)
+            if line == b'+PONG\r\n':
+                return b''.join(lines)
+            lines.append(line)
+        raise AssertionError(('missing PING delimiter', argv, lines))
+
+
 def run(a):
     a.output.mkdir(parents=True, exist_ok=False)
     rows, inventory = [], {}
@@ -16,7 +33,7 @@ def run(a):
                 assert c.cmd('XADD', 'stream', '1-0', 'f', 'v') == b'1-0'
                 assert c.cmd('SET', 'string', 'v') == b'OK'
             reference = {r[0]: r for r in oracle.cmd('COMMAND')}
-            probes = []
+            probes, boundaries = [], []
             for row in sorted(target.cmd('COMMAND')):
                 if not row[9]:
                     continue
@@ -27,6 +44,8 @@ def run(a):
                     probes.append((parent,))
                 probes += [(parent, 'NOSUCHSUB'),
                            (parent, 'nosuchsub', *(['x'] * 16))]
+                boundaries += [(parent, b'x' * length) for length in (127, 128, 129, 300)]
+                boundaries += [(parent, b'bad\0tail'), (parent, b'bad\r\nline')]
                 for child in row[9]:
                     name, arity = child[0].decode(), child[1]
                     oracle_child = next(r for r in reference[row[0]][9] if r[0] == child[0])
@@ -59,6 +78,9 @@ def run(a):
             probes += [('OBJECT', 'FREQ', 'missing')]
             for argv in probes:
                 rows.append(dict(argv=argv, target=target.cmd(*argv), oracle=oracle.cmd(*argv)))
+            for argv in boundaries:
+                rows.append(dict(argv=argv, target=error_wire(a.port, argv),
+                                 oracle=error_wire(a.port + 1, argv)))
             for c in (target, oracle):
                 assert c.cmd('CONFIG', 'SET', 'maxmemory-policy', 'allkeys-lfu') == b'OK'
             for key in ('missing', 'string'):

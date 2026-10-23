@@ -5377,5 +5377,125 @@
       }
     },
     "summary": "GATE(PARTIAL): 5 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.qIM3PI/ledger.partial"
+  },
+  "gate-run.aXS6WU": {
+    "log": "docs/dispatchfix/error-boundary-repro-PRE.log",
+    "archive": "proof/gate-run.aXS6WU.tar.gz",
+    "sha256": "6ea65a9b46cfc9ae918978a5f9bb1e4cbc829cabfdf20d89d78c4d4f2e908b7a",
+    "files": 35,
+    "bytes": 16692,
+    "jobs": {
+      "dispatch_errors": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "1.150000",
+            "label": "dispatchfix EX4.11 container errors"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.aXS6WU/ledger.partial"
+  },
+  "gate-run.1LAcB0": {
+    "log": "docs/dispatchfix/error-boundary-repro-POST.log",
+    "archive": "proof/gate-run.1LAcB0.tar.gz",
+    "sha256": "278e134c32ed8bedc247499e2d3702d8d9bf5d70de02f8552f657919dc685ab0",
+    "files": 35,
+    "bytes": 16708,
+    "jobs": {
+      "dispatch_errors": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "1.150000",
+            "label": "dispatchfix EX4.11 container errors"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.1LAcB0/ledger.partial"
+  },
+  "gate-run.yNeikb": {
+    "log": "docs/dispatchfix/error-boundary-table-PRE.log",
+    "archive": "proof/gate-run.yNeikb.tar.gz",
+    "sha256": "58b7b400a6acb2b2fe329dda3ef9238025a742b21a82d87d6997cff5010ada37",
+    "files": 43,
+    "bytes": 54625,
+    "jobs": {
+      "dispatch_errors": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "1.150000",
+            "label": "dispatchfix EX4.11 container errors"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.yNeikb/ledger.partial"
+  },
+  "gate-run.56N74P": {
+    "log": "docs/dispatchfix/error-boundary-table-POST.log",
+    "archive": "proof/gate-run.56N74P.tar.gz",
+    "sha256": "e7762777cf911aa64d3b598b7e11106b7fad37b77e28947549585fadbafee5a0",
+    "files": 43,
+    "bytes": 47711,
+    "jobs": {
+      "dispatch_errors": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "1.120000",
+            "label": "dispatchfix EX4.11 container errors"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.56N74P/ledger.partial"
   }
 }
