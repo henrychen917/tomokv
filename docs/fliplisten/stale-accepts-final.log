@@ -1,0 +1,5 @@
+a0-complete-0 280 served; positive stale 95
+a0-rollback-0 280 served; positive stale 98
+a1-complete-0 280 served; positive stale 138
+a1-rollback-0 256 served; positive stale 0
+a1-rollback-1 280 served; positive stale 72

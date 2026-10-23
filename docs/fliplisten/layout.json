@@ -1,0 +1,64 @@
+{
+  "tomo::Server": {
+    "pre_size": 108736,
+    "post_size": 108736,
+    "moved_existing_fields": {},
+    "added_fields": {
+      "flip_listeners_": 869568
+    }
+  },
+  "tomo::IoLoop": {
+    "pre_size": 7144,
+    "post_size": 7144,
+    "moved_existing_fields": {},
+    "added_fields": {}
+  },
+  "tomo::Op": {
+    "pre_size": 336,
+    "post_size": 336,
+    "moved_existing_fields": {},
+    "added_fields": {}
+  },
+  "tomo::Client": {
+    "pre_size": 1984,
+    "post_size": 1984,
+    "moved_existing_fields": {},
+    "added_fields": {}
+  },
+  "tomo::ThreadCtx": {
+    "pre_size": 1408,
+    "post_size": 1408,
+    "moved_existing_fields": {},
+    "added_fields": {}
+  },
+  "tomo::Shard": {
+    "pre_size": 1440,
+    "post_size": 1440,
+    "moved_existing_fields": {},
+    "added_fields": {}
+  },
+  "tomo::FlatStore": {
+    "pre_size": 944,
+    "post_size": 944,
+    "moved_existing_fields": {},
+    "added_fields": {}
+  },
+  "tomo::Rob<64>": {
+    "pre_size": 192,
+    "post_size": 192,
+    "moved_existing_fields": {},
+    "added_fields": {}
+  },
+  "tomo::AtomicEntry": {
+    "pre_size": 144,
+    "post_size": 144,
+    "moved_existing_fields": {},
+    "added_fields": {}
+  },
+  "tomo::Config": {
+    "pre_size": 624,
+    "post_size": 624,
+    "moved_existing_fields": {},
+    "added_fields": {}
+  }
+}

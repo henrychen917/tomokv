@@ -1,0 +1,74 @@
+void tomo_db0::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)
+0000 [ 4] endbr64
+0004 [ 1] push %rbp
+0005 [ 1] push %rbx
+0006 [10] movabs $0xffffffffffff,%rax
+0010 [ 3] mov %rsi,%rbx
+0013 [ 4] sub $0x18,%rsp
+0017 [ 3] and (%rsi),%rax
+001a [ 7] cmp %rax,0xab0(%rdi)
+0021 [ 2] jne <+0x32>
+0023 [ 7] mov 0x190(%rdi),%rax
+002a [ 4] movzbl 0x4(%rax),%eax
+002e [ 2] cmp $0x1,%al
+0030 [ 2] je <+0x40>
+0032 [ 4] add $0x18,%rsp
+0036 [ 3] mov %rbx,%rsi
+0039 [ 1] pop %rbx
+003a [ 1] pop %rbp
+003b [ 5] jmp <tomo_db0::IoLoop::fliplisten_stale(io_uring_cqe*, tomo_db0::UrKind)>
+0040 [ 3] mov 0x8(%rsi),%eax
+0043 [ 2] mov %edx,%ebp
+0045 [ 2] test %eax,%eax
+0047 [ 2] js <+0xc0>
+0049 [ 7] mov 0x188(%rdi),%rax
+0050 [ 7] movzbl 0x11460(%rax),%eax
+0057 [ 4] mov %dl,0xf(%rsp)
+005b [ 4] mov %rdi,(%rsp)
+005f [ 3] mov 0x8(%rsi),%esi
+0062 [ 2] test %al,%al
+0064 [ 6] jne <+0x100>
+006a [ 5] call <void tomo_db0::IoLoop::admit_fd<true, true>(int, tomo_db0::UrKind)>
+006f [ 4] testb $0x2,0xc(%rbx)
+0073 [ 6] jne <+0x10f>
+0079 [ 4] cmp $0x6,%bpl
+007d [ 4] mov (%rsp),%rdi
+0081 [ 5] movzbl 0xf(%rsp),%edx
+0086 [ 6] je <+0x120>
+008c [ 2] xor %eax,%eax
+008e [ 4] cmp $0x9,%bpl
+0092 [ 3] sete %al
+0095 [ 8] lea 0x193b(%rax,%rdi,1),%rax
+009d [ 3] movb $0x0,(%rax)
+00a0 [ 7] mov 0x190(%rdi),%rax
+00a7 [ 7] incq 0x460(%rax)
+00ae [ 4] add $0x18,%rsp
+00b2 [ 2] mov %edx,%esi
+00b4 [ 1] pop %rbx
+00b5 [ 1] pop %rbp
+00b6 [ 5] jmp <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)>
+00bb [ 5] nopl 0x0(%rax,%rax,1)
+00c0 [ 7] mov 0x190(%rdi),%rax
+00c7 [ 7] incq 0x458(%rax)
+00ce [ 4] testb $0x2,0xc(%rsi)
+00d2 [ 2] jne <+0x10f>
+00d4 [ 7] lea 0x193d(%rdi),%rcx
+00db [ 3] cmp $0x6,%dl
+00de [ 2] je <+0xf0>
+00e0 [ 2] xor %ecx,%ecx
+00e2 [ 3] cmp $0x9,%dl
+00e5 [ 3] sete %cl
+00e8 [ 8] lea 0x193b(%rcx,%rdi,1),%rcx
+00f0 [ 3] movb $0x0,(%rcx)
+00f3 [ 2] jmp <+0xa7>
+00f5 [11] data16 cs nopw 0x0(%rax,%rax,1)
+0100 [ 5] call <tomo_db0::IoLoop::fliplisten_retain(int, tomo_db0::UrKind)>
+0105 [ 4] testb $0x2,0xc(%rbx)
+0109 [ 6] je <+0x79>
+010f [ 4] add $0x18,%rsp
+0113 [ 1] pop %rbx
+0114 [ 1] pop %rbp
+0115 [ 1] ret
+0116 [10] cs nopw 0x0(%rax,%rax,1)
+0120 [ 7] lea 0x193d(%rdi),%rax
+0127 [ 5] jmp <+0x9d>

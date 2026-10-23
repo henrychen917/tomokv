@@ -1116,7 +1116,7 @@ plan_jobs(){
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 bplus acl_recheck aclfix sort script_bounds scriptfix
-              efficiency dump_restore auth authfix notify notify_order notify_aof trackfix_accounting trackfix_order flip flip_saturated atomic_floor
+              efficiency dump_restore auth authfix notify notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
               txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -3442,19 +3442,32 @@ stop
 # armed a SIGTERM during a FLIP was not served and a second SIGINT was absorbed.
 for NET_IO in uring epoll; do
   row_begin "FLIP close during FLIP ($NET_IO)"
-  py tests/flipfix.py close --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
-      --ratio "$GATE_RATIO" --net-io "$NET_IO" --output "$TMPDIR/flipfix-close-$NET_IO" \
-      >"$TMPDIR/gate-flipfix-close-$NET_IO.txt" 2>&1 \
+  # Keep both legs even on PRE: the strict churn leg also witnesses arrivals
+  # while the automatic controller is enabled. No added ledger row.
+  FLIPFIX_OK=1
+  for FLIPFIX_CASE in close churn; do
+    FLIPFIX_AUTO=0; [ "$FLIPFIX_CASE" != churn ] || FLIPFIX_AUTO=1
+    py tests/flipfix.py "$FLIPFIX_CASE" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+        --ratio "$GATE_RATIO" --net-io "$NET_IO" --flip-auto "$FLIPFIX_AUTO" \
+        --output "$TMPDIR/flipfix-$FLIPFIX_CASE-$NET_IO" \
+        >"$TMPDIR/gate-flipfix-$FLIPFIX_CASE-$NET_IO.txt" 2>&1 || FLIPFIX_OK=0
+  done
+  [ "$FLIPFIX_OK" = 1 ] \
       && ok "FLIP close during FLIP ($NET_IO)" \
-      || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-close-$NET_IO.txt"
+      || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-{close,churn}-$NET_IO.txt"
 done
 row_begin "FLIP signal stop during FLIP + second SIGINT"
-{ py tests/flipfix.py sigterm --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
-      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigterm" &&
-  py tests/flipfix.py sigint --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
-      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigint"; } >"$TMPDIR/gate-flipfix-signal.txt" 2>&1 \
+FLIPFIX_OK=1
+for NET_IO in uring epoll; do
+  for FLIPFIX_CASE in sigterm sigint; do
+    py tests/flipfix.py "$FLIPFIX_CASE" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+        --ratio "$GATE_RATIO" --net-io "$NET_IO" --output "$TMPDIR/flipfix-$FLIPFIX_CASE-$NET_IO" \
+        >"$TMPDIR/gate-flipfix-$FLIPFIX_CASE-$NET_IO.txt" 2>&1 || FLIPFIX_OK=0
+  done
+done
+[ "$FLIPFIX_OK" = 1 ] \
     && ok "FLIP signal stop during FLIP + second SIGINT" \
-    || bad "FLIP signal stop during FLIP + second SIGINT" "see $TMPDIR/gate-flipfix-signal.txt"
+    || bad "FLIP signal stop during FLIP + second SIGINT" "see $TMPDIR/gate-flipfix-sig*-*.txt"
 # IO4.19 rows own this slot's now-free port; both FLIP and default-on client-lb use the transfer.
 for CASE in epoll-flip epoll-lb; do
   row_begin "perfio stale epoll registration ($CASE)"
@@ -3463,6 +3476,24 @@ for CASE in epoll-flip epoll-lb; do
       && ok "perfio stale epoll registration ($CASE)" \
       || bad "perfio stale epoll registration ($CASE)" "see $TMPDIR/perfio-$CASE.log"
 done
+}
+
+# IO4.3 / NT4.4: four rows, each includes both engines and both atomic modes.
+# Collected before the quick-tier exit: DQ=DF=+4. EXPECT remains owner-owned.
+job_fliplisten(){
+  local direction outcome
+  for direction in io-ex ex-io; do
+    for outcome in complete rollback; do
+      row_begin "FLIP listener conservation ($direction, $outcome)"
+      py tests/fliplisten.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+          --direction "$direction" --outcome "$outcome" \
+          --output "$TMPDIR/fliplisten-$direction-$outcome" \
+          >"$TMPDIR/gate-fliplisten-$direction-$outcome.txt" 2>&1 \
+          && ok "FLIP listener conservation ($direction, $outcome)" \
+          || bad "FLIP listener conservation ($direction, $outcome)" \
+              "see $TMPDIR/gate-fliplisten-$direction-$outcome.txt"
+    done
+  done
 }
 
 job_flip_saturated(){
@@ -4708,6 +4739,7 @@ collect_job notify_order
 collect_job notify_aof
 
 collect_job flip
+collect_job fliplisten
 
 collect_job flipctl
 collect_job flip_saturated

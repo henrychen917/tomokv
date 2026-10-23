@@ -1,0 +1,15 @@
+void tomo_db0::IoLoop::r7_run_loop<false, false, false, true, false>()
+--- PRE
+
++++ POST
+
+@@ -485,7 +485,7 @@
+
+ 094f [ 1] nop
+ 0950 [ 5] mov $0x1,%esi
+ 0955 [ 3] mov %rbx,%rdi
+-0958 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)>
++0958 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>
+ 095d [ 5] jmp <+0x30b>
+ 0962 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ 096d [ 3] nopl (%rax)

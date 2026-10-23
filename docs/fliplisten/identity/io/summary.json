@@ -1,0 +1,1510 @@
+[
+  {
+    "name": "tomo::ExLoopT<true>::on_cqe(io_uring_cqe*)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 114,
+    "post_size": 114,
+    "pre_instructions": 27,
+    "post_instructions": 27
+  },
+  {
+    "name": "tomo::IoLoop::arm_accept(tomo::UrKind)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 648,
+    "post_size": 648,
+    "pre_instructions": 132,
+    "post_instructions": 132
+  },
+  {
+    "name": "tomo::IoLoop::r7_run_loop<false, false, false, true, false>()::{lambda(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo::IoLoop::r7_run_loop<false, false, true, true, false>()::{lambda(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo::IoLoop::r7_run_loop<false, true, false, true, false>()::{lambda(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo::IoLoop::r7_run_loop<false, true, true, true, false>()::{lambda(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo::IoLoop::r7_run_loop<true, false, false, true, false>()::{lambda(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo::IoLoop::r7_run_loop<true, false, true, true, false>()::{lambda(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo::IoLoop::r7_run_loop<true, true, false, true, false>()::{lambda(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo::IoLoop::r7_run_loop<true, true, true, true, false>()::{lambda(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo::Client*, unsigned long const*, tomo::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo_db0::ExLoopT<true>::on_cqe(io_uring_cqe*)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 114,
+    "post_size": 114,
+    "pre_instructions": 26,
+    "post_instructions": 26
+  },
+  {
+    "name": "tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 648,
+    "post_size": 648,
+    "pre_instructions": 132,
+    "post_instructions": 132
+  },
+  {
+    "name": "tomo_db0::IoLoop::r7_run_loop<false, false, false, true, false>()::{lambda(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false>()::{lambda(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo_db0::IoLoop::r7_run_loop<false, true, false, true, false>()::{lambda(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()::{lambda(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo_db0::IoLoop::r7_run_loop<true, false, false, true, false>()::{lambda(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo_db0::IoLoop::r7_run_loop<true, false, true, true, false>()::{lambda(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()::{lambda(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "tomo_db0::IoLoop::r7_run_loop<true, true, true, true, false>()::{lambda(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)#1}::_FUN(void*, tomo_db0::Client*, unsigned long const*, tomo_db0::ReadLocalFallbackReason const*, unsigned int, unsigned int&)",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 9,
+    "post_size": 9,
+    "pre_instructions": 2,
+    "post_instructions": 2
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, false, false>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 794,
+    "post_size": 730,
+    "pre_instructions": 183,
+    "post_instructions": 169,
+    "artifact": "021"
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, false, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 746,
+    "post_size": 730,
+    "pre_instructions": 175,
+    "post_instructions": 169,
+    "artifact": "022"
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, true, false>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 957,
+    "post_size": 925,
+    "pre_instructions": 219,
+    "post_instructions": 213,
+    "artifact": "023"
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<false, true, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 941,
+    "post_size": 893,
+    "pre_instructions": 214,
+    "post_instructions": 207,
+    "artifact": "024"
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, false, false>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 877,
+    "post_size": 861,
+    "pre_instructions": 203,
+    "post_instructions": 198,
+    "artifact": "025"
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, false, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 877,
+    "post_size": 861,
+    "pre_instructions": 203,
+    "post_instructions": 198,
+    "artifact": "026"
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, true, false>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1069,
+    "post_size": 1053,
+    "pre_instructions": 246,
+    "post_instructions": 242,
+    "artifact": "027"
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::epoll_pass<true, true, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1053,
+    "post_size": 1021,
+    "pre_instructions": 241,
+    "post_instructions": 236,
+    "artifact": "028"
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_epoll_pass<false, false, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 633,
+    "post_size": 602,
+    "pre_instructions": 147,
+    "post_instructions": 139,
+    "artifact": "029"
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_epoll_pass<false, true, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 729,
+    "post_size": 666,
+    "pre_instructions": 166,
+    "post_instructions": 154,
+    "artifact": "030"
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_epoll_pass<true, false, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 681,
+    "post_size": 634,
+    "pre_instructions": 158,
+    "post_instructions": 145,
+    "artifact": "031"
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_epoll_pass<true, true, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 777,
+    "post_size": 698,
+    "pre_instructions": 177,
+    "post_instructions": 160,
+    "artifact": "032"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, false, false>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 781,
+    "post_size": 746,
+    "pre_instructions": 181,
+    "post_instructions": 173,
+    "artifact": "033"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, false, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 746,
+    "post_size": 746,
+    "pre_instructions": 173,
+    "post_instructions": 173,
+    "artifact": "034"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, true, false>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 941,
+    "post_size": 909,
+    "pre_instructions": 216,
+    "post_instructions": 210,
+    "artifact": "035"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<false, true, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 925,
+    "post_size": 877,
+    "pre_instructions": 211,
+    "post_instructions": 205,
+    "artifact": "036"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, false>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 877,
+    "post_size": 845,
+    "pre_instructions": 201,
+    "post_instructions": 196,
+    "artifact": "037"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, false, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 877,
+    "post_size": 845,
+    "pre_instructions": 201,
+    "post_instructions": 196,
+    "artifact": "038"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, false>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1053,
+    "post_size": 1037,
+    "pre_instructions": 242,
+    "post_instructions": 238,
+    "artifact": "039"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::epoll_pass<true, true, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1037,
+    "post_size": 1005,
+    "pre_instructions": 237,
+    "post_instructions": 233,
+    "artifact": "040"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_epoll_pass<false, false, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 665,
+    "post_size": 618,
+    "pre_instructions": 150,
+    "post_instructions": 143,
+    "artifact": "041"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_epoll_pass<false, true, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 761,
+    "post_size": 682,
+    "pre_instructions": 171,
+    "post_instructions": 158,
+    "artifact": "042"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_epoll_pass<true, false, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 713,
+    "post_size": 650,
+    "pre_instructions": 161,
+    "post_instructions": 149,
+    "artifact": "043"
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_epoll_pass<true, true, true>(int)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 793,
+    "post_size": 714,
+    "pre_instructions": 181,
+    "post_instructions": 163,
+    "artifact": "044"
+  },
+  {
+    "name": "void tomo::IoLoop::admit_fd<false, false>(int, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1893,
+    "post_size": 1893,
+    "pre_instructions": 343,
+    "post_instructions": 342,
+    "artifact": "045"
+  },
+  {
+    "name": "void tomo::IoLoop::admit_fd<false, true>(int, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1637,
+    "post_size": 1637,
+    "pre_instructions": 292,
+    "post_instructions": 291,
+    "artifact": "046"
+  },
+  {
+    "name": "void tomo::IoLoop::admit_fd<true, false>(int, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1893,
+    "post_size": 1893,
+    "pre_instructions": 343,
+    "post_instructions": 342,
+    "artifact": "047"
+  },
+  {
+    "name": "void tomo::IoLoop::admit_fd<true, true>(int, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1637,
+    "post_size": 1637,
+    "pre_instructions": 292,
+    "post_instructions": 291,
+    "artifact": "048"
+  },
+  {
+    "name": "void tomo::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "049"
+  },
+  {
+    "name": "void tomo::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "050"
+  },
+  {
+    "name": "void tomo::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "051"
+  },
+  {
+    "name": "void tomo::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "052"
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 459,
+    "post_size": 459,
+    "pre_instructions": 108,
+    "post_instructions": 113,
+    "artifact": "053"
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 507,
+    "post_size": 491,
+    "pre_instructions": 118,
+    "post_instructions": 118,
+    "artifact": "054"
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 459,
+    "post_size": 459,
+    "pre_instructions": 108,
+    "post_instructions": 113,
+    "artifact": "055"
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 507,
+    "post_size": 491,
+    "pre_instructions": 118,
+    "post_instructions": 118,
+    "artifact": "056"
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1223,
+    "post_size": 1191,
+    "pre_instructions": 285,
+    "post_instructions": 286,
+    "artifact": "057"
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1159,
+    "post_size": 1159,
+    "pre_instructions": 279,
+    "post_instructions": 281,
+    "artifact": "058"
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 891,
+    "post_size": 891,
+    "pre_instructions": 205,
+    "post_instructions": 208,
+    "artifact": "059"
+  },
+  {
+    "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 865,
+    "post_size": 889,
+    "pre_instructions": 213,
+    "post_instructions": 209,
+    "artifact": "060"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_admit_fd<false, true>(int, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1637,
+    "post_size": 1637,
+    "pre_instructions": 292,
+    "post_instructions": 291,
+    "artifact": "061"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_admit_fd<true, true>(int, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1637,
+    "post_size": 1637,
+    "pre_instructions": 292,
+    "post_instructions": 291,
+    "artifact": "062"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "063"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "064"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_on_cqe<false, false, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 507,
+    "post_size": 491,
+    "pre_instructions": 118,
+    "post_instructions": 118,
+    "artifact": "065"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_on_cqe<false, true, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 507,
+    "post_size": 491,
+    "pre_instructions": 118,
+    "post_instructions": 118,
+    "artifact": "066"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_on_cqe<true, false, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 681,
+    "post_size": 697,
+    "pre_instructions": 166,
+    "post_instructions": 168,
+    "artifact": "067"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_on_cqe<true, true, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 681,
+    "post_size": 697,
+    "pre_instructions": 166,
+    "post_instructions": 168,
+    "artifact": "068"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<false, false, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4842,
+    "post_size": 4842,
+    "pre_instructions": 949,
+    "post_instructions": 949,
+    "artifact": "069"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<false, false, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4812,
+    "post_size": 4812,
+    "pre_instructions": 962,
+    "post_instructions": 962
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<false, true, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4906,
+    "post_size": 4906,
+    "pre_instructions": 961,
+    "post_instructions": 961,
+    "artifact": "071"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<false, true, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4812,
+    "post_size": 4812,
+    "pre_instructions": 962,
+    "post_instructions": 962
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<true, false, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4938,
+    "post_size": 4938,
+    "pre_instructions": 969,
+    "post_instructions": 969,
+    "artifact": "073"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<true, false, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4828,
+    "post_size": 4828,
+    "pre_instructions": 966,
+    "post_instructions": 966
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<true, true, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5002,
+    "post_size": 5002,
+    "pre_instructions": 982,
+    "post_instructions": 982,
+    "artifact": "075"
+  },
+  {
+    "name": "void tomo::IoLoop::r7_run_loop<true, true, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4828,
+    "post_size": 4828,
+    "pre_instructions": 966,
+    "post_instructions": 966
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, false, false, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5068,
+    "post_size": 5068,
+    "pre_instructions": 1010,
+    "post_instructions": 1010,
+    "artifact": "077"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5006,
+    "post_size": 5006,
+    "pre_instructions": 983,
+    "post_instructions": 983,
+    "artifact": "078"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, false, true, true>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5441,
+    "post_size": 5441,
+    "pre_instructions": 1074,
+    "post_instructions": 1074,
+    "artifact": "079"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, true, false, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5176,
+    "post_size": 5176,
+    "pre_instructions": 1057,
+    "post_instructions": 1057
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5125,
+    "post_size": 5125,
+    "pre_instructions": 1035,
+    "post_instructions": 1035
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, false, true, true, true>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5601,
+    "post_size": 5601,
+    "pre_instructions": 1124,
+    "post_instructions": 1124
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, false, false, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5114,
+    "post_size": 5114,
+    "pre_instructions": 1020,
+    "post_instructions": 1020,
+    "artifact": "083"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5052,
+    "post_size": 5052,
+    "pre_instructions": 993,
+    "post_instructions": 993,
+    "artifact": "084"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, false, true, true>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5487,
+    "post_size": 5487,
+    "pre_instructions": 1084,
+    "post_instructions": 1084,
+    "artifact": "085"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, true, false, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5176,
+    "post_size": 5176,
+    "pre_instructions": 1057,
+    "post_instructions": 1057
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5125,
+    "post_size": 5125,
+    "pre_instructions": 1035,
+    "post_instructions": 1035
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<false, true, true, true, true>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5601,
+    "post_size": 5601,
+    "pre_instructions": 1124,
+    "post_instructions": 1124
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, false, false, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5162,
+    "post_size": 5162,
+    "pre_instructions": 1034,
+    "post_instructions": 1034,
+    "artifact": "089"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5116,
+    "post_size": 5116,
+    "pre_instructions": 1006,
+    "post_instructions": 1006,
+    "artifact": "090"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, false, true, true>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5551,
+    "post_size": 5551,
+    "pre_instructions": 1097,
+    "post_instructions": 1097,
+    "artifact": "091"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, true, false, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5224,
+    "post_size": 5224,
+    "pre_instructions": 1065,
+    "post_instructions": 1065
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5157,
+    "post_size": 5157,
+    "pre_instructions": 1040,
+    "post_instructions": 1040
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, true, true, true>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5634,
+    "post_size": 5634,
+    "pre_instructions": 1132,
+    "post_instructions": 1132
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, false, false, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5221,
+    "post_size": 5221,
+    "pre_instructions": 1045,
+    "post_instructions": 1045,
+    "artifact": "095"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5177,
+    "post_size": 5177,
+    "pre_instructions": 1018,
+    "post_instructions": 1018,
+    "artifact": "096"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, false, true, true>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5612,
+    "post_size": 5612,
+    "pre_instructions": 1109,
+    "post_instructions": 1109,
+    "artifact": "097"
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, true, false, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5224,
+    "post_size": 5224,
+    "pre_instructions": 1065,
+    "post_instructions": 1065
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5157,
+    "post_size": 5157,
+    "pre_instructions": 1040,
+    "post_instructions": 1040
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, true, true, true>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5634,
+    "post_size": 5634,
+    "pre_instructions": 1132,
+    "post_instructions": 1132
+  },
+  {
+    "name": "void tomo_db0::IoLoop::admit_fd<false, false>(int, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1884,
+    "post_size": 1884,
+    "pre_instructions": 342,
+    "post_instructions": 341,
+    "artifact": "101"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::admit_fd<false, true>(int, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1635,
+    "post_size": 1635,
+    "pre_instructions": 291,
+    "post_instructions": 290,
+    "artifact": "102"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::admit_fd<true, false>(int, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1884,
+    "post_size": 1884,
+    "pre_instructions": 342,
+    "post_instructions": 341,
+    "artifact": "103"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::admit_fd<true, true>(int, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1635,
+    "post_size": 1635,
+    "pre_instructions": 291,
+    "post_instructions": 290,
+    "artifact": "104"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "105"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "106"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "107"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "108"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 459,
+    "post_size": 459,
+    "pre_instructions": 108,
+    "post_instructions": 113,
+    "artifact": "109"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 507,
+    "post_size": 491,
+    "pre_instructions": 118,
+    "post_instructions": 118,
+    "artifact": "110"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<false, true, false>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 459,
+    "post_size": 459,
+    "pre_instructions": 108,
+    "post_instructions": 113,
+    "artifact": "111"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<false, true, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 507,
+    "post_size": 491,
+    "pre_instructions": 118,
+    "post_instructions": 118,
+    "artifact": "112"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<true, false, false>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1223,
+    "post_size": 1191,
+    "pre_instructions": 285,
+    "post_instructions": 286,
+    "artifact": "113"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<true, false, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1159,
+    "post_size": 1159,
+    "pre_instructions": 279,
+    "post_instructions": 281,
+    "artifact": "114"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<true, true, false>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 891,
+    "post_size": 891,
+    "pre_instructions": 205,
+    "post_instructions": 208,
+    "artifact": "115"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 865,
+    "post_size": 889,
+    "pre_instructions": 213,
+    "post_instructions": 209,
+    "artifact": "116"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_admit_fd<false, true>(int, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1827,
+    "post_size": 1827,
+    "pre_instructions": 331,
+    "post_instructions": 330,
+    "artifact": "117"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_admit_fd<true, true>(int, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 1827,
+    "post_size": 1827,
+    "pre_instructions": 331,
+    "post_instructions": 330,
+    "artifact": "118"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "119"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 359,
+    "post_size": 300,
+    "pre_instructions": 92,
+    "post_instructions": 73,
+    "artifact": "120"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_on_cqe<false, false, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 507,
+    "post_size": 491,
+    "pre_instructions": 118,
+    "post_instructions": 118,
+    "artifact": "121"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_on_cqe<false, true, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 507,
+    "post_size": 491,
+    "pre_instructions": 118,
+    "post_instructions": 118,
+    "artifact": "122"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_on_cqe<true, false, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 737,
+    "post_size": 763,
+    "pre_instructions": 175,
+    "post_instructions": 177,
+    "artifact": "123"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_on_cqe<true, true, true>(io_uring_cqe*)",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 737,
+    "post_size": 763,
+    "pre_instructions": 175,
+    "post_instructions": 177,
+    "artifact": "124"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4723,
+    "post_size": 4723,
+    "pre_instructions": 927,
+    "post_instructions": 927,
+    "artifact": "125"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4698,
+    "post_size": 4698,
+    "pre_instructions": 934,
+    "post_instructions": 934
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4771,
+    "post_size": 4771,
+    "pre_instructions": 937,
+    "post_instructions": 937,
+    "artifact": "127"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4698,
+    "post_size": 4698,
+    "pre_instructions": 934,
+    "post_instructions": 934
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4787,
+    "post_size": 4787,
+    "pre_instructions": 944,
+    "post_instructions": 944,
+    "artifact": "129"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4714,
+    "post_size": 4714,
+    "pre_instructions": 937,
+    "post_instructions": 937
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4851,
+    "post_size": 4851,
+    "pre_instructions": 955,
+    "post_instructions": 955,
+    "artifact": "131"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4714,
+    "post_size": 4714,
+    "pre_instructions": 937,
+    "post_instructions": 937
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4949,
+    "post_size": 4949,
+    "pre_instructions": 990,
+    "post_instructions": 990,
+    "artifact": "133"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4860,
+    "post_size": 4860,
+    "pre_instructions": 952,
+    "post_instructions": 952,
+    "artifact": "134"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, true>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5309,
+    "post_size": 5309,
+    "pre_instructions": 1050,
+    "post_instructions": 1050,
+    "artifact": "135"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, true, false, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4975,
+    "post_size": 4975,
+    "pre_instructions": 1021,
+    "post_instructions": 1021
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4987,
+    "post_size": 4987,
+    "pre_instructions": 1001,
+    "post_instructions": 1001
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, true>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5362,
+    "post_size": 5362,
+    "pre_instructions": 1083,
+    "post_instructions": 1083
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, false, false, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4981,
+    "post_size": 4981,
+    "pre_instructions": 997,
+    "post_instructions": 997,
+    "artifact": "139"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4908,
+    "post_size": 4908,
+    "pre_instructions": 961,
+    "post_instructions": 961,
+    "artifact": "140"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, true>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5357,
+    "post_size": 5357,
+    "pre_instructions": 1059,
+    "post_instructions": 1059,
+    "artifact": "141"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, true, false, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4975,
+    "post_size": 4975,
+    "pre_instructions": 1021,
+    "post_instructions": 1021
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4987,
+    "post_size": 4987,
+    "pre_instructions": 1001,
+    "post_instructions": 1001
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, true>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5362,
+    "post_size": 5362,
+    "pre_instructions": 1083,
+    "post_instructions": 1083
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, false, false, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5014,
+    "post_size": 5014,
+    "pre_instructions": 1010,
+    "post_instructions": 1010,
+    "artifact": "145"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4956,
+    "post_size": 4956,
+    "pre_instructions": 972,
+    "post_instructions": 972,
+    "artifact": "146"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, true>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5421,
+    "post_size": 5421,
+    "pre_instructions": 1073,
+    "post_instructions": 1073,
+    "artifact": "147"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, true, false, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5007,
+    "post_size": 5007,
+    "pre_instructions": 1028,
+    "post_instructions": 1028
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4966,
+    "post_size": 4966,
+    "pre_instructions": 1002,
+    "post_instructions": 1002
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, true>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5378,
+    "post_size": 5378,
+    "pre_instructions": 1089,
+    "post_instructions": 1089
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, false, false, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5078,
+    "post_size": 5078,
+    "pre_instructions": 1022,
+    "post_instructions": 1022,
+    "artifact": "151"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, false>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 4998,
+    "post_size": 4998,
+    "pre_instructions": 982,
+    "post_instructions": 982,
+    "artifact": "152"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, true>()",
+    "instance": 0,
+    "equal": false,
+    "pre_size": 5463,
+    "post_size": 5463,
+    "pre_instructions": 1083,
+    "post_instructions": 1083,
+    "artifact": "153"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, true, false, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5007,
+    "post_size": 5007,
+    "pre_instructions": 1028,
+    "post_instructions": 1028
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 4966,
+    "post_size": 4966,
+    "pre_instructions": 1002,
+    "post_instructions": 1002
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, true>()",
+    "instance": 0,
+    "equal": true,
+    "pre_size": 5378,
+    "post_size": 5378,
+    "pre_instructions": 1089,
+    "post_instructions": 1089
+  }
+]

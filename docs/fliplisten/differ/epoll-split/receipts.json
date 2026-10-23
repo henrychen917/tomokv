@@ -1,0 +1,10 @@
+{
+  "result": {
+    "engine": "epoll",
+    "geometry": "split",
+    "returncode": 0
+  },
+  "files": 1132,
+  "source": "build/fliplisten/differ/epoll-split-results",
+  "sha256": "a298289600193613b4ab324486f37eff66db80042dbecd7e7203f1e976b33aba"
+}

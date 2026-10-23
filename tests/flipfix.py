@@ -123,6 +123,12 @@ def boot(args, label, save='', directory=None, extra=()):
             hits = [mark for mark in SANITIZER_MARKS if mark in text]
             assert not hits, f'sanitizer report {hits} in {path}:\n' + text[-20000:]
             assert 'Aborted' not in text, f'abort in {path}:\n' + text[-4000:]
+            # io_uring releases its last kernel file references asynchronously
+            # after process exit. The next owned leg must not race that teardown.
+            # Keep the pre-boot foreign-port refusal and every live FLIP bound.
+            wait_for(lambda: not subprocess.check_output(
+                ['ss', '-H', '-ltn', f'sport = :{args.port}']).strip(),
+                3, 'the exited owned process to release its listener')
     assert process.returncode in (0, 1, -signal.SIGTERM), \
         f'unclean process exit {process.returncode}: {text[-4000:]}'
 
@@ -156,7 +162,8 @@ def subscribe(args, channel):
 
 
 def disconnects(args, churn=False):
-    with boot(args, 'churn' if churn else 'close') as (admin, process, _):
+    with boot(args, 'churn' if churn else 'close',
+              extra=['--flip-auto', str(args.flip_auto)]) as (admin, process, _):
         idle, subscribers, workers = [], [], []
         observer = conn(args)
         stop = threading.Event()
@@ -166,11 +173,11 @@ def disconnects(args, churn=False):
             while not stop.is_set():
                 peer = None
                 try:
-                    peer = Conn('127.0.0.1', args.port, timeout=.5, buffering=4096)
+                    peer = Conn('127.0.0.1', args.port, timeout=REPLY_BOUND_S, buffering=4096)
                     reply = peer.cmd('PING')
                     connector_stats['ok' if reply == b'PONG' else 'refused'] += 1
                 except (OSError, EOFError):
-                    # Accept-side drops during a FLIP are IO4.3 (out of scope here).
+                    # A FLIP may quiesce for five seconds; a reset/EOF is a loss.
                     connector_stats['refused'] += 1
                 finally:
                     if peer:
@@ -227,12 +234,18 @@ def disconnects(args, churn=False):
                 if not args.evidence:
                     assert elapsed < STALL_BOUND_S, \
                         f'FLIP held {elapsed:.2f}s by connections closing during it ({key})'
-                    assert reply == b'OK' or reply.message in OUT_OF_SCOPE_REFUSALS, \
+                    allowed = OUT_OF_SCOPE_REFUSALS + ((b'ERR a FLIP is already in progress',)
+                                                      if args.flip_auto else ())
+                    assert reply == b'OK' or reply.message in allowed, \
                         f'FLIP refused because connections closed during it: {key}'
                 after = report(observer)
+                if args.flip_auto and after[b'moving']:
+                    wait_for(lambda: not report(observer)[b'moving'], REPLY_BOUND_S,
+                             'automatic FLIP to retire')
+                    after = report(observer)
                 assert not after[b'moving'], 'FLIP reply preceded retirement'
                 if reply == b'OK':
-                    assert after[b'live_io'] == target, (target, after)
+                    if not args.flip_auto: assert after[b'live_io'] == target, (target, after)
                     applied += 1
                 assert admin.must('PING') == b'PONG'
                 assert process.poll() is None, 'server exited'
@@ -243,17 +256,20 @@ def disconnects(args, churn=False):
         finally:
             stop.set()
             for worker in workers:
-                worker.join(5)
+                worker.join(REPLY_BOUND_S + 1)
             for peer in idle + subscribers:
                 peer.close()
             observer.close()
         assert not any(worker.is_alive() for worker in workers), 'connector did not stop'
+        if churn:
+            assert connector_stats['ok'] > 0 and connector_stats['refused'] == 0, connector_stats
         # Every closed connection is reaped: only the admin connection remains.
         wait_for(lambda: int(info_field(admin, 'CLIENTS', 'connected_clients')) == 1, 10,
                  'closed connections to be reaped')
         assert admin.must('PING') == b'PONG'
         emit(result='PASS', case=args.case, engine=args.net_io, witnessed=witnessed,
-             applied=applied, outcomes=outcomes, closed=closed, connector=connector_stats)
+             applied=applied, outcomes=outcomes, closed=closed, connector=connector_stats,
+             flip_auto=args.flip_auto)
 
 
 def late_closes(args):
@@ -437,6 +453,7 @@ def main():
     parser.add_argument('--subscribers', type=int, default=24)
     parser.add_argument('--closes', type=int, default=10)
     parser.add_argument('--connectors', type=int, default=6)
+    parser.add_argument('--flip-auto', type=int, choices=(0, 1), default=0)
     parser.add_argument('--stop-bound', type=float, default=3.0)
     parser.add_argument('--second-bound', type=float, default=.75)
     parser.add_argument('--seconds', type=float, default=20.0)

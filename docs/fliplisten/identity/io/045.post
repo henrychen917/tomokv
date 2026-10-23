@@ -1,0 +1,343 @@
+void tomo::IoLoop::admit_fd<false, false>(int, tomo::UrKind)
+0000 [ 4] endbr64
+0004 [ 1] push %rbp
+0005 [ 3] mov %rsp,%rbp
+0008 [ 2] push %r14
+000a [ 2] push %r13
+000c [ 2] push %r12
+000e [ 1] push %rbx
+000f [ 3] mov %rdi,%r12
+0012 [ 3] mov %esi,%r14d
+0015 [ 4] sub $0x30,%rsp
+0019 [ 9] mov %fs:0x28,%rax
+0022 [ 5] mov %rax,0x28(%rsp)
+0027 [ 7] mov 0x188(%rdi),%rax
+002e [ 7] movzbl 0x115e0(%rax),%eax
+0035 [ 2] cmp $0x3,%al
+0037 [ 6] ja <+0x430>
+003d [ 7] mov 0x190(%rdi),%rax
+0044 [ 3] mov %edx,%r13d
+0047 [ 7] mov 0x188(%rdi),%rdx
+004e [ 7] incq 0x450(%rax)
+0055 [ 4] cmp $0x9,%r13b
+0059 [ 6] je <+0x3d0>
+005f [ 7] incq 0x4a8(%rax)
+0066 [ 7] mov 0x14b88(%rdx),%rcx
+006d [ 6] mov 0x14bc8(%rdx),%eax
+0073 [ 3] cmp %rax,%rcx
+0076 [ 6] jae <+0x460>
+007c [ 7] movzbl 0x176a9(%rdx),%eax
+0083 [ 2] test %al,%al
+0085 [ 6] jne <+0x690>
+008b [ 7] lea <rip>(%rip),%rdx # <_ZSt7nothrow@GLIBCXX_3.4>
+0092 [ 5] mov $0x40,%esi
+0097 [ 5] mov $0x7c0,%edi
+009c [ 5] call <_ZnwmSt11align_val_tRKSt9nothrow_t@plt>
+00a1 [ 3] mov %rax,%rbx
+00a4 [ 3] test %rax,%rax
+00a7 [ 6] je <+0x4cd>
+00ad [ 4] vpxor %xmm0,%xmm0,%xmm0
+00b1 [ 5] vmovdqu %xmm0,0x68(%rax)
+00b6 [ 4] vpxor %xmm0,%xmm0,%xmm0
+00ba [ 3] mov %r14d,(%rax)
+00bd [ 7] vmovdqa64 %zmm0,0x80(%rax)
+00c4 [ 8] movq $0x0,0x4(%rax)
+00cc [ 7] movl $0x0,0xc(%rax)
+00d3 [ 8] movq $0x0,0x20(%rax)
+00db [ 8] movq $0x0,0x28(%rax)
+00e3 [ 8] movq $0x0,0x30(%rax)
+00eb [ 8] movq $0x0,0x38(%rax)
+00f3 [ 8] movq $0x0,0x40(%rax)
+00fb [ 4] movb $0x0,0x48(%rax)
+00ff [ 7] movl $0x0,0x4c(%rax)
+0106 [ 8] movq $0x0,0x60(%rax)
+010e [ 8] movq $0xffffffffffffffff,0x78(%rax)
+0116 [11] movq $0x0,0xc0(%rax)
+0121 [11] movq $0x0,0xc8(%rax)
+012c [11] movq $0x0,0xd0(%rax)
+0137 [ 7] mov <rip>(%rip),%rax # <on_signal(int)::kInsist+0x180>
+013e [ 4] vpxor %xmm0,%xmm0,%xmm0
+0142 [11] movq $0xffffffffffffffff,0xe0(%rbx)
+014d [ 8] vmovdqa %ymm0,0x100(%rbx)
+0155 [11] movq $0xffffffffffffffff,0xe8(%rbx)
+0160 [11] movq $0x0,0xf0(%rbx)
+016b [ 4] vpxor %xmm0,%xmm0,%xmm0
+016f [11] movq $0x0,0x148(%rbx)
+017a [ 7] vmovdqu8 %ymm0,0x120(%rbx)
+0181 [11] movq $0x200,0x150(%rbx)
+018c [11] movq $0x0,0x360(%rbx)
+0197 [11] movq $0x200,0x368(%rbx)
+01a2 [ 7] movb $0x2,0x570(%rbx)
+01a9 [11] movq $0x0,0x578(%rbx)
+01b4 [ 7] lea 0x630(%rbx),%rdx
+01bb [ 7] mov %rax,0xd8(%rbx)
+01c2 [ 7] lea 0x158(%rbx),%rax
+01c9 [ 7] mov %rax,0x140(%rbx)
+01d0 [ 7] lea 0x370(%rbx),%rax
+01d7 [ 7] mov %rax,0x358(%rbx)
+01de [10] movabs $0xffffffff00000000,%rax
+01e8 [ 7] mov %rax,0x580(%rbx)
+01ef [ 7] lea 0x588(%rbx),%rax
+01f6 [10] cs nopw 0x0(%rax,%rax,1)
+0200 [ 3] movb $0x2,(%rax)
+0203 [ 8] movq $0x0,0x8(%rax)
+020b [ 7] movl $0x0,0x10(%rax)
+0212 [ 7] movl $0xffffffff,0x14(%rax)
+0219 [ 4] add $0x18,%rax
+021d [ 3] cmp %rdx,%rax
+0220 [ 2] jne <+0x200>
+0222 [ 8] vmovdqa <rip>(%rip),%xmm0 # <literal-load-00000000000000000800000000000000>
+022a [ 7] lea 0x570(%rbx),%rax
+0231 [ 5] mov $0x4000,%edi
+0236 [ 7] movb $0x0,0x780(%rbx)
+023d [ 7] mov %rax,0x630(%rbx)
+0244 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x690>
+024b [11] movq $0x0,0x790(%rbx)
+0256 [11] movq $0x0,0x798(%rbx)
+0261 [10] movl $0x0,0x7a0(%rbx)
+026b [ 7] movb $0x0,0x7a4(%rbx)
+0272 [11] movq $0x0,0x7a8(%rbx)
+027d [10] movl $0x0,0x7b0(%rbx)
+0287 [ 9] movw $0x0,0x7b4(%rbx)
+0290 [ 8] vmovdqu %xmm0,0x638(%rbx)
+0298 [ 4] vpxor %xmm0,%xmm0,%xmm0
+029c [ 7] mov %rax,0x784(%rbx)
+02a3 [ 7] mov <rip>(%rip),%rax # <tomo_db0::kNoThread+0x6a0>
+02aa [10] vmovdqu8 %zmm0,0x648(%rbx)
+02b4 [10] vmovdqu8 %zmm0,0x688(%rbx)
+02be [10] vmovdqu8 %zmm0,0x6c8(%rbx)
+02c8 [10] vmovdqu8 %zmm0,0x708(%rbx)
+02d2 [ 4] vpxor %xmm0,%xmm0,%xmm0
+02d6 [ 7] mov %rax,0x7b8(%rbx)
+02dd [10] vmovdqu8 %ymm0,0x748(%rbx)
+02e7 [ 7] vmovdqu8 %ymm0,0x760(%rbx)
+02ee [ 3] vzeroupper
+02f1 [ 5] call <malloc@plt>
+02f6 [ 8] movq $0x4000,0x18(%rbx)
+02fe [ 5] mov %rbx,0x8(%rsp)
+0303 [ 4] mov %rax,0x10(%rbx)
+0307 [ 4] cmp $0x9,%r13b
+030b [ 6] je <+0x4a0>
+0311 [ 8] mov 0x188(%r12),%rax
+0319 [ 8] lock incq 0x14b88(%rax)
+0321 [ 8] mov 0x188(%r12),%rax
+0329 [ 5] mov 0x8(%rsp),%rdx
+032e [ 5] mov $0x1,%ecx
+0333 [ 7] movzbl 0x176a0(%rax),%eax
+033a [ 3] and $0x1,%eax
+033d [ 3] xor $0x1,%eax
+0340 [ 6] mov %al,0x7b5(%rdx)
+0346 [ 5] mov 0x8(%rsp),%rdx
+034b [ 8] mov 0x188(%r12),%rax
+0353 [10] movl $0x0,0x7b8(%rdx)
+035d [ 9] lock xadd %rcx,0x14b78(%rax)
+0366 [ 7] mov %rcx,0x7a8(%rdx)
+036d [ 4] cmp $0x6,%r13b
+0371 [ 6] je <+0x4f0>
+0377 [ 8] mov 0x190(%r12),%rdx
+037f [ 5] mov 0x8(%rsp),%rax
+0384 [ 2] mov (%rdx),%edx
+0386 [ 6] mov %edx,0x788(%rax)
+038c [ 5] mov 0x28(%rsp),%rax
+0391 [ 9] sub %fs:0x28,%rax
+039a [ 6] jne <+0x727>
+03a0 [ 2] xor %ecx,%ecx
+03a2 [ 4] cmp $0x9,%r13b
+03a6 [ 3] sete %cl
+03a9 [ 2] xor %edx,%edx
+03ab [ 5] mov 0x8(%rsp),%rsi
+03b0 [ 4] add $0x30,%rsp
+03b4 [ 3] mov %r12,%rdi
+03b7 [ 1] pop %rbx
+03b8 [ 2] pop %r12
+03ba [ 2] pop %r13
+03bc [ 2] pop %r14
+03be [ 1] pop %rbp
+03bf [ 5] jmp <void tomo::IoLoop::adopt_client<false, false>(tomo::Client*, bool, bool)>
+03c4 [11] data16 cs nopw 0x0(%rax,%rax,1)
+03cf [ 1] nop
+03d0 [ 7] incq 0x4b0(%rax)
+03d7 [ 7] mov 0x14b88(%rdx),%rcx
+03de [ 6] mov 0x14bc8(%rdx),%eax
+03e4 [ 3] cmp %rax,%rcx
+03e7 [ 6] jb <+0x7c>
+03ed [ 3] mov %r14d,%edi
+03f0 [ 5] call <close@plt>
+03f5 [ 8] mov 0x188(%r12),%rax
+03fd [ 8] lock incq 0x14b90(%rax)
+0405 [ 5] mov 0x28(%rsp),%rax
+040a [ 9] sub %fs:0x28,%rax
+0413 [ 6] jne <+0x727>
+0419 [ 4] add $0x30,%rsp
+041d [ 1] pop %rbx
+041e [ 2] pop %r12
+0420 [ 2] pop %r13
+0422 [ 2] pop %r14
+0424 [ 1] pop %rbp
+0425 [ 1] ret
+0426 [10] cs nopw 0x0(%rax,%rax,1)
+0430 [ 5] mov 0x28(%rsp),%rax
+0435 [ 9] sub %fs:0x28,%rax
+043e [ 6] jne <+0x727>
+0444 [ 4] add $0x30,%rsp
+0448 [ 1] pop %rbx
+0449 [ 2] pop %r12
+044b [ 2] pop %r13
+044d [ 2] pop %r14
+044f [ 1] pop %rbp
+0450 [ 5] jmp <tomo::IoLoop::fliplisten_retain(int, tomo::UrKind)>
+0455 [11] data16 cs nopw 0x0(%rax,%rax,1)
+0460 [ 5] mov $0x4040,%ecx
+0465 [ 5] mov $0x24,%edx
+046a [ 7] lea <rip>(%rip),%rsi # <tomo::IoLoop::admit_retained_fd<false, false>(int, tomo::UrKind)::kErr>
+0471 [ 3] mov %r14d,%edi
+0474 [ 5] call <send@plt>
+0479 [ 3] test %rax,%rax
+047c [ 6] jle <+0x3ed>
+0482 [ 8] mov 0x190(%r12),%rdx
+048a [ 7] mov 0x4a0(%rdx),%rcx
+0491 [ 3] add %rcx,%rax
+0494 [ 7] mov %rax,0x4a0(%rdx)
+049b [ 5] jmp <+0x3ed>
+04a0 [ 3] mov %rbx,%rsi
+04a3 [ 3] mov %r12,%rdi
+04a6 [ 5] call <tomo::IoLoop::attach_tls(tomo::Client*)>
+04ab [ 2] test %al,%al
+04ad [ 6] jne <+0x311>
+04b3 [ 3] mov %rbx,%rdi
+04b6 [ 5] call <tomo::Client::~Client()>
+04bb [ 5] mov $0x40,%edx
+04c0 [ 5] mov $0x7c0,%esi
+04c5 [ 3] mov %rbx,%rdi
+04c8 [ 5] call <_ZdlPvmSt11align_val_t@plt>
+04cd [ 3] mov %r14d,%edi
+04d0 [ 5] call <close@plt>
+04d5 [ 8] mov 0x190(%r12),%rax
+04dd [ 7] incq 0x458(%rax)
+04e4 [ 5] jmp <+0x405>
+04e9 [ 7] nopl 0x0(%rax)
+04f0 [ 8] mov 0x1948(%r12),%rax
+04f8 [ 8] mov 0x188(%r12),%rdx
+0500 [ 4] lea 0x1(%rax),%rcx
+0504 [ 7] mov 0x348(%rdx),%rsi
+050b [ 8] mov %rcx,0x1948(%r12)
+0513 [ 7] mov 0x350(%rdx),%rcx
+051a [ 2] xor %edx,%edx
+051c [ 3] sub %rsi,%rcx
+051f [ 4] sar $0x2,%rcx
+0523 [ 3] div %rcx
+0526 [ 3] mov (%rsi,%rdx,4),%eax
+0529 [ 5] mov 0x8(%rsp),%rdx
+052e [ 6] mov %eax,0x788(%rdx)
+0534 [ 8] mov 0x190(%r12),%rbx
+053c [ 2] mov (%rbx),%edx
+053e [ 2] cmp %edx,%eax
+0540 [ 6] je <+0x670>
+0546 [ 8] mov 0x188(%r12),%rcx
+054e [ 2] mov %edx,%esi
+0550 [ 5] mov 0x8(%rsp),%r10
+0555 [ 7] imul $0x20c0,%rsi,%rsi
+055c [ 7] mov 0x103e0(%rcx),%rcx
+0563 [ 4] mov (%rcx,%rax,8),%r8
+0567 [ 4] mov 0x50(%r8),%rax
+056b [ 3] add %rsi,%rax
+056e [ 3] mov 0x40(%rax),%ecx
+0571 [ 3] lea 0x1(%rcx),%edi
+0574 [ 3] mov %edi,%r9d
+0577 [ 4] sub 0x44(%rax),%r9d
+057b [ 7] cmp $0x400,%r9d
+0582 [ 2] jbe <+0x5e0>
+0584 [ 3] mov (%rax),%r9d
+0587 [ 3] mov %edi,%r11d
+058a [ 4] mov %r9d,0x44(%rax)
+058e [ 3] sub %r9d,%r11d
+0591 [ 7] cmp $0x400,%r11d
+0598 [ 2] jbe <+0x5e0>
+059a [ 8] mov 0x278(%r12),%rsi
+05a2 [ 8] mov 0x268(%r12),%rax
+05aa [ 7] incq 0x3f8(%rbx)
+05b1 [ 4] lea -0x8(%rsi),%rdx
+05b5 [ 3] cmp %rdx,%rax
+05b8 [ 6] je <+0x710>
+05be [ 5] mov 0x8(%rsp),%rdx
+05c3 [ 4] add $0x8,%rax
+05c7 [ 4] mov %rdx,-0x8(%rax)
+05cb [ 8] mov %rax,0x268(%r12)
+05d3 [ 5] jmp <+0x405>
+05d8 [ 8] nopl 0x0(%rax,%rax,1)
+05e0 [ 6] and $0x3ff,%ecx
+05e6 [ 8] mov %r10,0x80(%rax,%rcx,8)
+05ee [ 3] mov %edi,0x40(%rax)
+05f1 [ 2] mov %edx,%eax
+05f3 [ 2] mov %edx,%ecx
+05f5 [ 3] shr $0x6,%eax
+05f8 [ 3] and $0x1,%eax
+05fb [ 3] and $0x3f,%ecx
+05fe [ 8] lea 0x2c8(%r8,%rax,8),%rax
+0606 [ 3] mov (%rax),%rdi
+0609 [ 4] bt %rdx,%rdi
+060d [ 6] jb <+0x405>
+0613 [ 5] lock bts %rcx,(%rax)
+0618 [ 6] jb <+0x405>
+061e [ 4] mov 0x50(%r8),%rdx
+0622 [ 4] mov 0x8(%r8),%rax
+0626 [ 3] test %rax,%rax
+0629 [ 6] je <+0x405>
+062f [ 8] movzbl 0x2080(%rdx,%rsi,1),%edx
+0637 [ 2] test %dl,%dl
+0639 [ 6] je <+0x405>
+063f [ 8] lea 0xac8(%r12),%rdi
+0647 [10] movabs $0x500000000000000,%rdx
+0651 [ 3] mov %rax,%rsi
+0654 [ 5] call <tomo::Ring::msg_to(tomo::Ring&, unsigned long)>
+0659 [ 7] incq 0x438(%rbx)
+0660 [ 5] jmp <+0x405>
+0665 [11] data16 cs nopw 0x0(%rax,%rax,1)
+0670 [ 5] mov 0x28(%rsp),%rax
+0675 [ 9] sub %fs:0x28,%rax
+067e [ 6] jne <+0x727>
+0684 [ 2] xor %ecx,%ecx
+0686 [ 5] mov $0x1,%edx
+068b [ 5] jmp <+0x3ab>
+0690 [ 8] mov 0x188(%r12),%rax
+0698 [ 7] movzbl 0x176a0(%rax),%eax
+069f [ 4] cmp $0x6,%r13b
+06a3 [ 6] je <+0x8b>
+06a9 [ 2] test $0x1,%al
+06ab [ 6] jne <+0x8b>
+06b1 [ 5] lea 0x8(%rsp),%rdx
+06b6 [ 5] lea 0x10(%rsp),%rsi
+06bb [ 3] mov %r14d,%edi
+06be [ 4] vpxor %xmm0,%xmm0,%xmm0
+06c2 [ 8] movl $0x10,0x8(%rsp)
+06ca [ 6] vmovdqa %xmm0,0x10(%rsp)
+06d0 [ 5] call <getpeername@plt>
+06d5 [ 2] test %eax,%eax
+06d7 [ 2] jne <+0x6e4>
+06d9 [ 5] cmpb $0x7f,0x14(%rsp)
+06de [ 6] je <+0x8b>
+06e4 [ 4] cmp $0x9,%r13b
+06e8 [ 2] jne <+0x72c>
+06ea [ 3] mov %r14d,%edi
+06ed [ 5] call <close@plt>
+06f2 [ 8] mov 0x188(%r12),%rax
+06fa [ 8] lock incq 0x176c8(%rax)
+0702 [ 5] jmp <+0x405>
+0707 [ 9] nopw 0x0(%rax,%rax,1)
+0710 [ 5] lea 0x8(%rsp),%rsi
+0715 [ 8] lea 0x238(%r12),%rdi
+071d [ 5] call <void std::deque<tomo::Client*, std::allocator<tomo::Client*> >::_M_push_back_aux<tomo::Client* const&>(tomo::Client* const&)>
+0722 [ 5] jmp <+0x405>
+0727 [ 5] call <__stack_chk_fail@plt>
+072c [ 5] mov $0x4040,%ecx
+0731 [ 5] mov $0x42a,%edx
+0736 [ 7] lea <rip>(%rip),%rsi # <tomo::IoLoop::admit_retained_fd<false, false>(int, tomo::UrKind)::kDenied>
+073d [ 3] mov %r14d,%edi
+0740 [ 5] call <send@plt>
+0745 [ 3] test %rax,%rax
+0748 [ 2] jle <+0x6ea>
+074a [ 8] mov 0x190(%r12),%rdx
+0752 [ 7] mov 0x4a0(%rdx),%rcx
+0759 [ 3] add %rcx,%rax
+075c [ 7] mov %rax,0x4a0(%rdx)
+0763 [ 2] jmp <+0x6ea>

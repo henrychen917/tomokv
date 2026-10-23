@@ -1,0 +1,72 @@
+Reading symbols from /home/user/Projects/cx-fliplisten/build/tomokv...
+Breakpoint 1 at 0xe0360: file src/core/io_loop.h, line 1205.
+Breakpoint 2 at 0x3f40f0: file src/core/fliplisten.cc, line 153.
+Breakpoint 3 at 0x78210: tomo_db0::IoLoop::flip_publish_stage. (3 locations)
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [48,49,50,51,52,53,54,55]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=48 L3=0 shards=0
+  thread t1: role=ifid cpu=49 L3=0 shards=0
+  thread t2: role=ifid cpu=50 L3=0 shards=0
+  thread t3: role=ifid cpu=51 L3=0 shards=0
+  thread t4: role=ifid cpu=52 L3=0 shards=0
+  thread t5: role=ifid cpu=53 L3=0 shards=0
+  thread t6: role=ex cpu=54 L3=0 shards=8
+  thread t7: role=ex cpu=55 L3=0 shards=8
+[New Thread 0x7ffff607f6c0 (LWP 2665193)]
+[New Thread 0x7ffff587e6c0 (LWP 2665194)]
+[New Thread 0x7ffff43ff6c0 (LWP 2665195)]
+[New Thread 0x7ffff3bfe6c0 (LWP 2665196)]
+[New Thread 0x7ffff2dff6c0 (LWP 2665197)]
+[New Thread 0x7ffff1bff6c0 (LWP 2665198)]
+[New Thread 0x7ffff13fe6c0 (LWP 2665199)]
+[New Thread 0x7fffefdff6c0 (LWP 2665200)]
+listening on 127.0.0.1:21800
+
+Thread 8 "tomokv" hit Breakpoint 1, tomo_db0::IoLoop::on_accept<false, false> (
+    this=0x7ffff61ddd60, cqe=0x7ffff701e040, kind=tomo_db0::UrKind::Accept)
+    at src/core/io_loop.h:1205
+1205	    void on_accept(io_uring_cqe* cqe, UrKind kind) {
+(gdb) >>>(gdb) Continuing.
+[Thread 0x7ffff2dff6c0 (LWP 2665197) exited]
+[Thread 0x7fffefdff6c0 (LWP 2665200) exited]
+[Thread 0x7ffff13fe6c0 (LWP 2665199) exited]
+[Thread 0x7ffff3bfe6c0 (LWP 2665196) exited]
+[Thread 0x7ffff43ff6c0 (LWP 2665195) exited]
+[Thread 0x7ffff587e6c0 (LWP 2665194) exited]
+[Thread 0x7ffff1bff6c0 (LWP 2665198) exited]
+[Thread 0x7ffff607f6c0 (LWP 2665193) exited]
+persistence: enabled=0 posted=0 flushed=0 durable=0 refused=0 pending_chunks=0 producers_with_pending=0 drain_gave_up=0 failed=0
+
+thread role          ops      iters   busy_ms   idle_ms    cpu_ms   wake_tx  wake_rx
+t0     io              0    6839344    1592.2     254.4    1407.1         0   757081
+io_tenure t0/0 busy_ns=1592199101 idle_ns=254410208 entry_ns=4353295895718557 begin_ns=4353295895718607 end_ns=4353297742327916 exit_ns=4353297742328046 role_exit=0 stopped=1
+t1     io              0    6997935    1572.5     274.0    1406.2         0   757081
+io_tenure t1/0 busy_ns=1572534227 idle_ns=273978402 entry_ns=4353295895812697 begin_ns=4353295895812737 end_ns=4353297742325366 exit_ns=4353297742325486 role_exit=0 stopped=1
+t2     io              0     757312    1593.3     253.0    1386.0   5299567  5299567
+io_tenure t2/0 busy_ns=1593252029 idle_ns=252974630 entry_ns=4353295896100198 begin_ns=4353295896100247 end_ns=4353297742326906 exit_ns=4353297742326936 role_exit=0 stopped=1
+t3     io              0      44844    1604.1     242.2     226.9         0   757081
+io_tenure t3/0 busy_ns=1604093231 idle_ns=242160117 entry_ns=4353295896071227 begin_ns=4353295896071278 end_ns=4353297742324626 exit_ns=4353297742324756 role_exit=0 stopped=1
+t4     io              0      49523    1559.2     286.7     218.7         0   757081
+io_tenure t4/0 busy_ns=1559170028 idle_ns=286723670 entry_ns=4353295896447888 begin_ns=4353295896447928 end_ns=4353297742341626 exit_ns=4353297742341656 role_exit=0 stopped=1
+t5     io              0    6689449    1589.6     256.2    1381.3         0   757081
+io_tenure t5/0 busy_ns=1589558439 idle_ns=256212968 entry_ns=4353295896553128 begin_ns=4353295896553179 end_ns=4353297742324586 exit_ns=4353297742324706 role_exit=0 stopped=1
+t6     ex              0    9422662       6.1    1326.5    1361.0         0   757081
+t7     ex              0    9385734       6.4    1317.3    1359.7         0   757081
+wb: retired=564 direct=0 sends=564/564 short=0 err=0 peer_aborts=0 bytes=14867 zc_sends=0 zc_bytes=0 zc_releases=0 serves=18072 empty=17508
+tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0
+stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0
+shutdown: dispatched=0 executed=0 accepts=281 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0
+shutdown_report {"schema":1,"thread_mode":"2s","work":{"kind":"split","dispatched":0,"executed":0},"threads":[{"tid":0,"role":"io","ops":0,"iterations":6839344,"busy_ns":1592199101,"idle_ns":254410208,"cpu_ns":1407073990,"wake_tx":0,"wake_rx":757081,"io_tenures":[{"entry_ns":4353295895718557,"begin_ns":4353295895718607,"end_ns":4353297742327916,"exit_ns":4353297742328046,"busy_ns":1592199101,"idle_ns":254410208,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":1,"role":"io","ops":0,"iterations":6997935,"busy_ns":1572534227,"idle_ns":273978402,"cpu_ns":1406198110,"wake_tx":0,"wake_rx":757081,"io_tenures":[{"entry_ns":4353295895812697,"begin_ns":4353295895812737,"end_ns":4353297742325366,"exit_ns":4353297742325486,"busy_ns":1572534227,"idle_ns":273978402,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":2,"role":"io","ops":0,"iterations":757312,"busy_ns":1593252029,"idle_ns":252974630,"cpu_ns":1386018020,"wake_tx":5299567,"wake_rx":5299567,"io_tenures":[{"entry_ns":4353295896100198,"begin_ns":4353295896100247,"end_ns":4353297742326906,"exit_ns":4353297742326936,"busy_ns":1593252029,"idle_ns":252974630,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":3,"role":"io","ops":0,"iterations":44844,"busy_ns":1604093231,"idle_ns":242160117,"cpu_ns":226891210,"wake_tx":0,"wake_rx":757081,"io_tenures":[{"entry_ns":4353295896071227,"begin_ns":4353295896071278,"end_ns":4353297742324626,"exit_ns":4353297742324756,"busy_ns":1604093231,"idle_ns":242160117,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":4,"role":"io","ops":0,"iterations":49523,"busy_ns":1559170028,"idle_ns":286723670,"cpu_ns":218701090,"wake_tx":0,"wake_rx":757081,"io_tenures":[{"entry_ns":4353295896447888,"begin_ns":4353295896447928,"end_ns":4353297742341626,"exit_ns":4353297742341656,"busy_ns":1559170028,"idle_ns":286723670,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":5,"role":"io","ops":0,"iterations":6689449,"busy_ns":1589558439,"idle_ns":256212968,"cpu_ns":1381298000,"wake_tx":0,"wake_rx":757081,"io_tenures":[{"entry_ns":4353295896553128,"begin_ns":4353295896553179,"end_ns":4353297742324586,"exit_ns":4353297742324706,"busy_ns":1589558439,"idle_ns":256212968,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":6,"role":"ex","ops":0,"iterations":9422662,"busy_ns":6066925,"idle_ns":1326529906,"cpu_ns":1361005490,"wake_tx":0,"wake_rx":757081,"io_tenures":[]},{"tid":7,"role":"ex","ops":0,"iterations":9385734,"busy_ns":6387910,"idle_ns":1317335721,"cpu_ns":1359741060,"wake_tx":0,"wake_rx":757081,"io_tenures":[]}],"wb":{"retired":564,"direct":0,"sends_completed":564,"sends_submitted":564,"short_writes":0,"send_errors":0,"peer_aborts":0,"bytes_sent":14867,"zc_sends":0,"zc_bytes":0,"zc_releases":0,"serves":18072,"serves_empty":17508},"tls":{"accepts":0,"handshakes_completed":0,"handshakes_started":0,"handshakes_failed":0,"connections_freed":0,"want_read":0,"want_write":0,"ciphertext_input_bytes":0,"plaintext_input_bytes":0,"ciphertext_output_bytes":0,"plaintext_output_bytes":0,"zc_suppressed":0,"ktls_active":0,"ktls_fallback":0},"stuck":{"live_conns":0,"rob_not_quiesced":0,"unsent_bytes_pending":0,"slots_done":0,"slots_issued":0,"slots_free":0,"flag_set":0},"epoll":{"enabled":false,"events":0,"recvs":0},"persistence":{"enabled":false,"recording":false,"failed":false,"drain_gave_up":false,"posted":0,"flushed":0,"durable":0,"refused":0,"pending_chunks":0,"records_written":0,"producers_with_pending":0,"producers_stopped":0,"producers_expected":0,"completions_pending":0},"accept":{"accepts":281,"accept_err":0,"rearm":0,"sqe_starved":0,"notify_drop":0}}
+[Inferior 1 (process 2665188) exited normally]
+(gdb) The program is not being run.
+(gdb) (gdb) warning: Inferior ID 1 is not running.
+(gdb)

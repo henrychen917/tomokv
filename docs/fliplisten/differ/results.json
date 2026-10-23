@@ -1,0 +1,22 @@
+[
+  {
+    "engine": "uring",
+    "geometry": "split",
+    "returncode": 0
+  },
+  {
+    "engine": "epoll",
+    "geometry": "split",
+    "returncode": 0
+  },
+  {
+    "engine": "uring",
+    "geometry": "armed-fused",
+    "returncode": 0
+  },
+  {
+    "engine": "epoll",
+    "geometry": "armed-fused",
+    "returncode": 0
+  }
+]

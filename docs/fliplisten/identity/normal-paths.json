@@ -1,0 +1,935 @@
+{
+  "sha256": {
+    "tomokv-PRE": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+    "tomokv": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+  },
+  "scope": "Idle phase; current generation; active IO; successful native accept. Callee admission is audited separately. Includes emitted NOPs. Resource-starvation retry remains on the existing cold branch.",
+  "loops": [
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<false, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "02c6 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 02c6 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02b5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02bc [ 2] je <+0x2cb>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<false, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<false, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0a28 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0a28 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02c5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02cc [ 6] jne <+0xa20>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<false, true, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<true, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0a48 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0a48 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02d5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02dc [ 6] jne <+0xa40>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<true, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<true, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0a08 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0a08 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02e5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02ec [ 6] jne <+0xa00>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::r7_run_loop<true, true, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, false, false>()",
+      "identical": false,
+      "sole_difference": "02b6 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 02b6 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02a5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02ac [ 2] je <+0x2bb>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "02c6 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 02c6 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02b5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02bc [ 2] je <+0x2cb>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, false, true, true>()",
+      "identical": false,
+      "sole_difference": "02c6 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 02c6 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02b5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02bc [ 2] je <+0x2cb>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, true, false, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, false, true, true, true>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, false, false>()",
+      "identical": false,
+      "sole_difference": "0b68 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0b68 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02b5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02bc [ 6] jne <+0xb60>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0a28 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0a28 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02c5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02cc [ 6] jne <+0xa20>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, false, true, true>()",
+      "identical": false,
+      "sole_difference": "0b18 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0b18 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02c5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02cc [ 6] jne <+0xb10>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, true, false, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<false, true, true, true, true>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, false, false>()",
+      "identical": false,
+      "sole_difference": "0b98 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0b98 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02b5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02bc [ 6] jne <+0xb90>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0a68 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0a68 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02d5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02dc [ 6] jne <+0xa60>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, false, true, true>()",
+      "identical": false,
+      "sole_difference": "0b58 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0b58 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02d5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02dc [ 6] jne <+0xb50>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, true, false, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, false, true, true, true>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, false, false>()",
+      "identical": false,
+      "sole_difference": "0bd8 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0bd8 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02c5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02cc [ 6] jne <+0xbd0>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0aa8 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0aa8 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02e5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02ec [ 6] jne <+0xaa0>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, false, true, true>()",
+      "identical": false,
+      "sole_difference": "0b98 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)> -> 0b98 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>",
+      "existing_pending_branch": [
+        "02e5 [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02ec [ 6] jne <+0xb90>"
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, true, false, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo::IoLoop::run_loop<true, true, true, true, true>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0958 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0958 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "02fe [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0305 [ 6] jne <+0x950>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0988 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0988 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "030e [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0315 [ 6] jne <+0x980>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0998 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0998 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "030e [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0315 [ 6] jne <+0x990>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "09d8 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 09d8 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "031e [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0325 [ 6] jne <+0x9d0>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_run_loop<true, true, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()",
+      "identical": false,
+      "sole_difference": "0b38 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0b38 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "02ee [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02f5 [ 6] jne <+0xb30>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "09f8 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 09f8 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "02fe [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0305 [ 6] jne <+0x9f0>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, false, true, true>()",
+      "identical": false,
+      "sole_difference": "0ad8 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0ad8 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "02fe [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0305 [ 6] jne <+0xad0>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, true, false, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, false, true, true, true>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, false, false>()",
+      "identical": false,
+      "sole_difference": "0b58 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0b58 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "02ee [ 7] cmpb $0x0,0x1938(%rbx)",
+        "02f5 [ 6] jne <+0xb50>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0a28 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0a28 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "030e [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0315 [ 6] jne <+0xa20>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, true, true>()",
+      "identical": false,
+      "sole_difference": "0b08 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0b08 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "030e [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0315 [ 6] jne <+0xb00>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, true, false, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, true, true, true>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, false, false>()",
+      "identical": false,
+      "sole_difference": "0b78 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0b78 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "02fe [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0305 [ 6] jne <+0xb70>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0a58 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0a58 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "031d [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0324 [ 6] jne <+0xa50>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, false, true, true>()",
+      "identical": false,
+      "sole_difference": "0b48 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0b48 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "031d [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0324 [ 6] jne <+0xb40>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, true, false, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, false, true, true, true>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, false, false>()",
+      "identical": false,
+      "sole_difference": "0bb8 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0bb8 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "030e [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0315 [ 6] jne <+0xbb0>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, false>()",
+      "identical": false,
+      "sole_difference": "0a88 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0a88 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "031d [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0324 [ 6] jne <+0xa80>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, false, true, true>()",
+      "identical": false,
+      "sole_difference": "0b78 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> -> 0b78 [ 5] call <tomo_db0::IoLoop::fliplisten_retry_accept(tomo_db0::UrKind)>",
+      "existing_pending_branch": [
+        "031d [ 7] cmpb $0x0,0x1938(%rbx)",
+        "0324 [ 6] jne <+0xb70>"
+      ]
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, true, false, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, false>()",
+      "identical": true
+    },
+    {
+      "name": "void tomo_db0::IoLoop::run_loop<true, true, true, true, true>()",
+      "identical": true
+    }
+  ],
+  "normal_accept_paths": [
+    {
+      "name": "void tomo::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, false>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 1,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": false,
+      "pre_instructions": 44,
+      "post_instructions": 41
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 6,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": false,
+      "pre_instructions": 48,
+      "post_instructions": 43
+    },
+    {
+      "name": "void tomo_db0::IoLoop::r7_on_accept<true, true>(io_uring_cqe*, tomo_db0::UrKind)",
+      "kind": 9,
+      "multishot_continues": true,
+      "pre_instructions": 35,
+      "post_instructions": 31
+    }
+  ],
+  "native_arm_identical": [
+    "tomo::IoLoop::arm_accept(tomo::UrKind)",
+    "tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)"
+  ]
+}

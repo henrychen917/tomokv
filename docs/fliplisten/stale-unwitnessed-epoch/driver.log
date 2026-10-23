@@ -1,0 +1,9 @@
+0 0 {'arrived': 4703, 'served': 4703} positive stale 0
+0 1 {'arrived': 4644, 'served': 4644} positive stale 0
+0 2 {'arrived': 4547, 'served': 4547} positive stale 0
+0 3 {'arrived': 4602, 'served': 4602} positive stale 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-fliplisten/docs/fliplisten/stale_accepts.py", line 113, in <module>
+    else:raise AssertionError(f'no positive old-generation CQE witnessed in four fresh states: atomic {atomic}')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: no positive old-generation CQE witnessed in four fresh states: atomic 0

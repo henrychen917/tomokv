@@ -1,0 +1,237 @@
+[
+  {
+    "path": "build/fliplisten/budgets",
+    "bytes_removed": 2943552377,
+    "reason": "Compile trial outputs retained as text receipts"
+  },
+  {
+    "path": "build/gate-run.S7BGou",
+    "bytes_removed": 1549202475,
+    "reason": "Completed gate archived; remove ephemeral databases"
+  },
+  {
+    "path": "build/gate-run.WWXPEZ",
+    "bytes_removed": 1504751774,
+    "reason": "Completed final gate archived; ephemeral databases removed"
+  },
+  {
+    "path": "build/fliplisten/body-details",
+    "bytes_removed": 363777537,
+    "reason": "Completed text proofs/receipts retained; remove disassembly, probe objects or gate scratch"
+  },
+  {
+    "path": "build/fliplisten/pad-details",
+    "bytes_removed": 369625528,
+    "reason": "Completed text proofs/receipts retained; remove disassembly, probe objects or gate scratch"
+  },
+  {
+    "path": "build/fliplisten/arm-trials",
+    "bytes_removed": 35026639,
+    "reason": "Completed text proofs/receipts retained; remove disassembly, probe objects or gate scratch"
+  },
+  {
+    "path": "build/gate-run.fZUUpg",
+    "bytes_removed": 5239057,
+    "reason": "Completed text proofs/receipts retained; remove disassembly, probe objects or gate scratch"
+  },
+  {
+    "path": "build/fliplisten/differ/epoll-armed-fused-results",
+    "bytes_removed": 721585,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/differ/epoll-split-results",
+    "bytes_removed": 2048330,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/differ/uring-armed-fused-results",
+    "bytes_removed": 721335,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/differ/uring-split-results",
+    "bytes_removed": 2045216,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/identity-cache",
+    "bytes_removed": 4148097,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/io-identity",
+    "bytes_removed": 0,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/pad",
+    "bytes_removed": 140549,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/post-controls",
+    "bytes_removed": 114271,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/pre-controls",
+    "bytes_removed": 71119,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/pre-source",
+    "bytes_removed": 4820109,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/retry-epoch",
+    "bytes_removed": 38243,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/soak",
+    "bytes_removed": 0,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten/stale",
+    "bytes_removed": 193724,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten-edit.py",
+    "bytes_removed": 10395,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/fliplisten-pre",
+    "bytes_removed": 742768304,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.1j3HaN",
+    "bytes_removed": 1468334,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.2azjiD",
+    "bytes_removed": 1513986,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.3O00Km",
+    "bytes_removed": 2091263,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.5bGX6T",
+    "bytes_removed": 310884,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.9908Su",
+    "bytes_removed": 1895901,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.KbJGLP",
+    "bytes_removed": 1413641,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.RwX5pZ",
+    "bytes_removed": 354806,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.TGvDrh",
+    "bytes_removed": 1898333,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.UqXfLb",
+    "bytes_removed": 1868711,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.aubX94",
+    "bytes_removed": 86293,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.klo5C9",
+    "bytes_removed": 385662,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.oCL7iV",
+    "bytes_removed": 5166350,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.pzFH0w",
+    "bytes_removed": 1429851,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.qudf0l",
+    "bytes_removed": 302213,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.vLXumQ",
+    "bytes_removed": 1909848,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/tomokv-before-retry-fix",
+    "bytes_removed": 199655872,
+    "reason": "Final proof complete; text receipts retained; uncommitted build intermediate"
+  },
+  {
+    "path": "build/gate-run.12nCI5",
+    "bytes_removed": 323502,
+    "reason": "Completed development fixture scratch archived as text; not final proof"
+  },
+  {
+    "path": "build/gate-run.A7ht8Q",
+    "bytes_removed": 316259,
+    "reason": "Completed development fixture scratch archived as text; not final proof"
+  },
+  {
+    "path": "build/gate-run.EJJgco",
+    "bytes_removed": 193659,
+    "reason": "Completed development fixture scratch archived as text; not final proof"
+  },
+  {
+    "path": "build/gate-run.Ff0OKQ",
+    "bytes_removed": 282177,
+    "reason": "Completed development fixture scratch archived as text; not final proof"
+  },
+  {
+    "path": "build/gate-run.ZMiGgQ",
+    "bytes_removed": 180271,
+    "reason": "Completed development fixture scratch archived as text; not final proof"
+  },
+  {
+    "path": "build/gate-run.bq3JVm",
+    "bytes_removed": 207663,
+    "reason": "Completed development fixture scratch archived as text; not final proof"
+  },
+  {
+    "path": "build/gate-run.dxXXRb",
+    "bytes_removed": 33187,
+    "reason": "Completed development fixture scratch archived as text; not final proof"
+  },
+  {
+    "path": "build/gate-run.myPuRr",
+    "bytes_removed": 132861,
+    "reason": "Completed development fixture scratch archived as text; not final proof"
+  },
+  {
+    "path": "build/gate-run.wpwAY1",
+    "bytes_removed": 313967,
+    "reason": "Completed development fixture scratch archived as text; not final proof"
+  }
+]

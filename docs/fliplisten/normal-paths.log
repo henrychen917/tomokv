@@ -1,0 +1,1 @@
+64 loop variants: 32 strict identical, other 32 only existing cold retry call target; 72 successful accept paths have no instruction-count increase

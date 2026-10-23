@@ -1,0 +1,36 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "48-63",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "48-55",
+    "--load-cores",
+    "56-63",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "21840-21849",
+    "--candidate-binary",
+    "/home/user/Projects/cx-fliplisten/build/tomokv-PRE"
+  ],
+  "jobs": [
+    "flip"
+  ],
+  "requested_jobs": [
+    "flip"
+  ],
+  "binary": "/home/user/Projects/cx-fliplisten/build/tomokv-PRE",
+  "sha256": "8958622f4591130d66fcf88df0e7787891e80bd4170694505ff9b641f7c5266c",
+  "test_sha256": {
+    "tests/gate.sh": "a8be055b335645b964726e94673db7cdd435c628ad2adbf8d672b3315d7e366e",
+    "tests/flipfix.py": "121e7cbf9f54b2d7e7da19c9dba7a5c72bccb382a54fee7b6b95d1381da8be88",
+    "tests/fliplisten.py": "21df315d11c18241dc1792aec9224cbe4a476ea64650064c7aa8ad59bbc43316",
+    "tests/r7shadow_sync.py": "8dcaa114a744edc8507bfb6a2feaed76b31b73c3a0b251930fc396e9c041968b"
+  }
+}

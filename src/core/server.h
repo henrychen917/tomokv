@@ -144,7 +144,13 @@ struct alignas(64) AtomicApplySlot {
 static_assert(sizeof(AtomicApplySlot) == 64);
 static_assert(alignof(AtomicApplySlot) == 64);
 
+struct FlipListenerState;
+bool fliplisten_reserve(Server&, std::string&);
+
 class Server {
+    friend class IoLoop;
+    friend struct FlipListenerState;
+    friend bool fliplisten_reserve(Server&, std::string&);
     friend struct CoreConcurrencyTest;
     friend struct AtomicSurvivorsTest;
     friend struct LbPlannerTest;
@@ -1088,7 +1094,7 @@ public:
         // Cross-thread read of every IO's private client vector (IO4.4a). It is frozen here: each
         // IO acknowledged IoDrain (release; this coordinator acquired every ack) only after its own
         // closes, LB move and UNIX hand-offs settled, and from that ack its closes stop before
-        // remove_client (flip_close_pin_), accepts are refused and no transfer is posted. The next
+        // remove_client (flip_close_pin_), accepted fds are retained and no transfer is posted. The next
         // write to any vector follows this plan's IoPrepare publication.
         flip_dropped_client_transfers_.store(0, std::memory_order_relaxed);
         try {
@@ -1477,6 +1483,12 @@ public:
             lb_stage_.store(LbStage::Idle, std::memory_order_release);
             lb_deadline_ns_.store(0, std::memory_order_release);
         }
+        if (coordinator < nthreads() && thread(coordinator).role() == Role::Ifid &&
+            flip_stage() == FlipStage::Idle &&
+            !thread(coordinator).reserve_listener_handover()) {
+            error = "ERR FLIP could not reserve listener and descriptor state";
+            return false;
+        }
         FlipStage expected = FlipStage::Idle;
         if (!flip_stage_.compare_exchange_strong(expected, FlipStage::Planning,
                                                  std::memory_order_acq_rel)) {
@@ -1716,6 +1728,10 @@ public:
         flip_deadline_ns_.store(0, std::memory_order_release);
     }
     void flip_complete_active() {
+        flip_validate_active();
+        flip_finish_active();
+    }
+    void flip_validate_active() {
         flip_conservation_check();
         flip_conservation_check(true);
         if (!flip_shard_ownership_conserved()) std::abort();
@@ -1758,7 +1774,10 @@ public:
                                    flip_planned_client_transfers_)
             std::abort();
 
-        flip_last_transfers_.store(transfers, std::memory_order_relaxed);
+    }
+    void flip_finish_active() {
+        flip_last_transfers_.store(flip_active_transfers_.load(std::memory_order_relaxed),
+                                   std::memory_order_relaxed);
         flip_completed_.fetch_add(1, std::memory_order_relaxed);
         flip_stage_.store(FlipStage::Idle, std::memory_order_release);
         flip_deadline_ns_.store(0, std::memory_order_release);
@@ -3702,6 +3721,7 @@ private:
         std::atomic<uint32_t> client_readers{0}; // cold record lifetime; absent when LB=0
     };
     std::unique_ptr<LbPlan> lb_plan_; // absent with both balancers off
+    std::shared_ptr<FlipListenerState> flip_listeners_; // first real FLIP; never on an operation
 
     // Transaction-only counters live after the established Server layout. Each
     // slot has one physical owner writer; INFO reads them with relaxed loads.

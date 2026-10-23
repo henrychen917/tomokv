@@ -1,0 +1,15 @@
+void tomo::IoLoop::run_loop<false, true, false, true, true>()
+--- PRE
+
++++ POST
+
+@@ -584,7 +584,7 @@
+
+ 0b0b [ 5] jmp <+0x4b0>
+ 0b10 [ 5] mov $0x1,%esi
+ 0b15 [ 3] mov %rbx,%rdi
+-0b18 [ 5] call <tomo::IoLoop::arm_accept(tomo::UrKind)>
++0b18 [ 5] call <tomo::IoLoop::fliplisten_retry_accept(tomo::UrKind)>
+ 0b1d [ 5] jmp <+0x2d2>
+ 0b22 [11] data16 cs nopw 0x0(%rax,%rax,1)
+ 0b2d [ 3] nopl (%rax)

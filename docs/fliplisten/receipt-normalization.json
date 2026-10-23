@@ -1,0 +1,75 @@
+{
+  "scope": "Trailing whitespace removed from readable GDB logs only; raw bytes preserved in raw-gdb-logs.tar.gz",
+  "files": [
+    {
+      "path": "docs/fliplisten/stale-held-before-cancel/a0-0.server.log",
+      "raw_sha256": "50e909768d225120741a543b5b5639d2b4c1c4650827cbfcc0a9b893e9c99d79",
+      "text_sha256": "b7ae1f006d99f3cd654b8340f5da4679f49da9fe99964e5b4cc315d2a4a76e4f"
+    },
+    {
+      "path": "docs/fliplisten/stale-held-before-cancel/a0-1.server.log",
+      "raw_sha256": "a8fe32ee5b6dcca4f5c96048a14a20629bf3e2c96fd3e611bea2652633b59563",
+      "text_sha256": "30f0d993a73133f72263771886f54247e415fe69bd988552fd3955f843f79450"
+    },
+    {
+      "path": "docs/fliplisten/stale-held-before-cancel/a0-2.server.log",
+      "raw_sha256": "e44394bde7198e5823074c155da8caab7aa6d79e84a83fd120cb817e02f379f0",
+      "text_sha256": "7bc3fa668f04853b7f62e7ff30e9e8006e95fb06a9b44a3c0fd0c8f74338ced1"
+    },
+    {
+      "path": "docs/fliplisten/stale-held-before-cancel/a0-3.server.log",
+      "raw_sha256": "2a01f6521a7d657233bc28577a60c89e018e28c9d4197f230152916029fa9ca1",
+      "text_sha256": "83683f1acdf5903e8a3ea13e4b3a9b85dc18c30939f6c4068cc4dbc07544c138"
+    },
+    {
+      "path": "docs/fliplisten/stale-held-every-pass/a0-0.server.log",
+      "raw_sha256": "efeeb35673239264a3f5a73ece8d7b82798714e6e1f811ccd00ed89d8c8f1b92",
+      "text_sha256": "93f5512e546a155c0f90b87516664290b65d5bde4deb99a01d84548b2b55b233"
+    },
+    {
+      "path": "docs/fliplisten/stale-unwitnessed-epoch/a0-0.server.log",
+      "raw_sha256": "404690bf1ee357b48c6268f1f30537dc2b034db7efe01a42ed6e217d33acf4a6",
+      "text_sha256": "3827461ba5716bac8a4fb3f177254d7c9a940e7c32c5ba5f3fd058d6fd22ea45"
+    },
+    {
+      "path": "docs/fliplisten/stale-unwitnessed-epoch/a0-1.server.log",
+      "raw_sha256": "41684624dba23969031f6434e08c91fc17e444f42c02eab6e45b8376dbbdd1e9",
+      "text_sha256": "d9d6af3732a1fef2f7ef4e7996c3a23c57dd66249e73856eb5f55dc63c07579c"
+    },
+    {
+      "path": "docs/fliplisten/stale-unwitnessed-epoch/a0-2.server.log",
+      "raw_sha256": "6adc350dd143ce9998a4bb8f3773a524be48832172c30f861974c12dfbbd4abc",
+      "text_sha256": "748b44b3f56bcb044f56b54a0a6148cf71ae6b51bdaf10da21f12dd00559ca75"
+    },
+    {
+      "path": "docs/fliplisten/stale-unwitnessed-epoch/a0-3.server.log",
+      "raw_sha256": "7a205b04f0ab21f518af11ddb19245ea558a821a0781b99b030007525b2be027",
+      "text_sha256": "32c951e8113278777e5dbc5212ace122655978c1fcdc4e522d052754180db7ae"
+    },
+    {
+      "path": "docs/fliplisten/stale/a0-complete-0.server.log",
+      "raw_sha256": "33bd9c9ab098cfcb52049be46c8a7d847aeff67aedb71fea9915df7e7561b783",
+      "text_sha256": "ae1e104790dd511c6395ff511b74f9072db00aa5ee2cef35ce40e71a91904e8b"
+    },
+    {
+      "path": "docs/fliplisten/stale/a0-rollback-0.server.log",
+      "raw_sha256": "c1aa5af42d86417dbf29165d0982d190f654ea1665e775da10abc2f01c1034ab",
+      "text_sha256": "91f9ea917d8259d576727441681180d98ca49d4d1dc77840e4f5c3208a997015"
+    },
+    {
+      "path": "docs/fliplisten/stale/a1-complete-0.server.log",
+      "raw_sha256": "72b0b298ef0518a7d106c51f128b10d5c02f0995995405dcbe581e6b49d9ec38",
+      "text_sha256": "da7bb1a25e7b158a2ba222af9bd454bf26a356c7c5ccc28d558d2e5aee6c7a2e"
+    },
+    {
+      "path": "docs/fliplisten/stale/a1-rollback-0.server.log",
+      "raw_sha256": "aba47aa972a7a337f3dbaa09ad9eb00d8fbcdb50da97758919656664e9c8c05d",
+      "text_sha256": "1fa449844d2929a6486a0e4df1ed2d3eff0ab31f527cfd31b854565e18a38819"
+    },
+    {
+      "path": "docs/fliplisten/stale/a1-rollback-1.server.log",
+      "raw_sha256": "89e3b17f17d6a2067c24b51b53d80b6731a0e751ed7bfd4e9377af212d3c3464",
+      "text_sha256": "835d032b547121f713f8a80dd92a4d813948353ce5a5cacc8f81efd33ae2482d"
+    }
+  ]
+}
