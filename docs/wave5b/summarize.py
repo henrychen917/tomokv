@@ -12,6 +12,9 @@ for cohort in ('attribution', 'adaptive-quiet'):
         for command, atomic in [('MGET',1), ('MGET',0), ('MSET',1)]:
             sample = [r for r in rows if (r['arm'],r['command'],r['atomic']) == (arm,command,atomic)]
             assert len(sample) == 3
+            assert all(r['counts'][k] > 0 for r in sample for k in ('visits','deferrals','sends','completions'))
+            if cohort == 'attribution':
+                assert all((r['counts']['parks_pending'] > 0) == (arm == 'post') for r in sample), 'park attribution not reproduced'
             result.append(dict(cohort=cohort, arm=arm, command=command, atomic=atomic,
                 requests_per_repeat=sample[0]['requests'],
                 raw_pending_parks=[r['counts']['parks_pending'] for r in sorted(sample,key=lambda r:r['repeat'])],

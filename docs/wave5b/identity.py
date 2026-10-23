@@ -30,6 +30,8 @@ for label, path in [('wave5-post', ROOT/'build/tomokv-wave5b-BASE'),
                       if label == 'wave5-post' else
                       'Wave-5 integration retained; see docs/wave5/identity-landing/changed-bodies.md for lane attribution.')
         row['reason'] = reason
+        row['before_bodies'] = before['groups'].get(name, [])
+        row['after_bodies'] = post['groups'].get(name, [])
     with gzip.open(out/(label+'-all-bodies.json.gz'), 'wt') as f: json.dump(rows, f, indent=2)
     (out/(label+'-changed-bodies.json')).write_text(json.dumps(changed, indent=2)+'\n')
     (out/(label+'-changed-bodies.md')).write_text('\n'.join([

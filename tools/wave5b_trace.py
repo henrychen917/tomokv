@@ -182,6 +182,8 @@ def run(args):
                             client.stdin.write('STOP\n'); client.stdin.flush()
                             assert client.wait(timeout=10)==0
                         counts = {field: sum(a[i]-b[i] for a,b in zip(after,before)) for i,field in enumerate(FIELDS)}
+                        assert all(v >= 0 for v in counts.values()), ('counter moved backward', counts)
+                        assert all(counts[k] > 0 for k in ('visits','deferrals','sends','completions')), ('mechanism did not fire', counts)
                         row = dict(arm=arm, command=command, atomic=atomic, repeat=repeat, requests=64*args.requests,
                                    connections=64, depth=8, value_bytes=64, counts=counts,
                                    per_request={k:v/(64*args.requests) for k,v in counts.items()},

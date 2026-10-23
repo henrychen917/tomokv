@@ -11,6 +11,7 @@ for spec in [server_cores,load_cores]:
  for part in spec.split(','):
   ends=list(map(int,part.split('-')));assert all(64<=n<=111 for n in ends)
 assert a.jobs and not set(a.jobs.split())&{'atomic_floor','efficiency'},'performance jobs remain with maintainer'
+assert not ('fliplisten' in a.jobs.split() and (a.engine or a.mode)), 'GDB listener fixture needs the ELF; it owns all engine/atomic legs'
 OUT=DOC/'gate'/a.name;OUT.mkdir(parents=True,exist_ok=True)
 oracle_core=os.environ.get('WAVE5_ORACLE_CORE','95');assert oracle_core.isdecimal() and 64<=int(oracle_core)<=111
 env=dict(os.environ,REDIS74_ROOT='/home/user/Projects/redis',GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',GATE_DIFFER_REDIS_CLI='/home/user/Projects/redis74/src/redis-cli',GATE_DIFFER_ORACLE_CORES=oracle_core,GATE_GLOBCASE_ORACLE_CORES=oracle_core,GATE_TEST_PORT='26899',GATE_DIFFER_HISTORY=str(BUILD/'differ-history'),GATE_HISTORY=str(BUILD/'gate-history'),PYTHONPATH=str(ROOT/'docs/wave5/port_guard')+os.pathsep+os.environ.get('PYTHONPATH',''),WAVE5_PORT_RECEIPT=str(DOC/'fixture-ports.jsonl'),GATE_ONLY_JOBS=a.jobs,GATE_LEDGER=str(OUT/'ledger'))
