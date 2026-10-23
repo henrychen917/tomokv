@@ -66,12 +66,14 @@ DQ +1 / DF +1; cumulative DQ +3 / DF +3.
 
 ### CC4.15 — subcommand grants
 
-REPRODUCED on PRE in all four legs. Candidate passes 4059 exact comparisons per
-leg (240 rule sequences), covering every advertised child grant/revocation, parent and category
+REPRODUCED on PRE in all four legs. Candidate passes 58908 exact comparisons per
+leg (282 rule sequences), covering every advertised child grant/revocation, parent and category
 precedence, case folding, first-argument grants, invalid and nested forms,
 GETUSER/LIST rendering, SAVE/LOAD after every sequence, and live CONFIG admission
-and revocation. Evidence: `docs/dispatchfix/CC4.15/{pre-complete,post-complete}`. PRE completes
-the same full table and fails 3520/4059 comparisons in each leg. The old
+and revocation. Evidence: `docs/dispatchfix/proof/gate-run.{6HE1le,rGslUX}.tar.gz`. PRE completes
+the same full table and fails 58117/58908 comparisons in each leg. All categories
+are also checked against every shared leaf command and child. FLIP has no Redis
+equivalent and is explicitly excluded from this oracle-only permission matrix. The old
 `tests/acl.py` assertion rejecting `+select|0` was corrected only after retaining
 the exact Redis SETUSER/GETUSER/DELUSER replies in
 `docs/dispatchfix/acl-firstarg-oracle-replies.json`. Both existing ACL battery
@@ -134,6 +136,46 @@ Collection is at gate.sh lines 4242–4246, before its quick-tier exit at line 4
 the existing ACL row expansion adds no row. The label
 fixture check identifies exactly these five missing labels and no extra labels;
 its refusal is retained in docs/dispatchfix/label-fixture.log.
+
+### Correctness proof and retained failures
+
+Every directed row used `GATE_ONLY_JOBS` through `tests/gate.sh`, with all
+1s/2s × epoll/uring legs. PRE fails all five rows; final POST passes all five.
+The final ACL category matrix also fails on PAD-A with the PRE signature.
+Gate geometry is eight server cores, ratio 6:2, 16 shards, except EX4.17's
+explicit 200-shard compatibility case. The complete selected-job inventories,
+row verdicts, engine/mode logs, oracle replies and command lines are archived in
+`docs/dispatchfix/proof/index.json` and the referenced tarballs.
+
+| Gate run | Arm | Result | Coverage |
+|---|---|---|---|
+| A5grWD | POST | 317 pass, 3 fail | All five directed jobs; dispatch/COMMAND/ACL, feature batteries, both persistence engines, both balancer modes |
+| mguX2p | PRE | 352 pass, 2 fail | Same existing batteries, plus DEBUG and client jobs; the two corrected ACL assertions fail on PRE |
+| y4zYR0 | POST | 52 pass | DEBUG, client, core and TSAN units |
+| dDbAkr | POST | 43 pass | Complete fused atomic-off feature job repeated unchanged, plus AUTH/ACL |
+| 8mS3Cx | POST | 8 pass | Final AUTH job, including all eight expanded ACL mode/engine/atomic legs |
+| XAyHiH | PRE | 6 pass, 3 expected fail | Eight ACL legs reject the now-correct first-argument grant; superseded early-exit directed ACL test also fails |
+| ZaeeaP / STAVjj | POST / PRE | 32 pass each | Remaining persistence, AOF order/framing, notification replay, SORT, release ACL, balancer units and stream metadata jobs |
+| 6HE1le / rGslUX | POST / PRE | Final directed ACL pass / expected fail | 58,908 oracle comparisons in each of four legs; complete tables retained |
+
+The first POST broad run's two ACL failures were the obsolete `+select|0`
+assertion, corrected using saved oracle evidence. Its other failure was a fused
+shutdown report with `live_conns=1`, all other stuck fields zero. The identical
+complete job passed on rerun; the first failure and shutdown report remain in
+the archive. Its cause is unproven: this report does not label it noise or claim
+a clean first-pass gate. No assertion, deadline or tolerance was weakened.
+
+For AOF order's `crossing` case and production unit rows, the gate deliberately
+uses the current worktree's instrumented helper binaries even when its candidate
+is PRE; candidate-based live/recovery cases use the specified PRE or POST arm.
+This is the gate's own declared job behavior, not a claim that those helper
+executables were rebuilt from PRE.
+
+The reply-text consumer search is retained in `reply-users.txt.gz`. Its jobs
+include the feature groups (arity, contarity, streamgroups, servertail, edgeproto,
+SCRIPT and pubsub), DEBUG/slowlog, AUTH/ACL, compatibility tables, COMMAND
+metadata, persistence and the standard differential matrix. These use exact
+oracle replies where available; no expected count was edited.
 
 ### Build, identity and measurement arms
 

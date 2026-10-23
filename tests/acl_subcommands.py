@@ -42,7 +42,12 @@ def run(a):
                      ('+config|get|x',), ('-config|get|x',),
                      ('+config|',), ('+get|',), ('+missing|arg',),
                      ('-get|allowed',), ('+@read|x',)]
-            children = [child for row in target.cmd('COMMAND') for child in row[9]]
+            commands = target.cmd('COMMAND')
+            children = [child for row in commands for child in row[9]]
+            reference_names = {row[0] for row in oracle.cmd('COMMAND')}
+            # FLIP is TomoKV-specific: it has no Redis command-permission oracle.
+            assert {row[0] for row in commands if row[0] not in reference_names} == {b'flip'}
+            leaves = [row for row in commands if not row[9] and row[0] in reference_names] + children
             cases += [(('+' + child[0].decode()),) for child in children]
             cases += [('+@all', '-' + child[0].decode()) for child in children]
             # Representative category/parent/child interleavings, including the
@@ -51,6 +56,8 @@ def run(a):
                 cases += [(f'+@{category}', '-config|get', '+config|get'),
                           ('+config', f'-@{category}'),
                           ('+@all', f'-@{category}')]
+            for category in target.cmd('ACL', 'CAT'):
+                cases += [(f'+@{category.decode()}',), ('+@all', f'-@{category.decode()}')]
             probes = [('CONFIG', 'GET', 'no-such-config'), ('CONFIG', 'SET', 'timeout', '0'),
                       ('CONFIG', 'HELP'), ('GET', 'allowed'), ('GET', 'another'),
                       ('GET', 'denied'), ('SELECT', '0'), ('SELECT', '1'), ('CLIENT', 'ID'), ('XINFO', 'STREAM', 'missing')]
@@ -60,12 +67,13 @@ def run(a):
                 # Inspect effective permissions without running administrative mutations.
                 for command in probes:
                     compare(('ACL', 'DRYRUN', 'subject', *command))
-                # Every explicitly named advertised child must exercise its own
-                # admission bit, including both the positive and negative rule.
-                for child in children:
+                # Explicit grants/revocations exercise their own admission bit;
+                # every category rule checks all shared leaf commands and children.
+                for child in leaves:
                     full = child[0].decode()
-                    if any(rule[1:].lower() == full for rule in rules):
-                        command = tuple(full.split('|')) + ('x',) * (abs(child[1]) - 2)
+                    if any(rule[1:].lower() == full or rule[1:2] == '@' for rule in rules):
+                        prefix = tuple(full.split('|'))
+                        command = prefix + ('x',) * (abs(child[1]) - len(prefix))
                         compare(('ACL', 'DRYRUN', 'subject', *command))
                 # Persist and reload even rejected rules: Redis retains the old image.
                 before = [c.cmd('ACL', 'GETUSER', 'subject') for c in clients]
