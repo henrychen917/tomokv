@@ -26,7 +26,7 @@ for f in touched:
  if name=='txnorder_checks.inc':jobs+=['job_atomic_units','job_txnorder2']
  if name in ['txnorder_watch_unit.cc','txnorder_episodes.cc','txnorder_wake_unit.cc']:jobs+=['job_txnorder2','job_txnorder_wake']
  if name.startswith('wb_rule_'):jobs+=['job_wb_rule_units']
- if name in ['core_concurrency_unit.cc','slowlog_completion_checks.inc']:jobs+=['job_core_units','job_flipfix_units']
+ if name in ['core_concurrency_unit.cc','slowlog_completion_checks.inc','wave5_dispatch_checks.inc']:jobs+=['job_core_units','job_flipfix_units']
  if name=='fixtures/nullrefresh-ledger-labels.json' or name=='nullrefresh-ledger-labels.json':jobs+=['job_abba_selftest']
  rows.append(dict(file=f,jobs=sorted(set(jobs)),standalone_audit='txnfix_audit/' in f))
 # Search actual literal strings introduced or removed in implementation. Keeping

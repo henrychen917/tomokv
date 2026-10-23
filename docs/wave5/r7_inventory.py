@@ -8,7 +8,9 @@ ROOT=identity.ROOT;sys.path.insert(0,str(ROOT/'tests'));import r7shadow_noop as 
 DOC=ROOT/'docs/wave5/r7-inventory';DOC.mkdir(exist_ok=True)
 def one(pair):
  arm,path=pair;out=DOC/(arm+'.json')
- if out.exists():return json.loads(out.read_text())
+ if out.exists():
+  cached=json.loads(out.read_text())
+  if cached['sha256']==identity.audit.digest(path):return cached
  dest=ROOT/'build/wave5/r7-inventory'/arm;dest.mkdir(parents=True,exist_ok=True)
  b=identity.audit.Binary(path,dest,literal_pools=True);excluded=r7.off_roles(b)
  names={name:len(bodies) for name,bodies in b.groups.items() if identity.audit.category(name)}

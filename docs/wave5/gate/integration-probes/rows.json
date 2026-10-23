@@ -1,0 +1,62 @@
+[
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "36.900000",
+    "label": "compat3 CC4.12 pubsub vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "35.030000",
+    "label": "compat3 CC4.13 pending vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "35.590000",
+    "label": "compat3 CC4.14 history vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "33.660000",
+    "label": "compat3 CC4.16 grammar vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "33.730000",
+    "label": "compat3 CC4.5 glob vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "FAIL",
+    "elapsed": "33.910000",
+    "label": "compat3 CC4.17 flags vs Redis 7.4"
+  },
+  {
+    "job": "netfix_config",
+    "verdict": "ok",
+    "elapsed": "2.170000",
+    "label": "netfix NT4.8 network CONFIG error parity"
+  },
+  {
+    "job": "netfix_query_stats",
+    "verdict": "ok",
+    "elapsed": "1.820000",
+    "label": "netfix NT4.6 query-limit INFO parity"
+  },
+  {
+    "job": "netfix_tls",
+    "verdict": "ok",
+    "elapsed": "14.320000",
+    "label": "netfix NT4.7 TLS default cipher parity"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  }
+]

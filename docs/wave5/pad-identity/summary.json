@@ -1,0 +1,52 @@
+{
+  "function_groups": 8642,
+  "unchanged": 8635,
+  "changed": 7,
+  "lane_equal": 2,
+  "residual": 5,
+  "hot_groups": 489,
+  "hot_headline": 488,
+  "hot_lane": 1,
+  "command_hot_groups": 12,
+  "command_hot_headline": 12,
+  "command_hot_lane": 0,
+  "hot_residual": [],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bins/txnorder2-pre-97ea4e06",
+      "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e"
+    },
+    "txnfix": {
+      "path": "/home/user/Projects/bins/txnorder2-post-5bfa95e7",
+      "sha256": "5bfa95e74b42c78c0b70fa0e3983c89582b66dc8d4a1570262968ec84e5f447f"
+    },
+    "bugs5": {
+      "path": "/home/user/Projects/bins/bugs5-post-e514a979",
+      "sha256": "e514a979201f2d748e947c007ce5f8411794bb2d007f2ad6a832c6c2b141c588"
+    },
+    "compat3": {
+      "path": "/home/user/Projects/bins/compat3-post-5319e470",
+      "sha256": "5319e4705024d7d9ef83cacb56f4399693562bb9fa61eb0a239e91ed9c67ff35"
+    },
+    "trackfix": {
+      "path": "/home/user/Projects/bins/trackfix-post-787031f0",
+      "sha256": "787031f023997cd3e5ce2330e9d11794819c4799202714f5a1d7299c9b39a181"
+    },
+    "fliplisten": {
+      "path": "/home/user/Projects/bins/fliplisten-post-191a4d96",
+      "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+    },
+    "netfix": {
+      "path": "/home/user/Projects/bins/netfix-post-9cfcbcb1",
+      "sha256": "9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47"
+    },
+    "iofix": {
+      "path": "/home/user/Projects/bins/iofix-post-a7a3d72a",
+      "sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+    }
+  },
+  "post": {
+    "path": "build/tomokv-wave5-PAD-A",
+    "sha256": "9bbe8f2dc7b57c7016bc3e0ff6b8aacbf00e454352476377274a5ec45f3a2a6e"
+  }
+}

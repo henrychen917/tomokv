@@ -1,0 +1,44 @@
+[
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "33.190000",
+    "label": "compat3 CC4.12 pubsub vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "33.430000",
+    "label": "compat3 CC4.13 pending vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "36.310000",
+    "label": "compat3 CC4.14 history vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "37.460000",
+    "label": "compat3 CC4.16 grammar vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "38.090000",
+    "label": "compat3 CC4.5 glob vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "37.970000",
+    "label": "compat3 CC4.17 flags vs Redis 7.4"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  }
+]

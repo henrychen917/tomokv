@@ -2,11 +2,11 @@
 """Record every residual hot body's call sites against every lane and headline."""
 from concurrent.futures import ProcessPoolExecutor
 from collections import Counter
-import difflib,gzip,json,re,subprocess
+import difflib,gzip,json,os,re,subprocess
 from pathlib import Path
 import identity
-ROOT=identity.ROOT;DOC=ROOT/'docs/wave5/callsites';DOC.mkdir(exist_ok=True)
-summary=json.loads((ROOT/'docs/wave5/identity/summary.json').read_text());wanted={r['name'] for r in summary['hot_residual']}
+ROOT=identity.ROOT;DOC=ROOT/os.getenv('WAVE5_CALLS_DOC','docs/wave5/callsites');DOC.mkdir(exist_ok=True)
+summary=json.loads((ROOT/os.getenv('WAVE5_IDENTITY_SUMMARY','docs/wave5/identity/summary.json')).read_text());wanted={r['name'] for r in summary['hot_residual']}
 def get(pair):
  arm,path=pair;out=DOC/(arm+'.json.gz')
  if out.exists():
@@ -17,7 +17,7 @@ def get(pair):
   return arm,cached
  d=ROOT/'build/wave5/callsites'/arm;d.mkdir(parents=True,exist_ok=True)
  b=identity.audit.Binary(path,d,literal_pools=True)
- rows={n:[dict(ins=f['ins'],encodings=f['encodings'],calls=[s for s in f['ins'] if re.match(r'(?:bnd )?(?:call|jmp)\b',s) and '<' in s and not re.search(r'<self[+>]',s)]) for f in sorted(b.groups.get(n,[]),key=lambda x:x['addr'])] for n in wanted}
+ rows={n:[dict(ins=f['ins'],encodings=f['encodings'],calls=[m[1] for ins in f['ins'] if (m:=re.search(r'\] ((?:bnd )?(?:call|jmp)\s+(?!<\+).*)',ins))]) for f in sorted(b.groups.get(n,[]),key=lambda x:x['addr'])] for n in wanted}
  with gzip.open(out,'wt') as f:json.dump(rows,f)
  for p in d.glob('*.objdump'):p.unlink()
  return arm,rows

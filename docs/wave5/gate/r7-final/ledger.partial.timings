@@ -1,0 +1,3 @@
+ok	0.000000	release build (+footprint locks)
+ok	1.520000	R7 generated envelope parity
+FAIL	70.970000	R7 FIFO twin off-path identity + negative controls

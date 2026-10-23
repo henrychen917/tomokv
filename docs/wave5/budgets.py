@@ -4,6 +4,7 @@ from concurrent.futures import ProcessPoolExecutor
 import hashlib,json,os,re,shlex,subprocess,sys
 from pathlib import Path
 import identity
+os.sched_setaffinity(0, os.sched_getaffinity(0) & set(range(64,96)))
 ROOT=identity.ROOT
 ROUND=os.getenv('WAVE5_BUDGET_ROUND','')
 OUT=ROOT/('build/wave5/budgets'+ROUND);DOC=ROOT/('docs/wave5/budgets'+ROUND)

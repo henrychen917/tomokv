@@ -1,0 +1,6 @@
+{
+  "command": "python3 tests/gates_test.py",
+  "cpus": "64-95",
+  "ports": "26800-26899 via Python fixture guard",
+  "returncode": 0
+}

@@ -1,0 +1,50 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "64-95",
+    "/home/user/Projects/cx-wave5/tests/gate.sh",
+    "full",
+    "--server-cores",
+    "64-79",
+    "--load-cores",
+    "80-95",
+    "--load-smt",
+    "",
+    "--ports",
+    "26800-26889",
+    "--candidate-binary",
+    "/home/user/Projects/cx-wave5/build/wave5/gate-binaries/ceb44108e8b7962238e5db34aad11e605f7dcba5743437a0246dd471681f1748/tomokv"
+  ],
+  "jobs": [
+    "compat3",
+    "netfix_query_stats",
+    "netfix_config",
+    "netfix_tls"
+  ],
+  "started": 1792733986.2679024,
+  "binary_sha256": "ceb44108e8b7962238e5db34aad11e605f7dcba5743437a0246dd471681f1748",
+  "snapshot_binary": "/home/user/Projects/cx-wave5/build/wave5/gate-binaries/ceb44108e8b7962238e5db34aad11e605f7dcba5743437a0246dd471681f1748/tomokv",
+  "environment": {
+    "REDIS74_ROOT": "/home/user/Projects/redis",
+    "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+    "GATE_DIFFER_REDIS_CLI": "/home/user/Projects/redis74/src/redis-cli",
+    "GATE_DIFFER_ORACLE_CORES": "95",
+    "GATE_GLOBCASE_ORACLE_CORES": "95",
+    "GATE_TEST_PORT": "26899",
+    "GATE_DIFFER_HISTORY": "/home/user/Projects/cx-wave5/build/wave5/differ-history",
+    "GATE_HISTORY": "/home/user/Projects/cx-wave5/build/wave5/gate-history",
+    "PYTHONPATH": "/home/user/Projects/cx-wave5/docs/wave5/port_guard:",
+    "WAVE5_PORT_RECEIPT": "/home/user/Projects/cx-wave5/docs/wave5/fixture-ports.jsonl",
+    "GATE_ONLY_JOBS": "compat3 netfix_query_stats netfix_config netfix_tls",
+    "GATE_LEDGER": "/home/user/Projects/cx-wave5/docs/wave5/gate/integration-probes/ledger",
+    "NETFIX_TLS_ORACLE": "/home/user/Projects/cx-wave5/build/wave5/redis74-tls/src/redis-server",
+    "WAVE5_BINARY": "/home/user/Projects/cx-wave5/build/wave5/gate-binaries/ceb44108e8b7962238e5db34aad11e605f7dcba5743437a0246dd471681f1748/tomokv"
+  },
+  "returncode": 1,
+  "elapsed": 215.47081780433655,
+  "run_paths": [
+    "/home/user/Projects/cx-wave5/build/gate-run.k6z49P"
+  ],
+  "binary_stable": true
+}

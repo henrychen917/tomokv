@@ -1,0 +1,100 @@
+void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)
+--- PRE
+
++++ PAD-A
+
+@@ -4,7 +4,7 @@
+
+ 000a [ 4] shr $0x38,%rax
+ 000e [ 2] cmp $0x11,%al
+ 0010 [ 6] ja <+0x360>
+-0016 [ 7] lea <rip>(%rip),%rcx # <literal-string-3a00>
++0016 [ 7] lea <rip>(%rip),%rcx # <typeinfo name for std::_Sp_counted_ptr_inplace<tomo::AofGroupDecision, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>+0x874>
+ 001d [ 2] push %r12
+ 001f [ 1] push %rbp
+ 0020 [ 3] mov %rsi,%rbp
+unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)
+--- PRE
+
++++ PAD-A
+
+@@ -164,7 +164,7 @@
+
+ 02b4 [ 4] cmpb $0x5,(%r9)
+ 02b8 [ 6] ja <+0x5f2>
+ 02be [ 4] movzbl (%r9),%eax
+-02c2 [ 7] lea <rip>(%rip),%rdi # <literal-string-2d00>
++02c2 [ 7] lea <rip>(%rip),%rdi # <tomo_db0::(anonymous namespace)::acl_hex_hash(std::array<unsigned long, 4ul> const&)::hex+0x41c>
+ 02c9 [ 4] movslq (%rdi,%rax,4),%rax
+ 02cd [ 3] add %rdi,%rax
+ 02d0 [ 3] notrack jmp *%rax
+@@ -182,7 +182,7 @@
+
+ 0309 [ 4] cmpb $0x5,(%r9)
+ 030d [ 6] ja <+0x5fe>
+ 0313 [ 4] movzbl (%r9),%edx
+-0317 [ 7] lea <rip>(%rip),%rcx # <literal-string-0900>
++0317 [ 7] lea <rip>(%rip),%rcx # <tomo_db0::(anonymous namespace)::acl_hex_hash(std::array<unsigned long, 4ul> const&)::hex+0x434>
+ 031e [ 4] movslq (%rcx,%rdx,4),%rdx
+ 0322 [ 3] add %rcx,%rdx
+ 0325 [ 3] notrack jmp *%rdx
+tomo::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+--- PRE
+
++++ PAD-A
+
+@@ -15,7 +15,7 @@
+
+ 002b [ 3] mov (%rax),%rax
+ 002e [ 5] andn %rax,%rcx,%rsi
+ 0033 [ 6] jne <+0x143>
+-0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x94e>
++0039 [ 5] jmp <wave5_pad_a+0x505ab>
+ 003e [ 7] mov %rax,0x88(%rdx)
+ 0045 [ 3] test %rax,%rax
+ 0048 [ 2] jne <+0x59>
+tomo::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+--- PRE
+
++++ PAD-A
+
+@@ -15,7 +15,7 @@
+
+ 002b [ 3] mov (%rax),%rax
+ 002e [ 5] andn %rax,%rcx,%rsi
+ 0033 [ 6] jne <+0x143>
+-0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x96a>
++0039 [ 5] jmp <wave5_pad_a+0x505c7>
+ 003e [ 7] mov %rax,0x88(%rdx)
+ 0045 [ 3] test %rax,%rax
+ 0048 [ 2] jne <+0x59>
+tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<false>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+--- PRE
+
++++ PAD-A
+
+@@ -15,7 +15,7 @@
+
+ 002b [ 3] mov (%rax),%rax
+ 002e [ 5] andn %rax,%rcx,%rsi
+ 0033 [ 6] jne <+0x143>
+-0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x916>
++0039 [ 5] jmp <wave5_pad_a+0x50573>
+ 003e [ 7] mov %rax,0x88(%rdx)
+ 0045 [ 3] test %rax,%rax
+ 0048 [ 2] jne <+0x59>
+tomo_db0::ExLoopT<true>::drain_local_reads_bounded_impl<true>(unsigned int)::{lambda(unsigned int)#1}::operator()(unsigned int) const
+--- PRE
+
++++ PAD-A
+
+@@ -15,7 +15,7 @@
+
+ 002b [ 3] mov (%rax),%rax
+ 002e [ 5] andn %rax,%rcx,%rsi
+ 0033 [ 6] jne <+0x143>
+-0039 [ 5] jmp <tomo::auth_arity_reply(tomo::Op&, tomo::CommandSpec const&, bool, bool)+0x932>
++0039 [ 5] jmp <wave5_pad_a+0x5058f>
+ 003e [ 7] mov %rax,0x88(%rdx)
+ 0045 [ 3] test %rax,%rax
+ 0048 [ 2] jne <+0x59>

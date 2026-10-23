@@ -1,0 +1,8 @@
+PARTIAL	0	GATE_ONLY_JOBS=compat3; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	33.190000	compat3 CC4.12 pubsub vs Redis 7.4
+ok	33.430000	compat3 CC4.13 pending vs Redis 7.4
+ok	36.310000	compat3 CC4.14 history vs Redis 7.4
+ok	37.460000	compat3 CC4.16 grammar vs Redis 7.4
+ok	38.090000	compat3 CC4.5 glob vs Redis 7.4
+ok	37.970000	compat3 CC4.17 flags vs Redis 7.4

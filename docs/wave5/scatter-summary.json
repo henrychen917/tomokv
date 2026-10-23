@@ -1,0 +1,775 @@
+{
+  "function_groups": 9165,
+  "unchanged": 7133,
+  "changed": 2032,
+  "lane_equal": 1113,
+  "residual": 919,
+  "hot_groups": 513,
+  "hot_headline": 254,
+  "hot_lane": 23,
+  "command_hot_groups": 12,
+  "command_hot_headline": 12,
+  "command_hot_lane": 0,
+  "hot_residual": [
+    {
+      "name": "tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1072
+      ],
+      "post_sizes": [
+        1072
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "compat3",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, compat3, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::notify_get_or_create_batch(tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        330
+      ],
+      "post_sizes": [
+        330
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::(anonymous namespace)::notify_reserve_chain(tomo::Server&, std::unique_ptr<tomo::PubSubNotificationChain, std::default_delete<tomo::PubSubNotificationChain> >)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        200
+      ],
+      "post_sizes": [
+        216
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "compat3",
+        "trackfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, compat3, trackfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::function_execute_exec(tomo::Shard&, tomo::Op&, void*, bool (*)(void*))",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3246
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::function_execute_exec(tomo::Shard&, tomo::Op&, void*, bool (*)(void*)) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        220
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::notify_ex_pass_entry(tomo::Server&, tomo::Shard&, unsigned int, tomo::ThreadCtx&, tomo::Ring&, tomo::LoopSignals&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5677
+      ],
+      "post_sizes": [
+        5488
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::notify_ex_pass_entry(tomo::Server&, tomo::Shard&, unsigned int, tomo::ThreadCtx&, tomo::Ring&, tomo::LoopSignals&) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        501
+      ],
+      "post_sizes": [
+        490
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1976
+      ],
+      "post_sizes": [
+        2014
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, trackfix, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::notify_retire_batch_entry(tomo::IoLoop&, tomo::NotifyBatch*, unsigned long)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3974
+      ],
+      "post_sizes": [
+        4032
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::notify_retire_batch_entry(tomo::IoLoop&, tomo::NotifyBatch*, unsigned long) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        287
+      ],
+      "post_sizes": [
+        294
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::notify_take_batch(tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        354
+      ],
+      "post_sizes": [
+        372
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::notify_tracking_commit(tomo::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        265
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix"
+      ],
+      "reason": "trackfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        20731
+      ],
+      "post_sizes": [
+        20700
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "compat3",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, compat3, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        372
+      ],
+      "post_sizes": [
+        415
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "compat3",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, compat3, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1530
+      ],
+      "post_sizes": [
+        1747
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix"
+      ],
+      "reason": "txnfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_flush_commits(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        15
+      ],
+      "post_sizes": [
+        45
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix"
+      ],
+      "reason": "txnfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*))",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        1743
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::xshard_flush_commits_timed(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, void*, void (*)(void*, tomo::Client*)) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        45
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        18276
+      ],
+      "post_sizes": [
+        18231
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix"
+      ],
+      "reason": "txnfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        594
+      ],
+      "post_sizes": [
+        573
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix"
+      ],
+      "reason": "txnfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1072
+      ],
+      "post_sizes": [
+        1072
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "compat3",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, compat3, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::notify_get_or_create_batch(tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        330
+      ],
+      "post_sizes": [
+        330
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo_db0::NotifyEventId, tomo_db0::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1422
+      ],
+      "post_sizes": [
+        1314
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix"
+      ],
+      "reason": "txnfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo_db0::NotifyEventId, tomo_db0::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        127
+      ],
+      "post_sizes": [
+        118
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix"
+      ],
+      "reason": "txnfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::notify_reserve_chain(tomo_db0::Server&, std::unique_ptr<tomo_db0::PubSubNotificationChain, std::default_delete<tomo_db0::PubSubNotificationChain> >)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        200
+      ],
+      "post_sizes": [
+        216
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "compat3",
+        "trackfix",
+        "fliplisten",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, compat3, trackfix, fliplisten, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::function_execute_exec(tomo_db0::Shard&, tomo_db0::Op&, void*, bool (*)(void*))",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        3469
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::function_execute_exec(tomo_db0::Shard&, tomo_db0::Op&, void*, bool (*)(void*)) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        220
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::notify_ex_pass_entry(tomo_db0::Server&, tomo_db0::Shard&, unsigned int, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::LoopSignals&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        5677
+      ],
+      "post_sizes": [
+        5488
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::notify_ex_pass_entry(tomo_db0::Server&, tomo_db0::Shard&, unsigned int, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::LoopSignals&) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        501
+      ],
+      "post_sizes": [
+        490
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1831
+      ],
+      "post_sizes": [
+        1872
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix",
+        "netfix",
+        "iofix"
+      ],
+      "reason": "Composition of txnfix, trackfix, netfix, iofix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        3974
+      ],
+      "post_sizes": [
+        4032
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        287
+      ],
+      "post_sizes": [
+        294
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::notify_take_batch(tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        354
+      ],
+      "post_sizes": [
+        372
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::notify_tracking_commit(tomo_db0::Op&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        265
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "trackfix"
+      ],
+      "reason": "trackfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        23221
+      ],
+      "post_sizes": [
+        22856
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "compat3",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, compat3, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        383
+      ],
+      "post_sizes": [
+        372
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix",
+        "compat3",
+        "trackfix"
+      ],
+      "reason": "Composition of txnfix, compat3, trackfix; residual instructions/layout require merit review."
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        1530
+      ],
+      "post_sizes": [
+        1747
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix"
+      ],
+      "reason": "txnfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        15
+      ],
+      "post_sizes": [
+        45
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix"
+      ],
+      "reason": "txnfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*))",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        1743
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::xshard_flush_commits_timed(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, void (*)(void*, tomo_db0::Client*)) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [],
+      "post_sizes": [
+        45
+      ],
+      "matches": [],
+      "changed_lanes": [],
+      "reason": "Unedited body: compiler/link layout propagation in merged source; no single optimizer decision isolated."
+    },
+    {
+      "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&)",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        7358
+      ],
+      "post_sizes": [
+        7306
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix"
+      ],
+      "reason": "txnfix changes this body; merged compiler propagation differs from isolated POST."
+    },
+    {
+      "name": "tomo_db0::xshard_plain_prepare(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Op&, unsigned long, tomo_db0::PlainForeignReadScope&) [clone .cold]",
+      "hot": false,
+      "command_hot": false,
+      "equal": false,
+      "headline_sizes": [
+        239
+      ],
+      "post_sizes": [
+        242
+      ],
+      "matches": [],
+      "changed_lanes": [
+        "txnfix"
+      ],
+      "reason": "txnfix changes this body; merged compiler propagation differs from isolated POST."
+    }
+  ],
+  "references": {
+    "headline": {
+      "path": "/home/user/Projects/bins/txnorder2-pre-97ea4e06",
+      "sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e"
+    },
+    "txnfix": {
+      "path": "/home/user/Projects/bins/txnorder2-post-5bfa95e7",
+      "sha256": "5bfa95e74b42c78c0b70fa0e3983c89582b66dc8d4a1570262968ec84e5f447f"
+    },
+    "bugs5": {
+      "path": "/home/user/Projects/bins/bugs5-post-e514a979",
+      "sha256": "e514a979201f2d748e947c007ce5f8411794bb2d007f2ad6a832c6c2b141c588"
+    },
+    "compat3": {
+      "path": "/home/user/Projects/bins/compat3-post-5319e470",
+      "sha256": "5319e4705024d7d9ef83cacb56f4399693562bb9fa61eb0a239e91ed9c67ff35"
+    },
+    "trackfix": {
+      "path": "/home/user/Projects/bins/trackfix-post-787031f0",
+      "sha256": "787031f023997cd3e5ce2330e9d11794819c4799202714f5a1d7299c9b39a181"
+    },
+    "fliplisten": {
+      "path": "/home/user/Projects/bins/fliplisten-post-191a4d96",
+      "sha256": "191a4d962bf97c72a57c32c29324f5de6ed1e9a9ed6c788a6520d366247e5f29"
+    },
+    "netfix": {
+      "path": "/home/user/Projects/bins/netfix-post-9cfcbcb1",
+      "sha256": "9cfcbcb1ea030cf2f2182931bc86d485d363bd6fc70124ad4d28f44f33b59c47"
+    },
+    "iofix": {
+      "path": "/home/user/Projects/bins/iofix-post-a7a3d72a",
+      "sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+    }
+  },
+  "post": {
+    "path": "/home/user/Projects/cx-wave5/build/tomokv",
+    "sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5"
+  }
+}

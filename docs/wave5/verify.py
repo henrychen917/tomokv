@@ -3,7 +3,13 @@
 import argparse,hashlib,json,os,re,shutil,subprocess,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2];DOC=ROOT/'docs/wave5';BUILD=ROOT/'build/wave5'
-p=argparse.ArgumentParser();p.add_argument('name');p.add_argument('jobs');p.add_argument('--engine',choices=['uring','epoll']);p.add_argument('--mode',choices=['1s','2s']);p.add_argument('--root',type=Path,default=ROOT);p.add_argument('--single-slot',action='store_true');a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('name');p.add_argument('jobs');p.add_argument('--engine',choices=['uring','epoll']);p.add_argument('--mode',choices=['1s','2s']);p.add_argument('--root',type=Path,default=ROOT);p.add_argument('--single-slot',action='store_true');p.add_argument('--ports',default='26800-26889');p.add_argument('--server-cores');p.add_argument('--load-cores');a=p.parse_args()
+lo,hi=map(int,a.ports.split('-'));assert 26800<=lo<hi<=26899
+server_cores=a.server_cores or ('64-71' if a.single_slot else '64-79')
+load_cores=a.load_cores or ('72-95' if a.single_slot else '80-95')
+for spec in [server_cores,load_cores]:
+ for part in spec.split(','):
+  ends=list(map(int,part.split('-')));assert all(64<=n<=95 for n in ends)
 assert a.jobs and not set(a.jobs.split())&{'atomic_floor','efficiency'},'performance jobs remain with maintainer'
 OUT=DOC/'gate'/a.name;OUT.mkdir(parents=True,exist_ok=True)
 env=dict(os.environ,REDIS74_ROOT='/home/user/Projects/redis',GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',GATE_DIFFER_REDIS_CLI='/home/user/Projects/redis74/src/redis-cli',GATE_DIFFER_ORACLE_CORES='95',GATE_GLOBCASE_ORACLE_CORES='95',GATE_TEST_PORT='26899',GATE_DIFFER_HISTORY=str(BUILD/'differ-history'),GATE_HISTORY=str(BUILD/'gate-history'),PYTHONPATH=str(DOC/'port_guard')+os.pathsep+os.environ.get('PYTHONPATH',''),WAVE5_PORT_RECEIPT=str(DOC/'fixture-ports.jsonl'),GATE_ONLY_JOBS=a.jobs,GATE_LEDGER=str(OUT/'ledger'))
@@ -22,7 +28,7 @@ if a.engine or a.mode:
  if a.engine:env['WAVE5_ENGINE']=a.engine
  if a.mode:env['WAVE5_MODE']=a.mode
  env['WAVE5_LAUNCH_DIR']=str(OUT/'launches')
-cmd=['taskset','-c','64-95',str(a.root/'tests/gate.sh'),'full','--server-cores','64-71' if a.single_slot else '64-79','--load-cores','72-95' if a.single_slot else '80-95','--load-smt','','--ports','26800-26889','--candidate-binary',str(binary)]
+cmd=['taskset','-c','64-95',str(a.root/'tests/gate.sh'),'full','--server-cores',server_cores,'--load-cores',load_cores,'--load-smt','','--ports',a.ports,'--candidate-binary',str(binary)]
 row=dict(command=cmd,jobs=a.jobs.split(),started=time.time(),binary_sha256=digest,snapshot_binary=str(snapshot/'tomokv'),environment={k:v for k,v in env.items() if k.startswith(('GATE_','WAVE5_','REDIS74_ROOT','PYTHONPATH','NETFIX_TLS_ORACLE'))})
 with (OUT/'gate.log').open('w') as f:row['returncode']=subprocess.run(cmd,cwd=a.root,env=env,stdout=f,stderr=subprocess.STDOUT).returncode
 row['elapsed']=time.time()-row['started']

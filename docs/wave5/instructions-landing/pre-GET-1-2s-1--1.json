@@ -1,0 +1,30 @@
+{
+  "arm": "pre",
+  "command_name": "GET",
+  "batch": 1,
+  "mode": "2s",
+  "atomic": 1,
+  "slowlog": -1,
+  "returncode": 0,
+  "binary_sha256": "d59b0a577f945cd09fcd0d3a2248462585ae49d4da82eec7273a68f0d020365a",
+  "total": 1632,
+  "counts": {
+    "_ZN4tomo19CoreConcurrencyTest3runILb0EEEvRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEjbl": 5,
+    "_ZN4tomo7ExLoopTILb0EE21exec_batch_prefetchedILb0EEEvPKNS_4TaskEj": 121,
+    "external": 28,
+    "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE": 186,
+    "_ZN4tomo17multi_task_taggedERKNS_4TaskE": 4,
+    "_ZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE": 38,
+    "_ZN4tomo12_GLOBAL__N_17cmd_getILb0ELb1EEEvRNS_5ShardERNS_2OpE": 77,
+    "_ZN4tomo9FlatStore4findEmNS_5SliceE": 85,
+    "_ZNK4tomo5KvObj3keyEv": 13,
+    "_ZNK4tomo5Slice6key_eqERKS0_": 23,
+    "_ZN4tomo10reply_bulkINS_2Op4SinkEEEvOT_NS_5SliceE.isra.0": 110,
+    "_ZN4tomo7ExLoopTILb0EE13notify_senderEPNS_6ClientE": 28,
+    "_ZN4tomo7ExLoopTILb0EE18flush_notify_batchEv": 94,
+    "_ZN4tomo5Shard12publish_sizeEv": 232,
+    "_ZNK4tomo9FlatStore23publish_database_countsEv": 588
+  },
+  "clock_calls": 1,
+  "elapsed": 1.9980888366699219
+}

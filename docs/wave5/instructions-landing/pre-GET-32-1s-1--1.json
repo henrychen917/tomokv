@@ -1,0 +1,32 @@
+{
+  "arm": "pre",
+  "command_name": "GET",
+  "batch": 32,
+  "mode": "1s",
+  "atomic": 1,
+  "slowlog": -1,
+  "returncode": 0,
+  "binary_sha256": "d59b0a577f945cd09fcd0d3a2248462585ae49d4da82eec7273a68f0d020365a",
+  "total": 20134,
+  "counts": {
+    "_ZN4tomo19CoreConcurrencyTest3runILb1EEEvRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEjbl": 5,
+    "_ZN4tomo7ExLoopTILb1EE21exec_batch_prefetchedILb0EEEvPKNS_4TaskEj": 370,
+    "external": 431,
+    "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE": 5760,
+    "_ZN4tomo17multi_task_taggedERKNS_4TaskE": 128,
+    "_ZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE": 1216,
+    "_ZN4tomo9ThreadCtx12note_commandEt": 480,
+    "_ZN4tomo12_GLOBAL__N_17cmd_getILb0ELb1EEEvRNS_5ShardERNS_2OpE": 2464,
+    "_ZN4tomo9FlatStore4findEmNS_5SliceE": 2720,
+    "_ZNK4tomo5KvObj3keyEv": 416,
+    "_ZNK4tomo5Slice6key_eqERKS0_": 736,
+    "_ZN4tomo10reply_bulkINS_2Op4SinkEEEvOT_NS_5SliceE.isra.0": 3520,
+    "_ZN4tomo7ExLoopTILb1EE12note_lb_hashERNS_5ShardEm": 160,
+    "_ZN4tomo7ExLoopTILb1EE13notify_senderEPNS_6ClientE": 1088,
+    "_ZN4tomo7ExLoopTILb1EE18flush_notify_batchEv": 435,
+    "_ZN4tomo5Shard12publish_sizeEv": 58,
+    "_ZNK4tomo9FlatStore23publish_database_countsEv": 147
+  },
+  "clock_calls": 1,
+  "elapsed": 7.3247246742248535
+}
