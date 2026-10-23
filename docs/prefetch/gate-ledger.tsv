@@ -1,0 +1,46 @@
+PARTIAL	0	GATE_ONLY_JOBS=core_units exbatch_units exbatch_live perfex_units perfex_live ntnew4_live reorder_sync reorder_engagement reorder_identity splitlocal_units fused-0 fused-1 dbdefault; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	0.900000	R7 generated envelope parity
+ok	13.470000	R7 production engagement (both database runtimes)
+ok	101.660000	R7 FIFO twin off-path identity + negative controls
+ok	0.110000	core concurrency watch
+ok	0.320000	core concurrency lifetime
+ok	0.100000	core concurrency drain
+ok	7.230000	core concurrency route
+ok	0.110000	core concurrency snapshot
+ok	0.170000	core concurrency config
+ok	0.170000	core concurrency notify
+ok	0.570000	read-local topology demotion (1s)
+ok	0.570000	read-local topology demotion (2s)
+ok	0.130000	perfex clock binary regression
+ok	0.120000	perfex batch binary regression
+ok	15.250000	perfex TTL sampler beat (1s)
+ok	15.260000	perfex TTL sampler beat (2s)
+ok	1.180000	NT-new-4 command clock after dequeue (2s)
+ok	1.180000	NT-new-4 command clock after dequeue (1s)
+ok	1.170000	NT-new-4 command clock after dequeue (2s, epoll)
+ok	14.820000	exbatch publication unit + negative controls
+ok	38.730000	exbatch watch unit + negative controls
+ok	17.010000	exbatch metadata unit + negative controls
+ok	0.280000	exbatch publication and WATCH lifecycle (1s)
+ok	0.290000	exbatch publication and WATCH lifecycle (2s)
+ok	0.900000	splitlocal template forwarding + old-argument controls
+ok	0.190000	Redis default databases 16 (both modes)
+ok	0.260000	fused boot line (atomic 0)
+ok	1.680000	fused s6 battery (atomic 0)
+ok	2.080000	fused multi_exec battery (atomic 0)
+ok	0.740000	fused edgeproto battery (atomic 0)
+ok	0.060000	fused atomfix battery (atomic 0)
+ok	2.230000	fused spinprobe battery (atomic 0)
+ok	1.160000	fused shutdown report (atomic 0)
+ok	1.530000	fused txn_nx battery (atomic 0)
+ok	8.830000	fused txniso battery (atomic 0)
+ok	0.260000	fused boot line (atomic 1)
+ok	1.170000	fused s6 battery (atomic 1)
+ok	2.080000	fused multi_exec battery (atomic 1)
+ok	0.710000	fused edgeproto battery (atomic 1)
+ok	0.040000	fused atomfix battery (atomic 1)
+ok	2.230000	fused spinprobe battery (atomic 1)
+ok	1.160000	fused shutdown report (atomic 1)
+ok	2.750000	fused txn_nx battery (atomic 1)
+ok	9.690000	fused txniso battery (atomic 1)
