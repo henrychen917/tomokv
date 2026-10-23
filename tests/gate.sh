@@ -1106,7 +1106,7 @@ plan_jobs(){
               wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
-              release_batteries atomic_batteries moverfix hexpread compat2 dispatch_arity bplus acl_recheck aclfix sort script_bounds scriptfix
+              release_batteries atomic_batteries moverfix hexpread compat2 dispatch_arity dispatch_errors bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify notify_order notify_aof flip flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -1634,6 +1634,10 @@ dispatchfix_job(){
 job_dispatch_arity(){
   row_begin 'dispatchfix EX4.10 container outer arity'
   dispatchfix_job dispatch_arity 'dispatchfix EX4.10 container outer arity'
+}
+job_dispatch_errors(){
+  row_begin 'dispatchfix EX4.11 container errors'
+  dispatchfix_job dispatch_errors 'dispatchfix EX4.11 container errors'
 }
 
 job_hexpread(){
@@ -4214,6 +4218,7 @@ collect_job hexpread
 # Three compat2 rows, collected before the quick-tier exit: DQ=+3, DF=+3.
 collect_job compat2
 collect_job dispatch_arity
+collect_job dispatch_errors
 
 # Whole split boots run independently; their internal battery sequence remains unchanged.
 for AT in 0 1; do collect_job "feature-split-$AT"; done

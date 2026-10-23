@@ -1361,7 +1361,7 @@ void cmd_client(Shard&, Op& op) {
     } else if (eq_icase(sub, "NO-EVICT")) {
         reply_syntax(op.sink());
     } else {
-        std::string error = "ERR Unknown subcommand or wrong number of arguments for '";
+        std::string error = "ERR unknown subcommand '";
         error.append(op.arg(1).p, op.arg(1).n);
         error += "'. Try CLIENT HELP.";
         reply_err(op.sink(), error.c_str());

@@ -412,9 +412,15 @@ void cmd_object_impl(Shard& shard, Op& op) {
     const bool idletime = eq_icase(sub, "IDLETIME");
     const bool freq     = eq_icase(sub, "FREQ");
 
+    // IDLETIME/FREQ must not touch the metadata they are about to report.
+    // Redis returns nil for a missing key before checking the eviction policy.
+    KvObj* object = (idletime || freq)
+        ? object_read_no_touch(shard, op.hash, op.arg(2))
+        : shard.store_find_read<kNotify>(op.hash, op.arg(2));
+    if (!object) { reply_null(op.sink(), op.resp3()); return; }
     const MaxmemoryPolicy policy = shard.store().maxmemory_policy();
     const bool lfu = maxmemory_policy_is_lfu(policy);
-    // These two gates are policy checks, not key checks, and redis applies them before the lookup.
+    // These policy errors apply only to an existing key.
     if (freq && !lfu) {
         reply_err(op.sink(),
                   "ERR An LFU maxmemory policy is not selected, access frequency not tracked. Please note that when switching between policies at runtime LRU and LFU data will take some time to adjust.");
@@ -426,12 +432,6 @@ void cmd_object_impl(Shard& shard, Op& op) {
         return;
     }
 
-    // ENCODING/REFCOUNT go through the notify-aware lookup so an armed keymiss event still fires.
-    // IDLETIME/FREQ must not touch the metadata they are about to report.
-    KvObj* object = (idletime || freq)
-        ? object_read_no_touch(shard, op.hash, op.arg(2))
-        : shard.store_find_read<kNotify>(op.hash, op.arg(2));
-    if (!object) { reply_null(op.sink(), op.resp3()); return; }
     if (encoding) {
         const char* name = encoding_name(object);
         reply_bulk(op.sink(), Slice(name, static_cast<uint32_t>(std::strlen(name))));

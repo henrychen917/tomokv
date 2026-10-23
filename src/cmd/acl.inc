@@ -1525,10 +1525,26 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
     if (sub.eq_icase("help") && op.argc() == 2) {
         static constexpr const char* help[] = {
             "ACL <subcommand> [<arg> [value] [opt] ...]. Subcommands are:",
-            "CAT [<category>]", "DELUSER <username> [<username> ...]", "GENPASS [<bits>]",
-            "GETUSER <username>", "LIST", "LOAD", "SAVE",
-            "LOG [<count> | RESET]", "SETUSER <username> [<rule> [<rule> ...]]",
-            "USERS", "WHOAMI", "HELP"
+            "CAT [<category>]",
+            "    List all commands that belong to <category>, or all command categories",
+            "    when no category is specified.",
+            "DELUSER <username> [<username> ...]",
+            "    Delete a list of users.",
+            "DRYRUN <username> <command> [<arg> ...]",
+            "    Returns whether the user can execute the given command without executing the command.",
+            "GETUSER <username>", "    Get the user's details.",
+            "GENPASS [<bits>]",
+            "    Generate a secure 256-bit user password. The optional `bits` argument can",
+            "    be used to specify a different size.",
+            "LIST", "    Show users details in config file format.",
+            "LOAD", "    Reload users from the ACL file.",
+            "LOG [<count> | RESET]", "    Show the ACL log entries.",
+            "SAVE", "    Save the current config to the ACL file.",
+            "SETUSER <username> <attribute> [<attribute> ...]",
+            "    Create or modify a user with the specified attributes.",
+            "USERS", "    List all the registered usernames.",
+            "WHOAMI", "    Return the current connection username.",
+            "HELP", "    Print this help."
         };
         reply_array_header(op.sink(), sizeof(help) / sizeof(help[0]));
         for (const char* line : help) reply_simple(op.sink(), line);

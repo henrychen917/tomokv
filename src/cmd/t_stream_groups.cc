@@ -398,6 +398,16 @@ void reply_help(Op& op, const char* const* lines, size_t count) {
     for (size_t i = 0; i < count; i++) reply_simple(op.sink(), lines[i]);
 }
 
+void reply_stream_subcommand_syntax(Op& op) {
+    std::string error = "ERR unknown subcommand or wrong number of arguments for '";
+    const Slice sub = op.arg(1);
+    error.append(sub.p, sub.n);
+    error += "'. Try ";
+    error += op.spec->name;
+    error += " HELP.";
+    reply_err(op.sink(), error.c_str());
+}
+
 template <bool kNotify>
 void cmd_xgroup(Shard& shard, Op& op) {
     int16_t first_key = 0;
@@ -407,36 +417,41 @@ void cmd_xgroup(Shard& shard, Op& op) {
         reply_help(op, kXgroupHelp, sizeof(kXgroupHelp) / sizeof(kXgroupHelp[0]));
         return;
     }
+    const bool create = sub.eq_icase("create");
+    const bool setid = sub.eq_icase("setid");
+    bool mkstream = false;
+    int64_t entries_read = -1;
+    // Redis parses the optional tail before the key/group lookup and the ID.
+    for (uint32_t pos = 5; pos < op.argc();) {
+        if (create && op.arg(pos).eq_icase("mkstream")) {
+            mkstream = true; pos++; continue;
+        }
+        if ((create || setid) && op.arg(pos).eq_icase("entriesread") && pos + 1 < op.argc()) {
+            if (!parse_i64_option(op.arg(pos + 1), entries_read)) {
+                reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
+            }
+            if (entries_read < -1) {
+                reply_err(op.sink(), "ERR value for ENTRIESREAD must be positive or -1"); return;
+            }
+            pos += 2; continue;
+        }
+        reply_stream_subcommand_syntax(op); return;
+    }
     const Slice key = op.arg(2);
     KvObj* object = shard.store_find<kNotify>(op.hash, key);
+    if (object && !obj_type_check(object, Type::Stream, op.sink())) return;
+    if (!object && !mkstream) {
+        reply_err(op.sink(), "ERR The XGROUP subcommand requires the key to exist. Note that for CREATE you may want to use the MKSTREAM option to create an empty stream automatically.");
+        return;
+    }
 
-    if (sub.eq_icase("create")) {
-        if (op.argc() < 5) { reply_syntax(op.sink()); return; }
+    if (create) {
+        if (op.argc() > 8) { reply_stream_subcommand_syntax(op); return; }
         StreamID id{};
         const bool latest = op.arg(4).n == 1 && op.arg(4).p[0] == '$';
         if (!latest && !parse_id(op.arg(4), id)) { invalid_id(op); return; }
-        bool mkstream = false;
-        int64_t entries_read = -1;
-        bool entries_seen = false;
-        for (uint32_t pos = 5; pos < op.argc();) {
-            if (op.arg(pos).eq_icase("mkstream") && !mkstream) {
-                mkstream = true; pos++; continue;
-            }
-            if (op.arg(pos).eq_icase("entriesread") && !entries_seen && pos + 1 < op.argc()) {
-                if (!parse_i64_exact(op.arg(pos + 1), entries_read) || entries_read < -1) {
-                    reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
-                }
-                entries_seen = true; pos += 2; continue;
-            }
-            reply_syntax(op.sink()); return;
-        }
-        if (object && !obj_type_check(object, Type::Stream, op.sink())) return;
         if (object && find_group(object, op.arg(3))) {
             reply_err(op.sink(), "BUSYGROUP Consumer Group name already exists"); return;
-        }
-        if (!object && !mkstream) {
-            reply_err(op.sink(), "ERR The XGROUP subcommand requires the key to exist. Note that for CREATE you may want to use the MKSTREAM option to create an empty stream automatically.");
-            return;
         }
         if (!object && !stream_create_empty_external(shard, op, kNotify, object)) return;
         if (!stream_force_external(shard, op, object, kNotify)) return;
@@ -471,12 +486,6 @@ void cmd_xgroup(Shard& shard, Op& op) {
         return;
     }
 
-    if (!object) {
-        if (sub.eq_icase("destroy")) { reply_int(op.sink(), 0); return; }
-        reply_nogroup_subcommand(op, key, op.argc() > 3 ? op.arg(3) : Slice{});
-        return;
-    }
-    if (!obj_type_check(object, Type::Stream, op.sink())) return;
     if (op.argc() < 4) { reply_syntax(op.sink()); return; }
     StreamGroup* group = find_group(object, op.arg(3));
 
@@ -532,8 +541,8 @@ void cmd_xgroup(Shard& shard, Op& op) {
         reply_int(op.sink(), static_cast<long long>(removed));
         return;
     }
-    if (sub.eq_icase("setid")) {
-        if (op.argc() != 5 && op.argc() != 7) { reply_syntax(op.sink()); return; }
+    if (setid) {
+        if (op.argc() != 5 && op.argc() != 7) { reply_stream_subcommand_syntax(op); return; }
         StreamHeader header;
         if (!stream_object_header(object, header)) {
             reply_err(op.sink(), "ERR corrupt stream encoding"); return;
@@ -541,13 +550,6 @@ void cmd_xgroup(Shard& shard, Op& op) {
         StreamID id{};
         if (op.arg(4).n == 1 && op.arg(4).p[0] == '$') id = header.last_id;
         else if (!parse_id(op.arg(4), id)) { invalid_id(op); return; }
-        int64_t entries_read = -1;
-        if (op.argc() == 7) {
-            if (!op.arg(5).eq_icase("entriesread")) { reply_syntax(op.sink()); return; }
-            if (!parse_i64_exact(op.arg(6), entries_read) || entries_read < -1) {
-                reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
-            }
-        }
         ObjectSizeTracker tracker(shard.store(), object);
         group->last_delivered = id;
         group->entries_read = entries_read;
@@ -1105,18 +1107,18 @@ void cmd_xinfo(Shard& shard, Op& op) {
     }
     bool full = false; uint64_t count = 10;
     if (op.argc() > 3) {
-        if (!op.arg(3).eq_icase("full")) { reply_syntax(op.sink()); return; }
+        if (!op.arg(3).eq_icase("full")) { reply_stream_subcommand_syntax(op); return; }
         full = true;
         if (op.argc() == 6) {
-            if (!op.arg(4).eq_icase("count") || !parse_u64_exact(op.arg(5), count)) {
-                reply_syntax(op.sink()); return;
+            if (!op.arg(4).eq_icase("count")) { reply_stream_subcommand_syntax(op); return; }
+            int64_t parsed = 0;
+            if (!parse_i64_option(op.arg(5), parsed)) {
+                reply_err(op.sink(), "ERR value is not an integer or out of range"); return;
             }
+            count = parsed < 0 ? 10 : static_cast<uint64_t>(parsed);
             if (count == 0) count = UINT64_MAX;
         } else if (op.argc() != 4) {
-            std::string error = "ERR unknown subcommand or wrong number of arguments for '";
-            error.append(sub.p, sub.n);
-            error += "'. Try XINFO HELP.";
-            reply_err(op.sink(), error.c_str());
+            reply_stream_subcommand_syntax(op);
             return;
         }
     }
