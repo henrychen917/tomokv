@@ -175,7 +175,51 @@ def emptystore(peer):
                       [('keymiss', src), ('del', dst)])
 
 
-CASES = {'setbit': setbit, 'setpast': setpast, 'emptystore': emptystore}
+def writemiss(peer):
+    for name in ('SET', 'GETSET', 'GETDEL', 'GETEX'):
+        for expired in (False, True):
+            key = f'nc:readwrite:{name}:{expired}'
+            if expired:
+                peer.setup(('SET', key, 'old', 'PX', 50))
+                time.sleep(.08)
+            else:
+                peer.setup()
+            command = (name, key) + (('new', 'GET') if name == 'SET' else
+                                     ('new',) if name == 'GETSET' else ())
+            events = ([('expired', key)] if expired else []) + [('keymiss', key)]
+            if name in ('SET', 'GETSET'):
+                events.append(('set', key))
+            peer.step('write read miss ' + key, command, None, events)
+    peer.setup()
+    peer.step('plain SET has no read miss', ('SET', 'nc:writeonly', 'v'), b'OK',
+              [('set', 'nc:writeonly')])
+    peer.step('SET XX GET misses before condition', ('SET', 'nc:xxget', 'v', 'XX', 'GET'),
+              None, [('keymiss', 'nc:xxget')])
+
+
+def objectmiss(peer):
+    for sub in ('ENCODING', 'REFCOUNT', 'IDLETIME', 'FREQ'):
+        policy = 'allkeys-lfu' if sub == 'FREQ' else 'allkeys-lru'
+        equal(peer.admin.cmd('CONFIG', 'SET', 'maxmemory-policy', policy), b'OK', 'policy')
+        for expired in (False, True):
+            key = f'nc:object:{sub}:{expired}'
+            peer.setup(*([('SET', key, 'value', 'PX', 50)] if expired else []))
+            if expired:
+                time.sleep(.08)
+            peer.step('OBJECT read ' + key, ('OBJECT', sub, key), None,
+                      [('expired', key)] if expired else [])
+    # Redis resolves a missing/expired key before checking whether the policy
+    # supports the requested statistic.
+    for sub, policy in (('IDLETIME', 'allkeys-lfu'), ('FREQ', 'allkeys-lru')):
+        equal(peer.admin.cmd('CONFIG', 'SET', 'maxmemory-policy', policy), b'OK', 'policy')
+        key = 'nc:policy:' + sub
+        peer.setup()
+        peer.step('absent before policy error', ('OBJECT', sub, key), None, [])
+    peer.admin.cmd('CONFIG', 'SET', 'maxmemory-policy', 'noeviction')
+
+
+CASES = {'setbit': setbit, 'setpast': setpast, 'emptystore': emptystore,
+         'writemiss': writemiss, 'objectmiss': objectmiss}
 
 
 def main():

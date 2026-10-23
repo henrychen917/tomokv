@@ -550,7 +550,18 @@ bool notify_keymiss_read_lookup(const Op& source, Slice key) {
         !(source.spec->flags & CmdFlags::Write)) return true;
     const Slice name = source.cmd_name();
     uint32_t first, end = source.argc();
-    if (name.eq_icase("copy")) {
+    if (name.eq_icase("getset") || name.eq_icase("getdel") || name.eq_icase("getex")) {
+        first = 1; end = std::min(end, 2u);
+    }
+    else if (name.eq_icase("set")) {
+        // Parsing already succeeded before this lookup. GET reads the old value
+        // even when NX/XX will reject the write.
+        bool get = false;
+        for (uint32_t i = 3; i < end; ++i) get |= source.arg(i).eq_icase("get");
+        if (!get) return false;
+        first = 1; end = std::min(end, 2u);
+    }
+    else if (name.eq_icase("copy")) {
         // Redis rejects the same-object form before either lookup. The local gather may
         // already have probed both argv entries when it diagnoses that error.
         if (end >= 3 && source.arg(1).key_mem_eq(source.arg(2))) return false;

@@ -33,3 +33,12 @@ adjusted to preserve Redis's source-before-destination sequence in these cases.
 The initial string POST rerun exposed an overfilled test key-selection bucket on
 fused boots; that arming bug was corrected (no skipped leg or relaxed assertion).
 Current DQ=+3 / DF=+3; required counts 742 / 759. Final proof pending.
+
+NO-A1: Redis confirms `keymiss` for SET GET, GETSET, GETDEL and GETEX on absent
+keys, preceded by `expired` on a lazy-expired key. SET/GETSET then emit `set`.
+SET XX GET still reads before rejecting its write. The observer now classifies
+these read lookups without adding work to disarmed command handlers.
+Oracle bytes: `docs/notifycompat/oracle-writemiss.log`. Current DQ=+4 / DF=+4;
+required counts 743 / 760. CC4.20's identity diagnostic reports shared xshard
+execution changes and db0 prepare spillover; these remain explicit repair/merit
+inputs, not a reason to stop or a performance claim.

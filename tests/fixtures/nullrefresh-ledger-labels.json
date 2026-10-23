@@ -511,6 +511,7 @@
     "notification compatibility setbit vs Redis 7.4",
     "notification compatibility setpast vs Redis 7.4",
     "notification compatibility emptystore vs Redis 7.4",
+    "notification compatibility writemiss vs Redis 7.4",
     "keyspace lazy-expiry order vs Redis 7.4",
     "local script notification AOF vs Redis 7.4",
     "FLIP state battery",
