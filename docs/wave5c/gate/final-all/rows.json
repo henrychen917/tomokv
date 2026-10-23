@@ -1,0 +1,1520 @@
+[
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.070000",
+    "label": "configuration reduction + actual geometry (epoll, atomic 0)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.430000",
+    "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "AOF writer fired (records=N)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "AOF process-restart script replay (epoll, atomic 0)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "AOF native snapshot streams byte-exact"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "AOF replay fired (records=N skipped=N)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.070000",
+    "label": "configuration reduction + actual geometry (epoll, atomic 1)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.420000",
+    "label": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "AOF writer fired (records=N)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "AOF process-restart script replay (epoll, atomic 1)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "AOF native snapshot streams byte-exact"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "AOF replay fired (records=N skipped=N)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.260000",
+    "label": "AOF directed group interruption fired"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "AOF atomic-group recovery + writer order"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "AOF group shutdown invariants"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "AOF always sync + reply gate fired"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "AOF always recovery after quiescent SIGKILL"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.860000",
+    "label": "AOF in-window kill recovery (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "2.090000",
+    "label": "AOF in-window term recovery (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.850000",
+    "label": "AOF in-window kill recovery (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "2.110000",
+    "label": "AOF in-window term recovery (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "1.790000",
+    "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "1.790000",
+    "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "1.920000",
+    "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "1.980000",
+    "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "1.300000",
+    "label": "AOF everysec write gate + idle sync fired"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "AOF everysec durability window + tail warning"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "AOF no-sync bypassed sync + reply gate"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "5.140000",
+    "label": "AOF rewrite atomic/stage/corruption matrix"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "5.480000",
+    "label": "AOF rewrite triggers + observability matrix"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "AOF-off negative-control seed landed"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "AOF-off negative control lost data"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.420000",
+    "label": "aoffix2 snapshot (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "1.510000",
+    "label": "aoffix2 filename (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.170000",
+    "label": "aoffix2 error (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "aoffix2 tickets (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "aoffix2 exec_tickets (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "aoffix2 resurrection (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.420000",
+    "label": "aoffix2 rewrite_fail2 (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.300000",
+    "label": "aoffix2 manifest_missing (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.270000",
+    "label": "aoffix2 off-writer acknowledgement everysec (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.280000",
+    "label": "aoffix2 off-writer acknowledgement always (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.420000",
+    "label": "aoffix2 snapshot (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "1.470000",
+    "label": "aoffix2 filename (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.180000",
+    "label": "aoffix2 error (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "aoffix2 tickets (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "aoffix2 exec_tickets (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.530000",
+    "label": "aoffix2 resurrection (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.330000",
+    "label": "aoffix2 rewrite_fail2 (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.310000",
+    "label": "aoffix2 manifest_missing (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.280000",
+    "label": "aoffix2 off-writer acknowledgement everysec (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.290000",
+    "label": "aoffix2 off-writer acknowledgement always (2s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.340000",
+    "label": "aoffix2 large (1s, epoll)"
+  },
+  {
+    "job": "aof-epoll",
+    "verdict": "ok",
+    "elapsed": "0.190000",
+    "label": "aoffix2 large_placed (1s, epoll)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.070000",
+    "label": "configuration reduction + actual geometry (uring, atomic 0)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.410000",
+    "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "AOF writer fired (records=N)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "AOF process-restart script replay (uring, atomic 0)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "AOF native snapshot streams byte-exact"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "AOF replay fired (records=N skipped=N)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.070000",
+    "label": "configuration reduction + actual geometry (uring, atomic 1)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.430000",
+    "label": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "AOF writer fired (records=N)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "AOF process-restart script replay (uring, atomic 1)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "AOF native snapshot streams byte-exact"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "AOF replay fired (records=N skipped=N)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.070000",
+    "label": "AOF directed group interruption fired"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "AOF atomic-group recovery + writer order"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "AOF group shutdown invariants"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "AOF always sync + reply gate fired"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "AOF always recovery after quiescent SIGKILL"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.850000",
+    "label": "AOF in-window kill recovery (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "3.480000",
+    "label": "AOF in-window term recovery (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.870000",
+    "label": "AOF in-window kill recovery (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "4.750000",
+    "label": "AOF in-window term recovery (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "1.740000",
+    "label": "shutdown cancels AOF rewrite capture (1s, atomic 0, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "1.830000",
+    "label": "shutdown cancels AOF rewrite capture (1s, atomic 1, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "1.880000",
+    "label": "shutdown cancels AOF rewrite capture (2s, atomic 0, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "1.980000",
+    "label": "shutdown cancels AOF rewrite capture (2s, atomic 1, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "1.290000",
+    "label": "AOF everysec write gate + idle sync fired"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "AOF everysec durability window + tail warning"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "AOF no-sync bypassed sync + reply gate"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "5.130000",
+    "label": "AOF rewrite atomic/stage/corruption matrix"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "6.110000",
+    "label": "AOF rewrite triggers + observability matrix"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "AOF-off negative-control seed landed"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "AOF-off negative control lost data"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.420000",
+    "label": "aoffix2 snapshot (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "1.470000",
+    "label": "aoffix2 filename (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.180000",
+    "label": "aoffix2 error (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "aoffix2 tickets (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "aoffix2 exec_tickets (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "aoffix2 resurrection (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.420000",
+    "label": "aoffix2 rewrite_fail2 (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.300000",
+    "label": "aoffix2 manifest_missing (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.270000",
+    "label": "aoffix2 off-writer acknowledgement everysec (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.280000",
+    "label": "aoffix2 off-writer acknowledgement always (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.410000",
+    "label": "aoffix2 snapshot (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "1.510000",
+    "label": "aoffix2 filename (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.170000",
+    "label": "aoffix2 error (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "aoffix2 tickets (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.550000",
+    "label": "aoffix2 exec_tickets (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.540000",
+    "label": "aoffix2 resurrection (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.330000",
+    "label": "aoffix2 rewrite_fail2 (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.300000",
+    "label": "aoffix2 manifest_missing (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.270000",
+    "label": "aoffix2 off-writer acknowledgement everysec (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.280000",
+    "label": "aoffix2 off-writer acknowledgement always (2s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.340000",
+    "label": "aoffix2 large (1s, uring)"
+  },
+  {
+    "job": "aof-uring",
+    "verdict": "ok",
+    "elapsed": "0.200000",
+    "label": "aoffix2 large_placed (1s, uring)"
+  },
+  {
+    "job": "aof_frame",
+    "verdict": "ok",
+    "elapsed": "0.330000",
+    "label": "AOF control frame never inside a large record (atomic 0)"
+  },
+  {
+    "job": "aof_frame",
+    "verdict": "ok",
+    "elapsed": "0.330000",
+    "label": "AOF control frame never inside a large record (atomic 1)"
+  },
+  {
+    "job": "aoforder",
+    "verdict": "ok",
+    "elapsed": "10.180000",
+    "label": "AOF commit order single"
+  },
+  {
+    "job": "aoforder",
+    "verdict": "ok",
+    "elapsed": "4.510000",
+    "label": "AOF commit order crossing"
+  },
+  {
+    "job": "aoforder",
+    "verdict": "ok",
+    "elapsed": "4.840000",
+    "label": "AOF commit order rewrite"
+  },
+  {
+    "job": "asan",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "ASAN build"
+  },
+  {
+    "job": "asan_batteries",
+    "verdict": "ok",
+    "elapsed": "6.950000",
+    "label": "torture under ASAN"
+  },
+  {
+    "job": "asan_batteries",
+    "verdict": "ok",
+    "elapsed": "0.990000",
+    "label": "RYOW under ASAN"
+  },
+  {
+    "job": "asan_batteries",
+    "verdict": "ok",
+    "elapsed": "25.060000",
+    "label": "atomic torn/window under ASAN"
+  },
+  {
+    "job": "asan_batteries",
+    "verdict": "ok",
+    "elapsed": "4.080000",
+    "label": "atomic RYOW under ASAN"
+  },
+  {
+    "job": "asan_batteries",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "ASAN clean"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "shutdown policy + signal handoff serverless"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.340000",
+    "label": "shutdown persistence (1s, command)"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.130000",
+    "label": "shutdown persistence (1s, sigterm)"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.130000",
+    "label": "shutdown persistence (1s, sigint)"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.330000",
+    "label": "shutdown persistence (2s, command)"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.130000",
+    "label": "shutdown persistence (2s, sigterm)"
+  },
+  {
+    "job": "climonfix",
+    "verdict": "ok",
+    "elapsed": "0.130000",
+    "label": "shutdown persistence (2s, sigint)"
+  },
+  {
+    "job": "differ-armed-0",
+    "verdict": "ok",
+    "elapsed": "525.980000",
+    "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+  },
+  {
+    "job": "differ-armed-1",
+    "verdict": "ok",
+    "elapsed": "526.200000",
+    "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+  },
+  {
+    "job": "differ-equivalence",
+    "verdict": "ok",
+    "elapsed": "21.340000",
+    "label": "mode equivalence part (all execution modes and knobs)"
+  },
+  {
+    "job": "differ-split-0",
+    "verdict": "ok",
+    "elapsed": "533.280000",
+    "label": "Redis 7.4 differential part (split, atomic 0)"
+  },
+  {
+    "job": "differ-split-1",
+    "verdict": "ok",
+    "elapsed": "533.830000",
+    "label": "Redis 7.4 differential part (split, atomic 1)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "0.160000",
+    "label": "FLIP state battery"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "1.050000",
+    "label": "FLIP under verified load"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "1.440000",
+    "label": "FLIP TTL + expiry events"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "2.230000",
+    "label": "partial-frame conn parks (no io spin)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "2.160000",
+    "label": "FLIP close during FLIP (uring)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "2.140000",
+    "label": "FLIP close during FLIP (epoll)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "1.140000",
+    "label": "FLIP signal stop during FLIP + second SIGINT"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "0.550000",
+    "label": "perfio stale epoll registration (epoll-flip)"
+  },
+  {
+    "job": "flip",
+    "verdict": "ok",
+    "elapsed": "14.190000",
+    "label": "perfio stale epoll registration (epoll-lb)"
+  },
+  {
+    "job": "flip_saturated",
+    "verdict": "ok",
+    "elapsed": "6.090000",
+    "label": "FLIP applies under saturated load"
+  },
+  {
+    "job": "flip_saturated",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "flip battery shutdown invariants"
+  },
+  {
+    "job": "flip_unit",
+    "verdict": "ok",
+    "elapsed": "5.380000",
+    "label": "flip controller model unit"
+  },
+  {
+    "job": "flipctl",
+    "verdict": "ok",
+    "elapsed": "126.900000",
+    "label": "flip controller: ramp gate, hold, surge + mix re-maneuvers"
+  },
+  {
+    "job": "flipfix_units",
+    "verdict": "ok",
+    "elapsed": "0.120000",
+    "label": "FLIP planned-connection close lifetime (ASAN+TSAN)"
+  },
+  {
+    "job": "flipfix_units",
+    "verdict": "ok",
+    "elapsed": "0.130000",
+    "label": "FLIP fingerprint publication (ASAN+TSAN)"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "ok",
+    "elapsed": "30.710000",
+    "label": "FLIP listener conservation (io-ex, complete)"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "ok",
+    "elapsed": "28.930000",
+    "label": "FLIP listener conservation (io-ex, rollback)"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "ok",
+    "elapsed": "28.320000",
+    "label": "FLIP listener conservation (ex-io, complete)"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "ok",
+    "elapsed": "28.180000",
+    "label": "FLIP listener conservation (ex-io, rollback)"
+  },
+  {
+    "job": "iofix-hz",
+    "verdict": "ok",
+    "elapsed": "39.870000",
+    "label": "iofix IO4.9 Redis hz cron"
+  },
+  {
+    "job": "iofix-signal",
+    "verdict": "ok",
+    "elapsed": "18.470000",
+    "label": "iofix IO4.17 immediate signal shutdown"
+  },
+  {
+    "job": "iofix-sleep",
+    "verdict": "ok",
+    "elapsed": "31.700000",
+    "label": "iofix IO4.10 global DEBUG SLEEP"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "netcmd regression build"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "netcmd streams regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "netcmd zpop regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "netcmd notify-oom regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "netcmd notify-retry regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "netcmd flush regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "netcmd output regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "netcmd pubsub regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "netcmd receive regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "netcmd config regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "netcmd wb-small-pipe regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "netcmd wb-complete-visits regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "netcmd hexpire-oom regression"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "encodingfix knob"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "encodingfix precedence"
+  },
+  {
+    "job": "netcmd_units",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "NET1 serverless bounds + scan + reclamation"
+  },
+  {
+    "job": "netfix_config",
+    "verdict": "ok",
+    "elapsed": "2.490000",
+    "label": "netfix NT4.8 network CONFIG error parity"
+  },
+  {
+    "job": "netfix_idle_buffers",
+    "verdict": "ok",
+    "elapsed": "302.590000",
+    "label": "netfix NT4.19 idle buffer reclamation"
+  },
+  {
+    "job": "netfix_query_stats",
+    "verdict": "ok",
+    "elapsed": "1.880000",
+    "label": "netfix NT4.6 query-limit INFO parity"
+  },
+  {
+    "job": "netfix_tls",
+    "verdict": "ok",
+    "elapsed": "9.930000",
+    "label": "netfix NT4.7 TLS default cipher parity"
+  },
+  {
+    "job": "netfix_unix",
+    "verdict": "ok",
+    "elapsed": "1.140000",
+    "label": "netfix NT4.11 Unix pathname parity"
+  },
+  {
+    "job": "netio-1s",
+    "verdict": "ok",
+    "elapsed": "2.930000",
+    "label": "epoll directed correctness (1s)"
+  },
+  {
+    "job": "netio-2s",
+    "verdict": "ok",
+    "elapsed": "2.930000",
+    "label": "epoll directed correctness (2s)"
+  },
+  {
+    "job": "notify_aof",
+    "verdict": "ok",
+    "elapsed": "12.800000",
+    "label": "local script notification AOF vs Redis 7.4"
+  },
+  {
+    "job": "persistfix_units",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "AOF publication/shutdown witnesses + negative controls"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  },
+  {
+    "job": "release_batteries",
+    "verdict": "ok",
+    "elapsed": "6.650000",
+    "label": "torture battery"
+  },
+  {
+    "job": "release_batteries",
+    "verdict": "ok",
+    "elapsed": "0.980000",
+    "label": "RYOW battery"
+  },
+  {
+    "job": "release_batteries",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "ACL category runtime table"
+  },
+  {
+    "job": "release_batteries",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "ACL LOAD/SAVE no-file errors"
+  },
+  {
+    "job": "release_batteries",
+    "verdict": "ok",
+    "elapsed": "1.030000",
+    "label": "idle loop ceiling (LBSIGNALS, 1s)"
+  },
+  {
+    "job": "release_batteries",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "shutdown invariants (nothing stuck)"
+  },
+  {
+    "job": "release_batteries",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "direct-reply fired (direct=N)"
+  },
+  {
+    "job": "release_batteries",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "dispatched==executed (N)"
+  },
+  {
+    "job": "replyoff",
+    "verdict": "ok",
+    "elapsed": "1.240000",
+    "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)"
+  },
+  {
+    "job": "replyoff",
+    "verdict": "ok",
+    "elapsed": "1.230000",
+    "label": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.640000",
+    "label": "snapshot concurrent cut (epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.190000",
+    "label": "snapshot cut reload (epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "2.750000",
+    "label": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "5.050000",
+    "label": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "typed snapshot save (epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "typed snapshot reload (epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.170000",
+    "label": "typed snapshot preimage race (epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "typed snapshot race reload (epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.790000",
+    "label": "shutdown keeps acknowledged writes (1s, sigterm, epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.780000",
+    "label": "shutdown keeps acknowledged writes (1s, command, epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.950000",
+    "label": "shutdown cancels BGSAVE capture (1s, atomic 0, epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.930000",
+    "label": "shutdown cancels BGSAVE capture (1s, atomic 1, epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.810000",
+    "label": "shutdown keeps acknowledged writes (2s, sigterm, epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "0.810000",
+    "label": "shutdown keeps acknowledged writes (2s, command, epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "1.030000",
+    "label": "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)"
+  },
+  {
+    "job": "snapshot-epoll",
+    "verdict": "ok",
+    "elapsed": "1.050000",
+    "label": "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.630000",
+    "label": "snapshot concurrent cut (uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.170000",
+    "label": "snapshot cut reload (uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "2.750000",
+    "label": "snapshot never tears a cross-shard MSET group (uring, atomic 1)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "5.120000",
+    "label": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "typed snapshot save (uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "typed snapshot reload (uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.160000",
+    "label": "typed snapshot preimage race (uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "typed snapshot race reload (uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.800000",
+    "label": "shutdown keeps acknowledged writes (1s, sigterm, uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.820000",
+    "label": "shutdown keeps acknowledged writes (1s, command, uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.960000",
+    "label": "shutdown cancels BGSAVE capture (1s, atomic 0, uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.970000",
+    "label": "shutdown cancels BGSAVE capture (1s, atomic 1, uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.840000",
+    "label": "shutdown keeps acknowledged writes (2s, sigterm, uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "0.820000",
+    "label": "shutdown keeps acknowledged writes (2s, command, uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "1.070000",
+    "label": "shutdown cancels BGSAVE capture (2s, atomic 0, uring)"
+  },
+  {
+    "job": "snapshot-uring",
+    "verdict": "ok",
+    "elapsed": "1.050000",
+    "label": "shutdown cancels BGSAVE capture (2s, atomic 1, uring)"
+  },
+  {
+    "job": "splitlocal_units",
+    "verdict": "ok",
+    "elapsed": "0.910000",
+    "label": "splitlocal template forwarding + old-argument controls"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "1.130000",
+    "label": "TLS ephemeral CA/server/client certificates"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "NET2 serverless RX policy and KeyUpdate controls"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "reject TLS listener without certificate"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "reject invalid tls-protocols"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.010000",
+    "label": "reject invalid tls-ciphers"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "TLS client-auth yes matrix"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS yes shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "TLS client-auth optional matrix"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "kTLS TLS 1.2 engaged live (default boot)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.170000",
+    "label": "TLS 1.3 KeyUpdate survives (NET2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.180000",
+    "label": "TLS 1.3 userspace KeyUpdate survives (NET2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS optional shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "15.030000",
+    "label": "TLS pipeline/torn-record/coexistence battery"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "TLS application send path error-free"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.070000",
+    "label": "TLS connection slots all freed (N/N)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "TLS zc borrow gates fired (suppressed=N)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "6.260000",
+    "label": "TLS silent-peer close after reply (ntfix N2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "11.230000",
+    "label": "RESP pre-AUTH limit errors (ntfix N3)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "15.600000",
+    "label": "RESP query-buffer frontier (ntfix N4)"
+  },
+  {
+    "job": "wb_policy",
+    "verdict": "ok",
+    "elapsed": "5.970000",
+    "label": "writeback policies 0/1: 22 standard fixtures"
+  },
+  {
+    "job": "wb_rule_units",
+    "verdict": "ok",
+    "elapsed": "0.100000",
+    "label": "writeback c12 policy witnesses + negative controls"
+  },
+  {
+    "job": "wb_rule_units",
+    "verdict": "ok",
+    "elapsed": "4.880000",
+    "label": "writeback c12 phase witnesses + negative controls"
+  },
+  {
+    "job": "wb_rule_units",
+    "verdict": "ok",
+    "elapsed": "1.930000",
+    "label": "writeback c12 stages witnesses + negative controls"
+  },
+  {
+    "job": "wb_rule_units",
+    "verdict": "ok",
+    "elapsed": "5.320000",
+    "label": "writeback c12 split-phase witnesses + negative controls"
+  },
+  {
+    "job": "wbland_units",
+    "verdict": "ok",
+    "elapsed": "5.650000",
+    "label": "writeback policy clauses witnesses + negative controls"
+  },
+  {
+    "job": "wbland_units",
+    "verdict": "ok",
+    "elapsed": "1.990000",
+    "label": "writeback policy paths witnesses + negative controls"
+  },
+  {
+    "job": "zc",
+    "verdict": "ok",
+    "elapsed": "1.370000",
+    "label": "zc borrow battery"
+  },
+  {
+    "job": "zc",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "zc fired (zc_sends=N)"
+  },
+  {
+    "job": "zc",
+    "verdict": "ok",
+    "elapsed": "1.390000",
+    "label": "zc borrow battery under ASAN"
+  },
+  {
+    "job": "zc",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "zc ASAN clean"
+  }
+]

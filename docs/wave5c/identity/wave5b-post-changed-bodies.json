@@ -23,7 +23,7 @@
     "after_bodies": [
       {
         "size": 2921,
-        "address": "0x5d800",
+        "address": "0x5d8e0",
         "digest": "7e533a533bae3351103d84a72a998befb696f995b63a2db03f92c5ec104cff35"
       }
     ]
@@ -44,7 +44,7 @@
     "after_bodies": [
       {
         "size": 47,
-        "address": "0x61d90",
+        "address": "0x61e70",
         "digest": "225e4b4b8c8c1b2d74dcbdf702ef6d4fb0a5ff1876abaaf5154322d2ff354e1a"
       }
     ]
@@ -73,7 +73,7 @@
     "after_bodies": [
       {
         "size": 3191,
-        "address": "0x57870",
+        "address": "0x57950",
         "digest": "49f501a740007e4283149f32ca79c31fe23674b7baefdc52e65b73f348e002a7"
       }
     ]
@@ -94,8 +94,37 @@
     "after_bodies": [
       {
         "size": 323,
-        "address": "0x5d300",
-        "digest": "5ee1756c81500aeed70852363d17f73da9f8771b98c384507d02fafb015e10ea"
+        "address": "0x5d3e0",
+        "digest": "5fd15278478dd14bd860e4e3c9f85becd561b968d034b9f942aae9c3ae6d08fe"
+      }
+    ]
+  },
+  {
+    "name": "auto tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda<bool $N0, bool $N1>()#1}::operator()<true, false>() const",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1190
+    ],
+    "post_sizes": [
+      1190
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 1190,
+        "address": "0x4cf010",
+        "digest": "5c66b0aed97c9824bf2530b8ac145c17349c619079ae2d89bb7141a318258a1c"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 1190,
+        "address": "0x4d5480",
+        "digest": "e9eb410f5b972ec6884b48a2af4e18a98183ccd96a01f71b8fd14b2672d56e17"
       }
     ]
   },
@@ -115,7 +144,7 @@
     "after_bodies": [
       {
         "size": 699,
-        "address": "0x7d7bd0",
+        "address": "0x7d82b0",
         "digest": "f11bfd2fbe18d0b433a912af8b95535af983d50abd6e922892c3a3d1d546a3fa"
       }
     ]
@@ -136,7 +165,7 @@
     "after_bodies": [
       {
         "size": 5,
-        "address": "0x54f52",
+        "address": "0x54fec",
         "digest": "aed2b0f1a230098ae71bcee86f734a99636502bc6e716ac83a3af9516daafec8"
       }
     ]
@@ -157,19 +186,19 @@
     "after_bodies": [
       {
         "size": 401,
-        "address": "0x7d7a30",
+        "address": "0x7d8110",
         "digest": "7a970373a87668e7ee5cea0aaabb6b0325d15ff5b0f28623a853e777c7f31def"
       }
     ]
   },
   {
-    "name": "bool tomo::WbEngine::serve_tls_impl<true, true, false, false, false>(tomo::Client&, tomo::TlsConn&, bool*) [clone .isra.0]",
-    "hot": true,
+    "name": "bool tomo::WbEngine::prepare<true, false>(tomo::Client&, bool&) [clone .isra.0]",
+    "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      634
+      1027
     ],
     "matches": [],
     "changed_lanes": [],
@@ -177,9 +206,9 @@
     "before_bodies": [],
     "after_bodies": [
       {
-        "size": 634,
-        "address": "0x7d8a70",
-        "digest": "d00ab605e2430c9289d58f1e0d1302044a18bf6a79f98b22f760529b98c34412"
+        "size": 1027,
+        "address": "0x7d8f40",
+        "digest": "fb674c12c0b7edba9d368f4a0d4c91ebc5be392faa1cfa8e1fe7ef5e8b3435a6"
       }
     ]
   },
@@ -207,8 +236,8 @@
     "after_bodies": [
       {
         "size": 841,
-        "address": "0x466370",
-        "digest": "52ce8b646ba8d920a7adf04ec0272b83f46c0d616626a84cd6dc05b7f4bce0b3"
+        "address": "0x4668b0",
+        "digest": "c0ce2edabb4a6658d639b61a12ba962d8738d108a7ad09bce080838e3ea47c46"
       }
     ]
   },
@@ -228,7 +257,7 @@
     "after_bodies": [
       {
         "size": 699,
-        "address": "0x410450",
+        "address": "0x410800",
         "digest": "d1653d46639c55468695511560214ff417499c50c9d0df2ae18402e0e8058cfe"
       }
     ]
@@ -249,7 +278,7 @@
     "after_bodies": [
       {
         "size": 5,
-        "address": "0x39826",
+        "address": "0x39850",
         "digest": "aed2b0f1a230098ae71bcee86f734a99636502bc6e716ac83a3af9516daafec8"
       }
     ]
@@ -270,19 +299,19 @@
     "after_bodies": [
       {
         "size": 401,
-        "address": "0x4102b0",
+        "address": "0x410660",
         "digest": "10abd72f595744a026ca6d84dd0ecb8d3ed9bbbaa42d30d5733ece81a2072aed"
       }
     ]
   },
   {
-    "name": "bool tomo_db0::WbEngine::serve_tls_impl<true, true, false, false, false>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*) [clone .isra.0]",
-    "hot": true,
+    "name": "bool tomo_db0::WbEngine::prepare<true, false>(tomo_db0::Client&, bool&) [clone .isra.0]",
+    "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      634
+      1027
     ],
     "matches": [],
     "changed_lanes": [],
@@ -290,9 +319,9 @@
     "before_bodies": [],
     "after_bodies": [
       {
-        "size": 634,
-        "address": "0x411300",
-        "digest": "9ce46a15f10201a6446e6c4090aaa19325d83ec727897f0393be08dbb4cf3350"
+        "size": 1027,
+        "address": "0x411490",
+        "digest": "dc092891f1f0a984d08ce965514d2a06576ce50c5a88b70f320873a5d629d9b0"
       }
     ]
   },
@@ -320,7 +349,7 @@
     "after_bodies": [
       {
         "size": 841,
-        "address": "0xb2fc0",
+        "address": "0xb30a0",
         "digest": "d8b129bbbc7444336a5c728befa045762c54e06d63c1054ccd20c9e9993ae616"
       }
     ]
@@ -349,7 +378,7 @@
     "after_bodies": [
       {
         "size": 218,
-        "address": "0x651280",
+        "address": "0x651800",
         "digest": "47dbee91bb0a5e7c258ba9e50acbaa6bbff4789d02a0513b597f3c34c4c903f8"
       }
     ]
@@ -378,7 +407,7 @@
     "after_bodies": [
       {
         "size": 189,
-        "address": "0x649f80",
+        "address": "0x64a500",
         "digest": "ba56a5cdda80f0a9d49048489afef3bdc952e1e3f8ac92818f7fdf6d7c27f308"
       }
     ]
@@ -407,7 +436,7 @@
     "after_bodies": [
       {
         "size": 966,
-        "address": "0x6398f0",
+        "address": "0x639e70",
         "digest": "9946e21b6b390fdf038e612208fdb889ae89e10ef9ffcc1a9a5c69a06843b289"
       }
     ]
@@ -436,7 +465,7 @@
     "after_bodies": [
       {
         "size": 86,
-        "address": "0x643470",
+        "address": "0x6439f0",
         "digest": "6e5398824eabcc43443e0993e6a0a0def57546a7b7513d62a8e0ae8b85f8999b"
       }
     ]
@@ -465,7 +494,7 @@
     "after_bodies": [
       {
         "size": 1427,
-        "address": "0x641f00",
+        "address": "0x642480",
         "digest": "1ef2c63c54876dc4badc0cf15d6efdcb05b6be7ecfdca8f28756dba805f03448"
       }
     ]
@@ -494,7 +523,7 @@
     "after_bodies": [
       {
         "size": 399,
-        "address": "0x635990",
+        "address": "0x635f10",
         "digest": "756cd7cc85a531c0aa3edb53d4e3fc41985d0fe564b1002b80426f3a8a693e57"
       }
     ]
@@ -523,7 +552,7 @@
     "after_bodies": [
       {
         "size": 250,
-        "address": "0x635b20",
+        "address": "0x6360a0",
         "digest": "7112b9fcf7747b6f2e1ddc9e43c4af01e353be022e1daf26bc560d713375f59f"
       }
     ]
@@ -552,7 +581,7 @@
     "after_bodies": [
       {
         "size": 321,
-        "address": "0x650f40",
+        "address": "0x6514c0",
         "digest": "dbf6865e0423349ec85b3f7bc50c7393a124086cb381c4b058d3230564353e84"
       }
     ]
@@ -581,7 +610,7 @@
     "after_bodies": [
       {
         "size": 8669,
-        "address": "0x54fc0",
+        "address": "0x550a0",
         "digest": "21e155f7dae2582b159350d987ad27742e41cabcc64ce63da436d67b69ba3b82"
       }
     ]
@@ -639,7 +668,7 @@
     "after_bodies": [
       {
         "size": 614,
-        "address": "0x63eaf0",
+        "address": "0x63f070",
         "digest": "4a38240540d2044204da8f71c3054022421e489062ced1938386e85a72f8c2f8"
       }
     ]
@@ -668,8 +697,192 @@
     "after_bodies": [
       {
         "size": 341,
-        "address": "0x64c6a0",
+        "address": "0x64cc20",
         "digest": "464f52d3e12d2f65f8e084cafb0b8c5587114300d2c25443073b98b3e92564a0"
+      }
+    ]
+  },
+  {
+    "name": "std::_Deque_base<tomo::PubSubEvent*, std::allocator<tomo::PubSubEvent*> >::_M_initialize_map(unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      331
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 331,
+        "address": "0x7dc9b0",
+        "digest": "ac05a053b4ab22a5c79029391a34aa722d9547371dff0fa9feae2697ac840499"
+      }
+    ]
+  },
+  {
+    "name": "std::_Deque_base<tomo_db0::PubSubEvent*, std::allocator<tomo_db0::PubSubEvent*> >::_M_initialize_map(unsigned long)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      331
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 331,
+        "address": "0x414f00",
+        "digest": "ac05a053b4ab22a5c79029391a34aa722d9547371dff0fa9feae2697ac840499"
+      }
+    ]
+  },
+  {
+    "name": "std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**> std::copy<std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**> >(std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>, std::_Deque_iterator<tomo::PubSubEvent*, tomo::PubSubEvent*&, tomo::PubSubEvent**>) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      338,
+      338,
+      338,
+      338
+    ],
+    "post_sizes": [
+      338,
+      338,
+      338,
+      338,
+      338
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 338,
+        "address": "0x418f30",
+        "digest": "2807f92ce382eccd044134b499191b161bba556de809efe8b3e9079bc9b66995"
+      },
+      {
+        "size": 338,
+        "address": "0x6d6d40",
+        "digest": "2807f92ce382eccd044134b499191b161bba556de809efe8b3e9079bc9b66995"
+      },
+      {
+        "size": 338,
+        "address": "0x72fc80",
+        "digest": "2807f92ce382eccd044134b499191b161bba556de809efe8b3e9079bc9b66995"
+      },
+      {
+        "size": 338,
+        "address": "0x7894c0",
+        "digest": "2807f92ce382eccd044134b499191b161bba556de809efe8b3e9079bc9b66995"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 338,
+        "address": "0x41f600",
+        "digest": "2807f92ce382eccd044134b499191b161bba556de809efe8b3e9079bc9b66995"
+      },
+      {
+        "size": 338,
+        "address": "0x6dd3c0",
+        "digest": "2807f92ce382eccd044134b499191b161bba556de809efe8b3e9079bc9b66995"
+      },
+      {
+        "size": 338,
+        "address": "0x736310",
+        "digest": "2807f92ce382eccd044134b499191b161bba556de809efe8b3e9079bc9b66995"
+      },
+      {
+        "size": 338,
+        "address": "0x78fcc0",
+        "digest": "2807f92ce382eccd044134b499191b161bba556de809efe8b3e9079bc9b66995"
+      },
+      {
+        "size": 338,
+        "address": "0x7d9350",
+        "digest": "2807f92ce382eccd044134b499191b161bba556de809efe8b3e9079bc9b66995"
+      }
+    ]
+  },
+  {
+    "name": "std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEvent*&, tomo_db0::PubSubEvent**> std::copy<std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEvent*&, tomo_db0::PubSubEvent**>, std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEvent*&, tomo_db0::PubSubEvent**> >(std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEvent*&, tomo_db0::PubSubEvent**>, std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEvent*&, tomo_db0::PubSubEvent**>, std::_Deque_iterator<tomo_db0::PubSubEvent*, tomo_db0::PubSubEvent*&, tomo_db0::PubSubEvent**>) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      338,
+      338,
+      338,
+      338
+    ],
+    "post_sizes": [
+      338,
+      338,
+      338,
+      338,
+      338
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 338,
+        "address": "0x6af60",
+        "digest": "bd1c2dbebba7aac0c3ea6b52dcd6804e71ae6d8829aa7277f657af9f374bb681"
+      },
+      {
+        "size": 338,
+        "address": "0x3177e0",
+        "digest": "bd1c2dbebba7aac0c3ea6b52dcd6804e71ae6d8829aa7277f657af9f374bb681"
+      },
+      {
+        "size": 338,
+        "address": "0x370bc0",
+        "digest": "bd1c2dbebba7aac0c3ea6b52dcd6804e71ae6d8829aa7277f657af9f374bb681"
+      },
+      {
+        "size": 338,
+        "address": "0x3c79e0",
+        "digest": "bd1c2dbebba7aac0c3ea6b52dcd6804e71ae6d8829aa7277f657af9f374bb681"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 338,
+        "address": "0x6b210",
+        "digest": "bd1c2dbebba7aac0c3ea6b52dcd6804e71ae6d8829aa7277f657af9f374bb681"
+      },
+      {
+        "size": 338,
+        "address": "0x317b90",
+        "digest": "bd1c2dbebba7aac0c3ea6b52dcd6804e71ae6d8829aa7277f657af9f374bb681"
+      },
+      {
+        "size": 338,
+        "address": "0x370fb0",
+        "digest": "bd1c2dbebba7aac0c3ea6b52dcd6804e71ae6d8829aa7277f657af9f374bb681"
+      },
+      {
+        "size": 338,
+        "address": "0x3c7da0",
+        "digest": "bd1c2dbebba7aac0c3ea6b52dcd6804e71ae6d8829aa7277f657af9f374bb681"
+      },
+      {
+        "size": 338,
+        "address": "0x4118a0",
+        "digest": "bd1c2dbebba7aac0c3ea6b52dcd6804e71ae6d8829aa7277f657af9f374bb681"
       }
     ]
   },
@@ -697,7 +910,7 @@
     "after_bodies": [
       {
         "size": 3272,
-        "address": "0x6a460",
+        "address": "0x6a540",
         "digest": "c1e535ada0da6876231121c27e2ec3357d8182bb35476ee8c744ae3c77e1af33"
       }
     ]
@@ -755,7 +968,7 @@
     "after_bodies": [
       {
         "size": 2461,
-        "address": "0x69ac0",
+        "address": "0x69ba0",
         "digest": "5a8e66180ef1f233390012093a85690434f516ce41d9213936b688ec94d83e49"
       }
     ]
@@ -813,7 +1026,7 @@
     "after_bodies": [
       {
         "size": 4729,
-        "address": "0x6dd2e0",
+        "address": "0x6dd860",
         "digest": "6b004e13b13df0b112e963e79fadbfb6344991d5a803c6054c87f907bba25598"
       }
     ]
@@ -842,7 +1055,7 @@
     "after_bodies": [
       {
         "size": 339,
-        "address": "0x4e82a",
+        "address": "0x4e8c4",
         "digest": "1fb630cd4758249e32851093a42d80eb12d76b8627b5a8930b751b921546d3c7"
       }
     ]
@@ -871,7 +1084,7 @@
     "after_bodies": [
       {
         "size": 4765,
-        "address": "0x78f9e0",
+        "address": "0x78ff60",
         "digest": "e7842a55c30d91eb1170acbd433d36cbbfdcae546e78e25894495c2cee4dc2f8"
       }
     ]
@@ -900,7 +1113,7 @@
     "after_bodies": [
       {
         "size": 339,
-        "address": "0x5418c",
+        "address": "0x54226",
         "digest": "d80a50d1ac2244844d27a65b77c6538e12209ba31c53de15f38f6a6af2e5c99c"
       }
     ]
@@ -929,7 +1142,7 @@
     "after_bodies": [
       {
         "size": 7039,
-        "address": "0x735ef0",
+        "address": "0x736470",
         "digest": "ff69d028e81bd19d5381d6176d6b02a75607b44f0c441b47f2410c9e5c351702"
       }
     ]
@@ -958,7 +1171,7 @@
     "after_bodies": [
       {
         "size": 305,
-        "address": "0x51d7c",
+        "address": "0x51e16",
         "digest": "79f20c3c8110b63b351e0b55b1fd2f0a2c04d94d0c0e24543d9c2b5d742a585e"
       }
     ]
@@ -987,7 +1200,7 @@
     "after_bodies": [
       {
         "size": 4699,
-        "address": "0x317de0",
+        "address": "0x318030",
         "digest": "d8fb334e1b6d8f15219da2432d2d4c8acd941df0b2e93427ddd7dfe253a81608"
       }
     ]
@@ -1016,7 +1229,7 @@
     "after_bodies": [
       {
         "size": 344,
-        "address": "0x333da",
+        "address": "0x33404",
         "digest": "2ea90b3fdcb6933c7ee38408d0af51ecfa953758af1a9fb749186627dc206fbb"
       }
     ]
@@ -1045,7 +1258,7 @@
     "after_bodies": [
       {
         "size": 4779,
-        "address": "0x3c7df0",
+        "address": "0x3c8040",
         "digest": "88f102624d2c0045641db7daaf9ab5ee52a4b14f056639d4fd980618e7d99363"
       }
     ]
@@ -1074,7 +1287,7 @@
     "after_bodies": [
       {
         "size": 344,
-        "address": "0x38a5e",
+        "address": "0x38a88",
         "digest": "faa8fd67fd825c21c207863967b52ef4915b364c9b28af916876df8b8b9b2bec"
       }
     ]
@@ -1103,7 +1316,7 @@
     "after_bodies": [
       {
         "size": 6927,
-        "address": "0x370ec0",
+        "address": "0x371110",
         "digest": "6cf254dbd98672beb383b6c2cf1cfc13f169794db12cd80b104e449c65f78853"
       }
     ]
@@ -1132,7 +1345,7 @@
     "after_bodies": [
       {
         "size": 310,
-        "address": "0x368ee",
+        "address": "0x36918",
         "digest": "9bccddfae8731005428beb0f92af8fd9541ba5eb9d8873d5199c7032c379e39b"
       }
     ]
@@ -1161,7 +1374,7 @@
     "after_bodies": [
       {
         "size": 3318,
-        "address": "0x41e3c0",
+        "address": "0x41e900",
         "digest": "94db50fd55e335c10c9d79dba6327a1c6cb03f4ca2e6815b0a16856771d7c87c"
       }
     ]
@@ -1190,7 +1403,7 @@
     "after_bodies": [
       {
         "size": 118,
-        "address": "0x3a188",
+        "address": "0x3a1f0",
         "digest": "3574e67e6d86b7fb389c9db82676e0a26743af5bac8e750acba505896a774517"
       }
     ]
@@ -1219,7 +1432,7 @@
     "after_bodies": [
       {
         "size": 2525,
-        "address": "0x41d9e0",
+        "address": "0x41df20",
         "digest": "c8f674e48871b012959873d6de6e49487d8a18ed90cb858a7413e0005535e01e"
       }
     ]
@@ -1248,7 +1461,7 @@
     "after_bodies": [
       {
         "size": 77,
-        "address": "0x3a13a",
+        "address": "0x3a1a2",
         "digest": "78ac4be48b68336c8c196392ef145ec783833164598616a5ff1eba871c012154"
       }
     ]
@@ -1277,7 +1490,7 @@
     "after_bodies": [
       {
         "size": 2252,
-        "address": "0x6529e0",
+        "address": "0x652f60",
         "digest": "09ffc9b3df6c98b5610bfb14e770c5834121fd9e26f59d0b4632859f7f7ef75d"
       }
     ]
@@ -1306,7 +1519,7 @@
     "after_bodies": [
       {
         "size": 450,
-        "address": "0x64ede0",
+        "address": "0x64f360",
         "digest": "fd1c36f6ca35c12d8591981ed15e00e91f38bec1f4888c6005b9525b0163b2e5"
       }
     ]
@@ -1335,8 +1548,37 @@
     "after_bodies": [
       {
         "size": 569,
-        "address": "0x651f90",
+        "address": "0x652510",
         "digest": "8deacee1547ab39acaa673af70fa0c468a7701de9c2104e565d6596a5862e2be"
+      }
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      947
+    ],
+    "post_sizes": [
+      945
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 947,
+        "address": "0x4b90c0",
+        "digest": "540c43f46e0cd9fd7e689da6f536e3db56c3ae7ce25cbd4a8f502b21ca4d199a"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 945,
+        "address": "0x4cd340",
+        "digest": "64b36bebc7b113275e7ba92c17d59cc8c5cd20cd5751547ec70950d33e4d6b22"
       }
     ]
   },
@@ -1364,7 +1606,7 @@
     "after_bodies": [
       {
         "size": 16966,
-        "address": "0x570cc0",
+        "address": "0x571240",
         "digest": "af2bc8024f3466a4bab3568e8980c55debfe88481349426433b93fba8ae260f8"
       }
     ]
@@ -1393,7 +1635,7 @@
     "after_bodies": [
       {
         "size": 8622,
-        "address": "0x6b5020",
+        "address": "0x6b55a0",
         "digest": "cd27e5b88a8d34d8e897935e4dd26da255dd07c4db91353e400bc6d769acbc25"
       }
     ]
@@ -1422,7 +1664,7 @@
     "after_bodies": [
       {
         "size": 5395,
-        "address": "0x6bf0f0",
+        "address": "0x6bf670",
         "digest": "e978a4d5211fe8cd704820bf6aa52dd4c00d1647678807bc8f30ad28f9ed8ffd"
       }
     ]
@@ -1451,8 +1693,66 @@
     "after_bodies": [
       {
         "size": 1473,
-        "address": "0x644480",
+        "address": "0x644a00",
         "digest": "425def178e74d1bd03e74f5e0c0a6ccb724167f8b4e538b1a7321ba8b1af7c62"
+      }
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::destroy_multi_state(tomo::MultiExecState*) [clone .part.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      561
+    ],
+    "post_sizes": [
+      359
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 561,
+        "address": "0x4ee720",
+        "digest": "943bd2db9a547828cd1c0eaf79cf0c2f2251f8b8a1cffb1b2d4c5c5d0dbaa153"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 359,
+        "address": "0x4f4d80",
+        "digest": "b78d6dcfbde5e1e1f981b47dd68e090261418847ef08624b72db8840ce8cc6ec"
+      }
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::execute_plain_element_mover(tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2495
+    ],
+    "post_sizes": [
+      2495
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Only resolved global reference labels differ in strict output; opcode/operand encodings match. Full unmasked reference deltas are retained in wave5b-post-deltas.txt.gz.",
+    "before_bodies": [
+      {
+        "size": 2495,
+        "address": "0x4f5b70",
+        "digest": "dbb7307ef12a3b56d9a22ccabd6615ae9cffbe88f1957386864a5c1f2b39992d"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2495,
+        "address": "0x4fc360",
+        "digest": "4f55be42a8bee39117ca9a7b15296b289df797321ae35c6d3a90349272cbb70c"
       }
     ]
   },
@@ -1480,7 +1780,7 @@
     "after_bodies": [
       {
         "size": 8766,
-        "address": "0x568730",
+        "address": "0x568cb0",
         "digest": "ca23080b9d49c0941eeb7c8bca924d0d8bfd92fbcf4c4b4e66052b81b459f91c"
       }
     ]
@@ -1509,8 +1809,95 @@
     "after_bodies": [
       {
         "size": 1072,
-        "address": "0x4bfaa0",
+        "address": "0x4bfc20",
         "digest": "c794240a3d349a651f129f573717828fb166e53773bf2be0804a6e4e932364d8"
+      }
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::prepare_local_write_keys(tomo::Server&, tomo::MultiExecState&, tomo::MultiCommand&, tomo::Shard&, unsigned int)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1849
+    ],
+    "post_sizes": [
+      1476
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 1849,
+        "address": "0x5104e0",
+        "digest": "efb583c1eb11f65572707df410034c917d661d3c437ee43a9697515a9804410f"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 1476,
+        "address": "0x516cd0",
+        "digest": "5bc587b4f76c52015f61a7d73b8662fdb9dc7c4b211008721b7178907aa57f6b"
+      }
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::prepare_local_write_keys(tomo::Server&, tomo::MultiExecState&, tomo::MultiCommand&, tomo::Shard&, unsigned int) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      94
+    ],
+    "post_sizes": [
+      97
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 94,
+        "address": "0x41002",
+        "digest": "266d6da32def268abd20cddda519805272baae72e9349b4bf9b79abec242c5b8"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 97,
+        "address": "0x41082",
+        "digest": "e595a5cfa7a901733fb5bd1152ba3788cef4b72f3c9ee13f8e33548992f984c3"
+      }
+    ]
+  },
+  {
+    "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      181
+    ],
+    "post_sizes": [
+      181
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Only resolved global reference labels differ in strict output; opcode/operand encodings match. Full unmasked reference deltas are retained in wave5b-post-deltas.txt.gz.",
+    "before_bodies": [
+      {
+        "size": 181,
+        "address": "0x4bc190",
+        "digest": "bee074b825eaa88fb539650a5e16ebb946e9763da37bd5125c507c16173c329f"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 181,
+        "address": "0x4c2410",
+        "digest": "7ab37b8ad8dae15fab523284e0dca294d8b214cf5c4f91d3f22a684db61f9f21"
       }
     ]
   },
@@ -1538,7 +1925,7 @@
     "after_bodies": [
       {
         "size": 328,
-        "address": "0x6ec0c0",
+        "address": "0x6ec640",
         "digest": "f56a4935bfcd15ca2ba193a43cc9de40f5aec57eb546b6a5524b413cd6e0cc4b"
       }
     ]
@@ -1567,7 +1954,7 @@
     "after_bodies": [
       {
         "size": 328,
-        "address": "0x6f0740",
+        "address": "0x6f0cc0",
         "digest": "381590d343fe247bb007a857ae745fa319f30a79a844d259741ec3c89197da22"
       }
     ]
@@ -1596,8 +1983,8 @@
     "after_bodies": [
       {
         "size": 3024,
-        "address": "0x42c010",
-        "digest": "c393ef061d5d0fee499e14d107813febefb2bdbd5e5736c1136fea5d00105c94"
+        "address": "0x42c550",
+        "digest": "c9e784638e3652e2402e18763efa6959c4463cd9f130d6a1aea89cc44aec658b"
       }
     ]
   },
@@ -1625,8 +2012,8 @@
     "after_bodies": [
       {
         "size": 2965,
-        "address": "0x42b470",
-        "digest": "e260bb0868a0fc31591944ff96014d13d6dd533fc1e30cb7b6eab8c866d7b94b"
+        "address": "0x42b9b0",
+        "digest": "950637ac0d1b57b4a09926f2bb83e0e8db381c006b5aca99f4da71178fdc4136"
       }
     ]
   },
@@ -1654,7 +2041,7 @@
     "after_bodies": [
       {
         "size": 359,
-        "address": "0x5a3540",
+        "address": "0x5a3ac0",
         "digest": "da3bce177ac3cb1c45b55ebc629d645d32135edd8d30bb8ca6f367da8f2d2b85"
       }
     ]
@@ -1683,7 +2070,7 @@
     "after_bodies": [
       {
         "size": 2260,
-        "address": "0x5a3b50",
+        "address": "0x5a40d0",
         "digest": "e6ca261da9dc33c04bc4c07edad93f378ac78da7b9ade181904bcd3ed43be91e"
       }
     ]
@@ -1712,7 +2099,7 @@
     "after_bodies": [
       {
         "size": 1169,
-        "address": "0x5a36b0",
+        "address": "0x5a3c30",
         "digest": "9e8272dc6d389fb4aaa63696fabac4e20f216280186ee317113aa77c348b27dd"
       }
     ]
@@ -1741,7 +2128,7 @@
     "after_bodies": [
       {
         "size": 21378,
-        "address": "0x739350",
+        "address": "0x7398d0",
         "digest": "34dc64e4d59ffe1ba811cf4a194ad102da996a8492ae8a2b90a0950278b344e7"
       }
     ]
@@ -1791,22 +2178,22 @@
     "after_bodies": [
       {
         "size": 9949,
-        "address": "0x6d9320",
+        "address": "0x6d98a0",
         "digest": "a4437b65921f8213b829192094f3c19798836e8148e646569f244f3675ad30c0"
       },
       {
         "size": 12153,
-        "address": "0x7274b0",
+        "address": "0x727a30",
         "digest": "76e60e38cef41b02ac5c81210b64587b78a6a2b230f8ef7ee2dcfdc6c818b044"
       },
       {
         "size": 10045,
-        "address": "0x78bbc0",
+        "address": "0x78c140",
         "digest": "93539e24b2a1af32ef011fbc16a6f8086329beba76c41f60a78260eaab865501"
       },
       {
         "size": 10767,
-        "address": "0x7d2060",
+        "address": "0x7d25e0",
         "digest": "f6a0f6d4e09205581287d968c9a6ad8eb042a33e29f0b72656e29e9a1c683172"
       }
     ]
@@ -1856,22 +2243,22 @@
     "after_bodies": [
       {
         "size": 166,
-        "address": "0x4dbb4",
+        "address": "0x4dc4e",
         "digest": "071c1ccc588cc7b5a5b159466bc63a160e44c4eddd37d116fe202f06198ff74f"
       },
       {
         "size": 244,
-        "address": "0x50dec",
+        "address": "0x50e86",
         "digest": "a7b680f6a67417153862982667ac19396f3e810279e5f4896534bbc4b759be1f"
       },
       {
         "size": 166,
-        "address": "0x53552",
+        "address": "0x535ec",
         "digest": "071c1ccc588cc7b5a5b159466bc63a160e44c4eddd37d116fe202f06198ff74f"
       },
       {
         "size": 244,
-        "address": "0x54e08",
+        "address": "0x54ea2",
         "digest": "52f864a92fda88ac2a7c94b1b0a1ffe361eb0972812042b4d3264a03a0bd7390"
       }
     ]
@@ -1900,8 +2287,8 @@
     "after_bodies": [
       {
         "size": 8477,
-        "address": "0x489590",
-        "digest": "1885d575b06cdac367948227c28e812fea31c46336c21ca6d739e41b773e3f56"
+        "address": "0x489ad0",
+        "digest": "02d6f486f21a4a2799edd0306049a257f905d7849b2e912dc29c369a90f072db"
       }
     ]
   },
@@ -1929,8 +2316,8 @@
     "after_bodies": [
       {
         "size": 632,
-        "address": "0x48f890",
-        "digest": "0cb1fd8fbf5074da5b18334e5c1fb0c36d38330c805e69f1c39c4e114d1a68d0"
+        "address": "0x48fdd0",
+        "digest": "09287a6dbab5f9c273756208f684c046f7391fcffd8b4cee353a8d7477906368"
       }
     ]
   },
@@ -1986,27 +2373,27 @@
     "after_bodies": [
       {
         "size": 395,
-        "address": "0x417e50",
+        "address": "0x418390",
         "digest": "7dccdaf092426f585c4544b5774bb56f9df3eb439e27ca4cf6e3a7bc04ce1b83"
       },
       {
         "size": 597,
-        "address": "0x6d5140",
+        "address": "0x6d56c0",
         "digest": "f03656aac9ffb6a5523758af7a1e28fcdd7103dcc11bfa1588a1f65c7c45f78c"
       },
       {
         "size": 597,
-        "address": "0x7228e0",
+        "address": "0x722e60",
         "digest": "f03656aac9ffb6a5523758af7a1e28fcdd7103dcc11bfa1588a1f65c7c45f78c"
       },
       {
         "size": 597,
-        "address": "0x787910",
+        "address": "0x787e90",
         "digest": "f03656aac9ffb6a5523758af7a1e28fcdd7103dcc11bfa1588a1f65c7c45f78c"
       },
       {
         "size": 395,
-        "address": "0x7c7520",
+        "address": "0x7c7aa0",
         "digest": "7dccdaf092426f585c4544b5774bb56f9df3eb439e27ca4cf6e3a7bc04ce1b83"
       }
     ]
@@ -2018,7 +2405,7 @@
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      13709
+      13561
     ],
     "matches": [],
     "changed_lanes": [],
@@ -2026,9 +2413,9 @@
     "before_bodies": [],
     "after_bodies": [
       {
-        "size": 13709,
-        "address": "0x7d8cf0",
-        "digest": "bf69e64527f4d1eabdb19d18c2866c68d8ea60008c4f971309550f64275b9e41"
+        "size": 13561,
+        "address": "0x7d94b0",
+        "digest": "fc6b9df2833417eae31ea6b837259c57f10ac509ec9b6ad9ae8c4f1f0b707aaf"
       }
     ]
   },
@@ -2048,8 +2435,113 @@
     "after_bodies": [
       {
         "size": 101,
-        "address": "0x54f58",
-        "digest": "b1bbb14cfc7bc21bd5a3ecaf9584b1d102b1776c225d543fad400e05d229edbc"
+        "address": "0x55030",
+        "digest": "42b3d4c959cc98dfb51c26de702921c3f62d7c170c639bc853dcb63dfda9877c"
+      }
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::shutdown_clients_after_join()::{lambda(void*, int, char const*)#1}::_FUN(void*, int, char const*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      37
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 37,
+        "address": "0x7d8a10",
+        "digest": "b472b25470889e0fee15f7293b80f3097b329166ba626d87655719090e8b97a2"
+      }
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::shutdown_clients_after_join()::{lambda(void*, tomo::Client&)#1}::_FUN(void*, tomo::Client&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      7
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 7,
+        "address": "0x7d7fd0",
+        "digest": "016983daf755f9ef8cdb4e32f42d0291f328d2e8f2593871c5553207b0cd6012"
+      }
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::shutdown_clients_after_join()::{lambda(void*, tomo::Client&, tomo::Op&)#1}::_FUN(void*, tomo::Client&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      302
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 302,
+        "address": "0x7d7fe0",
+        "digest": "b13113059da4646501b39e6894d7629f6676332d45eb4dfaed605128af5c6604"
+      }
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::shutdown_clients_after_join()::{lambda(void*, tomo::Client&, tomo::Op&)#1}::operator()(void*, tomo::Client&, tomo::Op&) const::{lambda(void*)#1}::_FUN(void*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      19
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 19,
+        "address": "0x7d7fb0",
+        "digest": "e0aa31ed8f8d5ac04a79bbbe0382eb70e30319bb1386368cbca959d056208c8a"
+      }
+    ]
+  },
+  {
+    "name": "tomo::IoLoop::shutdown_clients_after_join()::{lambda(void*, tomo::Client&, tomo::Op&)#1}::operator()(void*, tomo::Client&, tomo::Op&) const::{lambda(void*, int, char const*)#1}::_FUN(void*, int, char const*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      37
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 37,
+        "address": "0x7d8a40",
+        "digest": "b472b25470889e0fee15f7293b80f3097b329166ba626d87655719090e8b97a2"
       }
     ]
   },
@@ -2069,7 +2561,7 @@
     "after_bodies": [
       {
         "size": 304,
-        "address": "0x7d85a0",
+        "address": "0x7d8a70",
         "digest": "8dedf7c20f91a1e052d43a6c63d71be8e0774f874a52833194aa097e1a9f48f5"
       }
     ]
@@ -2098,7 +2590,7 @@
     "after_bodies": [
       {
         "size": 3744,
-        "address": "0x4b5a60",
+        "address": "0x4b5fa0",
         "digest": "1cf0dbb517888d44979f992015ab393ca6d2bf7b0d181464673855f729f688b2"
       }
     ]
@@ -2127,8 +2619,8 @@
     "after_bodies": [
       {
         "size": 13613,
-        "address": "0x472550",
-        "digest": "3def4d1068204a1a99778e646264b9feaa67569d3b4376a766fcf90aeb2e754d"
+        "address": "0x472a90",
+        "digest": "dd765b73c3158b31d9bddac04d569484c304244675b7f56dd9a1a20c6f3c0876"
       }
     ]
   },
@@ -2156,8 +2648,8 @@
     "after_bodies": [
       {
         "size": 89,
-        "address": "0x3f62e",
-        "digest": "4db52c2a9562b1e89328ab5e8e315dc45392a248d3ea40c99b1dd5156715337c"
+        "address": "0x3f6c6",
+        "digest": "9c52496842291719af00b54f440f472444f5dc8065aa14580336bc121b747fbe"
       }
     ]
   },
@@ -2177,7 +2669,7 @@
     "after_bodies": [
       {
         "size": 917,
-        "address": "0x7d86d0",
+        "address": "0x7d8ba0",
         "digest": "585db91b594a2daefd2180f49173d6c8680b6df954d2b7808e316f182d7fb1e6"
       }
     ]
@@ -2198,7 +2690,7 @@
     "after_bodies": [
       {
         "size": 1300,
-        "address": "0x7dd050",
+        "address": "0x7dd8d0",
         "digest": "5c4da5927dcb118ffdfa9f485d1dbe462dc718092370491475df81f117aaf032"
       }
     ]
@@ -2219,7 +2711,7 @@
     "after_bodies": [
       {
         "size": 1348,
-        "address": "0x7dcb00",
+        "address": "0x7dd380",
         "digest": "e7883d7e4a019d8902eab72ed2d631590c35444255d69d2d44518cf3ef7dc26b"
       }
     ]
@@ -2240,7 +2732,7 @@
     "after_bodies": [
       {
         "size": 1064,
-        "address": "0x7dc6d0",
+        "address": "0x7dcf50",
         "digest": "10562943b7a462f817e87e5baf24601257cfcc00569a692ef1fab172f0471c5b"
       }
     ]
@@ -2261,7 +2753,7 @@
     "after_bodies": [
       {
         "size": 1096,
-        "address": "0x7dc280",
+        "address": "0x7dcb00",
         "digest": "d2aa2e67c219869a94f03c38e855b075a3464589b2dff7d04f6b39f55226c6b0"
       }
     ]
@@ -2290,7 +2782,7 @@
     "after_bodies": [
       {
         "size": 2691,
-        "address": "0x5584f0",
+        "address": "0x558a70",
         "digest": "90844c7e6f71d4984ebea4d0aef6ff5cb818901a9ca032a5e815d4e9ac0ccc82"
       }
     ]
@@ -2319,7 +2811,7 @@
     "after_bodies": [
       {
         "size": 130,
-        "address": "0x5631e0",
+        "address": "0x563760",
         "digest": "3bb3bb24493d527446e3f1645c649480beaced58ae802b7d1f302b1b309f05a9"
       }
     ]
@@ -2348,7 +2840,7 @@
     "after_bodies": [
       {
         "size": 519,
-        "address": "0x76fbd0",
+        "address": "0x770150",
         "digest": "41913c8f6f13e1a056220ad8fe5a6ccd06824ba720fab9bd66877ac48c24338d"
       }
     ]
@@ -2377,8 +2869,8 @@
     "after_bodies": [
       {
         "size": 1606,
-        "address": "0x425140",
-        "digest": "55d8870aeb5a2f785c37beca95dccd3cc11a8f9b55d551a322419e9da100297b"
+        "address": "0x425680",
+        "digest": "011a5c8a017dd74e11686f190338109924a02329569022c147995f4f146826f8"
       }
     ]
   },
@@ -2406,8 +2898,121 @@
     "after_bodies": [
       {
         "size": 772,
-        "address": "0x4258e0",
-        "digest": "a55a1a277706f5ea8caf78b0530e346696fe97275c1895469d4c99a84aa3aaff"
+        "address": "0x425e20",
+        "digest": "5b95f26753eda52613f68440da89985d01d137b420d46e29932d6748aadbdf5e"
+      }
+    ]
+  },
+  {
+    "name": "tomo::multi_shutdown_discard(tomo::Server&, tomo::WbEngine&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      598
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 598,
+        "address": "0x4f5010",
+        "digest": "62ec6d80e69d99e24abe2571f10d58e288f354d53cf2141bd986be63df1cc88b"
+      }
+    ]
+  },
+  {
+    "name": "tomo::multi_shutdown_discard(tomo::Server&, tomo::WbEngine&, tomo::Client&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, std::vector<tomo::MultiExecState*, std::allocator<tomo::MultiExecState*> >&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      45
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 45,
+        "address": "0x3f63e",
+        "digest": "5370d9156b166962e4210d0abdb66dad955779fa47775bf40edceb0168b65539"
+      }
+    ]
+  },
+  {
+    "name": "tomo::multi_shutdown_retirable(tomo::Server&, tomo::WbEngine&, tomo::Client&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      256
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 256,
+        "address": "0x4de670",
+        "digest": "5c21ae31746160121436024bef72625e29f09db21d73739bec5ef58b3035e91d"
+      }
+    ]
+  },
+  {
+    "name": "tomo::multi_shutdown_return_tls_borrows(tomo::Server&, tomo::WbEngine&, tomo::Client&, tomo::MultiExecState&) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      225
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 225,
+        "address": "0x4de580",
+        "digest": "a6a19abcf691f38eeef3d646903fbee734df5aa9fb3e9a2665847c4c2dcfde22"
+      }
+    ]
+  },
+  {
+    "name": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2014
+    ],
+    "post_sizes": [
+      2014
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Only resolved global reference labels differ in strict output; opcode/operand encodings match. Full unmasked reference deltas are retained in wave5b-post-deltas.txt.gz.",
+    "before_bodies": [
+      {
+        "size": 2014,
+        "address": "0x4e6f20",
+        "digest": "31b2f6ec6da0bdc92e3a3f4dbb32862d4965aac645bbc1447fc5f4d3e79d5ad0"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2014,
+        "address": "0x4ed580",
+        "digest": "26b8f1971d5c836a74b1232064d666b836a645d67c6f2ea1526c9ef8e46e793d"
       }
     ]
   },
@@ -2435,8 +3040,8 @@
     "after_bodies": [
       {
         "size": 15623,
-        "address": "0x454c50",
-        "digest": "139e67b8248e3d01196d82208e6f8f38e7acb13913c4276d6884b0c4ac7dddd4"
+        "address": "0x455190",
+        "digest": "8d753a8c2bc7d5a0a8338727e71822107e46e64f14b8b9e734fa470840b58b30"
       }
     ]
   },
@@ -2464,7 +3069,7 @@
     "after_bodies": [
       {
         "size": 2951,
-        "address": "0x4dc5a",
+        "address": "0x4dcf4",
         "digest": "8cfc656fa457e6c7e9594e259c70673db8c33042b49e18da4d6c522baddaac66"
       }
     ]
@@ -2493,7 +3098,7 @@
     "after_bodies": [
       {
         "size": 2947,
-        "address": "0x535f8",
+        "address": "0x53692",
         "digest": "207f14bb5d9b61746aa980e95dc6ef57582ced773b1d334e481005bac2027532"
       }
     ]
@@ -2522,8 +3127,95 @@
     "after_bodies": [
       {
         "size": 2974,
-        "address": "0x511dd",
+        "address": "0x51277",
         "digest": "053586aecc640adfb97f076c4680c714d01d458e479e677ad510396bc37ee6b5"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::blocking_run_direct(tomo_db0::BlockingState&, tomo_db0::Shard&, tomo_db0::ThreadCtx&, tomo_db0::Ring&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2880
+    ],
+    "post_sizes": [
+      3134
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 2880,
+        "address": "0x152840",
+        "digest": "522eda3f4aa05580d575696d545638b8b8dedde3d1da49ec8984c506939ef730"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 3134,
+        "address": "0x152dd0",
+        "digest": "9f67323ed0fd9a6fcad248bf067b00d2695b5081b55d3edbbd8c28bf8b43068e"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::blocking_run_direct(tomo_db0::BlockingState&, tomo_db0::Shard&, tomo_db0::ThreadCtx&, tomo_db0::Ring&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      52
+    ],
+    "post_sizes": [
+      51
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 52,
+        "address": "0x25598",
+        "digest": "c23cb8a9fe8e90733140ddb684032a9678943cad566c57f4608155b4050385b5"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 51,
+        "address": "0x255de",
+        "digest": "f3d7fc20f844c92ed6dbbd321ec206dc921f9c00a88c0a0fff81a0ec7e6495e3"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1009
+    ],
+    "post_sizes": [
+      945
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 1009,
+        "address": "0x1187e0",
+        "digest": "1738511f58f4b327ae915844707e27e8e8c019a11b8359dd57d08cffd49bce57"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 945,
+        "address": "0x118a00",
+        "digest": "64277eaf342fcb316c5439cc9656951623c3966231564aace38df0cb9c42c2ff"
       }
     ]
   },
@@ -2551,7 +3243,7 @@
     "after_bodies": [
       {
         "size": 16692,
-        "address": "0x1c0af0",
+        "address": "0x1c0d40",
         "digest": "fb774964a068244f8d180371a56451f6addf320fae787d457a3f7b09cfc4d7bf"
       }
     ]
@@ -2580,7 +3272,7 @@
     "after_bodies": [
       {
         "size": 8386,
-        "address": "0x2ef760",
+        "address": "0x2ef9b0",
         "digest": "f0c6831e6fcf12823040ea5d5a0dde78b9112cfa1c260ee4d06e0e81c11e4b35"
       }
     ]
@@ -2609,7 +3301,7 @@
     "after_bodies": [
       {
         "size": 5395,
-        "address": "0x2f9730",
+        "address": "0x2f9980",
         "digest": "6eed6465cc6783e51fc3051ef87f052947efb0445dfe1041d5b2f6c899a63df3"
       }
     ]
@@ -2638,8 +3330,66 @@
     "after_bodies": [
       {
         "size": 1052,
-        "address": "0x289220",
+        "address": "0x289470",
         "digest": "0679454395f586cb935207c390f1c346c252cbbf804d2c4de43d6c10bf5678bd"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::destroy_multi_state(tomo_db0::MultiExecState*) [clone .part.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      561
+    ],
+    "post_sizes": [
+      359
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 561,
+        "address": "0x13f640",
+        "digest": "5e0c6df8de8cc506bab2934f235947a6890f277a0fc81ae9f7d12f0380f3093a"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 359,
+        "address": "0x13fa10",
+        "digest": "9e2b4731198bdae8130d5f24fbfb7c9e6f08980fb6c3ec9d43b5a9a7114a6333"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::execute_plain_element_mover(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2735
+    ],
+    "post_sizes": [
+      2735
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Only resolved global reference labels differ in strict output; opcode/operand encodings match. Full unmasked reference deltas are retained in wave5b-post-deltas.txt.gz.",
+    "before_bodies": [
+      {
+        "size": 2735,
+        "address": "0x146970",
+        "digest": "24423b344a81f66474d66cc9fac81c8bd8a44eb9d07e4da1d7edd90fe9849c31"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2735,
+        "address": "0x146ed0",
+        "digest": "9e666802fc3e9b41c262ae3536999a9439f11f9c1a894534df866da852dedd2d"
       }
     ]
   },
@@ -2667,7 +3417,7 @@
     "after_bodies": [
       {
         "size": 8766,
-        "address": "0x1b8530",
+        "address": "0x1b8780",
         "digest": "6144678333c0423324a397a55d857a617a50d6f3ee565cce5a53c1d99b70949b"
       }
     ]
@@ -2696,8 +3446,95 @@
     "after_bodies": [
       {
         "size": 1072,
-        "address": "0x108e70",
+        "address": "0x108f50",
         "digest": "c794240a3d349a651f129f573717828fb166e53773bf2be0804a6e4e932364d8"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      10285
+    ],
+    "post_sizes": [
+      10333
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 10285,
+        "address": "0x14bc00",
+        "digest": "180a24917e0b3555e04e433026186e563e59c67c422e9983cbe33c7cb5f7dc0a"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 10333,
+        "address": "0x14c160",
+        "digest": "ba2cb921bd9fc33e19cc93a122165b7fdd4ab71792f36b2d6796be9486217954"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::prepare_commands(tomo_db0::Server&, tomo_db0::MultiExecState&, std::vector<tomo_db0::MultiQueuedCommand, std::allocator<tomo_db0::MultiQueuedCommand> >&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      84
+    ],
+    "post_sizes": [
+      84
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 84,
+        "address": "0x2502b",
+        "digest": "a19bc75abb5ab832e54dea7f99e7ab000ba08db094908bb20399a4f39eb61f62"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 84,
+        "address": "0x25071",
+        "digest": "b358384eab5095bc66185cc8802bed01665ce6265f091537b030db57dceae4fe"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      181
+    ],
+    "post_sizes": [
+      181
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Only resolved global reference labels differ in strict output; opcode/operand encodings match. Full unmasked reference deltas are retained in wave5b-post-deltas.txt.gz.",
+    "before_bodies": [
+      {
+        "size": 181,
+        "address": "0x10b8e0",
+        "digest": "52e1187685b35b2a813d41685f07a17fdec67a7c7838d86afe517d6b48a5ac05"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 181,
+        "address": "0x10bb00",
+        "digest": "a62a9735708c01ebe78c24733e3a07c75b4e9fc6aae38b3c5243e11e2499c906"
       }
     ]
   },
@@ -2725,7 +3562,7 @@
     "after_bodies": [
       {
         "size": 328,
-        "address": "0x326de0",
+        "address": "0x327030",
         "digest": "a1f600e6a791554ddf11fd94185036619a99934d4e6c4468f72b83e24624d095"
       }
     ]
@@ -2754,7 +3591,7 @@
     "after_bodies": [
       {
         "size": 328,
-        "address": "0x32b490",
+        "address": "0x32b6e0",
         "digest": "5453565033b47e1db4a7fe50ba1339a3c2ff2b2a8c6c29310a16b9ed69fad589"
       }
     ]
@@ -2783,7 +3620,7 @@
     "after_bodies": [
       {
         "size": 2588,
-        "address": "0x74be0",
+        "address": "0x74cc0",
         "digest": "795b1c065cde70781babb2ee35f8fc46b190abbbbbaab1335387851409d96f1e"
       }
     ]
@@ -2812,7 +3649,7 @@
     "after_bodies": [
       {
         "size": 2528,
-        "address": "0x74200",
+        "address": "0x742e0",
         "digest": "6405109cc045caa59b9b4c88a198605531aa88255bc69fd341927fafa186907b"
       }
     ]
@@ -2841,7 +3678,7 @@
     "after_bodies": [
       {
         "size": 359,
-        "address": "0x1f64e0",
+        "address": "0x1f6730",
         "digest": "da3bce177ac3cb1c45b55ebc629d645d32135edd8d30bb8ca6f367da8f2d2b85"
       }
     ]
@@ -2870,7 +3707,7 @@
     "after_bodies": [
       {
         "size": 2228,
-        "address": "0x1f6d10",
+        "address": "0x1f6f60",
         "digest": "3b4c6be4f54e30e954dfb6f2663770a40f2a44d4455e35c438435e8fea751d9b"
       }
     ]
@@ -2899,7 +3736,7 @@
     "after_bodies": [
       {
         "size": 1169,
-        "address": "0x1f6870",
+        "address": "0x1f6ac0",
         "digest": "d54c84119088a83589e4a59496201d547a16ba175a248e50b032393c9c79f41c"
       }
     ]
@@ -2949,22 +3786,22 @@
     "after_bodies": [
       {
         "size": 9840,
-        "address": "0x313e90",
+        "address": "0x3140e0",
         "digest": "77c13863d9728b12eccc6fc2cca31d46c6b648da50a77c0cc69268d6437e64b2"
       },
       {
         "size": 12318,
-        "address": "0x361f50",
+        "address": "0x3621a0",
         "digest": "e1afc3bb4ca3015edeb5084fc0ee3c472ba9ed5b278fc935fd7f86151f3dcb79"
       },
       {
         "size": 9840,
-        "address": "0x3c40d0",
+        "address": "0x3c4320",
         "digest": "77c13863d9728b12eccc6fc2cca31d46c6b648da50a77c0cc69268d6437e64b2"
       },
       {
         "size": 10771,
-        "address": "0x40a8d0",
+        "address": "0x40ab20",
         "digest": "eeb2ec44627e03e1aed19cc4c5cd846d98b2fc16e56825b60a068c3be651ef78"
       }
     ]
@@ -3014,22 +3851,22 @@
     "after_bodies": [
       {
         "size": 166,
-        "address": "0x327a2",
+        "address": "0x327cc",
         "digest": "2e0bcc0d6d6850261f950f24ab73f49afb6693ea28047a34850c5c9e0132a37f"
       },
       {
         "size": 248,
-        "address": "0x35998",
+        "address": "0x359c2",
         "digest": "9d6b90677ab6f8aba660084fe1fcb014a348317f6ad95b054741879fca2a9b27"
       },
       {
         "size": 166,
-        "address": "0x37e62",
+        "address": "0x37e8c",
         "digest": "2e0bcc0d6d6850261f950f24ab73f49afb6693ea28047a34850c5c9e0132a37f"
       },
       {
         "size": 244,
-        "address": "0x396dc",
+        "address": "0x39706",
         "digest": "6f085c036f00197559d01f21637a892ba049299e791cd45175f93dd9e786f673"
       }
     ]
@@ -3058,7 +3895,7 @@
     "after_bodies": [
       {
         "size": 8477,
-        "address": "0xb5410",
+        "address": "0xb54f0",
         "digest": "d9b8de670132fc36a0ea8e3e9979bfc230cf01e972ee244c8ba1cd868d28771f"
       }
     ]
@@ -3087,7 +3924,7 @@
     "after_bodies": [
       {
         "size": 632,
-        "address": "0xd9b90",
+        "address": "0xd9c70",
         "digest": "cb92321e53313cf3b0019aedebb15d1a9b187d05253ac45aa4e4315bb2239047"
       }
     ]
@@ -3144,27 +3981,27 @@
     "after_bodies": [
       {
         "size": 395,
-        "address": "0x63c20",
+        "address": "0x63d00",
         "digest": "bfbadb4d9dc78a006876800726ae8a05eb3194d17ce8338aa23a7d44cd1c774a"
       },
       {
         "size": 597,
-        "address": "0x30fc30",
+        "address": "0x30fe80",
         "digest": "0a7dd5c1eefb640a52948d603b5b8228f3158c01e7257efbe6dacc6d69990e9c"
       },
       {
         "size": 597,
-        "address": "0x35d060",
+        "address": "0x35d2b0",
         "digest": "0a7dd5c1eefb640a52948d603b5b8228f3158c01e7257efbe6dacc6d69990e9c"
       },
       {
         "size": 597,
-        "address": "0x3bf760",
+        "address": "0x3bf9b0",
         "digest": "0a7dd5c1eefb640a52948d603b5b8228f3158c01e7257efbe6dacc6d69990e9c"
       },
       {
         "size": 395,
-        "address": "0x3ffae0",
+        "address": "0x3ffd30",
         "digest": "bfbadb4d9dc78a006876800726ae8a05eb3194d17ce8338aa23a7d44cd1c774a"
       }
     ]
@@ -3176,7 +4013,7 @@
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      13709
+      13561
     ],
     "matches": [],
     "changed_lanes": [],
@@ -3184,9 +4021,9 @@
     "before_bodies": [],
     "after_bodies": [
       {
-        "size": 13709,
-        "address": "0x411580",
-        "digest": "281d655983df32ecdaa3df4cae6fa946c2a92c93bbd4ecb2af060ac72ab82a46"
+        "size": 13561,
+        "address": "0x411a00",
+        "digest": "1970f41d787b0710cffa37f0cca675305782a4e7a4aeacd4baf0907d016f297c"
       }
     ]
   },
@@ -3206,8 +4043,113 @@
     "after_bodies": [
       {
         "size": 101,
-        "address": "0x3982c",
-        "digest": "4aa329371eff73bed94309103e4a96687b47db346d57216a7265e5c35bc14db7"
+        "address": "0x39894",
+        "digest": "2c5c3ca46a3e9b316275b784a445053d384b7fba960952bbe6db8f36f21b290f"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(void*, int, char const*)#1}::_FUN(void*, int, char const*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      37
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 37,
+        "address": "0x410f60",
+        "digest": "89e7dac02ae5a12c1fd2cb943ab5d886609471379bc8886cb3a9e638e24c8b15"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(void*, tomo_db0::Client&)#1}::_FUN(void*, tomo_db0::Client&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      7
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 7,
+        "address": "0x410520",
+        "digest": "016983daf755f9ef8cdb4e32f42d0291f328d2e8f2593871c5553207b0cd6012"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::_FUN(void*, tomo_db0::Client&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      302
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 302,
+        "address": "0x410530",
+        "digest": "8e6fbfe47de9a649523d4e207467f541f32c3bd15bf601373e4d2a954f4a1180"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const::{lambda(void*)#1}::_FUN(void*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      19
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 19,
+        "address": "0x410500",
+        "digest": "e0aa31ed8f8d5ac04a79bbbe0382eb70e30319bb1386368cbca959d056208c8a"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const::{lambda(void*, int, char const*)#1}::_FUN(void*, int, char const*)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      37
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 37,
+        "address": "0x410f90",
+        "digest": "89e7dac02ae5a12c1fd2cb943ab5d886609471379bc8886cb3a9e638e24c8b15"
       }
     ]
   },
@@ -3227,7 +4169,7 @@
     "after_bodies": [
       {
         "size": 304,
-        "address": "0x410e30",
+        "address": "0x410fc0",
         "digest": "8dedf7c20f91a1e052d43a6c63d71be8e0774f874a52833194aa097e1a9f48f5"
       }
     ]
@@ -3256,7 +4198,7 @@
     "after_bodies": [
       {
         "size": 4256,
-        "address": "0xff3b0",
+        "address": "0xff490",
         "digest": "c3d3bdd060217457ae3fc67bf3df198c3d3979ed29f2caf7419abe926b91ac0f"
       }
     ]
@@ -3285,7 +4227,7 @@
     "after_bodies": [
       {
         "size": 13588,
-        "address": "0xc1780",
+        "address": "0xc1860",
         "digest": "14e8767e6704f4c5bb8eab661c330f3f2db1fd6e8930abd4ab71d08b28ae8413"
       }
     ]
@@ -3314,7 +4256,7 @@
     "after_bodies": [
       {
         "size": 320,
-        "address": "0x7ac00",
+        "address": "0x7ace0",
         "digest": "ca9077c71c511a8bcbae568c70aaeb86276d48b5da7dceb5bd2beffcf7eab666"
       }
     ]
@@ -3335,7 +4277,7 @@
     "after_bodies": [
       {
         "size": 917,
-        "address": "0x410f60",
+        "address": "0x4110f0",
         "digest": "a66b4021798f07a3d4525d325cc948f0b100326314af469531769dbdee16602d"
       }
     ]
@@ -3356,7 +4298,7 @@
     "after_bodies": [
       {
         "size": 1300,
-        "address": "0x4158e0",
+        "address": "0x415e20",
         "digest": "b3ab225fda7bcdca96ca52743025679aa550ecb989ebcb282f74a666106707b4"
       }
     ]
@@ -3377,7 +4319,7 @@
     "after_bodies": [
       {
         "size": 1348,
-        "address": "0x415390",
+        "address": "0x4158d0",
         "digest": "0f27bdd7111cd0749eaaee753885bc226b7ac9e46db6c14af30c10f75c0ad030"
       }
     ]
@@ -3398,7 +4340,7 @@
     "after_bodies": [
       {
         "size": 1064,
-        "address": "0x414f60",
+        "address": "0x4154a0",
         "digest": "82b0c560b794bc8fbb51a26d5bc6eff5a9c48e32d8f11d5830ba4c9a2463380f"
       }
     ]
@@ -3419,7 +4361,7 @@
     "after_bodies": [
       {
         "size": 1096,
-        "address": "0x414b10",
+        "address": "0x415050",
         "digest": "f06bf7c151336ab45bcf69944f2a989b070bebd886574eb9273c934cbde74376"
       }
     ]
@@ -3448,7 +4390,7 @@
     "after_bodies": [
       {
         "size": 2691,
-        "address": "0x1a6380",
+        "address": "0x1a65d0",
         "digest": "294132109f60d28c48de6046980281c987fe4b7a04edec0fd3fea96f1937fa71"
       }
     ]
@@ -3477,7 +4419,7 @@
     "after_bodies": [
       {
         "size": 130,
-        "address": "0x1b2870",
+        "address": "0x1b2ac0",
         "digest": "1289887280a46997d1cb04e403dd9e28cfc5652c2feaef045579e93ba1eea565"
       }
     ]
@@ -3506,7 +4448,7 @@
     "after_bodies": [
       {
         "size": 519,
-        "address": "0x3aaf00",
+        "address": "0x3ab150",
         "digest": "b9097a9ab7fb98e4150f1d2a2839b861e37c26ffd1366fde9972f67fc053f920"
       }
     ]
@@ -3535,7 +4477,7 @@
     "after_bodies": [
       {
         "size": 1606,
-        "address": "0x6e350",
+        "address": "0x6e430",
         "digest": "10c08e21eee059e91551bf7b7273cd188b521cab8f33fdff5daa95b54f60652b"
       }
     ]
@@ -3564,8 +4506,121 @@
     "after_bodies": [
       {
         "size": 772,
-        "address": "0x6eb40",
+        "address": "0x6ec20",
         "digest": "c35d442d1e7a5b9158dddb930b1bf69800a21274e73fd0ebc9aa29e2c274b3b6"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::multi_shutdown_discard(tomo_db0::Server&, tomo_db0::WbEngine&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      598
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 598,
+        "address": "0x13fca0",
+        "digest": "ae545e33445d7b6498e331052332d2158f7ea77ba58a72cae575bc5830ac605d"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::multi_shutdown_discard(tomo_db0::Server&, tomo_db0::WbEngine&, tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, std::vector<tomo_db0::MultiExecState*, std::allocator<tomo_db0::MultiExecState*> >&) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      45
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 45,
+        "address": "0x24784",
+        "digest": "5370d9156b166962e4210d0abdb66dad955779fa47775bf40edceb0168b65539"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::multi_shutdown_retirable(tomo_db0::Server&, tomo_db0::WbEngine&, tomo_db0::Client&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      256
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 256,
+        "address": "0x1279b0",
+        "digest": "de6d8e2f27c9f09adb5146cfc6f5182bd2c96126330a62e358739f3c33d8aa22"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::multi_shutdown_return_tls_borrows(tomo_db0::Server&, tomo_db0::WbEngine&, tomo_db0::Client&, tomo_db0::MultiExecState&) [clone .isra.0]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      225
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 225,
+        "address": "0x1278c0",
+        "digest": "17c0fddb2b6de7dc8062e098dbf9ea0009dc23ee2523663d9fe1021c39097af9"
+      }
+    ]
+  },
+  {
+    "name": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      1872
+    ],
+    "post_sizes": [
+      1872
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Only resolved global reference labels differ in strict output; opcode/operand encodings match. Full unmasked reference deltas are retained in wave5b-post-deltas.txt.gz.",
+    "before_bodies": [
+      {
+        "size": 1872,
+        "address": "0x137c50",
+        "digest": "c1180db2214694d1b53728cc6e97e28e655988cf3c1e34eecd3a15de74fd4004"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 1872,
+        "address": "0x138020",
+        "digest": "1fcb52ec50cd5365fb68a87f346ab0040da1fabf68fd871d19c524c1281d76ed"
       }
     ]
   },
@@ -3593,7 +4648,7 @@
     "after_bodies": [
       {
         "size": 15047,
-        "address": "0x9e280",
+        "address": "0x9e360",
         "digest": "eb27b4fa251abfbdd21f5bbbb637d8428778436c7929a17e75babe765dee0f3d"
       }
     ]
@@ -3622,7 +4677,7 @@
     "after_bodies": [
       {
         "size": 2889,
-        "address": "0x32848",
+        "address": "0x32872",
         "digest": "1b61012a54949e74727860c18bc4a347735c6bb1bd22644213cb4b8ed5f90eaa"
       }
     ]
@@ -3651,7 +4706,7 @@
     "after_bodies": [
       {
         "size": 2885,
-        "address": "0x37f08",
+        "address": "0x37f32",
         "digest": "27798b448e0b69f11275dd6ae7e1e8abdfccd2ea829ae4edc96519e8c2e63daa"
       }
     ]
@@ -3680,7 +4735,7 @@
     "after_bodies": [
       {
         "size": 2912,
-        "address": "0x35d8e",
+        "address": "0x35db8",
         "digest": "7c1c5226cbe43f00e75e5c1e584476361d4856e468bb4f2d30d83e8d88be347b"
       }
     ]
@@ -3709,7 +4764,7 @@
     "after_bodies": [
       {
         "size": 12964,
-        "address": "0x41f220",
+        "address": "0x41f760",
         "digest": "86bbcc3225a5fe379c0e3a63d4fba8e18addf547e5fc47437de4bf22acdff826"
       }
     ]
@@ -3738,7 +4793,7 @@
     "after_bodies": [
       {
         "size": 4639,
-        "address": "0x3a1fe",
+        "address": "0x3a266",
         "digest": "823c409cdaf2274699a215abd32cf2197d4a91bcd56ade54e5830238b6067bc5"
       }
     ]
@@ -3767,8 +4822,8 @@
     "after_bodies": [
       {
         "size": 941,
-        "address": "0x4a1ac0",
-        "digest": "4b33621badad79c6050d578b38ed9cf152a567feed2e30934fd63c26dba5a983"
+        "address": "0x4a2000",
+        "digest": "ab01c8712e67ec90c1ae85b238111c238a195ab3f157748445b837de46829901"
       }
     ]
   },
@@ -3796,8 +4851,8 @@
     "after_bodies": [
       {
         "size": 893,
-        "address": "0x4a1e70",
-        "digest": "849fe75b3b0ea1bdd0009fb64735c8a11b2bf8c025516b5e4e041143fcc9b804"
+        "address": "0x4a23b0",
+        "digest": "07ae7bfe866ae2ee70eec9fc7152094ac7831a25893fa5ff62c89702aad94360"
       }
     ]
   },
@@ -3825,19 +4880,19 @@
     "after_bodies": [
       {
         "size": 1069,
-        "address": "0x4a21f0",
-        "digest": "5a5aec4e999bf0176949a40801d0bae1e8d19bbd9a43c9ffd62109b8d837fddd"
+        "address": "0x4a2730",
+        "digest": "de28bbd0f3e8e897df5693ba6bd795972365a4a414807186ddde60e84e2f1705"
       }
     ]
   },
   {
-    "name": "unsigned int tomo::ThreadCtx::drain_releases_unmasked<tomo::IoLoop::shutdown_clients_after_join()::{lambda(tomo::BorrowRelease const&)#1}>(tomo::IoLoop::shutdown_clients_after_join()::{lambda(tomo::BorrowRelease const&)#1}&&) [clone .isra.0]",
+    "name": "unsigned int tomo::Ring::for_each_cqe<tomo::IoLoop::shutdown_clients_after_join()::{lambda(io_uring_cqe*)#1}>(tomo::IoLoop::shutdown_clients_after_join()::{lambda(io_uring_cqe*)#1}&&) [clone .isra.0]",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      1801
+      1184
     ],
     "matches": [],
     "changed_lanes": [],
@@ -3845,9 +4900,30 @@
     "before_bodies": [],
     "after_bodies": [
       {
-        "size": 1801,
-        "address": "0x7d7e90",
-        "digest": "06631fc5e03ad8326a0b6f1130ea8fe7ec358a090cd747e53aed425d5baadda9"
+        "size": 1184,
+        "address": "0x7d8570",
+        "digest": "957792d031144cbf1db9d0a74858dc7d71629a32ead2ad1b237db19c09e69943"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo::Ring::for_each_cqe<tomo::IoLoop::shutdown_clients_after_join()::{lambda(io_uring_cqe*)#1}>(tomo::IoLoop::shutdown_clients_after_join()::{lambda(io_uring_cqe*)#1}&&) [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      61
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 61,
+        "address": "0x54ff2",
+        "digest": "bd3c7ea37e3c580812b31c067971862cf9a0717b04ae8ce675bfd74a6cdf9466"
       }
     ]
   },
@@ -3875,7 +4951,7 @@
     "after_bodies": [
       {
         "size": 925,
-        "address": "0xebd20",
+        "address": "0xebe00",
         "digest": "618d006ac2cd1c53767b4d3e76dcba3226f5e24d6b82f1894a53a65bb013b9d7"
       }
     ]
@@ -3904,7 +4980,7 @@
     "after_bodies": [
       {
         "size": 877,
-        "address": "0xec0c0",
+        "address": "0xec1a0",
         "digest": "94fa4877dc5b1e9b7ecc1cdb6998da3f9eabeb5f755346b6e16d85eeea1a8fca"
       }
     ]
@@ -3933,19 +5009,19 @@
     "after_bodies": [
       {
         "size": 1053,
-        "address": "0xec430",
+        "address": "0xec510",
         "digest": "d8697c01de01dd686257113ffab86b02f45a7554154d495fb095d943ea55638b"
       }
     ]
   },
   {
-    "name": "unsigned int tomo_db0::ThreadCtx::drain_releases_unmasked<tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(tomo_db0::BorrowRelease const&)#1}>(tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(tomo_db0::BorrowRelease const&)#1}&&) [clone .isra.0]",
+    "name": "unsigned int tomo_db0::Ring::for_each_cqe<tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(io_uring_cqe*)#1}>(tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(io_uring_cqe*)#1}&&) [clone .isra.0]",
     "hot": false,
     "command_hot": false,
     "equal": false,
     "headline_sizes": [],
     "post_sizes": [
-      1820
+      1184
     ],
     "matches": [],
     "changed_lanes": [],
@@ -3953,9 +5029,88 @@
     "before_bodies": [],
     "after_bodies": [
       {
-        "size": 1820,
-        "address": "0x410710",
-        "digest": "6e12ab1d38439e331fc8e73d43e3fd9d64567a6caa82615d2f3b23719d41cf84"
+        "size": 1184,
+        "address": "0x410ac0",
+        "digest": "3c98b33eadd2fd8c0450ee5dca992b3bfd984eae632e9fc3f89f256860073a7f"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::Ring::for_each_cqe<tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(io_uring_cqe*)#1}>(tomo_db0::IoLoop::shutdown_clients_after_join()::{lambda(io_uring_cqe*)#1}&&) [clone .isra.0] [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [],
+    "post_sizes": [
+      61
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "New shutdown-only collection/cancellation body or its translation-unit initializer.",
+    "before_bodies": [],
+    "after_bodies": [
+      {
+        "size": 61,
+        "address": "0x39856",
+        "digest": "bd3c7ea37e3c580812b31c067971862cf9a0717b04ae8ce675bfd74a6cdf9466"
+      }
+    ]
+  },
+  {
+    "name": "unsigned int tomo_db0::multi_owner_pass_entry_impl<false>(tomo_db0::IoLoop&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      11242
+    ],
+    "post_sizes": [
+      10698
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 11242,
+        "address": "0x183950",
+        "digest": "1d12f95a05747b834c39cab9365145311850ccc80cf5eafcd4ee092d2ef997f0"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 10698,
+        "address": "0x183f00",
+        "digest": "49e6326f658bf47e679c3417d25b176f2091d48ccc752fb938514e9a490874af"
+      }
+    ]
+  },
+  {
+    "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::ZImageItem*, std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> > >, long, tomo::(anonymous namespace)::ZImageItem, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ZImageItem const&, tomo::(anonymous namespace)::ZImageItem const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::ZImageItem*, std::vector<tomo::(anonymous namespace)::ZImageItem, std::allocator<tomo::(anonymous namespace)::ZImageItem> > >, long, long, tomo::(anonymous namespace)::ZImageItem, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::compute_zsetop(tomo::ScatterState&)::{lambda(tomo::(anonymous namespace)::ZImageItem const&, tomo::(anonymous namespace)::ZImageItem const&)#1}>)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2625
+    ],
+    "post_sizes": [
+      2162
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 2625,
+        "address": "0x4c8230",
+        "digest": "b9a26d2f1a3de4e6ab642c4d6d6714e6fc458db153f4aa82b8c640dc84555f99"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 2162,
+        "address": "0x4c9100",
+        "digest": "8e66cc925684aa0b09c554d528a3a33e216e96b1a190a624ffc1253e43558007"
       }
     ]
   },
@@ -3975,7 +5130,7 @@
     "after_bodies": [
       {
         "size": 1079,
-        "address": "0x7dd570",
+        "address": "0x7dddf0",
         "digest": "d46604e005410ccfab6a0c0ac927db8e8c4d491a00d76005899cba8cfcf208a4"
       }
     ]
@@ -3996,7 +5151,7 @@
     "after_bodies": [
       {
         "size": 1079,
-        "address": "0x415e00",
+        "address": "0x416340",
         "digest": "d46604e005410ccfab6a0c0ac927db8e8c4d491a00d76005899cba8cfcf208a4"
       }
     ]
@@ -4025,7 +5180,7 @@
     "after_bodies": [
       {
         "size": 2744,
-        "address": "0x4e2e00",
+        "address": "0x4e3360",
         "digest": "476a1c15759996a9b39da3a682eccd1a6748bf69e9cca1c233f424e2dea7cdf8"
       }
     ]
@@ -4054,7 +5209,7 @@
     "after_bodies": [
       {
         "size": 2882,
-        "address": "0x4ed890",
+        "address": "0x4eddf0",
         "digest": "e0b078eb3d73847cba5cd2ebec7cbe4c570b3541c39ac843dd04773a9bc07091"
       }
     ]
@@ -4083,7 +5238,7 @@
     "after_bodies": [
       {
         "size": 997,
-        "address": "0x584920",
+        "address": "0x584ea0",
         "digest": "13c1a06d8cef2d664c2fee2c687910ce34918a2b506ed0dbc265d2d7e9aec6a1"
       }
     ]
@@ -4112,8 +5267,66 @@
     "after_bodies": [
       {
         "size": 1045,
-        "address": "0x58f650",
+        "address": "0x58fbd0",
         "digest": "124087b922b858625a89fbdb2b3932c4e1a15e66f801df46081c4999ac5056d8"
+      }
+    ]
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      15956
+    ],
+    "post_sizes": [
+      15956
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Only resolved global reference labels differ in strict output; opcode/operand encodings match. Full unmasked reference deltas are retained in wave5b-post-deltas.txt.gz.",
+    "before_bodies": [
+      {
+        "size": 15956,
+        "address": "0x53a090",
+        "digest": "64612a36d389ff8e8c4775564aebc28a1eae18a54011a09bd61567f583c12fdb"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 15956,
+        "address": "0x540710",
+        "digest": "fb1d3490827c03055a44242992f249be5fd6d4def5e4828fd55bcf95d6ebc603"
+      }
+    ]
+  },
+  {
+    "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      17097
+    ],
+    "post_sizes": [
+      17097
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Only resolved global reference labels differ in strict output; opcode/operand encodings match. Full unmasked reference deltas are retained in wave5b-post-deltas.txt.gz.",
+    "before_bodies": [
+      {
+        "size": 17097,
+        "address": "0x535dc0",
+        "digest": "b89026c7e41bda8b9fa54c3f0ea4617a3c18ca06dc458c2d5b20a09cc9f1d46d"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 17097,
+        "address": "0x53c440",
+        "digest": "545e8d5c046ce4d4a11bb0954892b4710a9ae865e755bb36f183ddabc0af7847"
       }
     ]
   },
@@ -4141,7 +5354,7 @@
     "after_bodies": [
       {
         "size": 2822,
-        "address": "0x12d1d0",
+        "address": "0x12d460",
         "digest": "77540cfdcf2f77f158733f90722959006dfced68232a6b9f616481c598dba56b"
       }
     ]
@@ -4170,7 +5383,7 @@
     "after_bodies": [
       {
         "size": 2987,
-        "address": "0x138570",
+        "address": "0x138800",
         "digest": "8ced00a9cf1ceb3e99169bdb53a14ec2158c1a33411d4d9c98a71c1a0a366ff5"
       }
     ]
@@ -4199,7 +5412,7 @@
     "after_bodies": [
       {
         "size": 1013,
-        "address": "0x1d6770",
+        "address": "0x1d69c0",
         "digest": "6849cc5fb37156ac968c9805d66f54e1a5fc3a2a3a8639d8735217fc03afe30c"
       }
     ]
@@ -4228,7 +5441,7 @@
     "after_bodies": [
       {
         "size": 1045,
-        "address": "0x1e1c00",
+        "address": "0x1e1e50",
         "digest": "604fd96c498871f4b532c84e25aa563e86a5269f62ae8a26e62461a6bbe1d9ee"
       }
     ]
@@ -4257,8 +5470,95 @@
     "after_bodies": [
       {
         "size": 5140,
-        "address": "0x3f71f0",
+        "address": "0x3f7440",
         "digest": "d92ec8758eb00698ee7ca468d6e65c7b8725234bca371cca6803ab9f1c83a177"
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      15739
+    ],
+    "post_sizes": [
+      15739
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Only resolved global reference labels differ in strict output; opcode/operand encodings match. Full unmasked reference deltas are retained in wave5b-post-deltas.txt.gz.",
+    "before_bodies": [
+      {
+        "size": 15739,
+        "address": "0x18dad0",
+        "digest": "44ebcb3fbe8dc32f5203c280bac4fe8fd8c75b3befa7af224fbcc2b26f0765ef"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 15739,
+        "address": "0x18de60",
+        "digest": "00e69ed011f4dac1dbcd2eeb42c88939961c151ec37d378f4558194009cf3f7c"
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      17145
+    ],
+    "post_sizes": [
+      17145
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Only resolved global reference labels differ in strict output; opcode/operand encodings match. Full unmasked reference deltas are retained in wave5b-post-deltas.txt.gz.",
+    "before_bodies": [
+      {
+        "size": 17145,
+        "address": "0x1897d0",
+        "digest": "0f41208e7844b9653d876c444d045abdbbac31c5594365891ebd1c8a8300a2de"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 17145,
+        "address": "0x189b60",
+        "digest": "6c12cdbd193d8a0e48b30b7d8378f62274d28ae2db8b6322d49b993f20033b43"
+      }
+    ]
+  },
+  {
+    "name": "void tomo_db0::reply_double<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, double, bool)",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      641
+    ],
+    "post_sizes": [
+      430
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Cold shutdown instantiation/compiler propagation; source body unchanged. Complete strict instruction delta retained.",
+    "before_bodies": [
+      {
+        "size": 641,
+        "address": "0x171780",
+        "digest": "b387b2f88b3c3c4f723423998938c96546aae1f9232b4cc079d9af2667c9c41e"
+      }
+    ],
+    "after_bodies": [
+      {
+        "size": 430,
+        "address": "0x171e10",
+        "digest": "1eb0b6f22beefe36593e78e7e6a348323f95ec332c888649794082833879590c"
       }
     ]
   }
