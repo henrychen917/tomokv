@@ -2910,17 +2910,6 @@ void cmd_dbsize(Shard&, Op& op) {
 void cmd_flush(Shard& sh, Op& op) {
     const bool changed = sh.store().size() != 0;
     const bool flushdb = op.cmd_name().eq_icase("flushdb");
-    if constexpr (kSingleDatabase) {
-        if (flushdb) {
-            // The old materialisation also reaped elapsed keys (notifications,
-            // expired counter and AOF DEL). Keep those effects without copying
-            // any keys, then use the namespace-wide clear below.
-            uint64_t cursor = 0;
-            do {
-                cursor = sh.store().scan(cursor, 256, [](KvObj*) {});
-            } while (cursor);
-        }
-    }
     if (!kSingleDatabase && flushdb) {
         multidb_flush(sh, op.physical_db);
     } else if (sh.store().snapshot_active()) {

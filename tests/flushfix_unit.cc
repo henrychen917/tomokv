@@ -55,10 +55,10 @@ void flushfix_expiry() {
     require(shard.store().size() == 2 && shard.stats().expired == 0,
             "elapsed physical key present before flush");
     flush(shard, db);
-    require(notifications == 1 && shard.stats().expired == 1,
-            "FLUSHDB retains lazy-expiry notification and counter");
+    require(notifications == 0 && shard.stats().expired == 0,
+            "FLUSHDB removes elapsed residents without expiry side effects (Redis 7.4)");
     require(shard.store().size() == 0 && shard.save_changes() == 1,
-            "expiry walk preserves clear and dirty accounting");
+            "flush preserves clear and dirty accounting");
     std::printf("PASS flushfix expiry: %s\n", kSingleDatabase ? "db0" : "multi");
 }
 

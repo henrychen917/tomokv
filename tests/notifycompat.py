@@ -7,6 +7,8 @@ frames. Oracle receipts include the actual RESP bytes.
 """
 import argparse
 import json
+import io
+from pathlib import Path
 import select
 import time
 
@@ -40,6 +42,7 @@ class Peer:
         self.target = target
         self.failures = []
         self.keysets = args.keysets if args else []
+        self.databases = args.databases if args else 16
         self.admin = Conn(host, port, buffering=0, timeout=5)
         self.driver = Conn(host, port, buffering=0, timeout=5)
         self.sub = Conn(host, port, buffering=0, timeout=5)
@@ -245,9 +248,55 @@ def expiredstore(peer):
                 peer.failures.append(f'{command}: explicit deletion counted as expiry ({before} -> {after})')
 
 
+def flush(peer):
+    from aof_frames import read_frames
+    equal(peer.admin.cmd('CONFIG', 'SET', 'appendfsync', 'always'), b'OK', 'durable AOF')
+    equal(peer.admin.cmd('CONFIG', 'SET', 'appendonly', 'yes'), b'OK', 'enable AOF')
+    for db in range(min(2, peer.databases)):
+        equal(peer.driver.cmd('SELECT', db), b'OK', 'select flush DB')
+        for command in ('FLUSHDB', 'FLUSHALL'):
+            key = f'nc:flush:{db}:{command}'
+            peer.setup(('FLUSHALL',), ('SET', key, 'elapsed', 'PX', 50))
+            time.sleep(.08)
+            assert isinstance(peer.driver.cmd('MEMORY', 'USAGE', key), int), 'elapsed key was not resident'
+            before = int(info(peer.admin, 'stats')['expired_keys'])
+            peer.step('event-free ' + key, (command,), b'OK', [], db)
+            after = int(info(peer.admin, 'stats')['expired_keys'])
+            if after != before:
+                peer.failures.append(f'{key}: flush expired_keys delta {after-before}, expected 0')
+            equal(peer.driver.cmd('DBSIZE'), 0, 'flushed namespace empty')
+            directory = Path(peer.admin.cmd('CONFIG', 'GET', 'dir')[1].decode())
+            appenddir = peer.admin.cmd('CONFIG', 'GET', 'appenddirname')[1].decode()
+            records = []
+            if peer.target:
+                paths = list((directory / appenddir).glob('*.incr.tomo'))
+                assert paths, 'no target AOF increment'
+                for path in paths:
+                    chunks, _size, truncated = read_frames(path)
+                    equal(truncated, None, 'complete durable target frames')
+                    records += [(kind, name) for chunk in chunks for kind, name, *_ in chunk.records()]
+                deletes = [record for record in records if record[0] in (2, 6) and record[1] == key.encode()]
+            else:
+                paths = list((directory / appenddir).glob('*.incr.aof'))
+                assert paths, 'no oracle AOF increment'
+                for path in paths:
+                    decoder = Conn.__new__(Conn)
+                    decoder.file = io.BytesIO(path.read_bytes())
+                    while decoder.file.tell() < len(decoder.file.getbuffer()):
+                        records.append(decoder.read())
+                deletes = [record for record in records if record[0].upper() in (b'DEL', b'UNLINK')
+                           and key.encode() in record[1:]]
+            print(json.dumps(dict(target=peer.target, label='AOF ' + key, records=repr(records),
+                                  deletes=repr(deletes), expired_delta=after-before)), flush=True)
+            if deletes:
+                peer.failures.append(f'{key}: unexpected per-key AOF deletions: {deletes!r}')
+    equal(peer.driver.cmd('SELECT', 0), b'OK', 'restore selected DB')
+    equal(peer.admin.cmd('CONFIG', 'SET', 'appendonly', 'no'), b'OK', 'disable AOF')
+
+
 
 CASES = {'setbit': setbit, 'setpast': setpast, 'emptystore': emptystore,
-         'writemiss': writemiss, 'objectmiss': objectmiss, 'expiredstore': expiredstore}
+         'writemiss': writemiss, 'objectmiss': objectmiss, 'expiredstore': expiredstore, 'flush': flush}
 
 
 def main():
@@ -260,6 +309,7 @@ def main():
     parser.add_argument('--engine', choices=('epoll', 'uring'), default='epoll')
     parser.add_argument('--atomic', type=int, default=0)
     parser.add_argument('--read-local', type=int, default=0)
+    parser.add_argument('--databases', type=int, default=16)
     args = parser.parse_args()
     args.keysets = [('nc:local:dst', 'nc:local:src', 'nc:local:other'),
                     ('nc:cross:dst', 'nc:cross:src', 'nc:cross:other')]

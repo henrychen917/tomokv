@@ -3367,7 +3367,7 @@ fi
 
 job_notifycompat(){
 # One counted row; every declared leg runs even when an earlier leg fails.
-local mode atomic engine read_local compatible=1 booted oracle_ready=0 nc_case
+local mode atomic engine read_local compatible=1 booted oracle_ready=0 nc_case databases
 local oracle_port=$((PORT+1)) oracle_dir
 local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server}
 
@@ -3388,16 +3388,19 @@ if [ "$compatible" = 1 ] && [ -x "$oracle_bin" ]; then
     sleep .1
   done
 fi
-for nc_case in setbit setpast emptystore writemiss objectmiss expiredstore; do
+for nc_case in setbit setpast emptystore writemiss objectmiss expiredstore flush; do
 compatible=1
 row_begin "notification compatibility $nc_case vs Redis 7.4"
 if [ "$oracle_ready" = 1 ]; then
+  local dbcounts=16
+  [ "$nc_case" != flush ] || dbcounts="1 16"
+  for databases in $dbcounts; do
   for atomic in 0 1; do for mode in 1s 2s; do for engine in epoll uring; do
     local reads="1 0"
     [ "$mode" = 1s ] || reads=0
     for read_local in $reads; do
       booted=0
-      local options=(--atomic "$atomic" --net-io "$engine" --read-local "$read_local"
+      local options=(--databases "$databases" --atomic "$atomic" --net-io "$engine" --read-local "$read_local"
                      --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0)
       if [ "$mode" = 1s ]; then
         boot_fused "$CANDIDATE_BINARY" "${options[@]}" && booted=1
@@ -3406,13 +3409,14 @@ if [ "$oracle_ready" = 1 ]; then
       fi
       if [ "$booted" != 1 ] || ! py tests/notifycompat.py 127.0.0.1 "$PORT" \
           --oracle 127.0.0.1 "$oracle_port" --case "$nc_case" \
-          --mode "$mode" --engine "$engine" --atomic "$atomic" --read-local "$read_local" \
-          >"$TMPDIR/compat-$nc_case-$mode-$engine-a$atomic-rl$read_local.log" 2>&1; then
+          --databases "$databases" --mode "$mode" --engine "$engine" --atomic "$atomic" --read-local "$read_local" \
+          >"$TMPDIR/compat-$nc_case-db$databases-$mode-$engine-a$atomic-rl$read_local.log" 2>&1; then
         compatible=0
       fi
       stop
     done
   done; done; done
+  done
 else
   compatible=0
 fi

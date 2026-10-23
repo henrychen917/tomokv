@@ -56,3 +56,10 @@ command. Plain application now uses raw owner deletion; atomic application recor
 its physical old destination. GEO's separate local path is included. Empty zset
 stores also retain Redis's source keymiss and source-before-destination ordering.
 Oracle bytes: `oracle-expiredstore.log`. Current DQ=+6 / DF=+6; counts 745 / 762.
+
+SO4.1: Redis's FLUSHDB and FLUSHALL emit no per-key events or DEL/UNLINK AOF
+records and do not increment expired_keys, including elapsed residents in DB 1.
+The db0 extra expiry scan is removed; multi-DB flush scans without expiry and
+uses resident deletion. The old flushfix assertion is corrected to the retained
+oracle evidence (`oracle-flush.log`). The new row additionally boots databases=1
+and databases=16. Current DQ=+7 / DF=+7; required counts 746 / 763.
