@@ -158,13 +158,18 @@ public:
         if (listen_fd_ >= 0) ::close(listen_fd_);
         if (tls_listen_fd_ >= 0) ::close(tls_listen_fd_);
         if (unix_listen_fd_ >= 0) ::close(unix_listen_fd_);
-        for (Client* c : pending_handoffs_) {
-            ::close(c->fd());
-            srv_->client_released();
-            delete c;
-        }
         multi_shutdown_entry(*this);
+        shutdown_clients_after_join();
     }
+
+    // Coordinator only, after all workers join. The normal two-pass reaper is
+    // insufficient once no future pass can consume its queue or kernel pins.
+    void shutdown_clients_after_join();
+    void shutdown_on_issuer();
+    struct ShutdownOnIssuer {
+        IoLoop& loop;
+        ~ShutdownOnIssuer() { loop.shutdown_on_issuer(); }
+    };
 
     static int make_reuseport_listener(const char* addr, uint16_t port, uint32_t backlog = 511,
                                        bool defer_accept = false) {

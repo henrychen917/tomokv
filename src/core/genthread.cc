@@ -111,6 +111,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            IoLoop::ShutdownOnIssuer shutdown_io{ios[tid]};
             SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             if (cfg.pin_threads) pin_fused_thread(srv.placement().cpu_of_thread(tid));

@@ -1342,7 +1342,8 @@ job_asan(){
 # serial g++, which cost 365s and was the largest row in the gate.
 row_begin "ASAN build"
 if [ -n "${GATE_ASAN_BINARY:-}" ]; then
-  [ -x "$ASAN" ] && ok "ASAN build" || bad "ASAN build" "instrumented arm is not executable: $ASAN"
+  [ -x "$ASAN" ] && readelf -Ws "$ASAN" | grep -q __asan_init \
+    && ok "ASAN build" || bad "ASAN build" "instrumented arm is missing or lacks ASAN: $ASAN"
   return
 fi
 pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cache/obj-asan" \
@@ -1451,6 +1452,10 @@ job_climonfix(){
   row_begin "shutdown policy + signal handoff serverless"
   unit_ready shutdown-unit && taskset -c "$CORES" ./build/shutdown-unit \
       >"$TMPDIR/shutdown-unit.log" 2>&1 \
+      && { taskset -c "$CORES" ./build/shutdown-unit --without-join-cleanup \
+             >"$TMPDIR/shutdown-client-negative.log" 2>&1; test "$?" = 1; } \
+      && grep -q 'FAIL shutdown: post-join cleanup releases dead FIFO and admitted receive pins' \
+             "$TMPDIR/shutdown-client-negative.log" \
       && ok "shutdown policy + signal handoff serverless" \
       || bad "shutdown policy + signal handoff serverless" "see $TMPDIR/shutdown-unit.log"
   local mode stop_case label

@@ -90,6 +90,7 @@ struct Fixture {
 
 namespace tomo {
 struct CoreConcurrencyTest {
+    #include "shutdown_client_checks.inc"
     static void busy_snapshot(Fixture& f) {
         auto& server = f.server;
         auto& snapshot = server.snapshot();
@@ -302,11 +303,16 @@ struct CoreConcurrencyTest {
 };
 }
 
-int main() {
+int main(int argc, char** argv) {
     static_assert(sizeof(Op) == 336 && sizeof(Client) == 1984 && sizeof(ThreadCtx) == 1408);
     static_assert(sizeof(Shard) == 1440 && sizeof(FlatStore) == 944 && sizeof(Rob<64>) == 192);
     static_assert(sizeof(AtomicEntry) == 144 && sizeof(Config) == 624);
     require(command_registry_init(false), "command registry");
+    if (argc == 2 && std::strcmp(argv[1], "--without-join-cleanup") == 0)
+        CoreConcurrencyTest::shutdown_clients(true, false, true);
+    require(argc == 1, "shutdown-unit arguments");
+    for (bool epoll : {false, true})
+        for (bool fused : {false, true}) CoreConcurrencyTest::shutdown_clients(epoll, fused);
     auto f = std::make_unique<Fixture>();
     require(f->command({"SHUTDOWN"}).empty(), "successful SHUTDOWN has no reply");
     require(saves == 1 && f->server.shutting_down(), "default SHUTDOWN saves before stop");

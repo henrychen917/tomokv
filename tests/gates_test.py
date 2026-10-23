@@ -1995,6 +1995,26 @@ class EarlyGateDispatch(unittest.TestCase):
                 self.assertEqual(result.stdout.strip(), expected)
 
 
+class NetfixOracleWiringTests(unittest.TestCase):
+    def test_every_netfix_job_passes_explicit_tls_oracle(self):
+        gate = Path('tests/gate.sh').read_text()
+        for name in ('query_stats', 'unix', 'config', 'tls', 'idle_buffers'):
+            body = gate.split('job_netfix_' + name + '(){', 1)[1].split('\n}', 1)[0]
+            self.assertIn('--tls-oracle "${GATE_TLS_ORACLE_BIN:-$REDIS74_TLS_ROOT/src/redis-server}"', body)
+        self.assertIn('REDIS74_TLS_ROOT:-/home/user/Projects/redis74-tls', gate)
+
+    def test_missing_tls_oracle_names_path_without_tcp_fallback(self):
+        import _netfix
+        with tempfile.TemporaryDirectory() as directory:
+            path = str(Path(directory) / 'missing-redis-server')
+            args = SimpleNamespace(tls_oracle=path, oracle=sys.executable, output=Path(directory))
+            with self.assertRaisesRegex(AssertionError, path):
+                _netfix.certificates(args)
+            args.tls_oracle = ''
+            with self.assertRaisesRegex(AssertionError, '--tls-oracle'):
+                _netfix.certificates(args)
+
+
 if __name__ == '__main__':
     (Path(__file__).resolve().parents[1] / 'build').mkdir(exist_ok=True)
     unittest.main()
