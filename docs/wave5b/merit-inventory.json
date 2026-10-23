@@ -1,0 +1,30 @@
+{
+  "count": 24,
+  "cells": [
+    "mk2g_a1_p8",
+    "mk2s_a1_p8",
+    "h05",
+    "h06",
+    "p8g",
+    "p8s",
+    "d1g_l0",
+    "d1s_l0",
+    "m8g_l0",
+    "v1g_l0",
+    "d128g_l0",
+    "d32g_l1",
+    "d8s_l1",
+    "d32s_l1",
+    "x9_32_l1",
+    "x9_32_l0",
+    "wave5b_2s_d1g_l0",
+    "wave5b_2s_d1s_l0",
+    "wave5b_2s_d1g_l1",
+    "wave5b_2s_d1s_l1",
+    "wave5b_2s_d32g_l0",
+    "wave5b_2s_d32s_l0",
+    "wave5b_2s_d32g_l1",
+    "wave5b_2s_d32s_l1"
+  ],
+  "executed": false
+}

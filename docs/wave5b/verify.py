@@ -9,10 +9,10 @@ server_cores=a.server_cores or ('64-71' if a.single_slot else '64-87')
 load_cores=a.load_cores or ('72-95' if a.single_slot else '88-95')
 for spec in [server_cores,load_cores]:
  for part in spec.split(','):
-  ends=list(map(int,part.split('-')));assert all(64<=n<=95 for n in ends)
+  ends=list(map(int,part.split('-')));assert all(64<=n<=111 for n in ends)
 assert a.jobs and not set(a.jobs.split())&{'atomic_floor','efficiency'},'performance jobs remain with maintainer'
 OUT=DOC/'gate'/a.name;OUT.mkdir(parents=True,exist_ok=True)
-oracle_core=os.environ.get('WAVE5_ORACLE_CORE','95');assert oracle_core.isdecimal() and 64<=int(oracle_core)<=95
+oracle_core=os.environ.get('WAVE5_ORACLE_CORE','95');assert oracle_core.isdecimal() and 64<=int(oracle_core)<=111
 env=dict(os.environ,REDIS74_ROOT='/home/user/Projects/redis',GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',GATE_DIFFER_REDIS_CLI='/home/user/Projects/redis74/src/redis-cli',GATE_DIFFER_ORACLE_CORES=oracle_core,GATE_GLOBCASE_ORACLE_CORES=oracle_core,GATE_TEST_PORT='26899',GATE_DIFFER_HISTORY=str(BUILD/'differ-history'),GATE_HISTORY=str(BUILD/'gate-history'),PYTHONPATH=str(ROOT/'docs/wave5/port_guard')+os.pathsep+os.environ.get('PYTHONPATH',''),WAVE5_PORT_RECEIPT=str(DOC/'fixture-ports.jsonl'),GATE_ONLY_JOBS=a.jobs,GATE_LEDGER=str(OUT/'ledger'))
 tls_oracle=ROOT/'build/wave5/redis74-tls/src/redis-server'
 if tls_oracle.exists():env['NETFIX_TLS_ORACLE']=str(tls_oracle)
@@ -29,7 +29,7 @@ if a.engine or a.mode:
  if a.engine:env['WAVE5_ENGINE']=a.engine
  if a.mode:env['WAVE5_MODE']=a.mode
  env['WAVE5_LAUNCH_DIR']=str(OUT/'launches')
-cmd=['taskset','-c','64-95',str(a.root/'tests/gate.sh'),'full','--server-cores',server_cores,'--load-cores',load_cores,'--load-smt','','--ports',a.ports,'--candidate-binary',str(binary)]
+cmd=['taskset','-c','64-111',str(a.root/'tests/gate.sh'),'full','--server-cores',server_cores,'--load-cores',load_cores,'--load-smt','','--ports',a.ports,'--candidate-binary',str(binary)]
 row=dict(command=cmd,jobs=a.jobs.split(),started=time.time(),binary_sha256=digest,snapshot_binary=str(snapshot/'tomokv'),environment={k:v for k,v in env.items() if k.startswith(('GATE_','WAVE5_','REDIS74_ROOT','PYTHONPATH','NETFIX_TLS_ORACLE'))})
 with (OUT/'gate.log').open('w') as f:row['returncode']=subprocess.run(cmd,cwd=a.root,env=env,stdout=f,stderr=subprocess.STDOUT).returncode
 row['elapsed']=time.time()-row['started']

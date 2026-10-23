@@ -1,0 +1,1724 @@
+[
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      21072
+    ],
+    "post_sizes": [
+      21072
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body."
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      9949,
+      12232,
+      10045,
+      10767
+    ],
+    "post_sizes": [
+      9949,
+      12193,
+      10045,
+      10767
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body."
+  },
+  {
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0] [clone .cold]",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      166,
+      244,
+      166,
+      244
+    ],
+    "post_sizes": [
+      166,
+      244,
+      166,
+      244
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body."
+  },
+  {
+    "name": "tomo::Shard::watch_flush(int) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      89
+    ],
+    "post_sizes": [
+      89
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body."
+  },
+  {
+    "name": "tomo::multidb_flush(tomo::Shard&, unsigned char) [clone .cold]",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      33
+    ],
+    "post_sizes": [
+      33
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body."
+  },
+  {
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      18524
+    ],
+    "post_sizes": [
+      18556
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "Compiler/link propagation from the WB4.1 revert; no source change to this body."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2391
+    ],
+    "post_sizes": [
+      2391
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2503
+    ],
+    "post_sizes": [
+      2487
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2350
+    ],
+    "post_sizes": [
+      2334
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2455
+    ],
+    "post_sizes": [
+      2471
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2302
+    ],
+    "post_sizes": [
+      2318
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2503
+    ],
+    "post_sizes": [
+      2487
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2350
+    ],
+    "post_sizes": [
+      2334
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2455
+    ],
+    "post_sizes": [
+      2471
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2302
+    ],
+    "post_sizes": [
+      2318
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3119
+    ],
+    "post_sizes": [
+      3073
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2875
+    ],
+    "post_sizes": [
+      2816
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2622
+    ],
+    "post_sizes": [
+      2608
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2843
+    ],
+    "post_sizes": [
+      2800
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2606
+    ],
+    "post_sizes": [
+      2576
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2875
+    ],
+    "post_sizes": [
+      2816
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2622
+    ],
+    "post_sizes": [
+      2608
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2843
+    ],
+    "post_sizes": [
+      2800
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2606
+    ],
+    "post_sizes": [
+      2576
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4647
+    ],
+    "post_sizes": [
+      4623
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3226
+    ],
+    "post_sizes": [
+      3210
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3078
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3194
+    ],
+    "post_sizes": [
+      3194
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3062
+    ],
+    "post_sizes": [
+      3062
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3226
+    ],
+    "post_sizes": [
+      3210
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3078
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3194
+    ],
+    "post_sizes": [
+      3194
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3062
+    ],
+    "post_sizes": [
+      3062
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6175
+    ],
+    "post_sizes": [
+      6093
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3986
+    ],
+    "post_sizes": [
+      3896
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4002
+    ],
+    "post_sizes": [
+      3896
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3559
+    ],
+    "post_sizes": [
+      3489
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3986
+    ],
+    "post_sizes": [
+      3896
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4002
+    ],
+    "post_sizes": [
+      3896
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3559
+    ],
+    "post_sizes": [
+      3489
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2404
+    ],
+    "post_sizes": [
+      2388
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2404
+    ],
+    "post_sizes": [
+      2404
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2404
+    ],
+    "post_sizes": [
+      2388
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2404
+    ],
+    "post_sizes": [
+      2404
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2676
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2676
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2676
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2676
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3078
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3094
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3078
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3094
+    ],
+    "post_sizes": [
+      3094
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3591
+    ],
+    "post_sizes": [
+      3521
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2359
+    ],
+    "post_sizes": [
+      2359
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2471
+    ],
+    "post_sizes": [
+      2455
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2318
+    ],
+    "post_sizes": [
+      2302
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2423
+    ],
+    "post_sizes": [
+      2439
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2270
+    ],
+    "post_sizes": [
+      2286
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2471
+    ],
+    "post_sizes": [
+      2455
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2318
+    ],
+    "post_sizes": [
+      2302
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2423
+    ],
+    "post_sizes": [
+      2439
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2270
+    ],
+    "post_sizes": [
+      2286
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3087
+    ],
+    "post_sizes": [
+      3041
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2843
+    ],
+    "post_sizes": [
+      2784
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2740
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2811
+    ],
+    "post_sizes": [
+      2768
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2708
+    ],
+    "post_sizes": [
+      2646
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2843
+    ],
+    "post_sizes": [
+      2784
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2740
+    ],
+    "post_sizes": [
+      2662
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2811
+    ],
+    "post_sizes": [
+      2768
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2708
+    ],
+    "post_sizes": [
+      2646
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      4615
+    ],
+    "post_sizes": [
+      4591
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3194
+    ],
+    "post_sizes": [
+      3178
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3062
+    ],
+    "post_sizes": [
+      3046
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3162
+    ],
+    "post_sizes": [
+      3162
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3030
+    ],
+    "post_sizes": [
+      3030
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3194
+    ],
+    "post_sizes": [
+      3178
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3062
+    ],
+    "post_sizes": [
+      3046
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3162
+    ],
+    "post_sizes": [
+      3162
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3030
+    ],
+    "post_sizes": [
+      3030
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      6143
+    ],
+    "post_sizes": [
+      6061
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3954
+    ],
+    "post_sizes": [
+      3864
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3559
+    ],
+    "post_sizes": [
+      3489
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3970
+    ],
+    "post_sizes": [
+      3864
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3527
+    ],
+    "post_sizes": [
+      3457
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3954
+    ],
+    "post_sizes": [
+      3864
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3559
+    ],
+    "post_sizes": [
+      3489
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3970
+    ],
+    "post_sizes": [
+      3864
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3527
+    ],
+    "post_sizes": [
+      3457
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2453
+    ],
+    "post_sizes": [
+      2437
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2453
+    ],
+    "post_sizes": [
+      2453
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2453
+    ],
+    "post_sizes": [
+      2437
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2453
+    ],
+    "post_sizes": [
+      2453
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2823
+    ],
+    "post_sizes": [
+      2764
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2823
+    ],
+    "post_sizes": [
+      2780
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2823
+    ],
+    "post_sizes": [
+      2764
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      2823
+    ],
+    "post_sizes": [
+      2780
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3136
+    ],
+    "post_sizes": [
+      3120
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3136
+    ],
+    "post_sizes": [
+      3136
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3136
+    ],
+    "post_sizes": [
+      3120
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3136
+    ],
+    "post_sizes": [
+      3136
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3613
+    ],
+    "post_sizes": [
+      3547
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3613
+    ],
+    "post_sizes": [
+      3547
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, false, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3613
+    ],
+    "post_sizes": [
+      3547
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      3613
+    ],
+    "post_sizes": [
+      3547
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback: every remaining deferred FIFO reports work; remove the previous-deferrals comparison."
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, false, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5746
+    ],
+    "post_sizes": [
+      5738
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback propagated through the inlined writeback/pass code."
+  },
+  {
+    "name": "void tomo::IoLoop::run_loop<true, true, false, true, false>()",
+    "hot": true,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5783
+    ],
+    "post_sizes": [
+      5767
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback propagated through the inlined writeback/pass code."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, false, true, true, false>()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5140
+    ],
+    "post_sizes": [
+      5175
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback propagated through the inlined writeback/pass code."
+  },
+  {
+    "name": "void tomo_db0::IoLoop::r7_run_loop<false, true, true, true, false>()",
+    "hot": false,
+    "command_hot": false,
+    "equal": false,
+    "headline_sizes": [
+      5140
+    ],
+    "post_sizes": [
+      5175
+    ],
+    "matches": [],
+    "changed_lanes": [],
+    "reason": "WB4.1 fallback propagated through the inlined writeback/pass code."
+  }
+]

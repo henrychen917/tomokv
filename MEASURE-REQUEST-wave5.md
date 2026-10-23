@@ -373,3 +373,131 @@ an exclusive CPU allocation. Its partial/failed ledger is archived as
 `supplement-epoll-aborted`; the complete cohort restarted from fresh state.
 Earlier diagnostic failures and the non-TLS supplied oracle are documented above;
 all archived attempt receipts remain distinguishable from final passing runs.
+
+## wave5b
+
+Base `fc138d82e`, branch/worktree `cx-wave5`, no push. Correctness and builds
+use only CPUs 64–111 and ports 26800–26899; builds use `-j32`.
+
+**Disposition: authorized fallback. WB4.1 is reopened.** The production change
+reverts the deferred-work predicate from `593e7215e`, restoring the headline's
+`src/core/wb_rule.h` byte for byte. The bounded-completion/bytes/half writeback
+rule, latency policy, load detector and all other iofix fixes are unchanged.
+`1582c3559` is retained: its extraction follows IO4.9's cron-bounded `wait_ms`,
+which remains present and does not depend on WB4.1's work predicate.
+
+The fixed-count driver is `tests/wave5b_client.cc`: 64 connections, eight keys,
+depth 8, 2,048 requests per connection (131,072 total per run), 64-byte values,
+independent connection keysets, exact RESP replies, no clock or rate output.
+READY/GO and DONE/STOP barriers exclude population and disconnects from the
+counter interval. `tools/wave5b_trace.py` inserts counters only in disposable
+source copies: actual IO wait/resume sites, received wake messages, pending
+FIFO visits, deferrals, send submissions and completion notifications. Counts
+are single-writer relaxed loads/stores in separate per-IO cache lines. Total
+park counts include brief empty-FIFO startup/tail waits; pending-FIFO parks
+identify the disputed mechanism directly. Trace instrumentation can affect
+scheduling; these are mechanism counts, not throughput evidence.
+
+Three repeats of each requested shape ran on headline PRE, integrated POST,
+and integrated POST with only WB4.1 reverted. PRE and POST-REVERT always had
+zero pending-FIFO parks; integrated POST had them in every shape. MGET also
+showed fewer FIFO visits and more wake messages. MSET showed many more wakes
+and fewer sends, consistent with its measured batching change. This confirms
+WB4.1 changes the park mechanism, but does not establish the numerical cause
+of the maintainer's throughput deltas: this directed MGET shape did not
+reproduce the measured send-count penalty. Full totals, per-request counts,
+individual repeats, source overlays and hashes are under `docs/wave5b/`;
+`mechanism-table.md` and `mechanism-summary.json` summarize accepted cohorts.
+
+A completion-derived grace window was implemented and tested, then removed.
+It used the existing pass clock, twice the largest observed busy-tenure
+completion interval, and excluded intervals spanning a park. It passed the
+WB4.1 idle-CPU job through the gate in all four mode/engine legs (receipt
+`docs/wave5b/gate/adaptive-idle/result.json`). Its quiet mechanism repeats still
+had pending-FIFO parks: MGET atomic 1 = 1/0/4, MGET atomic 0 = 2/1/3, MSET atomic
+1 = 135/81/32, versus zero on PRE and POST-REVERT. It therefore fails the
+requested PRE-equal park behavior and is not shipped. One earlier adaptive
+cohort overlapped a compile; it is explicitly INVALID and excluded in favor
+of the complete `adaptive-quiet` rerun. The attempted source is retained in
+commit `762c3d5bc`, not in the final production tree.
+
+WB4.1's collector at base line 4687 preceded quick exit line 4910. Removing it
+is **DQ=-1 / DF=-1; required totals 739 / 756**. Current quick exit is line
+4904. The label fixture loses exactly that label; its multiset equals source
+inventory. `EXPECT_QUICK=685` and `EXPECT_FULL=702` are untouched. The parked
+CPU battery remains available as an explicit reproducer of the reopened
+issue. Existing FIFO/R7 progress witnesses and their mutant now assert that
+both bounded and saturated deferrals report work. No other gate row is removed.
+
+Validation and frozen-arm details are appended below after completion.
+
+### Frozen arms and identity
+
+| Arm | Path | SHA-256 | .text bytes |
+|---|---|---|---:|
+| Headline PRE | `build/tomokv-wave5-PRE` | `97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e` | 7,747,526 |
+| Wave-5 POST baseline | `build/tomokv-wave5b-BASE` | `201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5` | 8,076,601 |
+| Final fallback POST | `build/tomokv` | `2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc` | 8,073,113 |
+| POST-REVERT | `build/tomokv-wave5b-POST-REVERT` | `2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc` | 8,073,113 |
+| PAD-A | `build/tomokv-wave5b-PAD-A` | `6e81f38fa1ec61e6904231c8e121a546c9febca56d3bee8bf55abd0928907fae` | 8,073,113 |
+| PAD-B | `build/tomokv-wave5b-PAD-B` | `b0c5b3ef96e1fd37bf5990c67e4c3693d76ca7bf80321881f86dc6cb60d7180a` | 8,076,601 |
+
+Final POST and POST-REVERT are identical because the authorized fallback was
+selected. PAD-A is **kind A, behavior twin**: integrated wave-5 POST behavior,
+including WB4.1 parking, at final POST's exact `.text` size. A shrinking
+candidate cannot be matched by simply padding the original. This control
+rebuilds the identical baseline source with `-falign-functions=1`, then adds
+40,352 unreachable bytes. It controls total text size, **not per-function
+placement**. The normal baseline rebuild matches every linked normalized body
+of the frozen wave-5 POST; its ELF SHA differs because its build directory
+changed. The alignment flag and complete link command are in
+`docs/wave5b/pad-a.json` and its reproducible builder.
+
+PAD-B is **kind B, inverse control**: final fallback behavior plus 3,488
+unreachable bytes restoring wave-5 POST's text size. Every original candidate
+function address and size is preserved. Both controls preserve GNU properties;
+debug sections are stripped from these two controls to keep storage small.
+Neither padding function is called.
+
+**12/12 GET/SET/MGET/MSET hot groups match both the headline and wave-5 POST.**
+The strict gate linked-body normalizer reports 114 changed groups against
+wave-5 POST; each is listed with its reason in
+`docs/wave5b/identity/wave5-post-changed-bodies.{json,md}`. Source edits are
+confined to the work predicate; remaining differences are recorded compiler
+propagation, not ignored. The object-level ccfix audit reports 122 changed
+emitted bodies and 1,213/1,213 command-handler bodies equal. Every object delta
+has a reason in `docs/wave5b/objects/changed-bodies-with-reasons.json`.
+The ccfix and lbstall strict hot-body checks return nonzero for the intentional
+writeback changes; they are not represented as whole-server identity passes.
+Merit, not those strict exit codes, decides acceptance.
+
+### Maintainer measurement request — NOT RUN
+
+`docs/wave5b/merit-cells.txt` parses as 24 cells: exactly `mk2g_a1_p8` and
+`mk2s_a1_p8`, the 14 generic writeback cells, and eight 2s GET/SET controls
+(depth 1/32 × read-local 0/1). Primary acceptance compares **final POST against
+the headline PRE** with the gate's own ABBA instrument, its reviewed placement
+and matched nulls. No full `tests/gate.sh iteration`, performance benchmark,
+rate measurement or PMU performance pass was run by this lane.
+
+```bash
+common=(--build-reference 0 --cells docs/wave5b/merit-cells.txt --subset full
+        --server-cores "$WAVE5B_MERIT_SERVER" --load-cores "$WAVE5B_MERIT_LOAD"
+        --ports 26800-26899)
+python3 tests/abbagate.py "${common[@]}"   --reference-binary build/tomokv-wave5-PRE --candidate-binary build/tomokv   --output build/wave5b-merit-headline
+# Attribute behavior versus text-size effects against integrated wave-5 POST:
+for arm in tomokv tomokv-wave5b-PAD-A tomokv-wave5b-PAD-B; do
+  python3 tests/abbagate.py "${common[@]}"     --reference-binary build/tomokv-wave5b-BASE --candidate-binary "build/$arm"     --output "build/wave5b-merit-$arm"
+done
+```
+
+Deciding number: rate at matched offered load, using the instrument's unchanged
+null/acceptance rules. The MGET deficit must disappear against the headline,
+with no material regression in MSET or the control cells. Record commands per
+send alongside rate, and depth-1 p50/p99. A separate diagnostic PMU pass should
+report cycles/op, instructions/op and IPC; instructions alone are not merit.
+PAD-A should stay with integrated wave-5 POST if the change is behavioral;
+PAD-B should track the fallback if its gain survives restored text size.
+Alignment/placement remains a limitation of PAD-A, hence the inverse control.
+Preserve exact hashes, geometry, order and null receipts; identical-arm spread
+above 2% requires diagnosis. This lane makes no throughput claim.

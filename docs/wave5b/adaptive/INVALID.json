@@ -1,0 +1,4 @@
+{
+  "accepted": false,
+  "reason": "Diagnostic trace overlapped the adaptive release compile on CPUs 64-111. Entire cohort excluded; repeat after compile completes."
+}

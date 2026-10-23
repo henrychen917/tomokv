@@ -1,0 +1,20 @@
+{
+  "wave5-post": {
+    "before_sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5",
+    "after_sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc",
+    "groups": 9059,
+    "changed": 114,
+    "main_groups": 12,
+    "main_groups_equal": 12,
+    "main_differences": []
+  },
+  "headline": {
+    "before_sha256": "97ea4e0638863ac87b289290bd489d8ef93e5fc4808ad49bc71dfbd05a9c739e",
+    "after_sha256": "2028fd77cd548e99de672fe058c164b665a248464996518773b56dd9207d12dc",
+    "groups": 9165,
+    "changed": 2031,
+    "main_groups": 12,
+    "main_groups_equal": 12,
+    "main_differences": []
+  }
+}
