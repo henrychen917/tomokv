@@ -17,3 +17,5 @@ pre-static-final GATE(PARTIAL): 3 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or rece
 post-linear-units GATE(PARTIAL): 57 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-linear-units-ledger.tsv.partial
 post-linear-epoll GATE(PARTIAL): 159 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-linear-epoll-ledger.tsv.partial
 post-linear-uring GATE(PARTIAL): 156 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-linear-uring-ledger.tsv.partial
+post-linear-extra GATE(PARTIAL): 199 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-linear-extra-ledger.tsv.partial
+post-epoll-differ-serial GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-datafix1/docs/datafix1/post-epoll-differ-serial-ledger.tsv.partial

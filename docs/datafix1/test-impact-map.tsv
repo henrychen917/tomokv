@@ -1,11 +1,11 @@
 file	gate jobs / scope
 tests/aclfix.py	aclfix
-tests/aclkeys_wake_unit.cc	No gate job directly invokes this standalone test
+tests/aclkeys_wake_unit.cc	NOT RUN: no gate job directly invokes this standalone test
 tests/atomic_survivors_unit.cc	atomic_units
 tests/bitfield.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
-tests/cd13b_window_test.py	No gate job directly invokes this standalone test
+tests/cd13b_window_test.py	NOT RUN: no gate job directly invokes this standalone test
 tests/cd13b_wire.py	differ-{split,armed}-{0,1}; both engine wrappers
-tests/cdfix_unit.cc	No gate job directly invokes this standalone test
+tests/cdfix_unit.cc	NOT RUN: no gate job directly invokes this standalone test
 tests/clientfix.py	clientfix
 tests/climon.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
 tests/climon2.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
@@ -17,14 +17,14 @@ tests/datafix1_lists.py	datafix1_lists
 tests/datafix1_locale.py	datafix1_locale
 tests/datafix1_randscan.py	datafix1_randscan
 tests/datafix1_spop.py	datafix1_spop
-tests/debug.py	No gate job directly invokes this standalone test
+tests/debug.py	NOT RUN: no gate job directly invokes this standalone test
 tests/differ.py	differ-{split,armed}-{0,1}; both engine wrappers
-tests/differ_fanout_test.py	No gate job directly invokes this standalone test
-tests/differ_test.py	No gate job directly invokes this standalone test
+tests/differ_fanout_test.py	NOT RUN: no gate job directly invokes this standalone test
+tests/differ_test.py	NOT RUN: no gate job directly invokes this standalone test
 tests/docs_drift.py	config_unit
-tests/doubles.py	No standalone gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
+tests/doubles.py	NOT RUN as a standalone file: no gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
 tests/dumprestore.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
-tests/dumpttl.py	No standalone gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
+tests/dumpttl.py	NOT RUN as a standalone file: no gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
 tests/edgeenc.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
 tests/edgeproto.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
 tests/edgetime.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
@@ -35,7 +35,7 @@ tests/geo.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
 tests/globcase.py	globcase
 tests/hexpire.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
 tests/hexpread.py	hexpread
-tests/infofields_test.py	No gate job directly invokes this standalone test
+tests/infofields_test.py	NOT RUN: no gate job directly invokes this standalone test
 tests/knobs.py	aof-epoll, aof-uring
 tests/lbsignals.py	release_batteries, debug-0, debug-1
 tests/lcs.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
@@ -44,12 +44,12 @@ tests/multirace.py	debug-0, debug-1
 tests/netcmd_config_unit.cc	netcmd_units
 tests/notify_order.py	notify_order, notify_aof
 tests/ntnew4_clock.py	ntnew4_live
-tests/redisgap.py	No standalone gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
-tests/replyschema.py	No gate job directly invokes this standalone test
+tests/redisgap.py	NOT RUN as a standalone file: no gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
+tests/replyschema.py	NOT RUN: no gate job directly invokes this standalone test
 tests/resp3.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
 tests/respresume.py	respresume-{fragment,cpu,neighbour}-{1s,2s}-{epoll,uring}
 tests/s6.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
 tests/servertail.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
 tests/tracking.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared
-tests/wiredump.py	No standalone gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
+tests/wiredump.py	NOT RUN as a standalone file: no gate job; corresponding data-type/wiredump/doubles differential generators cover this command scope
 tests/zsetops.py	feature-{split,armed}-{0,1}; fused-{0,1} where declared

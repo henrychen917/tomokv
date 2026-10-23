@@ -37,7 +37,9 @@ of surviving members. Rebuilt intset memory equals a fresh set of the same
 survivors on each server. Absolute allocator byte counts are not asserted equal
 between different server implementations.
 
-Cost per partial call, `0 < k < n`, with n members and B packed bytes:
+Cost per partial call, `0 < k < n`, with n members and B packed bytes. These
+bounds cover member selection and encoding changes; ordinary reply allocation
+and read-local immutable-copy costs still apply.
 
 | Arm/path | Work | Additional storage |
 |---|---|---|
@@ -83,9 +85,22 @@ Proof status (all live rows use tests/gate.sh's own partial-job interface):
 | Configuration docs/parser and command metadata | 3/3 pass from PRE source | Included in final legacy jobs |
 | Legacy data-type jobs, epoll | 156/156 pass | 156/156 legacy + 3/3 static pass |
 | Legacy data-type jobs, io_uring | Earlier selected run: 157 pass, one tracking failure; globcase follow-up pending | 156/156 pass |
-| Related jobs: parser, AOF, debug, GEO client, hash TTL, dump/restore, notifications | 199/199 pass | PENDING |
-| Standard differential, both engines | PENDING | PENDING |
+| Related jobs: parser, AOF, debug, GEO client, hash TTL, dump/restore, notifications | 199/199 pass | 199/199 pass |
+| Standard differential, both engines | PENDING | epoll complete; io_uring pending |
 | PAD-A directed behavior control | PRE behavior required | PENDING |
+
+Standard differential inventory uses all 47 suites and seeds 7,19,20,23,25.
+Armed-fused omits SORT exactly as declared by the existing harness. Counts are
+235/239 split legs and 230/234 armed-fused legs, including mandatory MULTI repeats.
+Mode equivalence declares 16 cells, each with replay and witness boots (32 boots);
+the existing console label's "32 combinations" is not the cell inventory.
+
+| Differential arm | Exact leg inventory | Failed legs | Mode-equivalence cells | Strict folds |
+|---|---:|---:|---:|---|
+| POST epoll | 938/938 | 0 | 16/16 | split + armed pass |
+| PRE epoll | RUNNING | — | — | — |
+| POST io_uring | PENDING | — | — | — |
+| PRE io_uring | PENDING | — | — | — |
 
 The gate harness self-test passed 67/67 when run alone (`gates-test-serial.log`).
 Final POST passes make -q for all, all 37 job_production_units targets and both MDB
@@ -96,8 +111,8 @@ production objects and server remain, with make -q all still passing.
 required POST production fixtures and controls.
 
 The full changed-text/encoding grep and job mapping are in test-impact-*.txt and
-test-impact-map.tsv. Historical standalone scripts without a gate job are named
-there; they were not silently substituted for registered jobs. Exact job selections,
+test-impact-map.tsv. Historical standalone scripts without a registered gate job
+are marked NOT RUN in that map with the reason. Exact job selections,
 per-row results and lifecycle logs are retained in the proof archives.
 
 Identity: 16,838 emitted bodies inventoried, 322 changed; every changed body has a
@@ -135,9 +150,10 @@ h05, h06, p8g, p8s, d1g_l0, d1s_l0, m8g_l0, v1g_l0, d128g_l0, d32g_l1,
 d8s_l1, d32s_l1, x9_32_l1, x9_32_l0. Establish a same-binary null, then compare
 PRE/POST, PRE/PAD-A and PAD-A/POST at matched offered load and each declared
 geometry. Rate decides rate cells; latency decides the two p1 cells. Report
-cycles/op, IPC and instructions/op together. A spread above 2% requires
-investigation, not a relaxed tolerance. The question is preservation of ordinary
-workload merit after compatibility repairs. The full iteration, ABBA and NIC
+cycles/op, IPC and instructions/op together. Require no reproducible ordinary-command
+regression beyond the same-binary null, judged per cell. A spread above 2% requires
+investigation. The question is preservation of ordinary workload merit after
+compatibility repairs. The full iteration, ABBA and NIC
 performance tiers were NOT RUN; they remain with the maintainer.
 
 Baseline and harness history is documented in `docs/datafix1/RUN-NOTES.md`.

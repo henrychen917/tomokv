@@ -40,3 +40,8 @@ Large native snapshots, binaries and object files are excluded from those archiv
 PRE production fixtures were pruned only after passing and recording freshness;
 production objects and the PRE/PAD binaries remain available. Full iteration and
 performance instruments are intentionally not run in this correctness lane.
+
+The existing differential console label says "all 32 execution/knob combinations".
+The frozen mode-equivalence stream and completion artifact declare 16 cells
+(2 modes x 2 read-local x 2 reorder x 2 atomic), each with separate replay and
+witness boots, for 32 owned server lifetimes. This report counts 16 cells.
