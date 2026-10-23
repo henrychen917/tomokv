@@ -1,0 +1,3 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	55.940000	tracking-only delivery/drop accounting vs Redis 7.4
+FAIL	217.780000	tracking delayed-write order vs Redis 7.4

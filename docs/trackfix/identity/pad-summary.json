@@ -1,0 +1,168 @@
+{
+  "total": 8641,
+  "changed": [
+    {
+      "name": "tomo::(anonymous namespace)::assemble_final(tomo::Client&, tomo::Op&, tomo::ScatterState&, void*, void (*)(void*, int, char const*), void (*)(void*))",
+      "before_sizes": [
+        7107
+      ],
+      "after_sizes": [
+        7109
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::execute_plain_element_mover(tomo::Task const&, tomo::Shard&, tomo::Op&) [clone .isra.0]",
+      "before_sizes": [
+        2492
+      ],
+      "after_sizes": [
+        2492
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+      "before_sizes": [
+        1346
+      ],
+      "after_sizes": [
+        1314
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+      "before_sizes": [
+        117
+      ],
+      "after_sizes": [
+        118
+      ]
+    },
+    {
+      "name": "tomo::(anonymous namespace)::store_xstring_selected(bool, tomo::Shard&, tomo::Slice, unsigned long, tomo::Slice, long, bool, bool)",
+      "before_sizes": [
+        181
+      ],
+      "after_sizes": [
+        181
+      ]
+    },
+    {
+      "name": "tomo::notify_record_slow(tomo::Shard&, tomo::Op&, unsigned int, unsigned int, tomo::NotifyEventId, tomo::Slice)",
+      "before_sizes": [
+        1976
+      ],
+      "after_sizes": [
+        1976
+      ]
+    },
+    {
+      "name": "tomo::notify_retire_batch_entry(tomo::IoLoop&, tomo::NotifyBatch*, unsigned long)",
+      "before_sizes": [
+        3974
+      ],
+      "after_sizes": [
+        3958
+      ]
+    },
+    {
+      "name": "tomo::notify_retire_batch_entry(tomo::IoLoop&, tomo::NotifyBatch*, unsigned long) [clone .cold]",
+      "before_sizes": [
+        287
+      ],
+      "after_sizes": [
+        294
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::execute_plain_element_mover(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&) [clone .isra.0]",
+      "before_sizes": [
+        2700
+      ],
+      "after_sizes": [
+        2700
+      ]
+    },
+    {
+      "name": "tomo_db0::(anonymous namespace)::store_xstring_selected(bool, tomo_db0::Shard&, tomo_db0::Slice, unsigned long, tomo_db0::Slice, long, bool, bool)",
+      "before_sizes": [
+        181
+      ],
+      "after_sizes": [
+        181
+      ]
+    },
+    {
+      "name": "tomo_db0::notify_record_slow(tomo_db0::Shard&, tomo_db0::Op&, unsigned int, unsigned int, tomo_db0::NotifyEventId, tomo_db0::Slice)",
+      "before_sizes": [
+        1831
+      ],
+      "after_sizes": [
+        1831
+      ]
+    },
+    {
+      "name": "tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long)",
+      "before_sizes": [
+        3974
+      ],
+      "after_sizes": [
+        3958
+      ]
+    },
+    {
+      "name": "tomo_db0::notify_retire_batch_entry(tomo_db0::IoLoop&, tomo_db0::NotifyBatch*, unsigned long) [clone .cold]",
+      "before_sizes": [
+        287
+      ],
+      "after_sizes": [
+        294
+      ]
+    },
+    {
+      "name": "void tomo::IoLoop::on_cqe<true, true, true>(io_uring_cqe*)",
+      "before_sizes": [
+        865
+      ],
+      "after_sizes": [
+        865
+      ]
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<false>(tomo::Shard&, tomo::Op&)",
+      "before_sizes": [
+        15981
+      ],
+      "after_sizes": [
+        15981
+      ]
+    },
+    {
+      "name": "void tomo::cmd_xshard_only_impl<true>(tomo::Shard&, tomo::Op&)",
+      "before_sizes": [
+        17097
+      ],
+      "after_sizes": [
+        17097
+      ]
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "before_sizes": [
+        15739
+      ],
+      "after_sizes": [
+        15739
+      ]
+    },
+    {
+      "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "before_sizes": [
+        17145
+      ],
+      "after_sizes": [
+        17145
+      ]
+    }
+  ],
+  "scope": "A: PRE drop-accounting behavior with exact POST layout; full PRE/PAD strict residuals retained"
+}

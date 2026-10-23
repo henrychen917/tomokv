@@ -1343,6 +1343,9 @@ private:
             // Pure point chunks retain the widest I0/C0/E0 overlap. A mixed chunk captures and
             // consumes each command in program order below: MGET captures its own window, so
             // pre-capturing a following GET could otherwise let that later command regress.
+            if (__builtin_expect(srv_->climon_armed() & Server::kClimonTracking, false))
+                for (uint32_t i = 0; i < count; ++i)
+                    tracking_observe_local(*srv_, *chunk.ops[i]);
             const bool point_capture_batch = mget_mask == 0;
             if (point_capture_batch) {
                 // I0 retains the old whole-batch home-slot overlap. C0 consumes those warm
@@ -2512,6 +2515,8 @@ private:
         sh.note_execution(self_->domain());
 
         if (!t.scatter) self_->note_command(op.spec->id);
+        if (__builtin_expect(srv_->climon_armed() & Server::kClimonTracking, false))
+            tracking_observe_read(sh, op);
 
         if (t.scatter) {
             const ScatterTaskResult result = xshard_execute(t, sh, op, self_->id());
@@ -2593,6 +2598,9 @@ private:
             if (op.local_xshard()) xshard_aof_emit_local(sh, op, context);
             else                   aof_record_local_op(sh, op, context);
         }
+
+        if (__builtin_expect(op.spec->flags & CmdFlags::NotifySelected, false))
+            notify_tracking_commit(op);
 
         // The optional persistence path owns Done until this pass's post and durability
         // boundary. Merely delaying notify_sender cannot protect an IO already serving.

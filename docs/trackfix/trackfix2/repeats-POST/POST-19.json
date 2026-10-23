@@ -1,0 +1,20 @@
+{
+  "arm": "POST",
+  "roll": 19,
+  "argv": [
+    "taskset",
+    "-c",
+    "105-111",
+    "python3",
+    "tests/differ.py",
+    "127.0.0.1",
+    "22876",
+    "127.0.0.1",
+    "22877",
+    "climon",
+    "19"
+  ],
+  "returncode": 0,
+  "duplicate_comparisons": 0,
+  "sha256": "787031f023997cd3e5ce2330e9d11794819c4799202714f5a1d7299c9b39a181"
+}

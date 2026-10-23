@@ -1,0 +1,46 @@
+{
+  "source": "/home/user/Projects/cx-trackfix/build/trackfix/gate-scheduled-POST-final/tomokv",
+  "source_sha256": "43fdcf3c241e9a9bd39fa607c050917a6b003c9dc1a63b8db64fa43fa0122512",
+  "control_sha256": "4556e5da27b42b3ddd9ae00fce11d074e1a1c444ae07d4b944f13089310ad3d4",
+  "patches": [
+    {
+      "name": "tomo::IoLoop::tracking_retire_read(tomo::Client&, tomo::Op&)",
+      "address": "0x670700",
+      "offset": 6752000,
+      "original": "e81b8bffff",
+      "replacement": "9090909090"
+    },
+    {
+      "name": "tomo_db0::IoLoop::tracking_retire_read(tomo_db0::Client&, tomo_db0::Op&)",
+      "address": "0x2cfd10",
+      "offset": 2948368,
+      "original": "e88b8bffff",
+      "replacement": "9090909090"
+    }
+  ],
+  "argv": [
+    "taskset",
+    "-c",
+    "105-111",
+    "python3",
+    "tests/trackfix.py",
+    "127.0.0.1",
+    "22810",
+    "--oracle",
+    "127.0.0.1",
+    "22811",
+    "--mode",
+    "1s",
+    "--engine",
+    "epoll",
+    "--atomic",
+    "0",
+    "--read-local",
+    "0",
+    "--case",
+    "ordered",
+    "--schedule-dir",
+    "/home/user/Projects/cx-trackfix/build/trackfix/suppress-pending/schedule"
+  ],
+  "returncode": 1
+}

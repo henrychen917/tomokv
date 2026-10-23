@@ -1,0 +1,426 @@
+[
+  {
+    "object": "db0/src/cmd/acl.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/aclkeys.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/cmd/autharity.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/cmd/blocking_debug.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/cmd/climon.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/cmdgap.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/cmd/commands.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/cmd/functions.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/geo.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/geo_store.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/glob.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/cmd/hexpread.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/hll.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/cmd/info_stats.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/lbsignals.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/lcs.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/cmd/multi_admin.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/multidb.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/objectpread.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/pfdebug.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/scripting.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/serialize.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/server_tail.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/slowlog.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/storesize.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/t_hash.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/t_hash_ttl.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/t_list.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/t_set.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/t_sort.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/cmd/t_stream.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/t_stream_groups.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/t_string.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/t_zset.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/t_zset_ops.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/cmd/tracking.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/core/flipctl.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/core/lbplanner.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/core/lbstall.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/core/version.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/main.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/net/tls.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "byte_identical": false
+  },
+  {
+    "object": "db0/src/persist/aof_frame_debug.o",
+    "byte_identical": true
+  },
+  {
+    "object": "db0/src/snapshot/snapshot.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/aclkeys.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/cmd/autharity.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/cmd/blocking_debug.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/cmd/climon.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/cmdgap.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/cmd/commands.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/cmd/functions.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/geo.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/geo_store.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/glob.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/cmd/hexpread.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/hll.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/cmd/info_stats.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/lbsignals.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/lcs.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/cmd/multi_admin.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/multidb.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/objectpread.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/pfdebug.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/scripting.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/serialize.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/server_tail.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/slowlog.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/storesize.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/t_hash.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/t_hash_ttl.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/t_set.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/t_sort.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/cmd/t_stream.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/t_stream_groups.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/t_string.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/t_zset.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/t_zset_ops.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/cmd/tracking.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/core/flipctl.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/core/genthread.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/core/lbplanner.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/core/lbstall.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/core/reorder.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/core/version.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/main.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/net/tls.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/persist/aof.o",
+    "byte_identical": false
+  },
+  {
+    "object": "src/persist/aof_frame_debug.o",
+    "byte_identical": true
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "byte_identical": false
+  }
+]

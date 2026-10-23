@@ -1,0 +1,202 @@
+{
+  "POST-final-uring-split": {
+    "run": "trackfix-standard",
+    "permanent": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "failed": [
+      7,
+      19,
+      20,
+      21,
+      23
+    ],
+    "rotating": 21,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "history": "/home/user/Projects/cx-trackfix/.gate-history/differ"
+  },
+  "PRE-final-uring-split": {
+    "run": "trackfix-standard",
+    "permanent": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "failed": [
+      7,
+      19,
+      20,
+      21,
+      23
+    ],
+    "rotating": 21,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "history": "/home/user/Projects/cx-trackfix/.gate-history/differ"
+  },
+  "POST-final-epoll-split": {
+    "run": "trackfix-standard",
+    "permanent": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "failed": [
+      7,
+      19,
+      20,
+      21,
+      23
+    ],
+    "rotating": 21,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "history": "/home/user/Projects/cx-trackfix/.gate-history/differ"
+  },
+  "PRE-final-epoll-armed-fused": {
+    "run": "trackfix-standard",
+    "permanent": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "failed": [
+      7,
+      19,
+      20,
+      21,
+      23
+    ],
+    "rotating": 21,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "history": "/home/user/Projects/cx-trackfix/.gate-history/differ"
+  },
+  "POST-final-epoll-armed-fused": {
+    "run": "trackfix-standard",
+    "permanent": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "failed": [
+      7,
+      19,
+      20,
+      21,
+      23
+    ],
+    "rotating": 21,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "history": "/home/user/Projects/cx-trackfix/.gate-history/differ"
+  },
+  "POST-final-uring-armed-fused": {
+    "run": "trackfix-standard",
+    "permanent": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "failed": [
+      7,
+      19,
+      20,
+      21,
+      23
+    ],
+    "rotating": 21,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "history": "/home/user/Projects/cx-trackfix/.gate-history/differ"
+  },
+  "PRE-final-uring-armed-fused": {
+    "run": "trackfix-standard",
+    "permanent": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "failed": [
+      7,
+      19,
+      20,
+      21,
+      23
+    ],
+    "rotating": 21,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "history": "/home/user/Projects/cx-trackfix/.gate-history/differ"
+  },
+  "PRE-final-epoll-split": {
+    "run": "trackfix-standard",
+    "permanent": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "failed": [
+      7,
+      19,
+      20,
+      21,
+      23
+    ],
+    "rotating": 21,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21
+    ],
+    "history": "/home/user/Projects/cx-trackfix/.gate-history/differ"
+  }
+}

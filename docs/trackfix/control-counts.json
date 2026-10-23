@@ -1,0 +1,1968 @@
+[
+  {
+    "arm": "POST",
+    "roll": 1,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 3,
+    "duplicate_frames": 3,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 13 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 21 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST/POST-1.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 2,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 21 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST/POST-2.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 3,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST/POST-3.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 4,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-4.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 5,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-5.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 6,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-6.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 7,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 13 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST/POST-7.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 8,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-8.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 9,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-9.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 10,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-10.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 11,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST/POST-11.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 12,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 13 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST/POST-12.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 13,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-13.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 14,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-14.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 15,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-15.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 16,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-16.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 17,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-17.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 18,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-18.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 19,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-19.log"
+  },
+  {
+    "arm": "POST",
+    "roll": 20,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST/POST-20.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 1,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 21 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST-final/POST-final-1.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 2,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 3,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 3,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 8 mode 0",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 21 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST-final/POST-final-2.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 3,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 8 mode 0",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST-final/POST-final-3.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 4,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 2,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 2,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 13 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 21 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST-final/POST-final-4.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 5,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-5.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 6,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 4,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 4,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 8 mode 0",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 13 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 21 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST-final/POST-final-6.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 7,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-7.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 8,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-8.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 9,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-9.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 10,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-10.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 11,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-11.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 12,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-12.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 13,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-13.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 14,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-14.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 15,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-15.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 16,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 2,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 2,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 21 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST-final/POST-final-16.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 17,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-17.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 18,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-18.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 19,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/POST-final/POST-final-19.log"
+  },
+  {
+    "arm": "POST-final",
+    "roll": 20,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22802",
+      "127.0.0.1",
+      "22803",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c",
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 13 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/POST-final/POST-final-20.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 1,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-1.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 2,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-2.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 3,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-3.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 4,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 3,
+    "duplicate_frames": 3,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 8 mode 0",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 13 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/PRE/PRE-4.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 5,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-5.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 6,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-6.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 7,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-7.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 8,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-8.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 9,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-9.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 10,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-10.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 11,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 2,
+    "duplicate_frames": 2,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 13 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/PRE/PRE-11.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 12,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/PRE/PRE-12.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 13,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-13.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 14,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-14.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 15,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 8 mode 0",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/PRE/PRE-15.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 16,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 21 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/PRE/PRE-16.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 17,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 21 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/PRE/PRE-17.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 18,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-18.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 19,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-19.log"
+  },
+  {
+    "arm": "PRE",
+    "roll": 20,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22800",
+      "127.0.0.1",
+      "22801",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE/PRE-20.log"
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 21,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 2,
+    "duplicate_frames": 2,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 8 mode 0",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 13 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/PRE-extra/PRE-extra-21.log"
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 22,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 2,
+    "duplicate_frames": 2,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 8 mode 0",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:9\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 21 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$5\\r\\nck:10\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/PRE-extra/PRE-extra-22.log"
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 23,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/PRE-extra/PRE-extra-23.log"
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 24,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 1,
+    "duplicate_frames": 1,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/PRE-extra/PRE-extra-24.log"
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 25,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE-extra/PRE-extra-25.log"
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 26,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE-extra/PRE-extra-26.log"
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 27,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE-extra/PRE-extra-27.log"
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 28,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE-extra/PRE-extra-28.log"
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 29,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 0,
+    "duplicate_comparisons": 0,
+    "duplicate_frames": 0,
+    "other_differences": 0,
+    "observations": [],
+    "log": "tracking-controls/PRE-extra/PRE-extra-29.log"
+  },
+  {
+    "arm": "PRE-extra",
+    "roll": 30,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/differ.py",
+      "127.0.0.1",
+      "22804",
+      "127.0.0.1",
+      "22805",
+      "climon",
+      "19"
+    ],
+    "returncode": 1,
+    "duplicate_comparisons": 2,
+    "duplicate_frames": 2,
+    "other_differences": 0,
+    "observations": [
+      {
+        "label": "DIFF invalidation round 13 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:3\\r\\n'"
+      },
+      {
+        "label": "DIFF invalidation round 25 mode 1",
+        "duplicate_frame": true,
+        "target_frame_count": 2,
+        "oracle_frame_count": 1,
+        "target_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'",
+        "oracle_repr": "b'>2\\r\\n$10\\r\\ninvalidate\\r\\n*1\\r\\n$4\\r\\nck:5\\r\\n'"
+      }
+    ],
+    "log": "tracking-controls/PRE-extra/PRE-extra-30.log"
+  }
+]

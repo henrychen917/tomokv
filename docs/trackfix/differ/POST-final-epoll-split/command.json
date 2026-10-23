@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "105-111",
+    "bash",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-trackfix/build/trackfix/server-POST-final-epoll-split",
+    "22860",
+    "22861",
+    "96-103",
+    "6:2"
+  ],
+  "engine": "epoll",
+  "geometry": "split",
+  "arm": "POST-final",
+  "binary": "/home/user/Projects/cx-trackfix/build/tomokv",
+  "sha256": "d8cd3f506e17b60ae619eed6b3732a3fc967abb8ec4b2dc982e1e7a2734d750c"
+}

@@ -1,0 +1,10 @@
+{
+  "reason": "fixture inspected expired argv before WB; all windows failed to open; replaced by owned-key probe",
+  "gate_processes": [
+    [
+      "117006",
+      "117005",
+      "bash tests/gate.sh full --server-cores 96-104 --load-cores 105-111 --server-smt  --load-smt  --ports 22840-22849 --candidate-binary /home/user/Projects/cx-trackfix/build/trackfix/server-trackfix2-scheduled-v2"
+    ]
+  ]
+}

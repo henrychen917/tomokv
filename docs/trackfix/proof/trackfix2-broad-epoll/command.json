@@ -1,0 +1,34 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-104",
+    "--load-cores",
+    "105-111",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "22820-22829",
+    "--candidate-binary",
+    "/home/user/Projects/cx-trackfix/build/trackfix/server-trackfix2-broad-epoll"
+  ],
+  "jobs": [
+    "feature-split-0",
+    "feature-split-1",
+    "feature-armed-0",
+    "feature-armed-1",
+    "clientfix",
+    "notify",
+    "fused-0",
+    "fused-1"
+  ],
+  "binary": "/home/user/Projects/cx-trackfix/build/tomokv",
+  "sha256": "787031f023997cd3e5ce2330e9d11794819c4799202714f5a1d7299c9b39a181"
+}

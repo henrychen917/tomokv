@@ -1,0 +1,22 @@
+POST-trackfix2-1 0 0
+POST-trackfix2-2 0 0
+POST-trackfix2-3 0 0
+POST-trackfix2-4 0 0
+POST-trackfix2-5 0 0
+POST-trackfix2-6 0 0
+POST-trackfix2-7 0 0
+POST-trackfix2-8 0 0
+POST-trackfix2-9 0 0
+POST-trackfix2-10 0 0
+POST-trackfix2-11 0 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-trackfix/docs/trackfix/run_proof.py", line 146, in <module>
+    repeats(sys.argv[2])
+  File "/home/user/Projects/cx-trackfix/docs/trackfix/run_proof.py", line 128, in repeats
+    with support.owned(label + '-target', binary, '96-103', port, shape):
+  File "/usr/lib/python3.12/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/home/user/Projects/cx-trackfix/docs/wave4/run_supplemental.py", line 46, in owned
+    assert Path(f'/proc/{process.pid}/exe').resolve()==Path(binary).resolve()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

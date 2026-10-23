@@ -1,0 +1,72 @@
+[
+  {
+    "roll": 1,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/tracking.py",
+      "127.0.0.1",
+      "22800"
+    ],
+    "returncode": 0,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26"
+  },
+  {
+    "roll": 2,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/tracking.py",
+      "127.0.0.1",
+      "22800"
+    ],
+    "returncode": 1,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26"
+  },
+  {
+    "roll": 3,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/tracking.py",
+      "127.0.0.1",
+      "22800"
+    ],
+    "returncode": 1,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26"
+  },
+  {
+    "roll": 4,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/tracking.py",
+      "127.0.0.1",
+      "22800"
+    ],
+    "returncode": 1,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26"
+  },
+  {
+    "roll": 5,
+    "argv": [
+      "taskset",
+      "-c",
+      "105-111",
+      "python3",
+      "tests/tracking.py",
+      "127.0.0.1",
+      "22800"
+    ],
+    "returncode": 0,
+    "sha256": "da4431ffb8c7894c4048210b3197cedc137a35dfd21a0b5ff211a2bb3675fc26"
+  }
+]

@@ -1,0 +1,62 @@
+{
+  "legs": [
+    {
+      "leg": "order-1s-epoll-a0-rl0.log",
+      "passed": 14,
+      "failed": 16,
+      "failures": [
+        "FAIL overlap(False,) RESP2 default: all pending windows must open",
+        "FAIL overlap(False,) RESP2 OPTIN: all pending windows must open",
+        "FAIL overlap(False,) RESP2 OPTOUT: all pending windows must open",
+        "FAIL overlap(False,) RESP2 NOLOOP: all pending windows must open",
+        "FAIL overlap(False,) RESP3 default: all pending windows must open",
+        "FAIL overlap(False,) RESP3 OPTIN: all pending windows must open",
+        "FAIL overlap(False,) RESP3 OPTOUT: all pending windows must open",
+        "FAIL overlap(False,) RESP3 NOLOOP: all pending windows must open",
+        "FAIL overlap(True,) RESP2 default: all pending windows must open",
+        "FAIL overlap(True,) RESP2 OPTIN: all pending windows must open",
+        "FAIL overlap(True,) RESP2 OPTOUT: all pending windows must open",
+        "FAIL overlap(True,) RESP2 NOLOOP: all pending windows must open",
+        "FAIL overlap(True,) RESP3 default: all pending windows must open",
+        "FAIL overlap(True,) RESP3 OPTIN: all pending windows must open",
+        "FAIL overlap(True,) RESP3 OPTOUT: all pending windows must open",
+        "FAIL overlap(True,) RESP3 NOLOOP: all pending windows must open"
+      ]
+    },
+    {
+      "leg": "order-1s-epoll-a0-rl1.log",
+      "passed": 14,
+      "failed": 16,
+      "failures": [
+        "FAIL overlap(False,) RESP2 default: all pending windows must open",
+        "FAIL overlap(False,) RESP2 OPTIN: all pending windows must open",
+        "FAIL overlap(False,) RESP2 OPTOUT: all pending windows must open",
+        "FAIL overlap(False,) RESP2 NOLOOP: all pending windows must open",
+        "FAIL overlap(False,) RESP3 default: all pending windows must open",
+        "FAIL overlap(False,) RESP3 OPTIN: all pending windows must open",
+        "FAIL overlap(False,) RESP3 OPTOUT: all pending windows must open",
+        "FAIL overlap(False,) RESP3 NOLOOP: all pending windows must open",
+        "FAIL overlap(True,) RESP2 default: all pending windows must open",
+        "FAIL overlap(True,) RESP2 OPTIN: all pending windows must open",
+        "FAIL overlap(True,) RESP2 OPTOUT: all pending windows must open",
+        "FAIL overlap(True,) RESP2 NOLOOP: all pending windows must open",
+        "FAIL overlap(True,) RESP3 default: all pending windows must open",
+        "FAIL overlap(True,) RESP3 OPTIN: all pending windows must open",
+        "FAIL overlap(True,) RESP3 OPTOUT: all pending windows must open",
+        "FAIL overlap(True,) RESP3 NOLOOP: all pending windows must open"
+      ]
+    },
+    {
+      "leg": "order-1s-uring-a0-rl0.log",
+      "passed": null,
+      "failed": null,
+      "failures": [
+        "FAIL overlap(False,) RESP2 default: all pending windows must open"
+      ]
+    }
+  ],
+  "receipts": {
+    ".held": 24,
+    ".replayed": 24
+  }
+}

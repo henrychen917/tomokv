@@ -1,0 +1,39 @@
+{
+  "argv": [
+    "taskset",
+    "-c",
+    "96-111",
+    "bash",
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "96-104",
+    "--load-cores",
+    "105-111",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "22810-22839",
+    "--candidate-binary",
+    "/home/user/Projects/cx-trackfix/build/trackfix/server-post-broad-uring"
+  ],
+  "jobs": [
+    "production_units",
+    "netcmd_units",
+    "feature-split-0",
+    "feature-split-1",
+    "feature-armed-0",
+    "feature-armed-1",
+    "notify",
+    "notify_order",
+    "notify_aof",
+    "clientfix",
+    "cmd_metadata",
+    "fused-0",
+    "fused-1",
+    "debug-0",
+    "debug-1"
+  ]
+}

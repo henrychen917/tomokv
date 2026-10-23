@@ -1,0 +1,57 @@
+{
+  "source_base": "0682a3ced",
+  "production_source_commit": "d46a9be20",
+  "paths": [
+    {
+      "path": "src/cmd/climon.cc",
+      "sha256": "c606efe691ff3f22f39c16910e4431c81b37d0f96639d09f304eb2006d6b556a"
+    },
+    {
+      "path": "src/cmd/climon.inc",
+      "sha256": "9f772b292fa411988ef07ecf2e29997ebbf15fb9a99242ba2b7df1c7c3026a96"
+    },
+    {
+      "path": "src/cmd/notify.h",
+      "sha256": "1d12503b15999d673b6c45dab2f91ae08952fcc344a16be66c4cfe54d142c52a"
+    },
+    {
+      "path": "src/cmd/notify.inc",
+      "sha256": "66e8336f94f4813e2d22414465a060c6f994097d4645644f38dac7c1ac8bf8d5"
+    },
+    {
+      "path": "src/cmd/tracking.cc",
+      "sha256": "5f5d96785eed6ad3047dae27263ad5b3be850812909f023e5205800954d09966"
+    },
+    {
+      "path": "src/core/ex_loop.h",
+      "sha256": "03b94ef6426bde70fc19296270e778f4713eaaeed41096e018ae25e38ce20290"
+    },
+    {
+      "path": "tests/netcmd_unit.cc",
+      "sha256": "8d0b8543038ae087a24590e5f57168e453ffc613828e715b6c1253158de11059"
+    },
+    {
+      "path": "tests/trackfix.py",
+      "sha256": "08f471a28f6d41466664aea6282ce1cc09b4ef961d5e12ab77f5788f69f2467c"
+    },
+    {
+      "path": "tools/trackfix_schedule.py",
+      "sha256": "750a19858a962aa895d77681bce9d8fc1725b6ef7cd6448a55c9ca82e7f6b2b0"
+    }
+  ],
+  "gate_rows": [
+    {
+      "job": "trackfix_order",
+      "line": 4389,
+      "quick_tier": true
+    },
+    {
+      "job": "trackfix_accounting",
+      "line": 4390,
+      "quick_tier": true
+    }
+  ],
+  "cumulative_DQ": 2,
+  "cumulative_DF": 2,
+  "gate_script_changed_this_task": false
+}
