@@ -1,0 +1,9 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-execfair/build/gate-run.7Gfhiy
+PARTIAL jobs (including prerequisites): release execfair
+PARTIAL jobs (including prerequisites): release execfair
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=20.03s; correctness-plan-fallback; EXEC fast-lane polls
+  EXEC fast-lane polls                                 FAIL (see /home/user/Projects/cx-execfair/build/gate-run.7Gfhiy/jobs/execfair/execfair-*)
+GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-execfair/build/execfair-pad-witness.tsv.partial

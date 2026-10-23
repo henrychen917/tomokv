@@ -1,0 +1,37 @@
+{
+  "total": 2172,
+  "functions": {
+    "void tomo::ExLoopT<false>::exec_batch_prefetched<false>(tomo::Task const*, unsigned int)": 121,
+    "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)": 216,
+    "tomo::multi_task_tagged(tomo::Task const&)": 4,
+    "tomo::FlatStore::budget_admit(tomo::Slice)": 20,
+    "void tomo::(anonymous namespace)::cmd_incr<false>(tomo::Shard&, tomo::Op&)": 3,
+    "void tomo::(anonymous namespace)::incr_decr<false>(tomo::Shard&, tomo::Op&, long)": 97,
+    "tomo::FlatStore::find(unsigned long, tomo::Slice)": 85,
+    "tomo::KvObj::key() const": 13,
+    "tomo::Slice::key_eq(tomo::Slice const&) const": 29,
+    "tomo::Op::key() const": 11,
+    "tomo::FlatStore::make_set_int(tomo::Slice, long, long, bool)": 50,
+    "tomo::kvobj_init_int(void*, tomo::Slice, long, long, bool)": 66,
+    "tomo::(anonymous namespace)::map_insert(tomo::FlatStore&, unsigned long, tomo::KvObj*)": 17,
+    "tomo::FlatStore::insert(unsigned long, tomo::KvObj*)": 49,
+    "tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)": 142,
+    "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)": 24,
+    "tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)::{lambda(tomo::KvObj const*, bool)#1}::operator()(tomo::KvObj const*, bool) const": 59,
+    "tomo::FlatStore::track_expire(unsigned long, tomo::KvObj*) [clone .isra.0]": 25,
+    "tomo::FlatStore::retire_obj(tomo::KvObj*)": 49,
+    "tomo::kvobj_external_bytes(tomo::KvObj const*)": 10,
+    "tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)": 19,
+    "tomo::kvobj_size(tomo::KvObj const*)": 35,
+    "void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long)": 86,
+    "tomo::ExLoopT<false>::notify_sender(tomo::Client*)": 28,
+    "tomo::ExLoopT<false>::flush_notify_batch()": 94,
+    "tomo::Shard::publish_size()": 232,
+    "tomo::FlatStore::publish_database_counts() const": 588
+  },
+  "excluded": {
+    "clock_gettime@plt": 1,
+    "mallocx@plt": 1,
+    "memcmp@plt": 1
+  }
+}

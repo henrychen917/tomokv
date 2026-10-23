@@ -1,0 +1,314 @@
+[
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-GET-1s-1.log.gz",
+    "raw_bytes": 88178,
+    "raw_sha256": "6aa5f4dfbd0cad882ecec96d7a9a3bf3732d0df9775934747c8a504d3d4a1e0e",
+    "compressed_sha256": "fb176e032822a1b07ed438714064909b3660fcce64ec5ac0a7f8de72646448c6"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-GET-1s-32.log.gz",
+    "raw_bytes": 1978933,
+    "raw_sha256": "b2c480c08cf9f0219c1da9a361fc35463b1c5c6e7866227e76941a8e15a94054",
+    "compressed_sha256": "5a0217b65fac40e1e65d19a63b7835a1ae4ecc935728fbc530d5f772625430a6"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-GET-2s-1.log.gz",
+    "raw_bytes": 116818,
+    "raw_sha256": "25e10b0a298237ff9a74ec89d9f72e9c5051708e761847b2113084ecef3adb7a",
+    "compressed_sha256": "7ca75227297aa5f105d7d0a0e186912e3d9bfb9b96f4d708fdb9188cb2acde5a"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-GET-2s-32.log.gz",
+    "raw_bytes": 1937151,
+    "raw_sha256": "c441236f1928fb184522599f99b484fa7a1ea3b9cbfd4b19264d3dad6ae8ea9e",
+    "compressed_sha256": "ca54d39bd7117f31f1d06b21a0105dac94c8c02c5680582e4a3700cebfd4ac44"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-INCR-1s-1.log.gz",
+    "raw_bytes": 143197,
+    "raw_sha256": "2a5be0119182a437408384e60d334a44d39c8a670e69a7f33aed5572acb706d8",
+    "compressed_sha256": "cf9b16041bc2a56d8efe19192b386ab47fda6d3f1773c8c74dfd50fdb03ab4d6"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-INCR-1s-32.log.gz",
+    "raw_bytes": 3791073,
+    "raw_sha256": "f0ef74a59ce70ca08dd700ef265f23dc205f4e45528a2a35a4d78bbb72908ddc",
+    "compressed_sha256": "73231356df6411658f8e05fc362e09f3e7c2dfa4edde6cbe007022f3d706ee4c"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-INCR-2s-1.log.gz",
+    "raw_bytes": 171840,
+    "raw_sha256": "b66ee5df583db446155f6977ec979f7668eb8fb14cdc0a933cf21961b07b3647",
+    "compressed_sha256": "e5872f32f1799129de97c3fa8d997cf3768dc1d9aff2cef59d01b66dfa4c784f"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-INCR-2s-32.log.gz",
+    "raw_bytes": 3749419,
+    "raw_sha256": "66509dc5952cabbc2fbb98ae5cf08674610425ebdc170a6a7ec9f8c077e083f2",
+    "compressed_sha256": "be08901c194b143fdc2e5c66f464ed3ab53cce48ff7680ac363ceb8aacc68bb4"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-SET-1s-1.log.gz",
+    "raw_bytes": 103718,
+    "raw_sha256": "8a3bf3d06ae97b47fcae963576e8573b2b35cd2d351c88b801fcc6800ec5e51b",
+    "compressed_sha256": "ca8060c9adbfde1710766fd8fdce8ac9d084a0ef91206bfa99415b581a398565"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-SET-1s-32.log.gz",
+    "raw_bytes": 2476213,
+    "raw_sha256": "b6eae2873711c75b3f9dd30772f5e4218d7ff73816bc997dd32576dd46f4369d",
+    "compressed_sha256": "607d26bef8e04e849b256b913e48e2bf1b4cc3d4ba1fe075e172c4355180543d"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-SET-2s-1.log.gz",
+    "raw_bytes": 132342,
+    "raw_sha256": "87dcc8010655a500538315aeff17a4d65dfd7ab7b119aadd66a2bdc96e2dd426",
+    "compressed_sha256": "2eb0b72287f23a7e0d2155bc15370840a7f18fb66b45d3a55244e4c2ae7d3bb0"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-SET-2s-32.log.gz",
+    "raw_bytes": 2433919,
+    "raw_sha256": "d4a99ab90755667e49054d70d74fe6d15415cf8ee87c194fb8d1417900760cd0",
+    "compressed_sha256": "89362438f08cc9475abfdc93d08af7e8cc13def060c4d2994b851c29fb922bd7"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-db0-build.log.gz",
+    "raw_bytes": 0,
+    "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compressed_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-GET-1s-1.log.gz",
+    "raw_bytes": 92807,
+    "raw_sha256": "0982e10cbe1ef89ddd0c4bce064c04c40171f5e126d4e6cfaa4e92141f41c9d0",
+    "compressed_sha256": "493bd1afc3a3932dff3507da149db57e0bdaf47754061d120f50364d0cf011df"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-GET-1s-32.log.gz",
+    "raw_bytes": 1867436,
+    "raw_sha256": "7606f5369420d87a140544d4bea7c4f06a39b6a7a0cf1b4b8414b9b6f6f6f62d",
+    "compressed_sha256": "a6e7df4d7fe4d52ae70e9e78779a6503ddc21cc3e16a6d5055c0560382315335"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-GET-2s-1.log.gz",
+    "raw_bytes": 147128,
+    "raw_sha256": "fb9136b880313a47c7d5da1067b568c01acda03cf5d8465a08a920f0118b9db1",
+    "compressed_sha256": "5d200f008c4534e242186ab790e822371da025a45b0bc006ec60249020bce27b"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-GET-2s-32.log.gz",
+    "raw_bytes": 1851831,
+    "raw_sha256": "af1892c0beb2e0f647d56e61357f2102092f105ee21c927bc030221c36a018f7",
+    "compressed_sha256": "251e7b9980b61a17b63b3c383eec83f9d77c0898d83a8a0b2cec0e7ea894dde2"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-INCR-1s-1.log.gz",
+    "raw_bytes": 155932,
+    "raw_sha256": "6bf825f923b0fd29cc63a8e17058d25935eeb2cfc7614100f309ece018e84265",
+    "compressed_sha256": "da7c71cfeeb03088449ff090e29a4b73b7561324ffc4c15b3d0469ca25d02683"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-INCR-1s-32.log.gz",
+    "raw_bytes": 3939037,
+    "raw_sha256": "b5ec7163d18854b5aa598f507da18b0e09926c267839eecdb5491084bbc525c1",
+    "compressed_sha256": "5b31d8a37680b717ce20af68557d151da204c3ad2cecbcfc5dddb8d6739adc72"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-INCR-2s-1.log.gz",
+    "raw_bytes": 210256,
+    "raw_sha256": "21af8269122869966aa857efb58671fada7431783396956ce31c84062b02c36b",
+    "compressed_sha256": "0b6e65051b2a3f09e5fce80991996ffb5fb246b31512e2c28d85f0597e96ec02"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-INCR-2s-32.log.gz",
+    "raw_bytes": 3923560,
+    "raw_sha256": "a8d7d4bc7a1beac45bef4071a7f50e459a3e2f0732978c2f8f06818ac89e8c6a",
+    "compressed_sha256": "0cd21da5435f1e4ed5de3bc9c855e5b2b41aa4da7ec19218ea59b63d8bee1ace"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-SET-1s-1.log.gz",
+    "raw_bytes": 108286,
+    "raw_sha256": "1574f5b6969770c9f7deee07aad24939ab1b8a8dbe6a0b583fe4744da07783e0",
+    "compressed_sha256": "0333b722d7d1e83e0e28a34d7a712c1eef4baa73092a060fd31071b53fc4da6c"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-SET-1s-32.log.gz",
+    "raw_bytes": 2362732,
+    "raw_sha256": "035d88289241e14676229f531525b9dd34a65996019a4d371715e9567eafede4",
+    "compressed_sha256": "b731180eec813647f28cdaddd272be24dba8b31c4672166209f32ef591a2fada"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-SET-2s-1.log.gz",
+    "raw_bytes": 162610,
+    "raw_sha256": "216b53ad34294b00223bae181631d0d27abf93eea6eee9d052bc79a6086a8e19",
+    "compressed_sha256": "9bf87a5fdccd25f380d8420e2cd4da4c22e53987fafd08c89b9e455e50a19270"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-SET-2s-32.log.gz",
+    "raw_bytes": 2347255,
+    "raw_sha256": "ab8edcb2698bff2745fc0d28105a02484740cd386b8dc6a746abd4e5946c6f19",
+    "compressed_sha256": "3ca7fa0c746704e4dfd2597be798efeae012eb4fce54cdc67fae38f9150062f0"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/post-normal-build.log.gz",
+    "raw_bytes": 0,
+    "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compressed_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-GET-1s-1.log.gz",
+    "raw_bytes": 87886,
+    "raw_sha256": "6a3fa46f6f09ee15465fd4dfde39402b5d174c91907c5ff7d0cfe4bdcf7336e1",
+    "compressed_sha256": "31d8466df77b2da57e7178dab840e1f415590eda07b94e4bf354d582212b0232"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-GET-1s-32.log.gz",
+    "raw_bytes": 1969589,
+    "raw_sha256": "69fb7fd973cb08f29b4863d58c8dc78f6bb73bdac8d159cfe2e37e11a1508c20",
+    "compressed_sha256": "e75a846d94dbc6e6c6fdf8df7477ed74fd96ce8ef405589f87a195cc62dcc03c"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-GET-2s-1.log.gz",
+    "raw_bytes": 116730,
+    "raw_sha256": "4b5b6f031612f9b75ac79fc1d9af50afc9c20812df15c90d5c544054287cb44c",
+    "compressed_sha256": "a30a95e41311f8caffd91a7c86f1820ec3b315cf771e1305a6429be9b413281d"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-GET-2s-32.log.gz",
+    "raw_bytes": 1934335,
+    "raw_sha256": "487489b029c5c7fd615c3459982df04f468e1ee369e2014e493cefad69c5c59b",
+    "compressed_sha256": "c030b80507237eb9cd2d692b65a13a5d068833acb8d0b7e73a706a3e13e38143"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-INCR-1s-1.log.gz",
+    "raw_bytes": 142905,
+    "raw_sha256": "7f12c8410ac8f5428bba9bf5ce1a1a5cc5dfa31837d53ccdbbf2075ef338ef59",
+    "compressed_sha256": "87cc20725e0373ec6b25bf75e7da09a039599d339ca174d80eb2f81fcf331d03"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-INCR-1s-32.log.gz",
+    "raw_bytes": 3781729,
+    "raw_sha256": "49f95c36d85475e2e5742542ae29e235a3162f02e271ee6e7581269e3e27213c",
+    "compressed_sha256": "c896962f9eea82e547034bbfcff075237940aa6def0d0af6746b9eaf50c40ee2"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-INCR-2s-1.log.gz",
+    "raw_bytes": 171752,
+    "raw_sha256": "36a218e2dfe9cd595490d89f832cf805e9736871171e02e978a5fe6892f005c5",
+    "compressed_sha256": "1bab43b89c8bc6e66090295d64919d6fca1db7dcedb58d534ab24f207bc3bbb8"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-INCR-2s-32.log.gz",
+    "raw_bytes": 3746603,
+    "raw_sha256": "a0a48a3712e84f6da09c7538be6c7558cc052a952640b28fa055801cf2393a01",
+    "compressed_sha256": "30a41c4f972fca3f90c82bec66a94450163894b770848dea66af82c2f2372b88"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-SET-1s-1.log.gz",
+    "raw_bytes": 103426,
+    "raw_sha256": "2db55efb950d05facee5c20682a77c10b2bc167207a393b01398d50f64094699",
+    "compressed_sha256": "68e49df549ea5b6377646e9b1517505330aca63add26940ed6a29249d16d01c5"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-SET-1s-32.log.gz",
+    "raw_bytes": 2466869,
+    "raw_sha256": "cabb58a69f6fdee9b4b3cebff24fc6e4e84edabc65867709759c34ccebbe11c8",
+    "compressed_sha256": "5ed0957cfd36aa982e26b520f5ada9152ed295cd7d3489bd616ac5ec7d23de00"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-SET-2s-1.log.gz",
+    "raw_bytes": 132254,
+    "raw_sha256": "9dd7209a97ff6a439528b6e5bd5b4323e039017585e7899b9a9dc1ccdb2e9448",
+    "compressed_sha256": "8bc8c189b6d05a1ca9dd971b31fe711623482dce2ad44cb57e0274085ca2a6e2"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-SET-2s-32.log.gz",
+    "raw_bytes": 2431103,
+    "raw_sha256": "63bed76260275076882635dca7ae72693300c6f345a6215456e1cc9405b07536",
+    "compressed_sha256": "3a988eaf8f6750627f762341f871f90f1de350c7d9da3c79828046ada79a0622"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-db0-build.log.gz",
+    "raw_bytes": 0,
+    "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compressed_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-GET-1s-1.log.gz",
+    "raw_bytes": 92501,
+    "raw_sha256": "0383c361c6bdfb5059e4b28a478231219f4b4a43e54cebf59f437f4eb55c3df7",
+    "compressed_sha256": "2be03bb38fad3a3a1e169d77ba9169251b8775db0445bf91a7b00552e9526654"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-GET-1s-32.log.gz",
+    "raw_bytes": 1857644,
+    "raw_sha256": "47efa7729e73dbf7a7e9ef392ea41c9352e468a2f2633dd964ff9d22450bebd2",
+    "compressed_sha256": "294533e2f5fc9fe5f7820371952aaa4e1813579a59b11b464b4bc5198709819b"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-GET-2s-1.log.gz",
+    "raw_bytes": 147040,
+    "raw_sha256": "aaffa5bb48eda7a9745eacc5303c43780a173ce5dc659ccbe812cfb0b3144515",
+    "compressed_sha256": "6bbce5e35de32381715ac3b1f5142d4b35ccc99934881e08a5cb00e4f06fd270"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-GET-2s-32.log.gz",
+    "raw_bytes": 1849015,
+    "raw_sha256": "f3f909e5b04772ab51b33dc05371a94d151b64c33db008c5d6bc8084251d9076",
+    "compressed_sha256": "88fbba0d3f66021443fe36a8a6044279dfeb6a8042453e023716f4f475241310"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-INCR-1s-1.log.gz",
+    "raw_bytes": 155627,
+    "raw_sha256": "22d0c223235c7c4762e5f8e7792fedd6b528ff28229cc90b06121ec0669cef99",
+    "compressed_sha256": "29b83674d0e914b827ade1c6bffbeeebba5b062eca54a90c5fc5d80ddba5cc78"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-INCR-1s-32.log.gz",
+    "raw_bytes": 3929277,
+    "raw_sha256": "1ef8aa5d87eab5562815d8478a2ce26b1814ce5e94a290757b1c2ede679a4b3c",
+    "compressed_sha256": "ddea08cdf4910b74bc3724dfe34d5f71a065d7b8286477a347e9eb88400317f8"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-INCR-2s-1.log.gz",
+    "raw_bytes": 210168,
+    "raw_sha256": "fdcfc1bd38e52e42fc7373b390d302e351ddbc328e8249370fbae9943fb371c5",
+    "compressed_sha256": "1962456569be8eec9c7067465ff2db910fa9977ccc57db5810de323604955bc7"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-INCR-2s-32.log.gz",
+    "raw_bytes": 3920744,
+    "raw_sha256": "304ffab7a1300127658d48d2bcd22271ac42858bdaa2bdb31c7075217a42a09d",
+    "compressed_sha256": "5209182e237c48f223a709195c1135c6067cfbab34313d0f01359749cab7e4e9"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-SET-1s-1.log.gz",
+    "raw_bytes": 107980,
+    "raw_sha256": "1573ce25cefa3e20db69081381103a9314c04b7e463223f52bcb510bb81f98dd",
+    "compressed_sha256": "4de82601a427764dfc21a7aeab87ab196cef6189fd5d46f45eb0ce5483acbfa1"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-SET-1s-32.log.gz",
+    "raw_bytes": 2352940,
+    "raw_sha256": "a6d6dcdf86330720beb4836d978e28e4a3145182382c6d1259ab04f978c411be",
+    "compressed_sha256": "612d3ab80fc61763bf89c56b4f974798c466d276ec36165582cfc6c2c9f8af70"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-SET-2s-1.log.gz",
+    "raw_bytes": 162522,
+    "raw_sha256": "2b27e6804654ffd84b68176e80e95e245546e73bfa98edb0b0956ef9562b0569",
+    "compressed_sha256": "da0406cb92e4ea8ecff7f82006220f3b4ccf0594fc2ddf97b3389f0080961050"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-SET-2s-32.log.gz",
+    "raw_bytes": 2344439,
+    "raw_sha256": "f54f45e9489a8c3aa9a5094c2f09ff3c626ac450b2a308e86169e6de510e43dc",
+    "compressed_sha256": "7ccb05b5cad9377fd9c6ee3405faac8e9ae30bc1627b182f41339fe3857fa2b1"
+  },
+  {
+    "path": "docs/execfair/dispatch-instructions/pre-normal-build.log.gz",
+    "raw_bytes": 0,
+    "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compressed_sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec"
+  }
+]

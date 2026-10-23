@@ -1,0 +1,2 @@
+  row budget: 900s; median=-s; no-history-conservative-default; R7 FIFO twin off-path identity + negative controls
+  R7 FIFO twin off-path identity + negative controls   FAIL (see /home/user/Projects/cx-execfair/build/gate-run.4V3ebr/jobs/reorder_identity/receipt.log)

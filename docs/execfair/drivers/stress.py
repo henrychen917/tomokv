@@ -11,6 +11,9 @@ ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'tests'))
 import _lib
 OUT=ROOT/'docs/execfair/stress';OUT.mkdir(exist_ok=True)
+# Keep the progress-window proof separate from any debugger trace still running.
+while (ROOT/'build/execfair-dispatch-pending').exists() and not (ROOT/'build/execfair-dispatch.exit').exists():
+ time.sleep(1)
 PORT=30850
 binary=ROOT/'build/tomokv'
 rows=[]

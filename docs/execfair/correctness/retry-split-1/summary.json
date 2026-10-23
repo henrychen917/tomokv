@@ -1,0 +1,28 @@
+{
+  "source_run": "/home/user/Projects/cx-execfair/build/gate-run.xVokaX",
+  "gate_log_sha256": "7485ca702568dfa8f881a472bc583eeff59ffe2a71f0d74f54db586529f07960",
+  "jobs": [
+    {
+      "job": "differ-split-1",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "535.800000",
+          "label": "Redis 7.4 differential part (split, atomic 1)"
+        }
+      ]
+    },
+    {
+      "job": "release",
+      "rows": [
+        {
+          "status": "ok",
+          "seconds": "0.030000",
+          "label": "release build (+footprint locks)"
+        }
+      ]
+    }
+  ],
+  "pass_rows": 2,
+  "fail_rows": 0
+}

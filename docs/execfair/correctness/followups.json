@@ -1,0 +1,118 @@
+[
+  {
+    "name": "final-txnorder2",
+    "command": [
+      "taskset",
+      "-c",
+      "64-79",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--load-smt",
+      "",
+      "--ports",
+      "30800-30899"
+    ],
+    "environment": {
+      "GATE_LEDGER": "/home/user/Projects/cx-execfair/build/execfair-final-txnorder2.tsv",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_ONLY_JOBS": "txnorder2"
+    },
+    "log": "build/execfair-final-txnorder2.log",
+    "exit_code": 0,
+    "expected_exit": 0
+  },
+  {
+    "name": "alt-witness",
+    "command": [
+      "taskset",
+      "-c",
+      "64-79",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--load-smt",
+      "",
+      "--ports",
+      "30800-30899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-execfair/build/post-alt/tomokv"
+    ],
+    "environment": {
+      "GATE_LEDGER": "/home/user/Projects/cx-execfair/build/execfair-alt-witness.tsv",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_ONLY_JOBS": "execfair"
+    },
+    "log": "build/execfair-alt-witness.log",
+    "exit_code": 0,
+    "expected_exit": 0
+  },
+  {
+    "name": "pad-witness",
+    "command": [
+      "taskset",
+      "-c",
+      "64-79",
+      "bash",
+      "tests/gate.sh",
+      "quick",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--load-smt",
+      "",
+      "--ports",
+      "30800-30899",
+      "--candidate-binary",
+      "/home/user/Projects/cx-execfair/build/pad-a/tomokv"
+    ],
+    "environment": {
+      "GATE_LEDGER": "/home/user/Projects/cx-execfair/build/execfair-pad-witness.tsv",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_ONLY_JOBS": "execfair"
+    },
+    "log": "build/execfair-pad-witness.log",
+    "exit_code": 1,
+    "expected_exit": 1
+  },
+  {
+    "name": "retry-split-1",
+    "command": [
+      "taskset",
+      "-c",
+      "64-79",
+      "bash",
+      "tests/gate.sh",
+      "full",
+      "--server-cores",
+      "64-71",
+      "--load-cores",
+      "72-79",
+      "--load-smt",
+      "",
+      "--ports",
+      "30800-30899"
+    ],
+    "environment": {
+      "GATE_LEDGER": "/home/user/Projects/cx-execfair/build/execfair-retry-split-1.tsv",
+      "REDIS74_ROOT": "/home/user/Projects/redis",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_ONLY_JOBS": "differ-split-1"
+    },
+    "log": "build/execfair-retry-split-1.log",
+    "exit_code": 0,
+    "expected_exit": 0
+  }
+]

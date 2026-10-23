@@ -1,0 +1,2 @@
+  row budget: 900s; median=20.03s; correctness-plan-fallback; EXEC fast-lane polls
+  EXEC fast-lane polls                                 FAIL (see /home/user/Projects/cx-execfair/build/gate-run.7Gfhiy/jobs/execfair/execfair-*)
