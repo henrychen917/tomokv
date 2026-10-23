@@ -99,13 +99,9 @@ def probe(c, case):
         equal(c.cmd("CONFIG", "SET", "maxmemory", cap), b"OK", "EXEC cap")
         if cap:
             before = c.cmd("GET", CROSS_KEYS[0])
-            equal(c.cmd("MULTI"), b"OK", "denied function begin")
-            equal(c.cmd("FCALL", "plain", 1, CROSS_KEYS[0], "denied"), b"QUEUED", "denied callback queued")
-            equal(c.cmd("GET", CROSS_KEYS[0]), b"QUEUED", "denied read queued")
-            denied_exec = c.cmd("EXEC")
-            assert isinstance(denied_exec, list) and len(denied_exec) == 2, denied_exec
-            assert isinstance(denied_exec[0], RespError) and denied_exec[0].message.startswith(b"OOM "), denied_exec
-            equal(denied_exec[1], before, "denied callback cannot write")
+            denied = c.cmd("FCALL", "plain", 1, CROSS_KEYS[0], "denied")
+            assert isinstance(denied, RespError) and denied.message.startswith(b"OOM "), denied
+            equal(c.cmd("GET", CROSS_KEYS[0]), before, "non-admitted callback cannot write")
         equal(c.cmd("MULTI"), b"OK", "EXEC function begin")
         for name in ("allowed", "allowed_error"):
             for key in CROSS_KEYS:
