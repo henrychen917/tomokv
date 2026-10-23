@@ -2,3 +2,22 @@ GATE(full): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 
   artifacts: /home/user/Projects/cx-notifycompat/build/gate-run.ReDBih
 PARTIAL jobs (including prerequisites): release notifycompat tracking_redirect
 PARTIAL jobs (including prerequisites): release notifycompat tracking_redirect
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=22.615s; correctness-plan-fallback; notification compatibility setbit vs Redis 7.4
+  notification compatibility setbit vs Redis 7.4       FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.ReDBih/jobs/notifycompat/compat-setbit-*.log)
+  row budget: 900s; median=40.95s; correctness-plan-fallback; notification compatibility setpast vs Redis 7.4
+  notification compatibility setpast vs Redis 7.4      FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.ReDBih/jobs/notifycompat/compat-setpast-*.log)
+  row budget: 900s; median=51.11s; correctness-plan-fallback; notification compatibility emptystore vs Redis 7.4
+  notification compatibility emptystore vs Redis 7.4   FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.ReDBih/jobs/notifycompat/compat-emptystore-*.log)
+  row budget: 900s; median=44.06s; correctness-plan-fallback; notification compatibility writemiss vs Redis 7.4
+  notification compatibility writemiss vs Redis 7.4    FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.ReDBih/jobs/notifycompat/compat-writemiss-*.log)
+  row budget: 900s; median=45.07s; correctness-plan-fallback; notification compatibility objectmiss vs Redis 7.4
+  notification compatibility objectmiss vs Redis 7.4   FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.ReDBih/jobs/notifycompat/compat-objectmiss-*.log)
+  row budget: 900s; median=150.36s; correctness-plan-fallback; notification compatibility expiredstore vs Redis 7.4
+  notification compatibility expiredstore vs Redis 7.4 FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.ReDBih/jobs/notifycompat/compat-expiredstore-*.log)
+  row budget: 900s; median=-s; correctness-plan-fallback; notification compatibility flush vs Redis 7.4
+  notification compatibility flush vs Redis 7.4        FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.ReDBih/jobs/notifycompat/compat-flush-*.log)
+  row budget: 900s; median=36.09s; correctness-plan-fallback; tracking REDIRECT close vs Redis 7.4
+  tracking REDIRECT close vs Redis 7.4                 FAIL (see /home/user/Projects/cx-notifycompat/build/gate-run.ReDBih/jobs/tracking_redirect/redirect-*.log and /home/user/Projects/cx-notifycompat/build/gate-run.ReDBih/jobs/tracking_redirect/oracle.log)
+GATE(PARTIAL): 1 ok, 8 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-notifycompat/docs/notifycompat/pre-r3-directed.ledger.partial

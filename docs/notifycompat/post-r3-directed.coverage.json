@@ -1,0 +1,776 @@
+{
+  "arm": "POST",
+  "sha256": "76f313519a120bf5b65efe74338ce0ba142dc5a4f441590fc1e995c61b308b59",
+  "legs": 108,
+  "scenarios": 1320,
+  "rows": [
+    {
+      "case": "setbit",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setbit",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 5,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "setpast",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 14,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "emptystore",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 17,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "writemiss",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "objectmiss",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 10,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "expiredstore",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 44,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-epoll-a0-rl0",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-epoll-a0-rl1",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-uring-a0-rl0",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-uring-a0-rl1",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-2s-epoll-a0-rl0",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-2s-uring-a0-rl0",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-epoll-a1-rl0",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-epoll-a1-rl1",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-uring-a1-rl0",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-1s-uring-a1-rl1",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-2s-epoll-a1-rl0",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db1-2s-uring-a1-rl0",
+      "scenarios": 2,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-epoll-a0-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-epoll-a0-rl1",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-uring-a0-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-uring-a0-rl1",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-2s-epoll-a0-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-2s-uring-a0-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-epoll-a1-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-epoll-a1-rl1",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-uring-a1-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-1s-uring-a1-rl1",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-2s-epoll-a1-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "flush",
+      "leg": "db16-2s-uring-a1-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "wire_or_reply_mismatches": []
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-epoll-a0-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-epoll-a0-rl1",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-uring-a0-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-uring-a0-rl1",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "2s-epoll-a0-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "2s-uring-a0-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-epoll-a1-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-epoll-a1-rl1",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-uring-a1-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "1s-uring-a1-rl1",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "2s-epoll-a1-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    },
+    {
+      "case": "redirect",
+      "leg": "2s-uring-a1-rl0",
+      "scenarios": 4,
+      "passed": true,
+      "held_receipts": 4,
+      "replayed_receipts": 4
+    }
+  ]
+}

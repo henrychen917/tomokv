@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Run selected correctness jobs through gate.sh and retain their exact receipts."""
 import argparse
+import fcntl
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
-import shutil
 import subprocess
 import tarfile
 
@@ -17,21 +17,52 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('name')
     p.add_argument('jobs', nargs='+')
-    p.add_argument('--arm', choices=('PRE', 'POST'), default='POST')
+    p.add_argument('--arm', choices=('PRE', 'POST', 'PAD-A'), default='POST')
     p.add_argument('--engine', choices=('uring', 'epoll'))
     p.add_argument('--fused', action='store_true')
-    p.add_argument('--ports', default='32800-32889')
+    p.add_argument('--ports', default='32800-32839')
+    p.add_argument('--server-cores', default='48-55')
+    p.add_argument('--load-cores', default='56-63')
     p.add_argument('--root', type=Path, default=ROOT)
     a = p.parse_args()
     assert os.sched_getaffinity(0) <= set(range(48, 64))
     first, last = map(int, a.ports.split('-'))
     assert 32800 <= first <= last <= 32899
+    def cpus(spec):
+        result = set()
+        for token in spec.split(','):
+            bounds = list(map(int, token.split('-')))
+            result.update(range(bounds[0], bounds[-1] + 1))
+        return result
+    server_cpus, load_cpus = cpus(a.server_cores), cpus(a.load_cores)
+    assert len(server_cpus) == len(load_cpus) == 8 and not server_cpus & load_cpus
+    assert server_cpus | load_cpus == set(range(48, 64))
     output = ROOT / 'docs/notifycompat' / a.name
-    binary = ROOT / ('build/tomokv-pre' if a.arm == 'PRE' else 'build/tomokv')
+    lock_path = ROOT / 'build/notifycompat' / (a.name + '.lock')
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock = lock_path.open('w')
+    fcntl.flock(lock, fcntl.LOCK_EX)
+    binary = ROOT / {'PRE': 'build/tomokv-pre', 'POST': 'build/tomokv',
+                     'PAD-A': 'build/tomokv-pad-a'}[a.arm]
     original = binary
-    binary = ROOT / 'build/notifycompat/arms' / (a.name + '-tomokv')
+    digest = hashlib.sha256(original.read_bytes()).hexdigest()
+    sources = {str(path.relative_to(a.root)): hashlib.sha256(path.read_bytes()).hexdigest()
+               for folder in ('tests', 'tools') for path in sorted((a.root / folder).rglob('*'))
+               if path.is_file() and path.suffix in ('.py', '.sh', '.cc', '.json')}
+    previous = Path(str(output) + '.json')
+    if previous.exists():
+        old = json.loads(previous.read_text())
+        assert (old['jobs'], old['arm'], old['engine'], old['fused'], old['cwd'],
+                old['sha256'], old.get('test_sources')) == (
+                    a.jobs, a.arm, a.engine, a.fused, str(a.root), digest, sources), \
+            'receipt name already used with different inputs; choose a new name'
+        print('REUSED completed gate receipt: ' + str(previous), flush=True)
+        return
+    binary = ROOT / 'build/notifycompat/arms' / (digest + '-tomokv')
     binary.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(original, binary)
+    if not binary.exists():
+        subprocess.run(['cp', '--reflink=auto', '--preserve=all', str(original), str(binary)], check=True)
+    assert hashlib.sha256(binary.read_bytes()).hexdigest() == digest
     target = binary
     if a.engine or a.fused:
         target = ROOT / 'build/notifycompat' / (a.name + '-server')
@@ -51,21 +82,18 @@ def main():
                GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',
                GATE_DIFFER_REDIS_CLI='/home/user/Projects/redis74/src/redis-cli',
                GATE_ONLY_JOBS=' '.join(a.jobs), GATE_NOTIFYCOMPAT_ARM=a.arm,
-               GATE_NOTIFYCOMPAT_OBJECTS=str(ROOT / ('build/notifycompat-pre' if a.arm == 'PRE' else 'build')),
+               GATE_NOTIFYCOMPAT_OBJECTS=str(ROOT / ('build' if a.arm == 'POST' else 'build/notifycompat-pre')),
                GATE_LEDGER=str(output) + '.ledger')
-    if a.arm == 'PRE':
+    if a.arm != 'POST':
         env['GATE_NOTIFYCOMPAT_REF'] = 'ef5204b2e'
     cmd = ['taskset', '-c', '48-63', 'tests/gate.sh', 'full',
-           '--server-cores', '48-55', '--load-cores', '56-63',
+           '--server-cores', a.server_cores, '--load-cores', a.load_cores,
            '--ports', a.ports, '--candidate-binary', str(target)]
     receipt = dict(command=cmd, cwd=str(a.root), jobs=a.jobs, arm=a.arm,
                    engine=a.engine, fused=a.fused, binary=str(binary), source_binary=str(original),
                    sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
                    environment={k: v for k, v in env.items() if k.startswith('GATE_') or k == 'REDIS74_ROOT'})
-    receipt['test_sources'] = {
-        str(path.relative_to(a.root)): hashlib.sha256(path.read_bytes()).hexdigest()
-        for folder in ('tests', 'tools') for path in sorted((a.root / folder).rglob('*'))
-        if path.is_file() and path.suffix in ('.py', '.sh', '.cc', '.json')}
+    receipt['test_sources'] = sources
     with Path(str(output) + '.log').open('w') as log:
         result = subprocess.run(cmd, cwd=a.root, env=env, stdout=log, stderr=subprocess.STDOUT)
     receipt['exit'] = result.returncode
