@@ -24,7 +24,11 @@ def run(a):
                 rows.append(dict(argv=argv, target=answers[0], oracle=answers[1]))
                 return answers
 
-            cases = [('+config|get',), ('+config', '-config|set'),
+            # Exact historical acl.py assertion, retained beside its oracle reply.
+            compare(('ACL', 'SETUSER', 'bad-firstarg', '+select|0'))
+            compare(('ACL', 'GETUSER', 'bad-firstarg'))
+            compare(('ACL', 'DELUSER', 'bad-firstarg'))
+            cases = [('+select|0',), ('+config|get',), ('+config', '-config|set'),
                      ('+@all', '-config|get'), ('+config|get', '+config'),
                      ('+config|get', '-config'), ('+config', '-config', '+config|get'),
                      ('+CONFIG|GET', '+config|get'),
@@ -49,7 +53,7 @@ def run(a):
                           ('+@all', f'-@{category}')]
             probes = [('CONFIG', 'GET', 'no-such-config'), ('CONFIG', 'SET', 'timeout', '0'),
                       ('CONFIG', 'HELP'), ('GET', 'allowed'), ('GET', 'another'),
-                      ('GET', 'denied'), ('CLIENT', 'ID'), ('XINFO', 'STREAM', 'missing')]
+                      ('GET', 'denied'), ('SELECT', '0'), ('SELECT', '1'), ('CLIENT', 'ID'), ('XINFO', 'STREAM', 'missing')]
             for rules in cases:
                 compare(('ACL', 'SETUSER', 'subject', 'reset', 'on', 'nopass', '~*', '&*', *rules))
                 compare(('ACL', 'GETUSER', 'subject'))
@@ -69,14 +73,14 @@ def run(a):
                 compare(('ACL', 'LOAD'))
                 after = compare(('ACL', 'GETUSER', 'subject'))
                 assert before == after, ('ACL round trip changed permissions', rules)
-                lists = [next(line for line in c.cmd('ACL', 'LIST')
-                              if line.startswith(b'user subject ')) for c in clients]
+                lists = [next((line for line in c.cmd('ACL', 'LIST')
+                               if line.startswith(b'user subject ')), None) for c in clients]
                 rows.append(dict(argv=('ACL LIST subject', *rules), target=lists[0], oracle=lists[1]))
             # Real connection admission and revocation, not just DRYRUN's parser.
             compare(('ACL', 'SETUSER', 'subject', 'reset', 'on', 'nopass', '~*', '+config|get'))
             with Client(a.port) as user, Client(a.port + 1) as reference:
-                for c in (user, reference):
-                    assert c.cmd('AUTH', 'subject', 'ignored') == b'OK'
+                command = ('AUTH', 'subject', 'ignored')
+                rows.append(dict(argv=command, target=user.cmd(*command), oracle=reference.cmd(*command)))
                 for command in probes[:3]:
                     rows.append(dict(argv=command, target=user.cmd(*command), oracle=reference.cmd(*command)))
                 compare(('ACL', 'SETUSER', 'subject', '-config|get'))

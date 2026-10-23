@@ -199,9 +199,13 @@ expect(admin.command("ACL", "SETUSER", "bad-selector", "(on +get)"),
        "invalid selector rejected")
 expect(admin.command("ACL", "GETUSER", "bad-selector"), None,
        "rejected selector creates no user")
+# Redis 7.4 oracle: docs/dispatchfix/acl-firstarg-oracle-replies.json.
 expect(admin.command("ACL", "SETUSER", "bad-firstarg", "+select|0"),
-       "ERR Error in ACL SETUSER modifier '+select|0': Allowing first-arg of a subcommand is not supported",
-       "first-arg rule rejected")
+       b"OK", "first-argument grant accepted")
+expect(fields(admin.command("ACL", "GETUSER", "bad-firstarg"))[b"commands"],
+       b"-@all +select|0", "first-argument grant retained exactly")
+expect(admin.command("ACL", "DELUSER", "bad-firstarg"), 1,
+       "remove first-argument grant probe")
 
 alice = Conn()
 expect(alice.command("AUTH", "alice", password), b"OK", "multi-user AUTH")

@@ -1,0 +1,62 @@
+[
+  {
+    "argv": [
+      "ACL",
+      "SETUSER",
+      "bad-firstarg",
+      "+select|0"
+    ],
+    "target": "OK",
+    "oracle": "OK"
+  },
+  {
+    "argv": [
+      "ACL",
+      "GETUSER",
+      "bad-firstarg"
+    ],
+    "target": [
+      "flags",
+      [
+        "off",
+        "sanitize-payload"
+      ],
+      "passwords",
+      [],
+      "commands",
+      "-@all +select|0",
+      "keys",
+      "",
+      "channels",
+      "",
+      "selectors",
+      []
+    ],
+    "oracle": [
+      "flags",
+      [
+        "off",
+        "sanitize-payload"
+      ],
+      "passwords",
+      [],
+      "commands",
+      "-@all +select|0",
+      "keys",
+      "",
+      "channels",
+      "",
+      "selectors",
+      []
+    ]
+  },
+  {
+    "argv": [
+      "ACL",
+      "DELUSER",
+      "bad-firstarg"
+    ],
+    "target": 1,
+    "oracle": 1
+  }
+]

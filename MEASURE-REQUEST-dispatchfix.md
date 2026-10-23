@@ -26,9 +26,6 @@ all runtime oracle legs ran. Later runs use the source root and explicit oracle 
 Gate row `dispatchfix EX4.10 container outer arity` is collected before the
 quick-tier exit: DQ +1 / DF +1. EXPECT constants are untouched.
 
-Further assigned items, final proof, artifact identities and the 14-cell merit
-request will be recorded here as the lane proceeds.
-
 ### EX4.11 — container errors
 
 REPRODUCED at the same four mode/engine geometries. The metadata-driven table
@@ -59,7 +56,7 @@ Evidence: `docs/dispatchfix/EX4.4/{pre,post}`.
 ACL DRYRUN evaluates the immutable permission image and emits Redis's bulk
 denial descriptions without executing the embedded command or logging a denial.
 LATENCY HISTOGRAM now dispatches and returns the empty RESP2/RESP3 map for the
-existing no-histogram state. **Limitation / scope question pending:** TomoKV's
+existing no-histogram state. **Compatibility limitation:** TomoKV's
 batch/escalation timing does not record per-command histograms; actual histogram
 recording is not implemented. No sampled slow-log data is presented as a complete
 distribution. This is dispatch compatibility, not full latency-statistics parity.
@@ -69,11 +66,18 @@ DQ +1 / DF +1; cumulative DQ +3 / DF +3.
 
 ### CC4.15 — subcommand grants
 
-REPRODUCED on PRE in all four legs. Candidate passes 3352 exact comparisons per
-leg, covering every advertised child grant/revocation, parent and category
+REPRODUCED on PRE in all four legs. Candidate passes 4059 exact comparisons per
+leg (240 rule sequences), covering every advertised child grant/revocation, parent and category
 precedence, case folding, first-argument grants, invalid and nested forms,
 GETUSER/LIST rendering, SAVE/LOAD after every sequence, and live CONFIG admission
-and revocation. Evidence: `docs/dispatchfix/CC4.15/{pre,post}`.
+and revocation. Evidence: `docs/dispatchfix/CC4.15/{pre-complete,post-complete}`. PRE completes
+the same full table and fails 3520/4059 comparisons in each leg. The old
+`tests/acl.py` assertion rejecting `+select|0` was corrected only after retaining
+the exact Redis SETUSER/GETUSER/DELUSER replies in
+`docs/dispatchfix/acl-firstarg-oracle-replies.json`. Both existing ACL battery
+rows now run all four mode/engine legs, for atomic off and on, under their
+original labels; POST passes all eight legs and PRE fails the corrected grant
+assertion in all eight.
 
 Child permissions use an immutable bitmap sized from generated metadata; only
 rules touching children allocate it. Root bits and the unrestricted fast gate
@@ -125,7 +129,9 @@ also included in the broader proof below.
 
 Row `dispatchfix EX4.17 uniform routing and legacy recovery` is collected before
 the quick-tier exit. Cumulative DQ +5 / DF +5: maintainer counts should become
-EXPECT_QUICK=690 and EXPECT_FULL=707. Both constants are untouched. The label
+EXPECT_QUICK=690 and EXPECT_FULL=707. Both constants are untouched.
+Collection is at gate.sh lines 4242–4246, before its quick-tier exit at line 4360;
+the existing ACL row expansion adds no row. The label
 fixture check identifies exactly these five missing labels and no extra labels;
 its refusal is retained in docs/dispatchfix/label-fixture.log.
 

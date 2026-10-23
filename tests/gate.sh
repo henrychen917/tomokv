@@ -2665,6 +2665,24 @@ py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES"
     || bad "authfix SV4.1 slowlog credential redaction (2s)" "see $TMPDIR/authfix-slowlog-2s.log"
 }
 
+# The existing two ACL rows retain their labels and now own all mode/engine legs.
+acl_battery_legs(){
+  local atomic=$1 mode engine acl_file boot_fn failed=0
+  for mode in 1s 2s; do for engine in epoll uring; do
+    acl_file="$TMPDIR/acl-$atomic-$mode-$engine.acl"
+    : > "$acl_file"
+    boot_fn=boot
+    [ "$mode" != 1s ] || boot_fn=boot_fused
+    if "$boot_fn" "$CANDIDATE_BINARY" --aclfile "$acl_file" --atomic "$atomic" \
+        --net-io "$engine" --read-local 1 &&
+       py tests/acl.py 127.0.0.1 "$PORT" "$acl_file" \
+         >"$TMPDIR/acl-$atomic-$mode-$engine.log" 2>&1; then :
+    else failed=1; fi
+    stop
+  done; done
+  return "$failed"
+}
+
 job_auth(){
 # ---- auth + audit DEBUG (purpose-booted; each test asserts its gate actually opened) -----------
 row_begin "reject bad protected-mode"
@@ -2678,21 +2696,12 @@ row_begin "AUTH/HELLO/protected state machine"
 py tests/auth.py 127.0.0.1 $PORT gatepass >$TMPDIR/gate-auth.txt 2>&1 \
     && ok "AUTH/HELLO/protected state machine" || bad "AUTH/HELLO/protected state machine" "see $TMPDIR/gate-auth.txt"
 stop
-ACL_DIR=$(mktemp -d $TMPDIR/gate-acl.XXXXXX)
-ACL_FILE="$ACL_DIR/users.acl"
-: > "$ACL_FILE"
-boot "$CANDIDATE_BINARY" --aclfile "$ACL_FILE" || bad "ACL purpose boot"
 row_begin "ACL battery (atomic off)"
-py tests/acl.py 127.0.0.1 $PORT "$ACL_FILE" >$TMPDIR/gate-acl.txt 2>&1 \
-    && ok "ACL battery (atomic off)" || bad "ACL battery (atomic off)" "see $TMPDIR/gate-acl.txt"
-stop
-ACL_ATOMIC_FILE="$ACL_DIR/users-atomic.acl"
-: > "$ACL_ATOMIC_FILE"
-boot "$CANDIDATE_BINARY" --aclfile "$ACL_ATOMIC_FILE" --atomic 1 || bad "ACL atomic purpose boot"
+acl_battery_legs 0 && ok "ACL battery (atomic off)" \
+    || bad "ACL battery (atomic off)" "see $TMPDIR/acl-0-*.log"
 row_begin "ACL battery (atomic on)"
-py tests/acl.py 127.0.0.1 $PORT "$ACL_ATOMIC_FILE" >$TMPDIR/gate-acl-atomic.txt 2>&1 \
-    && ok "ACL battery (atomic on)" || bad "ACL battery (atomic on)" "see $TMPDIR/gate-acl-atomic.txt"
-stop
+acl_battery_legs 1 && ok "ACL battery (atomic on)" \
+    || bad "ACL battery (atomic on)" "see $TMPDIR/acl-1-*.log"
 DEBUG_DIR=$(mktemp -d $TMPDIR/gate-debug.XXXXXX)
 boot "$CANDIDATE_BINARY" --enable-debug-command local --dir "$DEBUG_DIR" --dbfilename reload.tomo \
     || bad "DEBUG purpose boot"
