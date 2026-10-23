@@ -5167,5 +5167,215 @@
       }
     },
     "summary": "GATE(PARTIAL): 1 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.LPhZJl/ledger.partial"
+  },
+  "gate-run.79t9fb": {
+    "log": "docs/dispatchfix/differ-POST-uring.log",
+    "archive": "proof/gate-run.79t9fb.tar.gz",
+    "sha256": "6697682bde599d8b996453d282acc6861d5cbc1340b4c39d1346897afc3fa9f2",
+    "files": 2119,
+    "bytes": 304113,
+    "jobs": {
+      "differ-armed-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "524.640000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+          }
+        ]
+      },
+      "differ-armed-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "530.680000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+          }
+        ]
+      },
+      "differ-equivalence": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "22.090000",
+            "label": "mode equivalence part (all execution modes and knobs)"
+          }
+        ]
+      },
+      "differ-split-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "545.550000",
+            "label": "Redis 7.4 differential part (split, atomic 0)"
+          }
+        ]
+      },
+      "differ-split-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "535.410000",
+            "label": "Redis 7.4 differential part (split, atomic 1)"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.79t9fb/ledger.partial"
+  },
+  "gate-run.jiH97t": {
+    "log": "docs/dispatchfix/differ-PRE-epoll.log",
+    "archive": "proof/gate-run.jiH97t.tar.gz",
+    "sha256": "e216bdc67d5becc1457f4c9b4f097a785e041ba61dab77360629ea4980383fe3",
+    "files": 2119,
+    "bytes": 305905,
+    "jobs": {
+      "differ-armed-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "528.290000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+          }
+        ]
+      },
+      "differ-armed-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "532.250000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+          }
+        ]
+      },
+      "differ-equivalence": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "21.860000",
+            "label": "mode equivalence part (all execution modes and knobs)"
+          }
+        ]
+      },
+      "differ-split-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "530.530000",
+            "label": "Redis 7.4 differential part (split, atomic 0)"
+          }
+        ]
+      },
+      "differ-split-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "531.580000",
+            "label": "Redis 7.4 differential part (split, atomic 1)"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 6 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.jiH97t/ledger.partial"
+  },
+  "gate-run.qIM3PI": {
+    "log": "docs/dispatchfix/differ-POST-epoll.log",
+    "archive": "proof/gate-run.qIM3PI.tar.gz",
+    "sha256": "b30c836ca528e5a172545077dde8b0db60a6a97a8fd0c01a36b93f3c02698186",
+    "files": 2118,
+    "bytes": 305528,
+    "jobs": {
+      "differ-armed-0": {
+        "done": "0\t0\t1",
+        "rows": [
+          {
+            "status": "FAIL",
+            "elapsed": "530.010000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 0)"
+          }
+        ]
+      },
+      "differ-armed-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "531.740000",
+            "label": "Redis 7.4 differential part (armed fused, atomic 1)"
+          }
+        ]
+      },
+      "differ-equivalence": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "21.850000",
+            "label": "mode equivalence part (all execution modes and knobs)"
+          }
+        ]
+      },
+      "differ-split-0": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "551.390000",
+            "label": "Redis 7.4 differential part (split, atomic 0)"
+          }
+        ]
+      },
+      "differ-split-1": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "539.010000",
+            "label": "Redis 7.4 differential part (split, atomic 1)"
+          }
+        ]
+      },
+      "release": {
+        "done": "0\t1\t0",
+        "rows": [
+          {
+            "status": "ok",
+            "elapsed": "0.000000",
+            "label": "release build (+footprint locks)"
+          }
+        ]
+      }
+    },
+    "summary": "GATE(PARTIAL): 5 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-dispatchfix/build/gate-run.qIM3PI/ledger.partial"
   }
 }

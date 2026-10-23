@@ -4,7 +4,7 @@
 
 Base: `a7dfb9d2332d4c4e9d8bca983e439ba4b2bbba7e`; branch `cx-dispatchfix`.
 Builds and correctness server jobs use CPUs 96–111, builds `-j16`, ports 28800–28899.
-The initial scheduler self-test socket-fixture exception is recorded below.
+Initial socket-fixture exceptions and their corrections are recorded below.
 Redis source: `/home/user/Projects/redis/src`; oracle:
 `/home/user/Projects/redis74/src/redis-server`. No performance measurements or throughput claims.
 
@@ -97,7 +97,8 @@ checks all effective child bits and the unordered first-argument set.
 
 Selector syntax and read/write key-pattern rules remain the existing unsupported
 surfaces; this item implements root-user subcommand/first-argument rules and does
-not enable those independent ACL features.
+not enable those independent ACL features. The existing script engine also
+continues to require an unrestricted command image for script execution.
 
 Row `dispatchfix CC4.15 ACL subcommand grants` is before the quick exit:
 DQ +1 / DF +1; cumulative DQ +4 / DF +4. EXPECT constants are untouched.
@@ -116,7 +117,8 @@ current owner loads only keys belonging to its new ranges. Legacy FLUSH records
 clear only the portion belonging to that old source stream. AOF publishes a durable
 old-file manifest, then a synced v2 increment and its manifest before recording;
 it never appends new-map records to a v1 non-divisor stream. Divisor geometries
-retain the identical v1 map and header version. New non-divisor files use v2.
+retain the identical v1 map and header version. New non-divisor files use v2;
+those new files require POST and are not a downgrade format for PRE.
 
 Authenticated PRE fixtures in tests/fixtures/dispatchfix-pre cover snapshot and
 AOF, binary keys straddling old/new boundaries, grouped MSET, DEL, FLUSHALL,
@@ -134,7 +136,9 @@ map, including the physical database namespace. Existing tests discover placemen
 through DEBUG SHARDS or use Shard range accessors; numeric 16384 occurrences in
 other batteries are payload/capacity boundaries. The complete search is retained
 in docs/dispatchfix/router-dependencies.txt.gz. The balancer/persistence jobs are
-also included in the broader proof below.
+also included in the broader proof below. The ABBA snapshot-control parser
+accepts v1 only; its fixed 16-shard geometry and the requested generic 14 cells
+still write v1, so that instrument is unchanged.
 
 Row `dispatchfix EX4.17 uniform routing and legacy recovery` is collected before
 the quick-tier exit. Cumulative DQ +5 / DF +5: maintainer counts should become
@@ -165,6 +169,25 @@ row verdicts, engine/mode logs, oracle replies and command lines are archived in
 | ZaeeaP / STAVjj | POST / PRE | 32 pass each | Remaining persistence, AOF order/framing, notification replay, SORT, release ACL, balancer units and stream metadata jobs |
 | 6HE1le / rGslUX | POST / PRE | Final directed ACL pass / expected fail | 58,908 oracle comparisons in each of four legs; complete tables retained |
 
+Directed-row reproduction (run once with each candidate path):
+
+```sh
+taskset -c 96-111 env \
+  REDIS74_ROOT=/home/user/Projects/redis \
+  GATE_DIFFER_ORACLE_BIN=/home/user/Projects/redis74/src/redis-server \
+  GATE_ONLY_JOBS='dispatch_arity dispatch_errors dispatch_children acl_subcommands router_uniform' \
+  tests/gate.sh quick --server-cores 96-103 --load-cores 104-111 \
+  --ports 28800-28819 --candidate-binary build/tomokv
+```
+
+Use `build/tomokv-PRE` or `build/tomokv-PAD-A` for the negative arms.
+For each differential arm, the same interface uses the partial `full` tier,
+`GATE_DIFFER_NET_IO=epoll` or `uring`, and
+`GATE_ONLY_JOBS='differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence'`.
+The archived `plan.sh` files retain each run's assigned CPU and port range.
+Both oracle executable paths have the same SHA-256, recorded in
+`docs/dispatchfix/oracle-sha256.json`.
+
 The first POST broad run's two ACL failures were the obsolete `+select|0`
 assertion, corrected using saved oracle evidence. Its other failure was a fused
 shutdown report with `live_conns=1`, all other stuck fields zero. The identical
@@ -184,11 +207,42 @@ SCRIPT and pubsub), DEBUG/slowlog, AUTH/ACL, compatibility tables, COMMAND
 metadata, persistence and the standard differential matrix. These use exact
 oracle replies where available; no expected count was edited.
 
+The first complete standard differential cohort passed all PRE/uring,
+PRE/epoll and POST/uring parts. POST/epoll had one failure in armed atomic-off:
+`climon`, seed 19, round 18 mode 1 sent two invalidation frames for `ck:6`, versus
+one from Redis. This matches the documented **DIFF-TRK-1** signature on the base
+(register addenda at lines 412/416; trackfix reports its fix pending merit at
+line 422). The exact observation and register excerpts are retained in
+`known-tracking-finding.json` and `proof/gate-run.qIM3PI.tar.gz`. This is a known
+cross-lane issue; its implementation is not changed here. The raw failure is
+not discarded or normalized away, irrespective of later replay outcomes.
+
+The original differential reader negative control bound an ephemeral TCP port.
+It now uses `target_port + 2`, the gate slot's reserved third port, retaining
+its real unbuffered reader and buffered-reader mutation assertion. All four
+standard differential arms are repeated after this correction. Standalone
+reader controls use `GATE_TEST_PORT=28899`; all four pass. The first scheduler
+self-test also used its default ephemeral negative-control listener; later
+runs set `GATE_TEST_PORT=28899`.
+
+Scheduler self-test evidence: the initial run passed 67 tests plus 14 nested
+controls; two runs overlapping correctness work had 7 and 4 scheduler-fixture
+45-second timeouts. The quiet assigned-port run passed all 67 plus 14 without
+changing deadlines. Logs retain every attempt. The separate, additional
+`differ_fanout_test.py` suite passed 18/19 tests: its remaining assertion still
+expects 64 cells for two streams, although PRE and POST both define 16 cells
+per stream. Both streams were checked. `fanout-existing-count.json` proves the
+matrix definition and that assertion are unchanged from PRE; the assertion is
+left for the maintainer. Gate log prose was corrected to avoid repeating the
+stale 32-cell claim. The actual matrix is 16 cells per engine per seed.
+
 ### Build, identity and measurement arms
 
-`make -j16 all` and the gate's production-unit build completed. All 40 targets
+`make -j16 all` and the gate's production-unit build completed. All 40 checks
 (the server, every listed job_production_units target, and both mdbqsbr live arms)
-pass `make -q`; see docs/dispatchfix/freshness.json. All eight layout locks remain
+pass `make -q`; see docs/dispatchfix/freshness-final.json. The first final audit
+misread the two live-arm display labels as Make targets; the corrected audit
+uses their recorded BUILD_ROOT/CXXFLAGS commands. Both attempts are retained. All eight layout locks remain
 unchanged. The separate PRE object rebuild has identical loadable sections to the
 frozen PRE binary, excluding only the build-id; debug/source paths explain the
 file SHA difference (identity/pre-rebuild.json).
