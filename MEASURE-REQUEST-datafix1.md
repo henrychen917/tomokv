@@ -30,3 +30,12 @@ counted k>1 visits the compact set twice and rebuilds survivors once, O(n+B),
 O(k+B) temporary storage, no rejection sampling and no permanent promotion.
 These are algorithmic costs, not measured throughput or cycle claims.
 Cumulative gate delta DQ=+2 / DF=+2; EXPECT constants unchanged.
+
+CD4.5: one-node quicklists demote after LPOP/RPOP, LSET, LREM (when something was
+removed), LTRIM (including a no-op trim), blocking/MPop and mover removals. The
+size check derives Redis listpack integer/string framing, header and back-lengths;
+it uses <= half the live count/byte limit and transfers the sole packed buffer
+without allocating. PRE fails / POST passes 12 legs, with count limits 4/5/8,
+4096/4097-byte packed boundaries, all pop/move verbs, contents and memory shrink.
+The existing edgeenc shrink assertion now expects Redis list demotion (other types
+unchanged), supported by the independent oracle receipts. Cumulative DQ=DF=+3.
