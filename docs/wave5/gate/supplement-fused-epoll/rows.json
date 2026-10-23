@@ -1,0 +1,242 @@
+[
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject bad protected-mode"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject bad enable-debug-command"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.160000",
+    "label": "AUTH/HELLO/protected state machine"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "ACL battery (atomic off)"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "ACL battery (atomic on)"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "2.450000",
+    "label": "DEBUG toggle/reload battery"
+  },
+  {
+    "job": "auth",
+    "verdict": "ok",
+    "elapsed": "0.130000",
+    "label": "typed snapshot round-trip incl stream"
+  },
+  {
+    "job": "dump_restore",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "DUMP/RESTORE prepare + native SAVE"
+  },
+  {
+    "job": "dump_restore",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "DUMP/RESTORE cross-restart round-trip"
+  },
+  {
+    "job": "dump_restore",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "DUMP/RESTORE restart shutdown invariants"
+  },
+  {
+    "job": "globcase",
+    "verdict": "ok",
+    "elapsed": "2.050000",
+    "label": "glob/scan grammar parity vs Redis 7.4"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "2.070000",
+    "label": "MULTI feature battery"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "1.590000",
+    "label": "blocking feature battery"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "0.910000",
+    "label": "pubsub feature battery"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "Lua feature battery"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "22.680000",
+    "label": "keyspace notification battery (atomic 0/1)"
+  },
+  {
+    "job": "notify",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "feature battery shutdown invariants"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  },
+  {
+    "job": "script_bounds",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "xscript limit control"
+  },
+  {
+    "job": "script_bounds",
+    "verdict": "ok",
+    "elapsed": "0.560000",
+    "label": "xscript window control"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.890000",
+    "label": "TLS ephemeral CA/server/client certificates"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "NET2 serverless RX policy and KeyUpdate controls"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject TLS listener without certificate"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject invalid tls-protocols"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "reject invalid tls-ciphers"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "TLS client-auth yes matrix"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS yes shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.050000",
+    "label": "TLS client-auth optional matrix"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "kTLS TLS 1.2 engaged live (default boot)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.170000",
+    "label": "TLS 1.3 KeyUpdate survives (NET2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.940000",
+    "label": "TLS 1.3 userspace KeyUpdate survives (NET2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS optional shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "14.200000",
+    "label": "TLS pipeline/torn-record/coexistence battery"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS shutdown invariants"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.020000",
+    "label": "TLS application send path error-free"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.060000",
+    "label": "TLS connection slots all freed (N/N)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "TLS zc borrow gates fired (suppressed=N)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "5.780000",
+    "label": "TLS silent-peer close after reply (ntfix N2)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "10.600000",
+    "label": "RESP pre-AUTH limit errors (ntfix N3)"
+  },
+  {
+    "job": "tls",
+    "verdict": "ok",
+    "elapsed": "14.980000",
+    "label": "RESP query-buffer frontier (ntfix N4)"
+  }
+]

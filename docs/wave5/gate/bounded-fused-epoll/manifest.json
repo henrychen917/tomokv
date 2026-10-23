@@ -1,0 +1,110 @@
+[
+  {
+    "run": 0,
+    "file": "families.tsv",
+    "bytes": 113,
+    "sha256": "314b06f63e09f85ae2a5a404f0bee705dfa2a956a75278a84bb8b45aa936fa20"
+  },
+  {
+    "run": 0,
+    "file": "jobs/atomic_batteries/done",
+    "bytes": 6,
+    "sha256": "42a52187f3fb65550c4b755cb3a1d49776e3e43784f8a47e0ffb19c5786e0961"
+  },
+  {
+    "run": 0,
+    "file": "jobs/atomic_batteries/family.tsv",
+    "bytes": 61,
+    "sha256": "dd35dabd618b1449f8e6eeb30564d58b04e7ca169575af00537737c392053058"
+  },
+  {
+    "run": 0,
+    "file": "jobs/atomic_batteries/gate-atomic-hazards.txt",
+    "bytes": 727,
+    "sha256": "aca472a9da6e0dfabbbbb40d16b5c25f4ba23653c55e0ba3509a0155add11924"
+  },
+  {
+    "run": 0,
+    "file": "jobs/atomic_batteries/gate-atomic-ryow.txt",
+    "bytes": 1790,
+    "sha256": "cbde92637923f8456077aac2f6a419b56ef39c0566828195a868ef7360cf8900"
+  },
+  {
+    "run": 0,
+    "file": "jobs/atomic_batteries/gate-atomic-torn.txt",
+    "bytes": 3539,
+    "sha256": "206c29d39c2fcec420dc178ef28ccc53caee46341b5bc662134a7182574bb3bb"
+  },
+  {
+    "run": 0,
+    "file": "jobs/atomic_batteries/gate-srv-main.Lgd5Fb",
+    "bytes": 8059,
+    "sha256": "ea706b0ed8bb94c7d35ddbd08abd0e886deb270a0502ab0da7fc16d93bd6913a"
+  },
+  {
+    "run": 0,
+    "file": "jobs/atomic_batteries/ledger",
+    "bytes": 169,
+    "sha256": "99df0385db00fa735f741f098fca9b1f8af53420e05430b68afed8cd87c932f8"
+  },
+  {
+    "run": 0,
+    "file": "jobs/atomic_batteries/output.log",
+    "bytes": 597,
+    "sha256": "791fdfe10e584405bb8fae6619ed89f06788d32b244a047cfe4e5a1f01447418"
+  },
+  {
+    "run": 0,
+    "file": "jobs/atomic_batteries/timings",
+    "bytes": 169,
+    "sha256": "99df0385db00fa735f741f098fca9b1f8af53420e05430b68afed8cd87c932f8"
+  },
+  {
+    "run": 0,
+    "file": "jobs/release/done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "run": 0,
+    "file": "jobs/release/family.tsv",
+    "bytes": 52,
+    "sha256": "7d75937ed278d0013f745b9fcc8655cf5ed844cfdc0d4265ca5c65923dd92301"
+  },
+  {
+    "run": 0,
+    "file": "jobs/release/ledger",
+    "bytes": 45,
+    "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+  },
+  {
+    "run": 0,
+    "file": "jobs/release/output.log",
+    "bytes": 149,
+    "sha256": "8ca2334c89a87560ff33c718590cadea0ba18050cf1b87a633768d02771adf01"
+  },
+  {
+    "run": 0,
+    "file": "jobs/release/timings",
+    "bytes": 45,
+    "sha256": "133a1f5ed30d64a3a04f0ecd24f928c880fea518eaa400828910a4521a0d6724"
+  },
+  {
+    "run": 0,
+    "file": "phases.tsv",
+    "bytes": 88,
+    "sha256": "8b01175f964664809b18f3bc73d31d1335392e18a15dd4ae0b4584481ca11c9c"
+  },
+  {
+    "run": 0,
+    "file": "plan.sh",
+    "bytes": 1202,
+    "sha256": "d288c41d7cfdd609ade34eb1e12e62638135bfe814fb38370470ae4d594ed8ff"
+  },
+  {
+    "run": 0,
+    "file": "row-timeouts.json",
+    "bytes": 193070,
+    "sha256": "37eb67d62249dfaec35b55f9f856e089faa79dfc208a8cf92eb7ba978761d60f"
+  }
+]

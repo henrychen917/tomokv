@@ -71,8 +71,10 @@ diff=subprocess.check_output(['git','diff','--unified=0','a7dfb9d23','HEAD','--'
 tokens=set()
 for line in diff.splitlines():
  if line[:1] not in '+-' or line.startswith(('+++','---')):continue
+ if '#include' in line:continue
  for token in re.findall(r'"([^"\n]{4,})"',line):
   token=token.replace('\\r\\n','').replace('\\n','')
+  if re.search(r'\.(?:h|inc|cc|py)$',token):continue
   if len(token)>180 or not re.search(r'ERR|OOM|CROSSSLOT|[a-z]_[a-z]|[A-Z]{3,}|not |must |invalid|wrong|argument',token):continue
   tokens.add(token)
 sweep=[]

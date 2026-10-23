@@ -41,6 +41,24 @@ for name in COHORTS:
 observed = sum(per_job.values(), Counter())
 fixture = Counter(json.loads((ROOT / 'tests/fixtures/nullrefresh-ledger-labels.json').read_text())['labels'])
 missing = fixture - observed
+represented = {}
+for geometry, label in (
+        ('split', 'Redis 7.4 differential matrix'),
+        ('armed', 'Redis 7.4 differential matrix (armed fused + read-local)')):
+    # Partial-job mode emits the two atomic-part labels instead of the full
+    # coordinator's aggregate label. Preserve that distinction in the receipt.
+    parts = [f'differ-{geometry}-{atomic}' for atomic in (0, 1)]
+    assert all(part in per_job for part in parts), parts
+    if label in missing:
+        represented[label] = dict(parts=parts, engines=['uring', 'epoll'])
+not_run = missing - Counter(represented.keys())
+reserved = Counter([
+    'expire-index growth bound', 'borrow-registry growth bound',
+    'cross-shard dispatch scaling', 'atomic MGET/MSET floor (N/s >= 120k)',
+    'tripwire arm/disarm round-trip', 'pipelined same-conn program order (400 rolls)',
+    'tailgen client-lb outstanding bound',
+])
+assert not_run == reserved, ('unexplained missing or extra fixture coverage', not_run, reserved)
 inventory = json.loads((DOC / 'row-inventory.json').read_text())
 lanes = []
 for lane in inventory['lanes']:
@@ -53,7 +71,9 @@ result = dict(binary_sha256=sha, cohorts=cohorts,
               passed_observations=len(all_rows), distinct_jobs=len(per_job),
               declared_fixture_rows=sum(fixture.values()),
               covered_fixture_rows=sum((fixture & observed).values()),
-              not_run_fixture_labels=dict(missing),
+              fixture_labels_without_literal_row=dict(missing),
+              aggregate_labels_represented_by_parts=represented,
+              not_run_fixture_labels=dict(not_run),
               lane_added_rows=lanes,
               note='Repeated mode/engine cohorts are observations, not new gate rows. '
                    'Per-job label multiplicity uses the maximum observed in one cohort. '

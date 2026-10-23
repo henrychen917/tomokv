@@ -4,8 +4,10 @@
 
 Base: `a7dfb9d2332d4c4e9d8bca983e439ba4b2bbba7e`. Worktree and branch:
 `/home/user/Projects/cx-wave5`, `cx-wave5`. No push. Builds and correctness
-server execution and final validation use CPUs 64–95 and ports 26800–26899. Performance
-measurements and the full iteration remain reserved to the maintainer.
+server execution and final validation use CPUs 64–95 and listener ports
+26800–26899. Integration and the authorized final correctness cohorts are
+complete. Performance measurements and the full iteration remain reserved to
+the maintainer; the exact seven unexecuted full-gate rows are recorded below.
 
 All seven lane reports were read before their merges, including txnorder2b's
 final additions and trackfix2's superseding design. The final reviewed WIP
@@ -45,7 +47,7 @@ The independently derived collector inventory is `docs/wave5/row-inventory.json`
   reclaimed pages. The declared hz/reclaim runtime matrices are included in the final job sweep.
 - FLIP listener state, transaction owner counters/retry lanes, and the hz/sleep
   coordinators all remain present in Server's cold tail. Locked layout assertions
-  pass in the first merged production build.
+  pass in the final production build.
 - CONFIG duplicate-parameter detection retains the union of the network,
   encoding, hz and dynamic-hz rules.
 - The initial additive inlining budgets were followed by 29 PRE/POST IPA trials,
@@ -307,15 +309,41 @@ allocation/invariant/retirement controls, RENAME join, all 24 WATCH legs and bot
 inbox-wake modes pass. `docs/wave5/leg-inventory.json` independently requires
 each declared log/result in the archived gate witnesses.
 
-The standalone gate self-tests pass 68 tests; the touched INFO differential
-self-test additionally passes all 10 tests. Build/freshness evidence is recorded
-above. The supplementary mode/engine batteries, bounded atomic batteries and
-quiet ABBA row are still running; their final receipts will be added before
-completion. No incomplete or aborted run is accepted as passing evidence.
+All eleven final cohorts return zero against the same immutable POST. They
+contain **1,088 passing row observations across 175 jobs**; repeated modes and
+engines are observations, not additions to the gate's declared count.
+
+| Actual gate-job cohort | Passing rows |
+|---|---:|
+| Broad integration sweep | 741 |
+| Differential, io_uring / epoll | 6 / 6 |
+| Supplementary epoll batteries | 200 |
+| Fused io_uring / epoll supplements | 72 / 40 |
+| Bounded atomic + stream, io_uring | 7 |
+| Bounded atomic epoll / fused io_uring / fused epoll | 5 / 5 / 5 |
+| Quiet ABBA self-test | 1 |
+
+The quiet ABBA row passes in 893 seconds with its unchanged assertions and
+budgets. Its throwaway worktree differs only in the protected counts, 740/757;
+the 757-label fixture is byte-identical to the integrated fixture. The copy is
+removed after archiving the receipt and exact diff. The standalone gate
+self-tests pass 68 tests, and the touched INFO differential self-test additionally
+passes all 10 tests. All 45 freshness checks pass again after gate cleanup.
+
+[Final receipt inventory](docs/wave5/final-correctness.json) records commands,
+binary bindings, cohorts and remaining full-gate labels. There are 748 literal
+fixture entries covered; two differential aggregate entries are represented by
+their complete atomic-part jobs on both engines, leaving the seven explicit
+NOT RUN entries below. No incomplete or aborted run is accepted as passing
+evidence. Full per-leg text/JSON logs, server logs, file hashes and ledgers are
+retained in each cohort's `witnesses.tar.gz`, `manifest.json` and `rows.json`.
+Temporary gate data and obsolete compile trials were removed; the final build,
+required production units, PRE/POST/PAD arms and instruction harnesses remain.
 
 `docs/wave5/coverage.json` traces 79 touched test files, their helper imports,
 variable-driven battery lists, linked units and matching gate jobs. It also
-records the changed reply/error/INFO string sweep. The selected correctness
+records 28 changed reply/error/INFO strings with matching tests (include-file
+names are excluded from this protocol sweep). The selected correctness
 consumer jobs form a superset of all runnable matching jobs. The explicit
 semantic review covers EXEC/WATCH ordering and counters; tracking invalidation
 ordering/accounting; HSCAN and slowlog identity; stream/pubsub/FUNCTION grammar,
@@ -328,9 +356,17 @@ writer-episode, mover and differential successor rows run in the final sweep.
 `tests/doubles.py` is a standalone legacy match for a shared float-error string,
 also with no gate job; the matching registered command/feature/differential
 batteries run. No new gate row or substitute driver was invented for these
-historical scripts. Performance-only `atomic_floor` and `efficiency`, throughput
-load generators, the null, and full iteration remain **NOT RUN**, reserved to
-the maintainer.
+historical scripts. `atomic_floor` and `efficiency` remain **NOT RUN** because their job bodies
+run throughput/wall-time/scaling measurements reserved to the maintainer. This
+also leaves their bundled tripwire round-trip and 400-roll pipe-order rows
+unexecuted here; they have no separate partial-job entry. Their three efficiency
+rows and three atomic-floor rows are named in the final receipt. The standalone
+coordinator row `tailgen client-lb outstanding bound` is also **NOT RUN**: it is
+outside the partial-job interface and invokes the full placement/open-loop
+instrument. The maintainer’s full landing gate owns it. Throughput load generators,
+the null and full iteration remain **NOT RUN**. The partial differential interface
+emits atomic-part labels; both full-matrix aggregate labels are represented by
+their passing atomic 0/1 parts on both engines, not invented ledger rows.
 
 One supplementary cohort was stopped as the orchestration changed to give ABBA
 an exclusive CPU allocation. Its partial/failed ledger is archived as

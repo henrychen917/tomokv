@@ -1,0 +1,152 @@
+[
+  {
+    "job": "bugs5",
+    "verdict": "ok",
+    "elapsed": "44.540000",
+    "label": "bugs5 scancompact (both modes, both engines, atomic 0/1)"
+  },
+  {
+    "job": "bugs5",
+    "verdict": "ok",
+    "elapsed": "33.890000",
+    "label": "bugs5 slowlog_identity (both modes, both engines, atomic 0/1)"
+  },
+  {
+    "job": "bugs5",
+    "verdict": "ok",
+    "elapsed": "27.500000",
+    "label": "bugs5 read_local_lfu (both modes, both engines, atomic 0/1)"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "35.750000",
+    "label": "compat3 CC4.12 pubsub vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "36.910000",
+    "label": "compat3 CC4.13 pending vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "35.900000",
+    "label": "compat3 CC4.14 history vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "35.640000",
+    "label": "compat3 CC4.16 grammar vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "ok",
+    "elapsed": "35.640000",
+    "label": "compat3 CC4.5 glob vs Redis 7.4"
+  },
+  {
+    "job": "compat3",
+    "verdict": "FAIL",
+    "elapsed": "39.290000",
+    "label": "compat3 CC4.17 flags vs Redis 7.4"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "ok",
+    "elapsed": "34.100000",
+    "label": "FLIP listener conservation (io-ex, complete)"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "ok",
+    "elapsed": "37.800000",
+    "label": "FLIP listener conservation (io-ex, rollback)"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "ok",
+    "elapsed": "41.140000",
+    "label": "FLIP listener conservation (ex-io, complete)"
+  },
+  {
+    "job": "fliplisten",
+    "verdict": "FAIL",
+    "elapsed": "61.690000",
+    "label": "FLIP listener conservation (ex-io, rollback)"
+  },
+  {
+    "job": "iofix-deferred",
+    "verdict": "ok",
+    "elapsed": "27.240000",
+    "label": "iofix WB4.1 deferred IO parks"
+  },
+  {
+    "job": "iofix-hz",
+    "verdict": "ok",
+    "elapsed": "40.000000",
+    "label": "iofix IO4.9 Redis hz cron"
+  },
+  {
+    "job": "iofix-signal",
+    "verdict": "ok",
+    "elapsed": "18.510000",
+    "label": "iofix IO4.17 immediate signal shutdown"
+  },
+  {
+    "job": "iofix-sleep",
+    "verdict": "ok",
+    "elapsed": "31.760000",
+    "label": "iofix IO4.10 global DEBUG SLEEP"
+  },
+  {
+    "job": "netfix_config",
+    "verdict": "FAIL",
+    "elapsed": "2.080000",
+    "label": "netfix NT4.8 network CONFIG error parity"
+  },
+  {
+    "job": "netfix_idle_buffers",
+    "verdict": "FAIL",
+    "elapsed": "271.780000",
+    "label": "netfix NT4.19 idle buffer reclamation"
+  },
+  {
+    "job": "netfix_query_stats",
+    "verdict": "FAIL",
+    "elapsed": "1.590000",
+    "label": "netfix NT4.6 query-limit INFO parity"
+  },
+  {
+    "job": "netfix_tls",
+    "verdict": "FAIL",
+    "elapsed": "8.650000",
+    "label": "netfix NT4.7 TLS default cipher parity"
+  },
+  {
+    "job": "netfix_unix",
+    "verdict": "ok",
+    "elapsed": "1.150000",
+    "label": "netfix NT4.11 Unix pathname parity"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  },
+  {
+    "job": "trackfix_accounting",
+    "verdict": "FAIL",
+    "elapsed": "54.430000",
+    "label": "tracking-only delivery/drop accounting vs Redis 7.4"
+  },
+  {
+    "job": "trackfix_order",
+    "verdict": "ok",
+    "elapsed": "223.310000",
+    "label": "tracking delayed-write order vs Redis 7.4"
+  }
+]

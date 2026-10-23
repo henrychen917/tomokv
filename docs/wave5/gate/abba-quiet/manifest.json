@@ -1,0 +1,62 @@
+[
+  {
+    "run": 0,
+    "file": "families.tsv",
+    "bytes": 58,
+    "sha256": "33bc230cb182df2492af5e70d459343e0fa7293761899c6262df2da93a1c1ab0"
+  },
+  {
+    "run": 0,
+    "file": "jobs/abba_selftest/done",
+    "bytes": 6,
+    "sha256": "46cac46b66acb5b0be9b124a6d50a880c05f4ba6c57238b5dae997f97d9be606"
+  },
+  {
+    "run": 0,
+    "file": "jobs/abba_selftest/family.tsv",
+    "bytes": 58,
+    "sha256": "33bc230cb182df2492af5e70d459343e0fa7293761899c6262df2da93a1c1ab0"
+  },
+  {
+    "run": 0,
+    "file": "jobs/abba_selftest/gate-abbagate-unit.txt",
+    "bytes": 156996,
+    "sha256": "332afb8b2e796d4655b68d6b04db94117f1659cdfb1ec98c29e85b342d56bd02"
+  },
+  {
+    "run": 0,
+    "file": "jobs/abba_selftest/ledger",
+    "bytes": 61,
+    "sha256": "42d65affc6691808a0d3497288dcb4cf8802e32e760252127158becf959d1eeb"
+  },
+  {
+    "run": 0,
+    "file": "jobs/abba_selftest/output.log",
+    "bytes": 190,
+    "sha256": "8835b8cb51e6ecdfd6d798d57bbfb0e5ea90b3431cf7be5c3976279081475609"
+  },
+  {
+    "run": 0,
+    "file": "jobs/abba_selftest/timings",
+    "bytes": 61,
+    "sha256": "42d65affc6691808a0d3497288dcb4cf8802e32e760252127158becf959d1eeb"
+  },
+  {
+    "run": 0,
+    "file": "phases.tsv",
+    "bytes": 88,
+    "sha256": "ee70bb8fdae6c8d6024ae9ef07780eb818b164b98fb8a35f93b9930387011d60"
+  },
+  {
+    "run": 0,
+    "file": "plan.sh",
+    "bytes": 1340,
+    "sha256": "360ca82c97ab6a42700c6604de1fab2942808134e366e9ab5ebe0ceb2e356f54"
+  },
+  {
+    "run": 0,
+    "file": "row-timeouts.json",
+    "bytes": 192118,
+    "sha256": "116cd844f70003d959af55de92b1bb1e453a14ee9a4cf03ceba4d88b53c4d7b5"
+  }
+]
