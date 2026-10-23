@@ -1,0 +1,27 @@
+{
+  "name": "pad-a-wb-deferred",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "80-87",
+    "--load-cores",
+    "88-95",
+    "--ports",
+    "19800-19899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-iofix/docs/iofix/gate_candidate.py"
+  ],
+  "cwd": "/home/user/Projects/cx-iofix",
+  "binary": "/home/user/Projects/cx-iofix/build/tomokv-pad-a-wb",
+  "sha256": "d9c7e12006eee966c474b705ad7f0bdd4156e63ee32057b7f34a799119ad3fb5",
+  "jobs": [
+    "iofix-deferred"
+  ],
+  "engine": "",
+  "mode": "",
+  "force_engine": false,
+  "expected_exit": 1,
+  "actual_exit": 1,
+  "run": "/home/user/Projects/cx-iofix/build/gate-run.ZjX82p"
+}

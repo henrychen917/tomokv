@@ -1,0 +1,81 @@
+tests/wbhybrid2_evidence.json:626:        "wb_deferrals_": [
+tests/wbhybrid2_evidence.json:801:        "wb_deferrals_": [
+tests/wbhybrid2_evidence.json:976:        "wb_deferrals_": [
+tests/wbhybrid2_evidence.json:1151:        "wb_deferrals_": [
+tests/wb_rule_completion_evidence.json:2040:          "wb_deferrals_": [
+tests/wb_rule_completion_evidence.json:2223:          "wb_deferrals_": [
+tests/wb_rule_completion_evidence.json:2408:          "wb_deferrals_": [
+tests/wb_rule_completion_evidence.json:2591:          "wb_deferrals_": [
+tests/docs_drift.py:70:            ("wb-small-pipe", "wb_small_pipe", "kSmallPipe", "64", "half rule, no completion"),
+tests/docs_drift.py:71:            ("wb-complete-visits", "wb_complete_visits", "kCompleteVisits", "255", "unbounded completion")):
+tests/docs_drift.py:176:             re.sub(r'(^\| `wb-small-pipe` \|.*?)`16`', r'\g<1>`8`', markdown, flags=re.M),
+tests/wbland_unit.cc:22:        c.wb_deferrals() = waits;
+tests/wbland_unit.cc:24:        require(c.wb_deferrals() == waits, "zero bypass leaves count alone");
+tests/iofix_deferred.py:25:        with Listener(args, name, extra=['--wb-policy', str(policy), '--wb-small-pipe', str(small),
+tests/iofix_deferred.py:26:                                        '--wb-complete-visits', str(visits)]) as server:
+tests/mkfix2_unit.cc:32:        c.wb_deferrals() = wb_rule::kCompleteVisits;
+tests/knobs.py:68:                           ("wb-policy", "1"), ("wb-small-pipe", "16"),
+tests/knobs.py:69:                           ("wb-complete-visits", "3"), ("key-lb-damping", "-1")):
+tests/knobs.py:73:                 "wb-small-pipe", "wb-complete-visits",
+tests/gate.sh:1977:for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config wb-small-pipe wb-complete-visits hexpire-oom; do
+tests/wb_rule_completion_unit.cc:19:    c.wb_deferrals() = value;
+tests/wb_rule_completion_unit.cc:22:    return c.wb_deferrals();
+tests/wb_rule_completion_unit.cc:120:    std::deque<Client*> pending_serve_; ServerStub server; ServerStub* srv_ = &server;
+tests/wb_rule_completion_unit.cc:131:static void enqueue(Loop& loop, Client& c) { c.set_serve_pending(true); loop.pending_serve_.push_back(&c); }
+tests/wb_rule_completion_unit.cc:143:        require(!c.serve_pending() && loop.pending_serve_.empty(), "FIFO pin released");
+tests/wb_rule_completion_unit.cc:157:        require(loop.pending_serve_.size() == 1 && loop.pending_serve_.front() == &slow,
+tests/wb_rule_completion_unit.cc:179:            require(c.serve_pending() && loop.pending_serve_.size() == 1,
+tests/fixtures/nullrefresh-ledger-labels.json:127:    "netcmd wb-small-pipe regression",
+tests/fixtures/nullrefresh-ledger-labels.json:128:    "netcmd wb-complete-visits regression",
+tests/fixtures/nullrefresh-ledger-labels.json:935:      "netcmd wb-small-pipe regression",
+tests/fixtures/nullrefresh-ledger-labels.json:936:      "netcmd wb-complete-visits regression"
+tests/netcmd_unit.cc:886:    else if (mode == "wb-small-pipe" || mode == "wb-complete-visits") R::writeback_knob(mode.c_str());
+tests/wb_rule_checks.py:22:    "knob-unbounded-wrap": ("completion", POLICY, "c.wb_deferrals() += complete;", "c.wb_deferrals() += (complete || complete_visits == 0);", "knobs", "runtime count saturates or stays untouched when unbounded"),
+tests/wb_rule_checks.py:25:    "visits-early": ("completion", POLICY, "c.wb_deferrals() < complete_visits", "c.wb_deferrals() < complete_visits - 1", "table", "bounded decision table"),
+tests/wb_rule_checks.py:26:    "visits-late": ("completion", POLICY, "c.wb_deferrals() < complete_visits", "c.wb_deferrals() <= complete_visits", "table", "bounded decision table"),
+tests/wb_rule_checks.py:27:    "serve-reset": ("completion", POLICY, "c->wb_deferrals() = 0;", "/* removed serve reset */", "lifetime-serve", "served connection completes again next pipe"),
+tests/wb_rule_checks.py:51:    "rotation": ("phase", POLICY, "loop.pending_serve_.push_back(c);\n                continue;", "/* removed rotation */\n                continue;", "fifo", "deferred rotation preserves order"),
+tests/wb_rule_checks.py:52:    "head": ("phase", POLICY, "loop.pending_serve_.push_back(c);\n                continue;", "loop.pending_serve_.push_front(c);\n                continue;", "fifo", "younger eligible passes deferred head"),
+tests/wb_rule_checks.py:53:    "pin": ("phase", POLICY, "loop.pending_serve_.push_back(c);\n                continue;", "c->set_serve_pending(false);\n                loop.pending_serve_.push_back(c);\n                continue;", "fifo", "deferred lifetime pins kept"),
+tests/wb_rule_checks.py:57:    "work": ("phase", POLICY, "work += c->wb_deferrals() != previous_deferrals;", "/* removed bounded advancement */", "progress", "bounded deferral advancement is positive work"),
+tests/wb_rule_unit.cc:36:        c.wb_deferrals() = waits;
+tests/wb_rule_unit.cc:115:        c.wb_deferrals() = 0;
+tests/wb_rule_unit.cc:118:        c.wb_deferrals() = wb_rule::kCompleteVisits;
+tests/wb_rule_unit.cc:173:    uint8_t& wb_deferrals() { return deferrals; }
+tests/wb_rule_phase_unit.cc:196:        require(f.io.pending_serve_.size() == count-expected, "exact FIFO suffix");
+tests/wb_rule_phase_unit.cc:220:        require(f.io.pending_serve_.size() == 2 && f.io.pending_serve_[0] == &a &&
+tests/wb_rule_phase_unit.cc:221:                f.io.pending_serve_[1] == &b, "deferred rotation preserves order");
+tests/wb_rule_phase_unit.cc:224:        require(f.io.pending_serve_.size() == 2, "pin deduplicates future notification");
+tests/wb_rule_phase_unit.cc:243:                f.io.pending_serve_.size() == 2 && f.io.pending_serve_[0] == &a &&
+tests/wb_rule_phase_unit.cc:244:                f.io.pending_serve_[1] == &added,
+tests/wb_rule_phase_unit.cc:252:        require(!corpse.serve_pending() && f.io.pending_serve_.empty(), "dead entry removed and unpinned");
+tests/wb_rule_phase_unit.cc:261:                    "bounded deferral advancement is positive work");
+tests/wb_rule_phase_unit.cc:277:                c.wb_deferrals() = waits;
+tests/wb_rule_phase_unit.cc:322:        require(f.io.pending_serve_.size() == 1 && f.io.pending_serve_.front() == &partial &&
+tests/wb_rule_phase_unit.cc:346:        require(f.io.pending_serve_.size() == 2 && f.io.pending_serve_[0] == &partial &&
+tests/wb_rule_phase_unit.cc:347:                f.io.pending_serve_[1] == &added, "2s deferred and callback FIFO order");
+tests/wb_rule_phase_unit.cc:442:                    require(c.wb_deferrals() == waits[i], "physical serve resets and deferral saturates");
+tests/wb_rule_phase_unit.cc:445:                require(f.io.pending_serve_.size() == pending, "captured FIFO count");
+tests/wb_rule_phase_unit.cc:447:                for (Client* c : f.io.pending_serve_) {
+tests/wb_rule_phase_unit.cc:461:            require(f.io.pending_serve_.empty(), "complete pipes leave FIFO");
+tests/wb_rule_phase_unit.cc:463:                require(c->rob().in_flight() == 0 && c->wb_deferrals() == 0, "completion resets count");
+tests/wb_rule_phase_unit.cc:471:                require(c->wb_deferrals() == unsigned(complete && delay), "new pipe wait count");
+tests/wb_rule_phase_unit.cc:478:        dead.wb_deferrals() = closing.wb_deferrals() = wb_rule::kCompleteVisits;
+tests/wb_rule_phase_unit.cc:481:        require(f.io.pending_serve_.empty() && !dead.serve_pending() && !closing.serve_pending(), "dead/closing pins released");
+tests/wb_rule_phase_unit.cc:482:        require(dead.wb_deferrals() == 0 && closing.wb_deferrals() == 0 && closing.rob().in_flight() == 0,
+tests/wbhybrid2b_evidence.json:3722:        "wb_deferrals_": [
+tests/wbhybrid2b_evidence.json:3897:        "wb_deferrals_": [
+tests/wbhybrid2b_evidence.json:4072:        "wb_deferrals_": [
+tests/wbhybrid2b_evidence.json:4247:        "wb_deferrals_": [
+tests/wbhybrid2b_evidence.json:4422:        "wb_deferrals_": [
+tests/wbhybrid2b_evidence.json:4597:        "wb_deferrals_": [
+tests/netcap_unit.cc:327:        loop.pending_serve_.clear(); c->set_serve_pending(false);
+tests/netcmd_config_unit.cc:53:             {"wb-small-pipe", "16"}, {"wb-complete-visits", "3"}}) {
+tests/netcmd_config_unit.cc:222:    for (const char* line : {"wb-policy 1\n", "wb-small-pipe 16\n", "wb-complete-visits 3\n"})
+tests/netcmd_config_unit.cc:241:    const bool small = !std::strcmp(name, "wb-small-pipe");
+tests/wbland_checks.py:28:    if (!pending_serve_.empty()) {
+tests/wbland_checks.py:57:    ('', 'std::deque<Client*> pending_serve_;', 1),
+tests/wbland_checks.py:58:    ('flip_io_drained', '''if (!pending_serve_.empty() || !pending_releases_.empty() ||
+tests/wbland_checks.py:71:        c->set_serve_pending(true); pending_serve_.push_back(c);''', 1),
+tests/wbland_checks.py:149:        watched = (any(name in token for name in ('pending_serve_', 'serve_pending', 'kWbufInline', 'kPolicyFraction', 'wb_config_', 'wb_small_pipe', 'wb_complete_visits', 'cache_writeback_config'))
+tests/wbland_checks.py:213:    'reorder-guard': (R7, 'if (!pending_serve_.empty()) {', 'if (pending_serve_.empty()) {',

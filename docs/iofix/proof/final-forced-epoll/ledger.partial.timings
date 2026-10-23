@@ -1,0 +1,17 @@
+ok	0.000000	release build (+footprint locks)
+ok	0.020000	shutdown policy + signal handoff serverless
+ok	0.600000	shutdown persistence (1s, command)
+ok	0.210000	shutdown persistence (1s, sigterm)
+ok	0.210000	shutdown persistence (1s, sigint)
+ok	0.600000	shutdown persistence (2s, command)
+ok	0.210000	shutdown persistence (2s, sigterm)
+ok	0.210000	shutdown persistence (2s, sigint)
+ok	0.140000	FLIP state battery
+ok	1.040000	FLIP under verified load
+ok	1.440000	FLIP TTL + expiry events
+ok	2.230000	partial-frame conn parks (no io spin)
+ok	1.040000	FLIP close during FLIP (uring)
+ok	1.040000	FLIP close during FLIP (epoll)
+ok	0.510000	FLIP signal stop during FLIP + second SIGINT
+ok	0.550000	perfio stale epoll registration (epoll-flip)
+ok	30.220000	perfio stale epoll registration (epoll-lb)

@@ -1,0 +1,7 @@
+ok	0.030000	reject --mode (flag deleted)
+ok	0.030000	reject --spread
+ok	0.020000	reject --nodes
+ok	0.030000	reject 3-part ratio
+ok	0.020000	reject missing conf
+ok	0.030000	reject bad conf key
+ok	0.020000	reject aclfile + conf user lines

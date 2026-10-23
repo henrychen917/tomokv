@@ -952,6 +952,10 @@ job_label(){
 job_body(){
   local name=$1 label; label=$(job_label "$name")
   case "$name" in
+    iofix-deferred) job_iofix_deferred "$name";;
+    iofix-hz) job_iofix_hz "$name";;
+    iofix-sleep) job_iofix_sleep "$name";;
+    iofix-signal) job_iofix_signal "$name";;
     multidb-*) job_multidb "$name";;
     feature-cell-*) job_feature_cell "$name";;
     snapshot-*) job_snapshot "$name";;
@@ -1112,7 +1116,7 @@ plan_jobs(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
+              iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap netfix_query_stats netfix_unix netfix_config netfix_tls netfix_idle_buffers respcompat boot_grammar dbdefault wait_units readonly
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 bplus acl_recheck aclfix sort script_bounds scriptfix
@@ -1744,6 +1748,37 @@ job_reorder_identity(){
   py tests/reorder_receipt.py "$CANDIDATE_BINARY" "$TMPDIR/receipt" >"$TMPDIR/receipt.log" 2>&1 \
       && ok "$label" || bad "$label" "see $TMPDIR/receipt.log"
 }
+iofix_legs(){
+  local feature=$1 label=$2 mode engine failed=0
+  for mode in 2s 1s; do for engine in uring epoll; do
+    py "tests/iofix_${feature}.py" --binary "$CANDIDATE_BINARY" --port "$PORT" \
+        --cores "$CORES" --ratio "$GATE_RATIO" --mode "$mode" --net-io "$engine" \
+        --output "$TMPDIR/$feature-$mode-$engine" \
+        >"$TMPDIR/$feature-$mode-$engine.log" 2>&1 || failed=1
+  done; done
+  [ "$failed" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/$feature-*.log"
+}
+
+job_iofix_deferred(){
+  row_begin "iofix WB4.1 deferred IO parks"
+  iofix_legs deferred "iofix WB4.1 deferred IO parks"
+}
+
+job_iofix_hz(){
+  row_begin "iofix IO4.9 Redis hz cron"
+  iofix_legs hz "iofix IO4.9 Redis hz cron"
+}
+
+job_iofix_sleep(){
+  row_begin "iofix IO4.10 global DEBUG SLEEP"
+  iofix_legs sleep "iofix IO4.10 global DEBUG SLEEP"
+}
+
+job_iofix_signal(){
+  row_begin "iofix IO4.17 immediate signal shutdown"
+  iofix_legs signal "iofix IO4.17 immediate signal shutdown"
+}
+
 job_wb_policy(){
   local label='writeback policies 0/1: 22 standard fixtures'
   local mode policy boot_fn rc=0
@@ -4640,6 +4675,11 @@ collect_job release
 
 collect_job asan
 collect_job config_unit
+# iofix rows are collected before the quick-tier exit; EXPECT remains owner-maintained.
+collect_job iofix-deferred
+collect_job iofix-hz
+collect_job iofix-sleep
+collect_job iofix-signal
 
 collect_job flip_unit
 

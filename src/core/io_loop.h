@@ -518,6 +518,7 @@ private:
         static_assert(!SplitLocal || Fused);
         LoopSignals& sig = self_->sig();
         IoTenure tenure(sig);
+        Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
         if constexpr (Fused) {
             if (srv_->read_local_enabled()) {
                 // A split EX tenure is permanently parked: it never probes the local lane.
@@ -535,6 +536,7 @@ private:
         }
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ifid) {
+            srv_->debug_sleep_poll(self_->id());
             const uint64_t pass_ns = tenure.pass();
             Server::DatabaseWorkScope database_work(*srv_, self_->id());
 #ifdef TOMO_MDBQSBR_TEST
@@ -554,7 +556,8 @@ private:
             const bool client_cron_armed = !flip_dispatch_paused() &&
                                            srv_->client_cron_armed();
             const bool client_lb_signal_armed = client_lb_signal_armed_;
-            // The elected IO alone checks live save/shutdown policy on the one-second beat.
+            // The elected IO checks periodic saves on the one-second beat and signal stops
+            // every pass, so a signal request does not wait for the next save-cron deadline.
             // Election is private: never read Placement's mutable vectors on a hot pass.
             const bool save_cron_armed = !flip_dispatch_paused() &&
                                          save_cron_writer_;
@@ -654,11 +657,13 @@ private:
                 did += lb_wake_all_pass();
                 if (__builtin_expect(client_cron_armed &&
                                      cached_now_ms_ >= client_cron_beat_ms_, false)) {
-                    did += client_cron_pass();
-                    client_cron_beat_ms_ = cached_now_ms_ + 1000 / kClientCronBeatsPerSecond;
+                    const uint32_t hz = srv_->client_hz();
+                    did += client_cron_pass(hz);
+                    client_cron_beat_ms_ = cached_now_ms_ + 1000 / hz;
                 }
                 if (__builtin_expect(save_cron_armed &&
-                                     cached_now_ms_ >= save_cron_beat_ms_, false)) {
+                                     (srv_->signal_shutdown_pending() ||
+                                      cached_now_ms_ >= save_cron_beat_ms_), false)) {
                     did += srv_->save_cron_pass(*self_, ring_);
                     save_cron_beat_ms_ = cached_now_ms_ + 1000;
                 }
@@ -697,6 +702,7 @@ private:
             // Preserve the established classification: publication, inbound recheck,
             // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
             Span idle(sig.idle_ns);
+            const unsigned wait_ms = idle_timeout_ms();
             if constexpr (Fused) {
                 if (__builtin_expect(srv_->read_local_enabled(), false))
                     self_->publish_read_local_parked(srv_->read_local_epoch());
@@ -711,13 +717,13 @@ private:
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
-                        epoll_pass<HasUnix, HasTls, Fused>(Ring::kWaitTimeoutMs);
+                        epoll_pass<HasUnix, HasTls, Fused>(wait_ms);
                     }
                 } else if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    epoll_pass<HasUnix, HasTls, false>(Ring::kWaitTimeoutMs);
+                    epoll_pass<HasUnix, HasTls, false>(wait_ms);
                 }
             } else {
                 if constexpr (Fused) {
@@ -725,14 +731,14 @@ private:
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
-                        ring_.submit_and_wait(1);
+                        ring_.submit_and_wait(1, wait_ms);
                     } else                            ring_.submit_and_reap();
                 } else {
                     if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
-                        ring_.submit_and_wait(1);
+                        ring_.submit_and_wait(1, wait_ms);
                     } else                         ring_.submit_and_reap();
                 }
             }
@@ -959,6 +965,13 @@ private:
         }
     }
 
+    // Only the elected observer drains request edges: other workers must leave the wake
+    // available even if its poll is between completion and rearm. Observe late writes here
+    // even after shutdown_from_cron cleared the pending bit following a failed save.
+    __attribute__((noinline)) void signal_shutdown_wake() {
+        if (save_cron_writer_) signal_doorbell_consume_request();
+    }
+
     // ---- epoll engine: the readiness pass -------------------------------------------------------
     //
     // What this does NOT do is as important as what it does: for a connection it records readiness
@@ -1009,8 +1022,7 @@ private:
                     work++;
                     break;
                 case UrKind::Shutdown:
-                    // Sticky and shared: never drain it, or this loop could steal the terminal
-                    // edge from another ring/epoll set. The signal handler published stop first.
+                    signal_shutdown_wake();
                     work++;
                     break;
                 case UrKind::Recv: {
@@ -1105,7 +1117,12 @@ private:
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::DatabaseWake:
                     srv_->databases().consume_wake(self_->id(), ring_); break;
-                case UrKind::Shutdown: break;
+                case UrKind::Shutdown:
+                    if (!self_->stop_flag().load(std::memory_order_relaxed)) {
+                        signal_shutdown_wake();
+                        ring_.rearm_shutdown_poll();
+                    }
+                    break;
                 case UrKind::SnapshotStart:
                     if constexpr (Fused)
                         fused_executor_->fused_snapshot_start(
@@ -1154,7 +1171,12 @@ private:
                 case UrKind::Wake: self_->sig().wakes_recv++; break;
                 case UrKind::DatabaseWake:
                     srv_->databases().consume_wake(self_->id(), ring_); break;
-                case UrKind::Shutdown: break;
+                case UrKind::Shutdown:
+                    if (!self_->stop_flag().load(std::memory_order_relaxed)) {
+                        signal_shutdown_wake();
+                        ring_.rearm_shutdown_poll();
+                    }
+                    break;
                 case UrKind::SnapshotStart:
                     if constexpr (Fused)
                         fused_executor_->fused_snapshot_start(
@@ -3611,9 +3633,8 @@ subscriber_checks_done:
                     mark_active(c);
                     break;
                 }
-                // DEBUG SLEEP parks only this connection. The unfinished ROB slot preserves
-                // pipeline order while this IO thread continues serving unrelated clients (and,
-                // in 1s, continues owning shards). All other DEBUG forms fall through unchanged.
+                // DEBUG SLEEP orders behind older replies, then retains its ROB slot while
+                // every worker rendezvouses and pauses. Other DEBUG forms are unchanged.
                 if (__builtin_expect((spec->flags & CmdFlags::DebugSleep) != 0, false)) {
                     if (op->argc() == 2 && op->arg(1).eq_icase("rehash-state")) {
                         // This diagnostic reads mutable table counters. ConfigRoute normally
@@ -3624,16 +3645,18 @@ subscriber_checks_done:
                         op->shard = 0;
                         goto ordinary_shard_ready;
                     }
-                    uint64_t delay_ms = 0;
+                    if (op->argc() == 3 && op->arg(1).eq_icase("sleep") && !rob.quiesced()) break;
+                    uint64_t delay_us = 0;
                     const uint64_t slow_started =
                         __builtin_expect(slowlog_armed_, false) ? now_ns() : 0;
                     DebugSleepResult sleep =
-                        debug_sleep_prepare(*srv_, *c, *op, delay_ms);
+                        debug_sleep_prepare(*srv_, *c, *op, delay_us);
                     if (sleep != DebugSleepResult::NotSleep) {
-                        if (sleep == DebugSleepResult::Deferred &&
-                            deferred_timer_start(c, rob.dispatch_id(),
-                                                 DeferredTimerKind::DebugSleepOk, delay_ms,
-                                                 slow_started, slowlog_arm_)) {
+                        const int started = sleep == DebugSleepResult::Deferred
+                            ? debug_sleep_timer_start(c, rob.dispatch_id(), delay_us,
+                                                      slow_started, slowlog_arm_) : -1;
+                        if (started == 0) break; // another sleep owns the process-wide pause
+                        if (started > 0) {
                             conn.advance_parse(consumed);
                             self_->note_command(spec->id);
                             flip_fingerprint_note(*spec, *op);
@@ -4639,11 +4662,25 @@ ordinary_shard_ready:
     struct DeferredTimer {
         Client* client = nullptr;
         uint64_t op_id = 0;
-        uint64_t deadline_ms = 0;  // zero is WAIT's wait-forever spelling
+        uint64_t deadline_ms = 0;  // WAIT deadline (0 = forever), or a DEBUG SLEEP completion ticket
         uint64_t slow_started_ns = 0;
         SlowlogArm slowlog_arm{};
         DeferredTimerKind kind = DeferredTimerKind::WaitZero;
     };
+
+    int debug_sleep_timer_start(Client* client, uint64_t op_id, uint64_t delay_us,
+                                uint64_t slow_started_ns, const SlowlogArm& arm) {
+        // Reserve ownership before publishing a pause; an allocation failure must not leave
+        // a process-wide action without a corresponding command result.
+        try {
+            deferred_timers_.push_back(DeferredTimer{client, op_id, 0, slow_started_ns, arm,
+                                                     DeferredTimerKind::DebugSleepOk});
+        } catch (const std::bad_alloc&) { return -1; }
+        const uint64_t ticket = srv_->debug_sleep_start(delay_us, self_->id());
+        if (!ticket) { deferred_timers_.pop_back(); return 0; }
+        deferred_timers_.back().deadline_ms = ticket;
+        return 1;
+    }
 
     bool deferred_timer_start(Client* client, uint64_t op_id, DeferredTimerKind kind,
                               uint64_t delay_ms, uint64_t slow_started_ns,
@@ -4665,7 +4702,10 @@ ordinary_shard_ready:
         uint32_t completed = 0;
         for (size_t i = 0; i < deferred_timers_.size();) {
             const DeferredTimer timer = deferred_timers_[i];
-            if (!timer.deadline_ms || now_ms < timer.deadline_ms) {
+            const bool ready = timer.kind == DeferredTimerKind::DebugSleepOk
+                ? srv_->debug_sleep_complete(timer.deadline_ms)
+                : timer.deadline_ms && now_ms >= timer.deadline_ms;
+            if (!ready) {
                 i++;
                 continue;
             }
@@ -4688,7 +4728,7 @@ ordinary_shard_ready:
             op.state.store(OpState::Done, std::memory_order_release);
             client->set_blocked(false);
             client->set_last_interaction_s(cached_now_s_);
-            srv_->blocking_client_unparked();
+            if (timer.kind == DeferredTimerKind::WaitZero) srv_->blocking_client_unparked();
             deferred_timers_[i] = deferred_timers_.back();
             deferred_timers_.pop_back();
             enqueue_serve(client);
@@ -4708,7 +4748,7 @@ ordinary_shard_ready:
             }
             Op& op = client->rob().at(timer.op_id);
             op.state.store(OpState::Done, std::memory_order_release);
-            srv_->blocking_client_unparked();
+            if (timer.kind == DeferredTimerKind::WaitZero) srv_->blocking_client_unparked();
             deferred_timers_[i] = deferred_timers_.back();
             deferred_timers_.pop_back();
             cancelled = true;
@@ -4768,11 +4808,22 @@ ordinary_shard_ready:
         sqe->user_data = ur_tag(UrKind::MigrateCancel, nullptr);
     }
 
-    uint32_t client_cron_pass() {
+    unsigned idle_timeout_ms() const {
+        const uint64_t now_ms = now_ns() / 1000000ull;
+        uint64_t deadline = now_ms + Ring::kWaitTimeoutMs;
+        if (client_cron_was_armed_) deadline = std::min(deadline, client_cron_beat_ms_);
+        // Connection timers have no external producer to wake their owner.
+        for (const auto& timer : deferred_timers_)
+            if (timer.kind == DeferredTimerKind::WaitZero && timer.deadline_ms)
+                deadline = std::min(deadline, timer.deadline_ms);
+        return deadline > now_ms ? static_cast<unsigned>(deadline - now_ms) : 0;
+    }
+
+    uint32_t client_cron_pass(uint32_t hz) {
         auto& clients = self_->clients();
         const size_t initial = clients.size();
         if (!initial) { idle_buffers_.purge_reclaimed(cached_now_ms_); client_cron_cursor_ = 0; return 0; }
-        size_t visits = initial / kClientCronBeatsPerSecond;
+        size_t visits = initial / hz;
         if (visits < kClientCronMinVisits)
             visits = std::min(initial, static_cast<size_t>(kClientCronMinVisits));
 
@@ -5049,7 +5100,6 @@ ordinary_shard_ready:
     uint32_t flush_tick_ = 0;
     bool     backstop_pass_ = false;
     wb_rule::Settings wb_config_; // three bytes of existing padding, fixed for this IO lifetime
-    static constexpr uint32_t kClientCronBeatsPerSecond = 10;
     static constexpr uint32_t kClientCronMinVisits = 5;
     uint64_t client_cron_beat_ms_ = 0;
     uint64_t lb_client_signal_beat_ms_ = 0;

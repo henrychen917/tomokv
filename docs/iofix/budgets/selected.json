@@ -1,0 +1,43 @@
+{
+  "unit": "src/core/rl2s.o",
+  "pre_budget": 162972,
+  "post_budget": 163972,
+  "initial_pre": 111026,
+  "initial_post": 112026,
+  "reason": "preserve PRE headroom; read-local GET resolver canonical bytes equal PRE in all eight trials",
+  "final_initial_inline_unit": 112140,
+  "additional_units": [
+    {
+      "unit": "src/core/genthread.o",
+      "pre_budget": 130241,
+      "post_budget": 131500,
+      "initial_pre": 102916,
+      "initial_post": 103958,
+      "reason": "first tested value restoring captured MGET and both ordinary execute specializations"
+    },
+    {
+      "unit": "db0/src/core/genthread.o",
+      "pre_budget": 130360,
+      "post_budget": 131400,
+      "initial_pre": 102136,
+      "initial_post": 103169,
+      "reason": "nearest tested value to preserved headroom, with captured MGET and ordinary execute bytes identical"
+    },
+    {
+      "unit": "src/cmd/xshard.o",
+      "pre_budget": 128705,
+      "post_budget": 128800,
+      "initial_pre": 101128,
+      "initial_post": 101156,
+      "reason": "cold EXEC-only helper isolation plus first tested budget restoring every ordinary scatter-gather body"
+    },
+    {
+      "unit": "db0/src/cmd/xshard.o",
+      "pre_budget": 127713,
+      "post_budget": 127741,
+      "initial_pre": 99819,
+      "initial_post": 99847,
+      "reason": "cold EXEC-only helper isolation; exact PRE headroom restores every ordinary scatter-gather body"
+    }
+  ]
+}

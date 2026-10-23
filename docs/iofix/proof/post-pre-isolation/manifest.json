@@ -1,0 +1,7 @@
+{
+  "run": "/home/user/Projects/cx-iofix/build/gate-run.RvueS0",
+  "binary_sha256": "a96887ff3376273ee85aa26b5bd8ba661269ec4a3b8786cfa76aba9067140d96",
+  "source": "92bb6ead7 source plus per-owner deferred CPU test (3cf5f7327)",
+  "result": "272 ok, 0 FAIL",
+  "note": "Completed before rebuilding cold EXEC helper isolation; no throughput claims. Raw logs remain in the run directory."
+}

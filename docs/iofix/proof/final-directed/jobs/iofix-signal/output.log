@@ -1,0 +1,2 @@
+  row budget: 900s; median=18.66s; correctness-plan-fallback; iofix IO4.17 immediate signal shutdown
+  iofix IO4.17 immediate signal shutdown               ok

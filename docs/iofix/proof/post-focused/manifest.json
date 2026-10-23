@@ -1,0 +1,13 @@
+{
+  "run": "/home/user/Projects/cx-iofix/build/gate-run.GKD6EY",
+  "source_commit": "92bb6ead7",
+  "binary_sha256": "a96887ff3376273ee85aa26b5bd8ba661269ec4a3b8786cfa76aba9067140d96",
+  "server_cores": "80-87",
+  "load_cores": "88-95",
+  "shards": 16,
+  "ratio": "6:2",
+  "ports": "19800-19899",
+  "gate_result": "16 ok, 0 FAIL; partial jobs; no performance claim",
+  "jobs": "iofix-deferred iofix-hz iofix-sleep iofix-signal splitlocal_units flip reorder_sync",
+  "note": "source before cold EXEC helper isolation; tests include exact per-owner deferred CPU measurement"
+}

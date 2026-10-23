@@ -1,0 +1,139 @@
+193:# 172 -> 178: snapcut added two cross-shard snapshot-cut rows per persist-io engine, and execfix
+199:# 192 -> 194: the AOF frame-order battery, on persist-io normal under both atomic modes.
+216:# 239 -> 240: the flip-controller model unit test (tests/flipctl_unit.cc) as a static build row;
+308:# flipfix (IO4.1/IO4.2/IO4.4/CT4.3): +3 live rows in job_flip (close during FLIP on uring and
+309:# epoll, signal stop during FLIP + second SIGINT) and +2 serverless rows in job_flipfix_units;
+794:  # Every ordinary boot gets an empty persistence directory. Explicit recovery arms override it
+845:# asserts its own mechanisms fired; the boot covers multi/blocking/pubsub+sharded/lua/limits.
+848:FEATURE_BATTERIES="s6 multi_exec blocking blockmulti stream streamgroups pubsub lua_scripting scriptsurf limits resp3 bitfield dumprestore zsetops geo climon climon2 tracking hexpire servertail lcs concur edgeproto edgeenc edgetime arity contarity cmdgap aclsel expwide infofix pushtear netcmd"
+937:    flipctl) echo 'flip controller: ramp gate, hold, surge + mix re-maneuvers';;
+990:    flipctl)
+991:      boot "$CANDIDATE_BINARY" --ratio 6:2 --atomic 0 --enable-debug-command yes --flip-auto 1 \
+992:          || bad 'flipctl boot'
+995:      python3 tests/flipctl.py --host 127.0.0.1 --port "$PORT" --stable-seconds 30 \
+1086:  JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit storage_units
+1100:  JOB_NAMES+=(flipctl)
+1112:              core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
+1114:              efficiency dump_restore auth authfix notify notify_order notify_aof flip flip_saturated atomic_floor
+1262:# The bodies below preserve every same-server sequence and persistence recovery chain. Only
+1330:    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc 2>$TMPDIR/gate-asan-build.txt \
+1348:job_flip_unit(){
+1349:# The flip-controller MODEL (fingerprint classes, ramp gate, count-noise rejection) has a unit
+1350:# test that nothing built; a model regression surfaced only in flipctl.py's live 2-5 min row.
+1351:row_begin "flip controller model unit"
+1352:g++ -std=c++20 -O2 -I. tests/flipctl_unit.cc src/core/flipctl.cc -o $TMPDIR/tomokv-flipctl-unit \
+1353:    2>$TMPDIR/gate-flipctl-unit.txt \
+1354:    && $TMPDIR/tomokv-flipctl-unit >>$TMPDIR/gate-flipctl-unit.txt 2>&1 \
+1355:    && ok "flip controller model unit" \
+1356:    || bad "flip controller model unit" "see $TMPDIR/gate-flipctl-unit.txt"
+1359:job_flipfix_units(){
+1360:# flipfix IO4.4/CT4.3: two serverless rows, collected BEFORE the quick-tier exit (+2/+2). Each runs
+1364:flipfix_unit(){
+1374:flipfix_unit flipfix-plan \
+1376:    || bad "FLIP planned-connection close lifetime (ASAN+TSAN)" "see $TMPDIR/gate-flipfix-plan.txt and $TMPDIR/tsan-core-concurrency-tsan-flipfix-plan.log"
+1378:flipfix_unit flipfix-fingerprint \
+1380:    || bad "FLIP fingerprint publication (ASAN+TSAN)" "see $TMPDIR/gate-flipfix-fingerprint.txt and $TMPDIR/tsan-core-concurrency-tsan-flipfix-fingerprint.log"
+1438:      label="shutdown persistence ($mode, $stop_case)"
+1440:      py tests/shutdown_persist.py --binary "$CANDIDATE_BINARY" --cores "$CORES" \
+1492:        --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes \
+1510:      --databases 1 --key-lb 0 --client-lb 0 --flip-auto 0 \
+1532:job_persistfix_units(){
+1535:if unit_ready persistfix-units && taskset -c "$CORES" python3 tests/persistfix_checks.py \
+1536:    >"$TMPDIR/persistfix-unit.log" 2>&1; then
+1539:  bad "AOF publication/shutdown witnesses + negative controls" "see $TMPDIR/persistfix-unit.log"
+1565:        --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes \
+1818:  if "$boot_fn" "$CANDIDATE_BINARY" --key-lb 1 --client-lb 1 --flip-auto 0 --enable-debug-command yes &&
+1907:at15_ok=1
+1908:for variant in at15-unit at15-db0-unit; do
+1909:  if ! unit_ready "$variant"; then at15_ok=0; continue; fi
+1912:        >"$TMPDIR/$variant-$mode.log" 2>&1 || at15_ok=0
+1915:[ "$at15_ok" = 1 ] && ok "MULTI admin command replies" \
+1916:    || bad "MULTI admin command replies" "see $TMPDIR/at15-*.log"
+1977:for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config wb-small-pipe wb-complete-visits hexpire-oom; do
+2221:          --flip-auto 0 --enable-debug-command yes && WAIT_BOOTED=1
+2224:          --flip-auto 0 --enable-debug-command yes && WAIT_BOOTED=1
+2296:        --flip-auto 0 --enable-debug-command yes; then
+2316:# predecessor/promotion counters, overlapping writers, window liveness, and live CONFIG flips.
+2493:      --key-lb 0 --client-lb 0 --flip-auto 0 \
+2509:  # really spans owners; ATOMIC-COMMIT-DELAY / ATOMIC-READ-DELAY widen the window). It flips
+2513:  # so a whole transaction can commit inside the fan-out on demand. It flips `atomic` itself, so
+2518:  # in-EXEC read on demand. It flips `atomic` itself, so either boot covers both modes. Its armed
+2523:  # It flips `atomic` itself, so either boot covers both modes. Its rows assert counters as well as
+2539:  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires multirace session_monotonic xacct xmove xscript; do
+2656:row_begin "authfix SV4.1 slowlog credential redaction (1s)"
+2658:    --case slowlog-1s --output "$TMPDIR/authfix-slowlog-1s" >"$TMPDIR/authfix-slowlog-1s.log" 2>&1 \
+2659:    && ok "authfix SV4.1 slowlog credential redaction (1s)" \
+2660:    || bad "authfix SV4.1 slowlog credential redaction (1s)" "see $TMPDIR/authfix-slowlog-1s.log"
+2661:row_begin "authfix SV4.1 slowlog credential redaction (2s)"
+2663:    --case slowlog-2s --output "$TMPDIR/authfix-slowlog-2s" >"$TMPDIR/authfix-slowlog-2s.log" 2>&1 \
+2664:    && ok "authfix SV4.1 slowlog credential redaction (2s)" \
+2665:    || bad "authfix SV4.1 slowlog credential redaction (2s)" "see $TMPDIR/authfix-slowlog-2s.log"
+2700:py tests/debug.py 127.0.0.1 $PORT >$TMPDIR/gate-debug.txt 2>&1 \
+2872:                     --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0)
+2937:                     --enable-debug-command yes --save '' --client-lb 0 --key-lb 0 --flip-auto 0
+2985:row_begin "pubsub feature battery"
+2986:py tests/pubsub.py 127.0.0.1 $PORT >$TMPDIR/gate-pubsub.txt 2>&1 \
+2987:    && ok "pubsub feature battery" || bad "pubsub feature battery" "see $TMPDIR/gate-pubsub.txt"
+3001:job_flip(){
+3004:#   flip.py            the 542-check state battery (incl. same-split no-op moves NOTHING)
+3005:#   flip_under_load    value-verified traffic + flips: no drops, no BUSY, no regressions
+3006:#   flip_ttl           TTL state AND expiry events survive the shard/client moves a flip performs
+3007:#   saturated flips    a one-shot quiesce snapshot once refused ~every flip under 512-conn
+3008:#                      pipelined load while 8-conn tests sailed through; this row flips under
+3010:boot "$CANDIDATE_BINARY" --enable-debug-command yes || bad "flip battery boot"
+3012:py tests/flip.py 127.0.0.1 $PORT >$TMPDIR/gate-flip.txt 2>&1 \
+3013:    && ok "FLIP state battery" || bad "FLIP state battery" "see $TMPDIR/gate-flip.txt"
+3015:py tests/flip_under_load.py 127.0.0.1 $PORT 20 >$TMPDIR/gate-flip-load.txt 2>&1 \
+3016:    && ok "FLIP under verified load" || bad "FLIP under verified load" "see $TMPDIR/gate-flip-load.txt"
+3018:py tests/flip_ttl.py 127.0.0.1 $PORT >$TMPDIR/gate-flip-ttl.txt 2>&1 \
+3019:    && ok "FLIP TTL + expiry events" || bad "FLIP TTL + expiry events" "see $TMPDIR/gate-flip-ttl.txt"
+3024:# flipfix (IO4.1, IO4.2). Each row owns its boots on this slot's $PORT, now free. Closing peers
+3029:  py tests/flipfix.py close --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+3030:      --ratio "$GATE_RATIO" --net-io "$NET_IO" --output "$TMPDIR/flipfix-close-$NET_IO" \
+3031:      >"$TMPDIR/gate-flipfix-close-$NET_IO.txt" 2>&1 \
+3033:      || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-close-$NET_IO.txt"
+3036:{ py tests/flipfix.py sigterm --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+3037:      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigterm" &&
+3038:  py tests/flipfix.py sigint --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+3039:      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigint"; } >"$TMPDIR/gate-flipfix-signal.txt" 2>&1 \
+3041:    || bad "FLIP signal stop during FLIP + second SIGINT" "see $TMPDIR/gate-flipfix-signal.txt"
+3043:for CASE in epoll-flip epoll-lb; do
+3052:job_flip_saturated(){
+3053:boot "$CANDIDATE_BINARY" --enable-debug-command yes || bad "flip battery reboot"
+3063:  TOTAL=$(redis-cli -p $PORT flip 2>/dev/null | paste - - | awk '/live_io/{a=$2} /live_ex/{b=$2} END{print a+b}')
+3066:    OUT=$(redis-cli -p $PORT flip $TIO $((TOTAL-TIO)) 2>&1); sleep 1
+3067:    LIVE=$(redis-cli -p $PORT flip 2>/dev/null | paste - - | awk '/live_io/{print $2; exit}')
+3068:    { [ "$OUT" = "OK" ] && [ "$LIVE" = "$TIO" ]; } || { SATOK=0; echo "flip $TIO refused/missed: '$OUT' live=$LIVE" >>$TMPDIR/gate-flip-sat.txt; }
+3082:  || bad "FLIP applies under saturated load" "see $TMPDIR/gate-flip-sat.txt"
+3086:row_begin "flip battery shutdown invariants"
+3093:[ "$FLIPSHUT" = 1 ] && ok "flip battery shutdown invariants" \
+3094:    || bad "flip battery shutdown invariants"
+3255:    if python3 tests/persistfix.py --binary "$CANDIDATE_BINARY" --mode "$PERSIST_MODE" \
+3257:        --port "$PORT" --artifacts "$TMPDIR/persistfix" \
+3258:        >"$TMPDIR/persistfix-$PERSIST_MODE-$PERSIST_CASE.log" 2>&1; then
+3262:          "see $TMPDIR/persistfix-$PERSIST_MODE-$PERSIST_CASE.log"
+3267:# persistfix rows above own and reap their processes. This row owns the same
+3363:# is reaped. Keeping these in job_aof also serializes its persistence row timings.
+3414:# Syscall persistence under epoll is where the defect was demonstrated. The existing rewrite
+3421:    --aof-timestamp-enabled no --key-lb 0 --client-lb 0 --flip-auto 0 \
+3425:unit_ready persistfix-units \
+3426:    && taskset -c "$CORES" ./build/persistfix-unit frameorder \
+3822:    src/main.cc src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc 2>$TMPDIR/gate-rlcachedbg-build.txt \
+3893:  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc; do
+3989:      build/expire-notify-unit build/ktls-lifetime-unit build/moverfix-unit build/moverfix-db0-unit build/publishfix-unit build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
+3991:      build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon build/aoforder-scheduled >"$TMPDIR/build.log" 2>&1
+3996:  for target in expire-notify-unit ktls-lifetime-unit moverfix-unit moverfix-db0-unit publishfix-unit at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon aoforder-scheduled; do
+4019:      py tests/multidb.py 127.0.0.1 "$PORT" --read-local "$read_local" --persistence \
+4066:      # A measured 3 ms scheduling pause alone flips atomic_ryow's unchanged 24-command
+4074:    release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
+4075:    core_units|flipfix_units) echo 'production_units core_tsan_build';;
+4082:    lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
+4152:collect_job flip_unit
+4169:collect_job persistfix_units
+4175:# flipfix: two serverless sanitizer rows before the quick exit (+2 quick / +2 full).
+4176:collect_job flipfix_units
+4288:collect_job flip
+4290:collect_job flipctl
+4291:collect_job flip_saturated
+4305:# --client-lb {0,1}, --reorder {0,1}, --flip-auto {0,1} in the full 32-way product, and explicitly
+4308:# The eight fused + flip-auto=1 cells must refuse the exact documented unsupported combination;

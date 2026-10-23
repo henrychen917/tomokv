@@ -1,0 +1,898 @@
+--- a/tests/gate.sh
++++ b/tests/gate.sh
+@@ -946,6 +946,10 @@
+ job_body(){
+   local name=$1 label; label=$(job_label "$name")
+   case "$name" in
++    iofix-deferred) job_iofix_deferred "$name";;
++    iofix-hz) job_iofix_hz "$name";;
++    iofix-sleep) job_iofix_sleep "$name";;
++    iofix-signal) job_iofix_signal "$name";;
+     multidb-*) job_multidb "$name";;
+     feature-cell-*) job_feature_cell "$name";;
+     snapshot-*) job_snapshot "$name";;
+@@ -1103,7 +1107,7 @@
+     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
+   done
+   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
+-              wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
++              iofix-deferred iofix-hz iofix-sleep iofix-signal wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
+               reorder_sync reorder_engagement reorder_identity
+               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units perfex_units perfex_live ntnew4_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar dbdefault wait_units readonly
+               release_batteries atomic_batteries moverfix hexpread compat2 bplus acl_recheck aclfix sort script_bounds scriptfix
+@@ -1734,6 +1738,37 @@
+   py tests/reorder_receipt.py "$CANDIDATE_BINARY" "$TMPDIR/receipt" >"$TMPDIR/receipt.log" 2>&1 \
+       && ok "$label" || bad "$label" "see $TMPDIR/receipt.log"
+ }
++iofix_legs(){
++  local feature=$1 label=$2 mode engine failed=0
++  for mode in 2s 1s; do for engine in uring epoll; do
++    py "tests/iofix_${feature}.py" --binary "$CANDIDATE_BINARY" --port "$PORT" \
++        --cores "$CORES" --ratio "$GATE_RATIO" --mode "$mode" --net-io "$engine" \
++        --output "$TMPDIR/$feature-$mode-$engine" \
++        >"$TMPDIR/$feature-$mode-$engine.log" 2>&1 || failed=1
++  done; done
++  [ "$failed" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/$feature-*.log"
++}
++
++job_iofix_deferred(){
++  row_begin "iofix WB4.1 deferred IO parks"
++  iofix_legs deferred "iofix WB4.1 deferred IO parks"
++}
++
++job_iofix_hz(){
++  row_begin "iofix IO4.9 Redis hz cron"
++  iofix_legs hz "iofix IO4.9 Redis hz cron"
++}
++
++job_iofix_sleep(){
++  row_begin "iofix IO4.10 global DEBUG SLEEP"
++  iofix_legs sleep "iofix IO4.10 global DEBUG SLEEP"
++}
++
++job_iofix_signal(){
++  row_begin "iofix IO4.17 immediate signal shutdown"
++  iofix_legs signal "iofix IO4.17 immediate signal shutdown"
++}
++
+ job_wb_policy(){
+   local label='writeback policies 0/1: 22 standard fixtures'
+   local mode policy boot_fn rc=0
+@@ -4108,6 +4143,11 @@
+ 
+ collect_job asan
+ collect_job config_unit
++# iofix rows are collected before the quick-tier exit; EXPECT remains owner-maintained.
++collect_job iofix-deferred
++collect_job iofix-hz
++collect_job iofix-sleep
++collect_job iofix-signal
+ 
+ collect_job flip_unit
+ 
+--- a/tests/debug.py
++++ b/tests/debug.py
+@@ -78,65 +78,38 @@
+        "ERR parameter is immutable at runtime", "boot-only config")
+ expect(client.command("DEBUG", "SLEEP", "0"), b"OK", "DEBUG SLEEP")
+ 
+-# A positive sleep must park this connection, not its IO owner. Find a second connection on the
+-# same owner so this would deterministically stall on the former synchronous implementation. The
+-# pipelined PING also proves that younger frames remain behind the sleeping ROB slot.
+-owner = client.command("DEBUG", "IO-THREAD")
+-sleep_client = None
+-extra_clients = []
+-for _ in range(128):
+-    candidate = Conn()
+-    if candidate.command("DEBUG", "IO-THREAD") == owner:
+-        sleep_client = candidate
+-        break
+-    extra_clients.append(candidate)
+-if sleep_client is None:
+-    raise AssertionError("could not place DEBUG SLEEP probe on IO owner %r" % (owner,))
+-for candidate in extra_clients:
+-    candidate.file.close()
+-    candidate.sock.close()
+-
++# Redis 7.4 blocks every connection for DEBUG SLEEP, including another client on this IO.
++# Exact oracle replies/timings (including disconnect and >1s) live in iofix_sleep.py.
++sleep_client = Conn()
+ blocked_before = info_value(client, "blocked_clients", "clients")
+ started = time.monotonic()
+ sleep_client.sock.sendall(frame("DEBUG", "SLEEP", ".5") + frame("PING"))
+-progress_deadline = started + .30
+-while time.monotonic() < progress_deadline:
+-    if info_value(client, "blocked_clients", "clients") >= blocked_before + 1:
+-        break
+-else:
+-    raise AssertionError("same-owner connection did not make progress while DEBUG SLEEP parked")
+-expect(client.command("PING"), b"PONG", "same-owner progress during DEBUG SLEEP")
+-expect(sleep_client.read(), b"OK", "deferred DEBUG SLEEP reply")
+-if time.monotonic() - started < .40:
++time.sleep(.08)
++other_started = time.monotonic()
++expect(client.command("PING"), b"PONG", "other connection resumes after DEBUG SLEEP")
++if time.monotonic() - other_started < .30:
++    raise AssertionError("DEBUG SLEEP did not pause the other connection")
++expect(sleep_client.read(), b"OK", "DEBUG SLEEP reply")
++if time.monotonic() - started < .5:
+     raise AssertionError("DEBUG SLEEP deadline fired too early")
+ expect(sleep_client.read(), b"PONG", "pipelined PING stayed behind DEBUG SLEEP")
+ if info_value(client, "blocked_clients", "clients") != blocked_before:
+-    raise AssertionError("DEBUG SLEEP did not restore blocked_clients")
++    raise AssertionError("DEBUG SLEEP changed blocked_clients")
+ 
+-# A disconnect owns cancellation of its timer and blocked-client accounting.
+ cancel_client = Conn()
+-cancel_before = info_value(client, "blocked_clients", "clients")
+ cancel_client.sock.sendall(frame("DEBUG", "SLEEP", ".5"))
+-cancel_arm_deadline = time.monotonic() + .30
+-while (info_value(client, "blocked_clients", "clients") < cancel_before + 1 and
+-       time.monotonic() < cancel_arm_deadline):
+-    time.sleep(.005)
+-if info_value(client, "blocked_clients", "clients") < cancel_before + 1:
+-    raise AssertionError("disconnect probe never parked")
++time.sleep(.08)
+ cancel_client.file.close()
+ cancel_client.sock.close()
+-cancel_deadline = time.monotonic() + .30
+-while (info_value(client, "blocked_clients", "clients") != cancel_before and
+-       time.monotonic() < cancel_deadline):
+-    time.sleep(.005)
+-if info_value(client, "blocked_clients", "clients") != cancel_before:
+-    raise AssertionError("disconnect did not cancel DEBUG SLEEP")
++started = time.monotonic()
++expect(client.command("PING"), b"PONG", "disconnected sleeper still completes")
++if time.monotonic() - started < .30:
++    raise AssertionError("disconnect cancelled DEBUG SLEEP")
+ 
+-# The live client timeout supplies the ceiling; timeout=0 retains a one-second safety ceiling.
+-timeout_reply = client.command("CONFIG", "GET", "timeout")
+-sleep_cap = max(1, int(timeout_reply[1]))
+-expect(client.command("DEBUG", "SLEEP", str(sleep_cap + 1)),
+-       "ERR value is not a valid float", "DEBUG SLEEP timeout-derived ceiling")
++started = time.monotonic()
++expect(client.command("DEBUG", "SLEEP", "1.01"), b"OK", "DEBUG SLEEP has no timeout ceiling")
++if time.monotonic() - started < 1:
++    raise AssertionError("DEBUG SLEEP above one second did not sleep")
+ expect(client.command("MULTI"), b"OK", "MULTI before DEBUG SLEEP")
+ expect(client.command("DEBUG", "SLEEP", ".01"), b"QUEUED", "queue DEBUG SLEEP")
+ # Redis queues DEBUG SLEEP and returns its OK as an EXEC array element. The
+@@ -221,5 +194,5 @@
+ 
+ client.file.close()
+ client.sock.close()
+-print("debug: PASS (connection-timer sleep, toggle fired, batched shard ownership, LOADAOF off guard, "
++print("debug: PASS (process-wide sleep, toggle fired, batched shard ownership, LOADAOF off guard, "
+       "mixed snapshot RELOAD atomic=0/1)")
+--- a/tests/_iofix.py
++++ b/tests/_iofix.py
+@@ -0,0 +1,114 @@
++"""Owned correctness listeners and raw replies shared by the four IO regressions."""
++import argparse
++import contextlib
++import json
++import os
++from pathlib import Path
++import socket
++import subprocess
++import time
++
++from _lib import Conn, RespError, encode
++
++
++def arguments(description):
++    p = argparse.ArgumentParser(description=description)
++    p.add_argument('--binary', required=True)
++    p.add_argument('--oracle', default=os.environ.get('GATE_DIFFER_ORACLE_BIN', '/home/user/Projects/redis74/src/redis-server'))
++    p.add_argument('--port', type=int, required=True)
++    p.add_argument('--cores', required=True)
++    p.add_argument('--ratio', default='6:2')
++    p.add_argument('--mode', choices=('1s', '2s'), required=True)
++    p.add_argument('--net-io', choices=('epoll', 'uring'), required=True)
++    p.add_argument('--output', type=Path, required=True)
++    return p
++
++
++def emit(**values):
++    print(json.dumps(values, sort_keys=True, default=lambda x: str(x)), flush=True)
++
++
++class Listener:
++    def __init__(self, args, name, oracle=False, extra=(), config=None, directory=None):
++        self.port = args.port + int(oracle)
++        self.directory = directory or args.output / name
++        self.directory.mkdir(parents=True, exist_ok=True)
++        self.log = open(args.output / (name + '.log'), 'ab')
++        guard = subprocess.check_output(['ss', '-H', '-ltn', f'sport = :{self.port}'])
++        assert not guard.strip(), f'port {self.port} already has a listener'
++        command = ['taskset', '-c', args.cores, str(Path(args.oracle if oracle else args.binary).resolve())]
++        if config is not None:
++            command.append(str(config.resolve()))
++        command += ['--bind', '127.0.0.1', '--port', str(self.port), '--dir', str(self.directory.resolve()),
++                    '--save', '', '--appendonly', 'no', '--enable-debug-command', 'yes']
++        if not oracle:
++            command += ['--shards', '16', '--thread-mode', args.mode,
++                        '--net-io', args.net_io, '--key-lb', '0', '--client-lb', '0', '--flip-auto', '0']
++            if args.mode == '2s':
++                command += ['--ratio', args.ratio]
++        command += list(extra)
++        self.process = subprocess.Popen(command, stdout=self.log, stderr=subprocess.STDOUT)
++        self.connections = []
++        emit(boot=command, pid=self.process.pid)
++        try:
++            deadline = time.monotonic() + 30
++            while time.monotonic() < deadline:
++                assert self.process.poll() is None, f'{name} exited: see {self.log.name}'
++                try:
++                    c = self.connect()
++                    assert c.cmd('PING') == b'PONG'
++                    c.close()
++                    break
++                except (ConnectionRefusedError, ConnectionResetError, EOFError, socket.timeout):
++                    time.sleep(.01)
++            else:
++                raise AssertionError(f'{name} never became ready')
++        except BaseException:
++            self.close()
++            raise
++
++    def connect(self):
++        c = Conn('127.0.0.1', self.port, timeout=20)
++        self.connections.append(c)
++        return c
++
++    def close(self):
++        for c in self.connections:
++            c.close()
++        if self.process.poll() is None:
++            self.process.terminate()
++            try:
++                self.process.wait(timeout=15)
++            except subprocess.TimeoutExpired:
++                self.process.kill()
++                self.process.wait()
++                raise AssertionError(f'owned server did not stop: {self.log.name}')
++        # io_uring cancellation can briefly retain the listening socket after waitpid.
++        # Only settle a process we owned and reaped; the next boot's guard stays strict.
++        deadline = time.monotonic() + 3
++        while subprocess.check_output(['ss', '-H', '-ltn', f'sport = :{self.port}']).strip():
++            assert time.monotonic() < deadline, f'owned listener did not disappear: {self.port}'
++            time.sleep(.01)
++        self.log.close()
++
++    def __enter__(self):
++        return self
++
++    def __exit__(self, *exc):
++        self.close()
++
++
++def info(c, section='all'):
++    return dict(line.split(b':', 1) for line in c.cmd('INFO', section).splitlines()
++                if b':' in line and not line.startswith(b'#'))
++
++
++def cpu_times(pid):
++    # schedstat's first field is actual on-CPU nanoseconds, independently of the server's counters.
++    out = {}
++    for task in Path(f'/proc/{pid}/task').iterdir():
++        try:
++            out[int(task.name)] = int((task / 'schedstat').read_text().split()[0])
++        except FileNotFoundError:
++            pass
++    return out
+--- a/tests/iofix_deferred.py
++++ b/tests/iofix_deferred.py
+@@ -0,0 +1,81 @@
++#!/usr/bin/env python3
++"""WB4.1: a real remote LPOS holds one FIFO entry; idle IO CPU must stay bounded."""
++import select
++import os
++from pathlib import Path
++import time
++from _iofix import arguments, Listener, emit, encode, cpu_times
++
++
++def populate(c):
++    for base in range(0, 3_000_000, 10000):
++        assert c.cmd('RPUSH', 'iofix:list', *(['payload'] * 10000)) == base + 10000
++
++
++def run(args):
++    payload = encode('PING') + encode('LPOS', 'iofix:list', 'absent') + encode('PING') * 3
++    with Listener(args, 'oracle', oracle=True) as oracle:
++        c = oracle.connect()
++        populate(c)
++        c.raw(payload)
++        expected = [c.read() for _ in range(5)]
++        assert expected == [b'PONG', None, b'PONG', b'PONG', b'PONG']
++        emit(oracle_replies=expected)
++    failures = []
++    for policy, small, visits in ((0, 16, 3), (1, 16, 3), (1, 0, 3), (1, 16, 0)):
++        name = f'policy-{policy}-S{small}-D{visits}'
++        with Listener(args, name, extra=['--wb-policy', str(policy), '--wb-small-pipe', str(small),
++                                        '--wb-complete-visits', str(visits)]) as server:
++            c = server.connect()
++            populate(c)
++            owner = c.cmd('DEBUG', 'SHARDS', 'iofix:list')[0][1]
++            for attempt in range(128):
++                if c.cmd('DEBUG', 'IO-THREAD') != owner:
++                    break
++                c.close()
++                c = server.connect()
++            else:
++                raise AssertionError('could not place the connection away from its list owner')
++            io_owner = c.cmd('DEBUG', 'IO-THREAD')
++            before = cpu_times(server.process.pid)
++            cores = sorted(os.sched_getaffinity(server.process.pid))
++            def owner_tid(index):
++                found = [tid for tid in before if os.sched_getaffinity(tid) == {cores[index]}
++                         and not Path(f'/proc/{tid}/comm').read_text().startswith('iou-')]
++                assert len(found) == 1, ('worker affinity is ambiguous', index, found)
++                return found[0]
++            io_tid, list_tid = owner_tid(io_owner), owner_tid(owner)
++            started = time.monotonic()
++            held = 0
++            for _ in range(16):
++                c.raw(payload)
++                held += not select.select([c.sock], [], [], .002)[0]
++                assert [c.read() for _ in range(5)] == expected
++            wall = time.monotonic() - started
++            after = cpu_times(server.process.pid)
++            cpu = sorted(((after[tid] - ns) / 1e9, tid) for tid, ns in before.items()
++                         if tid in after)[::-1]
++            # One owner must really have run the slow command; a missing deferral window is red.
++            io_cpu = (after[io_tid] - before[io_tid]) / 1e9
++            list_cpu = (after[list_tid] - before[list_tid]) / 1e9
++            assert list_cpu > .10, ('LPOS window never opened', list_cpu)
++            if policy:
++                assert held > 0, 'no deferred prefix was witnessed'
++            emit(arm=name, io_owner=io_owner, list_owner=owner, holds=held, wall_seconds=wall,
++                 top_cpu_seconds=cpu[:3], io_tid=io_tid, list_tid=list_tid,
++                 io_cpu_seconds=io_cpu, list_cpu_seconds=list_cpu,
++                 second_busy_cpu_seconds=cpu[1][0])
++            # Directly measure the proven connection owner. Retain the independent rank check:
++            # LPOS's owner must be the only sustained CPU consumer in this isolated workload.
++            if io_cpu > wall * .15 or cpu[1][0] > wall * .15:
++                failures.append((name, 'deferred IO busy-spun', io_cpu, cpu[1][0], wall))
++            assert c.cmd('SET', 'iofix:after', name) == b'OK'
++            assert c.cmd('GET', 'iofix:after') == name.encode()
++    assert not failures, failures
++    emit(result='PASS WB4.1', mode=args.mode, engine=args.net_io)
++
++
++if __name__ == '__main__':
++    args = arguments(__doc__).parse_args()
++    args.output.mkdir(parents=True, exist_ok=True)
++    run(args)
+--- a/tests/iofix_hz.py
++++ b/tests/iofix_hz.py
+@@ -0,0 +1,133 @@
++#!/usr/bin/env python3
++"""IO4.9: Redis hz grammar, clamps, live updates, dynamic cadence and file/rewrite."""
++import time
++import select
++from pathlib import Path
++from _iofix import arguments, Listener, emit, info
++
++
++def wait_hz(c, value):
++    deadline = time.monotonic() + 3
++    while time.monotonic() < deadline:
++        actual = int(info(c, 'server')[b'hz'])
++        if actual == value:
++            return
++        time.sleep(.01)
++    raise AssertionError(('effective hz', actual, value))
++
++
++def switches(pid):
++    total = 0
++    for task in Path(f'/proc/{pid}/task').iterdir():
++        for line in (task / 'status').read_text().splitlines():
++            if line.startswith('voluntary_ctxt_switches:'):
++                total += int(line.split()[1])
++    return total
++
++
++def client_share(server):
++    control = server.connect()
++    assert control.cmd('CONFIG', 'SET', 'hz', '1', 'dynamic-hz', 'no') == b'OK'
++    clients = [server.connect() for _ in range(256)]
++    for client in clients:
++        assert client.cmd('PING') == b'PONG'
++    assert control.cmd('CONFIG', 'SET', 'timeout', '1') == b'OK'
++    # Redis's strict whole-second idle test plus a 1 Hz beat can take three seconds.
++    # A stale clients/10 share needs ten beats to visit this witnessed population.
++    pending = {client.sock for client in clients}
++    start = time.monotonic()
++    while pending:
++        remaining = 3.5 - (time.monotonic() - start)
++        assert remaining > 0, ('client share did not follow hz', len(pending))
++        ready, _, _ = select.select(list(pending), [], [], remaining)
++        for sock in ready:
++            assert sock.recv(1) == b'', 'idle client received unexpected data'
++            pending.remove(sock)
++    emit(client_share_clients=len(clients), client_share_seconds=time.monotonic() - start)
++
++
++def run(args):
++    failures = []
++    def check(phase, action):
++        try:
++            action()
++        except Exception as error:
++            failures.append((phase, repr(error)))
++            emit(phase=phase, failure=repr(error))
++
++    commands = [('CONFIG', 'GET', 'hz'), ('CONFIG', 'GET', 'dynamic-hz')]
++    for value in ('0', '1', '20', '500', '501', '2147483647', '-1', '2147483648',
++                  '01', '+1', '-0', '1.5', '', 'nan', '9223372036854775808'):
++        commands += [('CONFIG', 'SET', 'hz', value), ('CONFIG', 'GET', 'hz')]
++    for value in ('no', 'yes', 'NO', 'YES', '1', '0', 'maybe', ''):
++        commands += [('CONFIG', 'SET', 'dynamic-hz', value), ('CONFIG', 'GET', 'dynamic-hz')]
++    commands += [('CONFIG', 'SET', 'hz', '10', 'HZ', '30'),
++                 ('CONFIG', 'SET', 'dynamic-hz', 'yes', 'DYNAMIC-HZ', 'no'),
++                 ('CONFIG', 'SET', 'HZ', 'junk'),
++                 ('CONFIG', 'SET', 'DYNAMIC-HZ', 'junk'),
++                 ('CONFIG', 'SET', 'hz', '20', 'dynamic-hz', 'invalid'),
++                 ('CONFIG', 'GET', 'hz'), ('CONFIG', 'GET', 'dynamic-hz')]
++    with Listener(args, 'oracle', oracle=True) as oracle, Listener(args, 'target') as target:
++        r, t = oracle.connect(), target.connect()
++        differences = []
++        for command in commands:
++            expected, actual = r.cmd(*command), t.cmd(*command)
++            emit(command=command, oracle=expected, target=actual)
++            if expected != actual:
++                differences.append((command, expected, actual))
++        if differences:
++            failures.append(('oracle config replies', differences))
++        for listener, c in ((oracle, r), (target, t)):
++            def dynamic():
++                assert c.cmd('CONFIG', 'SET', 'hz', '1', 'dynamic-hz', 'yes') == b'OK'
++                clients = [listener.connect() for _ in range(205)]
++                for client in clients:
++                    assert client.cmd('PING') == b'PONG'
++                wait_hz(c, 2)
++                assert info(c, 'server')[b'configured_hz'] == b'1'
++                assert c.cmd('CONFIG', 'SET', 'dynamic-hz', 'no') == b'OK'
++                wait_hz(c, 1)
++                for client in clients:
++                    client.close()
++            check('dynamic hz ' + ('oracle' if listener is oracle else 'target'), dynamic)
++        # Witness the scheduler, not just CONFIG/INFO strings: a fixed 10 Hz client cron
++        # cannot generate the high-rate idle parks on an otherwise idle server.
++        def cadence():
++            samples = {}
++            for hz in (10, 100):
++                assert t.cmd('CONFIG', 'SET', 'hz', hz) == b'OK'
++                time.sleep(1.1)  # the previous 1 Hz timer is allowed to finish
++                before = switches(target.process.pid)
++                time.sleep(.5)
++                samples[hz] = switches(target.process.pid) - before
++            emit(cron_wait_switches=samples)
++            assert samples[100] > 2 * samples[10], ('client cron stayed at 10 Hz', samples)
++        check('cron cadence', cadence)
++        check('oracle client share', lambda: client_share(oracle))
++        check('target client share', lambda: client_share(target))
++    for oracle in (True, False):
++        name = 'file-oracle' if oracle else 'file-target'
++        config = args.output / (name + '.conf')
++        config.write_text('hz 0\ndynamic-hz no\n')
++        def rewrite():
++            with Listener(args, name, oracle=oracle, config=config) as server:
++                c = server.connect()
++                assert c.cmd('CONFIG', 'GET', 'hz') == [b'hz', b'1']
++                assert c.cmd('CONFIG', 'GET', 'dynamic-hz') == [b'dynamic-hz', b'no']
++                assert c.cmd('CONFIG', 'SET', 'hz', '2147483647', 'dynamic-hz', 'yes') == b'OK'
++                assert c.cmd('CONFIG', 'REWRITE') == b'OK'
++        def reload():
++            with Listener(args, name + '-reload', oracle=oracle, config=config) as server:
++                c = server.connect()
++                assert c.cmd('CONFIG', 'GET', 'hz') == [b'hz', b'500']
++                assert c.cmd('CONFIG', 'GET', 'dynamic-hz') == [b'dynamic-hz', b'yes']
++        check(name + ' rewrite', rewrite)
++        check(name + ' reload', reload)
++    assert not failures, failures
++    emit(result='PASS IO4.9', mode=args.mode, engine=args.net_io)
++
++
++if __name__ == '__main__':
++    args = arguments(__doc__).parse_args()
++    args.output.mkdir(parents=True, exist_ok=True)
++    run(args)
+--- a/tests/iofix_sleep.py
++++ b/tests/iofix_sleep.py
+@@ -0,0 +1,164 @@
++#!/usr/bin/env python3
++"""IO4.10: every worker pauses, exact oracle replies, pipelines and EXEC survive."""
++import os
++from pathlib import Path
++import select
++import signal
++import time
++from _iofix import arguments, Listener, emit, encode, info, cpu_times
++
++
++def workers(pid):
++    return [int(path.name) for path in Path(f'/proc/{pid}/task').iterdir()
++            if len(os.sched_getaffinity(int(path.name))) == 1]
++
++
++def paused(pid, tids):
++    return all('futex' in Path(f'/proc/{pid}/task/{tid}/wchan').read_text() for tid in tids)
++
++
++def replies(server):
++    c = server.connect()
++    out = []
++    for value in ('0', '-1', 'garbage', 'nan', 'inf', '0.0000001', '.002tail', ' 0.002', '1.01'):
++        start = time.monotonic()
++        reply = c.cmd('DEBUG', 'SLEEP', value)
++        elapsed = time.monotonic() - start
++        emit(sleep=value, reply=reply, seconds=elapsed)
++        assert reply == b'OK'
++        if value == '1.01':
++            assert elapsed >= 1, 'old timeout-derived ceiling still active'
++        if value in ('.002tail', ' 0.002'):
++            assert elapsed >= .002, 'Redis numeric prefix must retain the positive delay'
++        out.append(reply)
++    assert c.cmd('MULTI') == b'OK'
++    for command in (('SET', 'iofix:order', 'before'), ('DEBUG', 'SLEEP', '.03'),
++                    ('SET', 'iofix:order', 'after'), ('GET', 'iofix:order')):
++        assert c.cmd(*command) == b'QUEUED'
++    start = time.monotonic()
++    out.append(c.cmd('EXEC'))
++    assert time.monotonic() - start >= .03
++    # A disconnect does not cancel Redis's sleep, and DEBUG SLEEP isn't a blocked-client command.
++    blocked = info(c, 'clients')[b'blocked_clients']
++    sleeper = server.connect()
++    sleeper.send('DEBUG', 'SLEEP', '.35')
++    time.sleep(.08)
++    sleeper.close()
++    start = time.monotonic()
++    out.append(c.cmd('PING'))
++    assert time.monotonic() - start >= .20, 'disconnect cancelled the global sleep'
++    assert info(c, 'clients')[b'blocked_clients'] == blocked
++    return out
++
++
++def signal_stop(server, oracle=False):
++    c = server.connect()
++    assert c.cmd('CONFIG', 'SET', 'save', '3600 1') == b'OK'
++    assert c.cmd('SET', 'iofix:sleep-stop', 'persisted') == b'OK'
++    filename = c.cmd('CONFIG', 'GET', 'dbfilename')[1].decode()
++    tids = workers(server.process.pid) if not oracle else [server.process.pid]
++    assert len(tids) == (1 if oracle else 8)
++    c.send('DEBUG', 'SLEEP', '5')
++    deadline = time.monotonic() + 3
++    while True:
++        entered = ('hrtimer' in Path(f'/proc/{server.process.pid}/wchan').read_text()
++                   if oracle else paused(server.process.pid, tids))
++        if entered:
++            break
++        assert time.monotonic() < deadline, 'signal/sleep window never opened'
++        assert not select.select([c.sock], [], [], 0)[0], 'sleep returned before signal window'
++        time.sleep(.001)
++    start = time.monotonic()
++    server.process.send_signal(signal.SIGTERM)
++    assert server.process.wait(timeout=10) == 0
++    elapsed = time.monotonic() - start
++    emit(signal_during_sleep_seconds=elapsed, oracle=oracle)
++    assert elapsed < .4, 'signal waited for DEBUG SLEEP to finish'
++    assert (server.directory / filename).is_file(), 'signal skipped the shutdown save'
++
++
++def witness(server, mode, transaction=False):
++    c = server.connect()
++    owners = {}
++    expected_ios = 8 if mode == '1s' else 6
++    for _ in range(512):
++        candidate = server.connect()
++        owner = candidate.cmd('DEBUG', 'IO-THREAD')
++        if owner in owners:
++            candidate.close()
++        else:
++            owners[owner] = candidate
++        if len(owners) == expected_ios:
++            break
++    assert len(owners) == expected_ios, ('missing IO owners', owners)
++    tids = workers(server.process.pid)
++    assert len(tids) == 8, ('worker geometry', tids)
++    if transaction:
++        assert c.cmd('MULTI') == b'OK'
++        assert c.cmd('DEBUG', 'SLEEP', '.5') == b'QUEUED'
++    started = time.monotonic()
++    c.send(*(('EXEC',) if transaction else ('DEBUG', 'SLEEP', '.5')))
++    deadline = started + 2
++    while time.monotonic() < deadline and not paused(server.process.pid, tids):
++        if select.select([c.sock], [], [], 0)[0]:
++            raise AssertionError('sleep replied without an all-worker pause')
++        time.sleep(.001)
++    assert paused(server.process.pid, tids), 'all-worker pause never opened'
++    before = cpu_times(server.process.pid)
++    expected = {}
++    for owner, conn in owners.items():
++        commands = [('PING',)]
++        want = [b'PONG']
++        for n in range(24):
++            key, value = f'iofix:{owner}:{n}', f'value:{n}'
++            commands += [('SET', key, value), ('GET', key)]
++            want += [b'OK', value.encode()]
++        conn.raw(b''.join(encode(*command) for command in commands))
++        expected[owner] = want
++    assert not select.select([conn.sock for conn in owners.values()], [], [], .10)[0], \
++        'a worker processed commands during the witnessed global pause'
++    after = cpu_times(server.process.pid)
++    assert sum(after[tid] - before[tid] for tid in tids) < 30_000_000, 'paused workers busy-spun'
++    assert c.read() == ([b'OK'] if transaction else b'OK')
++    assert time.monotonic() - started >= .5
++    for owner, conn in owners.items():
++        assert [conn.read() for _ in expected[owner]] == expected[owner], 'lost/reordered pipeline'
++        conn.close()
++    emit(witness='all workers paused', transaction=transaction, tids=tids, owners=list(owners))
++
++
++def run(args):
++    with Listener(args, 'oracle', oracle=True) as oracle:
++        expected = replies(oracle)
++        emit(oracle=expected)
++        signal_stop(oracle, oracle=True)
++    variants = [[], ['--read-local', '1']]
++    if args.mode == '1s':
++        variants.append(['--read-local', '1', '--reorder', '1'])
++    failures = []
++    for index, extra in enumerate(variants):
++        try:
++            with Listener(args, f'target-{index}', extra=extra) as server:
++                def check_replies():
++                    assert replies(server) == expected
++                phases = [('oracle replies', check_replies),
++                          ('direct pause', lambda: witness(server, args.mode)),
++                          ('EXEC pause', lambda: witness(server, args.mode, transaction=True)),
++                          ('signal during sleep', lambda: signal_stop(server))]
++                for name, check in phases:
++                    try:
++                        check()
++                    except Exception as error:
++                        emit(variant=index, phase=name, failure=repr(error))
++                        failures.append((index, name, repr(error)))
++        except Exception as error:
++            emit(variant=index, phase='listener', failure=repr(error))
++            failures.append((index, 'listener', repr(error)))
++    assert not failures, failures
++    emit(result='PASS IO4.10', mode=args.mode, engine=args.net_io)
++
++
++if __name__ == '__main__':
++    args = arguments(__doc__).parse_args()
++    args.output.mkdir(parents=True, exist_ok=True)
++    run(args)
+--- a/tests/iofix_signal.py
++++ b/tests/iofix_signal.py
+@@ -0,0 +1,115 @@
++#!/usr/bin/env python3
++"""IO4.17: signal starts the shutdown save immediately; failure/retry remains live."""
++import signal
++import time
++from pathlib import Path
++from _iofix import arguments, Listener, emit, info, cpu_times
++
++
++def fresh_beat(c):
++    before = int(info(c, 'persistence')[b'rdb_save_cron_checks'])
++    deadline = time.monotonic() + 3
++    while time.monotonic() < deadline:
++        after = int(info(c, 'persistence')[b'rdb_save_cron_checks'])
++        if after > before:
++            return
++        time.sleep(.003)
++    raise AssertionError('save-cron beat never opened')
++
++
++def run(args):
++    failures = []
++    for oracle in (True, False):
++        kind = 'oracle' if oracle else 'target'
++        for sig in (signal.SIGTERM, signal.SIGINT):
++            name = f'{kind}-{sig.name}'
++            with Listener(args, name, oracle=oracle,
++                          extra=['--save', '3600 1', '--dbfilename', 'saved.rdb']) as server:
++                c = server.connect()
++                expected = c.cmd('SET', 'iofix:shutdown', sig.name)
++                assert expected == b'OK'
++                if not oracle:
++                    fresh_beat(c)  # force the PRE one-second blind interval, without a lucky phase
++                started = time.monotonic()
++                server.process.send_signal(sig)
++                server.process.wait(timeout=12)
++                elapsed = time.monotonic() - started
++                emit(kind=kind, signal=sig.name, seconds=elapsed, exit=server.process.returncode)
++                assert server.process.returncode == 0
++                assert (server.directory / 'saved.rdb').is_file()
++                directory = server.directory
++                if not oracle and elapsed >= .40:
++                    failures.append((sig.name, 'waited for save cron', elapsed))
++            with Listener(args, name + '-reload', oracle=oracle, directory=directory,
++                          extra=['--dbfilename', 'saved.rdb']) as server:
++                assert server.connect().cmd('GET', 'iofix:shutdown') == sig.name.encode()
++        # A failed shutdown save must keep serving; a second signal must still wake the loop.
++        with Listener(args, kind + '-failed-save', oracle=oracle,
++                      extra=['--save', '3600 1', '--dbfilename', 'saved.rdb']) as server:
++            c = server.connect()
++            assert c.cmd('SET', 'iofix:retry', 'retained') == b'OK'
++            obstruction = server.directory / 'saved.rdb'
++            obstruction.mkdir()
++            server.process.send_signal(signal.SIGTERM)
++            deadline = time.monotonic() + 3
++            while time.monotonic() < deadline:
++                content = open(server.log.name, 'rb').read()
++                error_line = (b'Errors trying to shut down the server.' if oracle
++                              else b'Errors trying to SHUTDOWN:')
++                if error_line in content:
++                    break
++                time.sleep(.01)
++            else:
++                raise AssertionError('failed save never reached the shutdown error')
++            assert server.process.poll() is None
++            assert c.cmd('GET', 'iofix:retry') == b'retained'
++            # Snapshot failure releases owners asynchronously. Witness that every live
++            # thread reached a kernel wait before measuring an otherwise idle interval;
++            # a sticky doorbell that prevents this must FAIL, never skip the CPU check.
++            deadline = time.monotonic() + 3
++            while True:
++                waits = []
++                for tid in cpu_times(server.process.pid):
++                    try:
++                        waits.append(Path(f'/proc/{tid}/wchan').read_text().strip())
++                    except FileNotFoundError:
++                        pass
++                if waits and all(wait != '0' for wait in waits):
++                    break
++                assert time.monotonic() < deadline, 'failed-save idle window never opened'
++                time.sleep(.002)
++            emit(kind=kind, failed_save_parked_threads=len(waits))
++            before = cpu_times(server.process.pid)
++            time.sleep(.2)
++            after = cpu_times(server.process.pid)
++            cpu = sum(after[tid] - ns for tid, ns in before.items() if tid in after) / 1e9
++            emit(kind=kind, failed_save_idle_cpu_seconds=cpu)
++            assert cpu < .05, 'request doorbell stayed readable after failed save'
++            obstruction.rmdir()
++            if not oracle:
++                fresh_beat(c)
++            started = time.monotonic()
++            server.process.send_signal(signal.SIGTERM)
++            server.process.wait(timeout=12)
++            elapsed = time.monotonic() - started
++            assert server.process.returncode == 0
++            assert obstruction.is_file()
++            if not oracle and elapsed >= .40:
++                failures.append(('retry SIGTERM', elapsed))
++        # Explicit NOSAVE must override configured save clauses, including signal-stop defaults.
++        with Listener(args, kind + '-nosave', oracle=oracle,
++                      extra=['--save', '3600 1', '--dbfilename', 'saved.rdb']) as server:
++            c = server.connect()
++            assert c.cmd('SET', 'iofix:nosave', 'discard') == b'OK'
++            c.send('SHUTDOWN', 'NOSAVE')
++            server.process.wait(timeout=5)
++            assert server.process.returncode == 0
++            assert not (server.directory / 'saved.rdb').exists()
++    assert not failures, failures
++    emit(result='PASS IO4.17', mode=args.mode, engine=args.net_io)
++
++
++if __name__ == '__main__':
++    args = arguments(__doc__).parse_args()
++    args.output.mkdir(parents=True, exist_ok=True)
++    run(args)
+--- a/tests/wb_rule_checks.py
++++ b/tests/wb_rule_checks.py
+@@ -54,7 +54,7 @@
+     "capture": ("phase", POLICY, "visits < ready_now", "true", "capture", "callback cannot extend captured visit count"),
+     "visit": ("phase", POLICY, "visits < ready_now", "visits <= ready_now", "fifo", "deferred rotation preserves order"),
+     "dead": ("phase", POLICY, "!c->dead() && defer(*c, loop.wb_config_)", "defer(*c, loop.wb_config_)", "dead", "dead entry removed and unpinned"),
+-    "work": ("phase", POLICY, "if (!loop.pending_serve_.empty()) ++work; // deferred entries must get another phase", "if (false) ++work;", "progress", "deferral alone is positive work"),
++    "work": ("phase", POLICY, "if (!loop.pending_serve_.empty()) ++work;", "/* removed bounded advancement */", "progress", "bounded deferral advancement is positive work"),
+     "split-policy": ("split-phase", POLICY, "!c->dead() && defer(*c, loop.wb_config_)", "false", "split-policy", "2s uses exact composite fraction"),
+     "split-local": ("split-phase", POLICY, "!c->dead() && defer(*c, loop.wb_config_)", "false", "split-local", "2s reader capability shares composite writeback"),
+     "split-budget": ("split-phase", POLICY, "const size_t serve_budget = ready_now", "const size_t serve_budget = 16", "split-budget", "exact mode-specific budget"),
+--- a/tests/wb_rule_phase_unit.cc
++++ b/tests/wb_rule_phase_unit.cc
+@@ -255,9 +255,14 @@
+     template <bool Fused = true> static void progress(bool r7) {
+         Fixture<Fused> f;
+         require(phase(f, r7) == 0, "empty fixture has no unrelated work");
+-        Client c(-1); f.client(c, 1); fill(c, 32, 1); f.io.enqueue_serve(&c);
+-        require(phase(f, r7) == 1 && f.io.wb_.stats().serves == 0, "deferral alone is positive work");
+-        for (unsigned i = 1; i < 32; ++i) c.rob().at(i).state.store(OpState::Done, std::memory_order_release);
++        Client c(-1); f.client(c, 1); fill(c, 8, 1); f.io.enqueue_serve(&c);
++        for (unsigned i = 0; i < 3; ++i)
++            require(phase(f, r7) == 1 && f.io.wb_.stats().serves == 0,
++                    "bounded deferral advancement is positive work");
++        for (unsigned i = 0; i < 8; ++i)
++            require(phase(f, r7) == 0 && c.serve_pending(),
++                    "saturated deferral parks with its lifetime pin");
++        for (unsigned i = 1; i < 8; ++i) c.rob().at(i).state.store(OpState::Done, std::memory_order_release);
+         phase(f, r7); // Deliberately no new request or completion enqueue.
+         require(c.rob().quiesced() && !c.serve_pending(), "completion releases without fresh arrival");
+     }
+--- a/tests/splitlocal_checks.py
++++ b/tests/splitlocal_checks.py
+@@ -107,7 +107,7 @@
+         emit(dest, unit)
+         makefile = dest / 'Makefile'
+         makefile.write_text('unit: unit.cc\n\t$(CXX) -std=c++20 -O2 -Wall -Wextra unit.cc -o unit\n')
+-        result = subprocess.run(['taskset', '-c', '112-127', 'make', '-j16', '-C', str(dest.resolve())],
++        result = subprocess.run(['make', '-j16', '-C', str(dest.resolve())],
+                                 text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+         (dest / 'compile.log').write_text(result.stdout)
+         assert result.returncode != 0 and marker in result.stdout, (name, result.stdout)
+--- a/tests/netcmd_unit.cc
++++ b/tests/netcmd_unit.cc
+@@ -480,6 +480,56 @@
+         command_bind_server(nullptr);
+         std::filesystem::remove_all(directory);
+     }
++    static void late_signal_wakes() {
++        unsigned failures = 0;
++        auto exercise = [&]<bool Fused, bool Tls>(bool epoll) {
++            SignalDoorbell doorbell;
++            check(doorbell.init(), "late signal private doorbell");
++            Server server; ThreadCtx self; IoLoop loop;
++            loop.srv_ = &server; loop.self_ = &self;
++            if (epoll) {
++                check(loop.ep_.init(), "late signal private epoll set");
++                check(loop.ep_.add(doorbell.fd(), EPOLLIN, ur_tag(UrKind::Shutdown, nullptr)),
++                      "late signal epoll registration");
++            }
++            io_uring_cqe completion{};
++            completion.user_data = ur_tag(UrKind::Shutdown, nullptr);
++            completion.res = POLLIN;
++            auto deliver = [&] {
++                if (epoll) loop.epoll_pass<false, Tls, Fused>(0);
++                else loop.on_cqe<Tls, false, Fused>(&completion);
++            };
++            // The publisher can be descheduled between setting the pending bit and write(2).
++            // A failed save may have cleared that bit before this late write becomes visible.
++            check(!server.signal_shutdown_pending(), "late signal pending request already ended");
++            const uint64_t one = 1;
++            check(::write(doorbell.fd(), &one, sizeof(one)) == sizeof(one) &&
++                      signal_doorbell_wait(0), "late signal request window opened");
++            loop.save_cron_writer_ = false;
++            deliver();
++            const bool nonwriter_kept = signal_doorbell_wait(0);
++            loop.save_cron_writer_ = true;
++            deliver();
++            const bool writer_drained = !signal_doorbell_wait(0);
++            // This also exercises restoration after the elected observer reads a terminal
++            // pulse: a concurrent stop must remain visible to every other waiter.
++            signal_doorbell_notify();
++            check(signal_doorbell_wait(0), "late signal terminal window opened");
++            deliver();
++            const bool terminal_kept = signal_doorbell_wait(0);
++            std::printf("signal wake %s %s tls=%d: nonwriter=%d late-drained=%d terminal=%d\n",
++                        Fused ? "1s" : "2s", epoll ? "epoll" : "uring", Tls,
++                        nonwriter_kept, writer_drained, terminal_kept);
++            failures += !nonwriter_kept || !writer_drained || !terminal_kept;
++        };
++        exercise.template operator()<false, false>(false);
++        exercise.template operator()<false, true>(false);
++        exercise.template operator()<false, false>(true);
++        exercise.template operator()<true, false>(false);
++        exercise.template operator()<true, true>(false);
++        exercise.template operator()<true, false>(true);
++        check(failures == 0, "late request wakes drain without consuming terminal shutdown");
++    }
+     static void config() {
+         atomic_fingerprint(0);
+         atomic_fingerprint(1);
+@@ -488,6 +538,7 @@
+         tracking_eviction();
+         zero_copy("zc-all");
+         config_knobs();
++        late_signal_wakes();
+     }
+     static void config_knobs() {
+         Server server;

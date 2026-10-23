@@ -1,0 +1,248 @@
+{
+  "before_bytes": 36255804557,
+  "after_bytes": 13423323481,
+  "removed_bytes": 22832481076,
+  "removed": [
+    {
+      "path": "build/iofix/pre-source/build",
+      "bytes": 12038102949,
+      "reason": "obsolete build or duplicate ELF; evidence retained"
+    },
+    {
+      "path": "build/iofix/PRE",
+      "bytes": 550165376,
+      "reason": "obsolete build or duplicate ELF; evidence retained"
+    },
+    {
+      "path": "build/iofix/budgets",
+      "bytes": 81452984,
+      "reason": "obsolete build or duplicate ELF; evidence retained"
+    },
+    {
+      "path": "build/iofix/sleep-isolation-source",
+      "bytes": 5218810,
+      "reason": "obsolete build or duplicate ELF; evidence retained"
+    },
+    {
+      "path": "build/iofix/full-pad",
+      "bytes": 192697250,
+      "reason": "obsolete build or duplicate ELF; evidence retained"
+    },
+    {
+      "path": "build/iofix/post-map-twin",
+      "bytes": 193530560,
+      "reason": "obsolete build or duplicate ELF; evidence retained"
+    },
+    {
+      "path": "build/iofix/tomokv-before-late-wake-fix",
+      "bytes": 193532536,
+      "reason": "obsolete build or duplicate ELF; evidence retained"
+    },
+    {
+      "path": "build/gate-run.PHoa8J/jobs/config_unit/tomokv-config-parser-test",
+      "bytes": 193408,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.iIHLpW/jobs/config_unit/tomokv-config-parser-test",
+      "bytes": 193408,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.iIHLpW/jobs/flip_unit/tomokv-flipctl-unit",
+      "bytes": 137824,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.iIHLpW/jobs/reorder_engagement/db0/fifo-twin",
+      "bytes": 181264800,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.iIHLpW/jobs/reorder_engagement/multi/fifo-twin",
+      "bytes": 94950544,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.iIHLpW/jobs/reorder_identity/receipt/fifo-twin",
+      "bytes": 193532536,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.1H4VvA/jobs/flip_unit/tomokv-flipctl-unit",
+      "bytes": 137824,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.1H4VvA/jobs/reorder_engagement/db0/fifo-twin",
+      "bytes": 181258288,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.1H4VvA/jobs/reorder_engagement/multi/fifo-twin",
+      "bytes": 94953600,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.RgiM3K/jobs/reorder_identity/receipt/fifo-twin",
+      "bytes": 193530560,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.RvueS0/jobs/config_unit/tomokv-config-parser-test",
+      "bytes": 193408,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.RvueS0/jobs/flip_unit/tomokv-flipctl-unit",
+      "bytes": 137824,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.RvueS0/jobs/reorder_engagement/db0/fifo-twin",
+      "bytes": 181236768,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.RvueS0/jobs/reorder_engagement/multi/fifo-twin",
+      "bytes": 94932624,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.RvueS0/jobs/reorder_identity/receipt/fifo-twin",
+      "bytes": 193504720,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.gEXfwM/jobs/config_unit/tomokv-config-parser-test",
+      "bytes": 193408,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.gEXfwM/jobs/flip_unit/tomokv-flipctl-unit",
+      "bytes": 137824,
+      "reason": "disposable gate ELF; logs/receipts retained"
+    },
+    {
+      "path": "build/gate-run.0VKXs7",
+      "bytes": 290839511,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.0qzwrW",
+      "bytes": 487014,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.0wEBDU",
+      "bytes": 684380,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.1H4VvA",
+      "bytes": 1504980079,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.4LScK7",
+      "bytes": 101069,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.60cXkw",
+      "bytes": 551549,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.6SXO6t",
+      "bytes": 2197524,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.GKD6EY",
+      "bytes": 2613131,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.HXjTY1",
+      "bytes": 52653,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.JiQ3rb",
+      "bytes": 138057,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.MZm8I0",
+      "bytes": 1278897,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.PHoa8J",
+      "bytes": 2206170,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.PXi3D1",
+      "bytes": 47036,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.R8MNdC",
+      "bytes": 383503,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.RgiM3K",
+      "bytes": 1018562923,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.RrQLvP",
+      "bytes": 3905601,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.RvueS0",
+      "bytes": 1915282299,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.VxPb5X",
+      "bytes": 359444,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.ZjX82p",
+      "bytes": 208727,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.dCuZVC",
+      "bytes": 85962,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.gEXfwM",
+      "bytes": 1506829382,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.iIHLpW",
+      "bytes": 1911354361,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.roqLqU",
+      "bytes": 3900196,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    },
+    {
+      "path": "build/gate-run.tQppqR",
+      "bytes": 241775,
+      "reason": "gate scratch data/disassembly; logs and receipts verified in final or legacy archives"
+    }
+  ],
+  "retained": "Final four ELFs, current production targets and dependencies, compressed PRE objects, PRE source, proof logs and receipts"
+}

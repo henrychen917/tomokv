@@ -1,0 +1,12 @@
+{
+  "freshness_checks": 40,
+  "freshness_exit_code": 0,
+  "verified_binary_count": 4,
+  "indexed_proof_archives": 15,
+  "indexed_proof_file_hashes": 6648,
+  "legacy_diagnostic_file_hashes": 8387,
+  "all_directed_and_pad_witness_references_resolve": true,
+  "source_unchanged_since": "b8a37dab4",
+  "live_worktree_build_executables": [],
+  "listeners_19800_19899": []
+}

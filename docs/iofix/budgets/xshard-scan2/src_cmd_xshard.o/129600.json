@@ -1,0 +1,344 @@
+{
+  "value": 129600,
+  "unit": "src/cmd/xshard.o",
+  "command": [
+    "taskset",
+    "-c",
+    "80-95",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=129600",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-iofix/build/iofix/budgets/xshard-scan2/src_cmd_xshard.o/129600.o",
+    "-fdump-ipa-inline=/home/user/Projects/cx-iofix/build/iofix/budgets/xshard-scan2/src_cmd_xshard.o/129600.inline"
+  ],
+  "source_root": "/home/user/Projects/cx-iofix",
+  "seconds": 24.473677943460643,
+  "total": 899,
+  "hot": 12,
+  "changed": 34,
+  "hot_changed": 1,
+  "hot_differing_bytes": 739,
+  "rows": [
+    {
+      "symbol": "_ZN4tomo11AofProducerD1Ev",
+      "name": "tomo::AofProducer::~AofProducer()",
+      "hot": false,
+      "pre_size": 2806,
+      "post_size": 3030,
+      "differing_bytes": 1899,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo11AofProducerD2Ev",
+      "name": "tomo::AofProducer::~AofProducer()",
+      "hot": false,
+      "pre_size": 2806,
+      "post_size": 3030,
+      "differing_bytes": 1899,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_116bitfield_genericILb1EEEvRNS_5ShardERNS_2OpEb",
+      "name": "void tomo::(anonymous namespace)::bitfield_generic<true>(tomo::Shard&, tomo::Op&, bool)",
+      "hot": false,
+      "pre_size": 2882,
+      "post_size": 2933,
+      "differing_bytes": 1818,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_117sort_encode_storeERKSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS7_EERKS1_IhSaIhEERNS0_11ObjectImageE",
+      "name": "tomo::(anonymous namespace)::sort_encode_store(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<unsigned char, std::allocator<unsigned char> > const&, tomo::(anonymous namespace)::ObjectImage&)",
+      "hot": false,
+      "pre_size": 940,
+      "post_size": 1016,
+      "differing_bytes": 950,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_117sort_encode_storeERKSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS7_EERKS1_IhSaIhEERNS0_11ObjectImageE.cold",
+      "name": "tomo::(anonymous namespace)::sort_encode_store(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<unsigned char, std::allocator<unsigned char> > const&, tomo::(anonymous namespace)::ObjectImage&) [clone .cold]",
+      "hot": false,
+      "pre_size": 81,
+      "post_size": 84,
+      "differing_bytes": 38,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_123notify_make_publicationEhjhNS_13NotifyEventIdENS_5SliceERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES9_.constprop.0.isra.0",
+      "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+      "hot": false,
+      "pre_size": 1346,
+      "post_size": 1330,
+      "differing_bytes": 1024,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_123notify_make_publicationEhjhNS_13NotifyEventIdENS_5SliceERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES9_.constprop.0.isra.0.cold",
+      "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+      "hot": false,
+      "pre_size": 117,
+      "post_size": 118,
+      "differing_bytes": 74,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+      "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+      "hot": false,
+      "pre_size": 3406,
+      "post_size": 3329,
+      "differing_bytes": 3149,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+      "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+      "hot": false,
+      "pre_size": 45,
+      "post_size": 45,
+      "differing_bytes": 2,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN4tomo12reply_doubleINS_2Op4SinkEEEvOT_db",
+      "name": "void tomo::reply_double<tomo::Op::Sink>(tomo::Op::Sink&&, double, bool)",
+      "hot": false,
+      "pre_size": 430,
+      "post_size": 641,
+      "differing_bytes": 569,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE",
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)",
+      "hot": false,
+      "pre_size": 18276,
+      "post_size": 18272,
+      "differing_bytes": 9867,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo14xshard_prepareERNS_6ServerERNS_2OpERNS_16ScatterArenaPoolEjmRNS_15ScatterDispatchEbPNS_6ClientE.cold",
+      "name": "tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*) [clone .cold]",
+      "hot": false,
+      "pre_size": 594,
+      "post_size": 588,
+      "differing_bytes": 535,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo15multi_handle_ioERNS_6ServerERNS_6ClientERNS_2OpEjRPNS_14MultiExecStateE",
+      "name": "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&)",
+      "hot": false,
+      "pre_size": 8798,
+      "post_size": 8850,
+      "differing_bytes": 7985,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo15multi_handle_ioERNS_6ServerERNS_6ClientERNS_2OpEjRPNS_14MultiExecStateE.cold",
+      "name": "tomo::multi_handle_io(tomo::Server&, tomo::Client&, tomo::Op&, unsigned int, tomo::MultiExecState*&) [clone .cold]",
+      "hot": false,
+      "pre_size": 804,
+      "post_size": 793,
+      "differing_bytes": 724,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo18multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextE",
+      "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*)",
+      "hot": false,
+      "pre_size": 12562,
+      "post_size": 12619,
+      "differing_bytes": 7035,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo18multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextE.cold",
+      "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*) [clone .cold]",
+      "hot": false,
+      "pre_size": 260,
+      "post_size": 260,
+      "differing_bytes": 70,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo20xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE",
+      "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&)",
+      "hot": false,
+      "pre_size": 7290,
+      "post_size": 7358,
+      "differing_bytes": 3765,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo20xshard_plain_prepareERNS_6ServerERNS_5ShardERNS_2OpEmRNS_21PlainForeignReadScopeE.cold",
+      "name": "tomo::xshard_plain_prepare(tomo::Server&, tomo::Shard&, tomo::Op&, unsigned long, tomo::PlainForeignReadScope&) [clone .cold]",
+      "hot": false,
+      "pre_size": 242,
+      "post_size": 246,
+      "differing_bytes": 213,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6IoLoop12close_clientEPNS_6ClientEb",
+      "name": "tomo::IoLoop::close_client(tomo::Client*, bool)",
+      "hot": false,
+      "pre_size": 7864,
+      "post_size": 7896,
+      "differing_bytes": 6758,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo6Server17debug_sleep_startEmj",
+      "name": "tomo::Server::debug_sleep_start(unsigned long, unsigned int)",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 579,
+      "differing_bytes": 579,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore12start_rehashEj",
+      "name": "tomo::FlatStore::start_rehash(unsigned int)",
+      "hot": false,
+      "pre_size": 812,
+      "post_size": 982,
+      "differing_bytes": 484,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore19retire_detached_objEPNS_5KvObjE",
+      "name": "tomo::FlatStore::retire_detached_obj(tomo::KvObj*)",
+      "hot": false,
+      "pre_size": 525,
+      "post_size": 592,
+      "differing_bytes": 523,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore20atomic_tombstone_allEi",
+      "name": "tomo::FlatStore::atomic_tombstone_all(int)",
+      "hot": false,
+      "pre_size": 4591,
+      "post_size": 4809,
+      "differing_bytes": 3734,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore26atomic_collapse_read_localEmm",
+      "name": "tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)",
+      "hot": false,
+      "pre_size": 6844,
+      "post_size": 6828,
+      "differing_bytes": 6224,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore31read_local_table_mutation_beginEv.isra.0",
+      "name": "tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0]",
+      "hot": false,
+      "pre_size": 84,
+      "post_size": 0,
+      "differing_bytes": 84,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore31read_local_table_mutation_beginEv.isra.0.cold",
+      "name": "tomo::FlatStore::read_local_table_mutation_begin() [clone .isra.0] [clone .cold]",
+      "hot": false,
+      "pre_size": 6,
+      "post_size": 0,
+      "differing_bytes": 6,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9FlatStore8erase_inEimNS_5SliceEPb",
+      "name": "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)",
+      "hot": true,
+      "pre_size": 580,
+      "post_size": 783,
+      "differing_bytes": 739,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9reply_errINS_2Op4SinkEEEvOT_PKc",
+      "name": "void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)",
+      "hot": false,
+      "pre_size": 813,
+      "post_size": 973,
+      "differing_bytes": 658,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9reply_intINS_2Op4SinkEEEvOT_x",
+      "name": "void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long)",
+      "hot": false,
+      "pre_size": 462,
+      "post_size": 673,
+      "differing_bytes": 650,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN4tomo9reply_intIRNS_2Op4SinkEEEvOT_x",
+      "name": "void tomo::reply_int<tomo::Op::Sink&>(tomo::Op::Sink&, long long)",
+      "hot": false,
+      "pre_size": 462,
+      "post_size": 673,
+      "differing_bytes": 650,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNK4tomo9FlatStore15projected_bytesENS_5SliceEm",
+      "name": "tomo::FlatStore::projected_bytes(tomo::Slice, unsigned long) const",
+      "hot": false,
+      "pre_size": 908,
+      "post_size": 1153,
+      "differing_bytes": 1069,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE6insertEN9__gnu_cxx17__normal_iteratorIPKS5_S7_EERSA_",
+      "name": "std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::insert(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+      "hot": false,
+      "pre_size": 1091,
+      "post_size": 1552,
+      "differing_bytes": 1068,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0",
+      "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0]",
+      "hot": false,
+      "pre_size": 3686,
+      "post_size": 3715,
+      "differing_bytes": 2109,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0.cold",
+      "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0] [clone .cold]",
+      "hot": false,
+      "pre_size": 162,
+      "post_size": 162,
+      "differing_bytes": 0,
+      "targets_equal": false
+    }
+  ],
+  "initial_inline_unit": 101411
+}

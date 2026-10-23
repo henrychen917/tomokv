@@ -1,0 +1,36 @@
+{
+  "group": "pre-fused-epoll",
+  "path": "docs/iofix/pre-fused-epoll-launches.jsonl",
+  "records": 7,
+  "sha256": "3752b5aeb1ac8f94cf81774537ded65a01e4b155903da2cf9776b93045f6133f",
+  "source_records": [
+    {
+      "pid": 3301073,
+      "sha256": "3147949d3098c681ea53f76d9e7f8ad93c28edfc7d471c917bd91ee2d759fefa"
+    },
+    {
+      "pid": 3301091,
+      "sha256": "67cbef63a6b3eb2cb79ffdae9d10d3d9c35f0103e67320eddb84c0dbd2e7f9c7"
+    },
+    {
+      "pid": 3301105,
+      "sha256": "5e53b0ee7fd400e3ebdfc3b320a363c1d1e7bc6592773fac98887f686222742b"
+    },
+    {
+      "pid": 3301146,
+      "sha256": "56758ce60078a572d5253385b972ae02332b717b1b2677c79185d7e21b9a5ee2"
+    },
+    {
+      "pid": 3302002,
+      "sha256": "c8b695a4f006a4923cf406149c5a9b4bf119e6835bcecf943d1a317b14cc7555"
+    },
+    {
+      "pid": 3302047,
+      "sha256": "ed08947246bb9e442d86572b68aa96f724e830942a67c478d4f24cdce08f9cba"
+    },
+    {
+      "pid": 3302126,
+      "sha256": "ba03504cb7269439dc2e0a076e3fe6ef156d579e0c7294cf30628b449f817ae9"
+    }
+  ]
+}

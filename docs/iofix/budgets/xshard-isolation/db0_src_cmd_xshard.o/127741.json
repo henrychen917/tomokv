@@ -1,0 +1,94 @@
+{
+  "value": 127741,
+  "unit": "db0/src/cmd/xshard.o",
+  "command": [
+    "taskset",
+    "-c",
+    "80-95",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=127741",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/cmd/xshard.cc",
+    "-o",
+    "/home/user/Projects/cx-iofix/build/iofix/budgets/xshard-isolation/db0_src_cmd_xshard.o/127741.o",
+    "-fdump-ipa-inline=/home/user/Projects/cx-iofix/build/iofix/budgets/xshard-isolation/db0_src_cmd_xshard.o/127741.inline"
+  ],
+  "source_root": "/home/user/Projects/cx-iofix/build/iofix/sleep-isolation-source",
+  "seconds": 23.332002704031765,
+  "total": 890,
+  "hot": 12,
+  "changed": 6,
+  "hot_changed": 0,
+  "hot_differing_bytes": 0,
+  "rows": [
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+      "name": "tomo_db0::(anonymous namespace)::normalize_multi_blocking_pop(tomo_db0::MultiCommand&)",
+      "hot": false,
+      "pre_size": 3368,
+      "post_size": 3529,
+      "differing_bytes": 3152,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+      "name": "tomo_db0::(anonymous namespace)::normalize_multi_blocking_pop(tomo_db0::MultiCommand&) [clone .cold]",
+      "hot": false,
+      "pre_size": 45,
+      "post_size": 45,
+      "differing_bytes": 2,
+      "targets_equal": true
+    },
+    {
+      "symbol": "_ZN8tomo_db018multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextE",
+      "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*)",
+      "hot": false,
+      "pre_size": 12238,
+      "post_size": 12176,
+      "differing_bytes": 4609,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db018multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextE.cold",
+      "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*) [clone .cold]",
+      "hot": false,
+      "pre_size": 254,
+      "post_size": 254,
+      "differing_bytes": 228,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop12close_clientEPNS_6ClientEb",
+      "name": "tomo_db0::IoLoop::close_client(tomo_db0::Client*, bool)",
+      "hot": false,
+      "pre_size": 7864,
+      "post_size": 7896,
+      "differing_bytes": 6758,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore15atomic_collapseEmm",
+      "name": "tomo_db0::FlatStore::atomic_collapse(unsigned long, unsigned long)",
+      "hot": false,
+      "pre_size": 6055,
+      "post_size": 6023,
+      "differing_bytes": 5445,
+      "targets_equal": false
+    }
+  ],
+  "initial_inline_unit": 99847
+}

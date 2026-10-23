@@ -13,6 +13,7 @@
 // the ownership edge. An IO may enqueue using an old route after that edge, so tasks and borrow
 // releases recheck ownership and forward before shard access instead of carrying routing epochs.
 #pragma once
+#include "../cmd/debug_sleep.h"
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
@@ -302,6 +303,8 @@ public:
         live_maxmemory_samples_.store(cfg.maxmemory_samples, std::memory_order_relaxed);
         live_maxclients_.store(cfg.maxclients, std::memory_order_relaxed);
         live_timeout_.store(cfg.timeout, std::memory_order_relaxed);
+        client_hz_.configured.store(cfg.hz, std::memory_order_relaxed);
+        client_hz_.dynamic.store(cfg.dynamic_hz != 0, std::memory_order_relaxed);
         live_tcp_keepalive_.store(cfg.tcp_keepalive, std::memory_order_relaxed);
         store_client_output_buffer_limits(cfg.client_output_buffer_limits);
         refresh_client_cron_armed();
@@ -1876,7 +1879,7 @@ public:
     }
     // Bound coordination, not filesystem IO: a failed/overdue save must leave the server alive.
     static constexpr uint64_t kShutdownSaveWaitNs = 10'000'000'000ull;
-    // Signal-safe request. The existing one-second IO save cron owns all allocation and IO.
+    // Signal-safe request. The elected IO owns allocation and IO, woken by the signal doorbell.
     // Keeping request and policy in the same byte prevents CONFIG SET save from losing a stop.
     bool request_signal_shutdown() {
         if (loading()) return false; // retain the existing interrupted-boot teardown
@@ -2220,6 +2223,39 @@ public:
         live_tcp_keepalive_.store(value, std::memory_order_relaxed);
     }
     uint32_t timeout() const { return live_timeout_.load(std::memory_order_relaxed); }
+    uint32_t configured_hz() const { return client_hz_.configured.load(std::memory_order_relaxed); }
+    using DebugSleepWorker = DebugSleepCoordinator<kMaxThreads, Ring::kWaitTimeoutMs>::Worker;
+    auto& debug_sleep_coordinator() { return debug_sleep_; }
+    void debug_sleep_poll(uint32_t tid) {
+        if (__builtin_expect(debug_sleep_.pending(), false)) debug_sleep_.park(tid);
+    }
+    uint64_t debug_sleep_start(uint64_t us, uint32_t tid) {
+        if (signal_shutdown_pending() || shutting_down().load(std::memory_order_relaxed))
+            return 0;
+        const uint64_t ticket = debug_sleep_.start(us);
+        if (ticket) {
+            // The signal publishes its stop request before interrupting a sleeper. Recheck
+            // after start resets the old interrupt latch, closing the signal/start race.
+            if (signal_shutdown_pending() || shutting_down().load(std::memory_order_relaxed))
+                debug_sleep_.interrupt();
+            if (Ring* source = thread(tid).ring()) {
+                for (uint32_t other = 0; other < nthreads(); ++other)
+                    if (other != tid)
+                        if (Ring* target = thread(other).ring())
+                            source->msg_to(*target, ur_tag(UrKind::Wake, nullptr));
+                source->submit_and_reap();
+            }
+        }
+        return ticket;
+    }
+    bool debug_sleep_complete(uint64_t ticket) { return debug_sleep_.complete(ticket); }
+    uint32_t client_hz() const {
+        return client_hz_.effective(live_clients_.load(std::memory_order_relaxed));
+    }
+    void set_hz(uint32_t hz) { client_hz_.configured.store(hz, std::memory_order_relaxed); }
+    void set_dynamic_hz(bool dynamic) {
+        client_hz_.dynamic.store(dynamic, std::memory_order_relaxed);
+    }
     bool client_cron_armed() const {
         return client_cron_armed_.load(std::memory_order_relaxed);
     }
@@ -3728,6 +3764,9 @@ private:
     TxnOwnerCounters txn_counters_[kMaxThreads];
     MultiRetryLane multi_retry_lanes_[kMaxThreads];
     std::atomic<uint32_t> debug_txn_place_defer_{0};
+    // Cold cron policy at the tail: all prior owner/publication offsets stay fixed.
+    ClientHz client_hz_;
+    DebugSleepCoordinator<kMaxThreads, Ring::kWaitTimeoutMs> debug_sleep_;
 
 };
 

@@ -329,15 +329,15 @@ struct NetcmdRegression {
             client.set_last_interaction_s(100);
             loop.cached_now_s_ = 106;
             server.set_timeout(0);
-            check(loop.client_cron_pass() == 1 && !client.closing(), "timeout 0 keeps subscribers open");
+            check(loop.client_cron_pass(ClientHz::kDefault) == 1 && !client.closing(), "timeout 0 keeps subscribers open");
             server.set_timeout(5);
             loop.cached_now_s_ = 105;
-            check(loop.client_cron_pass() == 1 && !client.closing(), "exact idle timeout keeps subscribers open");
+            check(loop.client_cron_pass(ClientHz::kDefault) == 1 && !client.closing(), "exact idle timeout keeps subscribers open");
             loop.cached_now_s_ = 106;
             client.set_blocked(true);
-            check(loop.client_cron_pass() == 1 && !client.closing(), "blocked subscribers remain exempt");
+            check(loop.client_cron_pass(ClientHz::kDefault) == 1 && !client.closing(), "blocked subscribers remain exempt");
             client.set_blocked(false);
-            check(loop.client_cron_pass() == 1, "idle subscriber visited by client cron");
+            check(loop.client_cron_pass(ClientHz::kDefault) == 1, "idle subscriber visited by client cron");
             check(!client.closing(),
                   resp3 ? "idle RESP3 SUBSCRIBE client must remain exempt from timeout"
                         : "idle RESP2 SUBSCRIBE client must remain exempt from timeout");
@@ -348,7 +348,7 @@ struct NetcmdRegression {
             // No receive is submitted; the control has no subscription or blocking command.
             idle.set_recv_armed(true);
             self.add_client(&idle);
-            check(loop.client_cron_pass() == 2, "subscriber and plain idle client visited by cron");
+            check(loop.client_cron_pass(ClientHz::kDefault) == 2, "subscriber and plain idle client visited by cron");
             check(!client.closing(), "subscriber stays open alongside the plain idle control");
             check(idle.closing(),
                   resp3 ? "plain idle RESP3 client must be closed after timeout"
@@ -483,6 +483,56 @@ struct NetcmdRegression {
         command_bind_server(nullptr);
         std::filesystem::remove_all(directory);
     }
+    static void late_signal_wakes() {
+        unsigned failures = 0;
+        auto exercise = [&]<bool Fused, bool Tls>(bool epoll) {
+            SignalDoorbell doorbell;
+            check(doorbell.init(), "late signal private doorbell");
+            Server server; ThreadCtx self; IoLoop loop;
+            loop.srv_ = &server; loop.self_ = &self;
+            if (epoll) {
+                check(loop.ep_.init(), "late signal private epoll set");
+                check(loop.ep_.add(doorbell.fd(), EPOLLIN, ur_tag(UrKind::Shutdown, nullptr)),
+                      "late signal epoll registration");
+            }
+            io_uring_cqe completion{};
+            completion.user_data = ur_tag(UrKind::Shutdown, nullptr);
+            completion.res = POLLIN;
+            auto deliver = [&] {
+                if (epoll) loop.epoll_pass<false, Tls, Fused>(0);
+                else loop.on_cqe<Tls, false, Fused>(&completion);
+            };
+            // The publisher can be descheduled between setting the pending bit and write(2).
+            // A failed save may have cleared that bit before this late write becomes visible.
+            check(!server.signal_shutdown_pending(), "late signal pending request already ended");
+            const uint64_t one = 1;
+            check(::write(doorbell.fd(), &one, sizeof(one)) == sizeof(one) &&
+                      signal_doorbell_wait(0), "late signal request window opened");
+            loop.save_cron_writer_ = false;
+            deliver();
+            const bool nonwriter_kept = signal_doorbell_wait(0);
+            loop.save_cron_writer_ = true;
+            deliver();
+            const bool writer_drained = !signal_doorbell_wait(0);
+            // This also exercises restoration after the elected observer reads a terminal
+            // pulse: a concurrent stop must remain visible to every other waiter.
+            signal_doorbell_notify();
+            check(signal_doorbell_wait(0), "late signal terminal window opened");
+            deliver();
+            const bool terminal_kept = signal_doorbell_wait(0);
+            std::printf("signal wake %s %s tls=%d: nonwriter=%d late-drained=%d terminal=%d\n",
+                        Fused ? "1s" : "2s", epoll ? "epoll" : "uring", Tls,
+                        nonwriter_kept, writer_drained, terminal_kept);
+            failures += !nonwriter_kept || !writer_drained || !terminal_kept;
+        };
+        exercise.template operator()<false, false>(false);
+        exercise.template operator()<false, true>(false);
+        exercise.template operator()<false, false>(true);
+        exercise.template operator()<true, false>(false);
+        exercise.template operator()<true, true>(false);
+        exercise.template operator()<true, false>(true);
+        check(failures == 0, "late request wakes drain without consuming terminal shutdown");
+    }
     static void config() {
         atomic_fingerprint(0);
         atomic_fingerprint(1);
@@ -491,6 +541,7 @@ struct NetcmdRegression {
         tracking_eviction();
         zero_copy("zc-all");
         config_knobs();
+        late_signal_wakes();
     }
     static void config_knobs() {
         Server server;

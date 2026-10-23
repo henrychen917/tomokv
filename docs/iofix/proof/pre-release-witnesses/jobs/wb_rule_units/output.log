@@ -1,0 +1,8 @@
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 policy witnesses + negative controls
+  writeback c12 policy witnesses + negative controls   ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 phase witnesses + negative controls
+  writeback c12 phase witnesses + negative controls    FAIL (see /home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x/jobs/wb_rule_units/wb-rule-phase.log and /home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x/jobs/production_units/build.log)
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 stages witnesses + negative controls
+  writeback c12 stages witnesses + negative controls   ok
+  row budget: 900s; median=-s; no-history-conservative-default; writeback c12 split-phase witnesses + negative controls
+  writeback c12 split-phase witnesses + negative controls FAIL (see /home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x/jobs/wb_rule_units/wb-rule-split-phase.log and /home/user/Projects/cx-iofix/build/iofix/pre-source/build/gate-run.1FCQ6x/jobs/production_units/build.log)

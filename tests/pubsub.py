@@ -436,8 +436,8 @@ def main():
     # Shard-publish while connections register and disconnect. Half close before reading the
     # acknowledgement, exercising the pending-command lifetime fence; half close immediately after.
     #
-    # There is no applicable deterministic DEBUG hook: SLEEP stops the connection before the
-    # asynchronous registration can finish, while the defer/delay hooks only affect atomic and
+    # There is no applicable deterministic DEBUG hook: SLEEP pauses every IO/executor worker,
+    # including asynchronous registration, while the defer/delay hooks only affect atomic and
     # script scatter. Re-roll the scheduler geometry with increasing concurrency, but do not call a
     # clean miss a server failure. Any malformed publish reply or acknowledgement still fails.
     churn_channel = f"{token}:churn"

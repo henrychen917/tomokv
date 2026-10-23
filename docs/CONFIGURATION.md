@@ -183,6 +183,8 @@ select the built-in defaults, not the example file paths in tomokv.conf
 | `net-io` | T | `uring` or `epoll` (case-insensitive) | `uring` | Boot/GET | `net_io`, `multiplexing_api` | Network engine also selects uring/syscall persistence; `src/core/config.h:445`, `:974`. |
 | `maxclients` | R | Integer 1..4294967295 | `10000` | Live | — | Accept admission ceiling; concurrent acceptors can overshoot; `src/core/config.h:654`, `tomokv.conf:59`. |
 | `timeout` | R | Integer 0..2147483647 seconds | `0` | Live | — | Idle normal-client timeout, 0 off; blocked/pubsub exempt; `src/core/config.h:660`, `tomokv.conf:64`. |
+| `hz` | R | Integer 0..2147483647, clamped to 1..500 | `10` | Live | — | Client cron beats per second and per-beat client share; Redis 7.4 grammar and clamp; `src/core/client_hz.h`. |
+| `dynamic-hz` | R | yes/no | `yes` | Live | — | Double effective hz while clients/hz exceeds 200, capped at 500; CONFIG reports the configured hz; `src/core/client_hz.h`. |
 | `tcp-keepalive` | R | Integer 0..2147483647 seconds | `300` | Live | — | TCP keepalive for newly accepted clients; 0 off; `src/core/config.h:666`. |
 | `tcp-backlog` | R | Integer 0..2147483647 | `511` | Boot/GET | — | listen backlog, kernel may cap it; `src/core/config.h:672`, `src/cmd/t_server.cc:615`. |
 | `client-output-buffer-limit` | R | Repeated `class hard soft seconds`; memory bytes, seconds 0..2147483647 | `normal 0 0 0`; `replica 256mb 64mb 60`; `pubsub 32mb 8mb 60` | Live | — | Classes normal, replica/slave, pubsub; replica round-trips as slave but is inert; `src/core/config.h:182`, `:678`. |

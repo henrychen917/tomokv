@@ -1,0 +1,46 @@
+ok	0.010000	release build (+footprint locks)
+ok	0.380000	configuration docs match parser
+ok	5.080000	Redis config quoting + mid-value #
+FAIL	26.940000	iofix WB4.1 deferred IO parks
+FAIL	20.110000	iofix IO4.9 Redis hz cron
+FAIL	27.480000	iofix IO4.10 global DEBUG SLEEP
+FAIL	34.810000	iofix IO4.17 immediate signal shutdown
+ok	5.960000	writeback policies 0/1: 22 standard fixtures
+ok	0.860000	R7 generated envelope parity
+ok	0.100000	writeback c12 policy witnesses + negative controls
+FAIL	4.550000	writeback c12 phase witnesses + negative controls
+ok	1.790000	writeback c12 stages witnesses + negative controls
+FAIL	4.960000	writeback c12 split-phase witnesses + negative controls
+ok	5.590000	writeback policy clauses witnesses + negative controls
+ok	1.870000	writeback policy paths witnesses + negative controls
+ok	0.870000	splitlocal template forwarding + old-argument controls
+ok	0.000000	netcmd regression build
+ok	0.000000	netcmd streams regression
+ok	0.010000	netcmd zpop regression
+ok	0.010000	netcmd notify-oom regression
+ok	0.000000	netcmd notify-retry regression
+ok	0.010000	netcmd flush regression
+ok	0.010000	netcmd output regression
+ok	0.000000	netcmd pubsub regression
+ok	0.000000	netcmd receive regression
+ok	0.040000	netcmd config regression
+ok	0.010000	netcmd wb-small-pipe regression
+ok	0.000000	netcmd wb-complete-visits regression
+ok	0.010000	netcmd hexpire-oom regression
+ok	0.000000	encodingfix knob
+ok	0.010000	encodingfix precedence
+ok	0.020000	NET1 serverless bounds + scan + reclamation
+ok	0.010000	reject --mode (flag deleted)
+ok	0.000000	reject --spread
+ok	0.010000	reject --nodes
+ok	0.010000	reject 3-part ratio
+ok	0.010000	reject missing conf
+ok	0.010000	reject bad conf key
+ok	0.000000	reject aclfile + conf user lines
+ok	0.010000	reject bad protected-mode
+ok	0.000000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	0.030000	ACL battery (atomic off)
+ok	0.040000	ACL battery (atomic on)
+FAIL	0.180000	DEBUG toggle/reload battery
+ok	0.120000	typed snapshot round-trip incl stream

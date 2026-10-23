@@ -76,9 +76,14 @@ static void on_signal(int sig) {
             ::_exit(1);
         }
         // Keep owners alive until the ordinary IO save path has persisted the final cut.
-        // No sticky terminal wake yet: the save cron's existing timer bounds request latency.
-        if (server->request_signal_shutdown()) return;
+        // Wake the elected IO immediately, keeping all owners alive for its shutdown save.
+        if (server->request_signal_shutdown()) {
+            server->debug_sleep_coordinator().interrupt();
+            signal_doorbell_request_notify();
+            return;
+        }
         server->shutting_down().store(true, std::memory_order_relaxed);
+        server->debug_sleep_coordinator().interrupt();
     }
     const uint32_t count = g_signal_thread_count.load(std::memory_order_acquire);
     for (uint32_t i = 0; i < count; i++) {

@@ -1,0 +1,14 @@
+  row budget: 900s; median=-s; no-history-conservative-default; reject --mode (flag deleted)
+  reject --mode (flag deleted)                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject --spread
+  reject --spread                                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject --nodes
+  reject --nodes                                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject 3-part ratio
+  reject 3-part ratio                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject missing conf
+  reject missing conf                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject bad conf key
+  reject bad conf key                                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; reject aclfile + conf user lines
+  reject aclfile + conf user lines                     ok

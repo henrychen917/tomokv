@@ -762,6 +762,7 @@ void IoLoop::r7_run_loop() {
                     client, probed, fallbacks, count, demoted);
             });
 
+    Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
     if constexpr (Fused) {
         if (srv_->read_local_enabled()) {
             // A split EX tenure is permanently parked: it never probes the local lane.
@@ -779,6 +780,7 @@ void IoLoop::r7_run_loop() {
     }
     while (!self_->stop_flag().load(std::memory_order_relaxed) &&
            self_->role() == Role::Ifid) {
+        srv_->debug_sleep_poll(self_->id());
         const uint64_t pass_ns = tenure.pass();
         Server::DatabaseWorkScope database_work(*srv_, self_->id());
 #ifdef TOMO_MDBQSBR_TEST
@@ -798,7 +800,8 @@ void IoLoop::r7_run_loop() {
         const bool client_cron_armed = !flip_dispatch_paused() &&
                                        srv_->client_cron_armed();
         const bool client_lb_signal_armed = client_lb_signal_armed_;
-        // The elected IO alone checks live save/shutdown policy on the one-second beat.
+        // The elected IO checks periodic saves on the one-second beat and signal stops
+        // every pass, so a signal request does not wait for the next save-cron deadline.
         // Election is private: never read Placement's mutable vectors on a hot pass.
         const bool save_cron_armed = !flip_dispatch_paused() &&
                                      save_cron_writer_;
@@ -898,11 +901,13 @@ void IoLoop::r7_run_loop() {
             did += lb_wake_all_pass();
             if (__builtin_expect(client_cron_armed &&
                                  cached_now_ms_ >= client_cron_beat_ms_, false)) {
-                did += client_cron_pass();
-                client_cron_beat_ms_ = cached_now_ms_ + 1000 / kClientCronBeatsPerSecond;
+                const uint32_t hz = srv_->client_hz();
+                did += client_cron_pass(hz);
+                client_cron_beat_ms_ = cached_now_ms_ + 1000 / hz;
             }
             if (__builtin_expect(save_cron_armed &&
-                                 cached_now_ms_ >= save_cron_beat_ms_, false)) {
+                                 (srv_->signal_shutdown_pending() ||
+                                  cached_now_ms_ >= save_cron_beat_ms_), false)) {
                 did += srv_->save_cron_pass(*self_, ring_);
                 save_cron_beat_ms_ = cached_now_ms_ + 1000;
             }
@@ -941,6 +946,7 @@ void IoLoop::r7_run_loop() {
         // Preserve the established classification: publication, inbound recheck,
         // epoll callbacks, the wait and resume/clear are ALL inside this idle span.
         Span idle(sig.idle_ns);
+        const unsigned wait_ms = idle_timeout_ms();
         if constexpr (Fused) {
             if (__builtin_expect(srv_->read_local_enabled(), false))
                 self_->publish_read_local_parked(srv_->read_local_epoch());
@@ -955,13 +961,13 @@ void IoLoop::r7_run_loop() {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    r7_epoll_pass<HasUnix, HasTls, Fused>(Ring::kWaitTimeoutMs);
+                    r7_epoll_pass<HasUnix, HasTls, Fused>(wait_ms);
                 }
             } else if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                 tenure.park();
 #endif
-                r7_epoll_pass<HasUnix, HasTls, false>(Ring::kWaitTimeoutMs);
+                r7_epoll_pass<HasUnix, HasTls, false>(wait_ms);
             }
         } else {
             if constexpr (Fused) {
@@ -969,14 +975,14 @@ void IoLoop::r7_run_loop() {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    ring_.submit_and_wait(1);
+                    ring_.submit_and_wait(1, wait_ms);
                 } else                            ring_.submit_and_reap();
             } else {
                 if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    ring_.submit_and_wait(1);
+                    ring_.submit_and_wait(1, wait_ms);
                 } else                         ring_.submit_and_reap();
             }
         }
@@ -1648,8 +1654,7 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
                 work++;
                 break;
             case UrKind::Shutdown:
-                // Sticky and shared: never drain it, or this loop could steal the terminal
-                // edge from another ring/epoll set. The signal handler published stop first.
+                signal_shutdown_wake();
                 work++;
                 break;
             case UrKind::Recv: {
@@ -1734,7 +1739,12 @@ void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
             case UrKind::Wake: self_->sig().wakes_recv++; break;
             case UrKind::DatabaseWake:
                 srv_->databases().consume_wake(self_->id(), ring_); break;
-            case UrKind::Shutdown: break;
+            case UrKind::Shutdown:
+                if (!self_->stop_flag().load(std::memory_order_relaxed)) {
+                    signal_shutdown_wake();
+                    ring_.rearm_shutdown_poll();
+                }
+                break;
             case UrKind::SnapshotStart:
                 if constexpr (Fused)
                     fused_executor_->fused_snapshot_start(
@@ -1783,7 +1793,12 @@ void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
             case UrKind::Wake: self_->sig().wakes_recv++; break;
             case UrKind::DatabaseWake:
                 srv_->databases().consume_wake(self_->id(), ring_); break;
-            case UrKind::Shutdown: break;
+            case UrKind::Shutdown:
+                if (!self_->stop_flag().load(std::memory_order_relaxed)) {
+                    signal_shutdown_wake();
+                    ring_.rearm_shutdown_poll();
+                }
+                break;
             case UrKind::SnapshotStart:
                 if constexpr (Fused)
                     fused_executor_->fused_snapshot_start(
@@ -2379,9 +2394,8 @@ subscriber_checks_done:
                 mark_active(c);
                 break;
             }
-            // DEBUG SLEEP parks only this connection. The unfinished ROB slot preserves
-            // pipeline order while this IO thread continues serving unrelated clients (and,
-            // in 1s, continues owning shards). All other DEBUG forms fall through unchanged.
+            // DEBUG SLEEP orders behind older replies, then retains its ROB slot while
+            // every worker rendezvouses and pauses. Other DEBUG forms are unchanged.
             if (__builtin_expect((spec->flags & CmdFlags::DebugSleep) != 0, false)) {
                 if (op->argc() == 2 && op->arg(1).eq_icase("rehash-state")) {
                     // This diagnostic reads mutable table counters. ConfigRoute normally
@@ -2392,16 +2406,18 @@ subscriber_checks_done:
                     op->shard = 0;
                     goto ordinary_shard_ready;
                 }
-                uint64_t delay_ms = 0;
+                if (op->argc() == 3 && op->arg(1).eq_icase("sleep") && !rob.quiesced()) break;
+                uint64_t delay_us = 0;
                 const uint64_t slow_started =
                     __builtin_expect(slowlog_armed_, false) ? now_ns() : 0;
                 DebugSleepResult sleep =
-                    debug_sleep_prepare(*srv_, *c, *op, delay_ms);
+                    debug_sleep_prepare(*srv_, *c, *op, delay_us);
                 if (sleep != DebugSleepResult::NotSleep) {
-                    if (sleep == DebugSleepResult::Deferred &&
-                        deferred_timer_start(c, rob.dispatch_id(),
-                                             DeferredTimerKind::DebugSleepOk, delay_ms,
-                                             slow_started, slowlog_arm_)) {
+                    const int started = sleep == DebugSleepResult::Deferred
+                        ? debug_sleep_timer_start(c, rob.dispatch_id(), delay_us,
+                                                  slow_started, slowlog_arm_) : -1;
+                    if (started == 0) break; // another sleep owns the process-wide pause
+                    if (started > 0) {
                         conn.advance_parse(consumed);
                         self_->note_command(spec->id);
                         flip_fingerprint_note(*spec, *op);

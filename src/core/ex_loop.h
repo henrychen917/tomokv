@@ -584,9 +584,11 @@ public:
         }
         LoopSignals& sig = self_->sig();
         uint32_t idle_spins = 0;
+        Server::DebugSleepWorker sleep_worker(srv_->debug_sleep_coordinator(), self_->id());
 
         while (!self_->stop_flag().load(std::memory_order_relaxed) &&
                self_->role() == Role::Ex) {
+            srv_->debug_sleep_poll(self_->id());
             Server::DatabaseWorkScope database_work(*srv_, self_->id());
 #ifdef TOMO_MDBQSBR_TEST
             if (DatabaseMapTestHooks::loop_pass) {
@@ -2961,7 +2963,10 @@ private:
             begin_snapshot(ur_ptr<SnapshotManager>(cqe->user_data));
         else if (ur_kind(cqe->user_data) == UrKind::DatabaseWake)
             srv_->databases().consume_wake(self_->id(), ring_);
-        else if (ur_kind(cqe->user_data) == UrKind::Shutdown) return;
+        else if (ur_kind(cqe->user_data) == UrKind::Shutdown) {
+            if (!self_->stop_flag().load(std::memory_order_relaxed))
+                ring_.rearm_shutdown_poll();
+        }
     }
 
     Server*    srv_  = nullptr;

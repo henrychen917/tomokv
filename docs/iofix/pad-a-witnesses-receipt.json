@@ -1,0 +1,30 @@
+{
+  "name": "pad-a-witnesses",
+  "command": [
+    "tests/gate.sh",
+    "full",
+    "--server-cores",
+    "80-87",
+    "--load-cores",
+    "88-95",
+    "--ports",
+    "19800-19899",
+    "--candidate-binary",
+    "/home/user/Projects/cx-iofix/docs/iofix/gate_candidate.py"
+  ],
+  "cwd": "/home/user/Projects/cx-iofix",
+  "binary": "/home/user/Projects/cx-iofix/build/tomokv-pad-a",
+  "sha256": "409efd511fafa64b2bf170c08320486b690e3277704d29a5a2cda2ca0be7ac32",
+  "jobs": [
+    "iofix-deferred",
+    "iofix-hz",
+    "iofix-sleep",
+    "iofix-signal"
+  ],
+  "engine": "",
+  "mode": "",
+  "force_engine": false,
+  "expected_exit": 1,
+  "actual_exit": 1,
+  "run": "/home/user/Projects/cx-iofix/build/gate-run.0wEBDU"
+}

@@ -1,0 +1,196 @@
+{
+  "group": "final-fused-uring",
+  "path": "docs/iofix/final-fused-uring-launches.jsonl",
+  "records": 47,
+  "sha256": "bd5e31d6415e28d589b7938e638d996b588cdf9d9cd0e85e86a5fecfd24db3ec",
+  "source_records": [
+    {
+      "pid": 3273683,
+      "sha256": "55cd2eefed1d336fb006abb38448ca92970c67f64e848503748fcc34a72867b1"
+    },
+    {
+      "pid": 3273723,
+      "sha256": "604457d3e05121a133f4c46fc36edc0e94d2164bb8d0436487967a84a2a49283"
+    },
+    {
+      "pid": 3274541,
+      "sha256": "2d2c9e0735790f5a712fd2be3291449086d98b4ba81e7962473c846b3cf5b91a"
+    },
+    {
+      "pid": 3274613,
+      "sha256": "07bdcae6705d7a3105ec76a054a5a6825685fcd60bb3621de6ebd23e5c9d175a"
+    },
+    {
+      "pid": 3274680,
+      "sha256": "0f67620b3c5bad0b8de40541dda2cccf86e1a12c3074fbf820b1c58a2c800f0f"
+    },
+    {
+      "pid": 3274730,
+      "sha256": "735c5545b81dd48e3dd2627ed7b3982d513e3863fcf9f847eef0cb1f5d16e418"
+    },
+    {
+      "pid": 3274789,
+      "sha256": "f4b85e217e1a69ba10b894b5e9110e555ba33ed29fcb379bc108c1316785c7e3"
+    },
+    {
+      "pid": 3274831,
+      "sha256": "984897c3a695fa817fcb3ea99c95501a9f9cfdc3e3dd78109ecf9577b1afb032"
+    },
+    {
+      "pid": 3274909,
+      "sha256": "5d9965a3f617684aed2971c6009fb6319282f93987e5ec4b68cd0e6021dd042c"
+    },
+    {
+      "pid": 3274926,
+      "sha256": "09c2a397bc491f420b44428ba7fd40592e1b02a2005d6f2c28cfac535088c9f7"
+    },
+    {
+      "pid": 3274949,
+      "sha256": "28817552fd9585f29cf1c76e1989b2215e5b6f5777c8c0255da4ff86ea3f1ebd"
+    },
+    {
+      "pid": 3274966,
+      "sha256": "a7739c0aec5bcbff9215b04248511144d9bc4ea2bdfc399e737f8503f1979f02"
+    },
+    {
+      "pid": 3274989,
+      "sha256": "8def8c97371391c9fde1ce83c6e97d6188f94879d865bda63e4d0d12b000c7a6"
+    },
+    {
+      "pid": 3275857,
+      "sha256": "bc41d32592beaa90e345f3bc35aedf1d248fe010980fdc420b40c1da28623efe"
+    },
+    {
+      "pid": 3275888,
+      "sha256": "d0e49544bc1fe1e084e014c9d06c346ffce3c05525c8acb5d87f4b9bfe1a16f6"
+    },
+    {
+      "pid": 3275905,
+      "sha256": "100be271a79f7faa6d711df0b880715bc0c8ce369d8637416c3940c918aeba6e"
+    },
+    {
+      "pid": 3275928,
+      "sha256": "8d15e47fda48a1b2e19b71ff9355b45f80ee2346d2db8a6ab1b17dac9817a757"
+    },
+    {
+      "pid": 3275955,
+      "sha256": "54d667cb94892564775a6d166f7840a195e2adc965018fb888b6be5b825223bf"
+    },
+    {
+      "pid": 3275978,
+      "sha256": "c178c097db6fb5bb6403f358b478ffa99074c642f5301187b408fe2c996d594a"
+    },
+    {
+      "pid": 3276009,
+      "sha256": "079ff3e40ae427ae1e954d95e236eca4c641bfd3452e0c897e8df47f41ee6695"
+    },
+    {
+      "pid": 3276060,
+      "sha256": "0118b16bdbc0034ec2e2549b0e3bd35fcc96221f0d2463aef9a4bce64bd02145"
+    },
+    {
+      "pid": 3276115,
+      "sha256": "7f629126ef4e92b6ba1365fa4a5a26e7df1e5aa2035cf51c05232fdb788db3d4"
+    },
+    {
+      "pid": 3276157,
+      "sha256": "a7f964d3d8e8897643c3910c8115c5e486bd7001cea64adc1b384026e43a2bf0"
+    },
+    {
+      "pid": 3276230,
+      "sha256": "2a30bc39114077370e96277e022f87cce1f75d7eef70ecbce8bdf3752bd77f7b"
+    },
+    {
+      "pid": 3276354,
+      "sha256": "ae1583e47fa22ed455df307c6e054e8e8d47972de5c15ca418c26d0b38de0d86"
+    },
+    {
+      "pid": 3277202,
+      "sha256": "a9ad1429f34d103cf18be3af05cbaf795d3b699954c46649c524b8614e6c11bc"
+    },
+    {
+      "pid": 3277253,
+      "sha256": "8aaa69fc12ea95ddbf7d635914e3880d50d08a0508cf563c88aef679715362e0"
+    },
+    {
+      "pid": 3277296,
+      "sha256": "50ee1f5dea0fff1c3edbef2ba134198d95c10785068ddc545fc7474fc8fed654"
+    },
+    {
+      "pid": 3277337,
+      "sha256": "2bee3b248b3c745e4f9b02cdcadd918ad272e8beb93e230523de8bc314758f9b"
+    },
+    {
+      "pid": 3277355,
+      "sha256": "872d620c5e2238bb4f11f59921e2b085d1d2324c981b643a3695308aa7e3bebf"
+    },
+    {
+      "pid": 3277378,
+      "sha256": "20579f220956185a1073bd853876be2c0a5b33d3192cecafda1366fbd1277ab3"
+    },
+    {
+      "pid": 3277396,
+      "sha256": "eddffd2b45dddd760ced50e0af376ff717a31ec1bfe3886c3f95c4609afbe1d2"
+    },
+    {
+      "pid": 3277419,
+      "sha256": "4632f3bf866f373387bc6563ca2794e19f4947d77151770531a1a06d6b503ffc"
+    },
+    {
+      "pid": 3277452,
+      "sha256": "c32805b89a2e8e43618a513c6d7b07a0fce47e11ee663bd90cd3ac85510f2758"
+    },
+    {
+      "pid": 3277501,
+      "sha256": "ea20b5b6b228b4543dcd8ef6a57d67c82de1e0a02431a2bb11175b8d10ed2621"
+    },
+    {
+      "pid": 3277519,
+      "sha256": "51fe2afabb951f8d6d757eb136e65077634684781b2f7d9a290c53c39b8e7f66"
+    },
+    {
+      "pid": 3277542,
+      "sha256": "78ceb8c757a464f88253851f4ef3b4840fbe0197b4606d26d6cc8200c92b4e17"
+    },
+    {
+      "pid": 3277560,
+      "sha256": "1189a2228662fbc0246495ebd6f1de38f881b5834b94211c208834562c18a4cd"
+    },
+    {
+      "pid": 3277583,
+      "sha256": "064c232f6dd47b7c677526d534b82b436dba5823b6b2e82ff7eaf89cff8ac560"
+    },
+    {
+      "pid": 3277615,
+      "sha256": "9914902b9f6da44253ba6e662aded774d74bb9d48b756c320e421b394353e48e"
+    },
+    {
+      "pid": 3277680,
+      "sha256": "272304cd8f13b088e8d587bd06a06074b7cd7fa0734d1bb294c458d2ceefb741"
+    },
+    {
+      "pid": 3277698,
+      "sha256": "81c214ea10d952b683723fc2be830ee26a3378e65cdf8ff9dce74c12657bf4fb"
+    },
+    {
+      "pid": 3277712,
+      "sha256": "2eea6ec54e14e32de1d092bcb7dd4d977fae9283a347c7897753b644b1fd411f"
+    },
+    {
+      "pid": 3277753,
+      "sha256": "81fd67cdadd3695168b92c80e30d4ed30ab67c4627efbe708485e0294cc4ccc8"
+    },
+    {
+      "pid": 3277795,
+      "sha256": "d3bbc02f8e1b3d46bf9ff4bf1a28d8706bb97fbaf4c79431184f453ca06a43e2"
+    },
+    {
+      "pid": 3277837,
+      "sha256": "89f5c163c2de9ca46796900c4e8fa9e7d637203f493b7b4aa95c7c4eec5429e7"
+    },
+    {
+      "pid": 3278762,
+      "sha256": "1224f6f86df0333c00af547780c35e0b0408c1be0413aac024cd1fe912011b55"
+    }
+  ]
+}

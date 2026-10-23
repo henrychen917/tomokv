@@ -1,0 +1,330 @@
+[
+  {
+    "mode": "2s",
+    "engine": "uring",
+    "pre": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11347387731075287,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11345597729086876,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00035433,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0146925691515207,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.014687147922814,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.03400563,
+        "kind": "target"
+      }
+    ],
+    "post": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11342599429190159,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11345735471695662,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_parked_threads": 6,
+        "kind": "oracle"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00034433,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.0031759878620505333,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.0031614378094673157,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_parked_threads": 10,
+        "kind": "target"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00234442,
+        "kind": "target"
+      }
+    ],
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-signal/signal-2s-uring.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+  },
+  {
+    "mode": "2s",
+    "engine": "epoll",
+    "pre": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11348294001072645,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11343859042972326,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00035262,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0147662023082376,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0147039806470275,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00251636,
+        "kind": "target"
+      }
+    ],
+    "post": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11346918623894453,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.1134606059640646,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_parked_threads": 6,
+        "kind": "oracle"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00035108,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.0031607290729880333,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.003156859427690506,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_parked_threads": 9,
+        "kind": "target"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00261408,
+        "kind": "target"
+      }
+    ],
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-signal/signal-2s-epoll.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+  },
+  {
+    "mode": "1s",
+    "engine": "uring",
+    "pre": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11346512474119663,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.1134569551795721,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00035356,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0146623440086842,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0146919721737504,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00077855,
+        "kind": "target"
+      }
+    ],
+    "post": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11347101721912622,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11345842853188515,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_parked_threads": 6,
+        "kind": "oracle"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.000376669,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.0031599001958966255,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.0031604785472154617,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_parked_threads": 10,
+        "kind": "target"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.000765,
+        "kind": "target"
+      }
+    ],
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-signal/signal-1s-uring.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+  },
+  {
+    "mode": "1s",
+    "engine": "epoll",
+    "pre": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11346370633691549,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11345723830163479,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00034936,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.0146875763311982,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 1.014725343324244,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00074257,
+        "kind": "target"
+      }
+    ],
+    "post": [
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11347511596977711,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "oracle",
+        "seconds": 0.11343270167708397,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_parked_threads": 6,
+        "kind": "oracle"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00034107,
+        "kind": "oracle"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.003162691369652748,
+        "signal": "SIGTERM"
+      },
+      {
+        "exit": 0,
+        "kind": "target",
+        "seconds": 0.00721778254956007,
+        "signal": "SIGINT"
+      },
+      {
+        "failed_save_parked_threads": 9,
+        "kind": "target"
+      },
+      {
+        "failed_save_idle_cpu_seconds": 0.00069018,
+        "kind": "target"
+      }
+    ],
+    "post_evidence": "build/gate-run.PHoa8J/jobs/iofix-signal/signal-1s-epoll.log",
+    "post_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260"
+  }
+]

@@ -1,0 +1,72 @@
+{
+  "group": "pad-a-wb-deferred",
+  "path": "docs/iofix/pad-a-wb-deferred-launches.jsonl",
+  "records": 16,
+  "sha256": "698d77c4c29dbeeddc34fae0d199884017c044b445b4df2344a54ab0bcc8d48a",
+  "source_records": [
+    {
+      "pid": 3289098,
+      "sha256": "620318bc1d78c58b4dbda9ab9b3ed4d0976b3de29c8f619f175e0a5eb2e9ce4c"
+    },
+    {
+      "pid": 3289112,
+      "sha256": "7cc1ec18472701beb858f8cde9d47bb81a3475998a5e8ef65425037c157a2c2d"
+    },
+    {
+      "pid": 3289123,
+      "sha256": "fcdd2622c92bf41972e2d6623ece1912e51569cdc009835aa89eb57aa67b68cb"
+    },
+    {
+      "pid": 3289134,
+      "sha256": "ffb385aa839ca7fe2124a195185c77800b40e4c00d7cb529ad0fe38183d1a9c2"
+    },
+    {
+      "pid": 3289156,
+      "sha256": "a9d0d287cc6875272af06e1bf745af6b2d75bf1199b60ce73678a89f53b9a9f2"
+    },
+    {
+      "pid": 3289167,
+      "sha256": "429da67a2f5ceea5dc536aae2400167bc35c387d3813b898d4f9656eb93f83a7"
+    },
+    {
+      "pid": 3289178,
+      "sha256": "ef5dfc2e6667b2b02ed41f2654fab00d203dad4a687971e59a03b362a2354619"
+    },
+    {
+      "pid": 3289199,
+      "sha256": "6ea21ace7311e453a338251e837b8ccbba7eb4cf5dd3c1dcfe522b77b113e749"
+    },
+    {
+      "pid": 3289219,
+      "sha256": "56036021542c868ceb0b7bc8dc46348581a00b570f103335ba76d1c4c1a07a97"
+    },
+    {
+      "pid": 3290040,
+      "sha256": "eb0e1bd71cacaeed7c6b20c066b34d1f881a744389cf545e8ce553329df95237"
+    },
+    {
+      "pid": 3290051,
+      "sha256": "98d0591c2f579138406353987485b76418c066935f7cce32baadc6fc287d0443"
+    },
+    {
+      "pid": 3290062,
+      "sha256": "07e75768242c2ffb77dc797f9128779eae56e301a370ac70c4138fd62bdeae1e"
+    },
+    {
+      "pid": 3290088,
+      "sha256": "35f4e214b0c7ced7f43c85088289779d4f761ca7e568ed91c5aee193a1653a84"
+    },
+    {
+      "pid": 3290100,
+      "sha256": "8f0abea9723eaed0847b41c5bb609f656ed9f0227e10a6f5e6faaad22cb638ca"
+    },
+    {
+      "pid": 3290114,
+      "sha256": "1689126a0843110fdaa4bab4bbab423ee0dbbb672cb1a54507eb2635d241fadb"
+    },
+    {
+      "pid": 3290163,
+      "sha256": "bda6f3846293fd4b917e82f139ab4a6f286da042552e1422ee7e5697f55ba724"
+    }
+  ]
+}

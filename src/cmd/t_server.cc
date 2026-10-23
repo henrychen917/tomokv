@@ -292,7 +292,7 @@ enum class ConfigKind : uint8_t {
     String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
     // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
     // and reports -1, so an unsigned representation would not round-trip.
-    Signed, Encoding, Uint32, Uint32Bytes
+    Signed, Encoding, Uint32, Uint32Bytes, Hz
 };
 struct ConfigValue {
     const char* name;
@@ -367,6 +367,8 @@ void init_config(const Config& cfg) {
     add_config("maxmemory-samples", ConfigKind::Unsigned, cfg.maxmemory_samples);
     add_config("maxclients", ConfigKind::Unsigned, cfg.maxclients);
     add_config("timeout", ConfigKind::Unsigned, cfg.timeout);
+    add_config("hz", ConfigKind::Hz, cfg.hz);
+    g_config.push_back({"dynamic-hz", ConfigKind::Bool, cfg.dynamic_hz ? "yes" : "no"});
     add_config("tcp-keepalive", ConfigKind::Unsigned, cfg.tcp_keepalive);
     add_config("tcp-backlog", ConfigKind::Unsigned, cfg.tcp_backlog);
     g_config.push_back({"tls-port", ConfigKind::Unsigned, std::to_string(cfg.tls_port), true});
@@ -485,6 +487,12 @@ bool parse_client_output_buffer_limit_slice(Slice input,
 bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
                       const char*& error, bool legacy_compact = false) {
     switch (entry.kind) {
+        case ConfigKind::Hz: {
+            uint32_t value = 0;
+            if (!ClientHz::parse(input, value, error)) return false;
+            out = std::to_string(value);
+            return true;
+        }
         case ConfigKind::Uint32:
         case ConfigKind::Uint32Bytes: {
             uint32_t value = 0;
@@ -521,7 +529,8 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         case ConfigKind::Bool:
             if (eq_icase(input, "yes")) { out = "yes"; return true; }
             if (eq_icase(input, "no")) { out = "no"; return true; }
-            if (!std::strcmp(entry.name, "aof-load-truncated")) {
+            if (!std::strcmp(entry.name, "aof-load-truncated") ||
+                !std::strcmp(entry.name, "dynamic-hz")) {
                 error = "argument must be 'yes' or 'no'";
                 return false;
             }
@@ -624,12 +633,14 @@ bool collect_config_updates(Op& op,
         // Redis rejects a repeated spelling but accepts canonical + historical aliases in
         // argument order (last value wins). The original TomoKV aliases allowed repetition.
         if ((item->kind == ConfigKind::Encoding && !legacy_compact) ||
+            item->kind == ConfigKind::Hz || !std::strcmp(item->name, "dynamic-hz") ||
             !std::strcmp(item->name, "aof-load-truncated") ||
             network_config_name(item->name)) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2) {
                 if (!eq_icase(op.arg(previous), requested.c_str())) continue;
                 if (!std::strcmp(item->name, "aof-load-truncated") ||
+                    item->kind == ConfigKind::Hz || !std::strcmp(item->name, "dynamic-hz") ||
                     encoding == EncodingConfig::SetIntsetEntries || network_config_name(item->name)) {
                     std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
                     msg += requested;
@@ -976,8 +987,8 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
-    // Direct DEBUG SLEEP is intercepted by IoLoop; EXEC uses multi.inc's deferred owner tasks.
-    // Both routes share debug_sleep_prepare, so this handler never sleeps a worker thread.
+    // Direct DEBUG SLEEP is intercepted by IoLoop; EXEC uses multi.inc's owner join.
+    // Both routes request the same process-wide pass-boundary pause.
 #ifndef NDEBUG
     // Fail the next N FlatStore/ExpireIndex table calloc calls. This is deliberately reachable only
     // through the already-gated DEBUG command and is compiled out of assertion-disabled builds.
@@ -1631,6 +1642,10 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->aof().set_timestamp_enabled(update.second == "yes");
                     continue;
                 }
+                if (!std::strcmp(update.first->name, "dynamic-hz")) {
+                    g_server->set_dynamic_hz(update.second == "yes");
+                    continue;
+                }
                 if (!std::strcmp(update.first->name, "appendfsync")) {
                     const AppendFsyncPolicy policy = update.second == "always"
                         ? AppendFsyncPolicy::Always
@@ -1652,6 +1667,8 @@ void cmd_config(Shard& sh, Op& op) {
                     g_server->set_maxclients(static_cast<uint32_t>(value));
                 else if (!std::strcmp(update.first->name, "timeout"))
                     g_server->set_timeout(static_cast<uint32_t>(value));
+                else if (!std::strcmp(update.first->name, "hz"))
+                    g_server->set_hz(static_cast<uint32_t>(value));
                 else if (!std::strcmp(update.first->name, "tcp-keepalive"))
                     g_server->set_tcp_keepalive(static_cast<uint32_t>(value));
                 else if (!std::strcmp(update.first->name, "acllog-max-len"))
@@ -2164,6 +2181,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(uptime),
                 static_cast<unsigned long long>(uptime / 86400),
                 info_executable(), info_config_file());
+        appendf(body, "hz:%u\r\nconfigured_hz:%u\r\n",
+                g_server ? g_server->client_hz() : ClientHz::kDefault,
+                g_server ? g_server->configured_hz() : ClientHz::kDefault);
         appendf(body, "key_lb:%u\r\nclient_lb:%u\r\nflip_auto:%u\r\n"
                       "flip_fingerprint_window:%u\r\nnet_io:%s\r\nhash:%s\r\nzc_min:%s\r\n"
                       "pin_threads:%u\r\n",
@@ -3056,8 +3076,20 @@ static const CommandSpec kTable[] = {
 
 }  // namespace
 
+bool debug_sleep_exec(Server& server, Shard& shard, std::atomic<long long>& state,
+                      uint32_t owner_thread_id) {
+    const int64_t value = state.load(std::memory_order_acquire);
+    if (value >= 0) {
+        if (shard.id() != 0) return false;
+        const uint64_t ticket = server.debug_sleep_start(static_cast<uint64_t>(value), owner_thread_id);
+        if (ticket) state.store(-static_cast<int64_t>(ticket), std::memory_order_release);
+        return false;
+    }
+    return server.debug_sleep_complete(static_cast<uint64_t>(-value));
+}
+
 DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
-                                     uint64_t& delay_ms) {
+                                     uint64_t& delay_us) {
     if (op.argc() != 3 || !eq_icase(op.arg(1), "sleep"))
         return DebugSleepResult::NotSleep;
     if (!debug_command_allowed(server, &client)) {
@@ -3065,25 +3097,18 @@ DebugSleepResult debug_sleep_prepare(Server& server, Client& client, Op& op,
         return DebugSleepResult::Handled;
     }
 
-    // Preserve DEBUG SLEEP's deliberately lenient Redis-compatible parse: malformed, negative,
-    // NaN and infinity all spell zero. Only a finite positive value can become a timer.
-    double seconds = 0;
-    if (!parse_double_lenient(op.arg(2), seconds)) seconds = 0;
-    if (!std::isfinite(seconds) || seconds < 0.0) seconds = 0;
-    const double cap_seconds = static_cast<double>(std::max<uint32_t>(1, server.timeout()));
-    if (seconds > cap_seconds) {
-        reply_err(op.sink(), "ERR value is not a valid float");
-        return DebugSleepResult::Handled;
-    }
-    if (seconds == 0.0) {
+    // Redis uses bare strtod (including a numeric prefix), truncates to microseconds,
+    // then calls nanosleep once. Nonfinite/out-of-range casts produce an invalid negative
+    // timespec on the oracle's platform; return its OK without invoking C++ cast UB.
+    const Terminated text(op.arg(2));
+    const double micros = std::strtod(text.get(), nullptr) * 1000000.0;
+    if (!std::isfinite(micros) || micros < 1.0 || micros >= 0x1p63) {
+        const timespec zero{};
+        ::nanosleep(&zero, nullptr); // DEBUG SLEEP 0 is a yield, not an indefinite timer
         reply_ok(op.sink());
         return DebugSleepResult::Handled;
     }
-
-    // IoLoop deadlines are milliseconds. Round away from zero so every positive request parks at
-    // least once; the timeout-derived cap keeps this conversion far below uint64_t overflow.
-    delay_ms = static_cast<uint64_t>(std::ceil(seconds * 1000.0));
-    if (!delay_ms) delay_ms = 1;
+    delay_us = static_cast<uint64_t>(micros);
     return DebugSleepResult::Deferred;
 }
 

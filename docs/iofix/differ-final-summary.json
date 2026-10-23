@@ -1,0 +1,234 @@
+[
+  {
+    "engine": "uring",
+    "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+    "plan": {
+      "schema": 1,
+      "manifest": {
+        "run": "full:gate-run.1H4VvA",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 24,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          24
+        ],
+        "history": "/home/user/Projects/cx-iofix/.gate-history/differ"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        24
+      ]
+    },
+    "parts": [
+      {
+        "part": "split-0",
+        "passed": 235,
+        "failed": 0,
+        "runtime": "8m50s",
+        "log": "build/gate-run.1H4VvA/jobs/differ-split-0/output.log"
+      },
+      {
+        "part": "split-1",
+        "passed": 239,
+        "failed": 0,
+        "runtime": "8m52s",
+        "log": "build/gate-run.1H4VvA/jobs/differ-split-1/output.log"
+      },
+      {
+        "part": "armed-0",
+        "passed": 231,
+        "failed": 0,
+        "runtime": "8m47s",
+        "log": "build/gate-run.1H4VvA/jobs/differ-armed-0/output.log"
+      },
+      {
+        "part": "armed-1",
+        "passed": 235,
+        "failed": 0,
+        "runtime": "8m47s",
+        "log": "build/gate-run.1H4VvA/jobs/differ-armed-1/output.log"
+      },
+      {
+        "part": "equivalence",
+        "passed": 1,
+        "failed": 0,
+        "runtime": "0m22s",
+        "log": "build/gate-run.1H4VvA/jobs/differ-equivalence/output.log"
+      }
+    ]
+  },
+  {
+    "engine": "epoll",
+    "binary_sha256": "a7a3d72aa058fee0e790394f744e64acfb5cdb51b689a4608604ea8024c82260",
+    "plan": {
+      "schema": 1,
+      "manifest": {
+        "run": "full:gate-run.RrQLvP",
+        "permanent": [
+          7,
+          19,
+          20,
+          23
+        ],
+        "failed": [],
+        "rotating": 25,
+        "seeds": [
+          7,
+          19,
+          20,
+          23,
+          25
+        ],
+        "history": "/home/user/Projects/cx-iofix/.gate-history/differ"
+      },
+      "suites": [
+        "string",
+        "list",
+        "set",
+        "zset",
+        "hash",
+        "hexpire",
+        "edgetime",
+        "xshard",
+        "xmove",
+        "bitmap",
+        "hll",
+        "bitfield",
+        "cgaps",
+        "stream",
+        "script",
+        "streamgrp",
+        "zsetops",
+        "geo",
+        "doubles",
+        "scan",
+        "multi",
+        "encodingfix",
+        "edgeenc",
+        "edgeproto",
+        "cmdgap",
+        "cmdgap2",
+        "sort",
+        "servertail",
+        "arity",
+        "storeorder",
+        "infofix",
+        "multidb",
+        "blocking",
+        "pubsub",
+        "fanout",
+        "spubsub",
+        "notify",
+        "wiredump",
+        "climon",
+        "compatintro",
+        "aclsel",
+        "aclkeys",
+        "cmdmeta",
+        "s6fix",
+        "ccfix",
+        "psfix",
+        "monitor"
+      ],
+      "repeats": 4,
+      "equivalence_seeds": [
+        25
+      ]
+    },
+    "parts": [
+      {
+        "part": "split-0",
+        "passed": 235,
+        "failed": 0,
+        "runtime": "8m46s",
+        "log": "build/gate-run.RrQLvP/jobs/differ-split-0/output.log"
+      },
+      {
+        "part": "split-1",
+        "passed": 239,
+        "failed": 0,
+        "runtime": "8m47s",
+        "log": "build/gate-run.RrQLvP/jobs/differ-split-1/output.log"
+      },
+      {
+        "part": "armed-0",
+        "passed": 231,
+        "failed": 0,
+        "runtime": "8m42s",
+        "log": "build/gate-run.RrQLvP/jobs/differ-armed-0/output.log"
+      },
+      {
+        "part": "armed-1",
+        "passed": 235,
+        "failed": 0,
+        "runtime": "8m44s",
+        "log": "build/gate-run.RrQLvP/jobs/differ-armed-1/output.log"
+      },
+      {
+        "part": "equivalence",
+        "passed": 1,
+        "failed": 0,
+        "runtime": "0m22s",
+        "log": "build/gate-run.RrQLvP/jobs/differ-equivalence/output.log"
+      }
+    ]
+  }
+]

@@ -1,0 +1,63 @@
+ok	0.010000	release build (+footprint locks)
+ok	26.750000	iofix WB4.1 deferred IO parks
+ok	39.970000	iofix IO4.9 Redis hz cron
+ok	31.710000	iofix IO4.10 global DEBUG SLEEP
+ok	18.500000	iofix IO4.17 immediate signal shutdown
+ok	0.870000	R7 generated envelope parity
+ok	0.100000	writeback c12 policy witnesses + negative controls
+ok	4.350000	writeback c12 phase witnesses + negative controls
+ok	1.710000	writeback c12 stages witnesses + negative controls
+ok	4.690000	writeback c12 split-phase witnesses + negative controls
+ok	5.570000	writeback policy clauses witnesses + negative controls
+ok	1.780000	writeback policy paths witnesses + negative controls
+ok	0.870000	splitlocal template forwarding + old-argument controls
+ok	0.000000	atomic commit publication catches up at quiescence
+ok	2.310000	flushfix flush witnesses
+ok	0.050000	flushfix headers witnesses
+ok	3.320000	multidb serverless owners
+ok	0.050000	multidb global namespace boundary
+ok	10.830000	storesize published monitoring
+ok	0.210000	MULTI admin command replies
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.010000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.000000	atomic survivor: script_keys
+ok	0.010000	atomic survivor: rename_overlay
+ok	0.000000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.000000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.000000	atomic survivor: watch_cycle
+ok	0.010000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.010000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit
+ok	0.000000	armed resize retirement: atomic-growth
+ok	0.010000	armed resize retirement: flush-prepared
+ok	0.000000	netcmd regression build
+ok	0.010000	netcmd streams regression
+ok	0.000000	netcmd zpop regression
+ok	0.010000	netcmd notify-oom regression
+ok	0.000000	netcmd notify-retry regression
+ok	0.010000	netcmd flush regression
+ok	0.010000	netcmd output regression
+ok	0.000000	netcmd pubsub regression
+ok	0.010000	netcmd receive regression
+ok	0.030000	netcmd config regression
+ok	0.010000	netcmd wb-small-pipe regression
+ok	0.010000	netcmd wb-complete-visits regression
+ok	0.010000	netcmd hexpire-oom regression
+ok	0.010000	encodingfix knob
+ok	0.000000	encodingfix precedence
+ok	0.010000	NET1 serverless bounds + scan + reclamation
+ok	0.010000	reject bad protected-mode
+ok	0.010000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	0.040000	ACL battery (atomic off)
+ok	0.030000	ACL battery (atomic on)
+ok	2.470000	DEBUG toggle/reload battery
+ok	0.130000	typed snapshot round-trip incl stream
