@@ -8,8 +8,8 @@ measurement, or full gate iteration is part of this lane's execution.
 
 Builds and correctness processes are pinned to CPUs 48–63. Gate servers use
 48–55 and clients 56–63; the independent POST differential queue reverses those
-two eight-core sets. All boots use 16 shards, split 6 io + 2 ex or eight fused
-threads. Server/oracle/battery listener ports are configured within 32800–32899. Redis oracle:
+two eight-core sets. Directed boots use 16 shards, split 6 io + 2 ex or eight fused
+threads; historical jobs retain their own declared geometries. Server/oracle/battery listener ports are configured within 32800–32899. Redis oracle:
 `/home/user/Projects/redis74/src/redis-server`, version 7.4.10; reference source:
 `/home/user/Projects/redis/src`. The requested external trackfix report path was
 absent; the same REDIRECT finding was read in this worktree's existing
@@ -88,7 +88,19 @@ confirms all 108 legs and 1320 scenarios, with a semantic wire/reply mismatch
 in every notification leg and all four tracking subcases attempted per leg.
 POST `post-r3-directed` passes the same 108 legs and 1320 scenarios, verified
 against oracle wire bytes by `audit-directed.py`; both `.coverage.json` files
-are retained. Final broader gate receipt index: **PENDING**. Standard differential seeds run through
+are retained. Final broader gate receipt index: **PENDING**. During broader runs, Linux
+automatically selected even listener ports as client source ports. Captured
+TIME_WAIT sockets included 32800→32840 and 32800→another lane's 30800; subsequent
+boots failed EADDRINUSE. Noninteractive sudo cannot reserve the range, and
+unprivileged network namespaces are disabled. The affected whole jobs are
+rerun on odd bases, with port-band locks preventing our own runner overlap.
+Odd bases alone did not protect the oracle's adjacent even port. Subsequent
+runs hold three SO_REUSEADDR sockets bound without listening. This prevents
+automatic ephemeral allocation between boots while allowing both servers' real
+listeners; it neither accepts traffic nor joins the REUSEPORT listener group.
+The eight-listener probe is in `port-guard-probe.json`. No host setting changed.
+`proof-superseded.json` retains the replacement map; no failed boot is counted
+as semantic proof. The post fused/uring notification rerun is already green. Standard differential seeds run through
 `differ-split-0`, `differ-split-1`, `differ-armed-0`, `differ-armed-1` and
 `differ-equivalence`, for epoll and uring, without a reduced suite/seed override.
 The affected historical job selections include notify_order, notify_aof,
@@ -113,7 +125,10 @@ armed-string source dependency; an 80-byte value that was embstr rather than raw
 a duplicate source/destination in key selection; active expiry overtaking SET's
 chain; missing atomic source misses; AOF enabled too late or attached to the wrong
 launch; and a partially written scheduled receipt. These led to code/harness
-repairs, not tolerance changes. Early `gates_test.py` runs are also retained;
+repairs, not tolerance changes. The first supplemental epoll feature run also
+exposed a wrapper grammar error: prepending an engine option moved the config
+file out of argv[1]. The corrected wrapper preserves that position, and the
+whole feature jobs are rerun. Early `gates_test.py` runs are also retained;
 the first was stopped after an ephemeral-port configuration was noticed, and a
 port-bound run had two scheduler timeouts during builds. Final run with builds finished and `GATE_TEST_PORT=32891`: PASS, exit 0
 (`gates-test-final.log` and `.rc`). The initial unbound-port attempt is an
@@ -155,7 +170,8 @@ property note is preserved. `tools/notifycompat_pad.py` and `pad-a.json` retain 
 commands, input hashes and structural checks. This is a total-text-size control;
 **it does not reproduce POST's per-function placement or inlining decisions**.
 Earlier compact-cold-unit/PAD-B exploratory artifacts were superseded; final
-PAD-A uses no cold recompilation. Its directed negative proof is PENDING.
+PAD-A uses no cold recompilation. Its directed negative proof (`pad-a-directed.coverage.json`) rejects all eight
+rows in all 108 legs and 1320 scenarios, matching the PRE negative control.
 
 ### Maintainer merit request
 

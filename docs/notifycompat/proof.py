@@ -7,8 +7,10 @@ import json
 import os
 from pathlib import Path
 import re
+import socket
 import subprocess
 import tarfile
+import time
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -20,7 +22,7 @@ def main():
     p.add_argument('--arm', choices=('PRE', 'POST', 'PAD-A'), default='POST')
     p.add_argument('--engine', choices=('uring', 'epoll'))
     p.add_argument('--fused', action='store_true')
-    p.add_argument('--ports', default='32800-32839')
+    p.add_argument('--ports', default='32803-32839')
     p.add_argument('--server-cores', default='48-55')
     p.add_argument('--load-cores', default='56-63')
     p.add_argument('--root', type=Path, default=ROOT)
@@ -28,6 +30,13 @@ def main():
     assert os.sched_getaffinity(0) <= set(range(48, 64))
     first, last = map(int, a.ports.split('-'))
     assert 32800 <= first <= last <= 32899
+    # These assigned listener ports overlap Linux's ephemeral range. Normal
+    # unbound connect() prefers even ports; use an odd listener base while
+    # retaining the gate's complete three-port slot and recording the range.
+    requested_ports = a.ports
+    first += first % 2 == 0
+    assert last - first >= 2
+    a.ports = f'{first}-{last}'
     def cpus(spec):
         result = set()
         for token in spec.split(','):
@@ -58,6 +67,33 @@ def main():
             'receipt name already used with different inputs; choose a new name'
         print('REUSED completed gate receipt: ' + str(previous), flush=True)
         return
+    band = next(low for low, high in ((32800, 32839), (32840, 32859),
+                                     (32860, 32879), (32890, 32899))
+                if low <= first <= last <= high)
+    port_lock = (ROOT / 'build/notifycompat' / f'ports-{band}.lock').open('w')
+    fcntl.flock(port_lock, fcntl.LOCK_EX)
+    # A bound, non-listening REUSEADDR socket keeps Linux's automatic client
+    # port allocation out of the slot between server lifetimes. It neither
+    # accepts traffic nor participates in the server's REUSEPORT listener group.
+    # Redis and TomoKV already set REUSEADDR; their real listener/boot guards
+    # remain authoritative. No host sysctl or application behavior is changed.
+    port_guards = []
+    guard_started = time.monotonic()
+    while True:
+        try:
+            for port in range(first, first + 3):
+                guard = socket.socket()
+                port_guards.append(guard)
+                guard.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                guard.bind(('127.0.0.1', port))
+            break
+        except OSError:
+            for guard in port_guards:
+                guard.close()
+            port_guards.clear()
+            if time.monotonic() - guard_started >= 90:
+                raise
+            time.sleep(1)
     binary = ROOT / 'build/notifycompat/arms' / (digest + '-tomokv')
     binary.parent.mkdir(parents=True, exist_ok=True)
     if not binary.exists():
@@ -75,7 +111,10 @@ def main():
         extra = (['--net-io', a.engine] if a.engine else [])
         if a.fused:
             extra += ['--thread-mode', '1s', '--read-local', '1']
-        script += f'os.execv({str(binary)!r}, [{str(binary)!r}] + {extra!r} + args)\n'
+        # The config-file grammar requires the path to remain argv[1]. Explicit
+        # job options still follow our defaults and therefore remain decisive.
+        script += "prefix = args[:1] if args and not args[0].startswith('-') else []\n"
+        script += f'os.execv({str(binary)!r}, [{str(binary)!r}] + prefix + {extra!r} + args[len(prefix):])\n'
         target.write_text(script)
         target.chmod(0o755)
     env = dict(os.environ, REDIS74_ROOT='/home/user/Projects/redis',
@@ -91,8 +130,14 @@ def main():
            '--ports', a.ports, '--candidate-binary', str(target)]
     receipt = dict(command=cmd, cwd=str(a.root), jobs=a.jobs, arm=a.arm,
                    engine=a.engine, fused=a.fused, binary=str(binary), source_binary=str(original),
+                   requested_ports=requested_ports,
+                   nonlistening_port_guards=list(range(first, first + 3)),
+                   port_guard_wait_seconds=time.monotonic() - guard_started,
                    sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
                    environment={k: v for k, v in env.items() if k.startswith('GATE_') or k == 'REDIS74_ROOT'})
+    receipt['proof_driver_sha256'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    if target != binary:
+        receipt['candidate_wrapper'] = target.read_text()
     receipt['test_sources'] = sources
     with Path(str(output) + '.log').open('w') as log:
         result = subprocess.run(cmd, cwd=a.root, env=env, stdout=log, stderr=subprocess.STDOUT)
