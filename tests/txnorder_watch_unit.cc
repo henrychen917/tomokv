@@ -106,8 +106,8 @@ void readonly_watch(Server& server, bool handshake=false) {
         require(!multi_plain_write_ready(server.shard(1),write.op),
                 "D10 validation blocks writer in real EXEC CAS/start window");
     } else {
-        require(multi_execute_task(server,multi_make_task(&client,0,0,state),server.shard(0),
-                server.worker_of_shard(0),0,nullptr)==MultiTaskResult::Retry,"lead runs; late read held");
+        require(multi_task_retry(multi_execute_task(server,multi_make_task(&client,0,0,state),server.shard(0),
+                server.worker_of_shard(0),0,nullptr)),"lead runs; late read held");
         require(!state->finalized.load() && !state->execution_joined[1],"held read window exists");
         local(server,{"SET",b,"new"},631);
         multi_plain_write_committed(server.shard(1),write.op);
@@ -119,7 +119,7 @@ void readonly_watch(Server& server, bool handshake=false) {
         for(int sid:state->shards) if(!done[sid]) {
             const auto result=multi_execute_task(server,multi_make_task(&client,0,sid,state),
                 server.shard(sid),server.worker_of_shard(sid),0,nullptr);
-            done[sid]=result!=MultiTaskResult::Retry; all &= done[sid];
+            done[sid]=!multi_task_retry(result); all &= done[sid];
         }
         if(all) break;
     }
@@ -135,11 +135,11 @@ void readonly_watch(Server& server, bool handshake=false) {
 }
 }
 int main(int argc,char** argv) {
-    require(argc==3,"serve|readonly and 1s|2s");
+    require(argc==3 || argc==4,"serve|readonly and 1s|2s [atomic]");
     require(command_registry_init(false),"registry");
     Config cfg;cfg.databases=1;cfg.shards=16;cfg.even_ifid=6;cfg.even_ex=2;
     cfg.thread_mode=std::string(argv[2])=="1s" ? ThreadMode::Fused : ThreadMode::Split;
-    cfg.read_local=cfg.thread_mode==ThreadMode::Fused;cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;cfg.atomic=1;
+    cfg.read_local=cfg.thread_mode==ThreadMode::Fused;cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;cfg.atomic=argc==4 ? std::atoi(argv[3]) : 1;
     Server server;require(server.prepare_boot(cfg)&&server.init(cfg),"owner geometry");
     command_bind_server(&server);
     std::string error;require(acl_initialize(server,cfg,error),"default ACL");

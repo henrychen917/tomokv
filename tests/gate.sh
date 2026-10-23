@@ -1123,7 +1123,7 @@ plan_jobs(){
               release_batteries atomic_batteries moverfix hexpread compat2 compat3 bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth authfix notify notify_order notify_aof trackfix_accounting trackfix_order flip fliplisten flip_saturated atomic_floor
               aof_frame aoforder tls ntfix_input fused-0 fused-1 txn_group_fused txn_group_split
-              txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
+              execfair txnorder2 txnorder_wake txnorder-fused-0 txnorder-fused-1 txnorder-split-0 txnorder-split-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
     for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
@@ -2775,6 +2775,26 @@ job_txnorder(){
 # A' schedules, WATCH defects, RENAME join and busy-owner wake: seventeen rows before quick exit.
 # R12 also runs allocation and invariant/retirement falsifiers. The WATCH rows
 # aggregate both thread modes, both databases images and both network engines.
+# execfair: one aggregate witness row before quick exit, DQ=DF=+1.
+# Both engines, modes and atomic settings must observe actual fast-lane polls.
+job_execfair(){
+  local label="EXEC fast-lane polls" passed=1 mode atomic engine boot_fn log
+  row_begin "$label"
+  for mode in 1s 2s; do for atomic in 0 1; do for engine in uring epoll; do
+    boot_fn=boot
+    [ "$mode" != 1s ] || boot_fn=boot_fused
+    log="$TMPDIR/execfair-$mode-$atomic-$engine"
+    if "$boot_fn" "$CANDIDATE_BINARY" --atomic "$atomic" --net-io "$engine" \
+        --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes; then
+      py tests/execfair.py 127.0.0.1 "$PORT" --witness --seconds 1 \
+          --output "$log.json" >"$log.log" 2>&1 || passed=0
+    else passed=0; fi
+    stop
+    shutdown_clean || passed=0
+  done; done; done
+  [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/execfair-*"
+}
+
 job_txnorder_wake(){
   local label passed mode unit_root
   unit_root=$(dirname "$CANDIDATE_BINARY")
@@ -2788,51 +2808,57 @@ job_txnorder_wake(){
 }
 
 job_txnorder2(){
-  local case_name label passed mode engine databases boot_fn unit unit_root log
+  local case_name label passed mode atomic engine databases boot_fn unit unit_root log
   unit_root=$(dirname "$CANDIDATE_BINARY")
   for case_name in R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12; do
     label="txnorder2 writer episode $case_name"
     row_begin "$label"
     passed=1
     log="$TMPDIR/$case_name.log"
-    taskset -c "$CORES" "$unit_root/txnorder-episodes" "$case_name" >"$log" 2>&1 || passed=0
+    for mode in 1s 2s; do for atomic in 0 1; do
+      taskset -c "$CORES" "$unit_root/txnorder-episodes" "$case_name" "$mode" "$atomic" >>"$log" 2>&1 || passed=0
+    done; done
     if [ "$case_name" = R8 ]; then
-      for mode in 1s 2s; do
+      for mode in 1s 2s; do for atomic in 0 1; do
         for unit in txnorder-watch-unit txnorder-watch-db0-unit; do
           taskset -c "$CORES" "$unit_root/$unit" handshake "$mode" >>"$log" 2>&1 || passed=0
         done
-      done
+      done; done
     fi
     if [ "$case_name" = R12 ]; then
-      for case_name in invariant failure; do
-        taskset -c "$CORES" "$unit_root/txnorder-episodes" "$case_name" >>"$log" 2>&1 || passed=0
-      done
-      taskset -c "$CORES" "$unit_root/txnorder-episodes-debug" retirement >>"$log" 2>&1 || passed=0
+      for mode in 1s 2s; do for atomic in 0 1; do
+        for case_name in invariant failure; do
+          taskset -c "$CORES" "$unit_root/txnorder-episodes" "$case_name" "$mode" "$atomic" >>"$log" 2>&1 || passed=0
+        done
+        taskset -c "$CORES" "$unit_root/txnorder-episodes-debug" retirement "$mode" "$atomic" >>"$log" 2>&1 || passed=0
+      done; done
     fi
     [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $log"
   done
   label="txnorder2 direct RENAME owner join"
   row_begin "$label"
   passed=1
-  for unit in txnorder-watch-unit txnorder-watch-db0-unit; do
-    taskset -c "$CORES" "$unit_root/$unit" rename 2s >>"$TMPDIR/rename.log" 2>&1 || passed=0
-  done
+  for mode in 1s 2s; do for atomic in 0 1; do
+    for unit in txnorder-watch-unit txnorder-watch-db0-unit; do
+      taskset -c "$CORES" "$unit_root/$unit" rename "$mode" "$atomic" >>"$TMPDIR/rename.log" 2>&1 || passed=0
+    done
+  done; done
   [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/rename.log"
   for case_name in serve flush readonly; do
     label="txnorder2 WATCH $case_name"
     row_begin "$label"
     passed=1
-    for mode in 1s 2s; do for engine in uring epoll; do for databases in 1 16; do
-      log="$TMPDIR/$case_name-$mode-$engine-$databases.log"
+    for mode in 1s 2s; do for atomic in 0 1; do for engine in uring epoll; do for databases in 1 16; do
+      log="$TMPDIR/$case_name-$mode-$atomic-$engine-$databases.log"
       unit="$unit_root/txnorder-watch-unit"
       [ "$databases" != 1 ] || unit="$unit_root/txnorder-watch-db0-unit"
       if [ "$case_name" != flush ]; then
-        taskset -c "$CORES" "$unit" "$case_name" "$mode" >"$log" 2>&1 || passed=0
+        taskset -c "$CORES" "$unit" "$case_name" "$mode" "$atomic" >"$log" 2>&1 || passed=0
       fi
       boot_fn=boot
       [ "$mode" != 1s ] || boot_fn=boot_fused
       if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" --databases "$databases" \
-          --read-local "$([ "$mode" = 1s ] && echo 1 || echo 0)" --atomic 1 \
+          --read-local "$([ "$mode" = 1s ] && echo 1 || echo 0)" --atomic "$atomic" \
           --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes; then
         if [ "$case_name" != readonly ]; then
           py tests/txnorder_watch.py 127.0.0.1 "$PORT" --databases "$databases" --only "$case_name" >>"$log" 2>&1 || passed=0
@@ -2842,7 +2868,7 @@ job_txnorder2(){
       else passed=0; fi
       stop
       shutdown_clean || passed=0
-    done; done; done
+    done; done; done; done
     [ "$passed" = 1 ] && ok "$label" || bad "$label" "see $TMPDIR/$case_name-*.log"
   done
 }
@@ -4838,6 +4864,7 @@ collect_job sort
 
 for AT in 0 1; do collect_job "debug-$AT"; done
 collect_job txn_group_split
+collect_job execfair
 collect_job txnorder2
 collect_job txnorder_wake
 for TM in fused split; do for AT in 0 1; do collect_job "txnorder-$TM-$AT"; done; done

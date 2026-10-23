@@ -121,7 +121,7 @@ std::string multi_io(Server& server, Client& client, std::vector<std::string> ar
             const int s = state->shards[i];
             const auto result = multi_execute_task(server, multi_make_task(&client, 0, s, state),
                 server.shard(s), server.worker_of_shard(s), 0, nullptr);
-            if (result != MultiTaskResult::Retry) { done[i] = true; remaining--; }
+            if (!multi_task_retry(result)) { done[i] = true; remaining--; }
         }
     }
     require(!remaining, "transaction owner phases completed (no reservation cycle)");

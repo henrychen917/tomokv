@@ -370,10 +370,11 @@ void controls(Server& server, const std::string& name) {
 }
 
 int main(int argc,char** argv) {
-    require(argc==2,"one R-family case required");
+    require(argc==2 || argc==4,"R-family case [1s|2s atomic]");
     require(command_registry_init(false),"command registry");
     Config cfg; cfg.databases=1; cfg.shards=16; cfg.even_ifid=6; cfg.even_ex=2;
-    cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;cfg.atomic=1;
+    cfg.key_lb=cfg.client_lb=cfg.flip_auto=0;cfg.atomic=argc==4 ? std::atoi(argv[3]) : 1;
+    cfg.thread_mode=argc==4 && std::string(argv[2])=="1s" ? ThreadMode::Fused : ThreadMode::Split;
     Server server; require(server.prepare_boot(cfg)&&server.init(cfg),"owner-only boot");
     command_bind_server(&server);
     const std::string name=argv[1];

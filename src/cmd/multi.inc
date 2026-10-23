@@ -3278,7 +3278,7 @@ bool Shard::watch_place_unit(const std::vector<TxnClaim>& keys, WatchReservation
             for (const auto& key : keys) watch_promote_unit_waiter(key.key, promoter);
         // All own waiter marks now exist. A new younger placing claim cannot
         // pass them. Preserve full wound scans if this scan found such a claim,
-        // even when its wound succeeded; never cache writer/validation waits.
+        // even when its wound succeeded; never cache writer or legacy validation waits.
         else if (older.refs && !younger_placing) cached.take(older);
         return ready;
     } catch (const std::bad_alloc&) {

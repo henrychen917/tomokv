@@ -135,6 +135,9 @@ enum class MultiTaskResult : uint8_t {
     Complete,
     Final,
 };
+inline bool multi_task_retry(MultiTaskResult result) {
+    return result == MultiTaskResult::Retry || result == MultiTaskResult::RetrySoon;
+}
 
 // Owner-local, synchronous promotion; no task or state pointer outlives this call.
 struct MultiRetryPromoter {

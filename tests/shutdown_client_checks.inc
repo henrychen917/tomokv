@@ -94,7 +94,7 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
             const MultiTaskResult result = multi_execute_task(f.server,
                 multi_make_task(live, exec_id, sid, txn), f.server.shard(sid),
                 f.server.worker_of_shard(sid), 0, nullptr);
-            if (result == MultiTaskResult::Retry) { ++i; continue; }
+            if (multi_task_retry(result)) { ++i; continue; }
             if (result == MultiTaskResult::Final) // the executor's completion store
                 exec->state.store(OpState::Done, std::memory_order_release);
             owners.erase(owners.begin() + static_cast<std::ptrdiff_t>(i));
