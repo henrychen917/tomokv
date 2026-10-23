@@ -5,3 +5,7 @@ post-final-uring	0
 pre-final-spop	1
 pre-extra	0
 post-extra	0
+post-linear-directed	0
+pre-linear-directed	1
+pre-static-final	0
+post-linear-units	0

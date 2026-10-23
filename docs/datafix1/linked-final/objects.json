@@ -157,7 +157,7 @@
   {
     "object": "db0/src/cmd/t_set.o",
     "functions": 211,
-    "changed": 39
+    "changed": 36
   },
   {
     "object": "db0/src/cmd/t_sort.o",

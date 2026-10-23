@@ -1,13 +1,13 @@
 {
   "objects": 106,
   "functions": 16838,
-  "changed": 325,
+  "changed": 322,
   "ordinary": 4484,
-  "ordinary_equal": 4364,
-  "ordinary_raw_equal": 4110,
-  "ordinary_instruction_counts_equal": 4390,
+  "ordinary_equal": 4365,
+  "ordinary_raw_equal": 4111,
+  "ordinary_instruction_counts_equal": 4391,
   "ordinary_instructions_pre": 1093790,
-  "ordinary_instructions_post": 1096609,
+  "ordinary_instructions_post": 1096800,
   "linked_ordinary": 2690,
   "linked_proven": 2584,
   "linked_raw_equal": 364,
@@ -17,8 +17,8 @@
     "text_bytes": 7747526
   },
   "POST": {
-    "sha256": "198761436da1aba070f550974d5a17782cc46b72bc7347cc983c27f927038350",
-    "text_bytes": 7777030
+    "sha256": "b05021db6b4f7369b0cad5b7009b8a1918332860f92b03f029394c23e4d61dec",
+    "text_bytes": 7777926
   }
 }
 UNEXPLAINED db0/src/cmd/geo.o tomo_db0::(anonymous namespace)::parse_search(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions&) [clone .constprop.0]
@@ -103,8 +103,6 @@ UNEXPLAINED db0/src/cmd/t_server.o tomo_db0::command_client_set_info(tomo_db0::C
 UNEXPLAINED db0/src/cmd/t_server.o tomo_db0::command_client_migration_extract(tomo_db0::Client*)
 UNEXPLAINED db0/src/cmd/t_server.o tomo_db0::Server::shard_owner_count() const
 UNEXPLAINED db0/src/cmd/t_set.o _GLOBAL__sub_I__ZN8tomo_db014SetMemberTable12capacity_forEj
-UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]
-UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::kvobj_size(tomo_db0::KvObj const*)
 UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::(anonymous namespace)::add_member(tomo_db0::CollectionRef&, tomo_db0::Slice, tomo_db0::CompactLimit const&, unsigned int)
 UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::(anonymous namespace)::add_member(tomo_db0::CollectionRef&, tomo_db0::Slice, tomo_db0::CompactLimit const&, unsigned int) [clone .cold]
 UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::(anonymous namespace)::integer_at(tomo_db0::CollectionRef const&, unsigned int, long&)
@@ -136,7 +134,6 @@ UNEXPLAINED db0/src/cmd/t_set.o void tomo_db0::reply_array_header<tomo_db0::Op::
 UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)
 UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::SetVal::finish_table_promotion(unsigned long)
 UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
-UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::FlatStore::rehash_step_read_local()
 UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::(anonymous namespace)::pop_rebuilt<false>(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*&, unsigned int)::{lambda(tomo_db0::Slice)#2}::operator()(tomo_db0::Slice) const [clone .isra.0]
 UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::(anonymous namespace)::pop_rebuilt<false>(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*&, unsigned int)::{lambda(tomo_db0::Slice)#1}::operator()(tomo_db0::Slice) const
 UNEXPLAINED db0/src/cmd/t_set.o tomo_db0::(anonymous namespace)::pop_rebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::KvObj*&, unsigned int)::{lambda(tomo_db0::Slice)#2}::operator()(tomo_db0::Slice) const [clone .isra.0]

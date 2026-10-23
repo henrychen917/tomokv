@@ -18,7 +18,7 @@ semantic={'geo.o':r'parse_search|cmd_geosearch|geo_build_store|geo_prepare_route
  't_hash.o':r'cmd_hrandfield','t_hash_ttl.o':r'parse_expire|expire_generic|cmd_h(?:expire|pexpire)',
  't_list.o':r'demote_shrunk_list|pop_generic|xshard_pop_list|xshard_remove_list|cmd_l(?:rem|set|trim)',
  't_server.o':r'cmd_config|init_config|collect_config_updates',
- 't_set.o':r'pop_compact|pop_rebuilt|cmd_spop|cmd_srandmember',
+ 't_set.o':r'popped_integer|pop_compact|pop_rebuilt|cmd_spop|cmd_srandmember',
  't_sort.o':'.*','t_zset.o':r'cmd_zrandmember|cmd_zscan',
  'xshard.o':r'finish_phase1|assemble_final|parse_bitfield_operations','main.o':'.*'}
 for r in rows:

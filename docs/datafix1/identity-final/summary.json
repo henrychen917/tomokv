@@ -1,7 +1,7 @@
 {
   "total": 16838,
-  "equal": 16513,
-  "changed": 325,
+  "equal": 16516,
+  "changed": 322,
   "handlers": 1219,
   "handlers_equal": 1101,
   "hot": 1220,
@@ -488,7 +488,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3276,
-      "post_size": 9041,
+      "post_size": 9180,
       "classification": "other"
     },
     {
@@ -499,7 +499,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 185,
+      "post_size": 180,
       "classification": "other"
     },
     {
@@ -510,7 +510,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3372,
-      "post_size": 9285,
+      "post_size": 9423,
       "classification": "other"
     },
     {
@@ -521,7 +521,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 192,
+      "post_size": 193,
       "classification": "other"
     },
     {
@@ -1093,7 +1093,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 2826,
-      "post_size": 2698,
+      "post_size": 2634,
       "classification": "other"
     },
     {
@@ -1115,7 +1115,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3196,
-      "post_size": 8627,
+      "post_size": 8981,
       "classification": "other"
     },
     {
@@ -1126,7 +1126,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 186,
+      "post_size": 183,
       "classification": "other"
     },
     {
@@ -1137,7 +1137,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3324,
-      "post_size": 8823,
+      "post_size": 9243,
       "classification": "other"
     },
     {
@@ -1148,7 +1148,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 187,
+      "post_size": 196,
       "classification": "other"
     },
     {
@@ -1791,7 +1791,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3276,
-      "post_size": 9041,
+      "post_size": 9180,
       "classification": "other"
     },
     {
@@ -1802,7 +1802,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 185,
+      "post_size": 180,
       "classification": "other"
     },
     {
@@ -1813,7 +1813,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3372,
-      "post_size": 9285,
+      "post_size": 9423,
       "classification": "other"
     },
     {
@@ -1824,7 +1824,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 192,
+      "post_size": 193,
       "classification": "other"
     },
     {
@@ -2396,7 +2396,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 2826,
-      "post_size": 2698,
+      "post_size": 2634,
       "classification": "other"
     },
     {
@@ -2418,7 +2418,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3196,
-      "post_size": 8627,
+      "post_size": 8981,
       "classification": "other"
     },
     {
@@ -2429,7 +2429,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 186,
+      "post_size": 183,
       "classification": "other"
     },
     {
@@ -2440,7 +2440,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 3324,
-      "post_size": 8823,
+      "post_size": 9243,
       "classification": "other"
     },
     {
@@ -2451,7 +2451,7 @@
       "error_callee_only": false,
       "raw_equal": false,
       "pre_size": 48,
-      "post_size": 187,
+      "post_size": 196,
       "classification": "other"
     },
     {

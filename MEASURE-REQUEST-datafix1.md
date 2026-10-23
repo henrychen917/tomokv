@@ -29,8 +29,9 @@ The same row checks full SSCAN coverage of surviving members across a large
 pop, with an explicitly nonzero starting cursor. Independent oracle receipts:
 docs/datafix1/oracle-spop-rebuild/ and oracle-spop-cursor/; paired gate
 proof: docs/datafix1/{pre,post}-spop-rebuild-proof.tar.gz.
-Cost per call, n members / k popped / B packed bytes: PRE's first compact
-partial pop builds an expected O(n) table, then takes expected O(k) picks,
+Cost per partial call (0 < k < n), n members / k popped / B packed bytes: PRE's first compact
+partial pop builds a table, traversing listpacks in O(n+B) and indexed intsets
+in O(n log n+B), then takes expected O(k) picks,
 allocating O(n) table/string storage permanently. POST's single compact pop
 walks or indexes once and shifts at most B bytes, O(n+B) with no auxiliary
 allocation. Small counted compact pops sample and rebuild in linear passes,
@@ -38,7 +39,10 @@ O(n+B) time and O(k+B) temporary storage. Large counted pops sample survivors
 in one pass, build them once, and emit the remainder in another pass: O(n+B)
 plus expected hash insertion work if current limits require a table, with
 O(n-k + survivor bytes) temporary storage. There is no rejection sampling or
-repeated compact membership search. These are algorithmic costs, not measured
+repeated compact membership search. Counted partial calls make n sampling
+draws and at most two full entry traversals, plus survivor construction; the
+PRE conversion instead performs n table insertions and k random table picks.
+These are algorithmic costs, not measured
 throughput or cycle claims. EXPECT constants are unchanged.
 
 CD4.5: one-node quicklists demote after LPOP/RPOP, LSET, LREM (when something was
@@ -87,9 +91,9 @@ Cumulative DQ=DF=+7: all seven rows are collected before the quick-tier exit.
 Maintainer EXPECT values should become QUICK 692 / FULL 709 (base 685 / 702);
 this lane leaves those constants unchanged.
 
-Inlining budget derivation: final set IPA sizes grew 17685→19548 and
-17505→19350 (db0); normal zset grew by 38. Bounded compile-only trials selected
-set 26200 / db0 26600 and normal zset 33447. Every trial's command, object digest
+Inlining budget derivation: final set IPA sizes grew 17685→19373 and
+17505→19175 (db0); normal zset grew by 38. Bounded compile-only trials selected
+set 26200 / db0 26400 and normal zset 33447. Every trial's command, object digest
 and complete changed-body inventory is under docs/datafix1/budgets. These retain
 all ordinary storage hot bodies; final whole-tree audits follow. No runtime knob
 or algorithm change was introduced by the budget adjustment.
@@ -107,17 +111,17 @@ performance result or improvement is claimed by this lane.
 
 Artifacts: PRE build/datafix1/pre-src/build/tomokv; POST build/tomokv; PAD-A
 build/datafix1/PAD-A/tomokv. Digests: docs/datafix1/SHA256SUMS. PAD kind A is PRE
-behavior (unchanged PRE objects) with 29,504 inert bytes appended to match POST's
-7,777,030-byte .text. It controls total text size and the unchanged layout locks,
+behavior (unchanged PRE objects) with 30,400 inert bytes appended to match POST's
+7,777,926-byte .text. It controls total text size and the unchanged layout locks,
 not every function address. Config's new cold pointer consumes PRE's reserved
 storage; existing field offsets stay fixed. Exact link/object provenance is in
 docs/datafix1/pad-kind.json; tools/datafix1_pad.py reproduces the arm.
 
-Final identity: tools/ccfix_audit.py inventories 16,838 emitted bodies, 325 changed;
+Final identity: tools/ccfix_audit.py inventories 16,838 emitted bodies, 322 changed;
 all 1,220 selected hot bodies are canonical-equal to PRE. Its command-only INFO/
 CONFIG/ACL admission policy rejects the intentional data-type changes, as expected.
 The stricter linked audit (tools/infofields_artifacts.py) likewise rejects its
-INFO-only whitelist: 4,364/4,484 ordinary object bodies match and 2,584/2,690 linked
+INFO-only whitelist: 4,365/4,484 ordinary object bodies match and 2,584/2,690 linked
 ordinary bodies are proven. Every changed body, including compiler spillover in
 unedited helpers, is listed with a reason in docs/datafix1/body-reasons.json.
 All ten linked GET/SET/MGET/MSET handlers are proven against their PRE object
@@ -157,3 +161,11 @@ Lean build retention: PRE's redundant production-unit and control binaries were
 removed after the passing gate runs and recorded make -q checks. Its exact source,
 production objects and server remain, and make -q all still passes. POST's required
 production targets remain fresh. The removed paths are listed in lean-builds.json.
+
+A final source cost audit found that integer_at() rediscovers logical-offset
+coordinates: a bounded scan below the side-index cutover and a binary search
+above it. Counted SPOP now decodes the entries already in its sequential iterator,
+including signed 16/32/64-bit values, instead of repeating those lookups. This
+makes the stated POST O(n+B) traversal bound literal. The oracle signed corpus
+is in oracle-spop-signed/. The earlier differential attempt is archived as
+post-epoll-differ-before-linear and is not a final-binary matrix claim.

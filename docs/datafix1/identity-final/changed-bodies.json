@@ -947,28 +947,6 @@
   },
   {
     "object": "db0/src/cmd/t_set.o",
-    "symbol": "_ZN8tomo_db010kvobj_freeEPNS_5KvObjE.part.0",
-    "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
-    "equal": false,
-    "error_callee_only": false,
-    "raw_equal": false,
-    "pre_size": 320,
-    "post_size": 383,
-    "classification": "other"
-  },
-  {
-    "object": "db0/src/cmd/t_set.o",
-    "symbol": "_ZN8tomo_db010kvobj_sizeEPKNS_5KvObjE",
-    "name": "tomo_db0::kvobj_size(tomo_db0::KvObj const*)",
-    "equal": false,
-    "error_callee_only": false,
-    "raw_equal": false,
-    "pre_size": 320,
-    "post_size": 416,
-    "classification": "other"
-  },
-  {
-    "object": "db0/src/cmd/t_set.o",
     "symbol": "_ZN8tomo_db012_GLOBAL__N_110add_memberERNS_13CollectionRefENS_5SliceERKNS_12CompactLimitEj",
     "name": "tomo_db0::(anonymous namespace)::add_member(tomo_db0::CollectionRef&, tomo_db0::Slice, tomo_db0::CompactLimit const&, unsigned int)",
     "equal": false,
@@ -1008,7 +986,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 0,
-    "post_size": 2926,
+    "post_size": 2914,
     "classification": "other"
   },
   {
@@ -1019,7 +997,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 0,
-    "post_size": 110,
+    "post_size": 102,
     "classification": "other"
   },
   {
@@ -1140,7 +1118,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 3276,
-    "post_size": 9041,
+    "post_size": 9180,
     "classification": "other"
   },
   {
@@ -1151,7 +1129,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 48,
-    "post_size": 185,
+    "post_size": 180,
     "classification": "other"
   },
   {
@@ -1162,7 +1140,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 3372,
-    "post_size": 9285,
+    "post_size": 9423,
     "classification": "other"
   },
   {
@@ -1173,7 +1151,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 48,
-    "post_size": 192,
+    "post_size": 193,
     "classification": "other"
   },
   {
@@ -1306,17 +1284,6 @@
     "raw_equal": false,
     "pre_size": 1531,
     "post_size": 1202,
-    "classification": "other"
-  },
-  {
-    "object": "db0/src/cmd/t_set.o",
-    "symbol": "_ZN8tomo_db09FlatStore22rehash_step_read_localEv",
-    "name": "tomo_db0::FlatStore::rehash_step_read_local()",
-    "equal": false,
-    "error_callee_only": false,
-    "raw_equal": false,
-    "pre_size": 1309,
-    "post_size": 1406,
     "classification": "other"
   },
   {
@@ -2790,7 +2757,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 0,
-    "post_size": 3063,
+    "post_size": 3072,
     "classification": "other"
   },
   {
@@ -2878,7 +2845,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 2826,
-    "post_size": 2698,
+    "post_size": 2634,
     "classification": "other"
   },
   {
@@ -2900,7 +2867,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 3196,
-    "post_size": 8627,
+    "post_size": 8981,
     "classification": "other"
   },
   {
@@ -2911,7 +2878,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 48,
-    "post_size": 186,
+    "post_size": 183,
     "classification": "other"
   },
   {
@@ -2922,7 +2889,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 3324,
-    "post_size": 8823,
+    "post_size": 9243,
     "classification": "other"
   },
   {
@@ -2933,7 +2900,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 48,
-    "post_size": 187,
+    "post_size": 196,
     "classification": "other"
   },
   {
@@ -3010,7 +2977,7 @@
     "error_callee_only": false,
     "raw_equal": false,
     "pre_size": 588,
-    "post_size": 668,
+    "post_size": 591,
     "classification": "other"
   },
   {
