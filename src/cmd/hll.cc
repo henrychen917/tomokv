@@ -11,6 +11,7 @@
 #include <charconv>
 #include <cmath>
 #include <cstring>
+#include <cstdio>
 #include <limits>
 
 namespace tomo::hll {
@@ -499,6 +500,75 @@ uint64_t count_registers(const std::array<uint8_t, kRegisters>& registers) {
     int histogram[64] = {};
     for (uint8_t value : registers) histogram[value]++;
     return estimate(histogram);
+}
+
+std::string selftest() {
+    // A local deterministic sequence makes failures repeatable and avoids shared
+    // random state when different IO owners run this diagnostic concurrently.
+    uint64_t random = 0x6a09e667f3bcc909ULL;
+    auto next = [&] {
+        random ^= random << 13;
+        random ^= random >> 7;
+        random ^= random << 17;
+        return random;
+    };
+    std::string dense = create_sparse();
+    if (!make_dense(dense)) return "ERR TESTFAILED dense/sparse disagree";
+    uint8_t* packed = bytes(dense) + kHeaderBytes;
+    std::array<uint8_t, kRegisters> expected{};
+    char message[160];
+    for (uint32_t cycle = 0; cycle < 1000; ++cycle) {
+        for (uint32_t i = 0; i < kRegisters; ++i) {
+            expected[i] = next() & kRegisterMax;
+            dense_put(packed, i, expected[i]);
+        }
+        for (uint32_t i = 0; i < kRegisters; ++i) {
+            const uint8_t actual = dense_get(packed, i);
+            if (actual != expected[i]) {
+                std::snprintf(message, sizeof(message), "ERR TESTFAILED Register %u should be %u but is %u",
+                              i, unsigned(expected[i]), unsigned(actual));
+                return message;
+            }
+        }
+    }
+    std::memset(packed, 0, kDenseBytes);
+    std::string sparse = create_sparse();
+    const uint64_t seed = next();
+    const double relative_error = 1.04 / std::sqrt(double(kRegisters));
+    uint64_t checkpoint = 1;
+    // Call the production estimator through its public boundary. Besides
+    // checking the same routine as PFCOUNT, this permits the gate's ELF fault
+    // control without adding a production test switch or changing count's body.
+    auto* volatile estimate_image = &count;
+    for (uint64_t cardinality = 1; cardinality <= 10000000; ++cardinality) {
+        const uint64_t element = cardinality ^ seed;
+        const Slice value(reinterpret_cast<const char*>(&element), sizeof(element));
+        uint32_t index = 0;
+        const uint8_t rank = pattern_length(value, index);
+        dense_set(packed, index, rank);
+        if (add(sparse, value) < 0) return "ERR TESTFAILED dense/sparse disagree";
+        if (cardinality != checkpoint) continue;
+        const Slice sparse_view(sparse.data(), sparse.size());
+        if (cardinality < g_sparse_max_bytes / 2 && is_dense(sparse_view))
+            return "ERR TESTFAILED sparse encoding not used";
+        bool corrupt = false;
+        const uint64_t estimate_dense = estimate_image(Slice(dense.data(), dense.size()), corrupt);
+        const uint64_t estimate_sparse = estimate_image(sparse_view, corrupt);
+        std::string converted = sparse;
+        if (!make_dense(converted) || corrupt || estimate_dense != estimate_sparse ||
+            estimate_image(Slice(converted.data(), converted.size()), corrupt) != estimate_dense || corrupt)
+            return "ERR TESTFAILED dense/sparse disagree";
+        const uint64_t error = estimate_dense > cardinality ? estimate_dense - cardinality : cardinality - estimate_dense;
+        const uint64_t bound = cardinality == 10 ? 1 :
+            static_cast<uint64_t>(std::ceil(relative_error * 6 * cardinality));
+        if (error > bound) {
+            std::snprintf(message, sizeof(message), "ERR TESTFAILED Too big error. card:%llu abserr:%llu",
+                          static_cast<unsigned long long>(cardinality), static_cast<unsigned long long>(error));
+            return message;
+        }
+        checkpoint *= 10;
+    }
+    return {};
 }
 
 bool merge_result(Slice destination, bool destination_present,

@@ -14,6 +14,7 @@
 #include "acl.h"
 #include "acl_categories_generated.h"
 #include "slowlog.h"
+#include "hll.h"
 #include "../base/alloc.h"
 #include "../core/config.h"
 #include "../core/server.h"
@@ -195,9 +196,11 @@ void cmd_replicaof(Shard&, Op& op) {
     reply_err(op.sink(), "ERR replication is not supported by tomokv");
 }
 
-// Our HyperLogLog carries no encoding the command could exercise beyond what PFADD/PFCOUNT already
-// validate on every call, so the self test has nothing left to find and reports success.
-void cmd_pfselftest(Shard&, Op& op) { reply_ok(op.sink()); }
+void cmd_pfselftest(Shard&, Op& op) {
+    const std::string error = hll::selftest();
+    if (error.empty()) reply_ok(op.sink());
+    else reply_err(op.sink(), error.c_str());
+}
 
 // SHUTDOWN. On success redis sends NO reply -- the connection simply closes as the process goes
 // away -- so the only replies here are the refusals.
