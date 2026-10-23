@@ -60,3 +60,9 @@ so growth can exceed the configured limit by at most eight bytes; the existing
 UINT32_MAX-64KiB supported cap leaves ample representable space. A static_assert
 pins this proof. Read-only probes exercise the maximum supported cap without a
 multi-gigabyte allocation. Cumulative DQ=DF=+5.
+
+CD4.11: HEXPIRE/HPEXPIRE/HEXPIREAT/HPEXPIREAT validate negative/overflowing expire
+values before condition and FIELDS parsing; key type lookup retains its earlier
+precedence. The matrix crosses all four commands, present/missing/wrong-type keys,
+invalid values, conflicting conditions and malformed field tails. PRE fails and
+POST passes all six engine/mode legs. Cumulative DQ=DF=+6.
