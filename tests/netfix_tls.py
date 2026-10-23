@@ -102,5 +102,7 @@ if __name__ == '__main__':
             failed.append(label)
             results[label] = repr(exc)
             print('FAIL', label, repr(exc), flush=True)
+            if oracle:
+                break  # Preserve the named oracle error; do not cascade into missing fixtures.
     (a.output / 'results.json').write_text(json.dumps(results, indent=2))
     assert not failed, failed

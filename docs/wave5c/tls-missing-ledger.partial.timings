@@ -1,0 +1,2 @@
+ok	0.000000	release build (+footprint locks)
+FAIL	0.100000	netfix NT4.7 TLS default cipher parity

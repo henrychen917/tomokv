@@ -1,0 +1,6 @@
+FAIL oracle-oracle AssertionError("oracle-oracle: TLS oracle /home/user/Projects/redis74/src/redis-server: exit 1; 3733433:C 24 Oct 2026 00:56:36.694 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.\n3733433:C 24 Oct 2026 00:56:36.694 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo\n3733433:C 24 Oct 2026 00:56:36.694 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=3733433, just started\n3733433:C 24 Oct 2026 00:56:36.694 * Configuration loaded\n3733433:M 24 Oct 2026 00:56:36.694 * monotonic clock: POSIX clock_gettime\n3733433:M 24 Oct 2026 00:56:36.695 * Running mode=standalone, port=26880.\n3733433:M 24 Oct 2026 00:56:36.695 # Missing implement of connection type tls\n3733433:M 24 Oct 2026 00:56:36.695 # Failed finding TLS support.\n")
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-wave5/tests/netfix_tls.py", line 108, in <module>
+    assert not failed, failed
+           ^^^^^^^^^^
+AssertionError: ['oracle-oracle']

@@ -137,5 +137,8 @@ def matrix(a, test, *, tls=True):
                 failures.append(label)
                 results[label] = traceback.format_exc()
                 print('FAIL', label, results[label], flush=True)
+                if oracle:
+                    (a.output / 'results.json').write_text(json.dumps(results, indent=2))
+                    raise  # No candidate leg can compare against a missing oracle result.
     (a.output / 'results.json').write_text(json.dumps(results, indent=2))
     assert not failures, failures

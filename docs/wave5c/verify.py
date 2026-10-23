@@ -29,7 +29,9 @@ for unit in (ROOT/'build').glob('*'):
 env['WAVE5_BINARY']=str(binary)
 if a.engine or a.mode:
  binary=ROOT/'docs/wave5/server_adapter.py'
- if a.engine:env['WAVE5_ENGINE']=a.engine
+ if a.engine:
+  env['WAVE5_ENGINE']=a.engine
+  env['GATE_SHUTDOWN_NET_IO']=a.engine
  if a.mode:env['WAVE5_MODE']=a.mode
  env['WAVE5_LAUNCH_DIR']=str(OUT/'launches')
 if lo >= 27000: env.pop('WAVE5_PORT_RECEIPT',None)

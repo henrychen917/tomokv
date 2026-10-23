@@ -1465,6 +1465,7 @@ job_climonfix(){
       row_begin "$label"
       py tests/shutdown_persist.py --binary "$CANDIDATE_BINARY" --cores "$CORES" \
           --port "$PORT" --ratio "$GATE_RATIO" --mode "$mode" --case "$stop_case" \
+          --net-io "${GATE_SHUTDOWN_NET_IO:-uring}" \
           --output "$TMPDIR/shutdown-$mode-$stop_case" >"$TMPDIR/shutdown-$mode-$stop_case.log" 2>&1 \
           && ok "$label" || bad "$label" "see $TMPDIR/shutdown-$mode-$stop_case.log"
     done

@@ -22,6 +22,25 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
     require(io.dead_ready_.size() == 1 && dead->serve_pending(),
             "opened dead-client FIFO pin survives both final reaps");
 
+    // Actual iofix leak: close_client unlists before its executor epoch fence.
+    // The epoch ends, but stop wins before the active-set retry. No recv pin or
+    // FLIP retention is needed, and the live-list shutdown report sees zero.
+    auto* closing = new Client(-1);
+    closing->set_id(124);
+    closing->set_ifid_thread(io.self_->id());
+    closing->set_wb_slot(io.self_->assign_wb_slot(closing));
+    io.self_->add_client(closing);
+    f.server.client_accepted();
+    {
+        Server::ClientWorkScope work(f.server, (io.self_->id() + 1) % f.server.nthreads());
+        io.close_client(closing);
+        require(closing->closing() && !closing->dead() && closing->safe_to_release() &&
+                io.self_->clients().empty() && io.active_.size() == 1,
+                "opened unlisted close waits for executor epoch with no kernel pin");
+    }
+    require(io.client_executor_quiesced(closing) && !closing->dead(),
+            "executor joined but the active close has had no retry");
+
     int sockets[2];
     require(socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == 0, "shutdown socketpair");
     auto* live = new Client(sockets[0]);
@@ -30,7 +49,7 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
     live->set_wb_slot(io.self_->assign_wb_slot(live));
     live->fill_buf().append("+PONG\r\n", 7); // already owed output
     live->set_recv_armed(true);
-    io.self_->clients().push_back(live);
+    io.self_->add_client(live);
     f.server.client_accepted();
     std::thread issuer([&] {
         IoLoop::ShutdownOnIssuer shutdown_io{io};
@@ -49,7 +68,8 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
     issuer.join(); // no original recv CQE is dispatched to clear the Client pin
     require(live->recv_armed(), "opened original-CQE pin persists across issuer exit");
     if (!without_cleanup) io.shutdown_clients_after_join();
-    require(io.dead_ready_.empty() && io.pending_serve_.empty() && io.self_->clients().empty(),
+    require(io.dead_ready_.empty() && io.pending_serve_.empty() && io.self_->clients().empty() &&
+            io.active_.size() == 0,
             "post-join cleanup releases dead FIFO and admitted receive pins");
     require(io.ring_.shutdown_complete() && f.server.live_clients() == 0,
             "ring fenced before the final Client release");
@@ -60,6 +80,6 @@ static void shutdown_clients(bool epoll, bool fused, bool without_cleanup = fals
     require(fcntl(sockets[0], F_GETFD) == -1 && errno == EBADF, "admitted fd closed");
     close(sockets[1]);
     io.shutdown_clients_after_join(); // no double release, including the destructor
-    std::printf("shutdown clients mode=%s engine=%s FIFO=1 recv=1 flushed=7: PASS\n",
+    std::printf("shutdown clients mode=%s engine=%s unlisted_close=1 FIFO=1 recv=1 flushed=7: PASS\n",
                 fused ? "1s" : "2s", epoll ? "epoll" : "uring");
 }

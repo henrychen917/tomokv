@@ -963,6 +963,8 @@ build/lanefull-db0-unit: tests/core_concurrency_unit.cc tests/lanefull_checks.in
 # SV2: production control flow; replace only the disk writer in the serverless witness.
 SHUTDOWN_WRAP := -Wl,--wrap=_ZN4tomo15SnapshotManager5startERNS_6ServerERNS_9ThreadCtxERNS_4RingEbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPNS_10AofManagerEPKcSH_b -Wl,--wrap=clock_gettime
 SHUTDOWN_UNIT_OBJ = $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ))
+$(BUILD_ROOT)/tests/shutdown_unit.o: tests/shutdown_client_checks.inc
+
 $(BUILD_ROOT)/shutdown-unit: $(BUILD_ROOT)/tests/shutdown_unit.o $(SHUTDOWN_UNIT_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm $(SHUTDOWN_WRAP)
