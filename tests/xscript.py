@@ -12,6 +12,12 @@ HOST, PORT = sys.argv[1], int(sys.argv[2])
 MODE = sys.argv[3] if len(sys.argv) > 3 else "all"
 FAIL = 0
 
+# AT4.12: only these exact contention refusals are retryable in liveness races.
+SCRIPT_REFUSALS = {
+    "TRYAGAIN Cross-shard script conflicted, retry": "TRYAGAIN",
+    "BUSY Cross-shard script snapshot window is full": "BUSY",
+}
+
 
 class RespError:
     def __init__(self, message):
@@ -652,6 +658,7 @@ def contention_and_deadlock():
     admin.cmd("MSET", *sum(([key, "0"] for key in keys), []))
     errors = []
     successes = [0, 0]
+    refusals = [dict.fromkeys(SCRIPT_REFUSALS.values(), 0) for _ in successes]
 
     def worker(slot, ordered):
         client = Resp()
@@ -660,7 +667,8 @@ def contention_and_deadlock():
                 reply = client.cmd("EVAL", source, str(len(ordered)), *ordered)
                 if reply == 1:
                     successes[slot] += 1
-                elif isinstance(reply, RespError) and reply.message.startswith("TRYAGAIN "):
+                elif isinstance(reply, RespError) and reply.message in SCRIPT_REFUSALS:
+                    refusals[slot][SCRIPT_REFUSALS[reply.message]] += 1
                     continue
                 else:
                     errors.append((slot, reply))
@@ -679,7 +687,8 @@ def contention_and_deadlock():
     note("opposite-order overlapping scripts terminate without deadlock",
          not alive and not errors and successes == [40, 40] and
          values == [b"80"] * len(keys),
-         "success=%r alive=%r errors=%r values=%r" % (successes, alive, errors[:2], values))
+         "success=%r alive=%r errors=%r values=%r refusals=%r" %
+         (successes, alive, errors[:2], values, refusals))
 
     # The plain multi-key writer is deliberately a second connection. While script intents are
     # live its fragments must be promoted into one atomic group even on an --atomic=0 boot; the
@@ -687,6 +696,7 @@ def contention_and_deadlock():
     script_writer = Resp()
     mset_writer = Resp()
     race_errors = []
+    race_refusals = dict.fromkeys(SCRIPT_REFUSALS.values(), 0)
     script_source = "for i=1,#KEYS do redis.call('SET',KEYS[i],ARGV[1]) end return 1"
 
     def script_racer():
@@ -695,7 +705,8 @@ def contention_and_deadlock():
                 reply = script_writer.cmd("EVAL", script_source, str(len(keys)), *keys, "S")
                 if reply == 1:
                     break
-                if isinstance(reply, RespError) and reply.message.startswith("TRYAGAIN "):
+                if isinstance(reply, RespError) and reply.message in SCRIPT_REFUSALS:
+                    race_refusals[SCRIPT_REFUSALS[reply.message]] += 1
                     continue
                 race_errors.append(("script", reply))
                 return
@@ -718,7 +729,8 @@ def contention_and_deadlock():
     note("cross script and plain MSET serialize without a torn generation",
          not race_alive and not race_errors and
          raced_values in ([b"S"] * len(keys), [b"M"] * len(keys)),
-         "alive=%r errors=%r values=%r" % (race_alive, race_errors[:2], raced_values))
+         "alive=%r errors=%r values=%r refusals=%r" %
+         (race_alive, race_errors[:2], raced_values, race_refusals))
     script_writer.close()
     mset_writer.close()
     admin.close()
