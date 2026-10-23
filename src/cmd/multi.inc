@@ -1492,6 +1492,24 @@ bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& 
             if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, false)) return false;
         }
     }
+    if (function_is_fcall(*command.op)) {
+        struct Context {
+            Server& server; MultiExecState& state; MultiCommand& command;
+            Shard& shard; uint32_t owner;
+        } context{server, state, command, shard, owner_thread_id};
+        const bool completed = function_execute_exec(shard, *command.op, &context, [](void* raw) {
+            auto& c = *static_cast<Context*>(raw);
+            if (!prepare_local_write_keys(c.server, c.state, c.command, c.shard, c.owner))
+                return false;
+            if (c.command.op->spec->flags & CmdFlags::NotifySelected)
+                notify_execute_source(c.shard, *c.command.op, c.command.notify_order_base);
+            c.shard.store().atomic_set_read_context(multi_read_cut(c.state), c.state.origin_conn_id);
+            return true;
+        });
+        if (completed) complete_child_zc(shard, *command.op);
+        shard.store().atomic_clear_read_epoch();
+        return completed;
+    }
     if (!prepare_local_write_keys(server, state, command, shard, owner_thread_id)) return false;
     if (command.op->spec->flags & CmdFlags::NotifySelected)
         notify_execute_source(shard, *command.op, command.notify_order_base);

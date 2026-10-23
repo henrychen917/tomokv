@@ -110,6 +110,10 @@ FunctionStats function_stats();
 // Whether argv[0] of this op is one of the FCALL forms. Routing shares EVAL's numkeys grammar but
 // Redis reports a different message for a malformed count.
 bool function_is_fcall(const Op& op);
+// Execute one admitted callback after EXEC prepares its owner-private versions.
+// False means preparation parked; command errors complete normally with a reply.
+bool function_execute_exec(Shard& shard, Op& op, void* context,
+                           bool (*prepare)(void*));
 
 // Cold bridge used by the cross-owner scatter coordinator. Each declared-key byte receives bit 0
 // when a nested command reads it and bit 1 when a nested write completes without an error;

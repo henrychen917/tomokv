@@ -97,6 +97,15 @@ def probe(c, case):
     # the callback's completed writes before a later Lua error.
     for cap in (0, 1):
         equal(c.cmd("CONFIG", "SET", "maxmemory", cap), b"OK", "EXEC cap")
+        if cap:
+            before = c.cmd("GET", CROSS_KEYS[0])
+            equal(c.cmd("MULTI"), b"OK", "denied function begin")
+            equal(c.cmd("FCALL", "plain", 1, CROSS_KEYS[0], "denied"), b"QUEUED", "denied callback queued")
+            equal(c.cmd("GET", CROSS_KEYS[0]), b"QUEUED", "denied read queued")
+            denied_exec = c.cmd("EXEC")
+            assert isinstance(denied_exec, list) and len(denied_exec) == 2, denied_exec
+            assert isinstance(denied_exec[0], RespError) and denied_exec[0].message.startswith(b"OOM "), denied_exec
+            equal(denied_exec[1], before, "denied callback cannot write")
         equal(c.cmd("MULTI"), b"OK", "EXEC function begin")
         for name in ("allowed", "allowed_error"):
             for key in CROSS_KEYS:
@@ -105,6 +114,7 @@ def probe(c, case):
         for key in CROSS_KEYS:
             equal(c.cmd("GET", key), b"QUEUED", "EXEC read queued")
         result = c.cmd("EXEC")
+        print(f"EXEC cap={cap} result={result!r}", flush=True)
         assert isinstance(result, list) and len(result) == 6, result
         equal(result[:2], [b"OK", b"OK"], "EXEC allow-oom callbacks")
         assert all(isinstance(value, RespError) for value in result[2:4]), result
