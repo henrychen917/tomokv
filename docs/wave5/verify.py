@@ -12,7 +12,8 @@ for spec in [server_cores,load_cores]:
   ends=list(map(int,part.split('-')));assert all(64<=n<=95 for n in ends)
 assert a.jobs and not set(a.jobs.split())&{'atomic_floor','efficiency'},'performance jobs remain with maintainer'
 OUT=DOC/'gate'/a.name;OUT.mkdir(parents=True,exist_ok=True)
-env=dict(os.environ,REDIS74_ROOT='/home/user/Projects/redis',GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',GATE_DIFFER_REDIS_CLI='/home/user/Projects/redis74/src/redis-cli',GATE_DIFFER_ORACLE_CORES='95',GATE_GLOBCASE_ORACLE_CORES='95',GATE_TEST_PORT='26899',GATE_DIFFER_HISTORY=str(BUILD/'differ-history'),GATE_HISTORY=str(BUILD/'gate-history'),PYTHONPATH=str(DOC/'port_guard')+os.pathsep+os.environ.get('PYTHONPATH',''),WAVE5_PORT_RECEIPT=str(DOC/'fixture-ports.jsonl'),GATE_ONLY_JOBS=a.jobs,GATE_LEDGER=str(OUT/'ledger'))
+oracle_core=os.environ.get('WAVE5_ORACLE_CORE','95');assert oracle_core.isdecimal() and 64<=int(oracle_core)<=95
+env=dict(os.environ,REDIS74_ROOT='/home/user/Projects/redis',GATE_DIFFER_ORACLE_BIN='/home/user/Projects/redis74/src/redis-server',GATE_DIFFER_REDIS_CLI='/home/user/Projects/redis74/src/redis-cli',GATE_DIFFER_ORACLE_CORES=oracle_core,GATE_GLOBCASE_ORACLE_CORES=oracle_core,GATE_TEST_PORT='26899',GATE_DIFFER_HISTORY=str(BUILD/'differ-history'),GATE_HISTORY=str(BUILD/'gate-history'),PYTHONPATH=str(DOC/'port_guard')+os.pathsep+os.environ.get('PYTHONPATH',''),WAVE5_PORT_RECEIPT=str(DOC/'fixture-ports.jsonl'),GATE_ONLY_JOBS=a.jobs,GATE_LEDGER=str(OUT/'ledger'))
 tls_oracle=BUILD/'redis74-tls/src/redis-server'
 if tls_oracle.exists():env['NETFIX_TLS_ORACLE']=str(tls_oracle)
 source_binary=a.root/'build/tomokv'

@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 tls script_bounds scriptfix notify auth; NOT A RECEIPT

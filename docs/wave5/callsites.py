@@ -2,14 +2,16 @@
 """Record every residual hot body's call sites against every lane and headline."""
 from concurrent.futures import ProcessPoolExecutor
 from collections import Counter
-import difflib,gzip,json,os,re,subprocess
+import difflib,gzip,hashlib,json,os,re,subprocess
 from pathlib import Path
 import identity
 ROOT=identity.ROOT;DOC=ROOT/os.getenv('WAVE5_CALLS_DOC','docs/wave5/callsites');DOC.mkdir(exist_ok=True)
 summary=json.loads((ROOT/os.getenv('WAVE5_IDENTITY_SUMMARY','docs/wave5/identity/summary.json')).read_text());wanted={r['name'] for r in summary['hot_residual']}
 def get(pair):
  arm,path=pair;out=DOC/(arm+'.json.gz')
- if out.exists():
+ key=dict(sha256=hashlib.sha256(Path(path).read_bytes()).hexdigest(),names=sorted(wanted))
+ stamp=DOC/(arm+'-cache-key.json')
+ if out.exists() and stamp.exists() and json.loads(stamp.read_text())==key:
   with gzip.open(out,'rt') as f:cached=json.load(f)
   for bodies in cached.values():
    for b in bodies:b['calls']=[m[1] for ins in b['ins'] if (m:=re.search(r'\] ((?:bnd )?(?:call|jmp)\s+(?!<\+).*)',ins))]
@@ -19,6 +21,7 @@ def get(pair):
  b=identity.audit.Binary(path,d,literal_pools=True)
  rows={n:[dict(ins=f['ins'],encodings=f['encodings'],calls=[m[1] for ins in f['ins'] if (m:=re.search(r'\] ((?:bnd )?(?:call|jmp)\s+(?!<\+).*)',ins))]) for f in sorted(b.groups.get(n,[]),key=lambda x:x['addr'])] for n in wanted}
  with gzip.open(out,'wt') as f:json.dump(rows,f)
+ stamp.write_text(json.dumps(key,indent=2)+'\n')
  for p in d.glob('*.objdump'):p.unlink()
  return arm,rows
 with ProcessPoolExecutor(max_workers=3) as pool:inv=dict(pool.map(get,[*identity.REFS.items(),('post',str(ROOT/'build/tomokv'))]))

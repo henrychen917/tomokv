@@ -5,12 +5,19 @@
       "jobs": [
         "job_differ"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/_iofix.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_iofix_deferred",
+        "job_iofix_hz",
+        "job_iofix_signal",
+        "job_iofix_sleep"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/_netfix.py",
@@ -21,7 +28,8 @@
         "job_netfix_tls",
         "job_netfix_unix"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/acl.py",
@@ -29,38 +37,58 @@
         "job_auth",
         "job_release_batteries"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/aoforder.py",
       "jobs": [
         "job_aoforder"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/atomfix.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_body",
+        "job_debug",
+        "job_fused"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/atomic_plain.py",
       "jobs": [
+        "job_body",
         "job_debug"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/atomic_survivors_unit.cc",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_atomic_units",
+        "job_body",
+        "job_debug",
+        "job_fused",
+        "job_production_units",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/auth.py",
       "jobs": [
         "job_auth"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/compat3_functions.py",
@@ -68,7 +96,8 @@
         "compat3_case",
         "job_compat3"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/compat3_lib.py",
@@ -76,7 +105,8 @@
         "compat3_case",
         "job_compat3"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/compat3_pubsub.py",
@@ -84,7 +114,8 @@
         "compat3_case",
         "job_compat3"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/compat3_streams.py",
@@ -92,7 +123,8 @@
         "compat3_case",
         "job_compat3"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/core_concurrency_unit.cc",
@@ -101,144 +133,212 @@
         "job_core_units",
         "job_flipfix_units"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/debug.py",
       "jobs": [
         "job_auth"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/differ.py",
       "jobs": [
         "job_differ"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/exbatch_unit.cc",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_exbatch_units",
+        "job_production_units"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/execatomic.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_body",
+        "job_debug"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/execfix.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_body",
+        "job_debug"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/execiso.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_body",
+        "job_debug"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/fixtures/nullrefresh-ledger-labels.json",
       "jobs": [
         "job_abba_selftest"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/flipfix.py",
       "jobs": [
         "job_flip"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/fliplisten.py",
       "jobs": [
         "job_fliplisten"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/gate.sh",
       "jobs": [],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": "Scheduler/collector interface: all correctness consumer jobs selected; measurement jobs reserved to maintainer."
     },
     {
       "file": "tests/gates_test.py",
       "jobs": [
         "job_abba_selftest"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/infofields_test.py",
       "jobs": [],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": "Standalone serverless differential self-test; run separately."
     },
     {
       "file": "tests/iofix_deferred.py",
       "jobs": [
-        "iofix_legs"
+        "job_iofix_deferred",
+        "job_iofix_hz",
+        "job_iofix_signal",
+        "job_iofix_sleep"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/iofix_hz.py",
       "jobs": [
-        "iofix_legs"
+        "job_iofix_deferred",
+        "job_iofix_hz",
+        "job_iofix_signal",
+        "job_iofix_sleep"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/iofix_signal.py",
       "jobs": [
-        "iofix_legs"
+        "job_iofix_deferred",
+        "job_iofix_hz",
+        "job_iofix_signal",
+        "job_iofix_sleep"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/iofix_sleep.py",
       "jobs": [
-        "iofix_legs"
+        "job_iofix_deferred",
+        "job_iofix_hz",
+        "job_iofix_signal",
+        "job_iofix_sleep"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/knobs.py",
       "jobs": [
-        "job_aof"
+        "job_aof",
+        "job_body"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/limits.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/multidb_boundary_unit.cc",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_atomic_units",
+        "job_production_units"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/multidb_unit.cc",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_atomic_units",
+        "job_production_units"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/multirace.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_body",
+        "job_debug"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/multires.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_body",
+        "job_debug"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/netcmd_unit.cc",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_netcmd_units",
+        "job_production_units"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/netfix_config.py",
@@ -249,7 +349,8 @@
         "job_netfix_tls",
         "job_netfix_unix"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/netfix_idle_buffers.py",
@@ -260,7 +361,8 @@
         "job_netfix_tls",
         "job_netfix_unix"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/netfix_query_stats.py",
@@ -271,7 +373,8 @@
         "job_netfix_tls",
         "job_netfix_unix"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/netfix_tls.py",
@@ -282,7 +385,8 @@
         "job_netfix_tls",
         "job_netfix_unix"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/netfix_unix.py",
@@ -293,14 +397,19 @@
         "job_netfix_tls",
         "job_netfix_unix"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/pubsub.py",
       "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
+        "job_body",
         "job_notify"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/r7shadow_noop.py",
@@ -308,7 +417,8 @@
         "job_reorder_engagement",
         "job_reorder_identity"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/r7shadow_sync.py",
@@ -316,12 +426,16 @@
         "job_reorder_sync",
         "job_splitlocal_units"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/read_local_lfu.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_bugs5"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/reorder_receipt.py",
@@ -329,12 +443,16 @@
         "job_reorder_engagement",
         "job_reorder_identity"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/scancompact.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_bugs5"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/slowlog_completion_checks.inc",
@@ -342,24 +460,32 @@
         "job_core_units",
         "job_flipfix_units"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/slowlog_identity.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_bugs5"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/splitlocal_checks.py",
       "jobs": [
         "job_splitlocal_units"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/store_regression.cc",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_storage_units"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/trackfix.py",
@@ -367,107 +493,144 @@
         "job_trackfix_accounting",
         "job_trackfix_order"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/txn_nx.py",
       "jobs": [
+        "job_body",
+        "job_debug",
         "job_fused"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/txnfix_audit/resp.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t01_exec_counter.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t02_exec_directed.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t02b_exec_vs_exec.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t03_mover_replay.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t04_mover_stress.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t05_mover_only.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t10_msetnx_hold.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t14_exec_window.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t15_exec_only_stress.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t17_queue_exec.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t18_watch_cas.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txnfix_audit/t19_crossed_watch.py",
       "jobs": [],
-      "standalone_audit": true
+      "standalone_audit": true,
+      "note": "Historical standalone lane audit; no tests/gate.sh job. Superseding EXEC/WATCH gate rows run."
     },
     {
       "file": "tests/txngroup.py",
-      "jobs": [],
-      "standalone_audit": false
+      "jobs": [
+        "job_txn_group_fused",
+        "job_txn_group_split"
+      ],
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/txniso.py",
       "jobs": [
+        "job_body",
+        "job_debug",
+        "job_fused",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/txnorder.py",
       "jobs": [
+        "job_body",
         "job_txnorder"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/txnorder_checks.inc",
       "jobs": [
         "job_atomic_units",
+        "job_body",
+        "job_debug",
+        "job_fused",
+        "job_production_units",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder",
         "job_txnorder2"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/txnorder_episodes.cc",
@@ -475,7 +638,8 @@
         "job_txnorder2",
         "job_txnorder_wake"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/txnorder_wake_unit.cc",
@@ -483,14 +647,17 @@
         "job_txnorder2",
         "job_txnorder_wake"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/txnorder_watch.py",
       "jobs": [
+        "job_body",
         "job_txnorder2"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/txnorder_watch_unit.cc",
@@ -498,12 +665,14 @@
         "job_txnorder2",
         "job_txnorder_wake"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/watchlive_gate.sh",
       "jobs": [],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": "Standalone WATCH stress gate; no tests/gate.sh job. Directed WATCH/EXEC and differential rows run."
     },
     {
       "file": "tests/wave5_dispatch_checks.inc",
@@ -511,7 +680,8 @@
         "job_core_units",
         "job_flipfix_units"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/wb_rule_checks.py",
@@ -519,14 +689,16 @@
         "job_wb_rule_units",
         "job_wbland_units"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     },
     {
       "file": "tests/wb_rule_phase_unit.cc",
       "jobs": [
         "job_wb_rule_units"
       ],
-      "standalone_audit": false
+      "standalone_audit": false,
+      "note": ""
     }
   ],
   "protocol_sweep": [
@@ -542,7 +714,9 @@
       ],
       "jobs": [
         "job_aof",
-        "job_auth"
+        "job_auth",
+        "job_body",
+        "job_differ"
       ]
     },
     {
@@ -554,6 +728,7 @@
       ],
       "jobs": [
         "job_auth",
+        "job_body",
         "job_debug"
       ]
     },
@@ -580,8 +755,12 @@
         "tests/lcs.py"
       ],
       "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
         "job_aclfix",
-        "job_dump_restore"
+        "job_body",
+        "job_dump_restore",
+        "job_fused"
       ]
     },
     {
@@ -590,7 +769,10 @@
         "tests/ktls_keyupdate.cc",
         "tests/ktls_keyupdate_unit.cc"
       ],
-      "jobs": []
+      "jobs": [
+        "job_production_units",
+        "job_tls"
+      ]
     },
     {
       "token": "TLSv1.3",
@@ -608,11 +790,13 @@
         "job_abba_selftest",
         "job_aof",
         "job_aoforder",
+        "job_body",
         "job_compat2",
         "job_config_unit",
         "job_fliplisten",
         "job_hexpread",
         "job_netfix_tls",
+        "job_production_units",
         "job_tls"
       ]
     },
@@ -633,7 +817,11 @@
         "tests/multires.py",
         "tests/differ.py"
       ],
-      "jobs": []
+      "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ"
+      ]
     },
     {
       "token": "atomic_group_dooms",
@@ -645,7 +833,13 @@
         "tests/txngroup.py"
       ],
       "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
         "job_moverfix",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ]
@@ -658,7 +852,10 @@
         "tests/txngroup.py"
       ],
       "jobs": [
-        "job_moverfix"
+        "job_differ",
+        "job_moverfix",
+        "job_txn_group_fused",
+        "job_txn_group_split"
       ]
     },
     {
@@ -669,7 +866,10 @@
         "tests/txngroup.py"
       ],
       "jobs": [
-        "job_moverfix"
+        "job_differ",
+        "job_moverfix",
+        "job_txn_group_fused",
+        "job_txn_group_split"
       ]
     },
     {
@@ -680,6 +880,12 @@
         "tests/differ.py"
       ],
       "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ]
@@ -693,7 +899,11 @@
         "tests/txngroup.py"
       ],
       "jobs": [
+        "job_body",
+        "job_differ",
         "job_moverfix",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder"
       ]
     },
@@ -706,6 +916,12 @@
         "tests/differ.py"
       ],
       "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ]
@@ -718,6 +934,12 @@
         "tests/differ.py"
       ],
       "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ]
@@ -729,6 +951,12 @@
         "tests/differ.py"
       ],
       "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ]
@@ -740,6 +968,12 @@
         "tests/differ.py"
       ],
       "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ]
@@ -754,7 +988,13 @@
         "tests/txngroup.py"
       ],
       "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
         "job_moverfix",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ]
@@ -766,6 +1006,12 @@
         "tests/differ.py"
       ],
       "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ]
@@ -775,7 +1021,9 @@
       "tests": [
         "tests/differ.py"
       ],
-      "jobs": []
+      "jobs": [
+        "job_differ"
+      ]
     },
     {
       "token": "atomic_txn_retries",
@@ -786,6 +1034,12 @@
         "tests/differ.py"
       ],
       "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ]
@@ -795,7 +1049,9 @@
       "tests": [
         "tests/differ.py"
       ],
-      "jobs": []
+      "jobs": [
+        "job_differ"
+      ]
     },
     {
       "token": "atomic_txn_wounds",
@@ -805,6 +1061,12 @@
         "tests/differ.py"
       ],
       "jobs": [
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ]
@@ -814,7 +1076,9 @@
       "tests": [
         "tests/differ.py"
       ],
-      "jobs": []
+      "jobs": [
+        "job_differ"
+      ]
     },
     {
       "token": "atomic_txn_writer_waits",
@@ -831,7 +1095,13 @@
       ],
       "jobs": [
         "job_aoforder",
+        "job_body",
+        "job_debug",
+        "job_differ",
+        "job_fused",
         "job_moverfix",
+        "job_txn_group_fused",
+        "job_txn_group_split",
         "job_txnorder",
         "job_txnorder2"
       ]
@@ -843,6 +1113,8 @@
         "tests/replyschema.py"
       ],
       "jobs": [
+        "job_body",
+        "job_debug",
         "job_script_bounds"
       ]
     },
@@ -875,18 +1147,110 @@
         "tests/wb_rule_checks.py"
       ],
       "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
         "job_abba_selftest",
+        "job_acl_metadata",
         "job_acl_recheck",
+        "job_aclfix",
+        "job_aof",
+        "job_aof_frame",
+        "job_aoforder",
+        "job_asan",
+        "job_asan_batteries",
+        "job_atomic_batteries",
+        "job_atomic_floor",
         "job_atomic_units",
+        "job_auth",
+        "job_authfix",
+        "job_body",
+        "job_boot_grammar",
+        "job_bplus",
+        "job_bugs5",
+        "job_clientfix",
+        "job_climonfix",
+        "job_cmd_metadata",
+        "job_compat2",
+        "job_compat3",
+        "job_config_unit",
         "job_core_tsan_build",
+        "job_core_units",
+        "job_dbdefault",
+        "job_debug",
+        "job_dump_restore",
+        "job_efficiency",
+        "job_exbatch_live",
+        "job_exbatch_units",
+        "job_feature_cell",
+        "job_filter_unit",
+        "job_finalize",
+        "job_flip",
+        "job_flip_saturated",
+        "job_flip_unit",
+        "job_fliplisten",
+        "job_fused",
+        "job_globcase",
+        "job_hexpread",
+        "job_iofix_deferred",
+        "job_iofix_hz",
+        "job_iofix_signal",
+        "job_iofix_sleep",
+        "job_lb_stationary",
+        "job_lbplanner_units",
+        "job_moverfix",
+        "job_multidb",
+        "job_netcap",
+        "job_netcmd_units",
+        "job_netfix_config",
+        "job_netfix_idle_buffers",
+        "job_netfix_query_stats",
+        "job_netfix_tls",
+        "job_netfix_unix",
+        "job_netio",
+        "job_notify",
+        "job_notify_aof",
+        "job_notify_order",
+        "job_ntfix_input",
+        "job_ntnew4_live",
         "job_perfex_live",
         "job_perfex_units",
+        "job_perfio_stream",
+        "job_persistfix_units",
+        "job_production_units",
         "job_racefix_climon",
         "job_racefix_counters",
+        "job_racefix_tsan_build",
+        "job_readonly",
+        "job_recover",
         "job_release",
+        "job_release_batteries",
+        "job_reorder_engagement",
+        "job_reorder_identity",
         "job_reorder_sync",
+        "job_replyoff",
+        "job_respcompat",
+        "job_respresume",
         "job_ring_unit",
+        "job_rlcache",
+        "job_rldbg",
+        "job_script_bounds",
+        "job_scriptfix",
+        "job_snapshot",
+        "job_sort",
         "job_splitlocal_units",
+        "job_storage_units",
+        "job_tailgen_build",
+        "job_tls",
+        "job_trackfix_accounting",
+        "job_trackfix_order",
+        "job_txn_group_fused",
+        "job_txn_group_split",
+        "job_txnorder",
+        "job_txnorder2",
+        "job_txnorder_wake",
+        "job_wait_units",
+        "job_waits_tsan_build",
+        "job_wb_policy",
         "job_wb_rule_units",
         "job_wbland_units"
       ]
@@ -922,8 +1286,12 @@
         "tests/contarity.py"
       ],
       "jobs": [
+        "feature_armed_job",
+        "feature_split_job",
         "job_auth",
         "job_authfix",
+        "job_body",
+        "job_fused",
         "job_notify",
         "job_respresume"
       ]

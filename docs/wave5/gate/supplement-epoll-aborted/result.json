@@ -1,0 +1,9 @@
+{
+  "returncode": -15,
+  "binary_sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5",
+  "binary_stable": true,
+  "run_paths": [
+    "/home/user/Projects/cx-wave5/build/gate-run.ewB8uW"
+  ],
+  "note": "Orchestrator stopped the original sequential tail as its first supplementary job started, to reserve CPUs 80-95 for the ABBA self-test. Partial run is not passing evidence. The complete cohort restarted in gate-run.46PgBe; no assertions, timeouts, or legs changed."
+}

@@ -25,8 +25,10 @@ for name in sys.argv[1:]:
                     if not f.is_file() or f.is_symlink():
                         continue
                     rel = str(f.relative_to(path))
-                    keep = f.suffix in ('.log', '.txt', '.json', '.tsv', '.csv', '.sh') or f.name in (
-                        'ledger', 'timings', 'done', 'output', 'plan')
+                    keep = f.suffix in ('.log', '.txt', '.json', '.tsv', '.csv', '.sh',
+                                        '.out', '.conf', '.gdb', '.stdout', '.stderr') or f.name in (
+                        'ledger', 'timings', 'done', 'output', 'plan', 'stdout', 'stderr') or (
+                        f.name.startswith('gate-srv-'))
                     if not keep:
                         continue
                     data = f.read_bytes()

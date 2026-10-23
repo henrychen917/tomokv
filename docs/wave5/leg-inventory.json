@@ -1,0 +1,555 @@
+{
+  "binary_sha256": "201048f1b16aba87d73e2c13816f9b07b02afb9bef92d3ea40ca4eb46f61aca5",
+  "evidence": {
+    "bugs5": {
+      "job": "bugs5",
+      "log_count": 48,
+      "logs": [
+        "scancompact-1s-epoll-0.log",
+        "scancompact-1s-epoll-1.log",
+        "scancompact-1s-uring-0.log",
+        "scancompact-1s-uring-1.log",
+        "scancompact-2s-epoll-0.log",
+        "scancompact-2s-epoll-1.log",
+        "scancompact-2s-uring-0.log",
+        "scancompact-2s-uring-1.log",
+        "scancompact-control-1s-epoll-0.log",
+        "scancompact-control-1s-epoll-1.log",
+        "scancompact-control-1s-uring-0.log",
+        "scancompact-control-1s-uring-1.log",
+        "scancompact-control-2s-epoll-0.log",
+        "scancompact-control-2s-epoll-1.log",
+        "scancompact-control-2s-uring-0.log",
+        "scancompact-control-2s-uring-1.log",
+        "slowlog_identity-1s-epoll-0.log",
+        "slowlog_identity-1s-epoll-1.log",
+        "slowlog_identity-1s-uring-0.log",
+        "slowlog_identity-1s-uring-1.log",
+        "slowlog_identity-2s-epoll-0.log",
+        "slowlog_identity-2s-epoll-1.log",
+        "slowlog_identity-2s-uring-0.log",
+        "slowlog_identity-2s-uring-1.log",
+        "slowlog_identity-control-1s-epoll-0.log",
+        "slowlog_identity-control-1s-epoll-1.log",
+        "slowlog_identity-control-1s-uring-0.log",
+        "slowlog_identity-control-1s-uring-1.log",
+        "slowlog_identity-control-2s-epoll-0.log",
+        "slowlog_identity-control-2s-epoll-1.log",
+        "slowlog_identity-control-2s-uring-0.log",
+        "slowlog_identity-control-2s-uring-1.log",
+        "read_local_lfu-1s-epoll-0.log",
+        "read_local_lfu-1s-epoll-1.log",
+        "read_local_lfu-1s-uring-0.log",
+        "read_local_lfu-1s-uring-1.log",
+        "read_local_lfu-2s-epoll-0.log",
+        "read_local_lfu-2s-epoll-1.log",
+        "read_local_lfu-2s-uring-0.log",
+        "read_local_lfu-2s-uring-1.log",
+        "read_local_lfu-control-1s-epoll-0.log",
+        "read_local_lfu-control-1s-epoll-1.log",
+        "read_local_lfu-control-1s-uring-0.log",
+        "read_local_lfu-control-1s-uring-1.log",
+        "read_local_lfu-control-2s-epoll-0.log",
+        "read_local_lfu-control-2s-epoll-1.log",
+        "read_local_lfu-control-2s-uring-0.log",
+        "read_local_lfu-control-2s-uring-1.log"
+      ]
+    },
+    "compat3": {
+      "job": "compat3",
+      "log_count": 144,
+      "logs": [
+        "pubsub-db1-1s-epoll-a0-rl0.log",
+        "pubsub-db1-1s-epoll-a1-rl0.log",
+        "pubsub-db1-1s-uring-a0-rl0.log",
+        "pubsub-db1-1s-uring-a1-rl0.log",
+        "pubsub-db1-1s-epoll-a0-rl1.log",
+        "pubsub-db1-1s-epoll-a1-rl1.log",
+        "pubsub-db1-1s-uring-a0-rl1.log",
+        "pubsub-db1-1s-uring-a1-rl1.log",
+        "pubsub-db1-2s-epoll-a0-rl0.log",
+        "pubsub-db1-2s-epoll-a1-rl0.log",
+        "pubsub-db1-2s-uring-a0-rl0.log",
+        "pubsub-db1-2s-uring-a1-rl0.log",
+        "pubsub-db16-1s-epoll-a0-rl0.log",
+        "pubsub-db16-1s-epoll-a1-rl0.log",
+        "pubsub-db16-1s-uring-a0-rl0.log",
+        "pubsub-db16-1s-uring-a1-rl0.log",
+        "pubsub-db16-1s-epoll-a0-rl1.log",
+        "pubsub-db16-1s-epoll-a1-rl1.log",
+        "pubsub-db16-1s-uring-a0-rl1.log",
+        "pubsub-db16-1s-uring-a1-rl1.log",
+        "pubsub-db16-2s-epoll-a0-rl0.log",
+        "pubsub-db16-2s-epoll-a1-rl0.log",
+        "pubsub-db16-2s-uring-a0-rl0.log",
+        "pubsub-db16-2s-uring-a1-rl0.log",
+        "pending-db1-1s-epoll-a0-rl0.log",
+        "pending-db1-1s-epoll-a1-rl0.log",
+        "pending-db1-1s-uring-a0-rl0.log",
+        "pending-db1-1s-uring-a1-rl0.log",
+        "pending-db1-1s-epoll-a0-rl1.log",
+        "pending-db1-1s-epoll-a1-rl1.log",
+        "pending-db1-1s-uring-a0-rl1.log",
+        "pending-db1-1s-uring-a1-rl1.log",
+        "pending-db1-2s-epoll-a0-rl0.log",
+        "pending-db1-2s-epoll-a1-rl0.log",
+        "pending-db1-2s-uring-a0-rl0.log",
+        "pending-db1-2s-uring-a1-rl0.log",
+        "pending-db16-1s-epoll-a0-rl0.log",
+        "pending-db16-1s-epoll-a1-rl0.log",
+        "pending-db16-1s-uring-a0-rl0.log",
+        "pending-db16-1s-uring-a1-rl0.log",
+        "pending-db16-1s-epoll-a0-rl1.log",
+        "pending-db16-1s-epoll-a1-rl1.log",
+        "pending-db16-1s-uring-a0-rl1.log",
+        "pending-db16-1s-uring-a1-rl1.log",
+        "pending-db16-2s-epoll-a0-rl0.log",
+        "pending-db16-2s-epoll-a1-rl0.log",
+        "pending-db16-2s-uring-a0-rl0.log",
+        "pending-db16-2s-uring-a1-rl0.log",
+        "history-db1-1s-epoll-a0-rl0.log",
+        "history-db1-1s-epoll-a1-rl0.log",
+        "history-db1-1s-uring-a0-rl0.log",
+        "history-db1-1s-uring-a1-rl0.log",
+        "history-db1-1s-epoll-a0-rl1.log",
+        "history-db1-1s-epoll-a1-rl1.log",
+        "history-db1-1s-uring-a0-rl1.log",
+        "history-db1-1s-uring-a1-rl1.log",
+        "history-db1-2s-epoll-a0-rl0.log",
+        "history-db1-2s-epoll-a1-rl0.log",
+        "history-db1-2s-uring-a0-rl0.log",
+        "history-db1-2s-uring-a1-rl0.log",
+        "history-db16-1s-epoll-a0-rl0.log",
+        "history-db16-1s-epoll-a1-rl0.log",
+        "history-db16-1s-uring-a0-rl0.log",
+        "history-db16-1s-uring-a1-rl0.log",
+        "history-db16-1s-epoll-a0-rl1.log",
+        "history-db16-1s-epoll-a1-rl1.log",
+        "history-db16-1s-uring-a0-rl1.log",
+        "history-db16-1s-uring-a1-rl1.log",
+        "history-db16-2s-epoll-a0-rl0.log",
+        "history-db16-2s-epoll-a1-rl0.log",
+        "history-db16-2s-uring-a0-rl0.log",
+        "history-db16-2s-uring-a1-rl0.log",
+        "grammar-db1-1s-epoll-a0-rl0.log",
+        "grammar-db1-1s-epoll-a1-rl0.log",
+        "grammar-db1-1s-uring-a0-rl0.log",
+        "grammar-db1-1s-uring-a1-rl0.log",
+        "grammar-db1-1s-epoll-a0-rl1.log",
+        "grammar-db1-1s-epoll-a1-rl1.log",
+        "grammar-db1-1s-uring-a0-rl1.log",
+        "grammar-db1-1s-uring-a1-rl1.log",
+        "grammar-db1-2s-epoll-a0-rl0.log",
+        "grammar-db1-2s-epoll-a1-rl0.log",
+        "grammar-db1-2s-uring-a0-rl0.log",
+        "grammar-db1-2s-uring-a1-rl0.log",
+        "grammar-db16-1s-epoll-a0-rl0.log",
+        "grammar-db16-1s-epoll-a1-rl0.log",
+        "grammar-db16-1s-uring-a0-rl0.log",
+        "grammar-db16-1s-uring-a1-rl0.log",
+        "grammar-db16-1s-epoll-a0-rl1.log",
+        "grammar-db16-1s-epoll-a1-rl1.log",
+        "grammar-db16-1s-uring-a0-rl1.log",
+        "grammar-db16-1s-uring-a1-rl1.log",
+        "grammar-db16-2s-epoll-a0-rl0.log",
+        "grammar-db16-2s-epoll-a1-rl0.log",
+        "grammar-db16-2s-uring-a0-rl0.log",
+        "grammar-db16-2s-uring-a1-rl0.log",
+        "glob-db1-1s-epoll-a0-rl0.log",
+        "glob-db1-1s-epoll-a1-rl0.log",
+        "glob-db1-1s-uring-a0-rl0.log",
+        "glob-db1-1s-uring-a1-rl0.log",
+        "glob-db1-1s-epoll-a0-rl1.log",
+        "glob-db1-1s-epoll-a1-rl1.log",
+        "glob-db1-1s-uring-a0-rl1.log",
+        "glob-db1-1s-uring-a1-rl1.log",
+        "glob-db1-2s-epoll-a0-rl0.log",
+        "glob-db1-2s-epoll-a1-rl0.log",
+        "glob-db1-2s-uring-a0-rl0.log",
+        "glob-db1-2s-uring-a1-rl0.log",
+        "glob-db16-1s-epoll-a0-rl0.log",
+        "glob-db16-1s-epoll-a1-rl0.log",
+        "glob-db16-1s-uring-a0-rl0.log",
+        "glob-db16-1s-uring-a1-rl0.log",
+        "glob-db16-1s-epoll-a0-rl1.log",
+        "glob-db16-1s-epoll-a1-rl1.log",
+        "glob-db16-1s-uring-a0-rl1.log",
+        "glob-db16-1s-uring-a1-rl1.log",
+        "glob-db16-2s-epoll-a0-rl0.log",
+        "glob-db16-2s-epoll-a1-rl0.log",
+        "glob-db16-2s-uring-a0-rl0.log",
+        "glob-db16-2s-uring-a1-rl0.log",
+        "flags-db1-1s-epoll-a0-rl0.log",
+        "flags-db1-1s-epoll-a1-rl0.log",
+        "flags-db1-1s-uring-a0-rl0.log",
+        "flags-db1-1s-uring-a1-rl0.log",
+        "flags-db1-1s-epoll-a0-rl1.log",
+        "flags-db1-1s-epoll-a1-rl1.log",
+        "flags-db1-1s-uring-a0-rl1.log",
+        "flags-db1-1s-uring-a1-rl1.log",
+        "flags-db1-2s-epoll-a0-rl0.log",
+        "flags-db1-2s-epoll-a1-rl0.log",
+        "flags-db1-2s-uring-a0-rl0.log",
+        "flags-db1-2s-uring-a1-rl0.log",
+        "flags-db16-1s-epoll-a0-rl0.log",
+        "flags-db16-1s-epoll-a1-rl0.log",
+        "flags-db16-1s-uring-a0-rl0.log",
+        "flags-db16-1s-uring-a1-rl0.log",
+        "flags-db16-1s-epoll-a0-rl1.log",
+        "flags-db16-1s-epoll-a1-rl1.log",
+        "flags-db16-1s-uring-a0-rl1.log",
+        "flags-db16-1s-uring-a1-rl1.log",
+        "flags-db16-2s-epoll-a0-rl0.log",
+        "flags-db16-2s-epoll-a1-rl0.log",
+        "flags-db16-2s-uring-a0-rl0.log",
+        "flags-db16-2s-uring-a1-rl0.log"
+      ]
+    },
+    "trackfix_order": {
+      "job": "trackfix_order",
+      "log_count": 16,
+      "logs": [
+        "order-1s-epoll-a0-rl0.log",
+        "order-1s-epoll-a0-rl1.log",
+        "order-1s-epoll-a1-rl0.log",
+        "order-1s-epoll-a1-rl1.log",
+        "order-1s-uring-a0-rl0.log",
+        "order-1s-uring-a0-rl1.log",
+        "order-1s-uring-a1-rl0.log",
+        "order-1s-uring-a1-rl1.log",
+        "order-2s-epoll-a0-rl0.log",
+        "order-2s-epoll-a0-rl1.log",
+        "order-2s-epoll-a1-rl0.log",
+        "order-2s-epoll-a1-rl1.log",
+        "order-2s-uring-a0-rl0.log",
+        "order-2s-uring-a0-rl1.log",
+        "order-2s-uring-a1-rl0.log",
+        "order-2s-uring-a1-rl1.log"
+      ]
+    },
+    "trackfix_accounting": {
+      "job": "trackfix_accounting",
+      "log_count": 16,
+      "logs": [
+        "order-1s-epoll-a0-rl0.log",
+        "order-1s-epoll-a0-rl1.log",
+        "order-1s-epoll-a1-rl0.log",
+        "order-1s-epoll-a1-rl1.log",
+        "order-1s-uring-a0-rl0.log",
+        "order-1s-uring-a0-rl1.log",
+        "order-1s-uring-a1-rl0.log",
+        "order-1s-uring-a1-rl1.log",
+        "order-2s-epoll-a0-rl0.log",
+        "order-2s-epoll-a0-rl1.log",
+        "order-2s-epoll-a1-rl0.log",
+        "order-2s-epoll-a1-rl1.log",
+        "order-2s-uring-a0-rl0.log",
+        "order-2s-uring-a0-rl1.log",
+        "order-2s-uring-a1-rl0.log",
+        "order-2s-uring-a1-rl1.log"
+      ]
+    },
+    "iofix-deferred": {
+      "job": "iofix-deferred",
+      "log_count": 4,
+      "logs": [
+        "deferred-1s-epoll.log",
+        "deferred-1s-uring.log",
+        "deferred-2s-epoll.log",
+        "deferred-2s-uring.log"
+      ]
+    },
+    "iofix-hz": {
+      "job": "iofix-hz",
+      "log_count": 4,
+      "logs": [
+        "hz-1s-epoll.log",
+        "hz-1s-uring.log",
+        "hz-2s-epoll.log",
+        "hz-2s-uring.log"
+      ]
+    },
+    "iofix-sleep": {
+      "job": "iofix-sleep",
+      "log_count": 4,
+      "logs": [
+        "sleep-1s-epoll.log",
+        "sleep-1s-uring.log",
+        "sleep-2s-epoll.log",
+        "sleep-2s-uring.log"
+      ]
+    },
+    "iofix-signal": {
+      "job": "iofix-signal",
+      "log_count": 4,
+      "logs": [
+        "signal-1s-epoll.log",
+        "signal-1s-uring.log",
+        "signal-2s-epoll.log",
+        "signal-2s-uring.log"
+      ]
+    },
+    "txnorder2": {
+      "job": "txnorder2",
+      "log_count": 37,
+      "logs": [
+        "R1.log",
+        "R2.log",
+        "R3.log",
+        "R4.log",
+        "R5.log",
+        "R6.log",
+        "R7.log",
+        "R8.log",
+        "R9.log",
+        "R10.log",
+        "R11.log",
+        "R12.log",
+        "rename.log",
+        "serve-1s-epoll-1.log",
+        "serve-1s-epoll-16.log",
+        "serve-1s-uring-1.log",
+        "serve-1s-uring-16.log",
+        "serve-2s-epoll-1.log",
+        "serve-2s-epoll-16.log",
+        "serve-2s-uring-1.log",
+        "serve-2s-uring-16.log",
+        "flush-1s-epoll-1.log",
+        "flush-1s-epoll-16.log",
+        "flush-1s-uring-1.log",
+        "flush-1s-uring-16.log",
+        "flush-2s-epoll-1.log",
+        "flush-2s-epoll-16.log",
+        "flush-2s-uring-1.log",
+        "flush-2s-uring-16.log",
+        "readonly-1s-epoll-1.log",
+        "readonly-1s-epoll-16.log",
+        "readonly-1s-uring-1.log",
+        "readonly-1s-uring-16.log",
+        "readonly-2s-epoll-1.log",
+        "readonly-2s-epoll-16.log",
+        "readonly-2s-uring-1.log",
+        "readonly-2s-uring-16.log"
+      ]
+    },
+    "txnorder_wake": {
+      "job": "txnorder_wake",
+      "log_count": 1,
+      "logs": [
+        "wake.log"
+      ]
+    },
+    "fliplisten": [
+      {
+        "path": "fliplisten-io-ex-complete/epoll-a0/result.json",
+        "arrived": 71,
+        "served": 71
+      },
+      {
+        "path": "fliplisten-io-ex-complete/epoll-a1/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-io-ex-complete/uring-a0/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-io-ex-complete/uring-a1/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-io-ex-rollback/epoll-a0/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-io-ex-rollback/epoll-a1/result.json",
+        "arrived": 66,
+        "served": 66
+      },
+      {
+        "path": "fliplisten-io-ex-rollback/uring-a0/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-io-ex-rollback/uring-a1/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-ex-io-complete/epoll-a0/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-ex-io-complete/epoll-a1/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-ex-io-complete/uring-a0/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-ex-io-complete/uring-a1/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-ex-io-rollback/epoll-a0/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-ex-io-rollback/epoll-a1/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-ex-io-rollback/uring-a0/result.json",
+        "arrived": 56,
+        "served": 56
+      },
+      {
+        "path": "fliplisten-ex-io-rollback/uring-a1/result.json",
+        "arrived": 56,
+        "served": 56
+      }
+    ],
+    "netfix_query_stats": [
+      "1s-epoll-tcp",
+      "1s-epoll-tls",
+      "1s-uring-tcp",
+      "1s-uring-tls",
+      "2s-epoll-tcp",
+      "2s-epoll-tls",
+      "2s-uring-tcp",
+      "2s-uring-tls",
+      "oracle-oracle-tcp",
+      "oracle-oracle-tls"
+    ],
+    "netfix_unix": [
+      "1s-epoll-live",
+      "1s-epoll-regular",
+      "1s-epoll-stale",
+      "1s-epoll-symlink",
+      "1s-uring-live",
+      "1s-uring-regular",
+      "1s-uring-stale",
+      "1s-uring-symlink",
+      "2s-epoll-live",
+      "2s-epoll-regular",
+      "2s-epoll-stale",
+      "2s-epoll-symlink",
+      "2s-uring-live",
+      "2s-uring-regular",
+      "2s-uring-stale",
+      "2s-uring-symlink",
+      "oracle-oracle-live",
+      "oracle-oracle-regular",
+      "oracle-oracle-stale",
+      "oracle-oracle-symlink"
+    ],
+    "netfix_config": [
+      "1s-epoll-tcp",
+      "1s-epoll-tls",
+      "1s-uring-tcp",
+      "1s-uring-tls",
+      "2s-epoll-tcp",
+      "2s-epoll-tls",
+      "2s-uring-tcp",
+      "2s-uring-tls",
+      "oracle-oracle-tcp",
+      "oracle-oracle-tls"
+    ],
+    "netfix_tls": [
+      "1s-epoll",
+      "1s-uring",
+      "2s-epoll",
+      "2s-uring",
+      "oracle-oracle"
+    ],
+    "netfix_idle_buffers": [
+      "1s-epoll-tcp",
+      "1s-epoll-tls",
+      "1s-uring-tcp",
+      "1s-uring-tls",
+      "2s-epoll-tcp",
+      "2s-epoll-tls",
+      "2s-uring-tcp",
+      "2s-uring-tls",
+      "oracle-oracle-tcp",
+      "oracle-oracle-tls"
+    ],
+    "r7": [
+      "normalizer self-checks PASS",
+      "strict_noop=True: 305/305 identical bodies",
+      "PASS missing policy symbol, missing split-local parser, missing fliplisten clone and changed opcode fail strict identity"
+    ],
+    "differ-uring": {
+      "differ-split-0": [
+        "differ climon (atomic=0 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=21)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      ],
+      "differ-split-1": [
+        "differ climon (atomic=1 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=21)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      ],
+      "differ-armed-0": [
+        "differ climon (atomic=0 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=21)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      ],
+      "differ-armed-1": [
+        "differ climon (atomic=1 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=21)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      ]
+    },
+    "differ-epoll": {
+      "differ-split-0": [
+        "differ climon (atomic=0 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=22)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      ],
+      "differ-split-1": [
+        "differ climon (atomic=1 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=22)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      ],
+      "differ-armed-0": [
+        "differ climon (atomic=0 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=0 seed=22)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      ],
+      "differ-armed-1": [
+        "differ climon (atomic=1 seed=7)                            ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=19)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=20)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=23)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)",
+        "differ climon (atomic=1 seed=22)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      ]
+    }
+  }
+}

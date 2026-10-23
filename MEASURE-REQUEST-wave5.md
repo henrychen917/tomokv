@@ -259,7 +259,8 @@ tracking schedule link overlapping the final production rebuild (not accepted as
 runtime evidence). The final sweep starts only after all unit builds finish and
 uses the immutable POST. The ABBA self-test's earlier scheduler-crash fixture
 hit its existing deadline under overlapping work; its deadline/assertions are
-unchanged and a rerun on released CPUs 64–79 is required below.
+unchanged. The final rerun has CPUs 80–95 exclusively; supplementary batteries
+use 64–79 with their oracle on CPU 79.
 
 ### Arms and maintainer measurement request
 
@@ -288,7 +289,51 @@ full iteration are **NOT RUN here**, as reserved to the maintainer. No push.
 
 ### Final correctness receipts
 
-The final job sweep, both differential engines/geometries, supplementary mode
-batteries, and quiet ABBA self-test are still running. Their per-job results and
-all-leg witnesses will be listed here before the lane finishes. A failed or
-incomplete receipt is not counted as passing evidence.
+The frozen POST passes the broad **741-row** actual gate-job sweep. All **55**
+new lane rows pass with every declared leg. Both `tests/differ_gate.sh` engine
+runs pass split and fused+armed geometries, atomic 0/1, stable seeds 7/19/20/23
+plus the gate-selected rotating seed, and all 32 mode-equivalence combinations.
+The **40 climon seed legs** all pass; DIFF-TRK-1 is not filtered or skipped.
+
+The final R7 gate row reports **305/305 identical physical bodies** and passes
+all four missing-symbol/parser/clone/opcode controls. Bugs5 retains all 24 new
+mode/engine/atomic legs and 24 legacy-control legs. Compat3 retains all 144
+case/database/mode/read-local/engine/atomic legs, including the new EXEC memory
+admission check in the flags cases. Both tracking rows retain 16 legs each;
+FLIP listener handover retains all 16 direction/outcome/engine/atomic legs;
+netfix retains the oracle plus every declared transport/mode/engine leg; iofix
+retains all 16 feature/mode/engine legs. Writer R1–R12, the R8 handshake and R12
+allocation/invariant/retirement controls, RENAME join, all 24 WATCH legs and both
+inbox-wake modes pass. `docs/wave5/leg-inventory.json` independently requires
+each declared log/result in the archived gate witnesses.
+
+The standalone gate self-tests pass 68 tests; the touched INFO differential
+self-test additionally passes all 10 tests. Build/freshness evidence is recorded
+above. The supplementary mode/engine batteries, bounded atomic batteries and
+quiet ABBA row are still running; their final receipts will be added before
+completion. No incomplete or aborted run is accepted as passing evidence.
+
+`docs/wave5/coverage.json` traces 79 touched test files, their helper imports,
+variable-driven battery lists, linked units and matching gate jobs. It also
+records the changed reply/error/INFO string sweep. The selected correctness
+consumer jobs form a superset of all runnable matching jobs. The explicit
+semantic review covers EXEC/WATCH ordering and counters; tracking invalidation
+ordering/accounting; HSCAN and slowlog identity; stream/pubsub/FUNCTION grammar,
+error precedence and memory flags; CONFIG network/TLS grammar and query/buffer
+INFO fields; hz/dynamic-hz, DEBUG SLEEP and shutdown behavior.
+
+**NOT RUN:** the historical standalone `tests/txnfix_audit/*` scripts and
+`tests/watchlive_gate.sh` have no `tests/gate.sh` job; their directed EXEC/WATCH,
+writer-episode, mover and differential successor rows run in the final sweep.
+`tests/doubles.py` is a standalone legacy match for a shared float-error string,
+also with no gate job; the matching registered command/feature/differential
+batteries run. No new gate row or substitute driver was invented for these
+historical scripts. Performance-only `atomic_floor` and `efficiency`, throughput
+load generators, the null, and full iteration remain **NOT RUN**, reserved to
+the maintainer.
+
+One supplementary cohort was stopped as the orchestration changed to give ABBA
+an exclusive CPU allocation. Its partial/failed ledger is archived as
+`supplement-epoll-aborted`; the complete cohort restarted from fresh state.
+Earlier diagnostic failures and the non-TLS supplied oracle are documented above;
+all archived attempt receipts remain distinguishable from final passing runs.

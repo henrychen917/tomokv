@@ -1,0 +1,68 @@
+[
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "2.420000",
+    "label": "s6 battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "2.070000",
+    "label": "multi_exec battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "1.570000",
+    "label": "blocking battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.450000",
+    "label": "blockmulti battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.530000",
+    "label": "stream battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "streamgroups battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.880000",
+    "label": "pubsub battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.030000",
+    "label": "lua_scripting battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "ok",
+    "elapsed": "0.040000",
+    "label": "scriptsurf battery (atomic 0)"
+  },
+  {
+    "job": "feature-split-0",
+    "verdict": "FAIL",
+    "elapsed": "8.690000",
+    "label": "limits battery (atomic 0)"
+  },
+  {
+    "job": "release",
+    "verdict": "ok",
+    "elapsed": "0.000000",
+    "label": "release build (+footprint locks)"
+  }
+]
