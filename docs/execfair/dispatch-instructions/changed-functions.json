@@ -8,7 +8,7 @@
         "post": 194
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "normal-GET-1s-32",
@@ -19,7 +19,7 @@
         "post": 6208
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "normal-GET-2s-1",
@@ -30,7 +30,7 @@
         "post": 196
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "normal-GET-2s-32",
@@ -41,7 +41,7 @@
         "post": 6272
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "normal-SET-1s-1",
@@ -52,7 +52,7 @@
         "post": 216
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "normal-SET-1s-32",
@@ -63,7 +63,7 @@
         "post": 6912
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "normal-SET-2s-1",
@@ -74,7 +74,7 @@
         "post": 218
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "normal-SET-2s-32",
@@ -85,7 +85,7 @@
         "post": 6976
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "normal-INCR-1s-1",
@@ -96,7 +96,7 @@
         "post": 216
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "normal-INCR-1s-32",
@@ -107,7 +107,7 @@
         "post": 6912
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "normal-INCR-2s-1",
@@ -118,7 +118,7 @@
         "post": 218
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "normal-INCR-2s-32",
@@ -129,7 +129,7 @@
         "post": 6976
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-GET-1s-1",
@@ -140,7 +140,7 @@
         "post": 194
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-GET-1s-32",
@@ -151,7 +151,7 @@
         "post": 6208
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-GET-2s-1",
@@ -162,7 +162,7 @@
         "post": 196
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-GET-2s-32",
@@ -173,7 +173,7 @@
         "post": 6272
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-SET-1s-1",
@@ -184,7 +184,7 @@
         "post": 216
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-SET-1s-32",
@@ -195,7 +195,7 @@
         "post": 6912
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-SET-2s-1",
@@ -206,7 +206,7 @@
         "post": 218
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-SET-2s-32",
@@ -217,7 +217,7 @@
         "post": 6976
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-INCR-1s-1",
@@ -228,7 +228,7 @@
         "post": 216
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-INCR-1s-32",
@@ -239,7 +239,7 @@
         "post": 6912
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-INCR-2s-1",
@@ -250,7 +250,7 @@
         "post": 218
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   },
   {
     "case": "db0-INCR-2s-32",
@@ -261,6 +261,6 @@
         "post": 6976
       }
     ],
-    "reason": "The multi-only promotion callback changes the production execute body and compiler frame/register choices. No ordinary command predicate or handler changed; the instruction difference is observed, not normalized away."
+    "reason": "All counted differences are in execute, whose MULTI branch now has promotion and prefix insertion. The linked fused body gains a 32-byte stack-alignment prologue; split frame/register allocation also changes. Attribution to compiler propagation from that branch is an inference; no ordinary command predicate or handler changed."
   }
 ]

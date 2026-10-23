@@ -114,5 +114,10 @@
     "log": "build/execfair-retry-split-1.log",
     "exit_code": 0,
     "expected_exit": 0
+  },
+  {
+    "name": "stress",
+    "exit_code": 0,
+    "expected_exit": 0
   }
 ]

@@ -827,6 +827,15 @@ boot_log_tail(){ # a boot that failed is a defect report, not a filename: SHOW t
 boot(){ local bin=$1; shift; launch main "$bin" --ratio $GATE_RATIO "$@"; }
 boot_fused(){ # deliberately omits --ratio, which fused mode rejects
   local bin=$1; shift; launch fused "$bin" --thread-mode fused "$@"; }
+txn_proof_boot(){
+  # Run the same complete transaction/scatter jobs in the other thread mode.
+  # The default retains their established split boots and row counts.
+  case "${GATE_TXN_FUSED:-0}" in
+    0) boot "$@";;
+    1) boot_fused "$@";;
+    *) echo 'GATE_TXN_FUSED must be 0 or 1' >&2; return 2;;
+  esac
+}
 stop(){
   if [ "$SRV" -gt 0 ]; then
     kill -TERM "$SRV" 2>/dev/null
@@ -2399,7 +2408,7 @@ job_moverfix(){
 job_atomic_batteries(){
 # Explicit ON boot plus the non-vacuous epoch-MVCC gates. atomic_torn includes its own OFF control,
 # predecessor/promotion counters, overlapping writers, window liveness, and live CONFIG flips.
-boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic release boot"
+txn_proof_boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes || bad "atomic release boot"
 row_begin "atomic torn/window battery"
 py tests/atomic_torn.py 127.0.0.1 $PORT --release-build >$TMPDIR/gate-atomic-torn.txt 2>&1 \
     && ok "atomic torn/window battery" || bad "atomic torn/window battery" "see $TMPDIR/gate-atomic-torn.txt"
@@ -2603,14 +2612,19 @@ job_aclfix(){
 
 job_sort(){
 # ---- SORT's dynamic keys: exact production gate geometry, both atomic modes -------------------
-# tests/sort.py rejects any boot other than 16 shards at 6:2, buckets candidate names with
-# DEBUG SHARD, and requires concrete BY and GET keys plus STORE destination on the executor slot
-# opposite the source. No same-owner or one-executor run can satisfy this row.
+# The default SORT leg requires 16 shards at 6:2; GATE_TXN_FUSED=1 selects its explicit
+# eight-thread fused leg. Both prove actual distinct BY/GET/STORE owners with DEBUG SHARDS.
+# No same-owner or one-owner run can satisfy this row.
+local sort_mode=2s sort_geometry=(--ratio 6:2)
+if [ "${GATE_TXN_FUSED:-0}" = 1 ]; then
+  sort_mode=1s
+  sort_geometry=(--key-lb 0 --client-lb 0 --flip-auto 0)
+fi
 for AT in 0 1; do
-  boot "$CANDIDATE_BINARY" --ratio 6:2 --atomic "$AT" --enable-debug-command yes \
+  txn_proof_boot "$CANDIDATE_BINARY" "${sort_geometry[@]}" --atomic "$AT" --enable-debug-command yes \
       || bad "cross-owner SORT boot (atomic $AT)"
   row_begin "cross-owner SORT battery (atomic $AT)"
-  py tests/sort.py 127.0.0.1 "$PORT" >$TMPDIR/gate-sort-$AT.txt 2>&1 \
+  py tests/sort.py 127.0.0.1 "$PORT" 17 "$sort_mode" >$TMPDIR/gate-sort-$AT.txt 2>&1 \
       && ok "cross-owner SORT battery (atomic $AT)" \
       || bad "cross-owner SORT battery (atomic $AT)" "see $TMPDIR/gate-sort-$AT.txt"
   stop
@@ -2658,8 +2672,9 @@ job_bugs5(){
 
 job_debug(){
 # ---- debug-surface batteries: these drive DEBUG subcommands, hence their own armed boot -------
-local AT=${1##*-}
-  boot "$CANDIDATE_BINARY" --atomic $AT --enable-debug-command yes \
+local AT=${1##*-} mode=2s
+  [ "${GATE_TXN_FUSED:-0}" != 1 ] || mode=1s
+  txn_proof_boot "$CANDIDATE_BINARY" --atomic $AT --enable-debug-command yes \
       --key-lb 0 --client-lb 0 --flip-auto 0 \
       || bad "debug-surface boot (atomic $AT)"
   # AT1/AT2: exact owner interleavings plus live, witnessed EXEC/hop/wakeup races. Both
@@ -2711,7 +2726,7 @@ local AT=${1##*-}
     [ "$t" = xmove ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"
     if [ "$t" = txniso ]; then
-      txniso_checks 2s "$AT" "$TMPDIR/gate-txniso-$AT.txt" \
+      txniso_checks "$mode" "$AT" "$TMPDIR/gate-txniso-$AT.txt" \
           && ok "txniso battery (atomic $AT)" \
           || bad "txniso battery (atomic $AT)" "see $TMPDIR/gate-txniso-$AT.txt"
     else
@@ -2876,7 +2891,7 @@ job_txnorder2(){
 job_script_bounds(){
 # ---- cross-owner script bounds: production auto budgets and four cut slots per IO ----------
 for XS_MODE in limit window; do
-  boot "$CANDIDATE_BINARY" --atomic 1 --enable-debug-command yes \
+  txn_proof_boot "$CANDIDATE_BINARY" --atomic "${GATE_TXN_ATOMIC:-1}" --enable-debug-command yes \
       || bad "xscript $XS_MODE control boot"
   row_begin "xscript $XS_MODE control"
   py tests/xscript.py 127.0.0.1 $PORT "$XS_MODE" >$TMPDIR/gate-xscript-$XS_MODE.txt 2>&1 \
@@ -4303,7 +4318,7 @@ py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 || 
 
 job_asan_batteries(){
 # ---- 4. full tier: torture under ASAN ---------------------------------------------------------
-boot $ASAN --atomic 1 --enable-debug-command yes || bad "ASAN boot"
+txn_proof_boot $ASAN --atomic 1 --enable-debug-command yes || bad "ASAN boot"
 row_begin "torture under ASAN"
 py tests/torture.py 127.0.0.1 $PORT >$TMPDIR/gate-tort-asan.txt 2>&1 \
     && ok "torture under ASAN" || bad "torture under ASAN"
@@ -4339,7 +4354,7 @@ job_replyoff(){
 # ---- CLIENT REPLY OFF/SKIP + cross-shard MGET on a zero-copy boot: suppressed replies leave nothing on the
 # wire and release their borrows (regression for the partial-array leak fixed on the netwb lane) ------------
 for RA in 0 1; do
-  boot "$CANDIDATE_BINARY" --shards 64 --zc-min 64 --atomic $RA --enable-debug-command yes || bad "replyoff boot (atomic $RA)"
+  txn_proof_boot "$CANDIDATE_BINARY" --shards 64 --zc-min 64 --atomic $RA --enable-debug-command yes || bad "replyoff boot (atomic $RA)"
   row_begin "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic $RA)"
   py tests/replyoff_xshard.py 127.0.0.1 $PORT >$TMPDIR/gate-replyoff-$RA.txt 2>&1 \
       && ok "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic $RA)" \
