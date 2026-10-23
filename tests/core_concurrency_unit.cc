@@ -159,6 +159,7 @@ struct CoreConcurrencyTest {
     }
 
     #include "slowlog_completion_checks.inc"
+    #include "wave5_dispatch_checks.inc"
 
     static void watch_disconnect() {
         Fixture f;
@@ -1197,6 +1198,10 @@ int main(int argc, char** argv) {
     else if (row == "lifetime") {
         T::lifetime(); T::close_cycles(); T::flip_close();
         T::slowlog_completion<false>(); T::slowlog_completion<true>();
+        T::wave5_dispatch_defer<false>(); T::wave5_dispatch_defer<true>();
+    }
+    else if (row == "wave5-dispatch") {
+        T::wave5_dispatch_defer<false>(); T::wave5_dispatch_defer<true>();
     }
     else if (row == "slowlog-completion") {
         T::slowlog_completion<false>(); T::slowlog_completion<true>();

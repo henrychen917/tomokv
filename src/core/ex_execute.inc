@@ -123,8 +123,13 @@
         // retries; the debug registry qualifies begin-plain transitions when execution arrives.
         if (__builtin_expect(atomic_tripwire_enabled(), false))
             xshard_tripwire_fragment_begin(t, sh, op);
+        // The helper's plain/no-hazard arm is an immediate false. Keep that
+        // predicate here so ordinary commands do not enter its scatter frame.
+        // A WATCH-blocked writer acquires the hazard bit below before retry;
+        // scatter tasks still enter even without it (including debug holds).
         if (has_parked_predecessor(t, op, shard_id) ||
-            xshard_task_should_defer(*srv_, sh, t, op)) {
+            ((t.scatter || op.atomic_hazard()) &&
+             xshard_task_should_defer(*srv_, sh, t, op))) {
             atomic_deferred_.push_back(t);
             return true;
         }
