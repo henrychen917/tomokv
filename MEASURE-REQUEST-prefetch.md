@@ -4,7 +4,7 @@
 
 Candidate on `cx-prefetch`, based on `ef5204b2e9650693228cc105b34625516898b82d`. Production change: `a3e90a3ea`, nine added lines in `src/core/ex_loop.h`; no runtime knob, allocation, field, command handler, execution-order change, or push. The maintainer's **hardcode-or-delete rule applies**: prefetch survival is established, performance merit is PENDING. If the matched-load merit does not show a gain, the next step is to delete this fallback walk, using the supplied DELETE arm as the candidate. Keep the fused owner-batch prefetch.
 
-Read the entire `/home/user/Projects/round4-read/REGISTER.md` and its `ex-path.md` report. Re-established the EX4.1 anchors on this PRE instead of using the audit's old line numbers or twelve-body census. All builds/tools stayed on CPUs 80–95; correctness servers use 80–87, protocol clients 89–95, ports 23800–23899. The serverless PMU fixture pins itself to spare CPU 88 after constructing its eight-core topology. Other lanes are active; none of these receipts is a quiet-box performance result.
+Read the entire `/home/user/Projects/round4-read/REGISTER.md` and its `ex-path.md` report. Re-established the EX4.1 anchors on this PRE instead of using the audit's old line numbers or twelve-body census. All builds and runtime proofs use CPUs 80–95; correctness servers use 80–87, protocol clients 89–95, ports 23800–23899. The serverless PMU fixture pins itself to spare CPU 88 after constructing its eight-core topology. Other lanes are active; none of these receipts is a quiet-box performance result.
 
 ### What changed and why
 
@@ -24,7 +24,7 @@ POST keeps `prefetch_exec_batch` as a tiny inline guard at `src/core/ex_loop.h:2
 
 `ExLoopT<false>` is ordinary 2s; `ExLoopT<true>` serves 1s and the read-local-capable 2s executor. Snapshot drains have a separate per-task path and no fallback call. The audit's count of twelve is stale on this tree.
 
-For example, PRE db0 `drain_tasks<32,false>` at `0xd4c30` retains the loop at `0xd4d90–0xd4dfd`: `0xd4dfa: mov (%rcx,%rsi,4),%ecx` loads the owner word, then `0xd4dfd: jmp 0xd4d97` discards it. No owner comparison or bucket instruction remains. The source-annotated excerpt is retained at `build/prefetch/pre-drain-excerpt.txt`.
+For example, PRE db0 `drain_tasks<32,false>` at `0xd4c30` retains the loop at `0xd4d90–0xd4dfd`: `0xd4dfa: mov (%rcx,%rsi,4),%ecx` loads the owner word, then `0xd4dfd: jmp 0xd4d97` discards it. No owner comparison or bucket instruction remains. The [source-annotated excerpt](docs/prefetch/pre-drain-excerpt.txt) is retained, alongside the [POST singleton branch](docs/prefetch/post-singleton-disassembly.txt).
 
 POST has **two prefetcht0 instructions in each of four 333-byte `prefetch_exec_slots` bodies**, for both capabilities in both namespaces. The two fused `prefetch_owner_batch` bodies retain two hints each and are identical in the linked body audit. The offline checker `tools/prefetch_artifacts.py inspect ... --expect post` passes POST and **fails both PRE and PAD-A** with `missing bucket hints`. Missing symbols are failures too. DELETE and PAD-A separately confirm that fused hints remain. This is a standalone structural witness, not a new gate row: **DQ/DF = 0/0**. `EXPECT_QUICK` and `EXPECT_FULL` were not edited.
 
@@ -77,7 +77,15 @@ The residual unedited parser/IO-loop inlining and register allocation changes ar
 
 ### Correctness and freshness
 
-Final run ledger will be recorded here when the authorized suites finish. The proof uses the gate's own job interface, the standard differential suite/seed inventory, and strict make freshness. Full iteration and performance generators remain NOT RUN by this lane, as instructed.
+`make all` passed. All **45 make -q checks passed**: all, the 42 targets named by `job_production_units`, and the two concrete server builds behind its phony `mdbqsbr-live-arms` recipe. [Exact target/exit inventory](docs/prefetch/freshness.json). A phony aggregate cannot be fresh by definition, so the two recursive `all` targets are checked with their original flags. `build/owner-prefetch-unit` passed 1s/2s × read-local 0/1, including actual WATCH blockers and ordered suffix release.
+
+The gate command is `GATE_ONLY_JOBS='core_units exbatch_units exbatch_live perfex_units perfex_live ntnew4_live reorder_sync reorder_engagement reorder_identity splitlocal_units fused-0 fused-1 dbdefault' REDIS74_ROOT=/tmp/claude-1000/redis74 taskset -c 80-95 tests/gate.sh quick --server-cores 80-88 --server-smt '' --load-cores 89-95 --load-smt '' --ports 23820-23899`. The planner allocates only 80–87 to the actual server slot; 88 supplies the sixteenth physical CPU for its build budget. This is PARTIAL through the unmodified job/dependency/timeout/finalizer interface, not a full quick or iteration gate. Final artifacts: `build/gate-run.D0MIef`.
+
+The initial `python3 tests/gates_test.py` attempt had two 45-second fake-scheduler timeouts while compilation was active. Its failed output is retained in `initial-proof-logs.json.gz`; the rerun uses CPUs 89–95 after compilation. Initial job setup also tried the nonexistent unsuffixed `fused` job, then the manifest's binary-only Redis path; both were corrected. Overlapping abandoned prerequisite builds were stopped and their unit objects removed before the final gate rebuilt them and passed all freshness checks. No failed run is counted as green.
+
+The standard differential matrices run via [the exec-only engine wrappers](docs/prefetch/run-differ.sh), preserving `differ_gate.sh`'s suite and seed inventory, ownership checks and finalizers. Both engines and split/armed-fused geometries use target/oracle ports 23800/23801, CPUs 80–87, clients 89–95, 16 shards, ratio 6:2 for split, databases 16, atomic 0/1. Standard seeds selected at launch: 7, 19, 20, 23, 21 (permanent/discovered corpus plus rotating seed), 47 suites. Final results will be recorded after the authorized matrices and remaining gate jobs finish.
+
+Full iteration and performance generators remain **NOT RUN: reserved to the maintainer**, as instructed.
 
 ### Maintainer merit request
 

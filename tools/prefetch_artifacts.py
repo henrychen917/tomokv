@@ -117,6 +117,30 @@ def pad(binary, output):
                           post_sha256=digest(binary), pad_sha256=digest(output), sites=sites), indent=2))
 
 
+def identity_reason(name):
+    if 'prefetch_exec_slots' in name:
+        return 'EX4.1: flattened out-of-line fallback bucket walk.'
+    if 'drain_tasks' in name or 'prefetch_exec_batch' in name:
+        return 'EX4.1: inline fallback replaced by n > 1 guard and a direct walk call, including gathered/R7 emit copies.'
+    if 'ExLoopT<' in name and '::run(' in name:
+        return 'EX4.1: embedded task-drain fallback; compiler also changes drain inlining and register allocation.'
+    if 'parse_and_dispatch' in name:
+        return 'Unedited parser: executor-header change shifts GCC unit inlining; helpers/spills/blocks differ. Residual cost risk for merit.'
+    if 'r7_fused_sweep_impl' in name:
+        return 'Unedited sweep: compiler changes the inlining of compact_local_read_tombstones after the executor-header change.'
+    if 'IoLoop::run_loop' in name or 'IoLoop::r7_run_loop' in name:
+        return 'Unedited IO loop: downstream inlining/register allocation after executor-header change; cost risk for merit.'
+    if 'pubsub_reply_restricted' in name:
+        return 'Unedited helper: downstream inlining after executor-header change.'
+    if 'IoLoop::touch_worker' in name or 'Rob<64u>::acquire' in name:
+        return 'Unedited helper: standalone copy disappears as GCC changes inlining of callers.'
+    if 'watch_flush' in name:
+        return 'Existing study-label ordinal changes (tomo_multidb2_pad); inspect relocation identity, not a command-body edit.'
+    if 'epoll_pass' in name:
+        return 'Unedited epoll body: literal-pool target label changes in linked audit; no explicit executor edit.'
+    return 'Unedited body: compiler/link propagation from the executor-header change; strict difference retained, merit decides.'
+
+
 def identity(pre, post, output):
     output.mkdir(parents=True, exist_ok=True)
     before = audit.Binary(pre, output, literal_pools=True)
@@ -129,12 +153,7 @@ def identity(pre, post, output):
         if [(b['ins'], b['encodings']) for b in old] == [(b['ins'], b['encodings']) for b in new]:
             equal += 1
             continue
-        if any(s in name for s in ('prefetch_exec_slots', 'prefetch_exec_batch')):
-            reason = 'EX4.1: new out-of-line bucket walk, guarded for n > 1.'
-        elif 'drain_tasks' in name or 'exec_batch' in name:
-            reason = 'EX4.1: fallback walk replaced by singleton guard and direct prefetch call; execution order unchanged.'
-        else:
-            reason = 'No source change: compiler/link propagation from the executor header; retained strict diff, merit decides.'
+        reason = identity_reason(name)
         def lines(bs):
             return [f'clone {i}: {ins} | {enc}\n' for i, b in enumerate(bs)
                     for ins, enc in zip(b['ins'], b['encodings'])]
